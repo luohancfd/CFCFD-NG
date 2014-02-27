@@ -545,6 +545,8 @@ class Block(object):
                assume_ideal=0, mdot=None, emissivity=None,
                Twall_i=None, Twall_f=None, t_i=None, t_f=None,
                mass_flux=0.0, p_init=100.0e3, relax_factor=0.05,
+               direction_type="normal", direction_vector=[0.0,0.0,0.0],
+               direction_alpha=0.0, direction_beta=0.0,
                label=''):
         """
         Sets a boundary condition on a particular face of the block.
@@ -626,6 +628,10 @@ class Block(object):
         if type_of_BC == SUBSONIC_IN:
             newbc = SubsonicInBC(inflow_condition, 
                                  mass_flux=mass_flux, relax_factor=relax_factor,
+                                 direction_type=direction_type,
+                                 direction_vector=direction_vector,
+                                 direction_alpha=direction_alpha,
+                                 direction_beta=direction_beta,
                                  assume_ideal=assume_ideal, label=label)
         if type_of_BC == SUBSONIC_OUT:
             newbc = SubsonicOutBC(sponge_flag, label=label)
@@ -762,19 +768,24 @@ class Block(object):
             fp.write("sets_visc_flux = %d\n" % bc.sets_visc_flux)
             fp.write("reorient_vector_quantities = %s\n" % bc.reorient_vector_quantities)
             fp.write("Twall_flag = %s\n" % bc.Twall_flag)
-            fp.write("Rmatrix = %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e\n" %
+            fp.write("Rmatrix = %e %e %e %e %e %e %e %e %e\n" %
                      (bc.Rmatrix[0], bc.Rmatrix[1], bc.Rmatrix[2],
                       bc.Rmatrix[3], bc.Rmatrix[4], bc.Rmatrix[5],
                       bc.Rmatrix[6], bc.Rmatrix[7], bc.Rmatrix[8]))
             fp.write("assume_ideal = %d\n" % bc.assume_ideal)
             fp.write("mdot = ")
             for val in bc.mdot:
-                fp.write("%.6e " % val )
+                fp.write("%e " % val )
             fp.write("\n")
             fp.write("emissivity = %e\n" % bc.emissivity)
             fp.write("mass_flux = %e\n" % bc.mass_flux)
             fp.write("p_init = %e\n" % bc.p_init)
             fp.write("relax_factor = %e\n" % bc.relax_factor)
+            fp.write("direction_type = %s\n" % bc.direction_type)
+            fp.write("direction_vector = %e %e %e\n" % 
+                     (bc.direction_vector[0], bc.direction_vector[1], bc.direction_vector[2]))
+            fp.write("direction_alpha = %e\n" % bc.direction_alpha)
+            fp.write("direction_beta = %e\n" % bc.direction_beta)
             #
             fp.write("other_block = %d\n" % bc.other_block)
             if bc.other_face >= 0:

@@ -27,11 +27,19 @@ void SubsonicInBC::setup_stagnation_condition()
 }
 
 SubsonicInBC::SubsonicInBC(Block *bdp, int which_boundary, int inflow_condition_id_,
-			   double mass_flux_, double relax_factor_, bool assume_ideal)
+			   double mass_flux_, double relax_factor_,
+			   subsonic_in_direction_t direction_type_,
+			   std::vector<double> direction_vector_,
+			   double direction_alpha_, double direction_beta_,
+			   bool assume_ideal)
     : BoundaryCondition(bdp, which_boundary, SUBSONIC_IN), 
       inflow_condition_id(inflow_condition_id_),
       mass_flux(mass_flux_),
       relax_factor(relax_factor_),
+      direction_type(direction_type_),
+      direction_vector(direction_vector_),
+      direction_alpha(direction_alpha_),
+      direction_beta(direction_beta_),
       use_ideal_gas_relations(assume_ideal)
 {
     global_data &gd = *get_global_data_ptr();
@@ -44,6 +52,12 @@ SubsonicInBC::SubsonicInBC(Block *bdp, int which_boundary, int inflow_condition_
     cout << "    h0= " << h0 << " J/kg" << endl;
     cout << "    mass_flux= " << mass_flux << " kg/s/m**2" << endl;
     cout << "    relax_factor= " << relax_factor << endl;
+    cout << "    direction_type= " << get_subsonic_in_direction_name(direction_type) << endl;
+    cout << "    direction_vector= (" << direction_vector[0] << ", " << direction_vector[1]
+	 << ", " << direction_vector[2] << ")" << endl;
+    cout << "    direction_alpha= " << direction_alpha << endl;
+    cout << "    direction_beta= " << direction_beta << endl;
+    cout << "    use_ideal_gas_relations= " << use_ideal_gas_relations << endl;
 }
 
 SubsonicInBC::SubsonicInBC(const SubsonicInBC &bc)
@@ -51,6 +65,10 @@ SubsonicInBC::SubsonicInBC(const SubsonicInBC &bc)
       inflow_condition_id(bc.inflow_condition_id),
       mass_flux(bc.mass_flux),
       relax_factor(bc.relax_factor),
+      direction_type(bc.direction_type),
+      direction_vector(bc.direction_vector),
+      direction_alpha(bc.direction_alpha),
+      direction_beta(bc.direction_beta),
       use_ideal_gas_relations(bc.use_ideal_gas_relations),
       gstagp(bc.gstagp)
 {
@@ -60,6 +78,10 @@ SubsonicInBC::SubsonicInBC(const SubsonicInBC &bc)
 SubsonicInBC::SubsonicInBC()
     : BoundaryCondition(0, 0, SUBSONIC_IN), 
       inflow_condition_id(0), mass_flux(0.0), relax_factor(0.05), 
+      direction_type(SUBSONIC_IN_NORMAL),
+      direction_vector(std::vector<double>(3, 0.0)),
+      direction_alpha(0.0),
+      direction_beta(0.0),
       use_ideal_gas_relations(false)
 {
     gstagp = CFlowCondition();
@@ -76,6 +98,10 @@ SubsonicInBC & SubsonicInBC::operator=(const SubsonicInBC &bc)
 	relax_factor = bc.relax_factor;
 	use_ideal_gas_relations = bc.use_ideal_gas_relations;
 	gstagp = bc.gstagp;
+	direction_type = bc.direction_type;
+	direction_vector = bc.direction_vector;
+	direction_alpha = bc.direction_alpha;
+	direction_beta = bc.direction_beta;
     }
     setup_stagnation_condition();
     return *this;
@@ -89,6 +115,12 @@ void SubsonicInBC::print_info(std::string lead_in)
     cout << lead_in << "inflow_condition_id= " << inflow_condition_id << endl;
     cout << lead_in << "mass_flux= " << mass_flux << endl;
     cout << lead_in << "relax_factor= " << relax_factor << endl;
+    cout << lead_in << "direction_type= " 
+	 << get_subsonic_in_direction_name(direction_type) << endl;
+    cout << lead_in << "direction_vector= [" << direction_vector[0]
+	 << ", " << direction_vector[1] << ", " << direction_vector[2] << "]" << endl;
+    cout << lead_in << "direction_alpha= " << direction_alpha << endl;
+    cout << lead_in << "direction_beta= " << direction_beta << endl;
     cout << lead_in << "use_ideal_gas_relations= " << use_ideal_gas_relations << endl;
     cout << lead_in << "entropy= " << s0 << endl;
     cout << lead_in << "enthalpy= " << h0 << endl;
@@ -109,7 +141,8 @@ int SubsonicInBC::apply_convective(double t)
     double pA = 0.0;
     double p;
     double dp_over_p = 0.0;
-    double speed;
+    double speed, vt, vr, vz;
+    double x, y, rxy;
 
     switch ( which_boundary ) {
     case NORTH:
@@ -132,8 +165,7 @@ int SubsonicInBC::apply_convective(double t)
 	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    setup_stagnation_condition();
 	}
-	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
-	speed = gsp.u;
+	speed = subsonic_inflow_properties(gstagp, gsp, p);
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
@@ -167,8 +199,7 @@ int SubsonicInBC::apply_convective(double t)
 	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    setup_stagnation_condition();
 	}
-	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
-	speed = gsp.u;
+	speed = subsonic_inflow_properties(gstagp, gsp, p);
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
@@ -201,8 +232,7 @@ int SubsonicInBC::apply_convective(double t)
 	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    setup_stagnation_condition();
 	}
-	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
-	speed = gsp.u;
+	speed = subsonic_inflow_properties(gstagp, gsp, p);
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
@@ -245,13 +275,42 @@ int SubsonicInBC::apply_convective(double t)
 		 << " gstagp_p= " << gstagp.gas->p << endl;
 #           endif
 	}
-	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
-	speed = gsp.u;
+	speed = subsonic_inflow_properties(gstagp, gsp, p);
+	// For turbo inflow, beta sets the axial flow.
+	vz = speed * sin(direction_beta);
+	// ...and alpha sets the angle of the flow in the plane of rotation.
+	vt = speed * cos(direction_beta) * sin(direction_alpha);
+	vr = -speed * cos(direction_beta) * cos(direction_alpha);
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
 		face = src_cell->iface[WEST];
-		gsp.u = speed * face->n.x; gsp.v = speed * face->n.y; gsp.w = speed * face->n.z;
+		switch ( direction_type ) {
+		case SUBSONIC_IN_UNIFORM:
+		    // We're given the flow direction.
+		    gsp.u = speed * direction_vector[0];
+		    gsp.v = speed * direction_vector[1];
+		    gsp.w = speed * direction_vector[2];
+		    break;
+		case SUBSONIC_IN_AXIAL:
+		    // Axial-flow through a presumably circular surface.
+		    // [TODO] 27-Feb-2014 PJ: check that this fall-through is OK.
+		case SUBSONIC_IN_RADIAL:
+		    // Radial-in through a presumably cylindrical surface.
+		    // We also presume that the grid is orthogonal to the boundary
+		    // so that we don't have to recompute angles for each of the ghost cells.
+		    x = face->pos.x; y = face->pos.y; rxy = sqrt(x*x + y*y);
+		    gsp.u = vr * x/rxy - vt * y/rxy;
+		    gsp.v = vt * x/rxy + vr * y/rxy;
+		    gsp.w = vz;
+		    break;
+		case SUBSONIC_IN_NORMAL:
+		default:
+		    // Choose a flow direction that is locally-inward at this location on the boundary.
+		    gsp.u = speed * face->n.x;
+		    gsp.v = speed * face->n.y;
+		    gsp.w = speed * face->n.z;
+		}
 #               if 0
 		// Some debug... PJ 15-Jan-2014
 		cout << "subsonic conditions:" << endl;
@@ -289,8 +348,7 @@ int SubsonicInBC::apply_convective(double t)
 	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    setup_stagnation_condition();
 	}
-	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
-	speed = gsp.u;
+	speed = subsonic_inflow_properties(gstagp, gsp, p);
 	for (i = bd.imin; i <= bd.imax; ++i) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
@@ -323,8 +381,7 @@ int SubsonicInBC::apply_convective(double t)
 	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    setup_stagnation_condition();
 	}
-	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
-	speed = gsp.u;
+	speed = subsonic_inflow_properties(gstagp, gsp, p);
 	for (i = bd.imin; i <= bd.imax; ++i) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
@@ -357,19 +414,17 @@ int SubsonicInBC::apply_convective(double t)
 /// Still doesn't work for nonequilibrium chemistry 
 /// (and vibrational-nonequilibrium is likewise ignored).
 /// Generalise and revised by RJG for all gases, August 2013.
-/// 14-Jan-2014 PJ make direction an input so that we can specify
-///                the normal to the boundary.
+/// 27-Feb-2014: PJ: return the scalar speed rather than set the velocity components.
 ///
-/// TODO: make this like Hannes' subsonic inflow UDF for use in turbomachinery calcs.
-int SubsonicInBC::subsonic_inflow_properties(const CFlowCondition &stagnation,
-					     double dir_x, double dir_y, double dir_z,
-					     CFlowCondition &inflow_state, 
-					     double inflow_pressure)
+double SubsonicInBC::subsonic_inflow_properties(const CFlowCondition &stagnation,
+						CFlowCondition &inflow_state, 
+						double inflow_pressure)
 {
     global_data &G = *get_global_data_ptr();
     Gas_model &gmodel = *get_gas_model_ptr();
     size_t nsp = gmodel.get_number_of_species();
     size_t nmodes = gmodel.get_number_of_modes();
+    double speed = 0.0;
 
     // Carry over some of the properties without further calculation.
     inflow_state.tke = stagnation.tke;
@@ -397,13 +452,13 @@ int SubsonicInBC::subsonic_inflow_properties(const CFlowCondition &stagnation,
 	inflow_state.v = 0.0;
 	inflow_state.w = 0.0;
     } else {
-	double speed = sqrt(2.0*(h0 - h));
-	inflow_state.u = speed * dir_x;
-	inflow_state.v = speed * dir_y;
-	inflow_state.w = speed * dir_z;
+	speed = sqrt(2.0*(h0 - h));
+	inflow_state.u = speed;
+	inflow_state.v = 0.0;
+	inflow_state.w = 0.0;
     }
 
     if ( G.viscous ) gmodel.eval_transport_coefficients(*(inflow_state.gas));
     if ( G.diffusion ) gmodel.eval_diffusion_coefficients(*(inflow_state.gas));
-    return SUCCESS;
+    return speed;
 } // end SubsonicInBC::subsonic_inflow_properties()

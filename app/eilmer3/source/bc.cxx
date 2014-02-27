@@ -94,6 +94,30 @@ std::string get_bc_name(bc_t bc)
     }
 } // end get_bc_name()
 
+std::string get_subsonic_in_direction_name(subsonic_in_direction_t dir)
+{
+    switch ( dir ) {
+    case SUBSONIC_IN_NORMAL: return "normal";
+    case SUBSONIC_IN_UNIFORM: return "uniform";
+    case SUBSONIC_IN_RADIAL: return "radial";
+    case SUBSONIC_IN_AXIAL: return "axial";
+    default: return "none";
+    }
+} // end get_subsonic_in_direction_name()
+
+
+std::map<std::string,subsonic_in_direction_t> available_inflow_directions;
+int init_available_inflow_directions_map()
+{
+    typedef std::pair<std::string,subsonic_in_direction_t> name_direction_t;
+    // We keep the integer values for backward compatibility.
+    available_inflow_directions.insert(name_direction_t("normal",SUBSONIC_IN_NORMAL));
+    available_inflow_directions.insert(name_direction_t("uniform",SUBSONIC_IN_UNIFORM));
+    available_inflow_directions.insert(name_direction_t("radial",SUBSONIC_IN_RADIAL));
+    available_inflow_directions.insert(name_direction_t("axial",SUBSONIC_IN_AXIAL));
+    return SUCCESS;
+}
+
 //-----------------------------------------------------------------
 // Class-based boundary conditions in which all information about 
 // each boundary condition is contained within a single class 
@@ -988,6 +1012,9 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     double mass_flux = 0.0;
     double p_init = 100.0e3;
     double relax_factor = 0.05;
+    std::vector<double> direction_vector(3, 0.0);
+    double direction_alpha = 0.0;
+    double direction_beta = 0.0;
 
     switch ( type_of_BC ) {
     case ADJACENT:
@@ -1036,12 +1063,21 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	                       emissivity);
 	break;
     case SUBSONIC_IN:
+	if ( available_inflow_directions.size() == 0 ) init_available_inflow_directions_map();
 	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);
 	dict.parse_double(section, "mass_flux", mass_flux, 0.0);
 	dict.parse_double(section, "relax_factor", relax_factor, 0.05);
+	dict.parse_string(section, "direction_type", value_string, "normal");
+	dict.parse_vector_of_doubles(section, "direction_vector", direction_vector,
+				     std::vector<double>(3,0.0));
+	dict.parse_double(section, "direction_alpha", direction_alpha, 0.0);
+	dict.parse_double(section, "direction_beta", direction_beta, 0.0);
 	dict.parse_boolean(section, "assume_ideal", assume_ideal, false);
 	newBC = new SubsonicInBC(bdp, which_boundary, inflow_condition_id,
-				 mass_flux, relax_factor, assume_ideal);
+				 mass_flux, relax_factor,
+				 available_inflow_directions[value_string],
+				 direction_vector, direction_alpha, direction_beta,
+				 assume_ideal);
 	break;
     case TRANSIENT_UNI:
 	dict.parse_string(section, "filename", filename, "");

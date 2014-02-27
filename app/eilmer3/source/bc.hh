@@ -56,6 +56,14 @@ enum bc_t {
 };
 std::string get_bc_name(bc_t bc);
 
+enum subsonic_in_direction_t {
+    SUBSONIC_IN_NORMAL,
+    SUBSONIC_IN_UNIFORM,
+    SUBSONIC_IN_RADIAL,
+    SUBSONIC_IN_AXIAL
+};
+std::string get_subsonic_in_direction_name(subsonic_in_direction_t dir);
+
 //-----------------------------------------------------------------
 
 /** \brief Reflects normal velocity with respect to the cell interface.

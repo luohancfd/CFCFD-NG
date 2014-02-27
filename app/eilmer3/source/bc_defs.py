@@ -5,6 +5,9 @@
 ## \version 31-Jan-2005 extracted from e_model_spec.py
 ## \version 2013 clean up object definitions.  Introduce symbols for the BCs.
 ##
+
+import copy
+
 """
 Historically, within the C/C++ simulation code, 
 the boundary conditions were identified by integer constants
@@ -170,6 +173,7 @@ class BoundaryCondition(object):
                 'r_omega', 'centre', 'v_trans', 'Twall_flag', \
                 'reorient_vector_quantities', 'Rmatrix', \
                 'mass_flux', 'p_init', 'relax_factor', \
+                'direction_type', 'direction_vector', 'direction_alpha', 'direction_beta', \
                 'label'
     def __init__(self,
                  type_of_BC=SLIP_WALL,
@@ -202,6 +206,10 @@ class BoundaryCondition(object):
                  mass_flux=0.0,
                  p_init=100.0e3,
                  relax_factor=0.05,
+                 direction_type="normal",
+                 direction_vector=[0.0, 0.0, 0.0],
+                 direction_alpha=0.0,
+                 direction_beta=0.0,
                  label=""):
         """
         Construct a generic boundary condition object.
@@ -255,10 +263,23 @@ class BoundaryCondition(object):
         :param Twall_flag: a boolean parameter to select fixed Twall for moving-wall boundary
         :param reorient_vector_quantities: for exchange of vector quantities between adjacent boundaries
         :param Rmatrix: the 9 elements of the rotation matrix
-        :param mass_flux: outflow mass flux per unit area (in kg/s/m**2) across the block boundary
+        :param mass_flux: mass flux per unit area (in kg/s/m**2) across the block boundary
         :param p_init: initial pressure (in Pa) at the mass-flux-out boundary
         :param relax_factor: relaxation factor for adjustment of the actual pressure applied
-            to the ghost-cells of the mass-flux-out boundary
+            to the ghost-cells of the mass-flux-out boundary or the subsonic-in boundary
+        :param direction_type: "normal" (default) is to have the inflow velocity
+            locally-normal to the subsonic-in boundary.
+            "uniform" has the inflow velocity aligned with direction_vector
+            "radial" radial-inflow (turbine) through a cylindrical surface
+            with flow angles direction_alpha and direction_beta.
+            "axial" axial-flow (turbine) through a circular surface 
+            with flow angles direction_alpha and direction_beta.
+        :param direction_vector: List of x,y,z-components specifying the direction that the
+            inflow velocity follows if direction_type=="uniform"
+        :param direction_alpha: flow angle splitting the in-plane velocity into radial
+            and tangential components for direction_type=="radial" or "axial" (radians)
+        :param direction_beta: flow angle determining axial-velocity component
+            for direction_type=="radial" or "axial" (radians)
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
@@ -305,6 +326,11 @@ class BoundaryCondition(object):
         self.mass_flux = mass_flux
         self.p_init = p_init
         self.relax_factor = relax_factor
+        self.direction_type = "normal"
+        assert (type(direction_vector) is list) and (len(direction_vector) == 3)
+        self.direction_vector = [direction_vector[0], direction_vector[1], direction_vector[2]]
+        self.direction_alpha = direction_alpha
+        self.direction_beta = direction_beta
         self.label = label
             
         return
@@ -340,6 +366,11 @@ class BoundaryCondition(object):
         str_rep += ", mass_flux=%g" % self.mass_flux
         str_rep += ", p_init=%g" % self.p_init
         str_rep += ", relax_factor=%g" % self.relax_factor
+        str_rep += ", direction_type=\"%s\"" % self.direction_type
+        str_rep += ", direction_vector=[%g, %g, %g]" % \
+            (self.direction_vector[0], self.direction_vector[1], self.direction_vector[2])
+        str_rep += ", direction_alpha=%g" % self.direction_alpha
+        str_rep += ", direction_beta=%g" % self.direction_beta
         str_rep += ", label=\"%s\")" % self.label
         return str_rep
     def __copy__(self):
@@ -364,15 +395,19 @@ class BoundaryCondition(object):
                                  t_i=self.t_i,
                                  t_f=self.t_f,
                                  emissivity=self.emissivity,
-                                 r_omega=self.r_omega.copy(),
-                                 centre=self.centre.copy(),
-                                 v_trans=self.v_trans.copy(),
+                                 r_omega=copy.copy(self.r_omega),
+                                 centre=copy.copy(self.centre),
+                                 v_trans=copy.copy(self.v_trans),
                                  reorient_vector_quantities=self.reorient_vector_quantities,
                                  Twall_flag=self.Twall_flag,
-                                 Rmatrix=self.Rmatrix,
+                                 Rmatrix=copy.copy(self.Rmatrix),
                                  mass_flux=self.mass_flux,
                                  p_init=self.p_init,
                                  relax_factor=self.relax_factor,
+                                 direction_type=self.direction_type,
+                                 direction_vector=copy.copy(self.direction_vector),
+                                 direction_alpha=self.direction_alpha,
+                                 direction_beta=self.direction_beta,
                                  label=self.label)
     
 class AdjacentBC(BoundaryCondition):
@@ -634,7 +669,10 @@ class SubsonicInBC(BoundaryCondition):
 
     assume_ideal==0: use generalized stepping, down from stagnation to get conditions.
     """
-    def __init__(self, inflow_condition, mass_flux=0.0, relax_factor=0.05, assume_ideal=False, label=""):
+    def __init__(self, inflow_condition, mass_flux=0.0, relax_factor=0.05, 
+                 direction_type="normal", direction_vector=[0.0,0.0,0.0],
+                 direction_alpha=0.0, direction_beta=0.0,
+                 assume_ideal=False, label=""):
         """
         Construct a subsonic-inflow boundary.
 
@@ -642,9 +680,22 @@ class SubsonicInBC(BoundaryCondition):
             the total conditions for flow at the boundary.
         :param mass_flux: required inflow mass-flux per unit area (in kg/s/m**2)
             Set to 0.0 (default) if you don't wish to specify a value.
-        :param relax_factor: under-relaxation is advised. 
-        :param assume_ideal: A value of True allows the code to use ideal gas relations
-            to get an estimate of the ghost-cell conditions.
+        :param relax_factor: under-relaxation is advised.
+        :param direction_type: "normal" (default) is to have the inflow velocity
+            locally-normal to the boundary.
+            "uniform" has the inflow velocity aligned with direction_vector
+            "radial" radial-inflow (turbine) through a cylindrical surface
+            with flow angles direction_alpha and direction_beta.
+            "axial" axial-flow (turbine) through a circular surface 
+            with flow angles direction_alpha and direction_beta.
+        :param direction_vector: List of x,y,z-components specifying the direction that the
+            inflow velocity follows if direction_type=="uniform"
+        :param direction_alpha: flow angle splitting the in-plane velocity into radial
+            and tangential components for direction_type=="radial" or "axial" (radians)
+        :param direction_beta: flow angle determining axial-velocity component
+            for direction_type=="radial" or "axial" (radians)
+        :param assume_ideal: (not working) A value of True allows the code to use 
+            ideal gas relations to get an estimate of the ghost-cell conditions.
             A value of False, causes the code to compute the ghost-cell flow conditions
             from the total-conditions by making a number of finite steps through
             the isentropic expansion while allowing a general equation of state.
@@ -656,14 +707,26 @@ class SubsonicInBC(BoundaryCondition):
         """
         BoundaryCondition.__init__(self, type_of_BC=SUBSONIC_IN,
             inflow_condition=inflow_condition, mass_flux=mass_flux, relax_factor=relax_factor,
+            direction_type=direction_type, direction_vector=direction_vector,
+            direction_alpha=direction_alpha, direction_beta=direction_beta,
             assume_ideal=assume_ideal, label=label)
         return
     def __str__(self):
-        return "SubsonicInBC(inflow_condition=%s, mass_flux=%g, relax_factor=%g, assume_ideal=%s, label=\"%s\")" % \
-            (self.inflow_condition, self.mass_flux, self.relax_factor, self.assume_ideal, self.label)
+        return "SubsonicInBC(inflow_condition=%s, mass_flux=%g, relax_factor=%g, " \
+            "direction_type=\"%s\", direction_vector=[%g,%g,%g], " \
+            "direction_alpha=%g, direction_beta=%g, " \
+            "assume_ideal=%s, label=\"%s\")" % \
+            (self.inflow_condition, self.mass_flux, self.relax_factor,
+             self.direction_type, self.direction_vector[0], self.direction_vector[1],
+             self.direction_vector[2], self.direction_alpha, self.direction_beta,
+             self.assume_ideal, self.label)
     def __copy__(self):
         return SubsonicInBC(inflow_condition=self.inflow_condition,
                             mass_flux=self.mass_flux, relax_factor=self.relax_factor,
+                            direction_type=self.direction_type,
+                            direction_vector=self.direction_vector,
+                            direction_alpha=self.direction_alpha,
+                            direction_beta=self.direction_beta,
                             assume_ideal=self.assume_ideal, label=self.label)
 
 class SubsonicOutBC(BoundaryCondition):
@@ -1100,7 +1163,6 @@ wc_bcIndexFromName = {
     25: PARTIALLY_CATALYTIC, "25": PARTIALLY_CATALYTIC, "PARTIALLY_CATALYTIC": PARTIALLY_CATALYTIC
     }
 
-import copy
 
 class WallCatalycityBoundaryCondition(object):
     """
