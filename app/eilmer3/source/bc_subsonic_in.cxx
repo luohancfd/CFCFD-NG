@@ -166,12 +166,41 @@ int SubsonicInBC::apply_convective(double t)
 	    setup_stagnation_condition();
 	}
 	speed = subsonic_inflow_properties(gstagp, gsp, p);
+	// For turbo inflow, beta sets the axial flow.
+	vz = speed * sin(direction_beta);
+	// ...and alpha sets the angle of the flow in the plane of rotation.
+	vt = speed * cos(direction_beta) * sin(direction_alpha);
+	vr = -speed * cos(direction_beta) * cos(direction_alpha);
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
 		face = src_cell->iface[NORTH];
-		// Choose a flow direction that is locally-inward at this location on the boundary.
-		gsp.u = speed * -(face->n.x); gsp.v = speed * -(face->n.y); gsp.w = speed * -(face->n.z);
+		switch ( direction_type ) {
+		case SUBSONIC_IN_UNIFORM:
+		    // We're given the flow direction.
+		    gsp.u = speed * direction_vector[0];
+		    gsp.v = speed * direction_vector[1];
+		    gsp.w = speed * direction_vector[2];
+		    break;
+		case SUBSONIC_IN_AXIAL:
+		    // Axial-flow through a presumably circular surface.
+		    // [TODO] 27-Feb-2014 PJ: check that this fall-through is OK.
+		case SUBSONIC_IN_RADIAL:
+		    // Radial-in through a presumably cylindrical surface.
+		    // We also presume that the grid is orthogonal to the boundary
+		    // so that we don't have to recompute angles for each of the ghost cells.
+		    x = face->pos.x; y = face->pos.y; rxy = sqrt(x*x + y*y);
+		    gsp.u = vr * x/rxy - vt * y/rxy;
+		    gsp.v = vt * x/rxy + vr * y/rxy;
+		    gsp.w = vz;
+		    break;
+		case SUBSONIC_IN_NORMAL:
+		default:
+		    // Choose a flow direction that is locally-inward at this location on the boundary.
+		    gsp.u = speed * -(face->n.x);
+		    gsp.v = speed * -(face->n.y);
+		    gsp.w = speed * -(face->n.z);
+		}
 		dest_cell = bd.get_cell(i,j+1,k);
 		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i,j+2,k);
@@ -200,11 +229,41 @@ int SubsonicInBC::apply_convective(double t)
 	    setup_stagnation_condition();
 	}
 	speed = subsonic_inflow_properties(gstagp, gsp, p);
+	// For turbo inflow, beta sets the axial flow.
+	vz = speed * sin(direction_beta);
+	// ...and alpha sets the angle of the flow in the plane of rotation.
+	vt = speed * cos(direction_beta) * sin(direction_alpha);
+	vr = -speed * cos(direction_beta) * cos(direction_alpha);
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
 		face = src_cell->iface[EAST];
-		gsp.u = speed * -(face->n.x); gsp.v = speed * -(face->n.y); gsp.w = speed * -(face->n.z);
+		switch ( direction_type ) {
+		case SUBSONIC_IN_UNIFORM:
+		    // We're given the flow direction.
+		    gsp.u = speed * direction_vector[0];
+		    gsp.v = speed * direction_vector[1];
+		    gsp.w = speed * direction_vector[2];
+		    break;
+		case SUBSONIC_IN_AXIAL:
+		    // Axial-flow through a presumably circular surface.
+		    // [TODO] 27-Feb-2014 PJ: check that this fall-through is OK.
+		case SUBSONIC_IN_RADIAL:
+		    // Radial-in through a presumably cylindrical surface.
+		    // We also presume that the grid is orthogonal to the boundary
+		    // so that we don't have to recompute angles for each of the ghost cells.
+		    x = face->pos.x; y = face->pos.y; rxy = sqrt(x*x + y*y);
+		    gsp.u = vr * x/rxy - vt * y/rxy;
+		    gsp.v = vt * x/rxy + vr * y/rxy;
+		    gsp.w = vz;
+		    break;
+		case SUBSONIC_IN_NORMAL:
+		default:
+		    // Choose a flow direction that is locally-inward at this location on the boundary.
+		    gsp.u = speed * -(face->n.x);
+		    gsp.v = speed * -(face->n.y);
+		    gsp.w = speed * -(face->n.z);
+		}
 		dest_cell = bd.get_cell(i+1,j,k);
 		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i+2,j,k);
@@ -233,11 +292,41 @@ int SubsonicInBC::apply_convective(double t)
 	    setup_stagnation_condition();
 	}
 	speed = subsonic_inflow_properties(gstagp, gsp, p);
+	// For turbo inflow, beta sets the axial flow.
+	vz = speed * sin(direction_beta);
+	// ...and alpha sets the angle of the flow in the plane of rotation.
+	vt = speed * cos(direction_beta) * sin(direction_alpha);
+	vr = -speed * cos(direction_beta) * cos(direction_alpha);
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
 		face = src_cell->iface[SOUTH];
-		gsp.u = speed * face->n.x; gsp.v = speed * face->n.y; gsp.w = speed * face->n.z;
+		switch ( direction_type ) {
+		case SUBSONIC_IN_UNIFORM:
+		    // We're given the flow direction.
+		    gsp.u = speed * direction_vector[0];
+		    gsp.v = speed * direction_vector[1];
+		    gsp.w = speed * direction_vector[2];
+		    break;
+		case SUBSONIC_IN_AXIAL:
+		    // Axial-flow through a presumably circular surface.
+		    // [TODO] 27-Feb-2014 PJ: check that this fall-through is OK.
+		case SUBSONIC_IN_RADIAL:
+		    // Radial-in through a presumably cylindrical surface.
+		    // We also presume that the grid is orthogonal to the boundary
+		    // so that we don't have to recompute angles for each of the ghost cells.
+		    x = face->pos.x; y = face->pos.y; rxy = sqrt(x*x + y*y);
+		    gsp.u = vr * x/rxy - vt * y/rxy;
+		    gsp.v = vt * x/rxy + vr * y/rxy;
+		    gsp.w = vz;
+		    break;
+		case SUBSONIC_IN_NORMAL:
+		default:
+		    // Choose a flow direction that is locally-inward at this location on the boundary.
+		    gsp.u = speed * face->n.x;
+		    gsp.v = speed * face->n.y;
+		    gsp.w = speed * face->n.z;
+		}
 		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i,j-2,k);
@@ -349,11 +438,41 @@ int SubsonicInBC::apply_convective(double t)
 	    setup_stagnation_condition();
 	}
 	speed = subsonic_inflow_properties(gstagp, gsp, p);
+	// For turbo inflow, beta sets the axial flow.
+	vz = speed * sin(direction_beta);
+	// ...and alpha sets the angle of the flow in the plane of rotation.
+	vt = speed * cos(direction_beta) * sin(direction_alpha);
+	vr = -speed * cos(direction_beta) * cos(direction_alpha);
 	for (i = bd.imin; i <= bd.imax; ++i) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
 		face = src_cell->iface[TOP];
-		gsp.u = speed * -(face->n.x); gsp.v = speed * -(face->n.y); gsp.w = speed * -(face->n.z);
+		switch ( direction_type ) {
+		case SUBSONIC_IN_UNIFORM:
+		    // We're given the flow direction.
+		    gsp.u = speed * direction_vector[0];
+		    gsp.v = speed * direction_vector[1];
+		    gsp.w = speed * direction_vector[2];
+		    break;
+		case SUBSONIC_IN_AXIAL:
+		    // Axial-flow through a presumably circular surface.
+		    // [TODO] 27-Feb-2014 PJ: check that this fall-through is OK.
+		case SUBSONIC_IN_RADIAL:
+		    // Radial-in through a presumably cylindrical surface.
+		    // We also presume that the grid is orthogonal to the boundary
+		    // so that we don't have to recompute angles for each of the ghost cells.
+		    x = face->pos.x; y = face->pos.y; rxy = sqrt(x*x + y*y);
+		    gsp.u = vr * x/rxy - vt * y/rxy;
+		    gsp.v = vt * x/rxy + vr * y/rxy;
+		    gsp.w = vz;
+		    break;
+		case SUBSONIC_IN_NORMAL:
+		default:
+		    // Choose a flow direction that is locally-inward at this location on the boundary.
+		    gsp.u = speed * -(face->n.x);
+		    gsp.v = speed * -(face->n.y);
+		    gsp.w = speed * -(face->n.z);
+		}
 		dest_cell = bd.get_cell(i,j,k+1);
 		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i,j,k+2);
@@ -382,11 +501,41 @@ int SubsonicInBC::apply_convective(double t)
 	    setup_stagnation_condition();
 	}
 	speed = subsonic_inflow_properties(gstagp, gsp, p);
+	// For turbo inflow, beta sets the axial flow.
+	vz = speed * sin(direction_beta);
+	// ...and alpha sets the angle of the flow in the plane of rotation.
+	vt = speed * cos(direction_beta) * sin(direction_alpha);
+	vr = -speed * cos(direction_beta) * cos(direction_alpha);
 	for (i = bd.imin; i <= bd.imax; ++i) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
 		face = src_cell->iface[BOTTOM];
-		gsp.u = speed * face->n.x; gsp.v = speed * face->n.y; gsp.w = speed * face->n.z;
+		switch ( direction_type ) {
+		case SUBSONIC_IN_UNIFORM:
+		    // We're given the flow direction.
+		    gsp.u = speed * direction_vector[0];
+		    gsp.v = speed * direction_vector[1];
+		    gsp.w = speed * direction_vector[2];
+		    break;
+		case SUBSONIC_IN_AXIAL:
+		    // Axial-flow through a presumably circular surface.
+		    // [TODO] 27-Feb-2014 PJ: check that this fall-through is OK.
+		case SUBSONIC_IN_RADIAL:
+		    // Radial-in through a presumably cylindrical surface.
+		    // We also presume that the grid is orthogonal to the boundary
+		    // so that we don't have to recompute angles for each of the ghost cells.
+		    x = face->pos.x; y = face->pos.y; rxy = sqrt(x*x + y*y);
+		    gsp.u = vr * x/rxy - vt * y/rxy;
+		    gsp.v = vt * x/rxy + vr * y/rxy;
+		    gsp.w = vz;
+		    break;
+		case SUBSONIC_IN_NORMAL:
+		default:
+		    // Choose a flow direction that is locally-inward at this location on the boundary.
+		    gsp.u = speed * face->n.x;
+		    gsp.v = speed * face->n.y;
+		    gsp.w = speed * face->n.z;
+		}
 		dest_cell = bd.get_cell(i,j,k-1);
 		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i,j,k-2);
