@@ -105,6 +105,15 @@ If you want him to come and look at your simulation files when things go wrong,
 use the same.
 If not, use whatever hierarchy you like.
 
+Summary of lines for your ``.bashrc`` file::
+
+  export E3BIN=${HOME}/e3bin
+  export PATH=${PATH}:${E3BIN}
+  export LUA_PATH=${E3BIN}/?.lua
+  export LUA_CPATH=${E3BIN}/?.so
+  export PYTHONPATH=${PYTHONPATH}:${E3BIN}
+  export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${E3BIN}
+
 
 Building and running on Mac OSX
 -------------------------------
