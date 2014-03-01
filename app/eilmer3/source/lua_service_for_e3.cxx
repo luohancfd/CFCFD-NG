@@ -509,8 +509,11 @@ int luafn_enthalpy(lua_State *L)
     // Assume gas_data is a top of stack and store this index
     Gas_model *gmodel = get_gas_model_ptr();
     Gas_data Q(gmodel);
-    // Expect a gas_data as lua table at top of stack.
+    // Gas_data is argument 1. We need to bring it to
+    // TOS before using get_table_as_data()
+    lua_pushvalue(L, 1);
     get_table_as_gas_data(L, Q);
+    lua_pop(L, 1);
     // Then expect an integer for species index next
     int isp = luaL_checkinteger(L, 2);
     double h = gmodel->enthalpy(Q, isp);
