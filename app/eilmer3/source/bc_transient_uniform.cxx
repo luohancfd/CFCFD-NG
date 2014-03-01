@@ -73,7 +73,7 @@ TransientUniformBC::TransientUniformBC(Block *bdp, int which_boundary, std::stri
 	constexpr bool print_incoming_data = false;
 	if ( print_incoming_data ) {
 	    printf( "Sample[%d]: time=%e p=%e u=%e v=%e w=%e T=%e\n", 
-		    nsample, tta[nsample-1], pa[nsample-1], ua[nsample-1],
+		    static_cast<int>(nsample), tta[nsample-1], pa[nsample-1], ua[nsample-1],
 		    va[nsample-1], wa[nsample-1], Ta[nsample-1] );
 	    printf( "            tke=%e omega=%e\n", tkea[nsample-1], omegaa[nsample-1] );
 	    fflush(stdout);
@@ -92,7 +92,7 @@ TransientUniformBC::TransientUniformBC(Block *bdp, int which_boundary, std::stri
 	if ( print_incoming_data ) {
 	    printf( "            " );
 	    for ( size_t isp = 0; isp < nsp; ++isp ) {
-		printf( "massf[%d]=%e, ", isp, massfa[nsample-1][isp] );
+		printf( "massf[%d]=%e, ", static_cast<int>(isp), massfa[nsample-1][isp] );
 	    }
 	    printf( "\n" ); fflush(stdout);
 	}

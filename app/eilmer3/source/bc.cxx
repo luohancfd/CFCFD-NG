@@ -608,7 +608,7 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
     if ( verbose_BCs ) {
 	if ( bd.id == 0 && which_boundary == 0 ) {
 	    printf( "write_surface_heat_flux(): At t = %e, start block = %d, boundary = %d.\n",
-		    sim_time, bd.id, which_boundary );
+		    sim_time, static_cast<int>(bd.id), which_boundary );
 	}
     }
     if ((fp = fopen(filename.c_str(), "w")) == NULL) {
@@ -750,7 +750,7 @@ int BoundaryCondition::write_fstc_heat_flux( string filename, double sim_time )
     if ( verbose_BCs ) {
 	if ( bd.id == 0 && which_boundary == 0 ) {
 	    printf( "write_surface_heat_flux(): At t = %e, start block = %d, boundary = %d.\n",
-		    sim_time, bd.id, which_boundary );
+		    sim_time, static_cast<int>(bd.id), which_boundary );
 	}
     }
     if ((fp = fopen(filename.c_str(), "w")) == NULL) {
@@ -913,7 +913,7 @@ int BoundaryCondition::write_vertex_velocities(std::string filename, double sim_
     if ( verbose_BCs ) {
 	if ( bd.id == 0 && which_boundary == 0 ) {
 	    printf( "write_vertex_velocities(): At t = %e, start block = %d, boundary = %d.\n",
-		    sim_time, bd.id, which_boundary );
+		    sim_time, static_cast<int>(bd.id), which_boundary );
 	}
     }
     if ((fp = fopen(filename.c_str(), "w")) == NULL) {
