@@ -21,6 +21,18 @@ Knab_molecular_reaction(lua_State *L, Gas_model &g, double T_upper, double T_low
     U1_ = get_number(L, -1, "U1");
     alpha_ = get_number(L, -1, "alpha");
     alpha_A_ = alpha_*Generalised_Arrhenius::get_E_a()/PC_k_SI; // convert to K
+    
+    lua_getfield(L, -1, "Z_limit");
+    if ( lua_isnumber(L, -1) ) {
+	// User did provide Z_limit
+	Z_limit_ = lua_tonumber(L, -1);
+    }
+    else {
+	// User did not set Z_limit.
+	// So set to -1.0 so it's not used.
+	Z_limit_ = -1.0;
+    }
+    lua_pop(L, 1);
 
     string v_name = get_string(L,-1,"v_name");
     Chemical_species * X = get_library_species_pointer_from_name( v_name );
@@ -49,8 +61,8 @@ Knab_molecular_reaction(lua_State *L, Gas_model &g, double T_upper, double T_low
 
 Knab_molecular_reaction::
 Knab_molecular_reaction(double A, double n, double E_a, double T_upper, double T_lower,
-			double U0, double U1, double alpha, string v_name)
-    : Generalised_Arrhenius(A, n, E_a, T_upper, T_lower), U0_(U0), U1_(U1), alpha_(alpha), alpha_A_(alpha*E_a/PC_k_SI)
+			double U0, double U1, double alpha, double Z_limit, string v_name)
+    : Generalised_Arrhenius(A, n, E_a, T_upper, T_lower), U0_(U0), U1_(U1), alpha_(alpha), alpha_A_(alpha*E_a/PC_k_SI), Z_limit_(Z_limit)
 {
     Chemical_species * X = get_library_species_pointer_from_name( v_name );
     // Search for the corresponding energy modes
@@ -83,7 +95,6 @@ int
 Knab_molecular_reaction::
 s_eval(const Gas_data &Q)
 {
-    
     // 0. Pull out translational and vibrational temperatures
     //    NOTE: assuming mode '0' is translation, as it always should be
     double T = Q.T[0];
@@ -103,11 +114,6 @@ s_eval(const Gas_data &Q)
 	T0 = Tv;
 	T_ast = T;
     }
-    
-    //    cout << "T= " << T << " Tv= " << Tv << endl;
-    //    cout << "alphaA= " << alpha_A_ << endl;
-    //    cout << "U0= " << U0_ << " U1= " << U1_ << " T= " << T << endl;
-    //    cout << "U= " << U << " gamma= " << gamma << " T0= " << T0 << " T_ast= " << T_ast << endl;
     
     // 2. Calculate partition functions
     double Q_d_T = 1.0, Q_d_Tv = 1.0, Q_d_T0 = 1.0, Q_d_T_ast = 1.0;
@@ -133,9 +139,6 @@ s_eval(const Gas_data &Q)
 	}
     }
     
-    //    cout << "Q_d_T= " << Q_d_T << " Q_d_Tv= " << Q_d_Tv << " Q_d_T0= " << Q_d_T0 << " Q_d_T_ast= " << Q_d_T_ast << endl;
-    //    cout << "Q_a_gamma= " << Q_a_gamma << " Q_a_T0= " << Q_a_T0 << " Q_a_T_ast= " << Q_a_T_ast << " Q_a_U= " << Q_a_U << endl;
-
     // 3. Calculate nonequilibrium factor
     double tmpA = Q_d_T / Q_d_Tv;
     double tmpB = exp(-alpha_A_/T)*Q_a_gamma + Q_d_T0 - Q_a_T0;
@@ -154,9 +157,6 @@ s_eval(const Gas_data &Q)
     if( std::isnan(Z) || std::isinf(Z) )
 	Z = 1.0;
 
-
-    //    cout << "tmpA= " << tmpA << " tmpB= " << tmpB << " tmpC= " << tmpC << endl;
-    //    cout << "Z= " << Z << endl;
     // 4. Evaluate GA coefficient
     // Check on temperature limits
     if ( T > T_upper_ )
@@ -165,6 +165,11 @@ s_eval(const Gas_data &Q)
 	T = T_lower_;
     Generalised_Arrhenius::eval_from_T(T);
     // 5. Augment k with NEQ factor
+    if ( Z_limit_ > 0.0 && Z > Z_limit_ ) {
+	// We put a limit on the nonequilibrium factor in case it
+	// gets too large (that is, crazy) for some flow conditions
+	Z = Z_limit_;
+    }
     k_ *= fabs(Z);
 
     return SUCCESS;

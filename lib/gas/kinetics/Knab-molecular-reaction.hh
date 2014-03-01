@@ -19,7 +19,7 @@ class Knab_molecular_reaction : public Generalised_Arrhenius {
 public:
     Knab_molecular_reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower);
     Knab_molecular_reaction(double A, double n, double E_a, double T_upper, double T_lower,
-			    double U0, double U1, double alpha, std::string v_name);
+			    double U0, double U1, double alpha, double Z_limit, std::string v_name);
     ~Knab_molecular_reaction();
 
 private:
@@ -27,6 +27,7 @@ private:
     double U1_;
     double alpha_;
     double alpha_A_;
+    double Z_limit_;
     std::vector<Species_energy_mode*> vib_modes_;
     int iTv_;
     

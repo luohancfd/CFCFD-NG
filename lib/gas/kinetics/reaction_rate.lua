@@ -66,6 +66,7 @@ function transform_rate_model(t, participants, third_body)
       m.U0 = t.U0
       m.U1 = t.U1
       m.alpha = t.alpha
+      m.Z_limit = t.Z_limit
    else
       print("Reaction rate coefficient model: ", t[1])
       print("is unknown.")
