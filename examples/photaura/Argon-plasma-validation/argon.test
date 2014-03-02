@@ -1,0 +1,42 @@
+# argon.test
+# Optically thin radiative source strength for atmospheric Ar
+# plasma in spectral range 4000–40000 cm-1, and compare against
+# the numerical and experimental data from Deron et al.
+#
+# This test case is a validation of the spectral modelling for
+# partially ionised monatomic plasmas.
+#
+# DFP, 02-March-2014
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor {Run the preprocessing stage.} -body {
+    exec radmodel.py -i argon-radiators-NIST-TB-EQ.py -L rad-model.lua > LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation {Run the radiation transport code.} -body {
+    exec  python run.py > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test run-postprocessor {Run the postprocessing stage.} -body {
+    exec ./compute_RMS_error.py deron_fig3_data.txt 1 2 j_versus_T.txt 1 2 >> LOGFILE_POST
+} -result {} -returnCodes {0}
+
+test check-j-RMS {The optically thin emission RMS error with respect to the Deron Figure 3 data.} -body {
+    set j_RMS_error 0
+    # Looking for a line starting with 'RMS error'
+    set fp [open LOGFILE_POST r]
+    set results [read $fp]
+    close $fp
+    foreach line [split $results "\n"] {
+        if {[string first "RMS error" $line] == 0} {
+	        set j_RMS_error [lindex [split $line] 4]
+	    }
+    }
+    # If the error is less than 10 percent we are doing well
+    expr abs($j_RMS_error) < 10.0
+} -result {1}
+
+cleanupTests
