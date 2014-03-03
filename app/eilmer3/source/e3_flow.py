@@ -370,7 +370,7 @@ class StructuredGridFlow(object):
         self.nsp = 1
         return
 
-    def read(self, fp):
+    def read(self, fp, verbosity_level=0):
         """
         Read the cell-centre flow data for an entire block, Eilmer3-native format.
 
@@ -385,7 +385,7 @@ class StructuredGridFlow(object):
         # inside the names and still expect this simple process to work.
         for token in buf.split():
             self.vars.append(token.strip('"')) # just keep the name
-        print self.vars
+        if verbosity_level > 0: print self.vars
         buf = fp.readline() # number of cells in each index-direction
         tokens = buf.split()
         ni = int(tokens[0]); self.ni = ni
@@ -441,7 +441,8 @@ class StructuredGridFlow(object):
         return imin, jmin, kmin
 
     def add_aux_variables(self, cmdLineDict, omegaz=None,
-                          aux_var_names=None, compute_vars=None):
+                          aux_var_names=None, compute_vars=None,
+                          verbosity_level=0):
         """
         Adds variables to the data dictionary for each cell in a block.
 
@@ -457,13 +458,14 @@ class StructuredGridFlow(object):
         # Always try to attach a gas model, possibly using the command-line argument
         # or by falling back to the expected default file name.
         gmodelFileName = cmdLineDict.get("--gmodel-file", "gas-model.lua")
-        print "Attempt to create gas model from file:", gmodelFileName
+        if verbosity_level > 0: 
+            print "Attempt to create gas model from file:", gmodelFileName
         if os.path.exists(gmodelFileName):
             self.gmodel = create_gas_model(gmodelFileName)
             self.nsp = self.gmodel.get_number_of_species()
             self.ntm = self.gmodel.get_number_of_modes()
             self.speciesList = [self.gmodel.species_name(isp) for isp in range(self.nsp)]
-            print "speciesList=", self.speciesList
+            if verbosity_level > 0: print "speciesList=", self.speciesList
         else:
             print "Failed to create gas model."
             self.gmodel = None
@@ -645,7 +647,6 @@ class StructuredGridFlow(object):
                         val_dict = compute_vars(Q, u, v, w, self.gmodel)
                         for var,val in val_dict.iteritems():
                             self.data[var][i,j,k] = val
-                            
         # end of adding new data values for a block
         return
 
@@ -696,7 +697,8 @@ def read_time_from_flow_file(rootName, tindx, zipFiles=False):
     fp.close()
     return t
 
-def read_all_blocks(rootName, nblock, tindx, zipFiles=False, movingGrid=False):
+def read_all_blocks(rootName, nblock, tindx, zipFiles=False, movingGrid=False,
+                    verbosity_level=0):
     """
     Returns all grids and flow blocks for a single flow solution.
 
@@ -716,7 +718,7 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=False, movingGrid=False):
         else:
             fileName = rootName+".grid"+(".b%04d.t%04s" % (jb, tindx_str))
             fileName = os.path.join("grid", "t%04s" % tindx_str, fileName)
-        print "Read cell-vertex data from", fileName
+        if verbosity_level > 0: print "Read cell-vertex data from", fileName
         grid.append(StructuredGrid())
         if zipFiles: 
             fp = GzipFile(fileName+".gz", "rb")
@@ -727,7 +729,7 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=False, movingGrid=False):
         #
         fileName = rootName+".flow"+(".b%04d.t%04s" % (jb, tindx_str))
         fileName = os.path.join("flow", "t%04s" % tindx_str, fileName)
-        print "Read cell-centre flow data from", fileName
+        if verbosity_level > 0: print "Read cell-centre flow data from", fileName
         if zipFiles: 
             fp = GzipFile(fileName+".gz", "rb")
         else:
@@ -740,7 +742,7 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=False, movingGrid=False):
         fileName = os.path.join("flow", "t%04s" % tindx_str, fileName)
         # only open a BGK file if one is there
         if os.path.exists(fileName) | os.path.exists(fileName+".gz"):
-            print "Read velocity distribution data from", fileName
+            if verbosity_level > 0: print "Read velocity distribution data from", fileName
             if zipFiles: 
                 fp = GzipFile(fileName+".gz", "rb")
             else:
@@ -748,7 +750,7 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=False, movingGrid=False):
             bgk = StructuredGridFlow()
             bgk.read(fp)
             fp.close()
-            print "Append velocity distribution data to flow data"
+            if verbosity_level > 0: print "Append velocity distribution data to flow data"
             for var in bgk.vars:
                 if var not in flow[-1].vars:
                     flow[-1].vars.append(var)
@@ -1477,7 +1479,8 @@ def decode_range_from_string(range_str, min_value, max_value):
     #
     return first, last
 
-def write_profile_data(fileName, slice_list_str, tindx, nblock, grid, flow):
+def write_profile_data(fileName, slice_list_str, tindx, nblock, grid, flow,
+                       verbosity_level=0):
     """
     Write selected slices of cell data to a file in GnuPlot format.
 
@@ -1495,8 +1498,8 @@ def write_profile_data(fileName, slice_list_str, tindx, nblock, grid, flow):
             kfirst,klast = decode_range_from_string(kstr, 0, flow[jb].nk-1)
             jfirst,jlast = decode_range_from_string(jstr, 0, flow[jb].nj-1)
             ifirst,ilast = decode_range_from_string(istr, 0, flow[jb].ni-1)
-            print ("slice jb=%d i=%d:%d, j=%d:%d, k=%d:%d" %
-                   (jb,ifirst,ilast,jfirst,jlast,kfirst,klast))
+            if verbosity_level > 0: print ("slice jb=%d i=%d:%d, j=%d:%d, k=%d:%d" %
+                                           (jb,ifirst,ilast,jfirst,jlast,kfirst,klast))
             for k in range(kfirst,klast+1):
                 for j in range(jfirst,jlast+1):
                     for i in range(ifirst,ilast+1):
@@ -1583,7 +1586,7 @@ def convert_string(slice_at_point_str, nblock, grid, flow):
     return slice_list_string
 
 def write_profile_along_line(fileName, slice_line_str, tindx, nblock, 
-                             grid, flow, dimensions):
+                             grid, flow, dimensions, verbosity_level=0):
     """
     Write selected line of cell data to a file (in GnuPlot format).
 
@@ -1598,15 +1601,15 @@ def write_profile_along_line(fileName, slice_line_str, tindx, nblock,
         p0 = Vector(float(items[0]),float(items[1]),float(items[2]))
         p1 = Vector(float(items[3]),float(items[4]),float(items[5]))
         N = int(items[6])
-        print "Profile along line p0=", p0, "p1=", p1, "N=", N
+        if verbosity_level > 0: print "Profile along line p0=", p0, "p1=", p1, "N=", N
         ds = 1.0/float(N-1)
         jb=0; i=0; j=0; k=0  # initial guess for cell search
         for iN in range(N):
             s = iN*ds
             p = p0*(1.0-s) + p1*s
-            print "    locate p=", p,
+            if verbosity_level > 0: print "    locate p=", p,
             jb, i, j, k = locate_cell_and_block(grid, flow, dimensions, i, j, k, jb, p.x, p.y, p.z)
-            print "ijk=", i, j, k
+            if verbosity_level > 0: print "ijk=", i, j, k
             flow[jb].write_gnuplot_data_for_cell(fp, i, j, k)
     fp.close()
     return
@@ -1774,17 +1777,21 @@ def pretty_print_norms(norms, per_block_norm_list="", global_norm_list=""):
 # -----------------------------------------------------------------------------
 # radiation post-processing
 
-def tangent_slab_along_slice(fileName, slice_list_str, tindx, nblock, grid, flow):
+def tangent_slab_along_slice(fileName, slice_list_str, tindx, nblock, grid, flow,
+                             verbosity_level=1):
     """
     Perform a tangent-slab radiation calculation using the slices as the profile
 
     :param grid: list of StructuredGrid objects
     :param flow: list of StructuredGridFlow objects
+
+    The default verbosity_level=1 so that the printing behaviour is unchanged.
+    [TODO]: Dan you might like to check and update this, if necessary.
     """
     
     cells = []; s = []
     slice_list = slice_list_str.split(';')
-    # print "slice_list:", slice_list
+    if verbosity_level > 0: print "slice_list:", slice_list
     for slice_str in slice_list:
         bstr,istr,jstr,kstr = slice_str.split(',')
         bfirst,blast = decode_range_from_string(bstr, 0, nblock-1)
@@ -1792,8 +1799,9 @@ def tangent_slab_along_slice(fileName, slice_list_str, tindx, nblock, grid, flow
             kfirst,klast = decode_range_from_string(kstr, 0, flow[jb].nk-1)
             jfirst,jlast = decode_range_from_string(jstr, 0, flow[jb].nj-1)
             ifirst,ilast = decode_range_from_string(istr, 0, flow[jb].ni-1)
-            print ("slice jb=%d i=%d:%d, j=%d:%d, k=%d:%d" %
-                   (jb,ifirst,ilast,jfirst,jlast,kfirst,klast))
+            if verbosity_level > 0:
+                print ("slice jb=%d i=%d:%d, j=%d:%d, k=%d:%d" %
+                       (jb,ifirst,ilast,jfirst,jlast,kfirst,klast))
             for k in range(kfirst,klast+1):
                 for j in range(jfirst,jlast+1):
                     for i in range(ifirst,ilast+1):
@@ -1814,11 +1822,11 @@ def tangent_slab_along_slice(fileName, slice_list_str, tindx, nblock, grid, flow
     # T_i = cells[0]["T[0]"]
     # T_f = cells[-1]["T[0]"] + 0.5 * ( cells[-1]["T[0]"] - cells[-2]["T[0]"] )
     T_i = 0.0; T_f = 0.0
-    # print "T_i = %e, T_f = %e\n" % ( T_i, T_f )
+    # if verbosity_level > 0: print "T_i = %e, T_f = %e\n" % ( T_i, T_f )
     TS = TS_data(rsm,nslabs,T_i,T_f)
     divq = []
     divq_OT = []
-    print "Calculating the radiation spectra for all slabs..."
+    if verbosity_level > 0: print "Calculating the radiation spectra for all slabs..."
     b = Bar()
     b.len = 50
     rsm.prep_radiator_population_files()
@@ -1851,16 +1859,16 @@ def tangent_slab_along_slice(fileName, slice_list_str, tindx, nblock, grid, flow
     	ds_vec.append(ds)
     	Q_vec.append(Q)
     
-    print "\nSolving the tangent-slab problem..."
+    if verbosity_level > 0: print "\nSolving the tangent-slab problem..."
     q_total = TS.solve_for_divq_OT()
     TS.F_.write_to_file("optically-thin-TS-flux-spectra.data")
-    print "optically thin q_total = %0.3f W/cm2" % ( q_total * 1.0e-4 )
+    if verbosity_level > 0: print "optically thin q_total = %0.3f W/cm2" % ( q_total * 1.0e-4 )
     q_total = TS.quick_solve_for_divq()
     TS.F_.write_to_file("approximate-TS-flux-spectra.data")
-    print "approximate q_total = %0.3f W/cm2" % ( q_total * 1.0e-4 )
+    if verbosity_level > 0: print "approximate q_total = %0.3f W/cm2" % ( q_total * 1.0e-4 )
     q_total = TS.exact_solve_for_divq()
     TS.F_.write_to_file("exact-TS-flux-spectra.data")
-    print "exact q_total = %0.3f W/cm2" % ( q_total * 1.0e-4 )
+    if verbosity_level > 0: print "exact q_total = %0.3f W/cm2" % ( q_total * 1.0e-4 )
     ofile = open( fileName, "w" )
     ofile.write( "# Column 1: 1D cell location, s (m)\n" )
     ofile.write( "# Column 2: spatial step, ds (m)\n" )

@@ -48,6 +48,8 @@ Summary of options::
 | 
 |           [--prepare-restart] [--prepare-fstc-restart]
 |           [--put-into-folders]
+|
+|           [--verbosity=<int>]
 
 Examples
 --------
@@ -135,6 +137,8 @@ from e3_grid import *
 from e3_block import *
 from e3_flow import *
 
+verbosity_level = 0
+
 shortOptions = ""
 longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "binary-format", "tecplot", 
                "prepare-restart", "put-into-folders", "tindx=", "output-file=", 
@@ -146,7 +150,7 @@ longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "binary-f
                "add-user-computed-vars=",
                "add-total-enthalpy", "add-mach", "heat-flux-list=", "vertex-velocity-list=", 
                "plot3d", "omegaz=", "tangent-slab-list=", "prepare-fstc-restart", "moving-grid",
-               "add-transport-coeffs"]
+               "add-transport-coeffs", "verbosity="]
 
 def printUsage():
     print ""
@@ -182,6 +186,8 @@ def printUsage():
     print ""
     print "          [--prepare-restart] [--prepare-fstc-restart]"
     print "          [--put-into-folders]"
+    print ""
+    print "          [--verbosity=<int>]"
     print ""
     print "For further information, see the online documentation, the Eilmer3 User Guide"
     print "and the source code."
@@ -254,6 +260,8 @@ def prepare_for_restart(rootName, tindx):
     This function essentially documents the process of setting up for a restart.
     .. Versions: PJ, 19-Feb-2009 for Rainer.
        24-Jan-2010 added some suggestions from Fabs
+
+    This function is always verbose because we want the user to check things.
     """
     print "Preparing a restart from tindx=", tindx
     fileName = rootName + ".times"
@@ -343,7 +351,8 @@ def prepare_fstc_restart(rootName, tindx):
     flow data files so that the simulation may be restarted cleanly.
     Automatically replace in the .control file the old dt from the .finish file.
     """
-    print "Preparing a fstc-restart from tindx=", tindx
+    global verbosity_level
+    if verbosity_level > 0: print "Preparing a fstc-restart from tindx=", tindx
     fileName = rootName + ".times"
     fp = open(fileName, "r")
     content = fp.read()
@@ -369,7 +378,7 @@ def prepare_fstc_restart(rootName, tindx):
             # so we need to relabel this solution and the flow files.
             tindx = last_tindx + 1
             tindx_str = "%04d" % tindx
-            print "Relabel the 9999 time index to", tindx_str
+            if verbosity_level > 0: print "Relabel the 9999 time index to", tindx_str
             t = float(tokens[1])
             dt = float(tokens[2])
             fp.write("%04d %e %e\n" % (tindx, t, dt))
@@ -377,7 +386,7 @@ def prepare_fstc_restart(rootName, tindx):
             solution_file_list = glob(pattern)
             for srcFileName in solution_file_list:
                 destFileName = srcFileName.replace("9999", tindx_str)
-                print "   Rename", srcFileName, "-->", destFileName
+                if verbosity_level > 0: print "   Rename", srcFileName, "-->", destFileName
                 os.renames(srcFileName, destFileName)
             break
         elif int(first_item) == tindx:
@@ -409,45 +418,47 @@ def put_into_folders(rootName, times_dict):
     the directory very busy and tedious to clean up, the newer arrangement
     writes the grid and solution files to their own directores.
     """
-    print "Put the solution and grid files into folders."
-    print "(This should be needed for old simulations, only.)"
+    global verbosity_level
     work_dir = os.getcwd()
-    print "Working in directory:", work_dir
     tindx_list = times_dict.keys()
-    print "time indices:", tindx_list
-    print "Move grid files."
+    if verbosity_level > 0:
+        print "Put the solution and grid files into folders."
+        print "(This should be needed for old simulations, only.)"
+        print "Working in directory:", work_dir
+        print "time indices:", tindx_list
+        print "Move grid files."
     grid_file_list = glob(rootName+".grid.b????.t????*")
     for old_name in grid_file_list:
         new_name = os.path.join("grid", "t0000", old_name)
-        print "   ", old_name, "-->", new_name
+        if verbosity_level > 0: print "   ", old_name, "-->", new_name
         os.renames(old_name, new_name)
     print "Move flow files."
     for tindx in tindx_list:
         tindx_str = "t%04d" % tindx
-        print "tindx:", tindx
+        if verbosity_level > 0: print "tindx:", tindx
         flow_file_list = glob(rootName+".flow.b????."+tindx_str+"*")
         for old_name in flow_file_list:
             new_name = os.path.join("flow", tindx_str, old_name)
-            print "   ", old_name, "-->", new_name
+            if verbosity_level > 0: print "   ", old_name, "-->", new_name
             os.renames(old_name, new_name)
-    print "Move history files."
+    if verbosity_level > 0: print "Move history files."
     hist_file_list = glob(rootName+".hist.b????*")
     for old_name in hist_file_list:
         new_name = os.path.join("hist", old_name)
-        print "   ", old_name, "-->", new_name
+        if verbosity_level > 0: print "   ", old_name, "-->", new_name
         os.renames(old_name, new_name)
-    print "Move plot files."
+    if verbosity_level > 0: print "Move plot files."
     plot_file_list = glob(rootName+"*vtu*")
     for old_name in plot_file_list:
         new_name = os.path.join("plot", old_name)
-        print "   ", old_name, "-->", new_name
+        if verbosity_level > 0: print "   ", old_name, "-->", new_name
         os.renames(old_name, new_name)
     plot_file_list = glob(rootName+"*visit*")
     for old_name in plot_file_list:
         new_name = os.path.join("plot", old_name)
-        print "   ", old_name, "-->", new_name
+        if verbosity_level > 0: print "   ", old_name, "-->", new_name
         os.renames(old_name, new_name)
-    print "Done."
+    if verbosity_level > 0: print "Done."
     return
 
 #----------------------------------------------------------------------------
@@ -587,7 +598,7 @@ class BoundaryHeatFluxData(object):
 	"""
 	Read in heat-flux data from file.
 	"""
-	if fp==None:
+	if fp == None:
 	    print "HeatFluxData.read(): no file was provided!"
 	    sys.exit()
 	buf = fp.readline() # time
@@ -607,9 +618,9 @@ class BoundaryHeatFluxData(object):
 	    tks = buf.split()
 	    if len(tks) < 14:
 	    	print "BoundaryHeatFluxData::read()"
-	    	print "The heat flux data files may have been created from an older"
-	    	print "version of eilmer3 and therefore Re_wall cannot be extracted."
-	    	print "Continuing on without Re_wall."
+	    	print "    The heat flux data files may have been created from an older"
+	    	print "    version of eilmer3 and therefore Re_wall cannot be extracted."
+	    	print "    Continuing on without Re_wall."
 	    	Re_wall = 0.0
 	    else:
 	    	Re_wall = float(tks[13])
@@ -628,6 +639,7 @@ class BoundaryHeatFluxData(object):
 	    if self.iface[-1].i > self.irange[1]: self.irange[1] = self.iface[-1].i
 	    if self.iface[-1].j > self.jrange[1]: self.jrange[1] = self.iface[-1].j
 	    if self.iface[-1].k > self.krange[1]: self.krange[1] = self.iface[-1].k
+        return
 	    
     def get_iface(self,i,j,k):
 	# check if indices are in-range
@@ -644,14 +656,15 @@ class BoundaryHeatFluxData(object):
 	for ihfd in self.iface:
 	    if ihfd.i == i and ihfd.j == j and ihfd.k == k:
 		return ihfd
-	
-	print "search failed!"
+	#
+	print "BoundaryHeatFluxData.get_iface(): search failed!"
 	sys.exit()
 
 def read_all_heat_flux_data(rootName, nblock, tindx, zipFiles=0):
     """
     Returns all heat-flux data for a single flow solution.
     """
+    global verbosity_level
     heat = []
     for jb in range(nblock):
 	heat.append([])
@@ -663,7 +676,7 @@ def read_all_heat_flux_data(rootName, nblock, tindx, zipFiles=0):
 	    	and os.path.isfile(fileName+".gz") == False: 
 		# print "file %s does not exist" % ( fileName )
 		break
-	    print "Read heat-flux data from", fileName
+	    if verbosity_level > 0: print "Read heat-flux data from", fileName
 	    heat[-1].append(BoundaryHeatFluxData())
 	    if zipFiles: 
                 fp = GzipFile(fileName+".gz", "rb")
@@ -678,6 +691,7 @@ def write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, h
     Extracts and writes to file a profile of heat-flux data from a collection
     of surface/boundary slices.
     """
+    global verbosity_level
     fp = open(outputFileName, "w")
     # write header
     fp.write("# Filename: %s\n" % outputFileName)
@@ -696,7 +710,7 @@ def write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, h
     fp.write("# Column 13: pos.z (m)\n")
     fp.write("# Column 14: Mass flux (kg/m**2/s)\n")
     heat_flux_lists = heat_flux_list_str.split(';')
-    print "heat_flux_lists = ", heat_flux_lists
+    if verbosity_level > 0: print "heat_flux_lists = ", heat_flux_lists
     first = True
     L = 0.0
     for heat_flux_str in heat_flux_lists:
@@ -712,8 +726,9 @@ def write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, h
 		    					hf_data[jb][js].jrange[1])
 		ifirst,ilast = decode_range_from_string(istr, hf_data[jb][js].irange[0], 
 		    					hf_data[jb][js].irange[1])
-		print ("slice jb=%d js=%d i=%d:%d, j=%d:%d, k=%d:%d" %
-                   (jb,js,ifirst,ilast,jfirst,jlast,kfirst,klast))
+		if verbosity_level > 0:
+                    print ("slice jb=%d js=%d i=%d:%d, j=%d:%d, k=%d:%d" %
+                           (jb,js,ifirst,ilast,jfirst,jlast,kfirst,klast))
 		for k in range(kfirst,klast+1):
 		    for j in range(jfirst,jlast+1):
 			for i in range(ifirst,ilast+1):
@@ -772,8 +787,8 @@ class BoundaryVertexVelocityData(object):
 	"""
 	Read in vertex velocity data from file.
 	"""
-	if fp==None:
-	    print "VertexVelocityData.read(): no file was provided!"
+	if fp == None:
+	    print "BoundaryVertexVelocityData.read(): no file was provided!"
 	    sys.exit()
 	buf = fp.readline() # time
 	time_stamp = float(buf)
@@ -785,7 +800,7 @@ class BoundaryVertexVelocityData(object):
 	tks = buf.split()
 	ni = int(tks[0]); nj = int(tks[1]); nk = int(tks[2])
 	dim = ni*nj*nk
-	
+	#
 	for line in range(dim):
 	    buf = fp.readline() # vertex velocity data
 	    #if len(buf)==0: break
@@ -795,7 +810,6 @@ class BoundaryVertexVelocityData(object):
 	                               x=float(tks[3]),y=float(tks[4]),z=float(tks[5]),
 	                               vx=float(tks[6]),vy=float(tks[7]),vz=float(tks[8]),
 	                               v=v) )
-                      
 	    # set ranges
 	    # lower
 	    if self.vtx[-1].i < self.irange[0]: self.irange[0] = self.vtx[-1].i
@@ -805,6 +819,7 @@ class BoundaryVertexVelocityData(object):
 	    if self.vtx[-1].i > self.irange[1]: self.irange[1] = self.vtx[-1].i
 	    if self.vtx[-1].j > self.jrange[1]: self.jrange[1] = self.vtx[-1].j
 	    if self.vtx[-1].k > self.krange[1]: self.krange[1] = self.vtx[-1].k
+        return
 	    
     def get_vtx(self,i,j,k):
 	# check if indices are in-range
@@ -821,14 +836,15 @@ class BoundaryVertexVelocityData(object):
 	for ihfd in self.vtx:
 	    if ihfd.i == i and ihfd.j == j and ihfd.k == k:
 		return ihfd
-	
-	print "search failed!"
+	#
+	print "BoundaryVertexVelocityData.get_vtx(): search failed!"
 	sys.exit()
   
 def read_all_vertex_velocity_data(rootName, nblock, tindx, zipFiles=0):
     """
     Returns all heat-flux data for a single flow solution.
     """
+    global verbosity_level
     velocity = []
     for jb in range(nblock):
 	velocity.append([])
@@ -840,7 +856,8 @@ def read_all_vertex_velocity_data(rootName, nblock, tindx, zipFiles=0):
 	    	and os.path.isfile(fileName+".gz") == False: 
 		# print "file %s does not exist" % ( fileName )
 		break
-	    print "Read vertex velocity data from", fileName
+            if verbosity_level > 0:
+                print "Read vertex velocity data from", fileName
 	    velocity[-1].append(BoundaryVertexVelocityData())
 	    if zipFiles: 
                 fp = GzipFile(fileName+".gz", "rb")
@@ -855,6 +872,7 @@ def write_vertex_velocity_profile(outputFileName, vertex_velocity_list_str, tind
     Extracts and writes to file a profile of vertex velocity data from a collection
     of surface/boundary slices.
     """
+    global verbosity_level
     fp = open(outputFileName, "w")
     # write header
     fp.write("# Filename: %s\n" % outputFileName)
@@ -868,7 +886,8 @@ def write_vertex_velocity_profile(outputFileName, vertex_velocity_list_str, tind
     fp.write("# Column 8: Vertex position, z (m)\n")
 
     vertex_velocity_lists = vertex_velocity_list_str.split(';')
-    print "vertex_velocity_lists = ", vertex_velocity_lists
+    if verbosity_level > 0:
+        print "vertex_velocity_lists = ", vertex_velocity_lists
     first = True
     L = 0.0
     for vertex_velocity_str in vertex_velocity_lists:
@@ -958,9 +977,6 @@ def parse_user_script(fname):
     return var_names, compute_vars
 
 if __name__ == '__main__':
-    print "Begin e3post.py..."
-    print "Source code revision string: ", get_revision_string()
-    #
     try:
         userOptions = getopt(sys.argv[1:], shortOptions, longOptions)
     except GetoptError, e:
@@ -969,6 +985,10 @@ if __name__ == '__main__':
         printUsage()
         sys.exit(1)
     uoDict = dict(userOptions[0])
+    verbosity_level = int(uoDict.get("--verbosity", "0"))
+    if verbosity_level > 0 or len(userOptions[0]) == 0 or uoDict.has_key("--help"):
+        print "Begin e3post.py..."
+        print "Source code revision string: ", get_revision_string()
     if len(userOptions[0]) == 0 or uoDict.has_key("--help"):
         printUsage()
         sys.exit(0)
@@ -1050,20 +1070,23 @@ if __name__ == '__main__':
     print "About to process the following solutions:", tindx_list
     for tindx in tindx_list:
         if uoDict.has_key("--vtk-xml"):
-            print "Assemble VTK-XML files for t=", times_dict[tindx]
+            if verbosity_level > 0:
+                print "Assemble VTK-XML files for t=", times_dict[tindx]
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx],
                                 uoDict.has_key("--binary-format"))
         #
         if uoDict.has_key("--tecplot"):
-            print "Assemble Tecplot file for t=", times_dict[tindx]
+            if verbosity_level > 0:
+                print "Assemble Tecplot file for t=", times_dict[tindx]
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             write_Tecplot_file(rootName, tindx, nblock, grid, flow, times_dict[tindx])
         #
         if uoDict.has_key("--plot3d"):
-            print "Write out Plot3d grid for t=", times_dict[tindx]
+            if verbosity_level > 0:
+                print "Write out Plot3d grid for t=", times_dict[tindx]
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             # tindx may be an integer, or already a string such as "xxxx"
@@ -1078,15 +1101,18 @@ if __name__ == '__main__':
             if not os.access(plotPath, os.F_OK):
                 os.makedirs(plotPath)
             fname = os.path.join(plotPath, fname)
-            print "Writing true (node-centred) grid for t=", times_dict[tindx]
+            if verbosity_level > 0:
+                print "Writing true (node-centred) grid for t=", times_dict[tindx]
             write_plot3d_grid(fname, grid)
-            print "Writing cell-centred grid and function files for t=", times_dict[tindx]
+            if verbosity_level > 0:
+                print "Writing cell-centred grid and function files for t=", times_dict[tindx]
             write_plot3d_files(rootName, tindx, nblock, grid, flow, times_dict[tindx])
         #
         if uoDict.has_key("--slice-list") or uoDict.has_key("--slice-at-point"):
-            print "Extract slices of data for t=", times_dict[tindx]
             outputFileName = uoDict.get("--output-file", "profile.data")
-            print "    outputFileName=", outputFileName
+            if verbosity_level > 0:
+                print "Extract slices of data for t=", times_dict[tindx]
+                print "    outputFileName=", outputFileName
             slice_list_str = uoDict.get("--slice-list", "")
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
@@ -1100,12 +1126,13 @@ if __name__ == '__main__':
                     slice_list_str = slice_list_str[1:]
                 write_profile_data(outputFileName, slice_list_str, tindx, nblock, grid, flow)
             else:
-                print "No slices written."
+                print "Probably and error; no slices written."
         #
         if uoDict.has_key("--slice-along-line"):
-            print "Extract slices of data for t=", times_dict[tindx]
             outputFileName = uoDict.get("--output-file", "profile.data")
-            print "    outputFileName=", outputFileName
+            if verbosity_level > 0:
+                print "Extract slices of data for t=", times_dict[tindx]
+                print "    outputFileName=", outputFileName
             slice_line_str = uoDict.get("--slice-along-line", "")
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
@@ -1113,13 +1140,14 @@ if __name__ == '__main__':
                 write_profile_along_line(outputFileName, slice_line_str, tindx, nblock, 
                                          grid, flow, dimensions)
             else:
-                print "No slices written."
+                print "Probably and error; no slices written."
         #
         if uoDict.has_key("--ref-function"):
-            print "Compare with reference function for t=", times_dict[tindx]
             aScriptName = uoDict.get("--ref-function", "")
             if len(aScriptName) > 0:
-                print "   ref_function is from script:", aScriptName
+                if verbosity_level > 0:
+                    print "Compare with reference function for t=", times_dict[tindx]
+                    print "   ref_function is from script:", aScriptName
                 execfile(aScriptName)
                 grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
                 add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
@@ -1133,7 +1161,6 @@ if __name__ == '__main__':
                                    uoDict.get("--global-norm-list", ""))
         #
         if uoDict.has_key("--compare-job"):
-            print "Compare with reference solution for t=", times_dict[tindx]
             compareJobName = uoDict.get("--compare-job", jobName)
             compareRootName, compareExt = os.path.splitext(compareJobName)
             compareTindx = uoDict.get("--compare-tindx", "9999")
@@ -1141,7 +1168,9 @@ if __name__ == '__main__':
                 compareTindx = tindx_list[-1]
             else:
                 compareTindx = int(compareTindx)
-            print "   Comparison solution:", compareRootName, " compareTindx=", compareTindx
+            if verbosity_level > 0:
+                print "Compare with reference solution for t=", times_dict[tindx]
+                print "   Comparison solution:", compareRootName, " compareTindx=", compareTindx
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             grid2, flow2, dimensions = read_all_blocks(compareRootName, nblock, compareTindx, zipFiles)
@@ -1155,7 +1184,8 @@ if __name__ == '__main__':
                                uoDict.get("--global-norm-list", ""))
         #
         if uoDict.has_key("--report-norms"):
-            print "Report norms for t=", times_dict[tindx]
+            if verbosity_level > 0:
+                print "Report norms for t=", times_dict[tindx]
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             norms = compute_volume_weighted_norms(nblock, grid, flow)
@@ -1164,12 +1194,14 @@ if __name__ == '__main__':
                                uoDict.get("--global-norm-list", ""))
         #
         if uoDict.has_key("--surface-list"):
-            print "Extract a set of surfaces for t=", times_dict[tindx], "and write as VTK files."
+            if verbosity_level > 0:
+                print "Extract a set of surfaces for t=", times_dict[tindx], "and write as VTK files."
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             surface_list_str = uoDict.get("--surface-list", "")
             surface_list_str = surface_list_str.lower().strip()
-            print "surface_list_str=", surface_list_str
+            if verbosity_level > 0:
+                print "surface_list_str=", surface_list_str
             surface_list = surface_list_str.split(";")
             surface_grid_list = []
             surface_flow_list = []
@@ -1187,7 +1219,8 @@ if __name__ == '__main__':
                                 uoDict.has_key("--binary-format"))
         #
         if uoDict.has_key("--probe"):
-            print "Probe data for t=", times_dict[tindx]
+            if verbosity_level > 0:
+                print "Probe data for t=", times_dict[tindx]
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             # Pull apart coordinates list
@@ -1197,38 +1230,42 @@ if __name__ == '__main__':
                 x = float(coords[0]); y = 0.0; z = 0.0
                 if len(coords) > 1: y = float(coords[1])
                 if len(coords) > 2: z = float(coords[2])
-                print "coords=(%g,%g,%g)" % (x, y, z)
                 jb, i, j, k = locate_cell_and_block(grid, flow, dimensions, 0, 0, 0, 0, x, y, z)
-                print "jb=", jb, "ijk=", i, j, k
+                if verbosity_level > 0:
+                    print "    coords=(%g,%g,%g)" % (x, y, z)
+                    print "    jb=", jb, "ijk=", i, j, k
                 flow[jb].write_gnuplot_header(sys.stdout)
                 flow[jb].write_gnuplot_data_for_cell(sys.stdout, i, j, k)
         #
         if uoDict.has_key("--heat-flux-list"):
-            print "Extract heat flux for t=", times_dict[tindx], "and write as text files."
             outputFileName = uoDict.get("--output-file", "hf_profile.data")
-            print "    outputFileName=", outputFileName
+            if verbosity_level > 0:
+                print "Extract heat flux for t=", times_dict[tindx], "and write as text files."
+                print "    outputFileName=", outputFileName
             hf_data = read_all_heat_flux_data(rootName, nblock, tindx, zipFiles)
             heat_flux_list_str = uoDict.get("--heat-flux-list", "")
             if len(heat_flux_list_str) > 0:
 		write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, hf_data )
             else:
-                print "No heat flux profile written."
+                print "Probably an error; no heat flux profile written."
         #
         if uoDict.has_key("--vertex-velocity-list"):
-            print "Extract vertex velocities for t=", times_dict[tindx], "and write as text files."
             outputFileName = uoDict.get("--output-file", "vtxv_profile.data")
-            print "    outputFileName=", outputFileName
+            if verbosity_level > 0:
+                print "Extract vertex velocities for t=", times_dict[tindx], "and write as text files."
+                print "    outputFileName=", outputFileName
             vtxv_data = read_all_vertex_velocity_data(rootName, nblock, tindx, zipFiles)
             vertex_velocity_list_str = uoDict.get("--vertex-velocity-list", "")
             if len(vertex_velocity_list_str) > 0:
 		write_vertex_velocity_profile(outputFileName, vertex_velocity_list_str, tindx, nblock, vtxv_data )
             else:
-                print "No heat flux profile written."
+                print "Probably and error; no vertex velocity list written."
         #
         if uoDict.has_key("--tangent-slab-list"):
-            print "Perform tangent-slab calculation on slices of data for t=", times_dict[tindx]
             outputFileName = uoDict.get("--output-file", "TS-profile.data")
-            print "    outputFileName=", outputFileName
+            if verbosity_level > 0:
+                print "Perform tangent-slab calculation on slices of data for t=", times_dict[tindx]
+                print "    outputFileName=", outputFileName
             slice_list_str = uoDict.get("--tangent-slab-list", "")
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             if len(slice_list_str) > 0:
@@ -1238,11 +1275,11 @@ if __name__ == '__main__':
                     slice_list_str = slice_list_str[1:]
                 tangent_slab_along_slice(outputFileName, slice_list_str, tindx, nblock, grid, flow)
             else:
-                print "No tangent-slab calculations performed."
+                print "Probably an error; no tangent-slab calculations performed."
     #
     if uoDict.has_key("--vtk-xml") or uoDict.has_key("--ref-function") or \
             uoDict.has_key("--compare-job") or uoDict.has_key("--surface-list"): 
         finish_PVD_file(rootName)
 
-    print "End e3post.py."
+    if verbosity_level > 0: print "End e3post.py."
     sys.exit(0)
