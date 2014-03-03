@@ -35,7 +35,10 @@ int Block::read_grid(std::string filename, size_t dimensions,
     size_t retries = 10;
     FILE *fp = NULL;
     gzFile zfp = NULL;
-    if (id == 0) printf("read_grid(): Start block %d.\n", static_cast<int>(id));
+    global_data &G = *get_global_data_ptr();
+    if ( G.verbosity_level >= 1 && id == 0 ) {
+	printf("read_grid(): Start block %d.\n", static_cast<int>(id));
+    }
     retries = 10;
     if (zip_file) filename += ".gz";
     while (retries > 0 && zfp == NULL && fp == NULL) {
@@ -151,7 +154,8 @@ int Block::write_grid(std::string filename, double sim_time, size_t dimensions,
     gzFile zfp;
     string str;
     size_t krangemax;
-    if (id == 0) {
+    global_data &G = *get_global_data_ptr();
+    if ( G.verbosity_level >= 1 && id == 0 ) {
 	// Just one block to announce that the writing has started.
 	printf("write_grid(): At t = %e, start block = %d.\n", sim_time, static_cast<int>(id));
     }
@@ -220,7 +224,10 @@ int Block::read_solution(std::string filename, double *sim_time, size_t dimensio
     size_t retries = 10;
     FILE *fp = NULL;
     gzFile zfp = NULL;
-    if (id == 0) printf("read_solution(): Start block %d.\n", static_cast<int>(id)); 
+    global_data &G = *get_global_data_ptr();
+    if ( G.verbosity_level >= 1 && id == 0 ) {
+	printf("read_solution(): Start block %d.\n", static_cast<int>(id));
+    }
     if (zip_file) filename += ".gz";
     while (retries > 0 && zfp == NULL && fp == NULL) {
 	if (zip_file) {
@@ -239,9 +246,6 @@ int Block::read_solution(std::string filename, double *sim_time, size_t dimensio
 	cerr << "read_solution(): Could not open " << filename << "; BAILING OUT" << endl;
 	return FILE_ERROR;
     }
-
-    cout << "read_solution(): " << filename << ";" << endl;
-
     if (zip_file) {
 	gets_result = gzgets(zfp, line, NCHAR);
     } else {
@@ -252,7 +256,9 @@ int Block::read_solution(std::string filename, double *sim_time, size_t dimensio
 	return BAD_INPUT_ERROR;
     }
     sscanf(line, "%lf", sim_time);
-    if (id == 0) printf("read_solution(): Time = %e\n", *sim_time);
+    if ( G.verbosity_level >= 1 && id == 0 ) {
+	printf("read_solution(): Time = %e\n", *sim_time);
+    }
     if (zip_file) {
 	gets_result = gzgets(zfp, line, NCHAR);
     } else {
@@ -316,7 +322,8 @@ int Block::write_solution(std::string filename, double sim_time, size_t dimensio
     FILE *fp;
     gzFile zfp;
     string str;
-    if (id == 0) {
+    global_data &G = *get_global_data_ptr();
+    if ( G.verbosity_level >= 1 && id == 0 ) {
 	printf("write_solution(): At t = %e, start block = %d.\n",
 	       sim_time, static_cast<int>(id));
     }

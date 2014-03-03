@@ -300,7 +300,7 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_string("global_data", "title", G.title, "unknown");
     dict.parse_size_t("global_data", "dimensions", G.dimensions, 2);
     dict.parse_size_t("global_data", "control_count", G.control_count, 10);
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	cout << "title = " << G.title << endl;
 	cout << "dimensions = " << G.dimensions << endl;
 	cout << "control_count = " << G.control_count << endl;
@@ -311,7 +311,7 @@ int read_config_parameters(const string filename, bool master)
 
     dict.parse_string("global_data", "gas_model_file", s_value, "gas-model.lua");
     Gas_model *gmodel = set_gas_model_ptr(create_gas_model(s_value));
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	cout << "gas_model_file = " << s_value << endl;
 	cout << "nsp = " << gmodel->get_number_of_species() << endl;
 	cout << "nmodes = " << gmodel->get_number_of_modes() << endl;
@@ -325,7 +325,7 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_double("global_data", "T_frozen", G.T_frozen, 300.0);
     dict.parse_string("global_data", "reaction_update", s_value, "dummy_scheme");
     if( G.reacting ) set_reaction_update( s_value );
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	cout << "reacting_flag = " << G.reacting << endl;
 	cout << "reaction_time_start = " << G.reaction_time_start << endl;
 	cout << "reaction_update = " << s_value << endl;
@@ -337,7 +337,7 @@ int read_config_parameters(const string filename, bool master)
     if( G.thermal_energy_exchange ) set_energy_exchange_update(s_value);
     dict.parse_double("global_data", "T_frozen_energy", G.T_frozen_energy, 300.0);
     dict.parse_boolean("global_data", "electric_field_work_flag", G.electric_field_work, false);
-    if( G.verbose_init_messages ) {
+    if( G.verbosity_level >= 2 ) {
 	cout << "energy_exchange_flag = " << G.thermal_energy_exchange << endl;
 	cout << "energy_exchange_update = " << s_value << endl;
 	cout << "T_frozen_energy = " << G.T_frozen_energy << endl;
@@ -384,13 +384,13 @@ int read_config_parameters(const string filename, bool master)
     if( G.radiation ) {
     	set_radiation_transport_model( s_value );
     }
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	cout << "radiation_flag = " << G.radiation << endl;
 	cout << "radiation_input_file = " << s_value << endl;
     }
 
     dict.parse_boolean("global_data", "axisymmetric_flag", G.axisymmetric, false);
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	cout << "axisymmetric_flag = " << G.axisymmetric << endl;
     }
 
@@ -403,7 +403,7 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_boolean("global_data", "diffusion_flag", G.diffusion, false);
     dict.parse_double("global_data", "diffusion_delay", G.diffusion_time_delay, 0.0);
     dict.parse_double("global_data", "diffusion_factor_increment", G.diffusion_factor_increment, 0.01);
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	cout << "viscous_flag = " << G.viscous << endl;
 	cout << "viscous_delay = " << G.viscous_time_delay << endl;
 	cout << "viscous_factor_increment = " << G.viscous_factor_increment << endl;
@@ -415,7 +415,7 @@ int read_config_parameters(const string filename, bool master)
     if( G.diffusion && (gmodel->get_number_of_species() > 1) ) { 
  	dict.parse_string("global_data", "diffusion_model", s_value, "Stefan-Maxwell");
 	set_diffusion_model(s_value);
-	if( G.verbose_init_messages ) {
+	if( G.verbosity_level >= 2 ) {
 	    cout << "diffusion_model = " << s_value << endl;
 	}
     }
@@ -425,7 +425,7 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_double("global_data", "shock_fitting_speed_factor", G.shock_fitting_speed_factor, 1.0);
     dict.parse_boolean("global_data", "moving_grid_flag", G.moving_grid, false);
     dict.parse_boolean("global_data", "write_vertex_velocities_flag", G.write_vertex_velocities, false);
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	cout << "shock_fitting_flag = " << G.shock_fitting << endl;
 	cout << "shock_fitting_decay_flag = " << G.shock_fitting_decay << endl;
 	cout << "shock_fitting_speed_factor = " << G.shock_fitting_speed_factor << endl;
@@ -450,7 +450,7 @@ int read_config_parameters(const string filename, bool master)
 		       G.separate_update_for_k_omega_source, false);
     if ( G.turbulence_model == TM_SPALART_ALLMARAS )
 	throw std::runtime_error("Spalart-Allmaras turbulence model not available.");
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	cout << "turbulence_model = " << get_name_of_turbulence_model(G.turbulence_model) << endl;
 	cout << "turbulence_prandtl_number = " << G.turbulence_prandtl << endl;
 	cout << "turbulence_schmidt_number = " << G.turbulence_schmidt << endl;
@@ -482,7 +482,7 @@ int read_config_parameters(const string filename, bool master)
     set_apply_limiter_flag(b_value);
     dict.parse_boolean("global_data", "extrema_clipping_flag", b_value, true);
     set_extrema_clipping_flag(b_value);
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	cout << "max_invalid_cells = " << G.max_invalid_cells << endl;
 	cout << "flux_calc = " << get_flux_calculator_name(get_flux_calculator()) << endl;
 	cout << "compression_tolerance = " << G.compression_tolerance << endl;
@@ -503,25 +503,25 @@ int read_config_parameters(const string filename, bool master)
 
     dict.parse_int("global_data", "sequence_blocks", i_value, 0);
     G.sequence_blocks = (i_value == 1);
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	cout << "sequence_blocks = " << G.sequence_blocks << endl;
     }
 
     // Read a number of gas-states.
     dict.parse_size_t("global_data", "nflow", G.n_gas_state, 0);
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	cout << "nflow = " << G.n_gas_state << endl;
     }
     for ( size_t ig = 0; ig < G.n_gas_state; ++ig ) {
 	G.gas_state.push_back(read_flow_condition_from_ini_dict(dict, ig, master));
-	if ( G.verbose_init_messages ) {
+	if ( G.verbosity_level >= 2 ) {
 	    cout << "flow condition[" << ig << "]: " << *(G.gas_state[ig]) << endl;
 	}
     }
 
     // Read the parameters for a number of blocks.
     dict.parse_size_t("global_data", "nblock", G.nblock, 0);
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	printf( "nblock = %d\n", static_cast<int>(G.nblock));
     }
     // We keep a record of all of the configuration data for all blocks
@@ -539,7 +539,7 @@ int read_config_parameters(const string filename, bool master)
     }
 #   endif
     G.pistons.resize(G.npiston);
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	printf( "npiston = %d\n", static_cast<int>(G.npiston));
     }
     for ( size_t jp = 0; jp < G.npiston; ++jp ) {
@@ -556,7 +556,7 @@ int read_config_parameters(const string filename, bool master)
 	dict.parse_double(section, "f", piston_f, 0.0);
 	dict.parse_boolean(section, "const_v_flag", piston_cvf, false);
 	dict.parse_boolean(section, "postv_v_flag", piston_pvf, false);
-	if ( G.verbose_init_messages ) {
+	if ( G.verbosity_level >= 2 ) {
 	    cout << "piston/" << jp << ": label= " << piston_label << endl;
 	    cout << "    L=" << piston_L << ", m=" << piston_m
 		 << ", D=" << piston_D << ", x0=" << piston_x0
@@ -597,7 +597,7 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_double("global_data", "heat_time_start", G.heat_time_start, 0.0);
     dict.parse_double("global_data", "heat_time_stop", G.heat_time_stop, 0.0);
     dict.parse_double("global_data", "heat_factor_increment", G.heat_factor_increment, 0.01);
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	printf("nheatzone = %d\n", static_cast<int>(G.n_heat_zone));
 	printf("heat_time_start = %e\n", G.heat_time_start);
 	printf("heat_time_stop = %e\n", G.heat_time_stop);
@@ -614,7 +614,7 @@ int read_config_parameters(const string filename, bool master)
 	dict.parse_double(section, "x1", hzp->x1, 0.0);
 	dict.parse_double(section, "y1", hzp->y1, 0.0);
 	dict.parse_double(section, "z1", hzp->z1, 0.0);
-	if ( G.verbose_init_messages ) {
+	if ( G.verbosity_level >= 2 ) {
 	    cout << "heat_zone/" << indx << " qdot= " << hzp->qdot << endl;
 	    cout << "    point0= " << hzp->x0 << " " << hzp->y0 << " " << hzp->z0 << endl;
 	    cout << "    point1= " << hzp->x1 << " " << hzp->y1 << " " << hzp->z1 << endl;
@@ -622,7 +622,7 @@ int read_config_parameters(const string filename, bool master)
     }
 
     dict.parse_size_t("global_data", "nreactionzone", G.n_reaction_zone, 0);
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	printf("nreactionzone = %d\n", static_cast<int>(G.n_reaction_zone));
     }
     G.reaction_zone.resize(G.n_reaction_zone);
@@ -635,7 +635,7 @@ int read_config_parameters(const string filename, bool master)
 	dict.parse_double(section, "x1", rzp->x1, 0.0);
 	dict.parse_double(section, "y1", rzp->y1, 0.0);
 	dict.parse_double(section, "z1", rzp->z1, 0.0);
-	if ( G.verbose_init_messages ) {
+	if ( G.verbosity_level >= 2 ) {
 	    cout << "reaction_zone/" << indx << endl;
 	    cout << "    point0= " << rzp->x0 << " " << rzp->y0 << " " << rzp->z0 << endl;
 	    cout << "    point1= " << rzp->x1 << " " << rzp->y1 << " " << rzp->z1 << endl;
@@ -643,7 +643,7 @@ int read_config_parameters(const string filename, bool master)
     }
 
     dict.parse_size_t("global_data", "nturbulencezone", G.n_turbulent_zone, 0);
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	printf("nturbulencezone = %d\n", static_cast<int>(G.n_turbulent_zone));
     }
     G.turbulent_zone.resize(G.n_turbulent_zone);
@@ -656,7 +656,7 @@ int read_config_parameters(const string filename, bool master)
 	dict.parse_double(section, "x1", tzp->x1, 0.0);
 	dict.parse_double(section, "y1", tzp->y1, 0.0);
 	dict.parse_double(section, "z1", tzp->z1, 0.0);
-	if ( G.verbose_init_messages ) {
+	if ( G.verbosity_level >= 2 ) {
 	    cout << "turbulence_zone/" << indx << endl;
 	    cout << "    point0= " << tzp->x0 << " " << tzp->y0 << " " << tzp->z0 << endl;
 	    cout << "    point1= " << tzp->x1 << " " << tzp->y1 << " " << tzp->z1 << endl;
@@ -674,7 +674,7 @@ int read_config_parameters(const string filename, bool master)
 	}
     	G.wm = initialise_wall_model(s_value);
     }
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	cout << "conjugate_ht_flag = " << G.conjugate_ht_active << endl;
 	cout << "conjugate_ht_file = " << s_value << endl;
     }
@@ -745,7 +745,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
     }
     dict.parse_double("control_data", "tolerance_in_T", G.tolerance_in_T, 100.0);
     dict.parse_boolean("control_data", "halt_on_large_flow_change", G.halt_on_large_flow_change, false);
-    if ( first_time && G.verbose_init_messages ) {
+    if ( first_time && G.verbosity_level >= 2 ) {
 	cout << "Time-step control parameters:" << endl;
 	cout << "    x_order = " << G.Xorder << endl;
 	cout << "    gasdynamic_update_scheme = " 
@@ -802,10 +802,10 @@ int read_control_parameters( const string filename, bool master, bool first_time
 int assign_blocks_to_mpi_rank(const string filename, bool master)
 {
     global_data &G = *get_global_data_ptr();
-    if ( G.verbose_init_messages && master ) printf("Assign blocks to processes:\n");
+    if ( G.verbosity_level >= 2 && master ) printf("Assign blocks to processes:\n");
     if ( G.mpi_parallel ) {
 	if ( filename.size() > 0 ) {
-	    if ( G.verbose_init_messages && master ) {
+	    if ( G.verbosity_level >= 2 && master ) {
 		printf("    MPI parallel, mpimap filename=%s\n", filename.c_str());
 		printf("    Assigning specific blocks to specific MPI processes.\n");
 	    }
@@ -854,7 +854,7 @@ int assign_blocks_to_mpi_rank(const string filename, bool master)
 		    nblock_total += 1;
 		} // end for i
 	    } // end for rank
-	    if ( G.verbose_init_messages ) {
+	    if ( G.verbosity_level >= 2 ) {
 		printf("    my_rank=%d, block_ids=", static_cast<int>(G.my_mpi_rank));
 		for ( size_t i=0; i < G.my_blocks.size(); ++i ) {
 		    printf(" %d", static_cast<int>(G.my_blocks[i]->id));
@@ -869,7 +869,7 @@ int assign_blocks_to_mpi_rank(const string filename, bool master)
 		}
 	    }
 	} else {
-	    if ( G.verbose_init_messages && master ) {
+	    if ( G.verbosity_level >= 2 && master ) {
 		printf("    MPI parallel, No MPI map file specified.\n");
 		printf("    Identify each block with the corresponding MPI rank.\n");
 	    }
@@ -888,7 +888,7 @@ int assign_blocks_to_mpi_rank(const string filename, bool master)
 	    }
 	}
     } else {
-	if ( G.verbose_init_messages ) {
+	if ( G.verbosity_level >= 2 ) {
 	    printf("    Since we are not doing MPI, all blocks in same process.\n");
 	}
 	for ( size_t jb=0; jb < G.nblock; ++jb ) {
@@ -984,7 +984,7 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
     // The active flag will be used to skip over inactive
     // or unused blocks in later sections of code.
     dict.parse_boolean(section, "active", bd.active, true);
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	cout << section << ":label = " << block_label << endl;
 	cout << "    active = " << bd.active << endl;
     }
@@ -1014,7 +1014,7 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	bd.kmin = 0;
 	bd.kmax = 0;
     }
-    if ( G.verbose_init_messages ) {
+    if ( G.verbosity_level >= 2 ) {
 	printf( "    nni = %d, nnj = %d, nnk = %d\n", 
 		static_cast<int>(bd.nni), static_cast<int>(bd.nnj),
 		static_cast<int>(bd.nnk) );
@@ -1037,7 +1037,7 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	}
 	bc_type_code = available_bcs[value_string];
 	bd.bcp[iface] = create_BC(&bd, iface, bc_type_code, dict, section);
-	if ( G.verbose_init_messages ) {
+	if ( G.verbosity_level >= 2 ) {
 	    cout << "    " << get_face_name(iface) << " face:" << endl;
 	    bd.bcp[iface]->print_info("        ");
 	}
@@ -1079,7 +1079,7 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	    bd.hjcell.push_back(j);
 	    bd.hkcell.push_back(0);
 	}
-	if ( G.verbose_init_messages ) {
+	if ( G.verbosity_level >= 2 ) {
 	    printf( "    History cell[%d] located at indices [%d][%d][%d]\n",
 		    static_cast<int>(ih), static_cast<int>(bd.hicell[ih]),
 		    static_cast<int>(bd.hjcell[ih]), static_cast<int>(bd.hkcell[ih]) );
@@ -1107,7 +1107,7 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	    bd.mkcell.push_back(0);
 	}
 	bd.initial_T_value.push_back(0.0); // place holder value
-	if ( G.verbose_init_messages ) {
+	if ( G.verbosity_level >= 2 ) {
 	    printf( "    Monitor cell[%d] located at indices [%d][%d][%d]\n",
 		    static_cast<int>(im), static_cast<int>(bd.micell[im]),
 		    static_cast<int>(bd.mjcell[im]), static_cast<int>(bd.mkcell[im]) );

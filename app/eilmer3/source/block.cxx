@@ -92,7 +92,7 @@ Block::~Block()
 int Block::array_alloc(size_t dimensions)
 {
     global_data &G = *get_global_data_ptr();
-    if ( G.verbose_init_messages ) cout << "array_alloc(): Begin for block " <<  id << endl;
+    if ( G.verbosity_level >= 2 ) cout << "array_alloc(): Begin for block " <<  id << endl;
     // Check for obvious errors.
     if ( nidim <= 0 || njdim <= 0 || nkdim <= 0 ) {
         cerr << "array_alloc(): Declared dimensions are zero or negative: " 
@@ -140,7 +140,7 @@ int Block::array_alloc(size_t dimensions)
 		sifk_[gid]->id = gid;
 	    }
 	} // gid loop
-	if ( G.verbose_init_messages || id == 0 ) {
+	if ( G.verbosity_level >= 2 && id == 0 ) {
 	    cout << "Block " << id << ": finished creating " << ntot << " cells." << endl;
 	}
     } catch (std::bad_alloc& ba) {
@@ -158,7 +158,7 @@ int Block::array_alloc(size_t dimensions)
 int Block::array_cleanup(size_t dimensions)
 {
     global_data &G = *get_global_data_ptr();
-    if ( G.verbose_init_messages || id == 0 ) {
+    if ( G.verbosity_level >= 2 && id == 0 ) {
 	cout << "array_cleanup(): Begin for block " <<  id << endl;
     }
     // Need to clean up allocated memory.

@@ -56,11 +56,11 @@ StaticProfileBC::StaticProfileBC(Block *bdp, int which_boundary,
     size_t ncell, ncell_for_profile;
     size_t ncell_read_from_file = 0;
     FILE *fp;
-    global_data *G = get_global_data_ptr();
+    global_data &G = *get_global_data_ptr();
     //---------------------------------------------------------------------------
     // FIX-ME: Update this BC for 3D, using C++ tokenizing stream and something 
     // like the usual block indexing for the storage order.
-    if ( G->dimensions == 3 ) {
+    if ( G.dimensions == 3 ) {
 	cerr << "StaticProfileBC is not implemented for 3D." << endl;
 	exit(NOT_IMPLEMENTED_ERROR);
     }
@@ -107,7 +107,7 @@ StaticProfileBC::StaticProfileBC(Block *bdp, int which_boundary,
 	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &mu_t);
 	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &k_t);
 	strcpy(token, strtok(NULL, " ")); sscanf(token, "%d", &S);
-	if ( G->radiation ) {
+	if ( G.radiation ) {
 	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &Q_rad_org);
 	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &f_rad_org);
 	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &Q_rE_rad);
@@ -136,8 +136,7 @@ StaticProfileBC::StaticProfileBC(Block *bdp, int which_boundary,
 	} else {
 	    dt_therm = -1.0;
 	}
-	constexpr bool print_incoming_data = true;
-	if ( print_incoming_data ) {
+	if ( G.verbosity_level >= 3 ) {
 	    cout << "x=" << x << " y=" << y << " z=" << z 
 		 << " volume=" << volume << " rho=" << rho 
 		 << " u=" << u << " v=" << v << " w=" << w 
@@ -149,7 +148,10 @@ StaticProfileBC::StaticProfileBC(Block *bdp, int which_boundary,
 	flow_profile.push_back(new CFlowCondition(gmodel, p, u, v, w, T, massf, "", tke, omega, mu_t, k_t, S));
 	++ncell_read_from_file;
     } // end while
-    cout << "StaticProfileBC() constructor: read " << ncell_read_from_file << " cells." << endl; 
+    if ( G.verbosity_level >= 2 ) {
+	cout << "StaticProfileBC() constructor: read " 
+	     << ncell_read_from_file << " cells." << endl; 
+    }
     // For the case with two input profiles, check that the number of cells read is an even number
     if ( ncell_read_from_file % 2 != 0 ) {
         cerr << "StaticProfileBC() constructor:" << endl
@@ -173,7 +175,9 @@ StaticProfileBC::StaticProfileBC(Block *bdp, int which_boundary,
     massf.clear();
     e.clear();
     T.clear();
-    cout << "StaticProfileBC() constructor: done." << endl;
+    if ( G.verbosity_level >= 2 ) {
+	cout << "StaticProfileBC() constructor: done." << endl;
+    }
 }
 
 StaticProfileBC::StaticProfileBC(const StaticProfileBC &bc)

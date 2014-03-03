@@ -91,8 +91,10 @@ lua_State *L; // for the uder-defined procedures
 
 void usage(poptContext optCon, int exitcode, char *error, char *addl) {
     // Print program usage message, copied from popt example.
-    poptPrintUsage(optCon, stderr, 0);
-    if (error) fprintf(stderr, "%s: %s0", error, addl);
+    if ( master ) {
+	poptPrintUsage(optCon, stderr, 0);
+	if (error) fprintf(stderr, "%s: %s0", error, addl);
+    }
     exit(exitcode);
 }
 
@@ -102,7 +104,7 @@ void usage(poptContext optCon, int exitcode, char *error, char *addl) {
 int main(int argc, char **argv)
 {
     global_data &G = *get_global_data_ptr();
-    G.verbose_init_messages = false;
+    G.verbosity_level = 1; // emit messages useful for monitoring a long-running process
     bool do_run_simulation = false;
     size_t start_tindx = 0;
     int run_status = SUCCESS;
@@ -135,9 +137,9 @@ int main(int argc, char **argv)
 	{ "heat-flux-files", 'q', POPT_ARG_NONE, NULL, 'q',
 	  "write heat-flux files", 
 	  NULL },
-	{ "verbose", 'v', POPT_ARG_NONE, NULL, 'v',
-	  "verbose messages at startup", 
-	  NULL },
+	{ "verbosity", 'v', POPT_ARG_STRING, NULL, 'v',
+	  "set verbosity level for messages", 
+	  "<int>" },
 	{ "max-wall-clock", 'w', POPT_ARG_STRING, NULL, 'w',
 	  "maximum wall-clock time in seconds", 
 	  "<seconds>" },
@@ -150,6 +152,8 @@ int main(int argc, char **argv)
 
     // Initialization
     //
+    // Each process writes to a separate log file,
+    // but all processes may write to stdout as well.
     program_return_flag = SUCCESS; // We'll start out optimistically :)
 #   ifdef _MPI
     MPI_Init(&argc, &argv);
@@ -157,57 +161,25 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &(G.my_mpi_rank));
     UNUSED_VARIABLE(status);
     G.mpi_parallel = 1;
+    master = (G.my_mpi_rank == 0);
+    sprintf(log_file_name, "e3mpi.%04d.log", G.my_mpi_rank);
 #   else
     G.mpi_parallel = 0;
     G.num_mpi_proc = 0;
     G.my_mpi_rank = 0;
-#   endif
-
-    // Each process writes to a separate log file,
-    // but all processes may write to stdout as well.
-#   ifdef _MPI
-    master = (G.my_mpi_rank == 0);
-    sprintf(log_file_name, "e3mpi.%04d.log", G.my_mpi_rank);
-    if (master) {
-	printf("e3main: C++,MPI version.\n");
-    }
-    MPI_Get_processor_name(node_name, &node_name_len);
-    printf("e3main: process %d of %d active on node %s\n", 
-	   G.my_mpi_rank, G.num_mpi_proc, node_name );
-    fflush(stdout);
-    MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
-#   elif E3RAD
     master = true;
+#   ifdef E3RAD
     sprintf(log_file_name, "e3rad.log");
-    printf("e3rad: C++ version for radiation transport calculations.\n");
-    printf(\
-"------------------------------------------------------------------\n\
-WARNING: This executable only computes the radiative source\n\
-         terms and heat fluxes - no time integration is performed!\n\
-------------------------------------------------------------------\n");
-#   ifdef _OPENMP
-    printf("OpenMP version using %d thread(s).\n", omp_get_max_threads());
-#   endif
 #   else
-    master = true;
     sprintf(log_file_name, "e3shared.log");
-    printf("e3main: C++,shared-memory version.\n");
-#   ifdef _OPENMP
-    printf("OpenMP version using %d thread(s).\n", omp_get_max_threads());
-#   error "OpenMP version not functional..."    
 #   endif
 #   endif
-    //
-    if ( master ) {
-	cout << "Source code revision string: " << get_revision_string() << endl;
-    }
     if ((G.logfile = fopen(log_file_name, "w")) == NULL) {
         printf( "\nCould not open %s; BAILING OUT\n", log_file_name );
         exit(FILE_ERROR);
     }
-    // Configuration.
-    //
-    // printf("e3main: process command-line options...\n");
+
+    // Configuration from command-line.
     optCon = poptGetContext(NULL, argc, (const char**)argv, optionsTable, 0);
     if (argc < 2) {
 	poptPrintUsage(optCon, stderr, 0);
@@ -215,9 +187,9 @@ WARNING: This executable only computes the radiative source\n\
     }
     strcpy(job_name, "");
     strcpy(mpimap_file_name, "");
-    /* Now do options processing as per the popt example. */
+    // Do options processing as per the popt example.
     while ((c = poptGetNextOpt(optCon)) >= 0) {
-	/* printf("received option %c\n", c); */
+	// printf("received option %c\n", c);
 	switch (c) {
 	case 'f':
 	    strcpy(job_name, poptGetOptArg(optCon));
@@ -238,7 +210,7 @@ WARNING: This executable only computes the radiative source\n\
 	    start_tindx = static_cast<size_t>(atoi(poptGetOptArg(optCon)));
 	    break;
 	case 'v':
-	    G.verbose_init_messages = true;
+	    G.verbosity_level = static_cast<size_t>(atoi(poptGetOptArg(optCon)));
 	    break;
 	case 'w':
 	    strcpy( text_buf, poptGetOptArg(optCon) );
@@ -249,14 +221,45 @@ WARNING: This executable only computes the radiative source\n\
 	    break;
 	}
     }
-    if ( master ) {
-	printf( "job_name=%s\n", job_name );
-	if ( max_wall_clock > 0 ) {
-	    printf( "max_wall_clock=%d seconds\n", max_wall_clock );
-	} else {
-	    printf( "Run will not be limited by wall clock.\n" );
+
+    if ( G.verbosity_level >= 1 ) {
+	// Now, that we have sorted who we are and have some config established,
+	// write an introductory message.
+#       ifdef _MPI
+	if ( master ) {
+	    printf("e3main: C++,MPI version.\n");
 	}
-    }
+	MPI_Get_processor_name(node_name, &node_name_len);
+	printf("e3main: process %d of %d active on node %s\n", 
+	       G.my_mpi_rank, G.num_mpi_proc, node_name );
+	fflush(stdout);
+	MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
+#       elif E3RAD
+	printf("e3rad: C++ version for radiation transport calculations.\n");
+	printf("------------------------------------------------------------------\n"
+	       "WARNING: This executable only computes the radiative source\n"
+	       "         terms and heat fluxes - no time integration is performed!\n"
+	       "------------------------------------------------------------------\n");
+#       ifdef _OPENMP
+	printf("OpenMP version using %d thread(s).\n", omp_get_max_threads());
+#       endif
+#       else
+	printf("e3main: C++,shared-memory version.\n");
+#       ifdef _OPENMP
+	printf("OpenMP version using %d thread(s).\n", omp_get_max_threads());
+#       error "OpenMP version not functional..."    
+#       endif
+#       endif
+	if ( master ) {
+	    cout << "Source code revision string: " << get_revision_string() << endl;
+	    printf( "job_name=%s\n", job_name );
+	    if ( max_wall_clock > 0 ) {
+		printf( "max_wall_clock=%d seconds\n", max_wall_clock );
+	    } else {
+		printf( "Run will not be limited by wall clock.\n" );
+	    }
+	}
+    } // end if ( G.verbosity_level
 
     G.base_file_name = string(job_name);
     // Read the static configuration parameters from the INI file
@@ -290,7 +293,9 @@ WARNING: This executable only computes the radiative source\n\
     MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
 #   endif
     if ( do_run_simulation ) {
-	if ( master ) printf("Run simulation...\n");
+	if ( G.verbosity_level >= 1 && master ) {
+	    printf("Run simulation...\n");
+	}
 	try {
 	    // The simulation proper.
 	    run_status = prepare_to_integrate(start_tindx);
@@ -322,16 +327,20 @@ WARNING: This executable only computes the radiative source\n\
     Quit: /* nop */;
     fclose(G.logfile);
     eilmer_finalize();
+    if ( G.verbosity_level >= 1 ) {
+#       ifdef _MPI
+	printf("e3main: end of process %d.\n", G.my_mpi_rank);
+#       elif E3RAD
+	printf("e3rad: done.\n");
+#       else
+	printf("e3main: done.\n");
+#       endif
+    }
 #   ifdef _MPI
-    printf("e3main: end of process %d.\n", G.my_mpi_rank);
     if (run_status != SUCCESS) 
 	MPI_Abort(MPI_COMM_WORLD, program_return_flag);
     else
 	MPI_Finalize();
-#   elif E3RAD
-    printf("e3rad: done.\n");
-#   else
-    printf("e3main: done.\n");
 #   endif
     return program_return_flag;
 } // end main
@@ -406,7 +415,7 @@ int prepare_to_integrate(size_t start_tindx)
     sprintf( tindxcstr, "t%04d", static_cast<int>(start_tindx));
     tindxstring = tindxcstr;
     for ( Block *bdp : G.my_blocks ) {
-        if ( G.verbose_init_messages ) printf( "----------------------------------\n" );
+        if ( G.verbosity_level >= 2 ) printf( "----------------------------------\n" );
 	sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) );
 	jbstring = jbcstr;
 	// Read grid from the specified tindx files.
@@ -446,7 +455,7 @@ int prepare_to_integrate(size_t start_tindx)
     ensure_directory_is_present("hist"); // includes Barrier
 
     for ( Block *bdp : G.my_blocks ) {
-        if ( G.verbose_init_messages ) printf( "----------------------------------\n" );
+        if ( G.verbosity_level >= 2 ) printf( "----------------------------------\n" );
 	sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) );
 	jbstring = jbcstr;
 	filename = "hist/" + G.base_file_name + ".hist"+jbstring;
@@ -866,7 +875,9 @@ int integrate_blocks_in_sequence(void)
 	G.bd[jb].active = false;
     }
 
-    cout << "Integrate Block 0 and Block 1" << endl;
+    if ( G.verbosity_level >= 1 ) {
+	cout << "Integrate Block 0 and Block 1" << endl;
+    }
 
     // Start by setting up block 0
     bdp = &(G.bd[0]);
@@ -907,7 +918,9 @@ int integrate_blocks_in_sequence(void)
 	// jb-2, jb-1, jb
 	// jb-2 is the block to be deactivated, jb-1 has been iterated and now
 	// becomes the left most block and jb is the new block to be iterated
-	cout << "Integrate Block " << jb << endl;
+	if ( G.verbosity_level >= 1 ) {
+	    cout << "Integrate Block " << jb << endl;
+	}
 	// Make the block jb-2 inactive.
 	bdp = &(G.bd[jb-2]);
 	bdp->active = false;
@@ -1035,7 +1048,7 @@ int integrate_in_time(double target_time)
     int status_flag = SUCCESS;
     dt_record.resize(G.my_blocks.size()); // Just the blocks local to this process.
 
-    if ( master ) {
+    if ( G.verbosity_level >= 1 && master ) {
 	printf( "Integrate in time\n" );
 	fflush(stdout);
     }
@@ -1172,20 +1185,20 @@ int integrate_in_time(double target_time)
 	    // and, when doing so in the middle of a simulation, 
 	    // reduce the time step to ensure that these new terms
 	    // do not upset the stability of the calculation.
-	    printf( "Turning on viscous effects.\n" );
+	    if ( G.verbosity_level >= 1 ) printf( "Turning on viscous effects.\n" );
 	    viscous_terms_are_on = true;
 	    if ( G.step > 0 ) {
-		printf( "Start softly with viscous effects.\n" );
+		if ( G.verbosity_level >= 1 ) printf( "Start softly with viscous effects.\n" );
 		G.viscous_factor = 0.0;  
 		G.dt_global *= 0.2;
 	    } else {
-		printf( "Start with full viscous effects.\n" );
+		if ( G.verbosity_level >= 1 ) printf( "Start with full viscous effects.\n" );
 		G.viscous_factor = 1.0;
 	    }
 	}
 	if ( viscous_terms_are_on && G.viscous_factor < 1.0 ) {
 	    incr_viscous_factor(G.viscous_factor_increment);
-	    printf( "Increment viscous_factor to %f\n", G.viscous_factor );
+	    if ( G.verbosity_level >= 1 ) printf( "Increment viscous_factor to %f\n", G.viscous_factor );
 	    do_cfl_check_now = true;
 	}
 	if ( G.diffusion && !diffusion_terms_are_on && G.sim_time >= G.diffusion_time_delay ) {
@@ -1193,20 +1206,20 @@ int integrate_in_time(double target_time)
 	    // and, when doing so in the middle of a simulation,
 	    // reduce the time step to ensure that these new terms
 	    // do not upset the stability of the calculation.
-	    printf( "Turning on diffusion effects.\n" );
+	    if ( G.verbosity_level >= 1 ) printf( "Turning on diffusion effects.\n" );
 	    diffusion_terms_are_on = true;
 	    if ( G.step > 0 ) {
-		printf( "Start softly with diffusion effects.\n" );
+		if ( G.verbosity_level >= 1 ) printf( "Start softly with diffusion effects.\n" );
 		G.diffusion_factor = 0.0;
 		G.dt_global *= 0.2;
 	    } else {
-		printf( "Start with full diffusion effects.\n" );
+		if ( G.verbosity_level >= 1 ) printf( "Start with full diffusion effects.\n" );
 		G.diffusion_factor = 1.0;
 	    }
 	}
 	if ( diffusion_terms_are_on && G.diffusion_factor < 1.0 ) {
 	    incr_diffusion_factor( G.diffusion_factor_increment );
-	    printf( "Increment diffusion_factor to %f\n", G.diffusion_factor );
+	    if ( G.verbosity_level >= 1 ) printf( "Increment diffusion_factor to %f\n", G.diffusion_factor );
 	    do_cfl_check_now = true;
 	}
 
@@ -1217,7 +1230,7 @@ int integrate_in_time(double target_time)
 		// we may be part way through turning up the heat gradually.
 		if ( G.heat_factor < 1.0 ) {
 		    incr_heat_factor(G.heat_factor_increment);
-		    printf("Increment heat_factor to %f\n", G.heat_factor);
+		    if ( G.verbosity_level >= 1 ) printf("Increment heat_factor to %f\n", G.heat_factor);
 		    do_cfl_check_now = true;
 		} 
 	    } else {
@@ -1484,9 +1497,12 @@ int integrate_in_time(double target_time)
         if ( ((G.step / G.print_count) * G.print_count == G.step) && master ) {
             // Print the current time-stepping status.
             now = time(NULL);
-            printf("Step=%7d t=%10.3e dt=%10.3e %s\n",
-		   static_cast<int>(G.step), G.sim_time, G.dt_global,
-		   time_to_go(start, now, G.step, G.max_step, G.dt_global, G.sim_time, G.max_time) );
+            if ( G.verbosity_level >= 1 ) {
+		printf("Step=%7d t=%10.3e dt=%10.3e %s\n",
+		       static_cast<int>(G.step), G.sim_time, G.dt_global,
+		       time_to_go(start, now, G.step, G.max_step,
+				  G.dt_global, G.sim_time, G.max_time) );
+	    }
             fprintf(G.logfile, "Step=%7d t=%10.3e dt=%10.3e %s\n",
 		    static_cast<int>(G.step), G.sim_time, G.dt_global,
 		    time_to_go(start, now, G.step, G.max_step, G.dt_global, G.sim_time, G.max_time) );
@@ -1521,8 +1537,8 @@ int integrate_in_time(double target_time)
 	    sprintf( tindxcstr, "t%04d", static_cast<int>(output_counter) ); // C string
 	    write_solution_data(tindxcstr);
 	    if ( G.conjugate_ht_active && master ) {
-			write_soln(*(G.wm), G.sim_time, static_cast<int>(output_counter));
-		}
+		write_soln(*(G.wm), G.sim_time, static_cast<int>(output_counter));
+	    }
 	    output_just_written = true;
             G.t_plot += G.dt_plot;
         }
@@ -1648,20 +1664,24 @@ int integrate_in_time(double target_time)
 	//    while the code is running).
         if ( G.sim_time >= stopping_time ) {
             finished_time_stepping = true;
-            if ( master ) printf( "Integration stopped: reached maximum simulation time.\n" );
+            if ( G.verbosity_level >= 1 && master )
+		printf( "Integration stopped: reached maximum simulation time.\n" );
         }
         if ( G.step >= G.max_step ) {
             finished_time_stepping = true;
-            if ( master ) printf( "Integration stopped: reached maximum number of steps.\n" );
+            if ( G.verbosity_level >= 1 && master )
+		printf( "Integration stopped: reached maximum number of steps.\n" );
         }
         if ( G.halt_now == 1 ) {
             finished_time_stepping = true;
-            if ( master ) printf( "Integration stopped: Halt set in control file.\n" );
+            if ( G.verbosity_level >= 1 && master )
+		printf( "Integration stopped: Halt set in control file.\n" );
         }
 	now = time(NULL);
 	if ( max_wall_clock > 0 && ( static_cast<int>(now - start) > max_wall_clock ) ) {
             finished_time_stepping = true;
-            if ( master ) printf( "Integration stopped: reached maximum wall-clock time.\n" );
+            if ( G.verbosity_level >= 1 && master )
+		printf( "Integration stopped: reached maximum wall-clock time.\n" );
 	}
 	if ( G.halt_on_large_flow_change ) {
 	    // Test the monitor points and see if any has experienced a large change in temperature.
@@ -1674,10 +1694,15 @@ int integrate_in_time(double target_time)
 						bdp->mkcell[im]+bdp->kmin);
 		    if ( fabs(bdp->initial_T_value[im] - cp->fs->gas->T[0]) > G.tolerance_in_T ) {
 			large_T_change = 1;
-			cout << "block=" << bdp->id 
-			     << " cell at x=" << cp->pos[0].x << " y=" << cp->pos[0].y << " z=" << cp->pos[0].z << ","
-			     << " initial T=" << bdp->initial_T_value[im] << " current T=" << cp->fs->gas->T[0] << endl;
-			cout << "Temperature change exceeded tolerance of " << G.tolerance_in_T << endl;
+			if ( G.verbosity_level >= 1 ) {
+			    cout << "block=" << bdp->id 
+				 << " cell at x=" << cp->pos[0].x << " y=" << cp->pos[0].y 
+				 << " z=" << cp->pos[0].z << ","
+				 << " initial T=" << bdp->initial_T_value[im] 
+				 << " current T=" << cp->fs->gas->T[0] << endl;
+			    cout << "Temperature change exceeded tolerance of " 
+				 << G.tolerance_in_T << endl;
+			}
 		    }
 		} // for im
 	    } // for Block
@@ -1686,7 +1711,8 @@ int integrate_in_time(double target_time)
 #           endif
 	    if ( large_T_change == 1 ) {
 		finished_time_stepping = true;
-		if ( master ) printf( "Integration stopped: maximum temperature change exceeded.\n" );
+		if ( G.verbosity_level >= 1 && master )
+		    printf( "Integration stopped: maximum temperature change exceeded.\n" );
 	    }
 	} // if G.halt_on_large_flow_change
 
@@ -1697,7 +1723,8 @@ int integrate_in_time(double target_time)
 	if ( G.radiation ) {
 	    if ( check_radiation_scaling() ) {
 	    	finished_time_stepping = true;
-	    	if ( master ) printf( "Integration stopped: radiation source term needs updating.\n" );
+	    	if ( G.verbosity_level >= 1 && master )
+		    printf( "Integration stopped: radiation source term needs updating.\n" );
 	    }
 	}
 #       endif
@@ -1742,7 +1769,8 @@ int finalize_simulation( void )
 	}
         history_just_written = true;
     }
-    if ( master ) printf( "\nTotal number of steps = %d\n", static_cast<int>(G.step) );
+    if ( G.verbosity_level >= 1 && master )
+	printf( "\nTotal number of steps = %d\n", static_cast<int>(G.step) );
 
     filename = G.base_file_name; filename += ".finish";
     if ( master ) {

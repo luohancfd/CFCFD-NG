@@ -45,7 +45,7 @@ Options::
 
 | e3prep.py [--help] [--job=<jobFileName>] [--clean-start]
 |           [--do-svg] [--do-vrml] [--zip-files|--no-zip-files]
-|           [--show-names] [--split-input-file]
+|           [--show-names] [--split-input-file] [--verbosity=<int>]
 
 Example
 -------
@@ -120,15 +120,17 @@ from e3_render import *
 # Make one instance to accumulate the settings for 2D SVG rendering.
 sketch = SketchEnvironment()
 
+verbosity_level = 0
+
 shortOptions = ""
 longOptions = ["help", "job=", "clean-start", "do-svg", "do-vrml", 
-               "zip-files", "no-zip-files", "show-names"]
+               "zip-files", "no-zip-files", "show-names", "verbosity="]
 
 def printUsage():
     print ""
     print "Usage: e3prep.py [--help] [--job=<jobFileName>] [--clean-start]"
     print "       [--do-svg] [--do-vrml] [--zip-files|--no-zip-files]"
-    print "       [--show-names] [--split-input-file]"
+    print "       [--show-names] [--split-input-file] [--verbosity=<int>]"
     return
 
 #----------------------------------------------------------------------
@@ -1100,20 +1102,23 @@ def locate_history_cells():
     locate the closest cell for each.
     """
     global gdata
+    global verbosity_level
     #
     for h in HistoryLocation.historyList:
         best_block, best_i, best_j, best_k = locate_closest_cell(h.x, h.y, h.z)
         b = Block.blockList[best_block]
-        print "For history location: ", h.x, h.y, h.z
-        print "    Closest grid cell is at: block= ", best_block, \
-              "i=", best_i, "j=", best_j, "k=", best_k
+        if verbosity_level >= 1:
+            print "For history location: ", h.x, h.y, h.z
+            print "    Closest grid cell is at: block= ", best_block, \
+                "i=", best_i, "j=", best_j, "k=", best_k
         best_i += h.i_offset; best_i = keep_in_range(best_i, 0, b.nni-1)
         best_j += h.j_offset; best_j = keep_in_range(best_j, 0, b.nnj-1)
         best_k += h.k_offset; best_k = keep_in_range(best_k, 0, b.nnk-1)
-        print "    After offsets: i=", best_i, "j=", best_j, "k=", best_k
         Block.blockList[best_block].hcell_list.append( (best_i, best_j, best_k) )
-        print "    For block", best_block ,"this becomes history cell index=", \
-              len(Block.blockList[best_block].hcell_list) - 1
+        if verbosity_level >= 1:
+            print "    After offsets: i=", best_i, "j=", best_j, "k=", best_k
+            print "    For block", best_block ,"this becomes history cell index=", \
+                len(Block.blockList[best_block].hcell_list) - 1
         h.i = best_i; h.j = best_j; h.k = best_k;
         h.blkId = best_block
         h.cellId = len(Block.blockList[best_block].hcell_list) - 1
@@ -1146,20 +1151,23 @@ def locate_monitor_cells():
     locate the closest cell for each.
     """
     global gdata
+    global verbosity_level
     #
     for h in MonitorLocation.monitorList:
         best_block, best_i, best_j, best_k = locate_closest_cell(h.x, h.y, h.z)
         b = Block.blockList[best_block]
-        print "For monitor location: ", h.x, h.y, h.z
-        print "    Closest grid cell is at: block= ", best_block, \
-              "i=", best_i, "j=", best_j, "k=", best_k
+        if verbosity_level >= 1:
+            print "For monitor location: ", h.x, h.y, h.z
+            print "    Closest grid cell is at: block= ", best_block, \
+                "i=", best_i, "j=", best_j, "k=", best_k
         best_i += h.i_offset; best_i = keep_in_range(best_i, 0, b.nni-1)
         best_j += h.j_offset; best_j = keep_in_range(best_j, 0, b.nnj-1)
         best_k += h.k_offset; best_k = keep_in_range(best_k, 0, b.nnk-1)
-        print "    After offsets: i=", best_i, "j=", best_j, "k=", best_k
         Block.blockList[best_block].mcell_list.append( (best_i, best_j, best_k) )
-        print "    For block", best_block ,"this becomes monitor cell index=", \
-              len(Block.blockList[best_block].mcell_list) - 1
+        if verbosity_level >= 1:
+            print "    After offsets: i=", best_i, "j=", best_j, "k=", best_k
+            print "    For block", best_block ,"this becomes monitor cell index=", \
+                len(Block.blockList[best_block].mcell_list) - 1
         h.i = best_i; h.j = best_j; h.k = best_k;
         h.blkId = best_block
         h.cellId = len(Block.blockList[best_block].mcell_list) - 1
@@ -1169,7 +1177,9 @@ def locate_monitor_cells():
 #----------------------------------------------------------------------------
 
 def write_times_file(rootName):
-    print "Begin write zero-entry into times file."
+    global verbosity_level
+    if verbosity_level >= 1:
+        print "Begin write zero-entry into times file."
     fp = open(rootName+".times", "w")
     fp.write("# tindx sim_time dt_global\n")
     fp.write("%04d %e %e\n" % (0, gdata.t0, gdata.dt))
@@ -1178,7 +1188,9 @@ def write_times_file(rootName):
 
 
 def write_parameter_file(rootName):
-    print "Begin write configuration file (INI format)."
+    global verbosity_level
+    if verbosity_level >= 1:
+        print "Begin write configuration file (INI format)."
     fp = open(rootName+".config", "w")
     gdata.write_to_ini_file(fp)
     fp.write("npiston = %d\n" %len(SimplePiston.pistonList) )
@@ -1201,12 +1213,15 @@ def write_parameter_file(rootName):
         block.write_to_ini_file(fp, gdata.dimensions)
     fp.write("\n# end file\n")
     fp.close()
-    print "End write config file."
+    if verbosity_level >= 1:
+        print "End write config file."
     return
 
 
 def write_control_file(rootName):
-    print "Begin write control file (INI format)."
+    global verbosity_level
+    if verbosity_level >= 1:
+        print "Begin write control file (INI format)."
     fp = open(rootName+".control", "w")
     gdata.write_to_control_file(fp)
     fp.close()
@@ -1214,7 +1229,9 @@ def write_control_file(rootName):
 
 
 def write_grid_files(rootName, blockList, zipFiles=0):
-    print "Begin write grid file(s)."
+    global verbosity_level
+    if verbosity_level >= 1:
+        print "Begin write grid file(s)."
     # Grid already created in main loop
     # Write one file per block.
     gridPath = os.path.join("grid", "t0000")
@@ -1229,11 +1246,14 @@ def write_grid_files(rootName, blockList, zipFiles=0):
             fp = open(fileName, "w")
         b.grid.write(fp)
         fp.close()
-    print "End write grid file(s)."
+    if verbosity_level >= 1:
+        print "End write grid file(s)."
     return
 
 def split_input_file(blockList):
-    print "Begin split input file(s)."
+    global verbosity_level
+    if verbosity_level >= 1:
+        print "Begin split input file(s)."
     # Write one input file per block.
     ncell = 0
     start_indx = 1
@@ -1274,11 +1294,14 @@ def split_input_file(blockList):
                     print "    Bailing out!"
                     sys.exit(1)
 
-    print "End split input file(s)."
+    if verbosity_level >= 1:
+        print "End split input file(s)."
     return
 
 def write_starting_solution_files(rootName, blockList, pistonList, zipFiles=0):
-    print "Begin write starting solution file(s)."
+    global verbosity_level
+    if verbosity_level >= 1:
+        print "Begin write starting solution file(s)."
     # Write one file per block.
     flowPath = os.path.join("flow", "t0000")
     if not os.access(flowPath, os.F_OK):
@@ -1302,7 +1325,7 @@ def write_starting_solution_files(rootName, blockList, pistonList, zipFiles=0):
         else:
             fb = None
         
-        b.write_starting_solution(fp, gdata, fb)
+        b.write_starting_solution(fp, gdata, fb, verbosity_level)
         fp.close()
         
         if fb:
@@ -1314,7 +1337,8 @@ def write_starting_solution_files(rootName, blockList, pistonList, zipFiles=0):
         for p in pistonList:
             p.write_starting_solution(fp)
         fp.close()
-    print "End write starting solution file(s)."
+    if verbosity_level >= 1:
+        print "End write starting solution file(s)."
     return
 
 # --------------------------------------------------------------------
@@ -1338,8 +1362,10 @@ def render_to_vrml(rootName):
     Maybe we'll work out a way to add annotations and
     boundary-condition information at a later date.
     """
+    global verbosity_level
+    if verbosity_level >= 1:
+        print "Render to VRML in file", fileName
     fileName = rootName + ".wrl"
-    print "Render to VRML in file", fileName
     fp = open(fileName, "w")
     fp.write("#VRML V2.0 utf8\n")
     for item in RenderList:
@@ -1356,6 +1382,7 @@ def main(uoDict):
     It may be handy to be able to embed most of the functions in 
     this file into a custom preprocessing script.
     """
+    global verbosity_level
     jobName = uoDict.get("--job", "test")
     rootName, ext = os.path.splitext(jobName)
     sketch.root_file_name = rootName
@@ -1363,7 +1390,8 @@ def main(uoDict):
         jobFileName = jobName
     else:
         jobFileName = rootName + ".py"
-    print "Job file: %s" % jobFileName
+    if verbosity_level >= 1:
+        print "Job file: %s" % jobFileName
     zipFiles = 1  # Default: use zip file format for grid and flow data files.
     if uoDict.has_key("--zip-files"): zipFiles = 1
     if uoDict.has_key("--no-zip-files"): zipFiles = 0
@@ -1444,10 +1472,12 @@ def pretty_print_names(nameList):
 # --------------------------------------------------------------------
 
 if __name__ == '__main__':
-    print "Begin e3prep.py..."
-    print "Source code revision string: ", get_revision_string()
     userOptions = getopt(sys.argv[1:], shortOptions, longOptions)
     uoDict = dict(userOptions[0])
+    verbosity_level = int(uoDict.get("--verbosity", "0"))
+    if verbosity_level > 0 or len(userOptions[0]) == 0 or uoDict.has_key("--help"):
+        print "Begin e3prep.py..."
+        print "Source code revision string: ", get_revision_string()
     if len(userOptions[0]) == 0 or uoDict.has_key("--help"):
         printUsage()
         sys.exit(1) # abnormal exit
@@ -1461,5 +1491,5 @@ if __name__ == '__main__':
             print "This run of e3prep.py has gone bad."
             traceback.print_exc(file=sys.stdout)
             sys.exit(2) # abnormal exit; we tried and failed
-    print "Done."
+    if verbosity_level > 0: print "Done."
     sys.exit(0) # Finally, a normal exit.

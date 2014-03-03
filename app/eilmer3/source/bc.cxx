@@ -57,8 +57,6 @@ extern "C" {
 
 using namespace std;
 
-constexpr bool verbose_BCs = true; // To print mem usage, writing of data etc
-
 std::string get_bc_name(bc_t bc)
 {
     switch ( bc ) {
@@ -167,6 +165,7 @@ BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code)
       neighbour_block(-1), neighbour_face(-1), neighbour_orientation(0),
       wc_bc(NON_CATALYTIC), cw(0), emissivity(1.0)
 {
+    global_data &G = *get_global_data_ptr();
     Block & bd = *bdp;
     // 1. Determine size heat flux vectors
     size_t dim = 1;
@@ -243,12 +242,12 @@ BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code)
 	exit(NOT_IMPLEMENTED_ERROR);
     }
     
-    if ( verbose_BCs ) {
+    if ( G.verbosity_level >= 2 ) {
 	size_t total_bytes = 3 * dim * sizeof(double);
 	cout << "Block " << bd.id << ", boundary " << which_boundary
 	     << ": Have allocated " << total_bytes << " bytes of memory." << endl;
     }
-}
+} // end BoundaryCondition constructor
 
 // Shouldn't really have a boundary condition object created without
 // reference to a particular block but, just in case the compiler wants it...
@@ -596,6 +595,7 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 ///
 /// Basic formatting borrowed from Block::write_solution
 {
+    global_data &G = *get_global_data_ptr();
     FV_Cell * cell, * ghost_cell, * cL1, * cL0, * cR0, * cR1;
     FV_Interface * IFace;
     size_t i, j, k;
@@ -605,7 +605,7 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
     Block & bd = *bdp;
     
     FILE *fp;
-    if ( verbose_BCs ) {
+    if ( G.verbosity_level >= 2 ) {
 	if ( bd.id == 0 && which_boundary == 0 ) {
 	    printf( "write_surface_heat_flux(): At t = %e, start block = %d, boundary = %d.\n",
 		    sim_time, static_cast<int>(bd.id), which_boundary );
@@ -740,6 +740,7 @@ int BoundaryCondition::write_fstc_heat_flux( string filename, double sim_time )
 ///        Used for fluid-structure thermal coupling
 /// Basic formatting borrowed from Block::write_solution
 {
+    global_data &G = *get_global_data_ptr();
     FV_Cell * cell;
     FV_Interface * IFace;
     size_t i, j, k;
@@ -747,7 +748,7 @@ int BoundaryCondition::write_fstc_heat_flux( string filename, double sim_time )
     Block & bd = *bdp;
 
     FILE *fp;
-    if ( verbose_BCs ) {
+    if ( G.verbosity_level >= 2 ) {
 	if ( bd.id == 0 && which_boundary == 0 ) {
 	    printf( "write_surface_heat_flux(): At t = %e, start block = %d, boundary = %d.\n",
 		    sim_time, static_cast<int>(bd.id), which_boundary );
@@ -816,7 +817,7 @@ read_surface_heat_flux( string filename, size_t dimensions, int zip_files )
     double sim_time;
     global_data &G = *get_global_data_ptr();
 
-    if ( G.verbose_init_messages && which_boundary == 0 ) 
+    if ( G.verbosity_level >= 2 && which_boundary == 0 ) 
 	printf("read_surface_heat_flux(): Start surface %d.\n", which_boundary);
     if (zip_files) {
 	fp = NULL;
@@ -844,7 +845,7 @@ read_surface_heat_flux( string filename, size_t dimensions, int zip_files )
 	exit(BAD_INPUT_ERROR);
     }
     sscanf(line, "%lf", &sim_time);
-    if ( G.verbose_init_messages && which_boundary == 0 ) 
+    if ( G.verbosity_level >= 2 && which_boundary == 0 ) 
 	printf("read_surface_heat_flux(): Time = %e\n", sim_time);
     if (zip_files) {
 	gets_result = gzgets(zfp, line, NCHAR);
@@ -905,12 +906,13 @@ read_surface_heat_flux( string filename, size_t dimensions, int zip_files )
 int BoundaryCondition::write_vertex_velocities(std::string filename, double sim_time,
 					       size_t dimensions, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
     size_t i, j, k, irangemax, jrangemax, krangemax;
     FV_Vertex *vtx;
     Block & bd = *bdp;
     
     FILE *fp;
-    if ( verbose_BCs ) {
+    if ( G.verbosity_level >= 2 ) {
 	if ( bd.id == 0 && which_boundary == 0 ) {
 	    printf( "write_vertex_velocities(): At t = %e, start block = %d, boundary = %d.\n",
 		    sim_time, static_cast<int>(bd.id), which_boundary );
@@ -1245,7 +1247,7 @@ int check_connectivity()
     } // end for jb
 
     if (fail == 0) {
-        if ( G.verbose_init_messages ) cout << "Forward and Backward connections are OK." << endl;
+        if ( G.verbosity_level >= 2 ) cout << "Forward and Backward connections are OK." << endl;
     } else {
         cout << "Block connections fail." << endl;
         exit( VALUE_ERROR );
@@ -1277,7 +1279,7 @@ int check_connectivity()
 	    } // end for face
 	} // end for jb
 	if (fail == 0) {
-	    if ( G.verbose_init_messages ) 
+	    if ( G.verbosity_level >= 2 ) 
 		cout << "Numbers of cells for adjacent boundaries are OK." << endl;
 	} else {
 	    cerr << "Numbers of cells for adjacent boundaries FAIL." << endl;
@@ -1285,7 +1287,7 @@ int check_connectivity()
 	}
     } else {
 	// FIX-ME bring the code over from e3prep
-	if ( G.verbose_init_messages ) 
+	if ( G.verbosity_level >= 2 ) 
 	    cout << "Numbers of cells on joined faces are not checked for 3D." << endl;
     }
 

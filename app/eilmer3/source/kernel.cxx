@@ -170,7 +170,7 @@ size_t set_velocity_buckets(size_t i)
     velocity_buckets = i;
     vcoords.resize(i);
     vweights.resize(i);
-    if ( gd.verbose_init_messages )
+    if ( gd.verbosity_level >= 2 )
 	printf("set velocity_buckets=%d\n", static_cast<int>(velocity_buckets));
     return velocity_buckets;
 }

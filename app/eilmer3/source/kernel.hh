@@ -48,7 +48,13 @@ struct global_data
     size_t dimensions;      // 2 or 3 dimensions
     size_t nghost; // Number of ghost cells surrounding the active cells.
     bool axisymmetric;
-    bool verbose_init_messages;
+    int verbosity_level; 
+    // Messages have a hierarchy:
+    // 0 : only error messages will be omitted
+    // 1 : emit messages that are useful for a long-running job (default)
+    // 2 : plus verbose init messages
+    // 3 : plus verbose boundary condition messages
+    // 4 : temporary messages for debugging
     FILE *logfile;          // log file handle
     FILE *timestampfile;
     FILE *fstctimesfile;

@@ -814,21 +814,21 @@ class Block(object):
             fp.write("t_f = %e\n" % bc.t_f)
         return
 
-    def write_starting_solution(self, fp, gdata, fb=None):
+    def write_starting_solution(self, fp, gdata, fb=None, verbosity_level=1):
         """
         Writes the flow-solution in Eilmer3-native format to a file.
 
         This is almost-Tecplot format.
         """
-        print "Write initial flow solution: label=", self.label
+        if verbosity_level > 0: print "Write initial flow solution: label=", self.label
         if isinstance(self.fill_condition, FlowCondition):
             label = self.fill_condition.flow.label
             if len(label) == 0: label = "<no-label>"
-            print "   using FlowCondition:", label
+            if verbosity_level > 0: print "   using FlowCondition:", label
         elif isinstance(self.fill_condition, ExistingSolution):
-            print "   using ExistingSolution:", self.fill_condition.rootName
+            if verbosity_level > 0: print "   using ExistingSolution:", self.fill_condition.rootName
         elif callable(self.fill_condition):
-            print "   using user-defined Python function:", self.fill_condition.__name__
+            if verbosity_level > 0: print "   using user-defined Python function:", self.fill_condition.__name__
         fp.write("%20.12e\n" % gdata.t0)
         fp.write("%s\n" % quoted_string(variable_list_for_cell(gdata)))
         fp.write("%d %d %d\n" % (self.nni, self.nnj, self.nnk)) # number of cells in each dir
@@ -885,10 +885,12 @@ class Block(object):
                     write_cell_data(fp, cell_properties, gdata)
                     if fb:
                         write_bgk_data(fb, bgk_properties, gdata)
-                print ".",
-                sys.stdout.flush()
-        print
-        # print "End write_initial_solution for block."
+                if verbosity_level > 0:
+                    print ".",
+                    sys.stdout.flush()
+        if verbosity_level > 0:
+            print
+            print "End write_initial_solution for block."
         return
 
 #----------------------------------------------------------------------------
@@ -917,7 +919,8 @@ class Block2D(Block):
                  mcell_list=[],
                  xforce_list = [0,]*4,
                  label="",
-                 active=1
+                 active=1,
+                 verbosity_level=0
                  ):
         """
         Create a block from a parametric-surface object.
@@ -974,9 +977,11 @@ class Block2D(Block):
         # 1. discretization of a parametric surface
         # 2. supplied directly as a StructuredGrid object
         # 3. read from a VTK file.
-        print "Block2D.__init__: blkId=%d, label=%s" % (self.blkId, self.label)
+        if verbosity_level > 0:
+            print "Block2D.__init__: blkId=%d, label=%s" % (self.blkId, self.label)
         if psurf != None:
-            print "Generate a grid from a user-specified parametric surface."
+            if verbosity_level > 0:
+                print "Generate a grid from a user-specified parametric surface."
             self.psurf = psurf.clone() # needed for later rendering
             self.nni = nni
             self.nnj = nnj
@@ -984,14 +989,16 @@ class Block2D(Block):
             self.grid = StructuredGrid((self.nni+1, self.nnj+1))
             self.grid.make_grid_from_surface(self.psurf, cf_list)
         elif grid != None:
-            print "Accept grid as given."
+            if verbosity_level > 0:
+                print "Accept grid as given."
             # Should assert grid is StructuredGrid or e3_grid.StructuredGrid
             self.psurf = None # will be a problem for later rendering
             self.grid = grid
             self.nni = self.grid.ni - 1
             self.nnj = self.grid.nj - 1
         elif import_grid_file_name != None:
-            print "Import a grid from a VTK data file:", import_grid_file_name
+            if verbosity_level > 0:
+                print "Import a grid from a VTK data file:", import_grid_file_name
             self.grid = StructuredGrid()
             fin = open(import_grid_file_name, "r")
             self.grid.read_block_in_VTK_format(fin)
@@ -1072,7 +1079,8 @@ def connect_blocks_2D(A, faceA, B, faceB, with_udf=0,
                       sets_conv_flux=0, sets_visc_flux=0,
                       check_corner_locations=True,
                       reorient_vector_quantities=False,
-                      nA=None, t1A=None, nB=None, t1B=None):
+                      nA=None, t1A=None, nB=None, t1B=None,
+                      verbosity_level=0):
     """
     Make the face-to-face connection between neighbouring blocks.
 
@@ -1102,8 +1110,9 @@ def connect_blocks_2D(A, faceA, B, faceB, with_udf=0,
     else:
         # With no information, assume identity.
         RmatrixBtoA = numpy.eye(3,dtype=float).flatten()
-    print "connect_blocks_2D(): connect block", A.blkId, "face", faceName[faceA], \
-          "to block", B.blkId, "face", faceName[faceB]
+    if verbosity_level > 0:
+        print "connect_blocks_2D(): connect block", A.blkId, "face", faceName[faceA], \
+            "to block", B.blkId, "face", faceName[faceB]
     RmatrixAtoB = numpy.transpose(RmatrixBtoA)
     if with_udf:
         # Exchange connection with user-defined function.
@@ -1163,7 +1172,8 @@ def cell_count_consistent_2D(blkA, faceA, blkB, faceB):
     raise runtime_error("cell_count_consistent_2D(): we should noot have reached this point")
     return False
 
-def identify_block_connections_2D(block_list=None, exclude_list=[], tolerance=1.0e-6):
+def identify_block_connections_2D(block_list=None, exclude_list=[], tolerance=1.0e-6,
+                                  verbosity_level=0):
     """
     Identifies and makes block connections based on block-vertex locations.
 
@@ -1177,7 +1187,7 @@ def identify_block_connections_2D(block_list=None, exclude_list=[], tolerance=1.
     if block_list == None:
         # Default to searching all defined blocks.
         block_list = Block.blockList
-    print "Begin searching for block connections..."
+    if verbosity_level > 0: print "Begin searching for block connections..."
     for thisBlock in block_list:
         for otherBlock in block_list:
             if thisBlock == otherBlock: continue
@@ -1257,7 +1267,7 @@ def identify_block_connections_2D(block_list=None, exclude_list=[], tolerance=1.
                 if connections > 0:
                     # Avoid doubling-up with the reverse connections.
                     exclude_list.append((thisBlock,otherBlock))
-    print "Finished searching for block connections."
+    if verbosity_level > 0: print "Finished searching for block connections."
     return
 
 # --------------------------------------------------------------------
@@ -1476,7 +1486,8 @@ class SuperBlock2D(object):
                  fill_condition=None,
                  hcell_list=[],
                  label="sblk",
-                 active=1
+                 active=1,
+                 verbosity_level=0
                  ):
         """
         Creates a single grid over the region and then subdivides that grid.
@@ -1486,11 +1497,13 @@ class SuperBlock2D(object):
         self.blks = []
         # 1. Create the large grid for the super-block
         if psurf != None:
-            print "Generate a grid from a user-specified parametric surface."
+            if verbosity_level > 0: 
+                print "Generate a grid from a user-specified parametric surface."
             self.grid = StructuredGrid((nni+1, nnj+1))
             self.grid.make_grid_from_surface(psurf, cf_list)
         elif grid != None:
-            print "Accept grid as given, but subdivide."
+            if verbosity_level > 0:
+                print "Accept grid as given, but subdivide."
             self.grid = grid
             nni = self.grid.ni-1
             nnj = self.grid.nj-1
@@ -1572,7 +1585,8 @@ class Block3D(Block):
                  xforce_list=[0,]*6,
                  label="",
                  active=1,
-                 omegaz=0.0
+                 omegaz=0.0,
+                 verbosity_level=0
                  ):
         """
         Basic initialisation for a block.
@@ -1604,7 +1618,8 @@ class Block3D(Block):
         if len(label) == 0:
             label = "blk-" + str(self.blkId)
         self.label = label
-        print "Defining blkId=%d, label=%s" % (self.blkId, self.label)
+        if verbosity_level > 0:
+            print "Defining blkId=%d, label=%s" % (self.blkId, self.label)
         #
         self.active = active
         self.wc_bc_list = copy.copy(wc_bc_list)
@@ -1619,11 +1634,12 @@ class Block3D(Block):
         # 2. supplied directly as a StructuredGrid object
         # 3. read from a VTK file.
         if parametric_volume != None:
-            print "Generate a grid from a user-specified parametric volume."
-            print "    parametric subrange: r0=", parametric_volume.r0, \
-                  "r1=", parametric_volume.r1,
-            print "s0=", parametric_volume.s0, "s1=", parametric_volume.s1,
-            print "t0=", parametric_volume.t0, "t1=", parametric_volume.t1
+            if verbosity_level > 0:
+                print "Generate a grid from a user-specified parametric volume."
+                print "    parametric subrange: r0=", parametric_volume.r0, \
+                      "r1=", parametric_volume.r1,
+                print "s0=", parametric_volume.s0, "s1=", parametric_volume.s1,
+                print "t0=", parametric_volume.t0, "t1=", parametric_volume.t1
             self.parametric_volume = parametric_volume.copy()
             self.cf_list = copy.copy(cf_list)
             if nni != None: 
@@ -1639,10 +1655,10 @@ class Block3D(Block):
             else:
                 self.nnk = Block.nmin
             self.grid = StructuredGrid((self.nni+1, self.nnj+1, self.nnk+1))
-            print "Generate TFI grid for block."
+            if verbosity_level > 0: print "Generate TFI grid for block."
             self.grid.make_TFI_grid_from_volume(parametric_volume, cf_list)
         elif grid != None:
-            print "Use the grid as given."
+            if verbosity_level > 0: print "Use the grid as given."
             # Should assert grid is StructuredGrid or e3_grid.StructuredGrid
             self.grid = grid
             self.nni = self.grid.ni-1
@@ -1650,7 +1666,8 @@ class Block3D(Block):
             self.nnk = self.grid.nk-1
             self.parametric_volume = None
         elif import_grid_file_name != None:
-            print "Import a grid from a VTK data file:", import_grid_file_name
+            if verbosity_level > 0: 
+                print "Import a grid from a VTK data file:", import_grid_file_name
             self.grid = StructuredGrid()
             fin = open(import_grid_file_name, "r")
             self.grid.read_block_in_VTK_format(fin)
@@ -2011,7 +2028,8 @@ class SuperBlock3D(object):
 
 #----------------------------------------------------------------------
 
-def identify_block_connections_3D(block_list=None, exclude_list=[], tolerance=1.0e-6):
+def identify_block_connections_3D(block_list=None, exclude_list=[], tolerance=1.0e-6,
+                                  verbosity_level=0):
     """
     Identifies and makes block connections based on vertex locations.
 
@@ -2024,7 +2042,7 @@ def identify_block_connections_3D(block_list=None, exclude_list=[], tolerance=1.
     if block_list == None:
         # Default to searching all defined blocks.
         block_list = Block.blockList
-    print "Begin searching for block connections..."
+    if verbosity_level > 0: print "Begin searching for block connections..."
     for thisBlock in block_list:
         for otherBlock in block_list:
             if thisBlock == otherBlock: continue
@@ -2036,7 +2054,7 @@ def identify_block_connections_3D(block_list=None, exclude_list=[], tolerance=1.
                     # We only make simple single-face-to-single-face connections.
                     connect_blocks_3D(thisBlock, otherBlock, vtxPairList)
                     exclude_list.append((thisBlock,otherBlock))
-    print "Finished searching for block connections."
+    if verbosity_level > 0: print "Finished searching for block connections."
     return
 
 def identify_colocated_vertices(A, B, tolerance):
@@ -2098,7 +2116,8 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
                       sets_conv_flux=0, sets_visc_flux=0,
                       check_corner_locations=True,
                       reorient_vector_quantities=False,
-                      nA=None, t1A=None, nB=None, t1B=None):
+                      nA=None, t1A=None, nB=None, t1B=None,
+                      verbosity_level=0):
     """
     Make the specified vertex-to-vertex connection between neighbouring blocks.
 
@@ -2116,7 +2135,7 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
     :param nB:
     :param t1B: the nominal direction vectors for face B
     """
-    print "connect_blocks(): begin..."
+    if verbosity_level > 0: print "connect_blocks(): begin..."
     if not isinstance(vtx_pairs, list):
         vtx_pairs = list(vtx_pairs)
     if len(vtx_pairs) != 4:
@@ -2124,8 +2143,8 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
     vtx_pairs.sort()  # want pairs in a standard order for dictionary lookup
     try:
         faceA, faceB, orientation, axis_map = connectionDict3D[tuple(vtx_pairs)]
-        print "connectionDict3D lookup: faceA=", faceName[faceA], \
-              "faceB=", faceName[faceB], "orientation=", orientation, "axis_map=", axis_map
+        if verbosity_level > 0: print "connectionDict3D lookup: faceA=", faceName[faceA], \
+                "faceB=", faceName[faceB], "orientation=", orientation, "axis_map=", axis_map
     except KeyError:
         print "connect_blocks_3D(): error"
         print "   The following set of vertex pairs is not in"
@@ -2144,10 +2163,10 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
             [RmatrixBtoA[6],  RmatrixBtoA[7],  RmatrixBtoA[8]]])
     R_A_B = numpy.linalg.inv(R_B_A)
     RmatrixAtoB = numpy.array([R_A_B[0][0], R_A_B[0][1], R_A_B[0][2], R_A_B[1][0], R_A_B[1][1], R_A_B[1][2], R_A_B[2][0], R_A_B[2][1], R_A_B[2][2]])
-    print "RmatrixAtoB=", RmatrixAtoB
-     
-    print "connect_blocks_3D(): connect block", A.blkId, "face", faceName[faceA], \
-          "to block", B.blkId, "face", faceName[faceB]
+    if verbosity_level > 0:
+        print "RmatrixAtoB=", RmatrixAtoB
+        print "connect_blocks_3D(): connect block", A.blkId, "face", faceName[faceA], \
+            "to block", B.blkId, "face", faceName[faceB]
     if with_udf:
         # Exchange connection with user-defined function
         A.bc_list[faceA] = AdjacentPlusUDFBC(B.blkId, faceB, orientation, filename=filename, 
@@ -2179,7 +2198,7 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
     for vtxA, vtxB in vtx_pairs:
         A.neighbour_vertex_list[faceA][vtxA] = vtxB
         B.neighbour_vertex_list[faceB][vtxB] = vtxA
-    print "connect_blocks_3D(): done."
+    if verbosity_level > 0: print "connect_blocks_3D(): done."
     return
 
 def check_block_connection_3D(blkA, faceA, blkB, faceB, orientation, tolerance=1.0e-6):
@@ -2257,7 +2276,8 @@ def cell_count_consistent_3D(blkA, faceA, blkB, faceB, orientation):
 
 #-------------------------------------------------------------------------------------
 
-def identify_block_connections(block_list=None, exclude_list=[], tolerance=1.0e-6):
+def identify_block_connections(block_list=None, exclude_list=[], tolerance=1.0e-6,
+                               verbosity_level=0):
     """
     Identifies and makes block connections based on vertex locations.
 
@@ -2270,7 +2290,9 @@ def identify_block_connections(block_list=None, exclude_list=[], tolerance=1.0e-
     Note that this function is just a proxy for the specialized 2D and 3D functions.
     """
     if isinstance(Block.blockList[0], Block3D):
-        identify_block_connections_3D(block_list, exclude_list, tolerance)
+        identify_block_connections_3D(block_list, exclude_list, tolerance,
+                                      verbosity_level)
     else:
-        identify_block_connections_2D(block_list, exclude_list, tolerance)
+        identify_block_connections_2D(block_list, exclude_list, tolerance,
+                                      verbosity_level)
     return

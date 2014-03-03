@@ -23,6 +23,7 @@ Options::
 |            [--nbj=<nbj>] [--nbk=<nbk>]
 |            [--max-dt=<dt>]
 |            [--polish-time=<time,dt>]
+|            [--verbosity=<int>]
 
 .. Authors: Peter Jacobs, Wilson Chan, Luke Doherty, Rainer Kirchhartz,
             Chris James and Rowan Gollan.
@@ -51,13 +52,16 @@ E3BIN = os.path.expandvars("$HOME/e3bin")
 sys.path.append(E3BIN)
 from libprep3 import *
 
+verbosity_level = 0
+
 shortOptions = ""
 longOptions = ["help", "job=",
                "zip-files", "no-zip-files",
                "run", "restart=",
                "nbj=", "nbk=", 
                "max-dt=",
-               "polish-time="]
+               "polish-time=",
+               "verbosity="]
 
 def printUsage():
     print ""
@@ -67,6 +71,7 @@ def printUsage():
     print "       [--nbj=<nbj>] [--nbk=<nbk>]"
     print "       [--max-dt=<dt>]"
     print "       [--polish-time=<time,dt]"
+    print "       [--verbosity=<level>]"
     return
 
 #----------------------------------------------------------------------
@@ -75,13 +80,14 @@ def run_command(cmdText):
     """
     Run the command as a subprocess.
     """
+    global verbosity_level
     # Flush before using subprocess to ensure output is in the right order.
     sys.stdout.flush()    
     if (type(cmdText) is list):
         args = cmdText
     else:
         args = shlex.split(cmdText)
-    print "About to run cmd:", string.join(args)
+    if verbosity_level > 0: print "About to run cmd:", string.join(args)
     try:
         result = subprocess.check_call(args, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError:
@@ -117,7 +123,8 @@ def run_in_block_marching_mode(cfgDict):
     """
     The core of the multi-block space-marching code.
     """
-    print "Set a few overall parameters"
+    global verbosity_level
+    if verbosity_level > 0: print "Set a few overall parameters"
     jobName = cfgDict['jobName']
     blksPerSlice = cfgDict['nbj'] * cfgDict['nbk']
     max_time = cfgDict['max_time']
@@ -165,7 +172,8 @@ def run_in_block_marching_mode(cfgDict):
         # Note that the tindx value will be 1 (not 9999).
         run_command('mkdir master/flow/t0001')
         #
-        print "Set up local config files in the usual places for Eilmer3."
+        if verbosity_level > 0:
+            print "Set up local config files in the usual places for Eilmer3."
         # We are going to assume that the configuration of block subsets
         # will not change run-to-run for the time-marching code.
         run_command('mkdir flow grid')
@@ -247,7 +255,7 @@ def run_in_block_marching_mode(cfgDict):
                 profileFileName = 'blk-'+str(blk)+'-slice-1.dat'
                 propagate_data_west_to_east(flowFileName, profileFileName)
         #
-        print "Run Eilmer3."
+        if verbosity_level > 0: print "Run Eilmer3 time integration process."
         run_command(MPI_PARAMS+E3BIN+('/e3mpi.exe --job=%s --run' % (jobName,)))
         #
         print "Post-process to get profiles for the inflow for the next run."
@@ -509,6 +517,7 @@ def main(uoDict):
     """
     Top-level function for the block-marching application.
     """
+    global verbosity_level
     jobName = uoDict.get("--job", "test")
     rootName, ext = os.path.splitext(jobName)
     if os.path.exists(jobName):
@@ -540,10 +549,12 @@ def main(uoDict):
 # --------------------------------------------------------------------
 
 if __name__ == '__main__':
-    print "Begin e3march.py..."
-    print "Source code revision string: ", get_revision_string()
     userOptions = getopt(sys.argv[1:], shortOptions, longOptions)
     uoDict = dict(userOptions[0])
+    verbosity_level = int(uoDict.get("--verbosity", "0"))
+    if verbosity_level > 0 or len(userOptions[0]) == 0 or uoDict.has_key("--help"):
+        print "Begin e3march.py..."
+        print "Source code revision string: ", get_revision_string()
     if len(userOptions[0]) == 0 or uoDict.has_key("--help"):
         printUsage()
         sys.exit(1) # abnormal exit; didn't know what to do
@@ -554,6 +565,6 @@ if __name__ == '__main__':
             print "This run of e3march.py has gone bad."
             traceback.print_exc(file=sys.stdout)
             sys.exit(2) # abnormal exit; we tried and failed
-    print "Done."
+    if verbosity_level > 0: print "Done."
     sys.exit(0) # Finally, a normal exit.
 

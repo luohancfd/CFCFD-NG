@@ -198,7 +198,7 @@ class StructuredGrid(object):
         print "Finished reading block from plot3d whole-grid format."
         return
 
-    def read_from_plot3d_in_planes(self, f, with_blanking=1):
+    def read_from_plot3d_in_planes(self, f, with_blanking=1, verbosity_level=0):
         """
         Read one block from plot3D in-planes (ASCII or text) format.
 
@@ -212,7 +212,7 @@ class StructuredGrid(object):
         The only place that this format seemed to be documented
         is the original Plot3D manual.
         """
-        print "Start reading plot3D block in planes format..."
+        if verbosity_level > 0: print "Start reading plot3D block in planes format..."
         np = self.ni * self.nj
         for k in range(self.nk):
             # print "Plane:", k, "Read x-coordinates"
@@ -261,7 +261,7 @@ class StructuredGrid(object):
                     for i in range(self.ni):
                         self.iblank[i,j,k] = numbers[i+self.ni*j]
             # print "End plane", k
-        print "Finished reading block from plot3d in planes format."
+        if verbosity_level > 0: print "Finished reading block from plot3d in planes format."
         return
 
     def write_structured_plot3d(self, f):
@@ -291,7 +291,7 @@ class StructuredGrid(object):
                         f.write("%20.12e\n" % self.z[i,j,k])
         return
 
-    def read_block_in_VTK_format(self, f):
+    def read_block_in_VTK_format(self, f, verbosity_level=0):
         """
         Reads the grid from an already open file.
 
@@ -301,7 +301,7 @@ class StructuredGrid(object):
         # First line contains a declatation that this is a legacy VTK file.
         locate_VTK_header_line("vtk", f) # expecting "vtk DataFile Version 2.0"
         self.label = f.readline().strip()
-        print "label=", self.label
+        if verbosity_level > 0: print "label=", self.label
         locate_VTK_header_line("ASCII", f)
         locate_VTK_header_line("STRUCTURED_GRID", f)
         tokens = locate_VTK_header_line("DIMENSIONS", f)
@@ -325,7 +325,7 @@ class StructuredGrid(object):
                     self.z[i,j,k] = float(tks[2])
         return
 
-    def write_block_in_VTK_format(self, f):
+    def write_block_in_VTK_format(self, f, verbosity_level=0):
         """
         Writes the grid to an already open file.
 
@@ -333,7 +333,7 @@ class StructuredGrid(object):
         that it is implicit that only one block grid goes into the file.
         Note also that this is the legacy VTK format.
         """
-        # print "Begin write block in VTK format:"
+        if verbosity_level > 0: print "Begin write block in VTK format:"
         f.write("# vtk DataFile Version 2.0\n")
         f.write("%s\n" % self.label)
         f.write("ASCII\n")
@@ -345,16 +345,16 @@ class StructuredGrid(object):
             for j in range(self.nj):
                 for i in range(self.ni):
                     f.write("%e %e %e\n" % (self.x[i,j,k], self.y[i,j,k], self.z[i,j,k]))
-        # print "End write block in VTK format."
+        if verbosity_level > 0: print "End write block in VTK format."
         return
 
-    def make_grid_from_surface(self, surface, cluster_functions=[None,]*4):
+    def make_grid_from_surface(self, surface, cluster_functions=[None,]*4, verbosity_level=0):
         """
         Given a parametric surface, create a 2D grid via interpolation.
 
         The order of the cluster functions is N,E,S,W.
         """
-        print "Begin make grid"
+        if verbosity_level > 0: print "Begin make grid"
         if self.nk != 1:
             print "Warning: nk=", self.nk, "but should be zero."
             print "The 2D grid will be put in the k=0 slice."
@@ -379,12 +379,14 @@ class StructuredGrid(object):
                 rdash = (1.0-s) * rSouth[i] + s * rNorth[i]
                 p = surface.eval(rdash, sdash)
                 self.x[i,j,k], self.y[i,j,k], self.z[i,j,k] = p.x, p.y, p.z
-            print ".",
-        print 
-        # print "End make 2D grid from surface."
+            if verbosity_level > 0: print ".",
+        if verbosity_level > 0:
+            print 
+            print "End make 2D grid from surface."
         return
 
-    def make_TFI_grid_from_volume(self, pvolume, cluster_functions=[None,]*12):
+    def make_TFI_grid_from_volume(self, pvolume, cluster_functions=[None,]*12,
+                                  verbosity_level=0):
         """
         Given a parametric volume, create the grid via TFI.
         
@@ -393,7 +395,7 @@ class StructuredGrid(object):
         if any are not already specified correctly, 
         they will be set as standard linear functions.
         """
-        print "Begin make grid."
+        if verbosity_level > 0: print "Begin make grid."
         # Set up distributions of points along each of the nondimensional edges.
         for i in range(12):
             if not isinstance(cluster_functions[i], UnivariateFunction):
@@ -430,10 +432,11 @@ class StructuredGrid(object):
                             (1.0-s)*t*r45[i] + s*(1.0-t)*r32[i]
                     p = pvolume.eval(rdash, sdash, tdash)
                     self.x[i][j][k], self.y[i][j][k], self.z[i][j][k] = p.x, p.y, p.z
-            print ".",
+            if verbosity_level > 0: print ".",
             sys.stdout.flush()
-        print 
-        print "End make grid."
+        if verbosity_level > 0:
+            print 
+            print "End make grid."
         return
 
     def create_subgrid(self, imin, imax, jmin, jmax, kmin=0, kmax=0):

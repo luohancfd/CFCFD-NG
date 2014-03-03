@@ -297,7 +297,7 @@ function main()
       os.exit(1)
    end
    f = assert(io.open(output, "w"))
-   print(string.format("%s model selected", model))
+   -- print(string.format("%s model selected", model))
    if gas_models[model] ~= nil then
       if gas_models[model].special_fn then
 	 gas_models[model].special_fn(species, f)
