@@ -281,7 +281,7 @@ int Block::identify_reaction_zones(global_data &gd, size_t gtl)
 	total_cells_in_reaction_zones += (cellp->fr_reactions_allowed ? 1: 0);
 	total_cells += 1;
     } // for cellp
-    if ( gd.reacting ) {
+    if ( gd.reacting && gd.verbosity_level >= 2 ) {
 	cout << "identify_reaction_zones(): block " << id
 	     << " cells inside zones = " << total_cells_in_reaction_zones 
 	     << " out of " << total_cells << endl;
@@ -316,7 +316,7 @@ int Block::identify_turbulent_zones(global_data &gd, size_t gtl)
 	total_cells_in_turbulent_zones += (cellp->in_turbulent_zone ? 1: 0);
 	total_cells += 1;
     } // for cellp
-    if ( gd.turbulence_model != TM_NONE ) {
+    if ( gd.turbulence_model != TM_NONE && gd.verbosity_level >= 2 ) {
 	cout << "identify_turbulent_zones(): block " << id
 	     << " cells inside zones = " << total_cells_in_turbulent_zones 
 	     << " out of " << total_cells << endl;

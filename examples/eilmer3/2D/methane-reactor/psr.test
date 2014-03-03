@@ -52,7 +52,7 @@ test combustion-products {Combustion should have produced water by the end of th
 	set massf_O   0
 	set massf_H2O 0
     } else {
-	set line_of_data [string trim [lindex [split $results "\n"] end-1]]
+	set line_of_data [string trim [lindex [split $results "\n"] end]]
 	# puts $line_of_data
 	set items [split $line_of_data]
 	set rho [lindex $items 4]; # remember that index starts at 0
