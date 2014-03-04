@@ -1067,7 +1067,7 @@ if __name__ == '__main__':
         aux_var_names, compute_vars = parse_user_script(uname)
     #
     # For the times that have been specified, do something...
-    print "About to process the following solutions:", tindx_list
+    if verbosity_level > 0: print "About to process the following solutions:", tindx_list
     for tindx in tindx_list:
         if uoDict.has_key("--vtk-xml"):
             if verbosity_level > 0:
