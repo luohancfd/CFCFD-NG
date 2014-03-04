@@ -545,7 +545,7 @@ class Block(object):
                assume_ideal=0, mdot=None, emissivity=None,
                Twall_i=None, Twall_f=None, t_i=None, t_f=None,
                mass_flux=0.0, p_init=100.0e3, relax_factor=0.05,
-               direction_type="normal", direction_vector=[0.0,0.0,0.0],
+               direction_type="normal", direction_vector=[1.0,0.0,0.0],
                direction_alpha=0.0, direction_beta=0.0,
                label=''):
         """

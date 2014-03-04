@@ -45,6 +45,19 @@ SubsonicInBC::SubsonicInBC(Block *bdp, int which_boundary, int inflow_condition_
     global_data &gd = *get_global_data_ptr();
     gstagp = *(gd.gas_state[inflow_condition_id]);
     setup_stagnation_condition();
+    double mag = 0.0;
+    for ( double elem: direction_vector ) mag += elem * elem;
+    if ( mag > 1.0e-6 ) {
+	// Ensure that we have a unit vector.
+	mag = sqrt(mag);
+	for ( double &elem: direction_vector ) elem /= mag;
+    } else {
+	// An arbitrary, but well-defined, unit vector.
+	direction_vector.resize(3);
+	direction_vector[0] = 1.0;
+	direction_vector[1] = 0.0;
+	direction_vector[2] = 0.0;
+    }	
     cout << "SubsonicInBC: set up boundary condition." << endl;
     cout << "    p0= " << gstagp.gas->p << " Pa" << endl;
     cout << "    T0= " << gstagp.gas->T[0] << " degrees K" << endl;

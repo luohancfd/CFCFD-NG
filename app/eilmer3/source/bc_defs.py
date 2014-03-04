@@ -207,7 +207,7 @@ class BoundaryCondition(object):
                  p_init=100.0e3,
                  relax_factor=0.05,
                  direction_type="normal",
-                 direction_vector=[0.0, 0.0, 0.0],
+                 direction_vector=[1.0, 0.0, 0.0],
                  direction_alpha=0.0,
                  direction_beta=0.0,
                  label=""):
@@ -326,7 +326,7 @@ class BoundaryCondition(object):
         self.mass_flux = mass_flux
         self.p_init = p_init
         self.relax_factor = relax_factor
-        self.direction_type = "normal"
+        self.direction_type = direction_type
         assert (type(direction_vector) is list) and (len(direction_vector) == 3)
         self.direction_vector = [direction_vector[0], direction_vector[1], direction_vector[2]]
         self.direction_alpha = direction_alpha
@@ -670,7 +670,7 @@ class SubsonicInBC(BoundaryCondition):
     assume_ideal==0: use generalized stepping, down from stagnation to get conditions.
     """
     def __init__(self, inflow_condition, mass_flux=0.0, relax_factor=0.05, 
-                 direction_type="normal", direction_vector=[0.0,0.0,0.0],
+                 direction_type="normal", direction_vector=[1.0,0.0,0.0],
                  direction_alpha=0.0, direction_beta=0.0,
                  assume_ideal=False, label=""):
         """
