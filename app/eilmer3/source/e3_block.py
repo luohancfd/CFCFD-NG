@@ -541,12 +541,14 @@ class Block(object):
                filename=None, n_profile=1,
                is_wall=0, sets_conv_flux=0, sets_visc_flux=0,
                Twall_flag=False,
-               reorient_vector_quantities=False, Rmatrix=None,
+               reorient_vector_quantities=False, 
+               Rmatrix=[1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0],
                assume_ideal=0, mdot=None, emissivity=None,
                Twall_i=None, Twall_f=None, t_i=None, t_f=None,
                mass_flux=0.0, p_init=100.0e3, relax_factor=0.05,
                direction_type="normal", direction_vector=[1.0,0.0,0.0],
                direction_alpha=0.0, direction_beta=0.0,
+               ghost_cell_trans_fn=lambda x, y, z: (x, y, z),
                label=''):
         """
         Sets a boundary condition on a particular face of the block.
@@ -667,6 +669,9 @@ class Block(object):
         if type_of_BC == USER_DEFINED_MASS_FLUX:
             if not filename: filename = "udf.lua"
             newbc = UserDefinedMassFluxBC(filename, label=label)
+        if type_of_BC == MAPPED_CELL:
+            newbc = MappedCellBC(ghost_cell_trans_fn, 
+                                 reorient_vector_quantities, Rmatrix, label=label)
         #
         try:
             self.bc_list[iface] = newbc

@@ -66,6 +66,7 @@ These definitions are now gone and symbols are used instead:
 * USER_DEFINED_MASS_FLUX
 * CONJUGATE_HT
 * MASS_FLUX_OUT
+* MAPPED_CELL
 """
 #
 # The following symbol definitions are for use in the user's
@@ -97,6 +98,7 @@ USER_DEFINED_MASS_FLUX = object()
 CONJUGATE_HT = object()
 MOVING_WALL = object()
 MASS_FLUX_OUT = object()
+MAPPED_CELL = object()
 
 #
 # When we ust the set_BC method for a Block object, we will want to look up
@@ -132,7 +134,8 @@ bcSymbolFromName = {
     "USER_DEFINED_MASS_FLUX": USER_DEFINED_MASS_FLUX,
     "CONJUGATE_HT": CONJUGATE_HT,
     "MOVING_WALL": MOVING_WALL,
-    "MASS_FLUX_OUT": MASS_FLUX_OUT
+    "MASS_FLUX_OUT": MASS_FLUX_OUT,
+    "MAPPED_CELL": MAPPED_CELL
 }
 bcName = {
     ADJACENT: "ADJACENT",
@@ -159,7 +162,8 @@ bcName = {
     USER_DEFINED_MASS_FLUX: "USER_DEFINED_MASS_FLUX",
     CONJUGATE_HT: "CONJUGATE_HT",
     MOVING_WALL: "MOVING_WALL",
-    MASS_FLUX_OUT: "MASS_FLUX_OUT"
+    MASS_FLUX_OUT: "MASS_FLUX_OUT",
+    MAPPED_CELL: "MAPPED_CELL"
     }
 
 class BoundaryCondition(object):
@@ -174,7 +178,7 @@ class BoundaryCondition(object):
                 'reorient_vector_quantities', 'Rmatrix', \
                 'mass_flux', 'p_init', 'relax_factor', \
                 'direction_type', 'direction_vector', 'direction_alpha', 'direction_beta', \
-                'label'
+                'ghost_cell_trans_fn', 'label'
     def __init__(self,
                  type_of_BC=SLIP_WALL,
                  Twall=300.0,
@@ -210,6 +214,7 @@ class BoundaryCondition(object):
                  direction_vector=[1.0, 0.0, 0.0],
                  direction_alpha=0.0,
                  direction_beta=0.0,
+                 ghost_cell_trans_fn=lambda x, y, z: (x, y, z),
                  label=""):
         """
         Construct a generic boundary condition object.
@@ -280,6 +285,8 @@ class BoundaryCondition(object):
             and tangential components for direction_type=="radial" or "axial" (radians)
         :param direction_beta: flow angle determining axial-velocity component
             for direction_type=="radial" or "axial" (radians)
+        :param ghost_cell_trans_fn: User-supplied transform function mapping from 
+            ghost-cell position to source-cell position.
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
@@ -331,6 +338,7 @@ class BoundaryCondition(object):
         self.direction_vector = [direction_vector[0], direction_vector[1], direction_vector[2]]
         self.direction_alpha = direction_alpha
         self.direction_beta = direction_beta
+        self.ghost_cell_trans_fn = ghost_cell_trans_fn
         self.label = label
             
         return
@@ -371,6 +379,7 @@ class BoundaryCondition(object):
             (self.direction_vector[0], self.direction_vector[1], self.direction_vector[2])
         str_rep += ", direction_alpha=%g" % self.direction_alpha
         str_rep += ", direction_beta=%g" % self.direction_beta
+        str_rep += ", ghost_cell_trans_fn=%s" % self.ghost_cell_trans_fn
         str_rep += ", label=\"%s\")" % self.label
         return str_rep
     def __copy__(self):
@@ -408,6 +417,7 @@ class BoundaryCondition(object):
                                  direction_vector=copy.copy(self.direction_vector),
                                  direction_alpha=self.direction_alpha,
                                  direction_beta=self.direction_beta,
+                                 ghost_cell_trans_fn=self.ghost_cell_trans_fn,
                                  label=self.label)
     
 class AdjacentBC(BoundaryCondition):
@@ -1125,7 +1135,59 @@ class MassFluxOutBC(BoundaryCondition):
     def __copy__(self):
         return MassFluxOutBC(mass_flux=self.mass_flux, p_init=self.p_init,
                              relax_factor=self.relax_factor, label=self.label)
+ 
+class MappedCellBC(BoundaryCondition):
+    """
+    Ghost-cell flow data is obtained from source-cells.
 
+    The source-cell for each ghost-cell is identified as being the closest one
+    to the ghost-cell's mapped position.
+    """
+    def __init__(self, ghost_cell_trans_fn=lambda x, y, z: (x, y, z),
+                 reorient_vector_quantities=False, 
+                 Rmatrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
+                 mapped_cell_list=[],
+                 label=""):
+        """
+        Construct an outflow BC that extrapolates the interior flow data but
+        applies a computed pressure to achieve a required mass flux.
+
+        :param ghost_cell_trans_fn: User-supplied transform function mapping from 
+            ghost-cell position to source-cell position.
+        :param reorient_vector_quantities: for exchange of vector quantities between adjacent boundaries
+        :param Rmatrix: the 9 elements of the rotation matrix
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
+        BoundaryCondition.__init__(self, type_of_BC=MAPPED_CELL,
+                                   ghost_cell_trans_fn=ghost_cell_trans_fn,
+                                   reorient_vector_quantities=reorient_vector_quantities,
+                                   Rmatrix=Rmatrix,
+                                   label=label)
+        assert callable(ghost_cell_trans_fn)
+        self.mapped_cell_list = copy.copy(mapped_cell_list)
+        return
+    def __str__(self):
+        return "MappedCellBC(ghost_cell_trans_fn=%s, reorient_vector_quantities=%s, " \
+            "Rmatrix=%s, label=\"%s\")" % \
+            (self.ghost_cell_trans_fn, self.reorient_vector_quantities, self.Rmatrix, self.label)
+    def __copy__(self):
+        return MappedCellBC(ghost_cell_trans_fn=self.ghost_cell_trans_fn, 
+                            reorient_vector_quantities=self.reorient_vector_quantities,
+                            Rmatrix=copy.copy(self.Rmatrix),
+                            mapped_cell_list=copy.copy(self.mapped_cell_list),
+                            label=self.label)
+    def write_mapped_cells_to_file(self, fileName):
+        """
+        Write the ghost-cell to source-cell mapping
+        in a format suitable for the main simulation program.
+        """
+        fp = open(fileName, "w")
+        fp.write("# blkId   i   j   k\n")
+        for c in self.mapped_cell_list:
+            fp.write("%d %d %d %d\n" % c)
+        fp.close()
+        return
 
 
 #####################################################################################

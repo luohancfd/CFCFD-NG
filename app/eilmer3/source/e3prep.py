@@ -1228,6 +1228,55 @@ def write_control_file(rootName):
     return
 
 
+def write_mapped_cell_boundary_files(rootName, blockList):
+    global verbosity_level
+    if gdata.dimensions == 3:
+        faceList = faceList3D
+    else:
+        faceList = faceList2D
+    if verbosity_level >= 1:
+        print "Begin write mapped-cell boundary file(s)."
+    for blk in blockList:
+        for iface in faceList:
+            bc = blk.bc_list[iface]
+            if bc.type_of_BC is MAPPED_CELL:
+                if iface == NORTH:
+                    print "Locate source cell for each ghost cell on North boundary."
+                    j = blk.nnj
+                    for i in range(blk.nni):
+                        for k in range(blk.nnk):
+                            # [TODO] get a proper estimate of the ghost-cell centroid
+                            x, y, z = blk.grid.x[i,j,k], blk.grid.y[i,j,k], blk.grid.z[i,j,k]
+                            x, y, z = bc.ghost_cell_trans_fn(x, y, z)
+                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
+                elif iface == EAST:
+                    print "[TODO] locate source cell for each ghost cell on East boundary."
+                elif iface == SOUTH:
+                    print "Locate source cell for each ghost cell on South boundary."
+                    j = 0
+                    for i in range(blk.nni):
+                        for k in range(blk.nnk):
+                            # [TODO] get a proper estimate of the ghost-cell centroid
+                            x, y, z = blk.grid.x[i,j,k], blk.grid.y[i,j,k], blk.grid.z[i,j,k]
+                            x, y, z = bc.ghost_cell_trans_fn(x, y, z)
+                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
+                elif iface == WEST:
+                    print "[TODO] locate source cell for each ghost cell on West boundary."
+                elif iface == TOP:
+                    print "[TODO] locate source cell for each ghost cell on Top boundary."
+                elif iface == BOTTOM:
+                    print "[TODO] locate source cell for each ghost cell on Bottom boundary."
+                else:
+                    raise RuntimeError("write_mapped_cell_boundary_files(): "
+                                       "incorrect iface value: %s" % iface)
+                fileName = rootName+("-block-%04d-face-%s-mapped-cells.config" % 
+                                     (blk.blkId, faceName[iface]))
+                bc.write_mapped_cells_to_file(fileName)
+    return
+
+
 def write_grid_files(rootName, blockList, zipFiles=0):
     global verbosity_level
     if verbosity_level >= 1:
@@ -1251,6 +1300,9 @@ def write_grid_files(rootName, blockList, zipFiles=0):
     return
 
 def split_input_file(blockList):
+    """
+    [TODO] PJ 2014-03-04: Identify this function and either update it or remove it.
+    """
     global verbosity_level
     if verbosity_level >= 1:
         print "Begin split input file(s)."
@@ -1313,8 +1365,7 @@ def write_starting_solution_files(rootName, blockList, pistonList, zipFiles=0):
             fp = GzipFile(fileName+".gz", "wb")
         else:
             fp = open(fileName, "w")
-            
-        
+        #    
         if gdata.BGK_flag == 2:
             fileName = rootName+(".BGK.b%04d.t0000" % b.blkId)
             fileName = os.path.join(flowPath, fileName)
@@ -1324,14 +1375,11 @@ def write_starting_solution_files(rootName, blockList, pistonList, zipFiles=0):
                 fb = open(fileName, "w")
         else:
             fb = None
-        
+        #
         b.write_starting_solution(fp, gdata, fb, verbosity_level)
         fp.close()
-        
-        if fb:
-            fb.close()
-        
-        
+        if fb: fb.close()
+    #    
     if len(pistonList) > 0:
         fp = open(rootName + ".piston.t0000", "w")
         for p in pistonList:
@@ -1431,6 +1479,7 @@ def main(uoDict):
     bll.close()
     #
     write_grid_files(rootName, Block.blockList, zipFiles)
+    write_mapped_cell_boundary_files(rootName, Block.blockList)
     write_starting_solution_files(rootName, Block.blockList, SimplePiston.pistonList, zipFiles)
     if gdata.viscous_flag and (not os.access("heat", os.F_OK)):
         os.makedirs("heat")
