@@ -39,6 +39,9 @@ int luafn_sample_flow(lua_State *L)
     lua_pushnumber(L, cell->pos[0].x); lua_setfield(L, -2, "x");
     lua_pushnumber(L, cell->pos[0].y); lua_setfield(L, -2, "y");
     lua_pushnumber(L, cell->pos[0].z); lua_setfield(L, -2, "z");
+    lua_pushnumber(L, cell->iLength); lua_setfield(L, -2, "iLength");
+    lua_pushnumber(L, cell->jLength); lua_setfield(L, -2, "jLength");
+    lua_pushnumber(L, cell->kLength); lua_setfield(L, -2, "kLength");
     lua_pushnumber(L, cell->volume[0]); lua_setfield(L, -2, "vol");
     lua_pushnumber(L, fs.gas->p); lua_setfield(L, -2, "p");
     lua_pushnumber(L, fs.gas->rho); lua_setfield(L, -2, "rho"); 
