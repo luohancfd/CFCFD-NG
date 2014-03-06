@@ -49,7 +49,11 @@ def getTurboData(fileName):
 
 def readFlowData(jobName, numberBlocks):
 
-    tindx = '9999'
+    # tindx = '9999' # These days we have to scan job.times file.
+    fp = open(jobName+".times", "r")
+    lines = fp.readlines()
+    fp.close()
+    tindx = lines[-1].strip().split()[0] # first item off last line in file
     zeros = "000"
     
     flow = []
