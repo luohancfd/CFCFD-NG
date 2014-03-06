@@ -555,17 +555,12 @@ calculate_diffusion_fluxes(const Gas_data &Q,
 }
 
 ConstantLewisNumber::
-ConstantLewisNumber(const string name, int nsp)
-    : DiffusionModel(name, nsp)
-{
-    // Just set the Lewis number here for the number
-    Le_ = 1.0;
-}
+ConstantLewisNumber(const string name, int nsp, double Le)
+    : DiffusionModel(name, nsp), Le_(Le) {}
 
 ConstantLewisNumber::
 ConstantLewisNumber(const ConstantLewisNumber &c)
-    : DiffusionModel(c.name_, c.nsp_), Le_( c.Le_ )
-{}
+    : DiffusionModel(c.name_, c.nsp_), Le_(c.Le_) {}
 
 ConstantLewisNumber::
 ~ConstantLewisNumber() {}
@@ -641,17 +636,12 @@ calculate_diffusion_fluxes(const Gas_data &Q,
 }
 
 ConstantSchmidtNumber::
-ConstantSchmidtNumber(const string name, int nsp)
-    : DiffusionModel(name, nsp)
-{
-    // Just set the Schmidt number here for the moment
-    Sc_ = 0.7;
-}
+ConstantSchmidtNumber(const string name, int nsp, double Sc)
+    : DiffusionModel(name, nsp), Sc_(Sc) {}
 
 ConstantSchmidtNumber::
 ConstantSchmidtNumber(const ConstantSchmidtNumber &c)
-    : DiffusionModel(c.name_, c.nsp_), Sc_( c.Sc_ )
-{}
+    : DiffusionModel(c.name_, c.nsp_), Sc_(c.Sc_) {}
 
 ConstantSchmidtNumber::
 ~ConstantSchmidtNumber() {}
@@ -708,9 +698,6 @@ calculate_diffusion_fluxes(const Gas_data &Q,
         jz[isp] = -Q.rho * (DAV_im_[isp] + D_t) * dfdz[isp];
     }
 
-
-
-
     return;
 }
 
@@ -734,10 +721,12 @@ int set_diffusion_model( const string diffusion_model )
 	dmodel = new RamshawChangModel("Ramshaw-Chang diffusion", nsp );
     }
     else if ( diffusion_model == "ConstantLewisNumber" ) {
-	dmodel = new ConstantLewisNumber("Constant Lewis number diffusion", nsp );
+	global_data *gd = get_global_data_ptr();
+	dmodel = new ConstantLewisNumber("Constant Lewis number diffusion", nsp, gd->diffusion_lewis);
     }
     else if ( diffusion_model == "ConstantSchmidtNumber" ) {
-        dmodel = new ConstantSchmidtNumber("Constant Schmidt number diffusion", nsp );
+	global_data *gd = get_global_data_ptr();
+        dmodel = new ConstantSchmidtNumber("Constant Schmidt number diffusion", nsp, gd->diffusion_schmidt);
     }
     else {
 	cout << "set_diffusion_model(): " << diffusion_model

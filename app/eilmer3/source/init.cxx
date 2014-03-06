@@ -267,6 +267,8 @@ int read_config_parameters(const string filename, bool master)
     G.diffusion = false;
     G.diffusion_factor = 1.0;
     G.diffusion_factor_increment = 0.01;
+    G.diffusion_lewis = 1.0;
+    G.diffusion_schmidt = 0.7;
 
     G.heat_factor = 1.0;
     G.heat_factor_increment = 0.01;
@@ -403,6 +405,8 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_boolean("global_data", "diffusion_flag", G.diffusion, false);
     dict.parse_double("global_data", "diffusion_delay", G.diffusion_time_delay, 0.0);
     dict.parse_double("global_data", "diffusion_factor_increment", G.diffusion_factor_increment, 0.01);
+    dict.parse_double("global_data", "diffusion_lewis_number", G.diffusion_lewis, 1.0);
+    dict.parse_double("global_data", "diffusion_schmidt_number", G.diffusion_schmidt, 0.7);
     if ( G.verbosity_level >= 2 ) {
 	cout << "viscous_flag = " << G.viscous << endl;
 	cout << "viscous_delay = " << G.viscous_time_delay << endl;
@@ -411,6 +415,7 @@ int read_config_parameters(const string filename, bool master)
 	cout << "diffusion_flag = " << G.diffusion << endl;
 	cout << "diffusion_delay = " << G.diffusion_time_delay << endl;
 	cout << "diffusion_factor_increment = " << G.diffusion_factor_increment << endl;
+	cout << "diffusion_lewis = " << G.diffusion_lewis << endl;
     }
     if( G.diffusion && (gmodel->get_number_of_species() > 1) ) { 
  	dict.parse_string("global_data", "diffusion_model", s_value, "Stefan-Maxwell");

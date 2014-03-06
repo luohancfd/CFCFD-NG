@@ -137,7 +137,7 @@ public:
 
 class ConstantLewisNumber : public DiffusionModel {
 public:
-    ConstantLewisNumber(const string name, int nsp);
+    ConstantLewisNumber(const string name, int nsp, double Le);
 
     ConstantLewisNumber(const ConstantLewisNumber &c);
 
@@ -159,7 +159,7 @@ protected:
 
 class ConstantSchmidtNumber : public DiffusionModel {
 public:
-    ConstantSchmidtNumber(const string name, int nsp);
+    ConstantSchmidtNumber(const string name, int nsp, double Sc);
 
     ConstantSchmidtNumber(const ConstantSchmidtNumber &c);
 

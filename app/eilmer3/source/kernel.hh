@@ -153,6 +153,10 @@ struct global_data
     // The amount by which to increment the diffusion factor during soft-start.
     double diffusion_factor_increment;
     double diffusion_time_delay;
+    // The Lewis number when using the constant Lewis number diffusion model
+    double diffusion_lewis;
+    // The Schmidt number when using the constant Schmidt number diffusion model
+    double diffusion_schmidt;
 
     turbulence_model_t turbulence_model;
     double turbulence_prandtl;

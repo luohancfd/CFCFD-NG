@@ -300,6 +300,8 @@ class GlobalData(object):
       active (if L{diffusion_flag} was set to 1). 
     * diffusion_factor_increment: (float) Increment for the diffusion_factor
       after diffusion_delay has passed.
+    * diffusion_lewis_number: (float) Lewis number used in the constant Lewis number diffusion model, default 1.0
+    * diffusion_schmidt_number: (float) Schmidt number used in the constant Schmidt number diffusion model, default 0.7
     * turbulence_model: (string) "none" (default), "baldwin-lomax", "k-omega", "spalart-allmaras"
     * turbulence_prandtl_number: (float) default 0.89
     * turbulence_schmidt_number: (float) default 0.75
@@ -438,6 +440,7 @@ class GlobalData(object):
                 'separate_update_for_viscous_flag', 'viscous_upwinding_flag',\
                 'diffusion_flag', 'diffusion_model', 'diffusion_delay', \
                 'diffusion_factor_increment', 'separate_update_for_diffusion_flag', \
+                'diffusion_lewis_number', 'diffusion_schmidt_number', \
                 'turbulence_model', 'max_mu_t_factor', 'transient_mu_t_factor', \
                 'turbulence_prandtl_number', 'turbulence_schmidt_number', \
                 'separate_update_for_k_omega_source', \
@@ -501,7 +504,9 @@ class GlobalData(object):
         self.diffusion_flag = 0
         self.diffusion_model = "None"
         self.diffusion_delay = 0.0
-        self.diffusion_factor_increment = 0.01     
+        self.diffusion_factor_increment = 0.01
+        self.diffusion_lewis_number = 1.0
+        self.diffusion_schmidt_number = 0.7
         self.turbulence_model = "none"
         self.turbulence_prandtl_number = 0.89
         self.turbulence_schmidt_number = 0.75
@@ -659,6 +664,8 @@ class GlobalData(object):
         fp.write("diffusion_model = %s\n" % self.diffusion_model)
         fp.write("diffusion_delay = %e\n" % self.diffusion_delay)
         fp.write("diffusion_factor_increment = %e\n" % self.diffusion_factor_increment)
+        fp.write("diffusion_lewis_number = %g\n" % self.diffusion_lewis_number)
+        fp.write("diffusion_schmidt_number = %g\n" % self.diffusion_schmidt_number)
         fp.write("shock_fitting_flag = %d\n"% self.shock_fitting_flag)
         fp.write("shock_fitting_decay_flag = %d\n" % self.shock_fitting_decay_flag)
         fp.write("shock_fitting_speed_factor = %e\n" % self.shock_fitting_speed_factor)
