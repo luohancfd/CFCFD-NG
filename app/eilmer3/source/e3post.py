@@ -1095,7 +1095,7 @@ if __name__ == '__main__':
             elif type(tindx) is string:
                 tindx_str = tindx
             else:
-                raise RuntimeException("WTF: tindx is neither an int nor string.")
+                raise RuntimeError("WTF: tindx is neither an int nor string.")
             fname = rootName+(".t%04s" % tindx_str)+".grd"
             plotPath = "plot"
             if not os.access(plotPath, os.F_OK):

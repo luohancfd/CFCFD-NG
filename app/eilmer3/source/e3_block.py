@@ -585,13 +585,13 @@ class Block(object):
             print "    We've got a type_of_BC value that we don't know."
             print "    type()=", type(type_of_BC)
             print "    value=", str(type_of_BC)
-            return
-        print "Set block:", self.blkId, "face:", faceName[iface], \
-              "BC:", bcName[type_of_BC]
+            print "    block:", self.blkId, "face:", faceName[iface]
+            raise ValueError("Bad type_of_BC")
         if inflow_condition != None and not isinstance(inflow_condition, FlowCondition):
             print "Error in setting BC:"
             print "    The inflow_condition argument is not a FlowCondition object."
-            return
+            print "    block:", self.blkId, "face:", faceName[iface]
+            raise ValueError("Bad inflow_condition")
         if sponge_flag != None:
             sponge_flag = int(sponge_flag)
         else:
@@ -614,7 +614,8 @@ class Block(object):
         if type_of_BC == ADJACENT:
             print "Error in setting BC:"
             print "    Should not be setting an ADJACENT BC on a single block."
-            return
+            print "    block:", self.blkId, "face:", faceName[iface]
+            raise ValueError("Bad type_of_BC")
         if type_of_BC == SUP_IN:
             newbc = SupInBC(inflow_condition, label=label)
         if type_of_BC == EXTRAPOLATE_OUT:
@@ -676,9 +677,12 @@ class Block(object):
         try:
             self.bc_list[iface] = newbc
         except:
-            print "Boundary condition not set correctly, type_of_BC=", bcName[type_of_BC]
-            sys.exit()
+            print "Error in setting BC:"
+            print "    type_of_BC=", bcName[type_of_BC]
+            print "    block:", self.blkId, "face:", faceName[iface]
+            raise RuntimeError("Boundary condition not set correctly.")
         return
+
 
     def set_WBC(self, face_name, type_of_WBC, f_wall=[1.0,], input_file=None, label=''):
         """

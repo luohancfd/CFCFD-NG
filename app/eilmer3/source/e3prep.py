@@ -1060,6 +1060,14 @@ class MonitorLocation(object):
 def locate_closest_cell(x_target, y_target, z_target=0.0):
     """
     Find the cell centre closest to a given point, searching across all blocks.
+
+    [TODO] PJ 06-Mar-2014: We can probably make this search much faster by
+    subdividing the whole domain in a regular grid of subvolumes and then 
+    limiting the search to the sublist of cell centres that exist within that
+    subvolume.  Can probably set this grid of lists up on the first entry and,
+    once populated, reuse it in subsequent calls.  Also, if we have sufficiently
+    overlapping subvolumes, we should only need to search the one subvolume
+    when locating the nearest cell.
     """
     # Create an initial guess
     x, y, z, vol = Block.blockList[0].cell_centre_location(0,0,0,gdata)
@@ -1240,34 +1248,79 @@ def write_mapped_cell_boundary_files(rootName, blockList):
         for iface in faceList:
             bc = blk.bc_list[iface]
             if bc.type_of_BC is MAPPED_CELL:
+                print "Mapped-cell boundary for block:", blk.blkId, " face:", faceName[iface]
                 if iface == NORTH:
-                    print "Locate source cell for each ghost cell on North boundary."
-                    j = blk.nnj
+                    j = blk.nnj-1
                     for i in range(blk.nni):
                         for k in range(blk.nnk):
-                            # [TODO] get a proper estimate of the ghost-cell centroid
-                            x, y, z = blk.grid.x[i,j,k], blk.grid.y[i,j,k], blk.grid.z[i,j,k]
-                            x, y, z = bc.ghost_cell_trans_fn(x, y, z)
+                            g1x, g1y, g1z, g2x, g2y, g2z = \
+                                blk.grid.compute_ghost_cell_positions(i, j, k, iface, gdata.dimensions)
+                            x, y, z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
+                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
+                            x, y, z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
                             best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
                             bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
                 elif iface == EAST:
-                    print "[TODO] locate source cell for each ghost cell on East boundary."
+                    i = blk.nni-1
+                    for j in range(blk.nnj):
+                        for k in range(blk.nnk):
+                            g1x, g1y, g1z, g2x, g2y, g2z = \
+                                blk.grid.compute_ghost_cell_positions(i, j, k, iface, gdata.dimensions)
+                            x, y, z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
+                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
+                            x, y, z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
+                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
                 elif iface == SOUTH:
-                    print "Locate source cell for each ghost cell on South boundary."
                     j = 0
                     for i in range(blk.nni):
                         for k in range(blk.nnk):
-                            # [TODO] get a proper estimate of the ghost-cell centroid
-                            x, y, z = blk.grid.x[i,j,k], blk.grid.y[i,j,k], blk.grid.z[i,j,k]
-                            x, y, z = bc.ghost_cell_trans_fn(x, y, z)
+                            g1x, g1y, g1z, g2x, g2y, g2z = \
+                                blk.grid.compute_ghost_cell_positions(i, j, k, iface, gdata.dimensions)
+                            x, y, z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
+                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
+                            x, y, z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
                             best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
                             bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
                 elif iface == WEST:
-                    print "[TODO] locate source cell for each ghost cell on West boundary."
+                    i = 0
+                    for j in range(blk.nnj):
+                        for k in range(blk.nnk):
+                            g1x, g1y, g1z, g2x, g2y, g2z = \
+                                blk.grid.compute_ghost_cell_positions(i, j, k, iface, gdata.dimensions)
+                            x, y, z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
+                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
+                            x, y, z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
+                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
                 elif iface == TOP:
-                    print "[TODO] locate source cell for each ghost cell on Top boundary."
+                    k = blk.nnk-1
+                    for i in range(blk.nni):
+                        for j in range(blk.nnj):
+                            g1x, g1y, g1z, g2x, g2y, g2z = \
+                                blk.grid.compute_ghost_cell_positions(i, j, k, iface, gdata.dimensions)
+                            x, y, z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
+                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
+                            x, y, z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
+                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
                 elif iface == BOTTOM:
-                    print "[TODO] locate source cell for each ghost cell on Bottom boundary."
+                    k = 0
+                    for i in range(blk.nni):
+                        for j in range(blk.nnj):
+                            g1x, g1y, g1z, g2x, g2y, g2z = \
+                                blk.grid.compute_ghost_cell_positions(i, j, k, iface, gdata.dimensions)
+                            x, y, z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
+                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
+                            x, y, z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
+                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
                 else:
                     raise RuntimeError("write_mapped_cell_boundary_files(): "
                                        "incorrect iface value: %s" % iface)

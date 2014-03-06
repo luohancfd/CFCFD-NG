@@ -538,10 +538,10 @@ class StructuredGrid(object):
             else:
                 return 0
         else:
-            # FIX ME - Not ready for 3D yet
+            # 3D
             print "This cell locating function does not function for 3D geometries yet."
             print "You should probably be using Dan Potter's suggest_better_cell()."
-            sys.exit(0)
+            raise RuntimeError("[TODO] Not ready for 3D yet")
         
     def suggest_better_cell(self, i, j, k, x, y, z, dimensions):
         """
@@ -601,6 +601,48 @@ class StructuredGrid(object):
             if a[BOTTOM] < 0.0: dk += 1
             # 4. return the cell index increments * scale
             return di, dj, dk
+        # end method suggest_better_cell()
+        
+    def compute_ghost_cell_positions(self, i, j, k, which_face, dimensions):
+        """
+        Given a specific cell on a block boundary, compute the cell-centre
+        positions of the adjacent ghost cells.
+        """
+        vtx = self.get_vertex_list_for_cell(i, j, k)
+        if dimensions == 2:
+            cell_centre = 0.25*(vtx[0]+vtx[1]+vtx[2]+vtx[3])
+            if which_face == NORTH:
+                face_centre = 0.5*(vtx[3]+vtx[2])
+            elif which_face == EAST:
+                face_centre = 0.5*(vtx[1]+vtx[2])
+            elif which_face == SOUTH:
+                face_centre = 0.5*(vtx[0]+vtx[1])
+            elif which_face == WEST:
+                face_centre = 0.5*(vtx[3]+vtx[0])
+            else:
+                raise RuntimeError("compute_ghost_cell_positions(): "
+                                   "incorrect face value: %s" % which_face)
+        else:
+            cell_centre = 0.125*(vtx[0]+vtx[1]+vtx[2]+vtx[3]+vtx[4]+ vtx[5]+vtx[6]+vtx[7])
+            if which_face == NORTH:
+                face_centre = 0.25*(vtx[3]+vtx[2]+vtx[6]+vtx[7])
+            elif which_face == EAST:
+                face_centre = 0.25*(vtx[1]+vtx[2]+vtx[6]+vtx[5])
+            elif which_face == SOUTH:
+                face_centre = 0.25*(vtx[0]+vtx[1]+vtx[5]+vtx[4])
+            elif which_face == WEST:
+                face_centre = 0.25*(vtx[0]+vtx[4]+vtx[7]+vtx[3])
+            elif which_face == TOP:
+                face_centre = 0.25*(vtx[4]+vtx[5]+vtx[6]+vtx[7])
+            elif which_face == BOTTOM:
+                face_centre = 0.25*(vtx[0]+vtx[1]+vtx[2]+vtx[3])
+            else:
+                raise RuntimeError("compute_ghost_cell_positions(): "
+                                   "incorrect face value: %s" % which_face)
+        delta = face_centre - cell_centre
+        ghost1 = face_centre + delta
+        ghost2 = face_centre + 3.0*delta
+        return ghost1.x, ghost1.y, ghost1.z, ghost2.x, ghost2.y, ghost2.z
 
 #--------------------------------------------------------------------
 

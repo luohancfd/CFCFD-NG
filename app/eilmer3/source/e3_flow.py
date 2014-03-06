@@ -684,7 +684,7 @@ def read_time_from_flow_file(rootName, tindx, zipFiles=False):
     elif type(tindx) is str:
         tindx_str = tindx
     else:
-        raise RuntimeException("WTF: tindx is neither an int nor string.")
+        raise RuntimeError("WTF: tindx is neither an int nor string.")
     fileName = rootName+".flow"+(".b0000.t%04s" % tindx_str)
     fileName = os.path.join("flow", "t%04s" % tindx_str, fileName)
     print "Read simulation time from", fileName
@@ -709,7 +709,7 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=False, movingGrid=False,
     elif type(tindx) is str:
         tindx_str = tindx
     else:
-        raise RuntimeException("WTF: tindx is neither an int nor string.")
+        raise RuntimeError("WTF: tindx is neither an int nor string.")
     grid = []; flow = []
     for jb in range(nblock):
         if not movingGrid:
@@ -1243,7 +1243,7 @@ def write_VTK_XML_files(rootName, tindx, nblock, grid, flow, t, binary_format):
     elif type(tindx) is str:
         tindx_str = tindx
     else:
-        raise RuntimeException("WTF: tindx is neither an int nor string.")
+        raise RuntimeError("WTF: tindx is neither an int nor string.")
     fileName = rootName+(".t%04s" % tindx_str)+".pvtu"
     fileName = os.path.join(plotPath, fileName)
     pvtuFile = open(fileName, "w")
@@ -1321,7 +1321,7 @@ def write_Tecplot_file(rootName, tindx, nblock, grid, flow, t):
     elif type(tindx) is str:
         tindx_str = tindx
     else:
-        raise RuntimeException("WTF: tindx is neither an int nor string.")
+        raise RuntimeError("WTF: tindx is neither an int nor string.")
     fileName = rootName+(".t%04s" % tindx_str)+".tec"
     fileName = os.path.join(plotPath, fileName)
     fp = open(fileName, "w")
@@ -1391,7 +1391,7 @@ def write_plot3d_files(rootName, tindx, nblock, grid, flow, t):
     elif type(tindx) is str:
         tindx_str = tindx
     else:
-        raise RuntimeException("WTF: tindx is neither an int nor string.")
+        raise RuntimeError("WTF: tindx is neither an int nor string.")
     #
     # 1. write the 'grid' file.
     #    This is just cell-centre locations
