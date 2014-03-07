@@ -146,6 +146,7 @@ E3_OBJECTS_COMMON := kernel.o \
 	bc_mass_flux_out.o \
 	exch2d.o \
 	exch3d.o \
+	exch_mapped_cell_shmem.o \
 	init.o \
 	block_invs.o \
 	visc.o \
@@ -180,7 +181,7 @@ ifeq ($(LES_DATA), 1)
     E3_OBJECTS_COMMON += les.o
 endif
 
-E3_OBJECTS_MPI := exch_mpi.o conj-ht-interface-mpi.o
+E3_OBJECTS_MPI := exch_mpi.o conj-ht-interface-mpi.o exch_mapped_cell_mpi.o
 
 E3_OBJECTS_NO_MPI := conj-ht-interface-no-mpi.o
 
@@ -521,9 +522,17 @@ exch2d.o : $(SRC)/exch2d.cxx $(SRC)/exch3d.hh $(SRC)/block.hh $(SRC)/kernel.hh $
 exch3d.o : $(SRC)/exch3d.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/exch3d.cxx -o exch3d.o
 
+exch_mapped_cell_shmem.o : $(SRC)/exch_mapped_cell_shmem.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/exch_mapped_cell_shmem.cxx -o exch_mapped_cell_shmem.o
+
 exch_mpi.o : $(SRC)/exch_mpi.cxx $(SRC)/exch_mpi.hh $(SRC)/block.hh \
 		$(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(CFLAG_MPI) -D_MPI $(SRC)/exch_mpi.cxx -o exch_mpi.o
+
+exch_mapped_cell_mpi.o : $(SRC)/exch_mapped_cell_mpi.cxx $(SRC)/exch_mapped_cell_mpi.hh $(SRC)/block.hh \
+		$(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(CFLAG_MPI) -D_MPI $(SRC)/exch_mapped_cell_mpi.cxx \
+		-o exch_mapped_cell_mpi.o
 
 init.o : $(SRC)/init.cxx $(SRC)/init.hh $(SRC)/kernel.hh $(SRC)/block.hh \
 		$(SRC)/bc.hh $(SRC)/diffusion.hh $(SRC)/visc.hh $(LIBLUA)

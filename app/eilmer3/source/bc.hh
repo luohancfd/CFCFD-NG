@@ -129,7 +129,13 @@ public:
     int neighbour_orientation;
 
     // Information for mapped-cell data exchange.
+    // This following data structure stores 4 integers,
+    // specifying the mapped cell block and ijk-indices,
+    // for each ghost cell associated with the boundary.
+    std::vector<std::vector<int>> mapped_cells;
     // These data are (i,j,k)-triples indexed by [other_block][other_face]
+    // and are used by the MPI mapped-cell copying functions to marshall
+    // and send the requested data.
     std::vector<std::vector<std::vector<int>>> incoming_mapped_cells; 
     std::vector<std::vector<std::vector<int>>> outgoing_mapped_cells;
 

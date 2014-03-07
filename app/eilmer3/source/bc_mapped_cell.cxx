@@ -20,6 +20,7 @@ MappedCellBC::MappedCellBC(Block *bdp, int which_boundary,
 			   bool _reorient_vector_quantities, vector<double>& _Rmatrix)
     : BoundaryCondition(bdp, which_boundary, MAPPED_CELL) 
 {
+    global_data &G = *get_global_data_ptr();
     reorient_vector_quantities = _reorient_vector_quantities;
     Rmatrix = _Rmatrix;
     // Read mapping of ghost-cells to active-cells from a file.
@@ -31,14 +32,19 @@ MappedCellBC::MappedCellBC(Block *bdp, int which_boundary,
     switch ( which_boundary ) {
     case NORTH:
     case SOUTH:
-	cout << "NORTH/SOUTH boundary" << endl;
+	// cout << "NORTH/SOUTH boundary" << endl;
 	for ( size_t i = 0; i < bdp->nni; ++i ) {
 	    for ( size_t k = 0; k < bdp->nnk; ++k ) {
 		for ( size_t ghost_cell_count = 1; ghost_cell_count < 2; ++ghost_cell_count ) {
 		    fstrm >> src_blk >> src_i >> src_j >> src_k;
-		    cout << "ghost-cell=" << ghost_cell_count 
-			 << " src_blk=" << src_blk << " src_i=" << src_i
-			 << " src_j=" << src_j << " src_k=" << src_k << endl;
+		    // Translate the cell index to account for ghost cells around
+		    // the periphery of the cell storage arrays.
+		    src_i += G.nghost;
+		    src_j += G.nghost;
+		    if ( bdp->nnk > 1 ) src_k += G.nghost;
+		    // cout << "ghost-cell=" << ghost_cell_count 
+		    // 	 << " src_blk=" << src_blk << " src_i=" << src_i
+		    // 	 << " src_j=" << src_j << " src_k=" << src_k << endl;
 		    mapping.clear();
 		    mapping.push_back(src_blk);
 		    mapping.push_back(src_i);
@@ -55,9 +61,11 @@ MappedCellBC::MappedCellBC(Block *bdp, int which_boundary,
 	    for ( size_t k = 0; k < bdp->nnk; ++k ) {
 		for ( size_t ghost_cell_count = 1; ghost_cell_count < 2; ++ghost_cell_count ) {
 		    fstrm >> src_blk >> src_i >> src_j >> src_k;
-		    cout << "ghost-cell=" << ghost_cell_count 
-			 << " src_blk=" << src_blk << " src_i=" << src_i
-			 << " src_j=" << src_j << " src_k=" << src_k << endl;
+		    // Translate the cell index to account for ghost cells around
+		    // the periphery of the cell storage arrays.
+		    src_i += G.nghost;
+		    src_j += G.nghost;
+		    if ( bdp->nnk > 1 ) src_k += G.nghost;
 		    mapping.clear();
 		    mapping.push_back(src_blk);
 		    mapping.push_back(src_i);
@@ -74,9 +82,11 @@ MappedCellBC::MappedCellBC(Block *bdp, int which_boundary,
 	    for ( size_t j = 0; j < bdp->nnj; ++j ) {
 		for ( size_t ghost_cell_count = 1; ghost_cell_count < 2; ++ghost_cell_count ) {
 		    fstrm >> src_blk >> src_i >> src_j >> src_k;
-		    cout << "ghost-cell=" << ghost_cell_count 
-			 << " src_blk=" << src_blk << " src_i=" << src_i
-			 << " src_j=" << src_j << " src_k=" << src_k << endl;
+		    // Translate the cell index to account for ghost cells around
+		    // the periphery of the cell storage arrays.
+		    src_i += G.nghost;
+		    src_j += G.nghost;
+		    if ( bdp->nnk > 1 ) src_k += G.nghost;
 		    mapping.clear();
 		    mapping.push_back(src_blk);
 		    mapping.push_back(src_i);

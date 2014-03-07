@@ -62,10 +62,12 @@ extern "C" {
 #include "lua_service_for_e3.hh"
 #include "bc_menter_correction.hh"
 #include "exch2d.hh"
+#include "exch_mapped_cell_shmem.hh"
 #include "visc.hh"
 #include "visc3D.hh"
 #ifdef _MPI
 #   include "exch_mpi.hh"
+#   include "exch_mapped_cell_mpi.hh"
 #endif
 #include "piston.hh"
 #include "implicit.hh"
@@ -1826,29 +1828,17 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
 	    for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	}
-	// ---------------------------------------------------------------------
-	// [TODO] -- PJ 2014-03-07 -- mapped-cell BCs are a work in progress.
-	// Need to do something sensible to copy the flow data.
-	bool found_mapped_cell_bc = false;
-	for ( Block *bdp : G.my_blocks ) {
-	    int number_faces = (G.dimensions == 3 ? 6: 4);
-	    for ( int iface = 0; iface < number_faces; ++iface ) {
-		if ( bdp->bcp[iface]->type_code == MAPPED_CELL ) found_mapped_cell_bc = true;
-	    }
-	}
-	if ( found_mapped_cell_bc ) {
-	    throw std::runtime_error("Have not yet implemented mapped-cell exchange for either MPI or shared memory.");
-	}
-	// ---------------------------------------------------------------------
 #       ifdef _MPI
         // Before we try to exchange data, everyone's internal data should be up-to-date.
 	MPI_Barrier( MPI_COMM_WORLD );
-	// Now, it's safe to do the exchange.
+	// Now, it's safe to do the exchange for full-face connections.
 	mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
+	copy_mapped_cell_data_via_mpi(COPY_FLOW_STATE, 0);
 #       else
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
 	}
+	copy_mapped_cell_data_via_shmem(COPY_FLOW_STATE, 0);
 #       endif
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active ) {

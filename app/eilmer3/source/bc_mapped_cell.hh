@@ -12,11 +12,6 @@ public:
     // the BoundaryCondition class definition so that they're
     // accessible to the MPI exchange functions that only have
     // pointers to the base BoundaryCondition class.
-
-    // This following data structure stores 4 integers,
-    // specifying the mapped cell block and ijk-indices,
-    // for each ghost cell associated with the boundary.
-    std::vector<std::vector<int>> mapped_cells;
     bool reorient_vector_quantities;
     std::vector<double> Rmatrix;
 
