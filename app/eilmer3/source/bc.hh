@@ -52,7 +52,8 @@ enum bc_t {
     USER_DEFINED_MASS_FLUX,
     CONJUGATE_HT,
     MOVING_WALL,
-    MASS_FLUX_OUT
+    MASS_FLUX_OUT,
+    MAPPED_CELL
 };
 std::string get_bc_name(bc_t bc);
 
@@ -121,9 +122,16 @@ public:
     int xforce_flag;
     bool sets_conv_flux_flag;
     bool sets_visc_flux_flag;
+
+    // Information for full-face data exchange.
     int neighbour_block;
     int neighbour_face;
     int neighbour_orientation;
+
+    // Information for mapped-cell data exchange.
+    // These data are (i,j,k)-triples indexed by [other_block][other_face]
+    std::vector<std::vector<std::vector<int>>> incoming_mapped_cells; 
+    std::vector<std::vector<std::vector<int>>> outgoing_mapped_cells;
 
     // *** FIX-ME ** catalytic configuration that needs to be worked on.
     bc_t wc_bc;
@@ -137,7 +145,6 @@ public:
 
     // Radiative emissivity (used for radiation transport)
     double emissivity;
-
 
 public:
     BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code);

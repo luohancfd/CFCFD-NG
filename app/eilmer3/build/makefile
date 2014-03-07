@@ -123,6 +123,7 @@ E3_OBJECTS_COMMON := kernel.o \
 	bc.o \
 	bc_catalytic.o \
 	bc_adjacent.o \
+	bc_mapped_cell.o \
 	bc_supersonic_in.o \
 	bc_extrapolate_out.o \
 	bc_shock_fitting_in.o \
@@ -539,6 +540,9 @@ bc_catalytic.o : $(SRC)/bc_catalytic.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)
 bc_adjacent.o : $(SRC)/bc_adjacent.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_adjacent.cxx -o bc_adjacent.o
+
+bc_mapped_cell.o : $(SRC)/bc_mapped_cell.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_mapped_cell.cxx -o bc_mapped_cell.o
 
 bc_supersonic_in.o : $(SRC)/bc_supersonic_in.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh $(SRC)/bc.hh

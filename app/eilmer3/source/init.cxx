@@ -173,6 +173,7 @@ int init_available_bcs_map()
     available_bcs.insert(name_bc_t("conjugate_ht",CONJUGATE_HT));
     available_bcs.insert(name_bc_t("moving_wall",MOVING_WALL));
     available_bcs.insert(name_bc_t("mass_flux_out",MASS_FLUX_OUT));
+    available_bcs.insert(name_bc_t("mapped_cell",MAPPED_CELL));
     return SUCCESS;
 }
  

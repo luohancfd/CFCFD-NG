@@ -33,6 +33,7 @@ extern "C" {
 #include "bc.hh"
 #include "bc_catalytic.hh"
 #include "bc_adjacent.hh"
+#include "bc_mapped_cell.hh"
 #include "bc_supersonic_in.hh"
 #include "bc_extrapolate_out.hh"
 #include "bc_shock_fitting_in.hh"
@@ -88,6 +89,7 @@ std::string get_bc_name(bc_t bc)
     case CONJUGATE_HT: return "conjugate_ht";
     case MOVING_WALL: return "moving_wall";
     case MASS_FLUX_OUT: return "mass_flux_out";
+    case MAPPED_CELL: return "mapped_cell";
     default: return "none";
     }
 } // end get_bc_name()
@@ -270,6 +272,8 @@ BoundaryCondition::BoundaryCondition(const BoundaryCondition &bc)
       neighbour_block(bc.neighbour_block),
       neighbour_face(bc.neighbour_face),
       neighbour_orientation(bc.neighbour_orientation),
+      incoming_mapped_cells(bc.incoming_mapped_cells),
+      outgoing_mapped_cells(bc.outgoing_mapped_cells),
       wc_bc(bc.wc_bc), cw(0),
       q_cond(bc.q_cond), q_diff(bc.q_diff), q_rad(bc.q_rad),
       imin(bc.imin), imax(bc.imax), jmin(bc.jmin), jmax(bc.jmax),
@@ -292,6 +296,8 @@ BoundaryCondition & BoundaryCondition::operator=(const BoundaryCondition &bc)
 	neighbour_block = bc.neighbour_block;
 	neighbour_face = bc.neighbour_face;
 	neighbour_orientation = bc.neighbour_orientation;
+	incoming_mapped_cells = bc.incoming_mapped_cells;
+	outgoing_mapped_cells = bc.outgoing_mapped_cells;
 	wc_bc = bc.wc_bc;
 	// if ( bc.cw ) cw = new CatalyticWallBC(*bc.cw);
 	cw = 0;
@@ -575,20 +581,18 @@ compute_cell_interface_surface_heat_flux(FV_Interface * IFace, FV_Cell * cell_on
 	    q_diff[index] -= G.diffusion_factor * js[isp] * gm->enthalpy(*(IFace->fs->gas), isp);
 	}
     }
-
-	// Need to do some modifying to the heat flux values for the purpose of outputting heat fluxes in the post processing
-	// In the rest of the code q is used based on the normal vectors of the cells however here we want to specify that
-	// q is always going into the boundary. The reasoning behind this is that the extraction of heat flux is usually for
-	// the purpose of thermal structural modelling. This code simply switches the sign of the output so that it is going
-	// out of the cell and into the structure for all faces
-	if ( which_boundary == SOUTH or which_boundary == WEST or which_boundary == BOTTOM ) {
-		q_cond[index] = q_cond[index] * (-1.0);
-	}
-
-    // 3. Calculate radiative heat flux - should be already stored in q_rad[]
-
+    // Need to do some modifying to the heat flux values for the purpose of outputting heat fluxes
+    // in the post processing. In the rest of the code q is used based on the normal vectors 
+    // of the cells however here we want to specify that q is always going into the boundary. 
+    // The reasoning behind this is that the extraction of heat flux is usually for
+    // the purpose of thermal structural modelling. This code simply switches the sign of 
+    // the output so that it is going out of the cell and into the structure for all faces.
+    if ( which_boundary == SOUTH or which_boundary == WEST or which_boundary == BOTTOM ) {
+	q_cond[index] = q_cond[index] * (-1.0);
+    }
+    // 3. Radiative heat flux - should be already stored in q_rad[]
     return SUCCESS;
-}
+} // end compute_cell_interface_surface_heat_flux()
 
 int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time ) 
 /// \brief Write the heat flux values at all cell interfaces bounding walls
@@ -666,8 +670,9 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 		} // end i loop
 	    } // end j loop
 	} // end k loop
-    } // end if ( iswall )
-    else { // write normal velocity at interface-local frame of reference and length data of cL1, cL0, cR0, cR1 for non-wall boundary
+    } else { // if ( iswall )
+	// Write normal velocity at interface-local frame of reference and length data 
+	// of cL1, cL0, cR0, cR1 for non-wall boundary.
 	fprintf(fp, "%d %d %d\n", static_cast<int>(imax-imin+1), 
 		static_cast<int>(jmax-jmin+1), static_cast<int>(kmax-kmin+1));
 	for ( k=kmin; k<=kmax; ++k ) {
@@ -979,6 +984,7 @@ int BoundaryCondition::write_vertex_velocities(std::string filename, double sim_
 BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC, 
 			     ConfigParser &dict, std::string section)
 {
+    global_data &G = *get_global_data_ptr();
     BoundaryCondition *newBC;
     std::string value_string;
     int other_block = -1;
@@ -1017,6 +1023,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     std::vector<double> direction_vector(3, 0.0);
     double direction_alpha = 0.0;
     double direction_beta = 0.0;
+    char mycstr[132];
 
     switch ( type_of_BC ) {
     case ADJACENT:
@@ -1028,6 +1035,17 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	dict.parse_vector_of_doubles(section, "Rmatrix", Rmatrix, eye);
 	newBC = new AdjacentBC(bdp, which_boundary, other_block, other_face, neighbour_orientation,
 			       reorient_vector_quantities, Rmatrix);
+	break;
+    case MAPPED_CELL:
+	sprintf(mycstr, "-block-%04d-face-%s-mapped-cells.config",
+		static_cast<int>(bdp->id), 
+		get_face_name(which_boundary).c_str());
+	filename = G.base_file_name + std::string(mycstr);
+	cout << "MAPPED_CELL boundary condition, filename=" << filename << endl;
+	dict.parse_boolean(section, "reorient_vector_quantities", reorient_vector_quantities, false);
+	dict.parse_vector_of_doubles(section, "Rmatrix", Rmatrix, eye);
+	newBC = new MappedCellBC(bdp, which_boundary, filename,
+				 reorient_vector_quantities, Rmatrix);
 	break;
     case SUP_IN:
 	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);

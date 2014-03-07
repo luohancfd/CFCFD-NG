@@ -1,5 +1,9 @@
 // bc_adjacent.hh
 
+#ifndef BC_ADJACENT_HH
+#define BC_ADJACENT_HH
+
+#include <vector>
 #include "bc.hh"
 
 class AdjacentBC : public BoundaryCondition {
@@ -27,3 +31,5 @@ void apply_matrix_transform(const std::vector<double>& Rmatrix,
 			    const std::vector<double>& oldv,
 			    std::vector<double> &newv);
 void reorient_vector_quantities_in_cell(FV_Cell *c, const std::vector<double>& Rmatrix); 
+
+#endif
