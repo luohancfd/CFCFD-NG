@@ -1,5 +1,5 @@
 // bc_adjacent.cxx
-
+#include <math.h> 
 #include <vector>
 #include <algorithm>
 #include "../../../lib/util/source/useful.h"
@@ -145,9 +145,21 @@ void apply_matrix_transform(const std::vector<double>& Rmatrix,
 			    std::vector<double> &newv)
 {
     // Write out the matrix multiplication, long-hand.
-    newv[0] = Rmatrix[0]*oldv[0] + Rmatrix[1]*oldv[1] + Rmatrix[2]*oldv[2];
-    newv[1] = Rmatrix[3]*oldv[0] + Rmatrix[4]*oldv[1] + Rmatrix[5]*oldv[2];
-    newv[2] = Rmatrix[6]*oldv[0] + Rmatrix[7]*oldv[1] + Rmatrix[8]*oldv[2];
+    double pi = 3.141592653589793238463;
+    
+    if (Rmatrix[1]==0.0) { // rotate with axis x
+        newv[0] = 1.0*oldv[0] + 0.0*oldv[1] + 0.0*oldv[2];
+        newv[1] = 0.0*oldv[0] + cos(Rmatrix[0]*pi/180.0)*oldv[1] - sin(Rmatrix[0]*pi/180.0)*oldv[2]; 
+        newv[2] = 0.0*oldv[0] + sin(Rmatrix[0]*pi/180.0)*oldv[1] + cos(Rmatrix[0]*pi/180.0)*oldv[2];
+    } else if (Rmatrix[1]==1.0) { // rotate with axis y
+        newv[0] = cos(Rmatrix[0]*pi/180.0)*oldv[0] + 0.0*oldv[1] - sin(Rmatrix[0]*pi/180.0)*oldv[2];
+        newv[1] = 0.0*oldv[0] + 1.0*oldv[1] + 0.0*oldv[2];
+        newv[2] = sin(Rmatrix[0]*pi/180.0)*oldv[0] + 0.0*oldv[1] + cos(Rmatrix[0]*pi/180.0)*oldv[2];
+    } else { //rotate with axis z
+        newv[0] = cos(Rmatrix[0]*pi/180.0)*oldv[0] - sin(Rmatrix[0]*pi/180.0)*oldv[1] + 0.0*oldv[2];
+        newv[1] = sin(Rmatrix[0]*pi/180.0)*oldv[0] + cos(Rmatrix[0]*pi/180.0)*oldv[1] + 0.0*oldv[2];
+        newv[2] = 0.0*oldv[0] + 0.0*oldv[1] + 1.0*oldv[2];
+    }
 }
 
 void reorient_vector_quantities_in_cell(FV_Cell *c, const std::vector<double>& Rmatrix) 
