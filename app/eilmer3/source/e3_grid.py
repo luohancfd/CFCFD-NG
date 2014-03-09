@@ -602,46 +602,80 @@ class StructuredGrid(object):
             # 4. return the cell index increments * scale
             return di, dj, dk
         # end method suggest_better_cell()
-        
-    def compute_ghost_cell_positions(self, i, j, k, which_face, dimensions):
+
+    def cell_centre_position(self, i, j, k):
         """
-        Given a specific cell on a block boundary, compute the cell-centre
-        positions of the adjacent ghost cells.
+        Given the indices for the cell, Cartesian coordinates of the centre.
+
+        Note that the computation of Block2D.cell_centre_location(i,j,k,gdata)
+        over in e3_block.py is a little different (and more involved).
         """
         vtx = self.get_vertex_list_for_cell(i, j, k)
-        if dimensions == 2:
+        if self.nk == 1:
             cell_centre = 0.25*(vtx[0]+vtx[1]+vtx[2]+vtx[3])
+        else:
+            assert self.nk > 1
+            cell_centre = 0.125*(vtx[0]+vtx[1]+vtx[2]+vtx[3]+vtx[4]+vtx[5]+vtx[6]+vtx[7])
+        return cell_centre.x, cell_centre.y, cell_centre.z
+        
+
+    def compute_ghost_cell_positions(self, i, j, k, which_face):
+        """
+        Given a specific cell on a block boundary, compute the cell-centre
+        positions of the adjacent ghost cells, just outside the boundary.
+        The ghost cell positions are a continuation of the interior-cell
+        positions along the ling through the boundary face. 
+        A little like a mirror-image but ignoring the normal direction
+        of the face.
+        """
+        vtx = self.get_vertex_list_for_cell(i, j, k)
+        if self.nk == 1:
+            cell1_centre = 0.25*(vtx[0]+vtx[1]+vtx[2]+vtx[3])
             if which_face == NORTH:
                 face_centre = 0.5*(vtx[3]+vtx[2])
+                vtx2 = self.get_vertex_list_for_cell(i, j-1, k)
             elif which_face == EAST:
                 face_centre = 0.5*(vtx[1]+vtx[2])
+                vtx2 = self.get_vertex_list_for_cell(i-1, j, k)
             elif which_face == SOUTH:
                 face_centre = 0.5*(vtx[0]+vtx[1])
+                vtx2 = self.get_vertex_list_for_cell(i, j+1, k)
             elif which_face == WEST:
                 face_centre = 0.5*(vtx[3]+vtx[0])
+                vtx2 = self.get_vertex_list_for_cell(i+1, j, k)
             else:
                 raise RuntimeError("compute_ghost_cell_positions(): "
                                    "incorrect face value: %s" % which_face)
+            cell2_centre = 0.25*(vtx2[0]+vtx2[1]+vtx2[2]+vtx2[3])
         else:
-            cell_centre = 0.125*(vtx[0]+vtx[1]+vtx[2]+vtx[3]+vtx[4]+ vtx[5]+vtx[6]+vtx[7])
+            assert self.nk > 1
+            cell1_centre = 0.125*(vtx[0]+vtx[1]+vtx[2]+vtx[3]+vtx[4]+vtx[5]+vtx[6]+vtx[7])
             if which_face == NORTH:
                 face_centre = 0.25*(vtx[3]+vtx[2]+vtx[6]+vtx[7])
+                vtx2 = self.get_vertex_list_for_cell(i, j-1, k)
             elif which_face == EAST:
                 face_centre = 0.25*(vtx[1]+vtx[2]+vtx[6]+vtx[5])
+                vtx2 = self.get_vertex_list_for_cell(i-1, j, k)
             elif which_face == SOUTH:
                 face_centre = 0.25*(vtx[0]+vtx[1]+vtx[5]+vtx[4])
+                vtx2 = self.get_vertex_list_for_cell(i, j+1, k)
             elif which_face == WEST:
                 face_centre = 0.25*(vtx[0]+vtx[4]+vtx[7]+vtx[3])
+                vtx2 = self.get_vertex_list_for_cell(i+1, j, k)
             elif which_face == TOP:
                 face_centre = 0.25*(vtx[4]+vtx[5]+vtx[6]+vtx[7])
+                vtx2 = self.get_vertex_list_for_cell(i, j, k-1)
             elif which_face == BOTTOM:
                 face_centre = 0.25*(vtx[0]+vtx[1]+vtx[2]+vtx[3])
+                vtx2 = self.get_vertex_list_for_cell(i, j, k+1)
             else:
                 raise RuntimeError("compute_ghost_cell_positions(): "
                                    "incorrect face value: %s" % which_face)
-        delta = face_centre - cell_centre
-        ghost1 = face_centre + delta
-        ghost2 = face_centre + 3.0*delta
+            cell2_centre = 0.125*(vtx2[0]+vtx2[1]+vtx2[2]+vtx2[3]+vtx2[4]+vtx2[5]+vtx2[6]+vtx2[7])
+        delta1 = face_centre - cell1_centre
+        ghost1 = face_centre + delta1
+        delta2 = face_centre - cell2_centre
+        ghost2 = face_centre + delta2
         return ghost1.x, ghost1.y, ghost1.z, ghost2.x, ghost2.y, ghost2.z
 
 #--------------------------------------------------------------------

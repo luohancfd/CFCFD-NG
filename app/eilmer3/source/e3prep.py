@@ -1104,7 +1104,7 @@ def locate_closest_cell(x_target, y_target, z_target=0.0):
                         best_block = b.blkId
                         best_i = i; best_j = j
     #
-    return (best_block, best_i, best_j, best_k)
+    return (best_block, best_i, best_j, best_k, min_dist)
 
 
 def keep_in_range(i, low, hi):
@@ -1120,7 +1120,7 @@ def locate_history_cells():
     global verbosity_level
     #
     for h in HistoryLocation.historyList:
-        best_block, best_i, best_j, best_k = locate_closest_cell(h.x, h.y, h.z)
+        best_block, best_i, best_j, best_k, min_dist = locate_closest_cell(h.x, h.y, h.z)
         b = Block.blockList[best_block]
         if verbosity_level >= 1:
             print "For history location: ", h.x, h.y, h.z
@@ -1169,7 +1169,7 @@ def locate_monitor_cells():
     global verbosity_level
     #
     for h in MonitorLocation.monitorList:
-        best_block, best_i, best_j, best_k = locate_closest_cell(h.x, h.y, h.z)
+        best_block, best_i, best_j, best_k, min_dist = locate_closest_cell(h.x, h.y, h.z)
         b = Block.blockList[best_block]
         if verbosity_level >= 1:
             print "For monitor location: ", h.x, h.y, h.z
@@ -1256,77 +1256,62 @@ def write_mapped_cell_boundary_files(rootName, blockList):
             bc = blk.bc_list[iface]
             if bc.type_of_BC is MAPPED_CELL:
                 print "Mapped-cell boundary for block:", blk.blkId, " face:", faceName[iface]
-                if iface == NORTH:
-                    j = blk.nnj-1
+                if iface in [NORTH, SOUTH]:
+                    if iface == NORTH:
+                        j = blk.nnj-1
+                    else:
+                        j = 0
                     for i in range(blk.nni):
                         for k in range(blk.nnk):
                             g1x, g1y, g1z, g2x, g2y, g2z = \
-                                blk.grid.compute_ghost_cell_positions(i, j, k, iface, gdata.dimensions)
-                            x, y, z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
-                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                                blk.grid.compute_ghost_cell_positions(i, j, k, iface)
+                            cell_x, cell_y, cell_z = blk.grid.cell_centre_position(i, j, k)
+                            # print "blk=%d ijk=(%d,%d,%d) cell posn=(%g,%g,%g)" % (blk.blkId, i, j, k, cell_x, cell_y, cell_z) 
+                            # print "    ghostcell1 posn=(%g,%g,%g)" % (g1x, g1y, g1z) 
+                            # print "    ghostcell2 posn=(%g,%g,%g)" % (g2x, g2y, g2z) 
+                            map_x, map_y, map_z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
+                            best_block, best_i, best_j, best_k, min_dist = locate_closest_cell(map_x, map_y, map_z)
+                            # mapcell_x, mapcell_y, mapcell_z = blockList[best_block].grid.cell_centre_position(best_i, best_j, best_k)
+                            # err_dist = sqrt((map_x-mapcell_x)**2 + (map_y-mapcell_y)**2 + (map_z-mapcell_z)**2)
+                            # print "    Mapped-cell1 blk=%d ijk=(%d,%d,%d) posn=(%g,%g,%g) min_dist=%g err_dist=%g" % \
+                            #     (best_block, best_i, best_j, best_k, mapcell_x, mapcell_y, mapcell_z, min_dist, err_dist)
                             bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
-                            x, y, z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
-                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            map_x, map_y, map_z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
+                            best_block, best_i, best_j, best_k, min_dist = locate_closest_cell(map_x, map_y, map_z)
+                            # mapcell_x, mapcell_y, mapcell_z = blockList[best_block].grid.cell_centre_position(best_i, best_j, best_k)
+                            # err_dist = sqrt((map_x-mapcell_x)**2 + (map_y-mapcell_y)**2 + (map_z-mapcell_z)**2)
+                            # print "    Mapped-cell2 blk=%d ijk=(%d,%d,%d) posn=(%g,%g,%g) min_dist=%g err_dist=%g" % \
+                            #     (best_block, best_i, best_j, best_k, mapcell_x, mapcell_y, mapcell_z, min_dist, err_dist)
                             bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
-                elif iface == EAST:
-                    i = blk.nni-1
+                elif iface in [EAST, WEST]:
+                    if iface == EAST:
+                        i = blk.nni-1
+                    else:
+                        i = 0
                     for j in range(blk.nnj):
                         for k in range(blk.nnk):
                             g1x, g1y, g1z, g2x, g2y, g2z = \
-                                blk.grid.compute_ghost_cell_positions(i, j, k, iface, gdata.dimensions)
-                            x, y, z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
-                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                                blk.grid.compute_ghost_cell_positions(i, j, k, iface)
+                            map_x, map_y, map_z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
+                            best_block, best_i, best_j, best_k, min_dist = locate_closest_cell(map_x, map_y, map_z)
                             bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
-                            x, y, z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
-                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            map_x, map_y, map_z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
+                            best_block, best_i, best_j, best_k, min_dist = locate_closest_cell(map_x, map_y, map_z)
                             bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
-                elif iface == SOUTH:
-                    j = 0
-                    for i in range(blk.nni):
-                        for k in range(blk.nnk):
-                            g1x, g1y, g1z, g2x, g2y, g2z = \
-                                blk.grid.compute_ghost_cell_positions(i, j, k, iface, gdata.dimensions)
-                            x, y, z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
-                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
-                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
-                            x, y, z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
-                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
-                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
-                elif iface == WEST:
-                    i = 0
-                    for j in range(blk.nnj):
-                        for k in range(blk.nnk):
-                            g1x, g1y, g1z, g2x, g2y, g2z = \
-                                blk.grid.compute_ghost_cell_positions(i, j, k, iface, gdata.dimensions)
-                            x, y, z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
-                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
-                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
-                            x, y, z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
-                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
-                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
-                elif iface == TOP:
-                    k = blk.nnk-1
+                elif iface in [TOP, BOTTOM]:
+                    if iface == TOP:
+                        k = blk.nnk-1
+                    else:
+                        k = 0
                     for i in range(blk.nni):
                         for j in range(blk.nnj):
                             g1x, g1y, g1z, g2x, g2y, g2z = \
-                                blk.grid.compute_ghost_cell_positions(i, j, k, iface, gdata.dimensions)
-                            x, y, z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
-                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                                blk.grid.compute_ghost_cell_positions(i, j, k, iface)
+                            map_x, map_y, map_z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
+                            best_block, best_i, best_j, best_k, min_dist = locate_closest_cell(map_x, map_y, map_z)
                             bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
-                            x, y, z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
-                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
-                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
-                elif iface == BOTTOM:
-                    k = 0
-                    for i in range(blk.nni):
-                        for j in range(blk.nnj):
-                            g1x, g1y, g1z, g2x, g2y, g2z = \
-                                blk.grid.compute_ghost_cell_positions(i, j, k, iface, gdata.dimensions)
-                            x, y, z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
-                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
-                            bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
-                            x, y, z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
-                            best_block, best_i, best_j, best_k = locate_closest_cell(x, y, z)
+                            map_x, map_y, map_z = bc.ghost_cell_trans_fn(g2x, g2y, g2z)
+                            best_block, best_i, best_j, best_k, min_dist = locate_closest_cell(map_x, map_y, map_z)
                             bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
                 else:
                     raise RuntimeError("write_mapped_cell_boundary_files(): "

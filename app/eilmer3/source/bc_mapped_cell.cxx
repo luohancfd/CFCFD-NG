@@ -35,7 +35,7 @@ MappedCellBC::MappedCellBC(Block *bdp, int which_boundary,
 	// cout << "NORTH/SOUTH boundary" << endl;
 	for ( size_t i = 0; i < bdp->nni; ++i ) {
 	    for ( size_t k = 0; k < bdp->nnk; ++k ) {
-		for ( size_t ghost_cell_count = 1; ghost_cell_count < 2; ++ghost_cell_count ) {
+		for ( size_t ghost_cell_count = 1; ghost_cell_count <= 2; ++ghost_cell_count ) {
 		    fstrm >> src_blk >> src_i >> src_j >> src_k;
 		    // Translate the cell index to account for ghost cells around
 		    // the periphery of the cell storage arrays.
@@ -59,7 +59,7 @@ MappedCellBC::MappedCellBC(Block *bdp, int which_boundary,
     case WEST:
 	for ( size_t j = 0; j < bdp->nnj; ++j ) {
 	    for ( size_t k = 0; k < bdp->nnk; ++k ) {
-		for ( size_t ghost_cell_count = 1; ghost_cell_count < 2; ++ghost_cell_count ) {
+		for ( size_t ghost_cell_count = 1; ghost_cell_count <= 2; ++ghost_cell_count ) {
 		    fstrm >> src_blk >> src_i >> src_j >> src_k;
 		    // Translate the cell index to account for ghost cells around
 		    // the periphery of the cell storage arrays.
@@ -80,7 +80,7 @@ MappedCellBC::MappedCellBC(Block *bdp, int which_boundary,
     case BOTTOM:
 	for ( size_t i = 0; i < bdp->nni; ++i ) {
 	    for ( size_t j = 0; j < bdp->nnj; ++j ) {
-		for ( size_t ghost_cell_count = 1; ghost_cell_count < 2; ++ghost_cell_count ) {
+		for ( size_t ghost_cell_count = 1; ghost_cell_count <= 2; ++ghost_cell_count ) {
 		    fstrm >> src_blk >> src_i >> src_j >> src_k;
 		    // Translate the cell index to account for ghost cells around
 		    // the periphery of the cell storage arrays.

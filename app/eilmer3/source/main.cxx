@@ -561,14 +561,18 @@ int prepare_to_integrate(size_t start_tindx)
 
     // Exchange boundary cell geometry information so that we can
     // next calculate secondary-cell geometries.
-    // FIX-ME generalize for handling several blocks per MPI process
-    // FIX-ME Be careful that we don't break the usage for integrate_blocks_in_sequence
+    // [TODO] Check that we don't break the usage for integrate_blocks_in_sequence.
 #   ifdef _MPI
+    // Before we try to exchange data, everyone's internal data should be up-to-date.
+    MPI_Barrier( MPI_COMM_WORLD );
+    // Now, it's safe to do the exchange for full-face connections.
     mpi_exchange_boundary_data(COPY_CELL_LENGTHS, 0);
+    copy_mapped_cell_data_via_mpi(COPY_CELL_LENGTHS, 0);
 #   else
     for ( Block *bdp : G.my_blocks ) {
         exchange_shared_boundary_data(bdp->id, COPY_CELL_LENGTHS, 0);
     }
+    copy_mapped_cell_data_via_shmem(COPY_FLOW_STATE, 0);
 #   endif
 
     // Start up the Lua interpreter and load the external file
@@ -865,13 +869,25 @@ int integrate_blocks_in_sequence(void)
     double time_slice = G.max_time / (G.nblock - 1);
     BoundaryCondition *bcp_save;
     int status_flag = SUCCESS;
-
-    // This procedure does not work with MPI jobs.
+    //---------------------------------------------------------------------------------------
+    // Check compatability...
+    // This procedure does not work with MPI jobs, nor in the presence of MappedCellBCs.
     if ( G.mpi_parallel ) {
-	cerr << "Error, we have not implemented block-sequence integration with MPI." << endl;
-	exit(NOT_IMPLEMENTED_ERROR);
+	throw std::runtime_error("Block-sequence integration not implemented with MPI.");
     }
+    bool found_mapped_cell_bc = false;
+    for ( Block *bdp : G.my_blocks ) {
+	int number_faces = (G.dimensions == 3 ? 6: 4);
+	for ( int iface = 0; iface < number_faces; ++iface ) {
+	    if ( bdp->bcp[iface]->type_code == MAPPED_CELL ) found_mapped_cell_bc = true;
+	}
+    }
+    if ( found_mapped_cell_bc ) {
+	throw std::runtime_error("Block-sequence integration not implemented with mapped-cell exchange.");
+    }
+    //--------------------------------------------------------------------------------------
 
+    // We should be good to run...
     // Initially deactivate all blocks
     for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	G.bd[jb].active = false;
@@ -881,10 +897,10 @@ int integrate_blocks_in_sequence(void)
 	cout << "Integrate Block 0 and Block 1" << endl;
     }
 
-    // Start by setting up block 0
+    // Start by setting up block 0.
     bdp = &(G.bd[0]);
     bdp->active = true;
-    // Apply the assumed SupINBC to the west face and propogate across the block
+    // Apply the assumed SupINBC to the west face and propogate across the block.
     bdp->bcp[WEST]->apply_convective(0.0);
     bdp->propagate_data_west_to_east( G.dimensions );
     for ( FV_Cell *cp: bdp->active_cells ) {
@@ -898,11 +914,11 @@ int integrate_blocks_in_sequence(void)
     // Now set up block 1
     bdp = &(G.bd[1]);
     bdp->active = true;
-    // Save the original east boundary condition and apply the temporary
-    // ExtrapolateOutBC for the calculation
+    // Save the original east boundary condition and apply the temporary condition
+    // ExtrapolateOutBC for the calculation.
     bcp_save = bdp->bcp[EAST];
     bdp->bcp[EAST] = new ExtrapolateOutBC(bdp, EAST, 0);
-    // Read in data from block 0 and propogate across the block
+    // Read in data from block 0 and propagate across the block.
     exchange_shared_boundary_data(1, COPY_FLOW_STATE, 0);
     bdp->propagate_data_west_to_east( G.dimensions );
     for ( FV_Cell *cp: bdp->active_cells ) {
@@ -1595,8 +1611,8 @@ int integrate_in_time(double target_time)
 
 	// 6. Spatial filter may be applied occasionally.
 	if ( G.filter_flag && G.sim_time > G.filter_next_time ) {
-	    size_t ipass;
-	    for ( ipass = 0; ipass < G.filter_npass; ++ipass ) {
+	    // [TODO] Note that this ins't implemented for MappedCellBCs...
+	    for ( size_t ipass = 0; ipass < G.filter_npass; ++ipass ) {
 #               ifdef _MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
@@ -1637,7 +1653,7 @@ int integrate_in_time(double target_time)
 		    apply_convective_bc( *bdp, G.sim_time, G.dimensions );
 		    if ( G.viscous ) apply_viscous_bc(*bdp, G.sim_time, G.dimensions); 
 		}
-	    }
+	    } // end for ipass
 	    G.filter_next_time = G.sim_time + G.filter_dt;
 	    if ( G.filter_next_time > G.filter_tend ) G.filter_flag = false;
 	} // end if ( G.filter_flag )
@@ -1893,13 +1909,17 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	    }
 #           ifdef _MPI
+	    // Before we try to exchange data, everyone's internal data should be up-to-date.
 	    MPI_Barrier( MPI_COMM_WORLD );
+	    // Now, it's safe to do the exchange for full-face connections.
 	    mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
+	    copy_mapped_cell_data_via_mpi(COPY_FLOW_STATE, 0);
 #           else
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active )
 		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
 	    }
+	    copy_mapped_cell_data_via_shmem(COPY_FLOW_STATE, 0);
 #           endif
 	    // Second stage of gas-dynamic update.
 	    for ( Block *bdp : G.my_blocks ) {
@@ -1939,13 +1959,17 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	    }
 #           ifdef _MPI
+	    // Before we try to exchange data, everyone's internal data should be up-to-date.
 	    MPI_Barrier( MPI_COMM_WORLD );
+	    // Now, it's safe to do the exchange for full-face connections.
 	    mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
+	    copy_mapped_cell_data_via_mpi(COPY_FLOW_STATE, 0);
 #           else
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active )
 		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
 	    }
+	    copy_mapped_cell_data_via_shmem(COPY_FLOW_STATE, 0);
 #           endif
 	    for ( Block *bdp : G.my_blocks ) {
 		G.t_level = 2;

@@ -32,7 +32,7 @@ int copy_mapped_cell_data_via_shmem(int type_of_copy, size_t gtl)
 		    ghost_cell_index = 0;
 		    for ( size_t i = 0; i < bdp->nni; ++i ) {
 			for ( size_t k = 0; k < bdp->nnk; ++k ) {
-			    for ( size_t ghost_cell_count = 1; ghost_cell_count < 2; ++ghost_cell_count ) {
+			    for ( size_t ghost_cell_count = 1; ghost_cell_count <= 2; ++ghost_cell_count ) {
 				src_blk = bdp->bcp[iface]->mapped_cells[ghost_cell_index][0];
 				src_i = bdp->bcp[iface]->mapped_cells[ghost_cell_index][1];
 				src_j = bdp->bcp[iface]->mapped_cells[ghost_cell_index][2];
@@ -42,40 +42,44 @@ int copy_mapped_cell_data_via_shmem(int type_of_copy, size_t gtl)
 				//      << " src_j=" << src_j << " src_k=" << src_k << endl;
 				src = get_block_data_ptr(src_blk)->get_cell(src_i, src_j, src_k);
 				dest_i = i + bdp->imin;
-				dest_j = iface == NORTH ? (bdp->jmax + ghost_cell_count) : (bdp->jmin - ghost_cell_count);
+				dest_j = ( iface == NORTH ) ? (bdp->jmax + ghost_cell_count) : (bdp->jmin - ghost_cell_count);
 				dest_k = k + bdp->kmin;
 				dest = bdp->get_cell(dest_i, dest_j, dest_k);
 				dest->copy_values_from(*src, type_of_copy, gtl);
 				dest->encode_conserved(gtl, 0, bdp->omegaz, with_k_omega);
+				++ghost_cell_index;
 			    }
 			} // end for k
 		    } // end for i
 		    break;
 		case EAST:
 		case WEST:
+		    ghost_cell_index = 0;
 		    for ( size_t j = 0; j < bdp->nnj; ++j ) {
 			for ( size_t k = 0; k < bdp->nnk; ++k ) {
-			    for ( size_t ghost_cell_count = 1; ghost_cell_count < 2; ++ghost_cell_count ) {
+			    for ( size_t ghost_cell_count = 1; ghost_cell_count <= 2; ++ghost_cell_count ) {
 				src_blk = bdp->bcp[iface]->mapped_cells[ghost_cell_index][0];
 				src_i = bdp->bcp[iface]->mapped_cells[ghost_cell_index][1];
 				src_j = bdp->bcp[iface]->mapped_cells[ghost_cell_index][2];
 				src_k = bdp->bcp[iface]->mapped_cells[ghost_cell_index][3];
 				src = get_block_data_ptr(src_blk)->get_cell(src_i, src_j, src_k);
-				dest_i = iface == EAST ? (bdp->imax + ghost_cell_count) : (bdp->imin - ghost_cell_count);
+				dest_i = ( iface == EAST ) ? (bdp->imax + ghost_cell_count) : (bdp->imin - ghost_cell_count);
 				dest_j = j + bdp->jmin;
 				dest_k = k + bdp->kmin;
 				dest = bdp->get_cell(dest_i, dest_j, dest_k);
 				dest->copy_values_from(*src, type_of_copy, gtl);
 				dest->encode_conserved(gtl, 0, bdp->omegaz, with_k_omega);
+				++ghost_cell_index;
 			    }
 			} // end for k
 		    } // end for i
 		    break;
 		case TOP:
 		case BOTTOM:
+		    ghost_cell_index = 0;
 		    for ( size_t i = 0; i < bdp->nni; ++i ) {
 			for ( size_t j = 0; j < bdp->nnj; ++j ) {
-			    for ( size_t ghost_cell_count = 1; ghost_cell_count < 2; ++ghost_cell_count ) {
+			    for ( size_t ghost_cell_count = 1; ghost_cell_count <= 2; ++ghost_cell_count ) {
 				src_blk = bdp->bcp[iface]->mapped_cells[ghost_cell_index][0];
 				src_i = bdp->bcp[iface]->mapped_cells[ghost_cell_index][1];
 				src_j = bdp->bcp[iface]->mapped_cells[ghost_cell_index][2];
@@ -83,10 +87,11 @@ int copy_mapped_cell_data_via_shmem(int type_of_copy, size_t gtl)
 				src = get_block_data_ptr(src_blk)->get_cell(src_i, src_j, src_k);
 				dest_i = i + bdp->imin;
 				dest_j = j + bdp->jmin;
-				dest_k = iface == TOP ? (bdp->kmax + ghost_cell_count) : (bdp->kmin - ghost_cell_count);
+				dest_k = ( iface == TOP ) ? (bdp->kmax + ghost_cell_count) : (bdp->kmin - ghost_cell_count);
 				dest = bdp->get_cell(dest_i, dest_j, dest_k);
 				dest->copy_values_from(*src, type_of_copy, gtl);
 				dest->encode_conserved(gtl, 0, bdp->omegaz, with_k_omega);
+				++ghost_cell_index;
 			    }
 			} // end for j
 		    } // end for i
