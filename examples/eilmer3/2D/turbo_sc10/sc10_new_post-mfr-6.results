@@ -1,0 +1,15 @@
+Read grid from job:  sc10_new
+Number of Blocks: 14
+INLET
+Area:  1.0
+Average pressure:  72106.6863132
+Average velocity:  231.887054977
+Average Speed of Sound:  331.379347249
+Average Mach number:  0.699763147287
+OUTLET
+Area:  1.0
+Average pressure:  87026.2710452
+Average velocity:  152.043506934
+Average Speed of Sound:  340.486491741
+Average Mach number:  0.446547838527
+At this point, we should have a plotted data.
