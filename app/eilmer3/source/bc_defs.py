@@ -1158,6 +1158,10 @@ class MappedCellBC(BoundaryCondition):
         :param Rmatrix: the 9 elements of the rotation matrix
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
+
+        Note that, because the MappedCellBCs store boundary-specific information,
+        we must assign a unique MappedCellBC object on each block boundary.
+        We cannot reuse the one object for many boundaries without great confusion.
         """
         BoundaryCondition.__init__(self, type_of_BC=MAPPED_CELL,
                                    ghost_cell_trans_fn=ghost_cell_trans_fn,

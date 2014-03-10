@@ -9,7 +9,7 @@ Peter J.
 Peter Blyton
     June 2011: Geometry cleaned up and simplified.
 Peter J.
-    March 2014: new boundary conditions that allow MPI simulation.
+    March 2014: replace UDF BCs to allow MPI simulation.
 
 """
 
@@ -21,19 +21,27 @@ gdata.dimensions = 2
 # Accept defaults for air giving R=287.1, gamma=1.4
 select_gas_model(model='ideal gas', species=['air'])
 gdata.viscous_flag = 0 # inviscid simulation
-gdata.t_order = 1
+gdata.gasdynamic_update_scheme = "euler"
 gdata.max_time = 0.300
 gdata.max_step = 800000
 gdata.dt_plot = 0.020
 gdata.dt = 1.0e-7
 
 # -----------flow conditions -------------------
+# Stagnation condition that leads to inflow.
 p_tot = 100.0e3 # Pa
 T_tot = 300.0 # degree K
+totalCond = FlowCondition(p=p_tot, T=T_tot)
+alpha = math.radians(55.0)
+inflow_BC = SubsonicInBC(inflow_condition=totalCond,
+                         direction_type="uniform",
+                         direction_vector=[math.cos(alpha), math.sin(alpha), 0.0],
+                         label="INLET")
+# Compute expected outflow.
 gma = 1.4
 Rgas = 287.0  # J/kg.K
 a_tot = math.sqrt(gma*Rgas*T_tot)
-M_exit = 0.45
+M_exit = 0.45 # this is our controlling parameter
 T0_T = 1 + (gma-1.0)/2.0 * M_exit * M_exit
 p0_p = T0_T**(gma/(gma-1.0))
 print "p0_p=", p0_p, "T0_T=", T0_T
@@ -41,7 +49,16 @@ p_exit = p_tot / p0_p
 T_exit = T_tot / T0_T
 u_exit = M_exit * a_tot / math.sqrt(T0_T)
 print "p_exit=", p_exit, "T_exit=", T_exit, "u_exit=", u_exit
+outflow_BC = FixedPOutBC(Pout=p_exit, label="OUTLET")
 initialCond = FlowCondition(p=p_exit, u=u_exit, T=T_exit)
+
+# Periodic boundary conditions need mapping functions
+# from ghost-cell locations to source-cell locations. 
+# Note that, because the MappedCellBCs store boundary-specific information,
+# we must assign a unique MappedCellBC object on each block boundary.
+# We cannot reuse the one object for many boundaries.
+def subtract_one_from_y(x, y, z): return x, y-1.0, z
+def add_one_to_y(x, y, z): return x, y+1.0, z
 
 # Mesh setup parameters
 mrf = 6 # Mesh refinement factor, must be an even integer
@@ -138,10 +155,8 @@ path_e = Line(B,C)
 patch = make_patch(path_n, path_e, path_s, path_w)
 in1 = Block2D(label="in1", nni=mrf*6, nnj=mrf*2, psurf=patch,
                fill_condition=initialCond)
-in1.set_BC(WEST, USER_DEFINED, filename="udf-subsonic-sc10.lua", label="INLET")
-# in1.set_BC(NORTH, USER_DEFINED, filename="udf-periodic-bc.lua")
-def subtract_one_from_y(x, y, z): return x, y-1.0, z
-in1.set_BC(NORTH, MAPPED_CELL, ghost_cell_trans_fn=subtract_one_from_y)
+in1.bc_list[WEST] = inflow_BC
+in1.bc_list[NORTH] = MappedCellBC(ghost_cell_trans_fn=subtract_one_from_y)
 
 # -------------------- inflow2 -------------------
 A = Node(-1.0,-0.15)
@@ -157,7 +172,7 @@ path_e = spline_Front_up
 patch = make_patch(path_n, path_e, path_s, path_w)
 in2 = Block2D(label="in2", nni=in1.nni, nnj=inner2.nnj, psurf=patch,
                fill_condition=initialCond)
-in2.set_BC(WEST, USER_DEFINED, filename="udf-subsonic-sc10.lua", label="INLET")
+in2.bc_list[WEST] = inflow_BC
 
 # -------------------- inflow3 -------------------
 A = Node(-1.0,-0.5)
@@ -174,10 +189,8 @@ path_e = Line(B,C)
 patch = make_patch(path_n, path_e, path_s, path_w)
 in3 = Block2D(label="in3", nni=in2.nni, nnj=mrf*2, psurf=patch,
                fill_condition=initialCond)
-in3.set_BC(WEST, USER_DEFINED, filename="udf-subsonic-sc10.lua", label="INLET")
-# in3.set_BC(SOUTH, USER_DEFINED, filename="udf-periodic-bc.lua")
-def add_one_to_y(x, y, z): return x, y+1.0, z
-in3.set_BC(SOUTH, MAPPED_CELL, ghost_cell_trans_fn=add_one_to_y)
+in3.bc_list[WEST] = inflow_BC
+in3.bc_list[SOUTH] = MappedCellBC(ghost_cell_trans_fn=add_one_to_y)
 
 # -------------------- outer1 -------------------
 A = LE_out_up
@@ -195,8 +208,7 @@ patch = make_patch(path_n, path_e, path_s, path_w)
 cflist = [None, None, clust_chord, None]
 outer1 = Block2D(label="outer1", nni=inner1.nni, nnj=in1.nnj, psurf=patch,
                cf_list=cflist, fill_condition=initialCond)
-# outer1.set_BC(NORTH, USER_DEFINED, filename="udf-periodic-bc.lua")
-outer1.set_BC(NORTH, MAPPED_CELL, ghost_cell_trans_fn=subtract_one_from_y)
+outer1.bc_list[NORTH] = MappedCellBC(ghost_cell_trans_fn=subtract_one_from_y)
 
 # -------------------- outer2 -------------------
 A = Node(0.05,-0.45)
@@ -212,8 +224,7 @@ path_e = Line(B,C)
 patch = make_patch(path_n, path_e, path_s, path_w)
 outer2 = Block2D(label="outer2", nni=inner3.nni, nnj=in3.nnj, psurf=patch,
                fill_condition=initialCond)
-# outer2.set_BC(SOUTH, USER_DEFINED, filename="udf-periodic-bc.lua")
-outer2.set_BC(SOUTH, MAPPED_CELL, ghost_cell_trans_fn=add_one_to_y)
+outer2.bc_list[SOUTH] = MappedCellBC(ghost_cell_trans_fn=add_one_to_y)
 
 # -------------------- outer3 -------------------
 A = Node(0.2,-0.3)
@@ -231,8 +242,7 @@ patch = make_patch(path_n, path_e, path_s, path_w)
 cflist = [clust_chord, None, None, None]
 outer3 = Block2D(label="outer3", nni=inner4.nni, nnj=outer2.nnj, psurf=patch,
                cf_list=cflist, fill_condition=initialCond)
-# outer3.set_BC(SOUTH, USER_DEFINED, filename="udf-periodic-bc.lua")
-outer3.set_BC(SOUTH, MAPPED_CELL, ghost_cell_trans_fn=add_one_to_y)
+outer3.bc_list[SOUTH] = MappedCellBC(ghost_cell_trans_fn=add_one_to_y)
 
 # -------------------- outflow1 -------------------
 A = TE_up 
@@ -249,9 +259,8 @@ path_e = Line(B,C)
 patch = make_patch(path_n, path_e, path_s, path_w)
 out1 = Block2D(label="out1", nni=mrf*8, nnj=outer1.nnj, psurf=patch,
                 fill_condition=initialCond)
-out1.set_BC("EAST", "FIXED_P_OUT", Pout=p_exit, label="OUTLET")
-# out1.set_BC(NORTH, USER_DEFINED, filename="udf-periodic-bc.lua")
-out1.set_BC(NORTH, MAPPED_CELL, ghost_cell_trans_fn=subtract_one_from_y)
+out1.bc_list[EAST] = outflow_BC
+out1.bc_list[NORTH] = MappedCellBC(ghost_cell_trans_fn=subtract_one_from_y)
 
 # -------------------- outflow2 -------------------
 A = TE
@@ -268,7 +277,7 @@ patch = make_patch(path_n, path_e, path_s, path_w)
 cflist = [None, None, None, clust_blade_top]
 out2 = Block2D(label="out2", nni=out1.nni, nnj=inner1.nnj, psurf=patch,
                cf_list=cflist, fill_condition=initialCond)
-out2.set_BC("EAST", "FIXED_P_OUT", Pout=p_exit, label="OUTLET")
+out2.bc_list[EAST] = outflow_BC
 
 # -------------------- outflow3 -------------------
 A = TE_down
@@ -285,7 +294,7 @@ patch = make_patch(path_n, path_e, path_s, path_w)
 cflist = [None, None, None, clust_blade_bottom]
 out3 = Block2D(label="out3", nni=out2.nni, nnj=inner4.nnj, psurf=patch,
                cf_list=cflist, fill_condition=initialCond)
-out3.set_BC("EAST", "FIXED_P_OUT", Pout=p_exit, label="OUTLET")
+out3.bc_list[EAST] = outflow_BC
 
 # -------------------- outflow4 -------------------
 A = Node(0.9,0.207107,0.0)
@@ -302,9 +311,8 @@ patch = make_patch(path_n, path_e, path_s, path_w)
 
 out4 = Block2D(label="out4", nni=out3.nni, nnj=outer3.nnj, psurf=patch,
                 fill_condition=initialCond)
-out4.set_BC("EAST", "FIXED_P_OUT", Pout=p_exit, label="OUTLET")
-# out4.set_BC(SOUTH, USER_DEFINED, filename="udf-periodic-bc.lua")
-out4.set_BC(SOUTH, MAPPED_CELL, ghost_cell_trans_fn=add_one_to_y)
+out4.bc_list[EAST] = outflow_BC
+out4.bc_list[SOUTH] = MappedCellBC(ghost_cell_trans_fn=add_one_to_y)
 
 identify_block_connections()
 

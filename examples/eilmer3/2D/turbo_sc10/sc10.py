@@ -19,7 +19,7 @@ gdata.dimensions = 2
 # Accept defaults for air giving R=287.1, gamma=1.4
 select_gas_model(model='ideal gas', species=['air'])
 gdata.viscous_flag = 0 # inviscid simulation
-gdata.t_order = 1
+gdata.gasdynamic_update_scheme = "euler"
 gdata.max_time = 0.300
 gdata.max_step = 800000
 gdata.dt_plot = 0.020
