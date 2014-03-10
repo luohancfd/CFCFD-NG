@@ -194,7 +194,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "27-Feb-2014"
+VERSION_STRING = "10-Mar-2014"
 
 DEBUG_PITOT = False
 
@@ -225,15 +225,17 @@ def run_pitot(cfg = {}, config_file = None):
     #----------------- check inputs ----------------------------------------
     
     cfg = input_checker(cfg)
-    
-    start_message(cfg)
-    
+       
     cfg['VERSION_STRING'] = VERSION_STRING #add the version string the cfg dictionary
                                                         
     #---------------- building initial states ---------------------------------- 
             
     cfg, states, V, M = state_builder(cfg) #function above that builds all of the initial states based on info in the cfg dictionary
-       
+    
+    #---------------- print the (very important) start message --------------------
+    
+    cfg, states = start_message(cfg, states)
+    
     #--------- unsteady expansion of driver gas-----------------------------
     
     # For the unsteady expansion of the test driver into the tube, regulation of the amount

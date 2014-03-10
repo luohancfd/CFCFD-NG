@@ -390,7 +390,7 @@ def input_checker(cfg):
            
     return cfg
     
-def start_message(cfg):
+def start_message(cfg, states):
     """
     Takes the config file and prints a short introduction to the 
     test to the screen before the run starts.
@@ -400,7 +400,13 @@ def start_message(cfg):
     if PRINT_STATUS and not cfg['facility'] == 'custom': 
         print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_gas'])
     if PRINT_STATUS and cfg['facility'] == 'custom': 
-        print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_composition'])    
+        print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_composition']) 
+    if PRINT_STATUS: 
+        if cfg['solver'] == 'eq':
+            test_gas_used = 'Selected test gas is {0} (gamma = {1}, R = {2}, {3}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R,states['s1'].reactants)
+        elif cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq':
+            test_gas_used = 'Selected test gas is {0} (gamma = {1}, R = {2}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
+        print test_gas_used
     if PRINT_STATUS: 
         if 'Vsd' in cfg and cfg['secondary']:
             print 'Selected Vsd = {0} m/s'.format(cfg['Vsd'])
@@ -414,8 +420,14 @@ def start_message(cfg):
             print 'Selected shock tube fill pressure (p1) = {0} Pa.'.format(cfg['p1'])
         if 'p5' in cfg:            
             print 'Selected acceleration tube fill pressure (p5) = {0} Pa.'.format(cfg['p5'])
-        print '-'*60       
-    return
+        print '-'*60
+        
+        #need this set to something for later in the piece
+    if cfg['secondary'] and 'Vsd' not in cfg: cfg['Vsd'] = None
+    if 'Vs1' not in cfg: cfg['Vs1'] = None
+    if 'Vs2' not in cfg: cfg['Vs2'] = None
+    
+    return cfg, states
     
 def state_builder(cfg):
     """Function to build the various states required by the program."""
@@ -602,11 +614,6 @@ def state_builder(cfg):
             #               with_ions = False)
             #states['s7'].set_pT(states['s2'].p, states['s2'].T)
             states['s7'].with_ions = False
-
-    #need this set to something for later in the piece
-    if cfg['secondary'] and 'Vsd' not in cfg: cfg['Vsd'] = None
-    if 'Vs1' not in cfg: cfg['Vs1'] = None
-    if 'Vs2' not in cfg: cfg['Vs2'] = None
 
     if PRINT_STATUS: print '-'*60               
     

@@ -515,6 +515,9 @@ def csv_file_output(cfg, states, V, M):
     
 def cleanup_function():
     """Function to clean up temp files if we want to."""
+    
+    import os
+    
     if PRINT_STATUS: 
         print " "
         print "Removing temporary files and leaving the program."
@@ -526,3 +529,5 @@ def cleanup_function():
     if os.path.isfile('trans.inp'): os.remove('trans.inp')
     if os.path.isfile('trans.out'): os.remove('trans.out')
     if os.path.isfile('trans.lib'): os.remove('trans.lib')
+    
+    return
