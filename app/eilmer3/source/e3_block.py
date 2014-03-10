@@ -2106,8 +2106,8 @@ def make_rotation_matrix_BtoA(nA, t1A, nB, t1B):
     t1B = cross(t2B, nB)
     """
    
-    RmatrixB = [nB[0],nB[1],0.0,0.0,0.0,0.0,0.0,0.0,0.0] # default value
-    RmatrixA = [nA[0],nA[1],0.0,0.0,0.0,0.0,0.0,0.0,0.0] # default value
+    RmatrixB = [nB[0],nA[0],0.0,0.0,0.0,0.0,0.0,0.0,0.0] # default value
+    RmatrixA = [nA[0],nB[0],0.0,0.0,0.0,0.0,0.0,0.0,0.0] # default value
     
     print "RmatrixB=", RmatrixB
     print "RmatrixA=", RmatrixA
