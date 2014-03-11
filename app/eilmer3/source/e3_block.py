@@ -777,7 +777,7 @@ class Block(object):
             fp.write("sets_visc_flux = %d\n" % bc.sets_visc_flux)
             fp.write("reorient_vector_quantities = %s\n" % bc.reorient_vector_quantities)
             fp.write("Twall_flag = %s\n" % bc.Twall_flag)
-            fp.write("Rmatrix = %e %e %e %e %e %e %e %e %e\n" %
+            fp.write("Rmatrix = %20.20e %20.20e %20.20e %20.20e %20.20e %20.20e %20.20e %20.20e %20.20e\n" %
                      (bc.Rmatrix[0], bc.Rmatrix[1], bc.Rmatrix[2],
                       bc.Rmatrix[3], bc.Rmatrix[4], bc.Rmatrix[5],
                       bc.Rmatrix[6], bc.Rmatrix[7], bc.Rmatrix[8]))
@@ -2091,7 +2091,7 @@ def make_rotation_matrix_BtoA(nA, t1A, nB, t1B):
     :param t1A: first tangent unit-vector at A
     :param nB: normal unit-vector at B
     :param t1B: first tangent unit vector at B
-    
+    """
     if type(nA) is list: nA = Vector(nA[0], nA[1], nA[2])
     if type(t1A) is list: t1A = Vector(t1A[0], t1A[1], t1A[2])
     if type(nB) is list: nB = Vector(nB[0], nB[1], nB[2])
@@ -2104,14 +2104,21 @@ def make_rotation_matrix_BtoA(nA, t1A, nB, t1B):
     t2B = cross(nB, t1A)
     t2B.norm()
     t1B = cross(t2B, nB)
-    """
-   
-    RmatrixB = [nB[0],nA[0],0.0,0.0,0.0,0.0,0.0,0.0,0.0] # default value
-    RmatrixA = [nA[0],nB[0],0.0,0.0,0.0,0.0,0.0,0.0,0.0] # default value
-    
-    print "RmatrixB=", RmatrixB
-    print "RmatrixA=", RmatrixA
-    return RmatrixB, RmatrixA
+    # The rotation matrix transforms the local triplet B into the local triplet A.
+    mat = numpy.array([
+            [nB.x,  nB.y,  nB.z,  0.0,   0.0,   0.0,   0.0,   0.0,   0.0],
+            [0.0,   0.0,   0.0,   nB.x,  nB.y,  nB.z,  0.0,   0.0,   0.0],
+            [0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   nB.x, nB.y,  nB.z],
+            [t1B.x, t1B.y, t1B.z, 0.0,   0.0,   0.0,   0.0,   0.0,   0.0],
+            [0.0,   0.0,   0.0,   t1B.x, t1B.y, t1B.z, 0.0,   0.0,   0.0],
+            [0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   t1B.x, t1B.y, t1B.z],
+            [t2B.x, t2B.y, t2B.z, 0.0,   0.0,   0.0,   0.0,   0.0,   0.0],
+            [0.0,   0.0,   0.0,   t2B.x, t2B.y, t2B.z, 0.0,   0.0,   0.0],
+            [0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   t2B.x, t2B.y, t2B.z]])
+    rhs = numpy.array([nA.x, nA.y, nA.z, t1A.x, t1A.y, t1A.z, t2A.x, t2A.y, t2A.z])
+    Rmatrix = numpy.linalg.solve(mat, rhs)
+    print "Rmatrix=", Rmatrix
+    return Rmatrix
 
 def connect_blocks_3D(A, B, vtx_pairs, with_udf=0, 
                       filename=None, is_wall=0,
@@ -2155,12 +2162,18 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
         faceA = -1; faceB = -1; orientation = 0
         sys.exit(-1)
     if reorient_vector_quantities and nA and t1A and nB and t1B:
-        RmatrixBtoA, RmatrixAtoB = make_rotation_matrix_BtoA(nA, t1A, nB, t1B)
+        RmatrixBtoA = make_rotation_matrix_BtoA(nA, t1A, nB, t1B)
     else:
         # With no information, assume identity.
         RmatrixBtoA = numpy.eye(3,dtype=float).flatten()
-        RmatrixAtoB = numpy.eye(3,dtype=float).flatten()
-        
+    R_B_A = numpy.array([
+            [RmatrixBtoA[0],  RmatrixBtoA[1],  RmatrixBtoA[2]],
+            [RmatrixBtoA[3],  RmatrixBtoA[4],  RmatrixBtoA[5]],
+            [RmatrixBtoA[6],  RmatrixBtoA[7],  RmatrixBtoA[8]]])
+    R_A_B = numpy.linalg.inv(R_B_A)
+    RmatrixAtoB = numpy.array([R_A_B[0][0], R_A_B[0][1], R_A_B[0][2], 
+                               R_A_B[1][0], R_A_B[1][1], R_A_B[1][2], 
+                               R_A_B[2][0], R_A_B[2][1], R_A_B[2][2]])        
     if verbosity_level > 0:
         print "RmatrixAtoB=", RmatrixAtoB
         print "connect_blocks_3D(): connect block", A.blkId, "face", faceName[faceA], \

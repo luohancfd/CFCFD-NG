@@ -6,7 +6,6 @@
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
 #include "../../../lib/gas/models/physical_constants.hh"
-#include "../../../lib/geometry2/source/geom.hh"
 #include "kernel.hh"
 #include "block.hh"
 #include "bc.hh"
@@ -146,60 +145,9 @@ void apply_matrix_transform(const std::vector<double>& Rmatrix,
 			    std::vector<double> &newv)
 {
     // Write out the matrix multiplication, long-hand.
-    double pi = 3.141592653589793238463;
-    std::vector<double>matrix(9);
-    std::vector<double>nB(3);
-    std::vector<double>t1B(3);
-    std::vector<double>t2B(3);
-    std::vector<double>nA(3);
-    std::vector<double>t1A(3);
-    std::vector<double>t2A(3);
-    double a11,a12,a13,a21,a22,a23,a31,a32,a33;
-    double A11,A12,A13,A21,A22,A23,A31,A32,A33;
-    double b11,b21,b31;
-    double DET;
-
-    nB[0] = -sin(Rmatrix[0]*pi/180.0); nB[1] = cos(Rmatrix[0]*pi/180.0); nB[2] = 0.0;
-    t1B[0] = cos(Rmatrix[0]*pi/180.0); t1B[1] = sin(Rmatrix[0]*pi/180.0); t1B[2] = 0.0;
-    t2B[0] = 0.0; t2B[1] = 0.0; t2B[2] = 1.0;
-    nA[0] = -sin(Rmatrix[1]*pi/180.0); nA[1] = cos(Rmatrix[1]*pi/180.0); nA[2] = 0.0;
-    t1A[0] = cos(Rmatrix[1]*pi/180.0); t1A[1] = sin(Rmatrix[1]*pi/180.0); t1A[2] = 0.0;
-    t2A[0] = 0.0; t2A[1] = 0.0; t2A[2] = 1.0;
-
-    a11 = nB[0]; a12 = nB[1]; a13 = nB[2];
-    a21 = t1B[0]; a22 = t1B[1]; a23 = t1B[2];
-    a31 = t2B[0]; a32 = t2B[1]; a33 = t2B[2];
-
-    DET = a11*(a33*a22-a32*a23) - a21*(a33*a12-a32*a13) + a31*(a23*a12-a22*a13);
-    A11 = (a33*a22-a32*a23) / DET;
-    A12 = -(a33*a12-a32*a13) / DET;
-    A13 = (a23*a12-a22*a13) /DET;
-    A21 = -(a33*a21-a31*a23) / DET;
-    A22 = (a33*a11-a31*a13) / DET;
-    A23 = -(a23*a11-a21*a13) / DET;
-    A31 = (a32*a21-a31*a22) /DET;
-    A32 = -(a32*a11-a31*a12) / DET;
-    A33 = (a22*a11-a21*a12) / DET;
-
-    b11 = nA[0]; b21 = t1A[0]; b31 = t2A[0];
-    matrix[0] = A11*b11 + A12*b21 + A13*b31;
-    matrix[1] = A21*b11 + A22*b21 + A23*b31;
-    matrix[2] = A31*b11 + A32*b21 + A33*b31;
-
-    b11 = nA[1]; b21 = t1A[1]; b31 = t2A[1];
-    matrix[3] = A11*b11 + A12*b21 + A13*b31;
-    matrix[4] = A21*b11 + A22*b21 + A23*b31;
-    matrix[5] = A31*b11 + A32*b21 + A33*b31;
-
-    b11 = nA[2]; b21 = t1A[2]; b31 = t2A[2];
-    matrix[6] = A11*b11 + A12*b21 + A13*b31;
-    matrix[7] = A21*b11 + A22*b21 + A23*b31;
-    matrix[8] = A31*b11 + A32*b21 + A33*b31;
-
-    newv[0] = matrix[0]*oldv[0] + matrix[1]*oldv[1] + matrix[2]*oldv[2];
-    newv[1] = matrix[3]*oldv[0] + matrix[4]*oldv[1] + matrix[5]*oldv[2];
-    newv[2] = matrix[6]*oldv[0] + matrix[7]*oldv[1] + matrix[8]*oldv[2];
-
+    newv[0] = Rmatrix[0]*oldv[0] + Rmatrix[1]*oldv[1] + Rmatrix[2]*oldv[2];
+    newv[1] = Rmatrix[3]*oldv[0] + Rmatrix[4]*oldv[1] + Rmatrix[5]*oldv[2];
+    newv[2] = Rmatrix[6]*oldv[0] + Rmatrix[7]*oldv[1] + Rmatrix[8]*oldv[2];
 }
 
 void reorient_vector_quantities_in_cell(FV_Cell *c, const std::vector<double>& Rmatrix) 
