@@ -473,6 +473,8 @@ def main():
            
     run_pitot_condition_builder(cfg = {}, config_file = config_file)
     
+    return
+    
 #----------------------------------------------------------------------------
 
 if __name__ == '__main__':
@@ -481,4 +483,4 @@ if __name__ == '__main__':
         print "start with --help for help with inputs"
         
     else:
-        main()      
+        main()
