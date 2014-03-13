@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 1. Prepare gas file
-#gasfile argon-3sp-2T.inp argon-3sp-2T.lua
+gasfile argon-3sp-2T.inp argon-3sp-2T.lua
 
 # 2. Run simulation
 poshax3.x argon.cfg

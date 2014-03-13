@@ -8,4 +8,4 @@ poshax3.x EAST.cfg
 
 # 3. Plot results
 gnuplot profiles.gplot
-gnuplot spectra.gplot
+#gnuplot spectra.gplot

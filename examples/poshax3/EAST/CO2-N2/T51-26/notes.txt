@@ -6,7 +6,7 @@ and electrons (both bound and free).
 
 There are two difference types of 2T models implemented:
 
-ELS: Electronic level species
+ELS: Electronic levels as species
 BS: Bulk species
 
 The ELS model treats some electronic states as separate species (eg CO(X), CO(A)).

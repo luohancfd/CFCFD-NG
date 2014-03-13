@@ -1,7 +1,7 @@
 %!PS-Adobe-2.0 EPSF-2.0
 %%Title: profile_T_rho.eps
-%%Creator: gnuplot 4.4 patchlevel 3
-%%CreationDate: Sat Feb 25 21:10:40 2012
+%%Creator: gnuplot 4.6 patchlevel 3
+%%CreationDate: Fri Mar 14 10:20:32 2014
 %%DocumentFonts: (atend)
 %%BoundingBox: 50 50 410 302
 %%EndComments
@@ -20,10 +20,12 @@ gnudict begin
 /Level1 false def
 /Rounded false def
 /ClipToBoundingBox false def
+/SuppressPDFMark false def
 /TransparentPatterns false def
 /gnulinewidth 5.000 def
 /userlinewidth gnulinewidth def
 /Gamma 1.0 def
+/BackgroundColor {-1.000 -1.000 -1.000} def
 %
 /vshift -66 def
 /dl1 {
@@ -38,22 +40,6 @@ gnudict begin
 /vpt_ 31.5 def
 /hpt hpt_ def
 /vpt vpt_ def
-Level1 {} {
-/SDict 10 dict def
-systemdict /pdfmark known not {
-  userdict /pdfmark systemdict /cleartomark get put
-} if
-SDict begin [
-  /Title (profile_T_rho.eps)
-  /Subject (gnuplot plot)
-  /Creator (gnuplot 4.4 patchlevel 3)
-  /Author (rozza)
-%  /Producer (gnuplot)
-%  /Keywords ()
-  /CreationDate (Sat Feb 25 21:10:40 2012)
-  /DOCINFO pdfmark
-end
-} ifelse
 /doclip {
   ClipToBoundingBox {
     newpath 50 50 moveto 410 50 lineto 410 302 lineto 50 302 lineto closepath
@@ -61,7 +47,7 @@ end
   } if
 } def
 %
-% Gnuplot Prolog Version 4.4 (August 2010)
+% Gnuplot Prolog Version 4.6 (September 2012)
 %
 %/SuppressPDFMark true def
 %
@@ -328,7 +314,8 @@ end
 /PatternFill {gsave /PFa [ 9 2 roll ] def
   PFa 0 get PFa 2 get 2 div add PFa 1 get PFa 3 get 2 div add translate
   PFa 2 get -2 div PFa 3 get -2 div PFa 2 get PFa 3 get Rec
-  gsave 1 setgray fill grestore clip
+  TransparentPatterns {} {gsave 1 setgray fill grestore} ifelse
+  clip
   currentlinewidth 0.5 mul setlinewidth
   /PFs PFa 2 get dup mul PFa 3 get dup mul add sqrt def
   0 0 M PFa 5 get rotate PFs -2 div dup translate
@@ -461,8 +448,26 @@ currentdict end definefont pop
   Blacktext {gsave 0 setgray MFshow grestore} {MFshow} ifelse } bind def
 /XYsave    { [( ) 1 2 true false 3 ()] } bind def
 /XYrestore { [( ) 1 2 true false 4 ()] } bind def
+Level1 SuppressPDFMark or 
+{} {
+/SDict 10 dict def
+systemdict /pdfmark known not {
+  userdict /pdfmark systemdict /cleartomark get put
+} if
+SDict begin [
+  /Title (profile_T_rho.eps)
+  /Subject (gnuplot plot)
+  /Creator (gnuplot 4.6 patchlevel 3)
+  /Author (daniel)
+%  /Producer (gnuplot)
+%  /Keywords ()
+  /CreationDate (Fri Mar 14 10:20:32 2014)
+  /DOCINFO pdfmark
+end
+} ifelse
 end
 %%EndProlog
+%%Page: 1 1
 gnudict begin
 gsave
 doclip
@@ -471,14 +476,18 @@ doclip
 0 setgray
 newpath
 (Helvetica) findfont 200 scalefont setfont
+BackgroundColor 0 lt 3 1 roll 0 lt exch 0 lt or or not {BackgroundColor C 1.000 0 0 7200.00 5040.00 BoxColFill} if
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 860 640 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 640 M
 63 0 V
 5916 0 R
@@ -489,22 +498,27 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 860 840 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 840 M
 31 0 V
 5948 0 R
 -31 0 V
 stroke
 LTa
+LCa setrgbcolor
 860 1040 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 1040 M
 63 0 V
 5916 0 R
@@ -515,22 +529,27 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 860 1240 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 1240 M
 31 0 V
 5948 0 R
 -31 0 V
 stroke
 LTa
+LCa setrgbcolor
 860 1440 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 1440 M
 63 0 V
 5916 0 R
@@ -541,22 +560,27 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 860 1640 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 1640 M
 31 0 V
 5948 0 R
 -31 0 V
 stroke
 LTa
+LCa setrgbcolor
 860 1840 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 1840 M
 63 0 V
 5916 0 R
@@ -567,22 +591,27 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 860 2040 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 2040 M
 31 0 V
 5948 0 R
 -31 0 V
 stroke
 LTa
+LCa setrgbcolor
 860 2240 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 2240 M
 63 0 V
 5916 0 R
@@ -593,22 +622,27 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 860 2440 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 2440 M
 31 0 V
 5948 0 R
 -31 0 V
 stroke
 LTa
+LCa setrgbcolor
 860 2639 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 2639 M
 63 0 V
 5916 0 R
@@ -619,22 +653,27 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 860 2839 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 2839 M
 31 0 V
 5948 0 R
 -31 0 V
 stroke
 LTa
+LCa setrgbcolor
 860 3039 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 3039 M
 63 0 V
 5916 0 R
@@ -645,22 +684,27 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 860 3239 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 3239 M
 31 0 V
 5948 0 R
 -31 0 V
 stroke
 LTa
+LCa setrgbcolor
 860 3439 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 3439 M
 63 0 V
 5916 0 R
@@ -671,24 +715,29 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 860 3639 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 3639 M
 31 0 V
 5948 0 R
 -31 0 V
 stroke
 LTa
+LCa setrgbcolor
 860 3839 M
 3636 0 V
 2223 0 R
 120 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 3839 M
 63 0 V
 5916 0 R
@@ -699,24 +748,29 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 860 4039 M
 3636 0 V
 2223 0 R
 120 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 4039 M
 31 0 V
 5948 0 R
 -31 0 V
 stroke
 LTa
+LCa setrgbcolor
 860 4239 M
 5979 0 V
 stroke
 LTb
+LCb setrgbcolor
 860 4239 M
 63 0 V
 5916 0 R
@@ -727,12 +781,15 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 860 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 860 640 M
 0 63 V
 0 3536 R
@@ -743,92 +800,111 @@ stroke
 ] -66.7 MCshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 1310 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 1310 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 1573 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 1573 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 1760 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 1760 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 1905 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 1905 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 2023 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 2023 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 2123 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 2123 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 2210 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 2210 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 2286 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 2286 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 2355 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 2355 640 M
 0 63 V
 0 3536 R
@@ -839,92 +915,111 @@ stroke
 ] -66.7 MCshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 2805 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 2805 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 3068 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 3068 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 3255 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 3255 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 3400 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 3400 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 3518 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 3518 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 3618 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 3618 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 3705 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 3705 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 3781 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 3781 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 3850 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 3850 640 M
 0 63 V
 0 3536 R
@@ -935,108 +1030,127 @@ stroke
 ] -66.7 MCshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 4299 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 4299 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 4563 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 4563 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 4749 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 4749 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 4894 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 4894 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 5013 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 5013 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 5113 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 5113 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 5199 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 5199 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 5276 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 5276 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 5344 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 5344 640 M
 0 63 V
 0 3536 R
@@ -1047,106 +1161,125 @@ stroke
 ] -66.7 MCshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
+LCa setrgbcolor
 5794 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 5794 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 6057 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 6057 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 6244 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 6244 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 6389 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 6389 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 6507 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 6507 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 6607 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 6607 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 6694 640 M
 0 3136 V
 0 400 R
 0 63 V
 stroke
 LTb
+LCb setrgbcolor
 6694 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 6771 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 6771 640 M
 0 31 V
 0 3568 R
 0 -31 V
 stroke
 LTa
+LCa setrgbcolor
 6839 640 M
 0 3599 V
 stroke
 LTb
+LCb setrgbcolor
 6839 640 M
 0 63 V
 0 3536 R
@@ -1157,8 +1290,10 @@ stroke
 ] -66.7 MCshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTb
+LCb setrgbcolor
 860 4239 N
 860 640 L
 5979 0 V
@@ -1205,11 +1340,18 @@ LTb
 ] -66.7 MLshow
 1.000 UL
 LTb
+LCb setrgbcolor
 5939 2471 M
 382 0 V
+stroke
+LTb
+LCb setrgbcolor
 5939 1554 M
 382 0 V
--177 822 R
+stroke
+LTb
+LCb setrgbcolor
+6144 2376 M
 -25 95 V
 -25 -95 V
 25 -236 R
@@ -1223,6 +1365,7 @@ stroke
 grestore
 1.000 UL
 LTb
+LCb setrgbcolor
 6090 1665 M
 29 -111 V
 29 111 V
@@ -1237,9 +1380,11 @@ stroke
 grestore
 1.000 UL
 LTb
+LCb setrgbcolor
 % Begin plot #1
 1.000 UL
 LT0
+LC0 setrgbcolor
 LCb setrgbcolor
 5936 4076 M
 [ [(Helvetica) 200.0 0.0 true true 0 (present work)]
@@ -1247,8 +1392,8 @@ LCb setrgbcolor
 LT0
 6056 4076 M
 543 0 V
-860 4195 M
-45 0 V
+860 4196 M
+45 -1 V
 431 -55 V
 242 -51 V
 183 -50 V
@@ -1351,8 +1496,8 @@ LT0
 6 -2 V
 5 -2 V
 stroke 3865 2964 M
-6 -2 V
-5 -1 V
+5 -2 V
+6 -1 V
 5 -2 V
 11 -3 V
 5 -2 V
@@ -1360,8 +1505,8 @@ stroke 3865 2964 M
 5 -1 V
 5 -2 V
 5 -2 V
-6 -1 V
-10 -3 V
+5 -1 V
+11 -3 V
 5 -2 V
 5 -2 V
 5 -1 V
@@ -1520,8 +1665,8 @@ stroke 4332 2819 M
 3 -1 V
 3 -1 V
 3 -1 V
-3 -1 V
 2 -1 V
+3 -1 V
 3 0 V
 3 -1 V
 3 -1 V
@@ -1608,8 +1753,8 @@ stroke 4638 2727 M
 3 0 V
 2 -1 V
 2 -1 V
-3 0 V
-2 -1 V
+2 0 V
+3 -1 V
 2 -1 V
 2 0 V
 3 -1 V
@@ -1931,8 +2076,8 @@ stroke 5227 2582 M
 1 -1 V
 2 0 V
 1 0 V
-1 0 V
-2 -1 V
+1 -1 V
+2 0 V
 1 0 V
 2 0 V
 1 -1 V
@@ -2508,8 +2653,8 @@ stroke 5832 2495 M
 stroke 5936 2487 M
 1 0 V
 1 0 V
-1 0 V
 1 -1 V
+1 0 V
 1 0 V
 1 0 V
 1 0 V
@@ -2633,6 +2778,7 @@ stroke 6040 2481 M
 % Begin plot #2
 stroke
 LT2
+LC2 setrgbcolor
 LCb setrgbcolor
 5936 3876 M
 [ [(Helvetica) 200.0 0.0 true true 0 (Marrone 1963)]
@@ -2676,8 +2822,9 @@ LT2
 % Begin plot #3
 stroke
 LT0
-860 982 M
-45 0 V
+LC0 setrgbcolor
+860 981 M
+45 1 V
 431 9 V
 242 10 V
 183 10 V
@@ -2779,8 +2926,8 @@ LT0
 11 2 V
 6 0 V
 5 1 V
-6 1 V
-5 0 V
+5 1 V
+6 0 V
 stroke 3876 1340 M
 5 1 V
 11 1 V
@@ -2789,8 +2936,8 @@ stroke 3876 1340 M
 5 1 V
 5 0 V
 5 1 V
-6 1 V
-10 1 V
+5 1 V
+11 1 V
 5 0 V
 5 1 V
 5 0 V
@@ -2949,8 +3096,8 @@ stroke 4339 1393 M
 3 0 V
 3 0 V
 3 1 V
-3 0 V
 2 0 V
+3 0 V
 3 1 V
 3 0 V
 3 0 V
@@ -3037,8 +3184,8 @@ stroke 4643 1430 M
 3 1 V
 2 0 V
 2 0 V
-3 1 V
-2 0 V
+2 1 V
+3 0 V
 2 0 V
 2 0 V
 3 1 V
@@ -4063,6 +4210,7 @@ stroke 6041 1550 M
 % Begin plot #4
 stroke
 LT2
+LC2 setrgbcolor
 1123 959 M
 188 8 V
 267 15 V
@@ -4095,6 +4243,7 @@ LT2
 % End plot #4
 stroke
 LTb
+LCb setrgbcolor
 860 4239 N
 860 640 L
 5979 0 V
@@ -4104,6 +4253,7 @@ Z stroke
 1.000 UP
 1.000 UL
 LTb
+LCb setrgbcolor
 stroke
 grestore
 end
