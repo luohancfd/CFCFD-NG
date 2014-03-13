@@ -600,7 +600,7 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 /// Basic formatting borrowed from Block::write_solution
 {
     global_data &G = *get_global_data_ptr();
-    FV_Cell * cell, * ghost_cell, * cL1, * cL0, * cR0, * cR1;
+    FV_Cell * cell, * ghost_cell;
     FV_Interface * IFace;
     size_t i, j, k;
     size_t index;
@@ -625,7 +625,6 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
     var_list += "\"pos.x\" \"pos.y\" \"pos.z\" ";
     var_list += "\"q_cond\" \"q_diff\" \"q_rad\" \"T_wall\"";
     var_list += "\"T_cell\" \"rho_cell\" \"un_cell\" \"Re_wall\"";
-    var_list += "\"mass_flux\" \"un_ghost_cell\"";
     fprintf(fp, "%s\n", var_list.c_str());
     
     // 1. Check if this BC represents a wall
@@ -645,13 +644,6 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 		    cell = bd.get_cell(i,j,k);
 		    IFace = cell->iface[which_boundary];
 		    cell->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
-                    if ( which_boundary == 0 ) { ghost_cell = bd.get_cell(i,j+1,k); } // North Boundary
-                    else if ( which_boundary == 1 ) { ghost_cell = bd.get_cell(i+1,j,k); } // East Boundary
-                    else if ( which_boundary == 2 ) { ghost_cell = bd.get_cell(i,j-1,k); } // South Boundary
-                    else if ( which_boundary == 3 ) { ghost_cell = bd.get_cell(i-1,j,k); } // West Boundary
-                    else if ( which_boundary == 4 ) { ghost_cell = bd.get_cell(i,j,k+1); } // Top Boundary
-                    else { ghost_cell = bd.get_cell(i,j,k-1); } // Bottom Boundary
-		    ghost_cell->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
 		    Re_wall = cell->calculate_wall_Reynolds_number(which_boundary);
 		    // 5. Write heat-flux data for interface to file
 		    fprintf(fp, "%d %d %d ", static_cast<int>(i),
@@ -661,79 +653,14 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 		    fprintf(fp, "%20.12e %20.12e %20.12e ", 
 			    q_cond[index], q_diff[index], q_rad[index]);
 		    fprintf(fp, "%20.12e ", IFace->fs->gas->T[0]);
-		    fprintf(fp, "%20.12e %20.12e %20.12e %20.12e ", 
+		    fprintf(fp, "%20.12e %20.12e %20.12e %20.12e \n", 
 		    	    cell->fs->gas->T[0], cell->fs->gas->rho, cell->fs->vel.x, Re_wall );
-		    fprintf(fp, "%20.12e %20.12e \n", 
-		    	    IFace->F->mass, ghost_cell->fs->vel.x );
 		    cell->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
-		    ghost_cell->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
 		} // end i loop
 	    } // end j loop
 	} // end k loop
-    } else { // if ( iswall )
-	// Write normal velocity at interface-local frame of reference and length data 
-	// of cL1, cL0, cR0, cR1 for non-wall boundary.
-	fprintf(fp, "%d %d %d\n", static_cast<int>(imax-imin+1), 
-		static_cast<int>(jmax-jmin+1), static_cast<int>(kmax-kmin+1));
-	for ( k=kmin; k<=kmax; ++k ) {
-	    for ( j=jmin; j<=jmax; ++j ) {
-		for ( i=imin; i<=imax; ++i ) {
-		    index = (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + 
-			    (imax-imin+1)*(j-jmin) + (i-imin);
-		    cell = bd.get_cell(i,j,k);
-		    IFace = cell->iface[which_boundary];
-                    if ( which_boundary == 0 ) {  // North Boundary
-                            cL1 = bd.get_cell(i,j-1,k); cL0 = bd.get_cell(i,j,k); 
-                            cR0 = bd.get_cell(i,j+1,k); cR1 = bd.get_cell(i,j+2,k);
-                            cL1_length = cL1->jLength; cL0_length = cL0->jLength;
-                            cR0_length = cR0->jLength; cR1_length = cR1->jLength;  
-                    } else if ( which_boundary == 1 ) {  // East Boundary
-                            cL1 = bd.get_cell(i-1,j,k); cL0 = bd.get_cell(i,j,k); 
-                            cR0 = bd.get_cell(i+1,j,k); cR1 = bd.get_cell(i+2,j,k);
-                            cL1_length = cL1->iLength; cL0_length = cL0->iLength;
-                            cR0_length = cR0->iLength; cR1_length = cR1->iLength; 
-                    } else if ( which_boundary == 2 ) {  // South Boundary
-                            cL1 = bd.get_cell(i,j-2,k); cL0 = bd.get_cell(i,j-1,k); 
-                            cR0 = bd.get_cell(i,j,k); cR1 = bd.get_cell(i,j+1,k);
-                            cL1_length = cL1->jLength; cL0_length = cL0->jLength;
-                            cR0_length = cR0->jLength; cR1_length = cR1->jLength; 
-                    } else if ( which_boundary == 3 ) { // West Boundary
-                            cL1 = bd.get_cell(i-2,j,k); cL0 = bd.get_cell(i-1,j,k); 
-                            cR0 = bd.get_cell(i,j,k); cR1 = bd.get_cell(i+1,j,k);
-                            cL1_length = cL1->iLength; cL0_length = cL0->iLength;
-                            cR0_length = cR0->iLength; cR1_length = cR1->iLength; 
-                    } else if ( which_boundary == 4 ) {  // Top Boundary
-                            cL1 = bd.get_cell(i,j,k-1); cL0 = bd.get_cell(i,j,k); 
-                            cR0 = bd.get_cell(i,j,k+1); cR1 = bd.get_cell(i,j,k+2);
-                            cL1_length = cL1->kLength; cL0_length = cL0->kLength;
-                            cR0_length = cR0->kLength; cR1_length = cR1->kLength; 
-                    } else { // Bottom Boundary
-                            cL1 = bd.get_cell(i,j,k-2); cL0 = bd.get_cell(i,j,k-1); 
-                            cR0 = bd.get_cell(i,j,k); cR1 = bd.get_cell(i,j,k+1);
-                            cL1_length = cL1->kLength; cL0_length = cL0->kLength;
-                            cR0_length = cR0->kLength; cR1_length = cR1->kLength; 
-                    }
-		    cL1->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
-		    cL0->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
-		    cR0->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
-		    cR1->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
-		    fprintf(fp, "%d %d %d ", static_cast<int>(i),
-			    static_cast<int>(j), static_cast<int>(k));
-		    fprintf(fp, "%20.12e %20.12e %20.12e ", 
-			    IFace->pos.x, IFace->pos.y, IFace->pos.z);
-		    fprintf(fp, "%20.12e %20.12e %20.12e %20.12e ", 
-			    cL1->fs->vel.x, cL0->fs->vel.x, cR0->fs->vel.x, cR1->fs->vel.x);
-		    fprintf(fp, "%20.12e %20.12e %20.12e %20.12e ", 
-		    	    cL1_length, cL0_length, cR0_length, 0.0 );
-		    fprintf(fp, "%20.12e %20.12e \n", 
-		    	    IFace->F->mass, cR1_length );
-		    cL1->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
-		    cL0->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
-		    cR0->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
-		    cR1->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
-		} // end i loop
-	    } // end j loop
-	} // end k loop
+    } else {
+       fprintf(fp, "0 0 0\n");
     } // end else
     fclose(fp);
     
