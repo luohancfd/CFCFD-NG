@@ -168,12 +168,12 @@ int main(int argc, char *argv[])
     }
 
 
-    double dx_scale;
-    if( ! cfg.parse_double("controls", "dx_scale", dx_scale, 1.0) ||
-	plot_dx <= 0 ) {
-	cout << "Error reading dx_scale in [controls] section of " << input 
+    double dx_max;
+    if( ! cfg.parse_double("controls", "dx_max", dx_max, 9.9e9) ||
+    dx_max <= 0 ) {
+	cout << "Error reading dx_max in [controls] section of " << input
 	     << endl
-	     << "This value should be a positive double and scales dx.\n"
+	     << "This value should be a positive double and sets a maximum value for dx.\n"
 	     << "Exiting program!\n";
 	exit(BAD_INPUT_ERROR);
     }
@@ -498,7 +498,8 @@ int main(int argc, char *argv[])
     while( x < final_x ) {
 	new_dx = psr->increment_in_space(x, dx);
 	x = x + dx;
-	if ( adaptive_dx ) dx = dx_scale*new_dx;
+	if ( adaptive_dx ) dx = new_dx;
+	dx = new_dx > dx_max ? dx_max : new_dx;
 	count++;
 	if( x > next_plot_x ) {
 	    outfile << setw(20) << x << psr->psflow.str(bool(rtmodel), species_output_type, gmodel->M()) << endl;
