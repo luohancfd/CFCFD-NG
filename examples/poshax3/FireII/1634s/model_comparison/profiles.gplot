@@ -1,0 +1,12 @@
+# created by make_gnuplot_file.py
+
+set term postscript eps enhanced 'Helvetica,22'
+set size 1.0, 1.0
+set output "electron_number_density_profiles.eps"
+set ylabel "Electron number density, N_e (cm^{-3})"
+set xrange [0:5]
+set key bottom right
+set grid
+plot '2T/Park/output.data' u ($1*100):($17*$5/5.48579903e-07*6.022e23*1.0e-6) w l lw 4 lt  1 t '2T/Park', \
+     '3T/Park/output.data' u ($1*100):($18*$6/5.48579903e-07*6.022e23*1.0e-6) w l lw 4 lt  2 t '3T/Park', \
+     '3T/Knab/output.data' u ($1*100):($18*$6/5.48579903e-07*6.022e23*1.0e-6) w l lw 4 lt  3 t '3T/Knab'

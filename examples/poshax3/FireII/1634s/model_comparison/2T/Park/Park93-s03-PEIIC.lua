@@ -28,27 +28,27 @@ scheme_t = {
 
 reaction{
    'N2 + M <=> N + N + M',
-   fr={'Park', A=7.0e21, n=-1.60, T_a=113200.0, p_name='N2', p_mode='vibration', s_p=0.5, q_name='N2', q_mode='translation'},
+   fr={'Park', A=7.0e21, n=-1.60, T_a=113200.0, p_name='N2', p_mode='vibration', s_p=0.3, q_name='N2', q_mode='translation'},
    efficiencies={N2=1.0,N2_plus=1.0,O2=1.0,O2_plus=1.0,NO=1.0,NO_plus=1.0,N=4.2857,N_plus=4.2857,O=4.2857,O_plus=4.2857,e_minus=0.0},
    ec={model='from CEA curves',iT=0}
 }
 
 reaction{
    'N2 + e- <=> N + N + e-',
-   fr={'Park', A=1.0e25, n=-1.60, T_a=113200.0, p_name='N2', p_mode='vibration', s_p=0.5, q_name='e_minus', q_mode='translation'},
+   fr={'Park', A=1.0e25, n=-1.60, T_a=113200.0, p_name='N2', p_mode='vibration', s_p=0.3, q_name='e_minus', q_mode='translation'},
    ec={model='from CEA curves',iT=1}
 }
 
 reaction{
    'O2 + M <=> O + O + M',
-   fr={'Park', A=2.0e21, n=-1.5, T_a=59500.0, p_name='O2', p_mode='vibration', s_p=0.5, q_name='O2', q_mode='translation'},
+   fr={'Park', A=2.0e21, n=-1.5, T_a=59500.0, p_name='O2', p_mode='vibration', s_p=0.3, q_name='O2', q_mode='translation'},
    efficiencies={N2=1.0,N2_plus=1.0,O2=1.0,O2_plus=1.0,NO=1.0,NO_plus=1.0,N=5.0,N_plus=5.0,O=5.0,O_plus=5.0,e_minus=0.0},
    ec={model='from CEA curves',iT=0}
 }
 
 reaction{
    'NO + M <=> N + O + M',
-   fr={'Park', A=5.0e15, n=0.0, T_a=75500.0, p_name='NO', p_mode='vibration', s_p=0.5, q_name='NO', q_mode='translation'},
+   fr={'Park', A=5.0e15, n=0.0, T_a=75500.0, p_name='NO', p_mode='vibration', s_p=0.3, q_name='NO', q_mode='translation'},
    efficiencies={N2=1.0,N2_plus=1.0,O2=1.0,O2_plus=1.0,NO=1.0,NO_plus=1.0,N=20.0,N_plus=20.0,O=20.0,O_plus=20.0,e_minus=0.0},
    ec={model='from CEA curves',iT=0}
 }
