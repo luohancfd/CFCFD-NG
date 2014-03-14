@@ -600,12 +600,11 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 /// Basic formatting borrowed from Block::write_solution
 {
     global_data &G = *get_global_data_ptr();
-    FV_Cell * cell, * ghost_cell;
+    FV_Cell * cell;
     FV_Interface * IFace;
     size_t i, j, k;
     size_t index;
     double Re_wall;
-    double cL1_length, cL0_length, cR0_length, cR1_length;
     Block & bd = *bdp;
     
     FILE *fp;
