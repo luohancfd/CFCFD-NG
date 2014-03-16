@@ -8,7 +8,7 @@ gdata.spectral_points = 195000
 
 # transport model
 gdata.transport_model = 'optically thick'
-gdata.spectrally_resolved = 0 
+gdata.spectrally_resolved = False
 
 # now the radiators
 # dictionary of indices

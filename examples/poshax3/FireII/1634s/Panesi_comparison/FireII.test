@@ -29,8 +29,8 @@ test run-postprocessor {Run the postprocessing stage.} -body {
     exec gnuplot profiles.gplot >> LOGFILE_POST
 
     # 4. Convert to png files
-    exec convert -density 600x600 -quality 90 number_density_profiles.eps number_density_profiles.png >> LOGFILE_POST
-    exec convert -density 600x600 -quality 90 temperature_profiles.eps temperature_profiles.png >> LOGFILE_POST
+    exec convert -density 600x600 -quality 90 number_density_profiles.eps -scale 750 number_density_profiles.png >> LOGFILE_POST
+    exec convert -density 600x600 -quality 90 temperature_profiles.eps -scale 750 temperature_profiles.png >> LOGFILE_POST
 
     # 5. Compute average errors with Panesi solution
     exec python compute_errors.py >> LOGFILE_POST

@@ -34,7 +34,7 @@ public:
     { return electronic_mode_factor_; }
 
 protected:
-    int spectrally_resolved_;
+    bool spectrally_resolved_;
     double electronic_mode_factor_;
     
     RadiationSpectralModel* rsm_;
