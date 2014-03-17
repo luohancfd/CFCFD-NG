@@ -25,7 +25,7 @@ set test_scripts [list "FireII/1634s/Panesi_comparison/FireII.test"]
 lappend test_scripts "Argon/Glass-Liu/M16.5/without_radiation/Glass-Liu-RUC.test"
 if {$long_tests} {
     puts "Do long tests as well as short tests..."
-    lappend test_scripts "Argon/Glass-Liu/M16.5/without_radiation/Glass-Liu-RUC.test"
+    lappend test_scripts "Argon/Glass-Liu/M16.5/with_radiation/Glass-Liu-RUC.test"
 } else {
     puts "Do short tests only..."
 }

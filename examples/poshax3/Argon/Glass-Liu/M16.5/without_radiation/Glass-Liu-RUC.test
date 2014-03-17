@@ -1,0 +1,51 @@
+# Glass-Liu-RUC.test
+# Simulation of UTIAS shock tube experiment with Argon (with radiation coupling)
+#
+# This test case exercises the poshax3.x executable to compute the 
+# post-shock relaxation profile for 3 species and 2 temperature argon.
+# Comparisons are made against the ionization fraction measurements reported by Glass and 
+# Liu (http://dx.doi.org/10.1017/S002211207800004X)
+#
+# DFP, 16-Apr-2014 
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor {Run the preprocessing stage.} -body {
+    # 1. Prepare gas file
+    exec gasfile argon-3sp-2T.inp argon-3sp-2T.lua >> LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation {Run the poshax3 code.} -body {
+    # 2. Run simulation
+    exec poshax3.x argon.cfg >> LOGFILE_RUN
+} -result {} -returnCodes {0}
+
+test run-postprocessor {Run the postprocessing stage.} -body {
+    # 3. Plot results
+    exec gnuplot profiles.gplot >> LOGFILE_POST
+
+    # 4. Convert to png files
+    exec convert -density 600x600 -quality 90 ionization_fraction_profile.eps number_density_profiles.png >> LOGFILE_POST
+    exec convert -density 600x600 -quality 90 temperature_profiles.eps temperature_profiles.png >> LOGFILE_POST
+
+    # 5. Compute average errors with Panesi solution
+    exec python compute_errors.py >> LOGFILE_POST
+} -result {} -returnCodes {0}
+
+test check-ionization-fraction-error {The divergence RMS error with respect to the experiment measurements.} -body {
+    set alpha_RMS_error 0
+    # Looking for a line starting with 'RMS of the alpha error'
+    set fp [open LOGFILE_POST r]
+    set results [read $fp]
+    close $fp
+    foreach line [split $results "\n"] {
+        if {[string first "RMS of the alpha error" $line] == 0} {
+	        set alpha_RMS_error [lindex [split $line] 6]
+	    }
+    }
+    expr abs($Tve_RMS_error) < 20.0
+} -result {1}
+
+cleanupTests
