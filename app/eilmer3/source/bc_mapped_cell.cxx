@@ -24,7 +24,7 @@ MappedCellBC::MappedCellBC(Block *bdp, int which_boundary,
     reorient_vector_quantities = _reorient_vector_quantities;
     Rmatrix = _Rmatrix;
     // Read mapping of ghost-cells to active-cells from a file.
-    std::ifstream fstrm(filename);
+    std::ifstream fstrm(filename.c_str());
     std::string text;
     int src_blk, src_i, src_j, src_k;
     std::vector<int> mapping;
