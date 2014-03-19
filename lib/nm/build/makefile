@@ -32,13 +32,15 @@ NM_OBJECTS := no_fuss_linear_algebra.o \
 	exponential_integrals.o \
 	quadrature.o \
 	linear_interpolation.o \
-	lu_decomp.o
+	lu_decomp.o \
+	ridder.o
 
 TEST_EXE_FILES := fobject_test.x \
 	nelmin_test.x \
 	ode_test.x \
 	no_fuss_test.x \
-	lu_decomp_test.x
+	lu_decomp_test.x \
+	ridder_test.x
 #	zero_finders_test.x
 
 LOADABLE_MODULE := _libnm.so
@@ -165,6 +167,9 @@ Richardson_extrapolation_test.x : $(SRC)/Richardson_extrapolation_test.cxx \
 	$(CXXLINK) -o Richardson_extrapolation_test.x $(SRC)/Richardson_extrapolation_test.cxx \
 	Richardson_extrapolation.o
 
+ridder_test.x : ridder_test.o $(LIBNM)
+	$(CXXLINK) -o ridder_test.x ridder_test.o $(LIBNM)
+
 #-------- objects for testing executables ---------
 nelmin_test.o : $(SRC)/nelmin_test.cxx $(SRC)/nelmin.hh $(SRC)/fobject.hh
 	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/nelmin_test.cxx
@@ -185,6 +190,8 @@ lu_decomp_test.o : $(SRC)/lu_decomp_test.cxx $(SRC)/lu_decomp.cxx $(SRC)/lu_deco
 zero_finders_test.o : $(SRC)/zero_finders_test.cxx $(SRC)/zero_system.hh $(SRC)/zero_finders.hh
 	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/zero_finders_test.cxx
 
+ridder_test.o : $(SRC)/ridder_test.cxx $(SRC)/ridder.hh
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/ridder_test.cxx
 
 
 #-------- objects compilation -----------
@@ -235,3 +242,6 @@ linear_interpolation.o : $(SRC)/linear_interpolation.cxx $(SRC)/linear_interpola
 
 lu_decomp.o : $(SRC)/lu_decomp.cxx $(SRC)/lu_decomp.hh $(SRC)/no_fuss_linear_algebra.hh
 	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/lu_decomp.cxx
+
+ridder.o : $(SRC)/ridder.cxx $(SRC)/ridder.hh
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/ridder.cxx
