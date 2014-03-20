@@ -1746,8 +1746,8 @@ class Block3D(Block):
         p5 = Vector(self.grid.x[i+1,j,k+1],   self.grid.y[i+1,j,k+1],   self.grid.z[i+1,j,k+1])
         p6 = Vector(self.grid.x[i+1,j+1,k+1], self.grid.y[i+1,j+1,k+1], self.grid.z[i+1,j+1,k+1])
         p7 = Vector(self.grid.x[i,j+1,k+1],   self.grid.y[i,j+1,k+1],   self.grid.z[i,j+1,k+1])
-        centre = hexahedron_centroid(p0, p1, p2, p3, p4, p5, p6, p7)
-        vol = hexahedron_volume(p0, p1, p2, p3, p4, p5, p6, p7)
+        centre = hex_cell_centroid(p0, p1, p2, p3, p4, p5, p6, p7)
+        vol = hex_cell_volume(p0, p1, p2, p3, p4, p5, p6, p7)
         return (centre.x, centre.y, centre.z, vol)
 
 # --------------------------------------------------------------------
