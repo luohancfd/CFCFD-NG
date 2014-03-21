@@ -108,7 +108,7 @@ E3_UTILS := ../utilities/p2e.py ../utilities/import_grid.py \
             ../utilities/tecplot_feblock.py ../utilities/csv_util.py \
             ../utilities/laura2vtk.py ../utilities/import_laura_plot3d.py \
             ../utilities/shock1d.py ../utilities/e3loadbalance.py \
-            ../utilities/OrderedDict.py
+            ../utilities/OrderedDict.py ../utilities/set_control_parameter.py
 
 E3_OBJECTS_1 := e3shared.o e3rad.o
 E3_OBJECTS_1_MPI := e3mpi.o
