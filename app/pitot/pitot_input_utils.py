@@ -110,7 +110,10 @@ def make_test_gas(gasName, outputUnits='moles'):
                    outputUnits=outputUnits), None
     elif gasName.lower() == 'h2':
         return Gas(reactants={'H2':1.0}, inputUnits='moles', with_ions=True,
-                   outputUnits=outputUnits), None                   
+                   outputUnits=outputUnits), None
+    elif gasName.lower() == 'he':
+        return Gas(reactants={'He':1.0}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None
     else:
         raise Exception, 'make_test_gas(): unknown gasName: %s' % gasName 
    
@@ -528,7 +531,7 @@ def state_builder(cfg):
 
     #build the gas objects for all the other sections based on knowledge of what is what
 
-    cfg['T0'] = 300.0 #atmospheric temperature (K), used for any section starting at ambient
+    cfg['T0'] = 298.15 #atmospheric temperature (K), used for any section starting at ambient
     cfg['p0'] = 101300.0 #atmospheric pressure (Pa)
 
     #start with shock tube and acc tube, start with atmospheric p and T
