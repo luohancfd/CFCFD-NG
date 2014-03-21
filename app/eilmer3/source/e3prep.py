@@ -228,7 +228,7 @@ def set_energy_exchange_scheme(fname, energy_exchange_flag=1, T_frozen_energy=30
 # We want to keep the old name, for a while.
 set_energy_exchange_update = set_energy_exchange_scheme
     
-def select_radiation_model(input_file=None, update_frequency=1):
+def select_radiation_model(input_file=None, update_frequency=1, scaling=True):
     """
     Selects the radiation spectral and transport models for the simulation.
 
@@ -247,9 +247,9 @@ def select_radiation_model(input_file=None, update_frequency=1):
 	gdata.radiation_flag = 1
 	gdata.radiation_input_file = input_file
 	gdata.radiation_update_frequency = update_frequency
+	gdata.radiation_scaling = scaling
 	# 2. set the models for immediate use in the simulation preparation
 	set_radiation_transport_model( input_file )
-	gdata.radiation_update_frequency = update_frequency # Dan, why is this done again?
     else:
 	print "The field 'input_file' is required when selecting the"
 	print "radiation model via the function 'select_radiation_model'."
@@ -463,7 +463,8 @@ class GlobalData(object):
                 'energy_exchange_flag', 'energy_exchange_update', 'T_frozen_energy', \
                 'udf_file', 'udf_source_vector_flag', \
                 'heat_time_start', 'heat_time_stop', 'heat_factor_increment', \
-                'electric_field_work_flag', 'conjugate_ht_flag', 'conjugate_ht_file', 'wall_update_count'
+                'electric_field_work_flag', 'conjugate_ht_flag', 'conjugate_ht_file', 'wall_update_count', \
+                'radiation_scaling'
     
     def __init__(self):
         """
@@ -488,9 +489,9 @@ class GlobalData(object):
         self.radiation_input_file = "no_file"
         self.radiation_update_frequency = 1
         self.radiation_flag = 0
+        self.radiation_scaling = True
         self.axisymmetric_flag = 0
         self.implicit_flag = 0
-        self.radiation_update_frequency = 1
         self.mhd_flag = 0
         self.BGK_flag = 0
         self.velocity_buckets = 0
@@ -651,8 +652,8 @@ class GlobalData(object):
         fp.write("energy_exchange_update = %s\n" % self.energy_exchange_update)
         fp.write("T_frozen_energy = %g\n" % self.T_frozen_energy)
         fp.write("radiation_input_file = %s\n" % self.radiation_input_file)
-        fp.write("radiation_update_frequency = %s\n" % self.radiation_update_frequency)
         fp.write("radiation_flag = %d\n" % self.radiation_flag)
+        fp.write("radiation_scaling = %s\n" % self.radiation_scaling)
         fp.write("axisymmetric_flag = %d\n" % self.axisymmetric_flag)
         fp.write("mhd_flag = %d\n" % self.mhd_flag)
         fp.write("BGK_flag = %d\n" % self.BGK_flag)

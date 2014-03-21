@@ -250,6 +250,7 @@ struct global_data
 
     bool radiation;
     int radiation_update_frequency; // = 1 for every time-step
+    bool radiation_scaling;
 
     bool electric_field_work;
 

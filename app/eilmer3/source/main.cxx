@@ -2365,9 +2365,9 @@ void perform_radiation_transport()
 	for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
 	    if ( !bdp->active ) continue;
-	    for ( FV_Cell *cp: bdp->active_cells ) cp->rescale_Q_rE_rad();
+//	    for ( FV_Cell *cp: bdp->active_cells ) cp->rescale_Q_rE_rad();
 	}
-    } else {
+    } else if ( G.radiation_scaling ){
 	// recompute
 	rtm->compute_Q_rad_for_flowfield();
 	// store the radiation scaling parameters for each cell

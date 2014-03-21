@@ -100,7 +100,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 		    for ( FV_Cell *cp: bdp->active_cells ) cp->store_rad_scaling_params();
 		}
 	    }
-	    else {
+	    else if ( G.radiation_scaling ) {
 		// rescale
 #		ifdef _OPENMP
 #		pragma omp parallel for private(jb) schedule(runtime)
