@@ -178,7 +178,7 @@ class YvX:
         if logscale_y: pylab.yscale('log')
         x_spline = []; y_spline = []
         nx = 10*len(self.x_array)
-        dx = ( self.x_array[-1] - self.x_array[0] ) / ( nx - 1 )
+        dx = float( self.x_array[-1] - self.x_array[0] ) / float( nx - 1 )
         for ix in range(nx):
             x_spline.append( self.x_array[0] + ix*dx )
             y_spline.append( self.y_from_x( self.x_array[0] + ix*dx ) )
@@ -194,6 +194,11 @@ class YvX:
         if show_plot:
             pylab.legend( labels, loc="best" ) 
             pylab.show()
+            
+    def show_plot(self, labels=None):
+    	if labels!=None:
+    		pylab.legend( labels, loc="best" ) 
+    	pylab.show() 
 
     def limit_x_range( self, x_min, x_max ):
         # NOTE: x_array must contain ascending ordered values for this to work
