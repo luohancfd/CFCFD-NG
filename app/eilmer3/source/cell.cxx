@@ -2515,7 +2515,7 @@ int FV_Cell::add_viscous_source_vector(bool with_k_omega)
 	    udivpe = fs->vel.x * dpedx + fs->vel.y * dpedy + fs->vel.z * dpedz;
 	}
 	// FIXME: Assuming the free electron energy is included in the last mode
-        Q->energies.back() += udivpe * G.viscous_factor;
+        Q->energies.back() += udivpe * G.diffusion_factor;
     } // end if ( G.electric_field_work )
 
     return SUCCESS;
