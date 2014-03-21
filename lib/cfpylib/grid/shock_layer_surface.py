@@ -190,7 +190,7 @@ def extract_shock_coords( sol ):
     shock_x_coords, shock_y_coords = zip(*sorted(zip(shock_x_coords, shock_y_coords)))
     return shock_x_coords, shock_y_coords
 
-def fit_billig2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_y_coords=None, weights=None ):
+def fit_billig2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_y_coords=None, weights=None, show_plot=True ):
     # see if the required packages are available
     if not with_numpy or not with_scipy:
         print "Error: numpy and scipy are required for shock fitting"
@@ -244,8 +244,8 @@ def fit_billig2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_
     insert(fit_y,0,0.0)
     fit_x = shock_x_from_y(p,fit_y)
     
-    # make a plot if matplotlib is available
-    if with_mpl:
+    # make a plot if requested, and if matplotlib is available
+    if show_plot and with_mpl:
         plt.plot(fit_x,fit_y,"b-",label="fit")
         plt.plot(shock_x_coords,shock_y_coords,"g.",label="points")
         plt.grid()
@@ -303,7 +303,7 @@ def fit_billig2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_
     
     return shock_spline, shock_nodes
 
-def fit_spline2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_y_coords=None, weights=None, s=0.0 ):
+def fit_spline2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_y_coords=None, weights=None, s=0.0, show_plot=True ):
     # see if the required packages are available
     if not with_numpy or not with_scipy:
         print "Error: numpy and scipy are required for shock fitting"
@@ -332,8 +332,8 @@ def fit_spline2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_
         shock_nodes.append( Vector3( fit_x[i], fit_y[i] ) )
     shock_spline = Spline(shock_nodes)
     
-    # make a plot if matplotlib is available
-    if with_mpl:
+    # make a plot if requested, and if matplotlib is available
+    if show_plot and with_mpl:
         plt.plot(array(fit_x),array(fit_y),"b-",label="fit")
         plt.plot(shock_x_coords,shock_y_coords,"g.",label="points")
         plt.grid()
