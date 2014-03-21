@@ -23,12 +23,11 @@ if __name__=="__main__":
     found = False
     for i,line in enumerate(lines):
         tks = line.split("=")
-        print tks
         if tks[0].replace(" ","")==parameterName:
             newLines += "%s = %s\n" % ( parameterName, value )
             found = True
         else:
-            newLines.append(line)
+            newLines += line
 
     if not found:
         print "parameterName: %s was not found in file: %s" % ( parameterName, controlFile )
