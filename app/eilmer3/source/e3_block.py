@@ -1699,12 +1699,16 @@ class Block3D(Block):
             for hcell in hcell_list:
                 assert isinstance(hcell, tuple) and len(hcell) == 3,\
                     "History cells should be specified as a list of tuples (i,j,k)"
+        else:
+            hcell_list = []
         self.hcell_list = copy.copy(hcell_list)
         #
         if mcell_list != None:
             for mcell in mcell_list:
                 assert isinstance(mcell, tuple) and len(mcell) == 3,\
                     "Monitor cells should be specified as a list of tuples (i,j,k)"
+        else:
+            mcell_list = []
         self.mcell_list = copy.copy(mcell_list)
         #
         # Dummy values for the boundary conditions.
