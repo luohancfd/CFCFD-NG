@@ -410,8 +410,20 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 	for ( size_t irsm=0; irsm<rsm_.size(); ++irsm ) {
 	    rsm_[irsm]->reset_spectral_params( isb );
 	}
+
+    // 1a. Set all radiative heat fluxes to zero
+    global_data &G = *get_global_data_ptr();
+    for ( size_t ib = 0; ib < G.my_blocks.size(); ++ib ) {
+        Block * bdp = G.my_blocks[ib];
+        for ( size_t iface = NORTH; iface <= ((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
+            BoundaryCondition * bcp = bdp->bcp[iface];
+        	for ( size_t ibe = 0; ibe < bcp->q_rad.size(); ++ibe ) {
+                bcp->q_rad[ibe] = 0.0;
+            }
+        }
+    }
     
-	// 1. Set all source terms to zero and store all spectra
+	// 1b. Set all source terms to zero and store all spectra
 	for ( size_t ib=0; ib<cells_.size(); ++ib ) {
 	    size_t ic;
 #	    ifdef _OPENMP
@@ -457,7 +469,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 		cout << " - I_total = " << interface->S_->integrate_intensity_spectra() << endl;
 	    }
 	}
-	
+
 	// 2. Compute cell_E_rad_total_max and interface_E_rad_total_max
 	// NOTE: easiest to not do this in parallel
 	double cell_E_rad_total_max = 0.0;
@@ -1142,7 +1154,19 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 	    rsm_[irsm]->reset_spectral_params( isb );
 	}
 
-	// 1. Set all source terms to zero, store all spectra
+    // 1a. Set all radiative heat fluxes to zero
+    global_data &G = *get_global_data_ptr();
+    for ( size_t ib = 0; ib < G.my_blocks.size(); ++ib ) {
+        Block * bdp = G.my_blocks[ib];
+        for ( size_t iface = NORTH; iface <= ((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
+            BoundaryCondition * bcp = bdp->bcp[iface];
+        	for ( size_t ibe = 0; ibe < bcp->q_rad.size(); ++ibe ) {
+                bcp->q_rad[ibe] = 0.0;
+            }
+        }
+    }
+
+	// 1b. Set all source terms to zero, store all spectra
 	for ( size_t ib=0; ib<cells_.size(); ++ib ) {
 	    size_t ic;
 #	    ifdef _OPENMP
