@@ -53,6 +53,7 @@ if {$long_tests} {
     puts "Do long tests as well as short tests..."
     lappend test_scripts "2D/turb-flat-plate/turb_flat_plate.test"
     lappend test_scripts "2D/nenzfr-Mach4-nozzle-noneq/nozzle-noneq.test"
+    lappend test_scripts "2D/Rutowski-hemisphere/Ms_12.70/Rutowski-short.test"
 } else {
     puts "Do short tests only..."
 }

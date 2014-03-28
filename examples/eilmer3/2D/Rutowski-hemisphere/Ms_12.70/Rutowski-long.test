@@ -1,0 +1,71 @@
+# Rutowski.test
+# Radiation argon shock layer test case.
+#
+# DFP, 25-March-2014
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-inviscid-stage {Run the inviscid stage.} -body {
+    cd part1-inviscid/
+    exec e3prep.py --job=hemisphere > LOGFILE_PREP
+    exec mpirun -np 4 e3mpi.exe -f hemisphere -r > LOGFILE_RUN
+    cd ..
+} -result {} -returnCodes {0}
+
+test run-viscous-stage {Run the viscous stage.} -body {   
+    cd part2-viscous/
+    exec e3prep.py --job=hemisphere > LOGFILE_PREP
+    puts "Adding viscous effects"
+    exec mpirun -np 4 e3mpi.exe -f hemisphere -q -r > LOGFILE_RUN
+    puts "Increasing CFL number to 0.5"
+    exec set_control_parameter.py hemisphere.control cfl 0.5
+    exec set_control_parameter.py hemisphere.control max_time 1.88964e-05
+    exec mpirun -np 4 e3mpi.exe -f hemisphere -t 1 -q -r >> LOGFILE_RUN
+    cd ..
+} -result {} -returnCodes {0}
+
+test run-viscous-with-radiation-stage {Run the viscous with radiation stage.} -body {   
+    cd part3-viscous-with-radiation/
+    exec radmodel.py -i argon-radiators-NIST-TB-QSS.py -L rad-model.lua > LOGFILE_PREP
+    exec e3prep.py --job=hemisphere >> LOGFILE_PREP
+   
+    puts "Run e3mpi for one body length on new grid"
+    exec mpirun -np 4 e3mpi.exe -f hemisphere -q -r > LOGFILE_RUN
+    puts "First radiation transport calculation"
+    exec e3rad.exe -f hemisphere -q -t 1 -r > LOGFILE_RUN
+
+    puts "Run e3mpi for another body length with radiation coupling"
+    exec set_control_parameter.py hemisphere.control max_time 7.55855e-06
+    exec mpirun -np 4 e3mpi.exe -f hemisphere -q -t 2 -r >> LOGFILE_RUN
+    puts "Final radiation transport calculation"
+    exec e3rad.exe -f hemisphere -q -t 3 -r >> LOGFILE_RUN
+
+    puts "Extract final surface heat flux profile"
+    exec e3post.py --job=hemisphere --tindx=4 --heat-flux-list=2:3,1,:,:,: > LOGFILE_POST
+    
+    cd ..
+} -result {} -returnCodes {0}
+
+test check-qrad-error {The radiative heat flux error with respect to the experiment measurement.} -body {
+    # Using average of the two experimental datapoints with blackened gauges at Ms=12.7 from Figure 9
+    exec ./compute_qrad_error.py part3-viscous-with-radiation/hf_profile.data 5.5188e7 > LOGFILE_COMPARE   
+
+    set qrad_error 0
+    # Looking for a line starting with 'qrad error '
+    set fp [open LOGFILE_COMPARE r]
+    set results [read $fp]
+    close $fp
+    foreach line [split $results "\n"] {
+        if {[string first "qrad error" $line] == 0} {
+                set qrad_error [lindex [split $line] 3]
+            }
+    }
+    # Experimental measurements are quoted to being accurate to within +/-15 percent,
+    # and the datapoints at Ms=12.7 exhibit a variance of +/-6.14 percent.  These 
+    # have been combined to give a total uncertainty of +/-16.2 percent.
+    expr abs($qrad_error) < 16.2
+} -result {1}
+
+cleanupTests
