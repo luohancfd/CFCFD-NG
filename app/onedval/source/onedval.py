@@ -53,7 +53,7 @@ def pretty_print_props(f, props, species, outputs):
         if o in pretty_var_names:
             f.write("%s\n" % pretty_var_names[o])
             f.write("%s = %.6e\n" % (o, props[o]))
-        elif k in species:
+        elif o in species:
             f.write("mass fraction of %s : %.6e\n" % (o, props[o]))
         else:
             f.write("%s : %.6e\n" % (o, props[o]))
