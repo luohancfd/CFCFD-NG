@@ -18,7 +18,7 @@ public:
 public:
     MappedCellBC(Block *bdp, int which_boundary, 
 		 std::string filename,
-		 bool _reorient_vector_quantities, vector<double>& _Rmatrix);
+		 bool reorient_vector_quantities_, vector<double>& Rmatrix_);
     MappedCellBC(const MappedCellBC &bc);
     MappedCellBC();
     MappedCellBC & operator=(const MappedCellBC &bc);

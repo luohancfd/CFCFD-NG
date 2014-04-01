@@ -415,7 +415,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
     global_data &G = *get_global_data_ptr();
     for ( size_t ib = 0; ib < G.my_blocks.size(); ++ib ) {
         Block * bdp = G.my_blocks[ib];
-        for ( size_t iface = NORTH; iface <= ((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
+        for ( size_t iface = NORTH; iface <= static_cast<size_t>((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
             BoundaryCondition * bcp = bdp->bcp[iface];
         	for ( size_t ibe = 0; ibe < bcp->q_rad.size(); ++ibe ) {
                 bcp->q_rad[ibe] = 0.0;
@@ -1158,7 +1158,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
     global_data &G = *get_global_data_ptr();
     for ( size_t ib = 0; ib < G.my_blocks.size(); ++ib ) {
         Block * bdp = G.my_blocks[ib];
-        for ( size_t iface = NORTH; iface <= ((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
+        for ( size_t iface = NORTH; iface <= static_cast<size_t>((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
             BoundaryCondition * bcp = bdp->bcp[iface];
         	for ( size_t ibe = 0; ibe < bcp->q_rad.size(); ++ibe ) {
                 bcp->q_rad[ibe] = 0.0;

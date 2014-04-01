@@ -51,9 +51,10 @@ public:
 
 public:
     AdjacentPlusUDFBC(Block *bdp, int which_boundary, 
-		      int other_block, int other_face, int neighbour_orientation,
-		      const std::string filename, bool is_wall, bool sets_conv_flux, bool sets_visc_flux,
-		      bool _reorient_vector_quantities, vector<double>& _Rmatrix);
+		      int other_block, int other_face, int neighbour_orientation_,
+		      const std::string filename, bool is_wall,
+		      bool sets_conv_flux, bool sets_visc_flux,
+		      bool reorient_vector_quantities_, vector<double>& Rmatrix_);
     AdjacentPlusUDFBC(const AdjacentPlusUDFBC &bc);
     virtual ~AdjacentPlusUDFBC();
     virtual void print_info(std::string lead_in);

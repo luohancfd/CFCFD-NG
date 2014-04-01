@@ -15,8 +15,8 @@ public:
 
 public:
     AdjacentBC(Block *bdp, int which_boundary, 
-	       int other_block, int other_face, int _neighbour_orientation,
-	       bool _reorient_vector_quantities, vector<double>& _Rmatrix);
+	       int other_block, int other_face, int neighbour_orientation_,
+	       bool reorient_vector_quantities_, vector<double>& Rmatrix_);
     AdjacentBC(const AdjacentBC &bc);
     AdjacentBC();
     AdjacentBC & operator=(const AdjacentBC &bc);

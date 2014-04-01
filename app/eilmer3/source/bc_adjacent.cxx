@@ -14,15 +14,15 @@
 //------------------------------------------------------------------------
 
 AdjacentBC::AdjacentBC(Block *bdp, int which_boundary, 
-		       int other_block, int other_face, int _neighbour_orientation,
-		       bool _reorient_vector_quantities, vector<double>& _Rmatrix)
+		       int other_block, int other_face, int neighbour_orientation_,
+		       bool reorient_vector_quantities_, vector<double>& Rmatrix_)
     : BoundaryCondition(bdp, which_boundary, ADJACENT) 
 {
     neighbour_block = other_block;
     neighbour_face = other_face;
-    neighbour_orientation = _neighbour_orientation;
-    reorient_vector_quantities = _reorient_vector_quantities;
-    Rmatrix = _Rmatrix;
+    neighbour_orientation = neighbour_orientation_;
+    reorient_vector_quantities = reorient_vector_quantities_;
+    Rmatrix = Rmatrix_;
 }
 
 AdjacentBC::AdjacentBC(const AdjacentBC &bc)

@@ -737,17 +737,18 @@ void UserDefinedBC::handle_lua_error(lua_State *L, const char *fmt, ...)
 //------------------------------------------------------------------------
 
 AdjacentPlusUDFBC::AdjacentPlusUDFBC(Block *bdp, int which_boundary, 
-				     int other_block, int other_face, int _neighbour_orientation,
-				     const std::string filename, bool is_wall, bool sets_conv_flux, bool sets_visc_flux,
-				     bool _reorient_vector_quantities, vector<double>& _Rmatrix)
+				     int other_block, int other_face, int neighbour_orientation_,
+				     const std::string filename, bool is_wall,
+				     bool sets_conv_flux, bool sets_visc_flux,
+				     bool reorient_vector_quantities_, vector<double>& Rmatrix_)
     : UserDefinedBC(bdp, which_boundary, filename, is_wall, sets_conv_flux, sets_visc_flux)
 {
     type_code = ADJACENT_PLUS_UDF; // Needs to overwrite UserDefinedBC entry.
     neighbour_block = other_block; 
     neighbour_face = other_face;
-    neighbour_orientation = _neighbour_orientation;
-    reorient_vector_quantities = _reorient_vector_quantities;
-    Rmatrix = _Rmatrix;
+    neighbour_orientation = neighbour_orientation_;
+    reorient_vector_quantities = reorient_vector_quantities_;
+    Rmatrix = Rmatrix_;
 }
 
 AdjacentPlusUDFBC::AdjacentPlusUDFBC(const AdjacentPlusUDFBC &bc)

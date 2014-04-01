@@ -152,7 +152,7 @@ int mpi_exchange_boundary_data(int type_of_copy, size_t gtl)
 			  tag, MPI_COMM_WORLD, &(request[jb*6+face]));
 		if ( print_send_and_receive_messages ) {
 		    printf("Post receive: block[%d] face[%d] from block[%d] face[%d]\n",
-			   bdp->id, face, other_block, other_face );
+			   static_cast<int>(bdp->id), face, other_block, other_face );
 		}
 	    }
 	} // end for face...
@@ -175,7 +175,7 @@ int mpi_exchange_boundary_data(int type_of_copy, size_t gtl)
 		}
 		if ( print_send_and_receive_messages ) {
 		    printf("Send: block[%d] face[%d] to block[%d] face[%d]\n",
-			   bdp->id, face, other_block, other_face );
+			   static_cast<int>(bdp->id), face, other_block, other_face );
 		}
 		MPI_Send(send_buffer[jb*6+face], ne, MPI_DOUBLE, 
 			 G.mpi_rank_for_block[other_block],
@@ -201,7 +201,7 @@ int mpi_exchange_boundary_data(int type_of_copy, size_t gtl)
 		}
 		if ( print_send_and_receive_messages ) {
 		    printf("Received OK: block[%d] face[%d] from block[%d] face[%d]\n",
-			   bdp->id, face, other_block, other_face);
+			   static_cast<int>(bdp->id), face, other_block, other_face);
 		}
 	    }
 	} // end for ( face...

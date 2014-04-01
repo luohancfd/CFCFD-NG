@@ -17,12 +17,12 @@
 
 MappedCellBC::MappedCellBC(Block *bdp, int which_boundary, 
 			   std::string filename,
-			   bool _reorient_vector_quantities, vector<double>& _Rmatrix)
+			   bool reorient_vector_quantities_, vector<double>& Rmatrix_)
     : BoundaryCondition(bdp, which_boundary, MAPPED_CELL) 
 {
     global_data &G = *get_global_data_ptr();
-    reorient_vector_quantities = _reorient_vector_quantities;
-    Rmatrix = _Rmatrix;
+    reorient_vector_quantities = reorient_vector_quantities_;
+    Rmatrix = Rmatrix_;
     // Read mapping of ghost-cells to active-cells from a file.
     std::ifstream fstrm(filename.c_str());
     std::string text;
