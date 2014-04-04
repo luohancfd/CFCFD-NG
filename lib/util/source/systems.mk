@@ -406,8 +406,8 @@ ifeq ($(TARGET), for_openmpi)
     # OpenMPI on Linux.
     COMPILE := mpicc
     LINK    := mpicc
-    CXXCOMPILE := mpiCC
-    CXXLINK := mpiCC
+    CXXCOMPILE := mpicxx
+    CXXLINK := mpicxx
     CFLAG   := -c $(OPT) -fPIC -Wall -pedantic 
     CXXFLAG := -c $(OPT) -std=c++0x -fPIC -Wall -pedantic 
     LFLAG   :=  $(OPT) -fPIC 
@@ -418,8 +418,8 @@ ifeq ($(TARGET), for_openmpi_debug)
     # OpenMPI on Linux.
     COMPILE := mpicc
     LINK    := mpicc
-    CXXCOMPILE := mpiCC
-    CXXLINK := mpiCC
+    CXXCOMPILE := mpicxx
+    CXXLINK := mpicxx
     CFLAG   := -c $(OPT) -fPIC -ggdb -Wall -pedantic 
     CXXFLAG := -c $(OPT) -std=c++0x -fPIC -ggdb -Wall -pedantic 
     LFLAG   :=  $(OPT) -fPIC -ggdb
