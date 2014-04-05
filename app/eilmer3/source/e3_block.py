@@ -1930,12 +1930,13 @@ class SuperBlock3D(object):
     .. Wilson Chan 08-Dec-2008; Refactored (lightly) by PJ Nov-2010.
     """
 
-    __slots__ = 'parametric_volume', 'bc_list', 'nni', 'nnj', 'nnk',\
+    __slots__ = 'parametric_volume', 'grid', 'bc_list', 'nni', 'nnj', 'nnk',\
                 'nbi', 'nbj', 'nbk', 'cf_list', 'fill_condition',\
                 'label', 'blks', 'wc_bc_list'
 
     def __init__(self,
                  parametric_volume=None,
+                 grid=None,
                  nni=2,
                  nnj=2,
                  nnk=2,
@@ -1959,9 +1960,17 @@ class SuperBlock3D(object):
         
         On return self.blks holds a list-of-lists collection of sub-blocks
         """
-        # 1. Create the large grid for the super-block
-        grid = StructuredGrid((nni+1, nnj+1, nnk+1))
-        grid.make_TFI_grid_from_volume(parametric_volume, cf_list)
+        # 1. Create the large grid for the super-block or use supplied grid
+        if parametric_volume != None:
+            self.grid = StructuredGrid((nni+1, nnj+1, nnk+1))
+            self.grid.make_TFI_grid_from_volume(parametric_volume, cf_list)
+        elif grid != None:
+            self.grid = grid
+            nni = self.grid.ni-1
+            nnj = self.grid.nj-1
+            nnk = self.grid.nk-1
+        else:
+            raise ValueError("SuperBlock3D did not receive a suitable data to get/create a grid.")
         # 2. Create lists of the subgrid indices
         si_list = subdivide_vertex_range(nni, nbi)
         sj_list = subdivide_vertex_range(nnj, nbj)
