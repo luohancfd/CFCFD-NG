@@ -50,6 +50,7 @@ extern "C" {
 #include "bc_user_defined.hh"
 #include "bc_fstc.hh"
 #include "bc_udmf.hh"
+#include "bc_udef.hh"
 #include "bc_conjugate_ht.hh"
 #include "bc_moving_wall.hh"
 #include "bc_mass_flux_out.hh"
@@ -86,6 +87,7 @@ std::string get_bc_name(bc_t bc)
     case SUPER_CATALYTIC: return "super_catalytic";
     case PARTIALLY_CATALYTIC: return "partially_catalytic";
     case USER_DEFINED_MASS_FLUX: return "user_defined_mass_flux";
+    case USER_DEFINED_ENERGY_FLUX: return "user_defined_energy_flux";
     case CONJUGATE_HT: return "conjugate_ht";
     case MOVING_WALL: return "moving_wall";
     case MASS_FLUX_OUT: return "mass_flux_out";
@@ -1081,6 +1083,10 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     case USER_DEFINED_MASS_FLUX:
 	dict.parse_string(section, "filename", filename, "");
 	newBC = new UserDefinedMassFluxBC(bdp, which_boundary, filename);
+	break;
+    case USER_DEFINED_ENERGY_FLUX:
+	dict.parse_string(section, "filename", filename, "");
+	newBC = new UserDefinedEnergyFluxBC(bdp, which_boundary, filename);
 	break;
     case CONJUGATE_HT:
 	newBC = new ConjugateHeatTransferBC(bdp, which_boundary);

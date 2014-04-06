@@ -670,6 +670,9 @@ class Block(object):
         if type_of_BC == USER_DEFINED_MASS_FLUX:
             if not filename: filename = "udf.lua"
             newbc = UserDefinedMassFluxBC(filename, label=label)
+        if type_of_BC == USER_DEFINED_ENERGY_FLUX:
+            if not filename: filename = "udf.lua"
+            newbc = UserDefinedEnergyFluxBC(filename, label=label)
         if type_of_BC == MAPPED_CELL:
             newbc = MappedCellBC(ghost_cell_trans_fn, 
                                  reorient_vector_quantities, Rmatrix, label=label)

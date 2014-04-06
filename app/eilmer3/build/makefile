@@ -139,6 +139,7 @@ E3_OBJECTS_COMMON := kernel.o \
 	bc_surface_energy_balance.o \
 	bc_user_defined.o \
 	bc_udmf.o \
+	bc_udef.o \
 	bc_menter_correction.o \
 	bc_fstc.o \
 	bc_conjugate_ht.o \
@@ -628,6 +629,10 @@ bc_user_defined.o : $(SRC)/bc_user_defined.cxx $(SRC)/block.hh $(SRC)/kernel.hh 
 bc_udmf.o : $(SRC)/bc_udmf.hh $(SRC)/bc_udmf.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_udmf.cxx -o bc_udmf.o
+
+bc_udef.o : $(SRC)/bc_udef.hh $(SRC)/bc_udef.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
+    $(NM_SRC)/zero_finders.hh
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_udef.cxx -o bc_udef.o
 
 bc_menter_correction.o : $(SRC)/bc_menter_correction.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_menter_correction.cxx -o bc_menter_correction.o

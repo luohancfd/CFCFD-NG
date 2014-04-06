@@ -95,6 +95,7 @@ SLIDING_T = object()
 FSTC = object()
 SHOCK_FITTING_IN = object()
 USER_DEFINED_MASS_FLUX = object()
+USER_DEFINED_ENERGY_FLUX = object()
 CONJUGATE_HT = object()
 MOVING_WALL = object()
 MASS_FLUX_OUT = object()
@@ -132,6 +133,7 @@ bcSymbolFromName = {
     20: FSTC, "20" : FSTC, "FSTC": FSTC,
     21: SHOCK_FITTING_IN, "21" : SHOCK_FITTING_IN, "SHOCK_FITTING_IN": SHOCK_FITTING_IN,
     "USER_DEFINED_MASS_FLUX": USER_DEFINED_MASS_FLUX,
+    "USER_DEFINED_ENERGY_FLUX": USER_DEFINED_ENERGY_FLUX,
     "CONJUGATE_HT": CONJUGATE_HT,
     "MOVING_WALL": MOVING_WALL,
     "MASS_FLUX_OUT": MASS_FLUX_OUT,
@@ -160,6 +162,7 @@ bcName = {
     FSTC: "FSTC",
     SHOCK_FITTING_IN: "SHOCK_FITTING_IN",
     USER_DEFINED_MASS_FLUX: "USER_DEFINED_MASS_FLUX",
+    USER_DEFINED_ENERGY_FLUX: "USER_DEFINED_ENERGY_FLUX",
     CONJUGATE_HT: "CONJUGATE_HT",
     MOVING_WALL: "MOVING_WALL",
     MASS_FLUX_OUT: "MASS_FLUX_OUT",
@@ -1020,6 +1023,30 @@ class UserDefinedMassFluxBC(BoundaryCondition):
             (self.filename, self.label)
     def __copy__(self):
         return UserDefinedMassFluxBC(filename=self.filename, label=self.label)
+
+class UserDefinedEnergyFluxBC(BoundaryCondition):
+    """
+    The user defines the energy flux (for mode-0 only).
+    This is intended to model a no-slip wall with a specified energy flux
+    at the surface.
+    """
+    def __init__(self, filename="udf.lua", label=""):
+        """
+        Construct a user-defined boundary condition.
+
+        :param filename: Name of the file containing the Lua functions.
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
+        BoundaryCondition.__init__(self, type_of_BC=USER_DEFINED_ENERGY_FLUX,
+                                   filename=filename,
+                                   label=label)
+        return
+    def __str__(self):
+        return ("UserDefinedEnergyFluxBC(filename=\"%s\", label=\"%s\")") % \
+            (self.filename, self.label)
+    def __copy__(self):
+        return UserDefinedEnergyFluxBC(filename=self.filename, label=self.label)
 
 class ConjugateHTBC(BoundaryCondition):
     """
