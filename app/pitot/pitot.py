@@ -167,6 +167,9 @@ available to me as part of cfpylib inside the cfcfd code collection.
         in the test section.
     27-Feb-2014: Finally got the reflected shock mode working well.
         Fixed a few odds and ends with print outs as well.
+    07-Apr-2014: I added pitot_multiple.py that makes it easy to run
+        a series of similar pitot test cases in one go. Saves me doing so
+        much stuff manually.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -194,7 +197,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "10-Mar-2014"
+VERSION_STRING = "07-Apr-2014"
 
 DEBUG_PITOT = False
 

@@ -41,7 +41,7 @@ def txt_file_output(cfg, states, V, M):
     txt_output.write(version_printout + '\n')
     
     if cfg['secondary']:
-        description_sd = 'sd1 is secondary driver fill.'
+        description_sd = 'state sd1 is secondary driver fill.'
         print description_sd
         txt_output.write(description_sd + '\n')   
     if cfg['tunnel_mode'] == 'expansion-tube':    
@@ -128,6 +128,8 @@ def txt_file_output(cfg, states, V, M):
         
     if cfg['secondary'] and not cfg['shock_switch']:
         secondary_shockspeeds = "Vsd = {0:.2f} m/s, Msd1 = {1:.2f}".format(cfg['Vsd'],cfg['Msd1'])
+        print secondary_shockspeeds
+        txt_output.write(secondary_shockspeeds + '\n')
     elif cfg['secondary'] and cfg['shock_switch']:
         secondary_shockspeeds = "Vsd = {0:.2f} m/s, Msd1 = {1:.2f}, Vr = {2:.2f}, Mr = {3:.2f}".\
         format(cfg['Vsd'],cfg['Msd1'], cfg['Vr'], cfg['Mr'])        
@@ -365,6 +367,8 @@ def txt_file_output(cfg, states, V, M):
             gas_condition_printer(states['s10e'], \
             "Conditions behind equilibrium normal shock over test model ('s10e')", \
             cfg['solver'])
+            
+        print '-'*60
                    
     txt_output.close()
     
@@ -519,8 +523,8 @@ def cleanup_function():
     import os
     
     if PRINT_STATUS: 
-        print " "
         print "Removing temporary files and leaving the program."
+        print "_"*60
     if os.path.isfile('thermo.inp'): os.remove('thermo.inp')
     if os.path.isfile('thermo.out'): os.remove('thermo.out')
     if os.path.isfile('thermo.lib'): os.remove('thermo.lib')

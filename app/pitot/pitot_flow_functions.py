@@ -72,7 +72,7 @@ def secondary_driver_calculation(cfg, states, V, M):
     if PRINT_STATUS: print "Starting unsteady expansion of the primary driver gas into the secondary driver."
     
     if cfg['test'] == "fulltheory-shock": #get psd1 for our chosen shock speed
-        cfg['psd1'] = secant(error_in_velocity_s3s_to_sd3_expansion_pressure_iterator, 5000.0, 6000.0, tol=1.0e-5,limits=[1000.0,1000000.0])
+        cfg['psd1'] = secant(error_in_velocity_s3s_to_sd3_expansion_pressure_iterator, 5000.0, 6000.0, tol=1.0e-5,limits=[500.0,15000.0])
         if PRINT_STATUS: print "From secant solve: psd1 = {0} Pa".format(cfg['psd1'])
         #start using psd1 now, compute states sd1,sd2 and sd3 using the correct psd1
         if PRINT_STATUS: print "Now that psd1 is known, finding conditions at states sd2 and sd3."
@@ -80,9 +80,12 @@ def secondary_driver_calculation(cfg, states, V, M):
     
     elif cfg['test'] == "fulltheory-pressure": #get Vsd for our chosen fill pressure
         if cfg['tunnel_mode'] == 'expansion-tube':
-            cfg['Vsd'] = secant(error_in_velocity_s3s_to_sd3_driver_expansion_shock_speed_iterator, 4000.0, 5000.0, tol=1.0e-5,limits=[1000.0,1000000.0])
+            cfg['Vsd'] = secant(error_in_velocity_s3s_to_sd3_driver_expansion_shock_speed_iterator, 4000.0, 5000.0, tol=1.0e-5,limits=[500.0,15000.0])
         elif cfg['tunnel_mode'] == 'nr-shock-tunnel': #do a higher speed guess for a nr-shock-tunnel
-            cfg['Vsd'] = secant(error_in_velocity_s3s_to_sd3_driver_expansion_shock_speed_iterator, 7000.0, 8000.0, tol=1.0e-5,limits=[1000.0,1000000.0]) 
+            if cfg['psd1'] < 300000.0:
+                cfg['Vsd'] = secant(error_in_velocity_s3s_to_sd3_driver_expansion_shock_speed_iterator, 7000.0, 8000.0, tol=1.0e-5,limits=[500.0,15000.0]) 
+            else:
+                cfg['Vsd'] = secant(error_in_velocity_s3s_to_sd3_driver_expansion_shock_speed_iterator, 3000.0, 4000.0, tol=1.0e-5,limits=[500.0,15000.0]) 
         if PRINT_STATUS: print "From secant solve: Vsd = {0} m/s".format(cfg['Vsd'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
         if PRINT_STATUS: print "Now that Vsd is known, finding conditions at states sd2 and sd3."
