@@ -930,6 +930,8 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     std::string filename = "";
     size_t n_profile = 1;
     double Pout = 100.0e3;
+    double Tout = 300.0;
+    bool use_Tout = false;
     bool is_wall = false;
     bool sets_conv_flux = false;
     bool sets_visc_flux = false;
@@ -1038,8 +1040,10 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	break;
     case FIXED_P_OUT:
 	dict.parse_double(section, "Pout", Pout, 100.0e3);
+	dict.parse_double(section, "Tout", Tout, 300.0);
+	dict.parse_boolean(section, "use_Tout", use_Tout, false);
 	dict.parse_int(section, "x_order", x_order, 0);
-	newBC = new FixedPOutBC(bdp, which_boundary, Pout, x_order);
+	newBC = new FixedPOutBC(bdp, which_boundary, Pout, Tout, use_Tout, x_order);
 	break;
     case USER_DEFINED:
 	dict.parse_string(section, "filename", filename, "");

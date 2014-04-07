@@ -173,7 +173,7 @@ class BoundaryCondition(object):
     """
     Base class for boundary condition specifications.
     """
-    __slots__ = 'type_of_BC', 'Twall', 'Pout', 'inflow_condition', \
+    __slots__ = 'type_of_BC', 'Twall', 'Pout', 'Tout', 'use_Tout', 'inflow_condition', \
                 'x_order', 'sponge_flag', 'other_block', 'other_face', 'orientation', \
                 'filename', 'n_profile', 'is_wall', 'sets_conv_flux', 'sets_visc_flux', \
                 'assume_ideal', 'mdot', 'Twall_i', 'Twall_f', 't_i', 't_f', 'emissivity', \
@@ -186,6 +186,8 @@ class BoundaryCondition(object):
                  type_of_BC=SLIP_WALL,
                  Twall=300.0,
                  Pout=100.0e3,
+                 Tout=300.0,
+                 use_Tout=False,
                  inflow_condition=None,
                  x_order=0,
                  sponge_flag=0,
@@ -232,6 +234,9 @@ class BoundaryCondition(object):
             the boundary conditions needs such a value.
         :param Pout: fixed outside pressure (in Pascals) that will be used if
             the boundary conditions needs such a value.
+        :param Tout: may also have a fixed outside temperature (degrees K)
+            to go with Pout, to make an ambient condition
+        :param use_Tout: for the FixedPOutBC, decide whether to use Tout as well.
         :param inflow_condition: the flow condition that will be applied if the
             specified boundary condition needs it.
         :param x_order: Extrapolation order of the boundary conduition.
@@ -299,6 +304,8 @@ class BoundaryCondition(object):
         else:
             self.Twall = Twall
         self.Pout = Pout
+        self.Tout = Tout
+        self.use_Tout = use_Tout
         self.inflow_condition = inflow_condition
         self.x_order = x_order
         self.sponge_flag = sponge_flag
@@ -350,6 +357,8 @@ class BoundaryCondition(object):
         str_rep += "type_of_BC=%s" % bcName[self.type_of_BC]
         str_rep += ", Twall=%g" % self.Twall
         str_rep += ", Pout=%g" % self.Pout
+        str_rep += ", Tout=%g" % self.Tout
+        str_rep += ", use_Tout=%s" % self.use_Tout
         str_rep += ", inflow_condition=%d" % self.inflow_condition
         str_rep += ", x_order=%d" % self.x_order
         str_rep += ", sponge_flag=%d" % self.sponge_flag
@@ -389,6 +398,8 @@ class BoundaryCondition(object):
         return BoundaryCondition(type_of_BC=self.type_of_BC,
                                  Twall=self.Twall,
                                  Pout=self.Pout,
+                                 Tout=self.Tout,
+                                 use_Tout=self.use_Tout,
                                  inflow_condition=self.inflow_condition,
                                  x_order=self.x_order,
                                  sponge_flag=self.sponge_flag,
@@ -830,12 +841,14 @@ class FixedPOutBC(BoundaryCondition):
     the initial fill pressure so that this boundary condition will
     be passive until a wave arrives at the boundary.
     """
-    def __init__(self, Pout, x_order=0, label=""):
+    def __init__(self, Pout, Tout=300.0, use_Tout=False, x_order=0, label=""):
         """
         Construct an outflow BC that extrapolates the interior flow data but
         specifies pressure directly.
 
         :param Pout: fixed outside pressure (in Pascals)
+        :param Tout: (optional) fixed outside temperature (in Kelvin)
+        :param use_Tout: boolean flag to indicate whether to use Tout
         :param x_order: Extrapolation order of the boundary condition.
             0=just copy the nearest cell data into both ghost cells 
             (zero-order extrapolation).
@@ -843,14 +856,16 @@ class FixedPOutBC(BoundaryCondition):
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
-        BoundaryCondition.__init__(self, type_of_BC=FIXED_P_OUT, Pout=Pout, 
+        BoundaryCondition.__init__(self, type_of_BC=FIXED_P_OUT, Pout=Pout,
+                                   Tout=Tout, use_Tout=use_Tout,
                                    x_order=x_order, label=label)
         return
     def __str__(self):
-        return "FixedPOutBC(Pout=%g, x_order=%d, label=\"%s\")" % \
-            (self.Pout, self.x_order, self.label)
+        return "FixedPOutBC(Pout=%g, Tout=%g, use_Tout=%s, x_order=%d, label=\"%s\")" % \
+            (self.Pout, self.Tout, self.use_Tout, self.x_order, self.label)
     def __copy__(self):
-        return FixedPOutBC(Pout=self.Pout, x_order=self.x_order, label=self.label)
+        return FixedPOutBC(Pout=self.Pout, Tout=self.Tout, use_Tout=self.use_Tout,
+                           x_order=self.x_order, label=self.label)
 
 class RRMBC(BoundaryCondition):
     """

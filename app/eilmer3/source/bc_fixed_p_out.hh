@@ -5,10 +5,13 @@
 class FixedPOutBC : public BoundaryCondition {
 public:
     double Pout;
+    double Tout;
+    bool use_Tout;
     int x_order;
 
 public:
-    FixedPOutBC(Block *bdp, int which_boundary, double Pout, int x_order);
+    FixedPOutBC(Block *bdp, int which_boundary, double Pout,
+		double Tout, bool use_Tout, int x_order);
     FixedPOutBC(const FixedPOutBC &bc);
     FixedPOutBC();
     FixedPOutBC & operator=(const FixedPOutBC &bc);

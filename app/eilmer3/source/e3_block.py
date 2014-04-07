@@ -536,7 +536,7 @@ class Block(object):
 
     def set_BC(self, face_name, type_of_BC,
                inflow_condition=None, x_order=0, sponge_flag=None,
-               Twall=None, Pout=None, 
+               Twall=None, Pout=None, Tout=300.0, use_Tout=False,
                r_omega=None, centre=None, v_trans=None, 
                filename=None, n_profile=1,
                is_wall=0, sets_conv_flux=0, sets_visc_flux=0,
@@ -600,6 +600,8 @@ class Block(object):
             Twall = float(Twall)
         if Pout != None:
             Pout = float(Pout)
+        if Tout != None:
+            Tout = float(Tout)
         if emissivity != None:
             emissivity = float(emissivity)
         if Twall_i != None:
@@ -647,7 +649,7 @@ class Block(object):
             if not filename: filename = "profile.dat"
             newbc = StaticProfBC(filename, n_profile, label=label)
         if type_of_BC == FIXED_P_OUT:
-            newbc = FixedPOutBC(Pout, x_order, label=label)
+            newbc = FixedPOutBC(Pout, Tout, use_Tout, x_order, label=label)
         if type_of_BC == MASS_FLUX_OUT:
             newbc = MassFluxOutBC(mass_flux, p_init, relax_factor, label=label)
         if type_of_BC == MOVING_WALL:
@@ -772,6 +774,8 @@ class Block(object):
             fp.write("xforce_flag = %d\n" % self.xforce_list[iface])
             fp.write("Twall = %e\n" % bc.Twall)
             fp.write("Pout = %e\n" % bc.Pout)
+            fp.write("Tout = %e\n" % bc.Tout)
+            fp.write("use_Tout = %s\n" % bc.use_Tout)
             fp.write("r_omega = %e %e %e\n" % (bc.r_omega[0], bc.r_omega[1], bc.r_omega[2]))
             fp.write("centre = %e %e %e\n" % (bc.centre[0], bc.centre[1], bc.centre[2]))
             fp.write("v_trans = %e %e %e\n" % (bc.v_trans[0], bc.v_trans[1], bc.v_trans[2]))
