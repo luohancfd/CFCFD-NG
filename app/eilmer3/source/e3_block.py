@@ -2081,6 +2081,8 @@ def identify_block_connections_3D(block_list=None, exclude_list=[], tolerance=1.
                 vtxPairList = identify_colocated_vertices(thisBlock, otherBlock, tolerance)
                 if len(vtxPairList) == 4:
                     # We only make simple single-face-to-single-face connections.
+                    if verbosity_level > 1:
+                        print "Connecting block: ", thisBlock.blkId, "to block: ", otherBlock.blkId
                     connect_blocks_3D(thisBlock, otherBlock, vtxPairList)
                     exclude_list.append((thisBlock,otherBlock))
     if verbosity_level > 0: print "Finished searching for block connections."
