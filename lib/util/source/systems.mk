@@ -145,9 +145,9 @@ ifeq ($(TARGET), for_gnu_debug)
     CXXCOMPILE := g++$(GNU_SUFFIX)
     CXXLINK := g++$(GNU_SUFFIX)
     # Unix/Linux is default
-    CFLAG   := -c -fPIC -W -Wall -pedantic -ggdb $(MARCH_FLAG) -fsanitize=address -fno-omit-frame-pointer
-    LFLAG   := -fPIC -pedantic -ggdb $(MARCH_FLAG) -fsanitize=address
-    CXXFLAG := -c -fPIC -std=c++0x -Wall -pedantic -ggdb $(MARCH_FLAG) -fsanitize=address -fno-omit-frame-pointer
+    CFLAG   := -c -fPIC -W -Wall -pedantic -ggdb $(MARCH_FLAG)
+    LFLAG   := -fPIC -pedantic -ggdb $(MARCH_FLAG)
+    CXXFLAG := -c -fPIC -std=c++0x -Wall -pedantic -ggdb $(MARCH_FLAG)
     ifeq ($(findstring CYGWIN, $(SYSTEM)), CYGWIN)
         # CYGWIN environment on MS-Windows
         CFLAG   := -c -W -Wall -pedantic -g $(MARCH_FLAG)
@@ -420,10 +420,22 @@ ifeq ($(TARGET), for_openmpi_debug)
     LINK    := mpicc
     CXXCOMPILE := mpicxx
     CXXLINK := mpicxx
-    CFLAG   := -c $(OPT) -fPIC -ggdb -Wall -pedantic -fsanitize=address -fno-omit-frame-pointer
-    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -ggdb -Wall -pedantic -fsanitize=address -fno-omit-frame-pointer
-    LFLAG   :=  $(OPT) -fPIC -ggdb  -fsanitize=address
+    CFLAG   := -c $(OPT) -fPIC -ggdb -Wall -pedantic 
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -ggdb -Wall -pedantic 
+    LFLAG   :=  $(OPT) -fPIC -ggdb
     LLIB    := -lm
+endif
+
+ifeq ($(TARGET), for_openmpi_intel)
+    # OpenMPI on Linux.
+    COMPILE := mpicc
+    LINK    := mpicc
+    CXXCOMPILE := mpicxx
+    CXXLINK := mpicxx
+    CFLAG   := -c $(OPT) -fPIC -Wall -pedantic 
+    CXXFLAG := -c $(OPT) -std=c++11 -fPIC -Wall -pedantic 
+    LFLAG   :=  $(OPT) -fPIC 
+    LLIB    := -lm -limf -lirc
 endif
 
 ifeq ($(TARGET), for_macports_openmpi)
