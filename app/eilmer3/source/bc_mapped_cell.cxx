@@ -33,8 +33,8 @@ MappedCellBC::MappedCellBC(Block *bdp, int which_boundary,
     case NORTH:
     case SOUTH:
 	// cout << "NORTH/SOUTH boundary" << endl;
-	for ( size_t i = 0; i < bdp->nni; ++i ) {
-	    for ( size_t k = 0; k < bdp->nnk; ++k ) {
+	for ( size_t k = 0; k < bdp->nnk; ++k ) {
+	    for ( size_t i = 0; i < bdp->nni; ++i ) {
 		for ( size_t ghost_cell_count = 1; ghost_cell_count <= 2; ++ghost_cell_count ) {
 		    fstrm >> src_blk >> src_i >> src_j >> src_k;
 		    // Translate the cell index to account for ghost cells around
@@ -52,33 +52,12 @@ MappedCellBC::MappedCellBC(Block *bdp, int which_boundary,
 		    mapping.push_back(src_k);
 		    mapped_cells.push_back(mapping);
 		}
-	    } // end for k
-	} // end for i
+	    } // end for i
+	} // end for k
 	break;
     case EAST:
     case WEST:
-	for ( size_t j = 0; j < bdp->nnj; ++j ) {
-	    for ( size_t k = 0; k < bdp->nnk; ++k ) {
-		for ( size_t ghost_cell_count = 1; ghost_cell_count <= 2; ++ghost_cell_count ) {
-		    fstrm >> src_blk >> src_i >> src_j >> src_k;
-		    // Translate the cell index to account for ghost cells around
-		    // the periphery of the cell storage arrays.
-		    src_i += G.nghost;
-		    src_j += G.nghost;
-		    if ( bdp->nnk > 1 ) src_k += G.nghost;
-		    mapping.clear();
-		    mapping.push_back(src_blk);
-		    mapping.push_back(src_i);
-		    mapping.push_back(src_j);
-		    mapping.push_back(src_k);
-		    mapped_cells.push_back(mapping);
-		}
-	    } // end for k
-	} // end for i
-	break;
-    case TOP:
-    case BOTTOM:
-	for ( size_t i = 0; i < bdp->nni; ++i ) {
+	for ( size_t k = 0; k < bdp->nnk; ++k ) {
 	    for ( size_t j = 0; j < bdp->nnj; ++j ) {
 		for ( size_t ghost_cell_count = 1; ghost_cell_count <= 2; ++ghost_cell_count ) {
 		    fstrm >> src_blk >> src_i >> src_j >> src_k;
@@ -95,7 +74,28 @@ MappedCellBC::MappedCellBC(Block *bdp, int which_boundary,
 		    mapped_cells.push_back(mapping);
 		}
 	    } // end for j
-	} // end for i
+	} // end for k
+	break;
+    case TOP:
+    case BOTTOM:
+	for ( size_t j = 0; j < bdp->nnj; ++j ) {
+	    for ( size_t i = 0; i < bdp->nni; ++i ) {
+		for ( size_t ghost_cell_count = 1; ghost_cell_count <= 2; ++ghost_cell_count ) {
+		    fstrm >> src_blk >> src_i >> src_j >> src_k;
+		    // Translate the cell index to account for ghost cells around
+		    // the periphery of the cell storage arrays.
+		    src_i += G.nghost;
+		    src_j += G.nghost;
+		    if ( bdp->nnk > 1 ) src_k += G.nghost;
+		    mapping.clear();
+		    mapping.push_back(src_blk);
+		    mapping.push_back(src_i);
+		    mapping.push_back(src_j);
+		    mapping.push_back(src_k);
+		    mapped_cells.push_back(mapping);
+		}
+	    } // end for i
+	} // end for j
     }
     fstrm.close();
 }
@@ -133,7 +133,8 @@ void MappedCellBC::print_info(std::string lead_in)
 
 int MappedCellBC::apply_convective(double t)
 {
-    // [TODO] -- copy data from source cells, probably at same level as exchange is done.
+    // Note that the copy of data from the mapped (source) cells 
+    // by the exchange functions has already happened.
 
     if ( !reorient_vector_quantities ) return SUCCESS;
 

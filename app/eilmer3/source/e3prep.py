@@ -1258,15 +1258,16 @@ def write_mapped_cell_boundary_files(rootName, blockList):
             if bc.type_of_BC is MAPPED_CELL:
                 print "Mapped-cell boundary for block:", blk.blkId, " face:", faceName[iface]
                 if iface in [NORTH, SOUTH]:
-                    if iface == NORTH:
-                        j = blk.nnj-1
-                    else:
-                        j = 0
-                    for i in range(blk.nni):
-                        for k in range(blk.nnk):
+                    for k in range(blk.nnk):
+                        if iface == NORTH:
+                            j = blk.nnj-1
+                        else:
+                            j = 0
+                        for i in range(blk.nni):
                             g1x, g1y, g1z, g2x, g2y, g2z = \
                                 blk.grid.compute_ghost_cell_positions(i, j, k, iface)
                             cell_x, cell_y, cell_z = blk.grid.cell_centre_position(i, j, k)
+                            # [TODO] PJ 2014-apr-09 Remove this debug code once we have the MappedCellBC behaving well.
                             # print "blk=%d ijk=(%d,%d,%d) cell posn=(%g,%g,%g)" % (blk.blkId, i, j, k, cell_x, cell_y, cell_z) 
                             # print "    ghostcell1 posn=(%g,%g,%g)" % (g1x, g1y, g1z) 
                             # print "    ghostcell2 posn=(%g,%g,%g)" % (g2x, g2y, g2z) 
@@ -1285,12 +1286,12 @@ def write_mapped_cell_boundary_files(rootName, blockList):
                             #     (best_block, best_i, best_j, best_k, mapcell_x, mapcell_y, mapcell_z, min_dist, err_dist)
                             bc.mapped_cell_list.append((best_block, best_i, best_j, best_k))
                 elif iface in [EAST, WEST]:
-                    if iface == EAST:
-                        i = blk.nni-1
-                    else:
-                        i = 0
-                    for j in range(blk.nnj):
-                        for k in range(blk.nnk):
+                    for k in range(blk.nnk):
+                        for j in range(blk.nnj):
+                            if iface == EAST:
+                                i = blk.nni-1
+                            else:
+                                i = 0
                             g1x, g1y, g1z, g2x, g2y, g2z = \
                                 blk.grid.compute_ghost_cell_positions(i, j, k, iface)
                             map_x, map_y, map_z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
@@ -1304,8 +1305,8 @@ def write_mapped_cell_boundary_files(rootName, blockList):
                         k = blk.nnk-1
                     else:
                         k = 0
-                    for i in range(blk.nni):
-                        for j in range(blk.nnj):
+                    for j in range(blk.nnj):
+                        for i in range(blk.nni):
                             g1x, g1y, g1z, g2x, g2y, g2z = \
                                 blk.grid.compute_ghost_cell_positions(i, j, k, iface)
                             map_x, map_y, map_z = bc.ghost_cell_trans_fn(g1x, g1y, g1z)
