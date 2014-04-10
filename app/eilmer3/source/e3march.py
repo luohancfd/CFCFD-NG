@@ -241,7 +241,7 @@ def run_in_block_marching_mode(cfgDict):
         if run == 1:
             # Update the inflow boundary conditions if we are in the second run.
             # The inflow condition should not change from this run onwards.
-            update_inflowBC(blksPerSlice, jobName+".config")
+            update_inflowBC(jobName,blksPerSlice, jobName+".config")
         if run > 0:
             # Propagate the dt_global from the previous run. This will hopefully help 
             # achieve faster convergence, but we may have to limit it for stability
@@ -259,13 +259,18 @@ def run_in_block_marching_mode(cfgDict):
         run_command(MPI_PARAMS+E3BIN+('/e3mpi.exe --job=%s --run' % (jobName,)))
         #
         print "Post-process to get profiles for the inflow for the next run."
-        # Extract the last 2 slices for each block in the upstream column, set A.
-        for blk in range(0, blksPerSlice):
-            run_command(E3BIN+('/e3post.py --job=%s --tindx=0001 ' % (jobName,))
-                        +('--output-file=blk-%d-slices-1-and-2.dat ' % blk)
-                        +('--slice-list="%d,-1,:,0;%d,-2,:,0" ' % (blk, blk))
-                        +('--gmodel-file=%s' % gmodelFile))
+        # Extract flow profiles consisting of the the last 2 slices for each block 
+        # in the upstream column, set A.  These will be used as inflow 
+        # boundary conditions in the next stage of the march.
+        profile_list_str = "0,east"
+        for blk in range(1, blksPerSlice):
+            profile_list_str += ';' + str(blk) + ',east'
+        run_command(E3BIN+('/e3post.py --job=%s --tindx=0001 ' % (jobName,))
+                    +('--static-flow-profile="'+profile_list_str+'" ')
+                    +('--gmodel-file=%s' % gmodelFile))
         # Extract the last slice for each block in the downstream column, set B.
+        # This will be used to propagate flow data across the block at the start of
+        # the next stage of the march.
         for blk in range(blksPerSlice, 2*blksPerSlice):
             run_command(E3BIN+('/e3post.py --job=%s --tindx=0001 ' % (jobName,))
                         +('--output-file=blk-%d-slice-1.dat ' % blk)
@@ -299,6 +304,7 @@ def run_in_block_marching_mode(cfgDict):
     run_command('mv master/block_labels.list block_labels.list')
     run_command('rm -rf master')
     run_command(['rm'] + glob('blk-*-slice*.dat'))
+    run_command(['rm'] + glob('*.static-flow-profile'))
     return
 
 def create_config_file(blksPerSlice, originalConfigFileName, newConfigFileName):
@@ -433,7 +439,7 @@ def update_dt_global(jobName, max_dt):
     outfile.close()
     return
 
-def update_inflowBC(blksPerSlice, configFileName):
+def update_inflowBC(jobName, blksPerSlice, configFileName):
     """
     Update the inflow boundary condition for upstream-slice (A) blocks
     to use a StaticProfBC().
@@ -454,7 +460,7 @@ def update_inflowBC(blksPerSlice, configFileName):
         if section_name in sliceA_section_names:
             i = sliceA_section_names.index(section_name)
             parser.set(section_name, 'bc', 'STATIC_PROF')
-            parser.set(section_name, 'filename', 'blk-'+str(i)+'-slices-1-and-2.dat')
+            parser.set(section_name, 'filename', jobName+'-blk-'+str(i)+'-face-east.static-flow-profile')
             parser.set(section_name, 'n_profile', '2')
     outfile = file(configFileName, 'w')
     parser.write(outfile)
