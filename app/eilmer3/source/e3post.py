@@ -34,6 +34,7 @@ Summary of options::
 |           [--slice-at-point="blk-range,index-pair,x,y,z;..."]
 |           [--slice-along-line="x0,y0,z0,x1,y1,z1,N"]
 |           [--surface-list="blk,surface-name;..."]
+|           [--static-flow-profile="blk,face-name"]
 | 
 |           [--heat-flux-list="blk-range,surf-range,i-range,j-range,k-range;..."]
 |           [--tangent-slab-list="blk-range,i-range,j-range,k-range;..."]
@@ -143,6 +144,7 @@ shortOptions = ""
 longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "binary-format", "tecplot", 
                "prepare-restart", "put-into-folders", "tindx=", "output-file=", 
                "slice-list=", "slice-at-point=", "slice-along-line=", "surface-list=",
+               "static-flow-profile=",
                "ref-function=", "compare-job=", "compare-tindx=",
                "report-norms", "per-block-norm-list=", "global-norm-list=",
                "probe=", "add-pitot-p", "add-total-p",
@@ -172,6 +174,8 @@ def printUsage():
     print "          [--slice-at-point=\"blk-range,index-pair,x,y,z;...\"]"
     print "          [--slice-along-line=\"x0,y0,z0,x1,y1,z1,N\"]"
     print "          [--surface-list=\"blk,surface-name;...\"]"
+    print ""
+    print "          [--static-flow-profile=\"blk,face-name;...\"]"
     print ""
     print "          [--heat-flux-list=\"blk-range,surf-range,i-range,j-range,k-range;...\"]"
     print "          [--tangent-slab-list=\"blk-range,i-range,j-range,k-range;...\"]"
@@ -467,9 +471,12 @@ def put_into_folders(rootName, times_dict):
 
 def select_surface_from_block(block_grid, block_flow, which_surface):
     """
-    Selects one of the bounding surfaces from the block.
+    Selects one of the bounding surfaces from the block and constructs grid
+    and flow objects that have one dimension less.  These objects can then be
+    used when writing data to the plotting files so that we can have 
+    corresponding VTK files for the surfaces of blocks.
 
-    This really only makes sense for 3D blocks.
+    Note that this operation really only makes sense for 3D blocks.
     """
     which_surface = faceDict[which_surface] # string or integer ---> integer
     if which_surface == BOTTOM or which_surface == TOP:
@@ -1212,6 +1219,26 @@ if __name__ == '__main__':
                                 len(surface_grid_list), 
                                 surface_grid_list, surface_flow_list, times_dict[tindx],
                                 uoDict.has_key("--binary-format"))
+        #
+        if uoDict.has_key("--static-flow-profile"):
+            if verbosity_level > 0:
+                print "Write a set of static-flow profiles for t=", times_dict[tindx]
+                print "(to be used for simulation inflow)"
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            blkface_list_str = uoDict.get("--static-flow-profile", "")
+            blkface_list_str = blkface_list_str.lower().strip()
+            if verbosity_level > 0:
+                print "blkface_list_str=", blkface_list_str
+            blkface_list = blkface_list_str.split(";")
+            blkface_grid_list = []
+            blkface_flow_list = []
+            for surf in blkface_list:
+                items = surf.split(",")
+                blk_id = int(items[0])
+                which_surface = faceDict[items[1]] # converts string or number to int
+                outputName = rootName + "-blk-" + str(blk_id) + "-face-" \
+                    + faceName[which_surface] + ".static-flow-profile"
+                write_static_flow_profile_from_block(outputName, flow[blk_id], which_surface)
         #
         if uoDict.has_key("--probe"):
             if verbosity_level > 0:

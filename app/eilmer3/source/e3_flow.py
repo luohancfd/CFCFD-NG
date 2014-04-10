@@ -1614,6 +1614,58 @@ def write_profile_along_line(fileName, slice_line_str, tindx, nblock,
     fp.close()
     return
 
+def write_static_flow_profile_from_block(fileName, block_flow, which_surface):
+    """
+    Writes the flow data for a double layer of cells from the block
+    in a format suitable for use as a StaticProfBC in the main simulation.
+
+    Note that the line format is for GNUPlot and that the file includes the header.
+
+    PJ, 2014-04-10
+    """
+    fp = open(fileName, "w")
+    block_flow.write_gnuplot_header(fp)
+    #
+    which_surface = faceDict[which_surface] # string or integer ---> integer
+    if which_surface == BOTTOM:
+        k = 0
+        for j in range(block_flow.nj):
+            for i in range(block_flow.ni):
+                block_flow.write_gnuplot_data_for_cell(fp, i, j, k) # for first ghost cell
+                block_flow.write_gnuplot_data_for_cell(fp, i, j, k+1) # for second ghost cell
+    if which_surface == TOP:
+        k = block_flow.nk-1
+        for j in range(block_flow.nj):
+            for i in range(block_flow.ni):
+                block_flow.write_gnuplot_data_for_cell(fp, i, j, k) # for first ghost cell
+                block_flow.write_gnuplot_data_for_cell(fp, i, j, k-1) # for second ghost cell
+    if which_surface == NORTH:
+        j = block_flow.nj-1
+        for k in range(block_flow.nk):
+            for i in range(block_flow.ni):
+                block_flow.write_gnuplot_data_for_cell(fp, i, j, k) # for first ghost cell
+                block_flow.write_gnuplot_data_for_cell(fp, i, j-1, k) # for second ghost cell
+    if which_surface == SOUTH:
+        j = 0
+        for k in range(block_flow.nk):
+            for i in range(block_flow.ni):
+                block_flow.write_gnuplot_data_for_cell(fp, i, j, k) # for first ghost cell
+                block_flow.write_gnuplot_data_for_cell(fp, i, j+1, k) # for second ghost cell
+    if which_surface == WEST:
+        i = 0
+        for k in range(block_flow.nk):
+            for j in range(block_flow.nj):
+                block_flow.write_gnuplot_data_for_cell(fp, i, j, k) # for first ghost cell
+                block_flow.write_gnuplot_data_for_cell(fp, i+1, j, k) # for second ghost cell
+    if which_surface == EAST:
+        i = block_flow.ni-1
+        for k in range(block_flow.nk):
+            for j in range(block_flow.nj):
+                block_flow.write_gnuplot_data_for_cell(fp, i, j, k) # for first ghost cell
+                block_flow.write_gnuplot_data_for_cell(fp, i-1, j, k) # for second ghost cell
+    fp.close()
+    return
+
 #-----------------------------------------------------------------------------
 # Comparing with a reference function.
 
