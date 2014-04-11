@@ -470,7 +470,7 @@ def update_inflowBC(jobName, blksPerSlice, configFileName):
 def propagate_data_west_to_east(flowFileName, profileFileName):
     """
     Extract a profile from a given file and propagate this profile across
-    the initial flow solution for the specified block.
+    the initial flow solution for the block.
     """
     profile = []
     # Read in file that contains the profile. 
@@ -479,38 +479,34 @@ def propagate_data_west_to_east(flowFileName, profileFileName):
     while True:
         buf = fi.readline().strip()
         if len(buf) == 0: break
-        tokens = [float(word) for word in buf.split()]
+        tokens = buf.split()
         profile.append(tokens)
     fi.close()
-    # Propagate the profile across the flow solutions.
+    # Rewrite the flow solution data with the profile data.
     fi = gzip.open(flowFileName, "r")
     fo = gzip.open('flow/t0000/tmp.gz', "w")
-    # Read and write the first three header lines.
+    # Read and write the first three header lines, just as they are.
     buf = fi.readline(); fo.write(buf)
     buf = fi.readline(); fo.write(buf)
     buf = fi.readline(); fo.write(buf)
     # Extract dimensions from the third line.
-    buf.strip(); tokens = buf.split()
+    tokens = buf.strip().split()
     nni = int(tokens[0]); nnj = int(tokens[1]); nnk = int(tokens[2])
     # Check that the number of cells in the j-direction matches the given profile.
     if nnj*nnk != len(profile):
         print 'The number of cells in the slice ', nnj*nnk,\
               'does not match that of the given profile ', len(profile)
         sys.exit()
-    # Read and replace flow data.
+    # Read and replace flow data for every cell across the block.
     for k in range(nnk):
         for j in range(nnj):
             for i in range(nni):
-                # Read in the pos.x, pos.y, pos.z and vol variables first.
-                buf = fi.readline().strip(); tokens = buf.split()
+                # Read in the current data for the cell.
+                tokens = fi.readline().strip().split()
                 # Write the pos.x, pos.y, pos.z and vol variables to the new data file.
-                newline = ' ' + tokens[0] + ' ' + tokens[1] +\
-                          ' ' + tokens[2] + ' ' + tokens[3] + ' '
-                fo.write(newline)
+                fo.write(' ' + ' '.join(tokens[0:4]))
                 # Fill out values for the other variables.
-                for variable in range(4, len(profile[0])):
-                    fo.write("%.12e " % profile[k*nnj+j][variable])
-                fo.write("\n")
+                fo.write(' ' + ' '.join(profile[k*nnj+j][4:]) + '\n')
     fi.close(); fo.close()
     # Change the output file name to the inflow file name.
     run_command('mv flow/t0000/tmp.gz ' + flowFileName)
