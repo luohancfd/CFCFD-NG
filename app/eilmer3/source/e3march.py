@@ -274,7 +274,7 @@ def run_in_block_marching_mode(cfgDict):
         for blk in range(blksPerSlice, 2*blksPerSlice):
             run_command(E3BIN+('/e3post.py --job=%s --tindx=0001 ' % (jobName,))
                         +('--output-file=blk-%d-slice-1.dat ' % blk)
-                        +('--slice-list="%d,-1,:,0" ' % blk)
+                        +('--slice-list="%d,-1,:,:" ' % blk)
                         +('--gmodel-file=%s' % gmodelFile))
         #
         # Save the (presumed) converged blocks (A) in the upstream column back to the master area.
@@ -471,8 +471,6 @@ def propagate_data_west_to_east(flowFileName, profileFileName):
     """
     Extract a profile from a given file and propagate this profile across
     the initial flow solution for the specified block.
-
-    FIX-ME -- needs to work for 3D blocks
     """
     profile = []
     # Read in file that contains the profile. 
@@ -493,25 +491,26 @@ def propagate_data_west_to_east(flowFileName, profileFileName):
     buf = fi.readline(); fo.write(buf)
     # Extract dimensions from the third line.
     buf.strip(); tokens = buf.split()
-    nni = int(tokens[0]); nnj = int(tokens[1])
+    nni = int(tokens[0]); nnj = int(tokens[1]); nnk = int(tokens[2])
     # Check that the number of cells in the j-direction matches the given profile.
-    if nnj != len(profile):
-        print 'The number of cells in the j-direction ', nnj,\
+    if nnj*nnk != len(profile):
+        print 'The number of cells in the slice ', nnj*nnk,\
               'does not match that of the given profile ', len(profile)
         sys.exit()
     # Read and replace flow data.
-    for j in range(nnj):
-        for i in range(nni):
-            # Read in the pos.x, pos.y, pos.z and vol variables first.
-            buf = fi.readline().strip(); tokens = buf.split()
-            # Write the pos.x, pos.y, pos.z and vol variables to the new data file.
-            newline = ' ' + tokens[0] + ' ' + tokens[1] +\
-                      ' ' + tokens[2] + ' ' + tokens[3] + ' '
-            fo.write(newline)
-            # Fill out values for the other variables.
-            for variable in range(4, len(profile[0])):
-                fo.write("%.12e " % profile[j][variable])
-            fo.write("\n")
+    for k in range(nnk):
+        for j in range(nnj):
+            for i in range(nni):
+                # Read in the pos.x, pos.y, pos.z and vol variables first.
+                buf = fi.readline().strip(); tokens = buf.split()
+                # Write the pos.x, pos.y, pos.z and vol variables to the new data file.
+                newline = ' ' + tokens[0] + ' ' + tokens[1] +\
+                          ' ' + tokens[2] + ' ' + tokens[3] + ' '
+                fo.write(newline)
+                # Fill out values for the other variables.
+                for variable in range(4, len(profile[0])):
+                    fo.write("%.12e " % profile[k*nnj+j][variable])
+                fo.write("\n")
     fi.close(); fo.close()
     # Change the output file name to the inflow file name.
     run_command('mv flow/t0000/tmp.gz ' + flowFileName)
