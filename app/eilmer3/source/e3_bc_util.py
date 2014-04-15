@@ -96,7 +96,7 @@ def apply_gridpro_connectivity(fname, blks):
     return
 
 
-def apply_gridpro_bcs(fname, blks, bc_map):
+def apply_gridpro_bcs(fname, blks, bc_map, dim=3):
     """
     Apply Gridpro boundary conditions from file to group of blocks.
     
@@ -112,6 +112,7 @@ def apply_gridpro_bcs(fname, blks, bc_map):
            {'SUP_IN':inflow, 'FIXED_T':450.0} 
        Note that the keys must conform to the Eilmer names (in bc_defs.py)
        and the values vary depending on the boundary condition.
+    :param dim: Dimensionality of grid (default is 3D)
     """
     f = open(fname, 'r')
     nb = int(f.readline().split()[0])
@@ -132,8 +133,10 @@ def apply_gridpro_bcs(fname, blks, bc_map):
                 break
         tks = line.split()
         bcs.append({'WEST' : int(tks[4]), 'EAST' : int(tks[6]),
-                    'SOUTH' : int(tks[8]), 'NORTH' : int(tks[10]),
-                    'BOTTOM' : int(tks[12]), 'TOP' : int(tks[14])})
+                    'SOUTH' : int(tks[8]), 'NORTH' : int(tks[10])})
+        if dim == 3:
+            # Additionally get BOTTOM and TOP bcs
+            bcs[-1]['BOTTOM'] = int(tks[12]); bcs[-1]['TOP'] = int(tks[14])
     #
     nlabels = int(f.readline().split()[0])
     for il in range(nlabels):
@@ -171,10 +174,14 @@ def apply_gridpro_bcs(fname, blks, bc_map):
             elif bc_type == 'FIXED_P_OUT':
                 assert('FIXED_P_OUT' in bc_map)
                 blk.set_BC(face, 'FIXED_P_OUT', Pout=bc_map['FIXED_P_OUT'])
-            # ** FIX-ME ** please Rowan
-            # elif bc_type == 'MOVING_WALL':
-            #     assert('MOVING_WALL' in bc_map)
-            #     blk.set_BC(face, 'MOVING_WALL', r_omega=bc_map['MOVING_WALL'])
+            elif bc_type == 'MOVING_WALL':
+                assert('MOVING_WALL' in bc_map)
+                blk.set_BC(face, 'MOVING_WALL', r_omega=bc_map['MOVING_WALL'])
+            elif bc_type == 'MASS_FLUX_OUT':
+                assert('MASS_FLUX_OUT' in bc_map)
+                mass_flux = bc_map['MASS_FLUX_OUT']['mass_flux']
+                p_init = bc_map['MASS_FLUX_OUT']['p_init']
+                blk.set_BC(face, 'MASS_FLUX_OUT', mass_flux=mass_flux, p_init=p_init)
             elif bc_type == 'USER_DEFINED':
                 assert('USER_DEFINED' in bc_map)
                 blk.set_BC(face, 'USER_DEFINED',
