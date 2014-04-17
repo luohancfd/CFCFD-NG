@@ -341,7 +341,7 @@ def shock_tube_calculation(cfg, states, V, M):
 
         if PRINT_STATUS: print "From secant solve: p1 = {0} Pa".format(cfg['p1'])
         #start using p1 now, compute states 1,2 and 3 using the correct p1
-        if PRINT_STATUS: print "Now that p1 is known, finding conditions at state 1 and 2."
+        if PRINT_STATUS: print "Now that p1 is known, finding conditions at states 2 and 3."
         states['s1'].set_pT(cfg['p1'],cfg['T0'])
         
     elif cfg['test'] =="fulltheory-pressure": #get Vs1 for our chosen fill pressure
@@ -383,15 +383,16 @@ def shock_tube_calculation(cfg, states, V, M):
         if PRINT_STATUS: print "From secant solve: Vs1 = {0} m/s".format(cfg['Vs1'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
         if PRINT_STATUS: print "Now that Vs1 is known, finding conditions at states 2 and 3."
-        # first do the normal shock
-        try:
-            if cfg['Vs1'] > 8500:
-                (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'], cfg['gas_guess'])
-            else:
-                (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'])
-        except:
-            print "Normal shock failed. Trying again with a gas guess."
+    # first do the normal shock
+    try:
+        if cfg['Vs1'] > 8500:
             (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'], cfg['gas_guess'])
+        else:
+            (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'])
+    except:
+        print "Normal shock failed. Trying again with a gas guess."
+        (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'], cfg['gas_guess'])
+        
     if cfg['solver'] == 'pg-eq': #if we're using the pg-eq solver this is the point where we move from pg to eq gas objects
         if cfg['test_gas'] == 'mars' or cfg['test_gas'] == 'co2' or cfg['test_gas'] == 'venus':
             states['s1-eq'], nothing1, nothing2, nothing3 = make_test_gas(cfg['test_gas']) #make eq state1
