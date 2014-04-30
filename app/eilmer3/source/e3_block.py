@@ -1969,8 +1969,8 @@ class SuperBlock3D(object):
         """
         # 1. Create the large grid for the super-block or use supplied grid
         if parametric_volume != None:
-            grid = StructuredGrid((nni+1, nnj+1, nnk+1))
-            grid.make_TFI_grid_from_volume(parametric_volume, cf_list)
+            self.grid = StructuredGrid((nni+1, nnj+1, nnk+1))
+            self.grid.make_TFI_grid_from_volume(parametric_volume, cf_list)
         elif grid != None:
             self.grid = grid
             nni = self.grid.ni-1
@@ -1994,7 +1994,7 @@ class SuperBlock3D(object):
                     imin = si_list[i][0]; imax = si_list[i][1]
                     jmin = sj_list[j][0]; jmax = sj_list[j][1]
                     kmin = sk_list[k][0]; kmax = sk_list[k][1]
-                    subgrid = grid.create_subgrid(imin, imax, jmin, jmax, kmin, kmax)
+                    subgrid = self.grid.create_subgrid(imin, imax, jmin, jmax, kmin, kmax)
                     # Transfer the boundary conditions.
                     bc_newlist=[SlipWallBC(), SlipWallBC(), SlipWallBC(),
                                 SlipWallBC(), SlipWallBC(), SlipWallBC()]
@@ -2029,7 +2029,7 @@ class SuperBlock3D(object):
                     flat_list.append(new_blk)
                 slab_of_blocks.append(column_of_blocks)
             self.blks.append(slab_of_blocks)
-        # Exclicitly connect blocks together within this SuperBlock because the
+        # Explicitly connect blocks together within this SuperBlock because the
         # automatic search breaks when surfaces are allowed to collapse to lines.
         # identify_block_connections(flat_list)
         if nbi > 1:
