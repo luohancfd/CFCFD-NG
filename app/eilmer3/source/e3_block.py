@@ -1969,8 +1969,8 @@ class SuperBlock3D(object):
         """
         # 1. Create the large grid for the super-block or use supplied grid
         if parametric_volume != None:
-            self.grid = StructuredGrid((nni+1, nnj+1, nnk+1))
-            self.grid.make_TFI_grid_from_volume(parametric_volume, cf_list)
+            grid = StructuredGrid((nni+1, nnj+1, nnk+1))
+            grid.make_TFI_grid_from_volume(parametric_volume, cf_list)
         elif grid != None:
             self.grid = grid
             nni = self.grid.ni-1
