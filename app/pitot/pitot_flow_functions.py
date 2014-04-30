@@ -380,6 +380,12 @@ def shock_tube_calculation(cfg, states, V, M):
                 else: 
                     cfg['Vs1_guess_1'] = 6000.0; cfg['Vs1_guess_2'] = 8000.0
                 cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, cfg['Vs1_guess_1'], cfg['Vs1_guess_2'], tol=1.0e-3,limits=[1000.0,1000000.0])
+            elif cfg['tunnel_mode'] == 'reflected-shock-tunnel': #start with a much lower speed guess in nr-shock-tunnel mode
+                if cfg['secondary']:
+                    cfg['Vs1_guess_1'] = cfg['Vsd']+2000.0; cfg['Vs1_guess_2'] = cfg['Vsd']+3000.0
+                else: 
+                    cfg['Vs1_guess_1'] = 1000.0; cfg['Vs1_guess_2'] = 2000.0
+                cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, cfg['Vs1_guess_1'], cfg['Vs1_guess_2'], tol=1.0e-3,limits=[1000.0,1000000.0])
         if PRINT_STATUS: print "From secant solve: Vs1 = {0} m/s".format(cfg['Vs1'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
         if PRINT_STATUS: print "Now that Vs1 is known, finding conditions at states 2 and 3."

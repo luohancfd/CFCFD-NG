@@ -527,7 +527,11 @@ def state_builder(cfg):
     #state3s is driver gas after steady expansion at the throat between 
     #the primary driver and the next section
     
-    (states['s3s'], V['s3s']) = expand_from_stagnation(1.0/(p0_p(M['s3s'],states['s4'].gam)),states['s4'])
+    if cfg['M_throat'] > 0.0:    
+        (states['s3s'], V['s3s']) = expand_from_stagnation(1.0/(p0_p(M['s3s'],states['s4'].gam)),states['s4'])
+    else:
+        states['s3s'] = states['s4'].clone()
+        V['s3s'] = 0.0
 
     #build the gas objects for all the other sections based on knowledge of what is what
 
