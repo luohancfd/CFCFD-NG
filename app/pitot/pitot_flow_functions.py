@@ -215,6 +215,7 @@ def shock_tube_calculation(cfg, states, V, M):
         
         Make sure you set the fill pressure in state 1 before you start!"""
         
+        print '-'*60
         print "current guess for Vs1 = {0} m/s".format(Vs1)            
         
         try:
@@ -267,7 +268,10 @@ def shock_tube_calculation(cfg, states, V, M):
             except Exception as e:
                 print "Error {0}".format(str(e))                
                 raise Exception, "pitot_flow_functions.shock_tube_calculation() Unsteady expansion into the shock tube failed." 
-    
+                
+        print "Current p2 = {0} Pa, current p3 = {1} Pa.".format(state2.p, state3.p)
+        print "Current V2g = {0} m/s, current V3g = {1} m/s.".format(V2g, V3g)                
+        
         return (V2g - V3g)/V2g
 
     def primary_shock_speed_reflected_iterator(Vs1,statesd2=states[cfg['shock_tube_expansion']],
@@ -414,7 +418,7 @@ def shock_tube_calculation(cfg, states, V, M):
         V2 = V1 * states['s1'].rho / states['s2'].rho
         V['s2'] = V1 - V2
         
-    if cfg['shock_switch']: #do a shock here if required
+    if cfg['shock_switch'] and cfg['secondary']: #do a shock here if required
         V['s3'] = V['s2']
         #need to back out Vr again here, for now I was lazy and put the function back in:
         if PRINT_STATUS: print "Need to reiterate to find Vr again here..."   
@@ -452,8 +456,13 @@ def shock_tube_calculation(cfg, states, V, M):
         
         (V3,Vjunk) = normal_shock(states['sd2'],V[cfg['shock_tube_expansion']] - cfg['Vr'],states['s3'])
     else:
-        V['s3'], states['s3'] = finite_wave_dv('cplus', V[cfg['shock_tube_expansion']], states[cfg['shock_tube_expansion']], V['s2'],cfg['shock_tube_expansion_steps'])
-    
+        if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+            #I seemed to have issues with using finite_wave_dv and the reflected shock tube mode
+            # so I made it do finite_wave_dp instead
+            V['s3'], states['s3'] = finite_wave_dp('cplus', V[cfg['shock_tube_expansion']], states[cfg['shock_tube_expansion']], states['s2'].p,cfg['shock_tube_expansion_steps'])
+        else:
+            V['s3'], states['s3'] = finite_wave_dv('cplus', V[cfg['shock_tube_expansion']], states[cfg['shock_tube_expansion']], V['s2'],cfg['shock_tube_expansion_steps'])
+        
     if PRINT_STATUS: 
         print "state 2: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s2'].p, states['s2'].T) 
         print "state 3: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s3'].p, states['s3'].T) 

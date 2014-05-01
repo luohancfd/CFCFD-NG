@@ -193,7 +193,8 @@ def txt_file_output(cfg, states, V, M):
     #print the driver related stuff first
     
     condition_printer('s4')
-    condition_printer('s3s')
+    if M['s3s'] > 0.0:
+        condition_printer('s3s')
     
     if cfg['secondary']: #need a separate printing thing for the secondary driver
         
@@ -460,7 +461,8 @@ def csv_file_output(cfg, states, V, M):
 
     #print the driver related stuff first
     csv_condition_printer('s4')
-    csv_condition_printer('s3s')
+    if M['s3s'] > 0.0:
+        csv_condition_printer('s3s')
     
     if cfg['secondary']: #need a separate printing thing for the secondary driver
         for i in range(1,4): #will do 1 - 3
