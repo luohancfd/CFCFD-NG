@@ -145,6 +145,7 @@ E3_OBJECTS_COMMON := kernel.o \
 	bc_conjugate_ht.o \
 	bc_moving_wall.o \
 	bc_mass_flux_out.o \
+	bc_inlet_outlet.o \
 	exch2d.o \
 	exch3d.o \
 	exch_mapped_cell_shmem.o \
@@ -612,6 +613,10 @@ bc_static_profile.o : $(SRC)/bc_static_profile.cxx $(SRC)/block.hh $(SRC)/kernel
 bc_fixed_p_out.o : $(SRC)/bc_fixed_p_out.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_fixed_p_out.cxx -o bc_fixed_p_out.o
+
+bc_inlet_outlet.o : $(SRC)/bc_inlet_outlet.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
+    $(NM_SRC)/zero_finders.hh
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_inlet_outlet.cxx -o bc_inlet_outlet.o
 
 bc_ablating.o : $(SRC)/bc_ablating.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh

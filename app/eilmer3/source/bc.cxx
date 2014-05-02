@@ -54,6 +54,7 @@ extern "C" {
 #include "bc_conjugate_ht.hh"
 #include "bc_moving_wall.hh"
 #include "bc_mass_flux_out.hh"
+#include "bc_inlet_outlet.hh"
 #include "kernel.hh"
 #include "diffusion.hh"
 
@@ -92,6 +93,7 @@ std::string get_bc_name(bc_t bc)
     case MOVING_WALL: return "moving_wall";
     case MASS_FLUX_OUT: return "mass_flux_out";
     case MAPPED_CELL: return "mapped_cell";
+    case INLET_OUTLET: return "inlet_outlet";
     default: return "none";
     }
 } // end get_bc_name()
@@ -930,6 +932,8 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     std::string filename = "";
     size_t n_profile = 1;
     double Pout = 100.0e3;
+    double I_turb = 0.0;
+    double u_turb_lam = 0.0;
     double Tout = 300.0;
     bool use_Tout = false;
     bool is_wall = false;
@@ -1112,6 +1116,15 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	dict.parse_double(section, "p_init", p_init, 100.0e3);
 	dict.parse_double(section, "relax_factor", relax_factor, 0.05);
 	newBC = new MassFluxOutBC(bdp, which_boundary, mass_flux, p_init, relax_factor);
+	break;
+    case INLET_OUTLET:
+	dict.parse_double(section, "Pout", Pout, 100.0e3);
+	dict.parse_double(section, "I_turb", u_turb_lam, 0.0);
+	dict.parse_double(section, "u_turb_lam", u_turb_lam, 0.0);
+	dict.parse_double(section, "Tout", Tout, 300.0);
+	dict.parse_boolean(section, "use_Tout", use_Tout, false);
+	dict.parse_int(section, "x_order", x_order, 0);
+	newBC = new InletOutletBC(bdp, which_boundary, Pout, I_turb, u_turb_lam, Tout, use_Tout, x_order);
 	break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 

@@ -549,6 +549,7 @@ class Block(object):
                direction_type="normal", direction_vector=[1.0,0.0,0.0],
                direction_alpha=0.0, direction_beta=0.0,
                ghost_cell_trans_fn=lambda x, y, z: (x, y, z),
+               I_turb=0.0, u_turb_lam=0.0,
                label=''):
         """
         Sets a boundary condition on a particular face of the block.
@@ -678,6 +679,8 @@ class Block(object):
         if type_of_BC == MAPPED_CELL:
             newbc = MappedCellBC(ghost_cell_trans_fn, 
                                  reorient_vector_quantities, Rmatrix, label=label)
+        if type_of_BC == INLET_OUTLET:
+            newbc = InletOutletBC(Pout, I_turb, u_turb_lam, Tout, use_Tout, x_order, label=label)
         #
         try:
             self.bc_list[iface] = newbc
@@ -828,6 +831,8 @@ class Block(object):
             fp.write("Twall_f = %e\n" % bc.Twall_f)
             fp.write("t_i = %e\n" % bc.t_i)
             fp.write("t_f = %e\n" % bc.t_f)
+            fp.write("I_turb = %e\n" % bc.I_turb)
+            fp.write("u_turb_lam = %e\n" % bc.u_turb_lam)
         return
 
     def write_starting_solution(self, fp, gdata, fb=None, verbosity_level=1):

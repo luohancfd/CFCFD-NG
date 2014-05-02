@@ -175,6 +175,7 @@ int init_available_bcs_map()
     available_bcs.insert(name_bc_t("moving_wall",MOVING_WALL));
     available_bcs.insert(name_bc_t("mass_flux_out",MASS_FLUX_OUT));
     available_bcs.insert(name_bc_t("mapped_cell",MAPPED_CELL));
+    available_bcs.insert(name_bc_t("inlet_outlet",INLET_OUTLET));
     return SUCCESS;
 }
  

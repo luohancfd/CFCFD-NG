@@ -100,6 +100,7 @@ CONJUGATE_HT = object()
 MOVING_WALL = object()
 MASS_FLUX_OUT = object()
 MAPPED_CELL = object()
+INLET_OUTLET = object()
 
 #
 # When we ust the set_BC method for a Block object, we will want to look up
@@ -137,7 +138,8 @@ bcSymbolFromName = {
     "CONJUGATE_HT": CONJUGATE_HT,
     "MOVING_WALL": MOVING_WALL,
     "MASS_FLUX_OUT": MASS_FLUX_OUT,
-    "MAPPED_CELL": MAPPED_CELL
+    "MAPPED_CELL": MAPPED_CELL,
+    "INLET_OUTLET": INLET_OUTLET
 }
 bcName = {
     ADJACENT: "ADJACENT",
@@ -166,7 +168,8 @@ bcName = {
     CONJUGATE_HT: "CONJUGATE_HT",
     MOVING_WALL: "MOVING_WALL",
     MASS_FLUX_OUT: "MASS_FLUX_OUT",
-    MAPPED_CELL: "MAPPED_CELL"
+    MAPPED_CELL: "MAPPED_CELL",
+    INLET_OUTLET: "INLET_OUTLET"
     }
 
 class BoundaryCondition(object):
@@ -181,7 +184,7 @@ class BoundaryCondition(object):
                 'reorient_vector_quantities', 'Rmatrix', \
                 'mass_flux', 'p_init', 'relax_factor', \
                 'direction_type', 'direction_vector', 'direction_alpha', 'direction_beta', \
-                'ghost_cell_trans_fn', 'label'
+                'ghost_cell_trans_fn', 'I_turb', 'u_turb_lam','label'
     def __init__(self,
                  type_of_BC=SLIP_WALL,
                  Twall=300.0,
@@ -220,6 +223,8 @@ class BoundaryCondition(object):
                  direction_alpha=0.0,
                  direction_beta=0.0,
                  ghost_cell_trans_fn=lambda x, y, z: (x, y, z),
+                 I_turb=0.0,
+                 u_turb_lam=0.0,
                  label=""):
         """
         Construct a generic boundary condition object.
@@ -349,6 +354,8 @@ class BoundaryCondition(object):
         self.direction_alpha = direction_alpha
         self.direction_beta = direction_beta
         self.ghost_cell_trans_fn = ghost_cell_trans_fn
+        self.I_turb = I_turb
+        self.u_turb_lam = u_turb_lam
         self.label = label
             
         return
@@ -392,6 +399,8 @@ class BoundaryCondition(object):
         str_rep += ", direction_alpha=%g" % self.direction_alpha
         str_rep += ", direction_beta=%g" % self.direction_beta
         str_rep += ", ghost_cell_trans_fn=%s" % self.ghost_cell_trans_fn
+        str_rep += ", I_turb=%g" % self.I_turb
+        str_rep += ", u_turb_lam=%g" % self.u_turb_lam
         str_rep += ", label=\"%s\")" % self.label
         return str_rep
     def __copy__(self):
@@ -432,6 +441,8 @@ class BoundaryCondition(object):
                                  direction_alpha=self.direction_alpha,
                                  direction_beta=self.direction_beta,
                                  ghost_cell_trans_fn=self.ghost_cell_trans_fn,
+                                 I_turb=self.I_turb,
+                                 u_turb_lam=self.u_turb_lam,
                                  label=self.label)
     
 class AdjacentBC(BoundaryCondition):
@@ -1234,6 +1245,40 @@ class MappedCellBC(BoundaryCondition):
             fp.write("%d %d %d %d\n" % c)
         fp.close()
         return
+
+class InletOutletBC(BoundaryCondition):
+    """
+    Something like FixedPOut but with turbulence effect on depending
+    on the direction of active cells
+    
+    """
+    def __init__(self, Pout, I_turb, u_turb_lam, Tout=300.0, use_Tout=False, x_order=0, label=""):
+        """
+
+        :param Pout: fixed outside pressure (in Pascals)
+        :param I_turb: turbulence intensity
+        :param u_turb_lam: turblence to laminar viscosity ratio
+        :param Tout: (optional) fixed outside temperature (in Kelvin)
+        :param use_Tout: boolean flag to indicate whether to use Tout
+        :param x_order: Extrapolation order of the boundary condition.
+            0=just copy the nearest cell data into both ghost cells 
+            (zero-order extrapolation).
+            1=linear extrapolation of the interior data into the ghost cells. 
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
+        BoundaryCondition.__init__(self, type_of_BC=INLET_OUTLET, Pout=Pout,
+                                   I_turb=I_turb, u_turb_lam=u_turb_lam,
+                                   Tout=Tout, use_Tout=use_Tout,
+                                   x_order=x_order, label=label)
+        return
+    def __str__(self):
+        return "InletOutletBC(Pout=%g, Tout=%g, use_Tout=%s, x_order=%d, label=\"%s\")" % \
+            (self.Pout, self.I_turb, self.u_turb_lam, self.Tout, self.use_Tout, self.x_order, self.label)
+    def __copy__(self):
+        return InletOutletBC(Pout=self.Pout, I_turb=self.I_turb, u_turb_lam=self.u_turb_lam,
+                           Tout=self.Tout, use_Tout=self.use_Tout,
+                           x_order=self.x_order, label=self.label)
 
 
 #####################################################################################

@@ -54,7 +54,8 @@ enum bc_t {
     CONJUGATE_HT,
     MOVING_WALL,
     MASS_FLUX_OUT,
-    MAPPED_CELL
+    MAPPED_CELL,
+    INLET_OUTLET
 };
 std::string get_bc_name(bc_t bc);
 
