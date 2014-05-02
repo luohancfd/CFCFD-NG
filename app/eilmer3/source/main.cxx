@@ -1100,6 +1100,17 @@ int integrate_in_time(double target_time)
 	// Looks like we want heating at some period in time but it is not now.
 	G.heat_factor = 0.0;
     }
+    if ( G.ignition_time_stop == 0.0 ) {
+	// We don't want ignition zone applied.
+	G.ignition_zone_active = false;
+    } else if ( G.sim_time >= G.ignition_time_start && G.sim_time < G.ignition_time_stop ) {
+	// Apply ignition zone because both time limits are set
+	// and we are within them.
+	G.ignition_zone_active = true;
+    } else {
+	// Looks like we want ignition zone at some period in time but it is not now.
+	G.ignition_zone_active = false;
+    }
     if ( G.viscous ) {
 	// We have requested viscous effects but they may be delayed.
 	if ( G.viscous_time_delay > 0.0 && G.sim_time < G.viscous_time_delay ) {

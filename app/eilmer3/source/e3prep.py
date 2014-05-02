@@ -320,6 +320,8 @@ class GlobalData(object):
     * heat_time_stop: (float) final time for heating zones to be adding heat
     * heat_factor_increment: (float) the fraction of full heat load that will be
       added with each time step from t=heat_time_start
+    * ignition_time_start: (float) start time for using an effective ignition temperature for chemistry updates
+    * ignition_time_stop: (float) final time for using an effective ignition temperature for chemistry updates
     * reacting_flag: (0/1) A value of 1 will make Rowan Gollan's finite-rate
       chemistry active if the appropriate gas_name (e.g. 'perf_gas_mix')
       has been specified.
@@ -463,6 +465,7 @@ class GlobalData(object):
                 'energy_exchange_flag', 'energy_exchange_update', 'T_frozen_energy', \
                 'udf_file', 'udf_source_vector_flag', \
                 'heat_time_start', 'heat_time_stop', 'heat_factor_increment', \
+                'ignition_time_start', 'ignition_time_stop', \
                 'electric_field_work_flag', 'conjugate_ht_flag', 'conjugate_ht_file', 'wall_update_count', \
                 'radiation_scaling'
     
@@ -517,6 +520,8 @@ class GlobalData(object):
         self.heat_time_start = 0.0
         self.heat_time_stop = 0.0 # nonzero indicates that we want heating some time
         self.heat_factor_increment = 0.01
+        self.ignition_time_start = 0.0
+        self.ignition_time_stop = 0.0
         self.electric_field_work_flag = 0
         self.x_order = 2
         self.interpolation_type = "rhoe"
@@ -688,6 +693,8 @@ class GlobalData(object):
         fp.write("heat_time_start = %e\n"% self.heat_time_start)
         fp.write("heat_time_stop = %e\n"% self.heat_time_stop)
         fp.write("heat_factor_increment = %e\n"% self.heat_factor_increment)
+        fp.write("ignition_time_start = %e\n"% self.ignition_time_start)
+        fp.write("ignition_time_stop = %e\n"% self.ignition_time_stop)
         fp.write("flux_calc = %s\n" % self.flux_calc) # changed to string 2013-04-01
         fp.write("compression_tolerance = %e\n"% self.compression_tolerance)
         fp.write("shear_tolerance = %e\n"% self.shear_tolerance)
@@ -730,8 +737,8 @@ def lower_upper(p0, p1):
     """
     Returns the lower point and upper point to a volume, 2D-patch or line.
 
-    Used as a helper function when setting a HeatZone, ReactionZone or
-    TurbulenceZone.
+    Used as a helper function when setting a HeatZone, IgnitionZone,
+    ReactionZone or TurbulenceZone.
     The user can specify any diagonally-opposite corners and the code will
     see the presumed lower and upper corners.
     """
@@ -784,6 +791,58 @@ class HeatZone(object):
         fp.write("\n[heat_zone/%d]\n" % self.zoneId)
         fp.write("label = %s\n" % self.label)
         fp.write("qdot = %e\n" % self.qdot)
+        fp.write("x0 = %e\n" % self.point0.x)
+        fp.write("y0 = %e\n" % self.point0.y)
+        fp.write("z0 = %e\n" % self.point0.z)
+        fp.write("x1 = %e\n" % self.point1.x)
+        fp.write("y1 = %e\n" % self.point1.y)
+        fp.write("z1 = %e\n" % self.point1.z)
+        return
+
+#----------------------------------------------------------------------------
+
+class IgnitionZone(object):
+    """
+    Within IngitionZone, it is allowed to specify a temperature that will
+    be used to evaluate the Arrhenius reaction rates, but the temeperature
+    of the flow field will not be affected.
+    """
+    zoneList = []
+
+    __slots__ = 'zoneId', 'Tig', 'point0', 'point1', 'label'
+
+    def __init__(self, Tig, point0, point1, label=""):
+        """
+        Sets up a hexahedral ignition zone defined by its diagonal corner points.
+
+        :param Tig: (float) specified temperature for ignition in K
+        :param point0: (Vector) lower corner of the zone
+        :param point1: (Vector) upper corner of the zone
+
+        Note that it doesn't matter if the defined zone extends outside of a block.
+        """
+        if not isinstance(Tig, float):
+            raise TypeError, ("Tig should be a float but it is: %s" % type(Tig))
+        if not isinstance(point0, Vector):
+            raise TypeError, ("point0 should be a Vector but it is: %s" % type(point0))
+        if not isinstance(point1, Vector):
+            raise TypeError, ("point1 should be a Vector but it is: %s" % type(point1))
+        self.Tig = Tig
+        self.point0, self.point1 = lower_upper(Vector(point0), Vector(point1))
+        self.zoneId = len(IgnitionZone.zoneList)    # next available index
+        if len(label) == 0:
+            label = "zone-" + str(self.zoneId)
+        self.label = label
+        IgnitionZone.zoneList.append(self)
+        return
+
+    def write_to_ini_file(self, fp):
+        """
+        Writes the IgnitionZone information to the specified file-object in .ini format.
+        """
+        fp.write("\n[ignition_zone/%d]\n" % self.zoneId)
+        fp.write("label = %s\n" % self.label)
+        fp.write("Tig = %e\n" % self.Tig)
         fp.write("x0 = %e\n" % self.point0.x)
         fp.write("y0 = %e\n" % self.point0.y)
         fp.write("z0 = %e\n" % self.point0.z)
@@ -1212,6 +1271,7 @@ def write_parameter_file(rootName):
     fp.write("npiston = %d\n" %len(SimplePiston.pistonList) )
     fp.write("nflow = %d\n" % len(FlowCondition.flowList) )
     fp.write("nheatzone = %d\n" % len(HeatZone.zoneList))
+    fp.write("nignitionzone = %d\n" % len(IgnitionZone.zoneList))
     fp.write("nreactionzone = %d\n" % len(ReactionZone.zoneList))
     fp.write("nturbulencezone = %d\n" % len(TurbulenceZone.zoneList))
     fp.write("nblock = %d\n" % len(Block.blockList) )
@@ -1220,6 +1280,8 @@ def write_parameter_file(rootName):
     for flow in FlowCondition.flowList:
         flow.write_to_ini_file(fp)
     for zone in HeatZone.zoneList:
+        zone.write_to_ini_file(fp)
+    for zone in IgnitionZone.zoneList:
         zone.write_to_ini_file(fp)
     for zone in ReactionZone.zoneList:
         zone.write_to_ini_file(fp)

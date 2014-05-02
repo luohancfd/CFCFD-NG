@@ -119,6 +119,7 @@ void eilmer_finalize( void )
     gd.bd.clear();
     gd.pistons.clear();
     gd.heat_zone.clear();
+    gd.ignition_zone.clear();
     gd.reaction_zone.clear();
     gd.turbulent_zone.clear();
     gd.my_blocks.clear();

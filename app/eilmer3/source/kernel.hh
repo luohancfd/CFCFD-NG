@@ -32,6 +32,12 @@ struct CHeatZone {
     double x1, y1, z1;
 };
 
+struct CIgnitionZone {
+    double Tig;  // specified temerpature for ignition
+    double x0, y0, z0;
+    double x1, y1, z1;
+};
+
 struct CReactionZone {
     double x0, y0, z0;
     double x1, y1, z1;
@@ -269,6 +275,12 @@ struct global_data
     std::vector<struct CHeatZone> heat_zone;
     double heat_factor; // A factor to scale the heat-addition in order to achieve a soft start.
     double heat_factor_increment;
+
+    size_t n_ignition_zone;
+    double ignition_time_start;
+    double ignition_time_stop;
+    std::vector<struct CIgnitionZone> ignition_zone;
+    bool ignition_zone_active;
 
     size_t n_reaction_zone;
     double reaction_time_start;

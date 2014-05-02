@@ -275,6 +275,8 @@ int read_config_parameters(const string filename, bool master)
     G.heat_factor = 1.0;
     G.heat_factor_increment = 0.01;
 
+    G.ignition_zone_active = false;
+
     G.electric_field_work = false;
 
     // At the start of a fresh simulation,
@@ -625,6 +627,32 @@ int read_config_parameters(const string filename, bool master)
 	    cout << "heat_zone/" << indx << " qdot= " << hzp->qdot << endl;
 	    cout << "    point0= " << hzp->x0 << " " << hzp->y0 << " " << hzp->z0 << endl;
 	    cout << "    point1= " << hzp->x1 << " " << hzp->y1 << " " << hzp->z1 << endl;
+	}
+    }
+
+    dict.parse_size_t("global_data", "nignitionzone", G.n_ignition_zone, 0);
+    dict.parse_double("global_data", "ignition_time_start", G.ignition_time_start, 0.0);
+    dict.parse_double("global_data", "ignition_time_stop", G.ignition_time_stop, 0.0);
+    if ( G.verbosity_level >= 2 ) {
+	printf("nignitionzone = %d\n", static_cast<int>(G.n_ignition_zone));
+	printf("ignition_time_start = %e\n", G.ignition_time_start);
+	printf("ignition_time_stop = %e\n", G.ignition_time_stop);
+    }
+    G.ignition_zone.resize(G.n_ignition_zone);
+    for ( size_t indx = 0; indx < G.n_ignition_zone; ++indx ) {
+	struct CIgnitionZone* izp = &(G.ignition_zone[indx]);
+	string section = "ignition_zone/" + tostring(indx);
+	dict.parse_double(section, "Tig", izp->Tig, 0.0);
+	dict.parse_double(section, "x0", izp->x0, 0.0);
+	dict.parse_double(section, "y0", izp->y0, 0.0);
+	dict.parse_double(section, "z0", izp->z0, 0.0);
+	dict.parse_double(section, "x1", izp->x1, 0.0);
+	dict.parse_double(section, "y1", izp->y1, 0.0);
+	dict.parse_double(section, "z1", izp->z1, 0.0);
+	if ( G.verbosity_level >= 2 ) {
+	    cout << "ignition_zone/" << indx << " Tig= " << izp->Tig << endl;
+	    cout << "    point0= " << izp->x0 << " " << izp->y0 << " " << izp->z0 << endl;
+	    cout << "    point1= " << izp->x1 << " " << izp->y1 << " " << izp->z1 << endl;
 	}
     }
 
