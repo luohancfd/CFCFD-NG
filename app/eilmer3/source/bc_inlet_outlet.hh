@@ -8,11 +8,11 @@
 class InletOutletBC : public BoundaryCondition {
 public:
     double Pout;
+    double I_turb;     // turbulence intensity
+    double u_turb_lam; // turbulence to laminar viscosity ratio
     double Tout;
     bool use_Tout;
     int x_order;
-    double I_turb;     // turbulence intensity
-    double u_turb_lam; // turbulence to laminar viscosity ratio
 public:
     InletOutletBC(Block *bdp, int which_boundary, double Pout,
                 double I_turb, double u_turb_lam,
