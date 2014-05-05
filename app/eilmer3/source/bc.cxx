@@ -909,6 +909,161 @@ int BoundaryCondition::write_vertex_velocities(std::string filename, double sim_
     return SUCCESS;
 }
 
+int BoundaryCondition::write_surface_data( string filename, double sim_time ) 
+/// \brief Write the surface data of boundary surface
+///
+/// Basic formatting borrowed from Block::write_solution
+{
+    global_data &G = *get_global_data_ptr();
+    FV_Cell * cell;
+    FV_Interface * IFace;
+    size_t i, j, k;
+    size_t index;
+    Block & bd = *bdp;
+    
+    FILE *fp;
+    if ( G.verbosity_level >= 2 ) {
+	if ( bd.id == 0 && which_boundary == 0 ) {
+	    printf( "write_surface_data(): At t = %e, start block = %d, boundary = %d.\n",
+		    sim_time, static_cast<int>(bd.id), which_boundary );
+	}
+    }
+    if ((fp = fopen(filename.c_str(), "w")) == NULL) {
+	cerr << "write_solution(): Could not open " << filename << "; BAILING OUT" << endl;
+	exit( FILE_ERROR );
+    }
+    fprintf(fp, "%20.12e\n", sim_time);
+    string var_list = "";
+    var_list += "\"index.i\" \"index.j\" \"index.k\" ";
+    var_list += "\"pos.x\" \"pos.y\" \"pos.z\" ";
+    var_list += "\"T_surface\" \"u_x\" \"u_y\" \"u_z\"";
+    var_list += "\"tke_surface\" \"omega_surface\" \"mass_flux\"";
+    fprintf(fp, "%s\n", var_list.c_str());
+    
+    fprintf(fp, "%d %d %d\n", static_cast<int>(imax-imin+1), 
+	    static_cast<int>(jmax-jmin+1), static_cast<int>(kmax-kmin+1));
+    for ( k=kmin; k<=kmax; ++k ) {
+	for ( j=jmin; j<=jmax; ++j ) {
+            for ( i=imin; i<=imax; ++i ) {		  
+		 index = (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + 
+			 (imax-imin+1)*(j-jmin) + (i-imin);
+		 cell = bd.get_cell(i,j,k);
+		 IFace = cell->iface[which_boundary];		    		    
+		 fprintf(fp, "%d %d %d ", static_cast<int>(i),
+			 static_cast<int>(j), static_cast<int>(k));
+		 fprintf(fp, "%20.12e %20.12e %20.12e ", 
+			 IFace->pos.x, IFace->pos.y, IFace->pos.z);
+		 fprintf(fp, "%20.12e %20.12e %20.12e %20.12e ", 
+			 IFace->fs->gas->T[0], IFace->fs->vel.x, IFace->fs->vel.y, IFace->fs->vel.z);
+		 fprintf(fp, "%20.12e %20.12e %20.12e %20.12e \n", 
+		    	 IFace->fs->tke, IFace->fs->omega, IFace->F->mass );
+		} // end i loop
+	    } // end j loop
+	} // end k loop
+    fclose(fp);
+    
+    return SUCCESS;
+} // end of Block::write_surface_data()
+
+
+double BoundaryCondition::
+read_surface_data( string filename, size_t dimensions, int zip_files )
+{
+#   define NCHAR 4000
+    char line[NCHAR];
+    FILE *fp;
+    gzFile zfp;
+    char *gets_result;
+    unsigned int i, j, k;
+    size_t index;
+    double sim_time;
+    global_data &G = *get_global_data_ptr();
+
+    if ( G.verbosity_level >= 2 && which_boundary == 0 ) 
+	printf("read_surface_data(): Start surface %d.\n", which_boundary);
+    if (zip_files) {
+	fp = NULL;
+	filename += ".gz";
+	if ( access(filename.c_str(), F_OK) != 0 ) return 0;
+	if ((zfp = gzopen(filename.c_str(), "r")) == NULL) {
+	    cerr << "read_surface_data(): Could not open " << filename << "; BAILING OUT" << endl;
+	    exit(FILE_ERROR);
+	}
+    } else {
+	zfp = NULL;
+	if ( access(filename.c_str(), F_OK) != 0 ) return 0;
+	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
+	    cerr << "read_surface_data(): Could not open " << filename << "; BAILING OUT" << endl;
+	    exit(FILE_ERROR);
+	}
+    }
+    if (zip_files) {
+	gets_result = gzgets(zfp, line, NCHAR);
+    } else {
+	gets_result = fgets(line, NCHAR, fp);
+    }
+    if (gets_result == NULL) {
+	printf("read_surface_data(): Empty surface data file file while looking for sim_time value.\n");
+	exit(BAD_INPUT_ERROR);
+    }
+    sscanf(line, "%lf", &sim_time);
+    if ( G.verbosity_level >= 2 && which_boundary == 0 ) 
+	printf("read_surface_data(): Time = %e\n", sim_time);
+    if (zip_files) {
+	gets_result = gzgets(zfp, line, NCHAR);
+    } else {
+	gets_result = fgets(line, NCHAR, fp);
+    }
+    if (gets_result == NULL) {
+	printf("read_surface_data(): Empty flow field file while looking for line of variable names.\n");
+	exit(BAD_INPUT_ERROR);
+    }
+    // The line just read should be the list of variable names, double-quoted.
+    if (zip_files) {
+	gets_result = gzgets(zfp, line, NCHAR);
+    } else {
+	gets_result = fgets(line, NCHAR, fp);
+    }
+    if ( gets_result == NULL ) {
+	printf("read_surface_data(): Empty flow field file while looking for surface data dimensions.\n");
+	exit(BAD_INPUT_ERROR);
+    }
+    sscanf(line, "%u %u %u", &i, &j, &k);
+    if ( i==0 && j==0 && k==0 ) return 0.0;
+    if ( i != (imax-imin+1) || j != (jmax-jmin+1) || k != ((dimensions == 3) ? (kmax-kmin+1) : 1) ) {
+	printf("read_surface_data(): surface %d, mismatch in surface data dimensions\n", which_boundary);
+	printf("    This misalignment could be caused by a having a different number\n");
+	printf("    of fields for each cell's entry.\n");
+	exit(BAD_INPUT_ERROR);
+    }
+    for ( k = kmin; k <= kmax; ++k ) {
+	for ( j = jmin; j <= jmax; ++j ) {
+	    for ( i = imin; i <= imax; ++i ) {
+		// calc. index into 1D heat-flux vectors
+		index = (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + 
+			(imax-imin+1)*(j-jmin) + (i-imin);
+		// All surface element data is on one line.
+		if (zip_files) {
+		    gets_result = gzgets(zfp, line, NCHAR);
+		} else {
+		    gets_result = fgets(line, NCHAR, fp);
+		}
+		if (gets_result == NULL) {
+		    printf("read_surface_data(): Empty flow field file while reading surface element data.\n");
+		    exit(BAD_INPUT_ERROR);
+		}
+	    }
+	}
+    }
+    if (zip_files) {
+	gzclose(zfp);
+    } else {
+	fclose(fp);
+    }
+    return sim_time;
+#   undef NCHAR
+}
+
 //------------------------------------------------------------------------
 
 BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC, 
@@ -1290,4 +1445,3 @@ scan_string_for_surface_heat_flux( double &q_cond, double &q_diff, double &q_rad
     
     return SUCCESS;
 } 
-

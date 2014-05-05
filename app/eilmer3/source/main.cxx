@@ -83,6 +83,7 @@ int program_return_flag = 0;
 size_t output_counter = 0; // counts the number of flow-solutions written
 bool zip_files = true; // flag to indicate if flow and grid files are to be gzipped
 bool with_heat_flux_files = false; // flag to indicate that we want heat-flux files
+bool with_surface_files = false; // flag to indicate that we want surface files
 bool master;
 int max_wall_clock = 0; // seconds
 time_t start, now; // wall-clock timer
@@ -138,6 +139,9 @@ int main(int argc, char **argv)
 	  NULL },
 	{ "heat-flux-files", 'q', POPT_ARG_NONE, NULL, 'q',
 	  "write heat-flux files", 
+	  NULL },
+	{ "surface-files", 's', POPT_ARG_NONE, NULL, 's',
+	  "write surface files", 
 	  NULL },
 	{ "verbosity", 'v', POPT_ARG_STRING, NULL, 'v',
 	  "set verbosity level for messages", 
@@ -207,6 +211,9 @@ int main(int argc, char **argv)
 	    break;
 	case 'q':
 	    with_heat_flux_files = true;
+	    break;
+	case 's':
+	    with_surface_files = true;
 	    break;
 	case 't':
 	    start_tindx = static_cast<size_t>(atoi(poptGetOptArg(optCon)));
@@ -471,6 +478,13 @@ int prepare_to_integrate(size_t start_tindx)
 	    ifstring = ifcstr;
 	    filename = "heat/"+tindxstring+"/"+G.base_file_name+".heat"+jbstring+ifstring+"."+tindxstring;
 	    bdp->bcp[iface]->read_surface_heat_flux(filename, G.dimensions, zip_files);
+	}
+	// Read in surface vectors if present
+	for ( int iface = NORTH; iface <= ((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
+	    sprintf( ifcstr, ".s%04d", iface );
+	    ifstring = ifcstr;
+	    filename = "surf/"+tindxstring+"/"+G.base_file_name+".surf"+jbstring+ifstring+"."+tindxstring;
+	    bdp->bcp[iface]->read_surface_data(filename, G.dimensions, zip_files);
 	}
     } // end for *bdp
     output_counter = start_tindx;
@@ -1038,6 +1052,25 @@ int write_solution_data(std::string tindxstring)
 		    +jbstring+jsstring+"."+tindxstring;
 		bdp->bcp[js]->compute_surface_heat_flux();
 		bdp->bcp[js]->write_surface_heat_flux(filename,G.sim_time);
+		if ( zip_files ) do_system_cmd("gzip -f "+filename);
+	    }
+	} // for *bdp
+    }
+
+    // Compute, store and write surface data, if viscous simulation
+    if ( with_surface_files && G.viscous ) {
+        ensure_directory_is_present("surf"); // includes Barrier
+	foldername = "surf/"+tindxstring;
+	ensure_directory_is_present(foldername); // includes Barrier
+	for ( Block *bdp : G.my_blocks ) {
+	    sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr;
+	    final_s = ((G.dimensions == 3)? BOTTOM : WEST);
+	    // Loop over boundaries/surfaces
+	    for ( js = NORTH; js <= final_s; ++js ) {
+		sprintf( jscstr, ".s%04d", js ); jsstring = jscstr;
+		filename = foldername+"/"+ G.base_file_name+".surf" \
+		    +jbstring+jsstring+"."+tindxstring;
+		bdp->bcp[js]->write_surface_data(filename,G.sim_time);
 		if ( zip_files ) do_system_cmd("gzip -f "+filename);
 	    }
 	} // for *bdp

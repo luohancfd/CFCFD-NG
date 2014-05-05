@@ -152,7 +152,7 @@ longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "binary-f
                "add-user-computed-vars=",
                "add-total-enthalpy", "add-mach", "heat-flux-list=", "vertex-velocity-list=", 
                "plot3d", "omegaz=", "tangent-slab-list=", "prepare-fstc-restart", "moving-grid",
-               "add-transport-coeffs", "verbosity="]
+               "add-transport-coeffs", "verbosity=", "bc-surface-list="]
 
 def printUsage():
     print ""
@@ -178,6 +178,7 @@ def printUsage():
     print "          [--static-flow-profile=\"blk,face-name;...\"]"
     print ""
     print "          [--heat-flux-list=\"blk-range,surf-range,i-range,j-range,k-range;...\"]"
+    print "          [--bc-surface-list=\"blk-range,surf-range,i-range,j-range,k-range;...\"]"
     print "          [--tangent-slab-list=\"blk-range,i-range,j-range,k-range;...\"]"
     print ""
     print "          [--probe=\"x,y,z;...\"]"
@@ -928,6 +929,183 @@ def write_vertex_velocity_profile(outputFileName, vertex_velocity_list_str, tind
 						vtx_data.z ) )
     
     return 0
+
+# --------------------------------------------------------------------
+# The following functions and classes are for post-processing the surface data
+# into a human readable format
+class SurfaceData(object):
+    """
+    Python class to store surface data for a single cell interface
+    """
+    def __init__(self,i=0,j=0,k=0,x=0.0,y=0.0,z=0.0,T_surface=0.0,u_x=0.0,u_y=0.0,u_z=0.0,
+    	         tke_surface=0.0,omega_surface=0.0,mass_flux=0.0):
+	"""
+	Create a SurfaceData object from provided data
+	"""
+	self.i = i
+	self.j = j
+	self.k = k
+	self.x = x
+	self.y = y
+	self.z = z
+	self.T_surface = T_surface
+	self.u_x = u_x
+	self.u_y = u_y
+	self.u_z = u_z
+	self.tke_surface = tke_surface
+	self.omega_surface = omega_surface
+	self.mass_flux = mass_flux
+
+class BoundarySurfaceData(object):
+    """
+    Python class to store surface data for a block surface/boundary
+    """
+    def __init__(self):
+	self.iface = []
+	self.irange = [1000000000,-1]
+	self.jrange = [1000000000,-1]
+	self.krange = [1000000000,-1]
+    
+    def read(self,fp=None):
+	"""
+	Read in surface data from file.
+	"""
+	if fp == None:
+	    print "SurfaceData.read(): no file was provided!"
+	    sys.exit()
+	buf = fp.readline() # time
+	time_stamp = float(buf)
+	buf = fp.readline() # variable-name list
+	var_list = []
+	for token in buf.split():
+	    var_list.append(token.strip('"')) # just keep the name
+	buf = fp.readline() # surface dimensions
+	tks = buf.split()
+	ni = int(tks[0]); nj = int(tks[1]); nk = int(tks[2])
+	dim = ni*nj*nk
+	
+	for line in range(dim):
+	    buf = fp.readline() 
+	    # if len(buf)==0: break
+	    tks = buf.split()
+	    self.iface.append( SurfaceData(i=int(tks[0]),j=int(tks[1]),k=int(tks[2]),
+	                               x=float(tks[3]),y=float(tks[4]),z=float(tks[5]),
+	                               T_surface=float(tks[6]),u_x=float(tks[7]),u_y=float(tks[8]),
+	                               u_z=float(tks[9]),tke_surface=float(tks[10]),
+	                               omega_surface=float(tks[11]),mass_flux=float(tks[12]) ) )
+	    # set ranges
+	    # lower
+	    if self.iface[-1].i < self.irange[0]: self.irange[0] = self.iface[-1].i
+	    if self.iface[-1].j < self.jrange[0]: self.jrange[0] = self.iface[-1].j
+	    if self.iface[-1].k < self.krange[0]: self.krange[0] = self.iface[-1].k
+	    # upper
+	    if self.iface[-1].i > self.irange[1]: self.irange[1] = self.iface[-1].i
+	    if self.iface[-1].j > self.jrange[1]: self.jrange[1] = self.iface[-1].j
+	    if self.iface[-1].k > self.krange[1]: self.krange[1] = self.iface[-1].k
+        return
+	    
+    def get_iface(self,i,j,k):
+	# check if indices are in-range
+	if i < self.irange[0] or i > self.irange[1]:
+	    print "i = %d is out-of-range"
+	    sys.exit()
+	if j < self.jrange[0] or j > self.jrange[1]:
+	    print "j = %d is out-of-range"
+	    sys.exit()
+	if k < self.krange[0] or k > self.krange[1]:
+	    print "k = %d is out-of-range"
+	    sys.exit()
+	# search for this data point
+	for ihfd in self.iface:
+	    if ihfd.i == i and ihfd.j == j and ihfd.k == k:
+		return ihfd
+	#
+	print "BoundarySurfaceData.get_iface(): search failed!"
+	sys.exit()
+
+def read_all_surface_data(rootName, nblock, tindx, zipFiles=0):
+    """
+    Returns all surface data for a single flow solution.
+    """
+    global verbosity_level
+    surf = []
+    for jb in range(nblock):
+	surf.append([])
+	for js in range(6):
+	    fileName = rootName+".surf"+(".b%04d.s%04d.t%04d" % (jb, js, tindx))
+	    fileName = os.path.join("surf", "t%04d" % ( tindx ), fileName)
+	    # test if this file exists (required due to disparate 2D/3D boundaries)
+	    if os.path.isfile(fileName) == False \
+	    	and os.path.isfile(fileName+".gz") == False: 
+		# print "file %s does not exist" % ( fileName )
+		break
+	    if verbosity_level > 0: print "Read surface data from", fileName
+	    surf[-1].append(BoundarySurfaceData())
+	    if zipFiles: 
+                fp = GzipFile(fileName+".gz", "rb")
+            else:
+                fp = open(fileName, "r")
+            surf[jb][-1].read(fp)
+            fp.close()
+    return surf
+    
+def write_surface_profile(outputFileName, bc_surface_list_str, tindx, nblock, sf_data ):
+    """
+    Extracts and writes to file a profile of surface data from a collection
+    of surface/boundary slices.
+    """
+    global verbosity_level
+    fp = open(outputFileName, "w")
+    # write header
+    fp.write("# Filename: %s\n" % outputFileName)
+    fp.write("# Column 1: Surface temperature, T_surface (K)\n")
+    fp.write("# Column 2: x-axis velocity, u_x (m/s)\n")
+    fp.write("# Column 3: y-axis velocity, u_y (m/s)\n")
+    fp.write("# Column 4: z-axis velocity, u_z (m/s)\n")
+    fp.write("# Column 5: surface turbulence kinetic energy, tke_surface (kg/m**3)\n")
+    fp.write("# Column 6: surface dissipation rate, omega_surface (pa)\n")
+    fp.write("# Column 7: mass flux, mass_flux (kg/m**3/s)\n")
+    fp.write("# Column 8: pos.x (m)\n")
+    fp.write("# Column 9: pos.y (m)\n")
+    fp.write("# Column 10: pos.z (m)\n")
+    surface_lists = bc_surface_list_str.split(';')
+    if verbosity_level > 0: print "surface_lists = ", surface_lists
+    first = True
+    L = 0.0
+    for surface_str in surface_lists:
+	bstr,sstr,istr,jstr,kstr = surface_str.split(',')
+	bfirst,blast = decode_range_from_string(bstr, 0, nblock-1)
+        print bfirst, blast
+	for jb in range(bfirst,blast+1):
+	    sfirst,slast = decode_range_from_string(sstr, 0, len(sf_data[jb])-1)
+	    for js in range(sfirst,slast+1):
+		kfirst,klast = decode_range_from_string(kstr, sf_data[jb][js].krange[0], 
+		    					sf_data[jb][js].krange[1])
+		jfirst,jlast = decode_range_from_string(jstr, sf_data[jb][js].jrange[0], 
+		    					sf_data[jb][js].jrange[1])
+		ifirst,ilast = decode_range_from_string(istr, sf_data[jb][js].irange[0], 
+		    					sf_data[jb][js].irange[1])
+		if verbosity_level > 0:
+                    print ("slice jb=%d js=%d i=%d:%d, j=%d:%d, k=%d:%d" %
+                           (jb,js,ifirst,ilast,jfirst,jlast,kfirst,klast))
+		for k in range(kfirst,klast+1):
+		    for j in range(jfirst,jlast+1):
+			for i in range(ifirst,ilast+1):
+			    iface_data = sf_data[jb][js].get_iface(i,j,k)
+			    pos = Vector3(iface_data.x,iface_data.y,iface_data.z)
+			    if first:
+				pos_prev = Vector3(iface_data.x,iface_data.y,
+				    			iface_data.z)
+				first = False
+			    L += vabs(pos-pos_prev)
+			    pos_prev = pos
+			    fp.write("%e %e %e %e %e %e %e %e %e %e\n" % \
+                                         ( iface_data.T_surface, iface_data.u_x, iface_data.u_y,
+                                           iface_data.u_z, iface_data.tke_surface, iface_data.omega_surface,
+                                           iface_data.mass_flux,
+                                           iface_data.x, iface_data.y, iface_data.z) )
+    #
+    return 0
     
 def flatten(L):
     """
@@ -1298,6 +1476,19 @@ if __name__ == '__main__':
                 tangent_slab_along_slice(outputFileName, slice_list_str, tindx, nblock, grid, flow)
             else:
                 print "Probably an error; no tangent-slab calculations performed."
+
+        #
+        if uoDict.has_key("--bc-surface-list"):
+            outputFileName = uoDict.get("--output-file", "sf_profile.data")
+            if verbosity_level > 0:
+                print "Extract surface data for t=", times_dict[tindx], "and write as text files."
+                print "    outputFileName=", outputFileName
+            sf_data = read_all_surface_data(rootName, nblock, tindx, zipFiles)
+            bc_surface_list_str = uoDict.get("--bc-surface-list", "")
+            if len(bc_surface_list_str) > 0:
+		write_surface_profile(outputFileName, bc_surface_list_str, tindx, nblock, sf_data )
+            else:
+                print "Probably an error; no surface profile written."
     #
     if uoDict.has_key("--vtk-xml") or uoDict.has_key("--ref-function") or \
             uoDict.has_key("--compare-job") or uoDict.has_key("--surface-list"): 

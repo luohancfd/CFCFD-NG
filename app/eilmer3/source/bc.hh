@@ -192,6 +192,8 @@ public:
     int write_surface_heat_flux(std::string filename, double sim_time);
     int write_fstc_heat_flux(string filename, double sim_time);
     double read_surface_heat_flux(std::string filename, size_t dimensions, int zip_files=1);
+    int write_surface_data(string filename, double sim_time);
+    double read_surface_data(std::string filename, size_t dimensions, int zip_files=1);
     int get_heat_flux_index( size_t i, size_t j, size_t k )
     { return (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + (imax-imin+1)*(j-jmin) + (i-imin); }
 };
