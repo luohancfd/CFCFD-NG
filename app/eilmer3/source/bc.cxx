@@ -918,7 +918,6 @@ int BoundaryCondition::write_surface_data( string filename, double sim_time )
     FV_Cell * cell;
     FV_Interface * IFace;
     size_t i, j, k;
-    size_t index;
     Block & bd = *bdp;
     
     FILE *fp;
@@ -945,8 +944,6 @@ int BoundaryCondition::write_surface_data( string filename, double sim_time )
     for ( k=kmin; k<=kmax; ++k ) {
 	for ( j=jmin; j<=jmax; ++j ) {
             for ( i=imin; i<=imax; ++i ) {		  
-		 index = (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + 
-			 (imax-imin+1)*(j-jmin) + (i-imin);
 		 cell = bd.get_cell(i,j,k);
 		 IFace = cell->iface[which_boundary];		    		    
 		 fprintf(fp, "%d %d %d ", static_cast<int>(i),
@@ -955,7 +952,7 @@ int BoundaryCondition::write_surface_data( string filename, double sim_time )
 			 IFace->pos.x, IFace->pos.y, IFace->pos.z);
 		 fprintf(fp, "%20.12e %20.12e %20.12e %20.12e ", 
 			 IFace->fs->gas->T[0], IFace->fs->vel.x, IFace->fs->vel.y, IFace->fs->vel.z);
-		 fprintf(fp, "%20.12e %20.12e %20.12e %20.12e \n", 
+		 fprintf(fp, "%20.12e %20.12e %20.12e \n", 
 		    	 IFace->fs->tke, IFace->fs->omega, IFace->F->mass );
 		} // end i loop
 	    } // end j loop
@@ -975,7 +972,6 @@ read_surface_data( string filename, size_t dimensions, int zip_files )
     gzFile zfp;
     char *gets_result;
     unsigned int i, j, k;
-    size_t index;
     double sim_time;
     global_data &G = *get_global_data_ptr();
 
@@ -1039,9 +1035,6 @@ read_surface_data( string filename, size_t dimensions, int zip_files )
     for ( k = kmin; k <= kmax; ++k ) {
 	for ( j = jmin; j <= jmax; ++j ) {
 	    for ( i = imin; i <= imax; ++i ) {
-		// calc. index into 1D heat-flux vectors
-		index = (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + 
-			(imax-imin+1)*(j-jmin) + (i-imin);
 		// All surface element data is on one line.
 		if (zip_files) {
 		    gets_result = gzgets(zfp, line, NCHAR);
@@ -1088,7 +1081,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     size_t n_profile = 1;
     double Pout = 100.0e3;
     double I_turb = 0.0;
-    double u_turb_lam = 0.0;
+    double u_turb_lam = 1.0;
     double Tout = 300.0;
     bool use_Tout = false;
     bool is_wall = false;
@@ -1274,8 +1267,8 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	break;
     case INLET_OUTLET:
 	dict.parse_double(section, "Pout", Pout, 100.0e3);
-	dict.parse_double(section, "I_turb", u_turb_lam, 0.0);
-	dict.parse_double(section, "u_turb_lam", u_turb_lam, 0.0);
+	dict.parse_double(section, "I_turb", I_turb, 0.0);
+	dict.parse_double(section, "u_turb_lam", u_turb_lam, 1.0);
 	dict.parse_double(section, "Tout", Tout, 300.0);
 	dict.parse_boolean(section, "use_Tout", use_Tout, false);
 	dict.parse_int(section, "x_order", x_order, 0);

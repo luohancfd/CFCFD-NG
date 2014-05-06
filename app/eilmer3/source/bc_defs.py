@@ -224,7 +224,7 @@ class BoundaryCondition(object):
                  direction_beta=0.0,
                  ghost_cell_trans_fn=lambda x, y, z: (x, y, z),
                  I_turb=0.0,
-                 u_turb_lam=0.0,
+                 u_turb_lam=1.0,
                  label=""):
         """
         Construct a generic boundary condition object.
