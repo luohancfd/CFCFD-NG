@@ -456,8 +456,15 @@ int viscous_flux_2D(Block *A)
 	    // Mass flux -- NO CONTRIBUTION
             F.momentum.x -= tau_xx * nx + tau_xy * ny;
             F.momentum.y -= tau_xy * nx + tau_yy * ny;
-            F.total_energy -= (tau_xx * fs.vel.x + tau_xy * fs.vel.y + qx[0]) * nx
-                + (tau_xy * fs.vel.x + tau_yy * fs.vel.y + qy[0]) * ny;
+	    if ( j == A->jmax+1 && ( A->bcp[NORTH]->type_code == USER_DEFINED_ENERGY_FLUX ||
+				     A->bcp[NORTH]->type_code == CONJUGATE_HT) ) {
+		// Retain the flux set by the b.c. by doing nothing.
+		; // Do nothing statement
+	    }
+	    else {
+		F.total_energy -= (tau_xx * fs.vel.x + tau_xy * fs.vel.y + qx[0]) * nx
+		    + (tau_xy * fs.vel.x + tau_yy * fs.vel.y + qy[0]) * ny;
+	    }
 	    // Viscous transport of k-omega turbulence quantities.
 	    // Only built for 2D planar geometry at the moment.
 	    if ( G.turbulence_model == TM_K_OMEGA ) {

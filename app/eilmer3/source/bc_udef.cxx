@@ -6,14 +6,14 @@
 
 UserDefinedEnergyFluxBC::
 UserDefinedEnergyFluxBC(Block *bdp, int which_boundary, const std::string fname)
-    : BoundaryCondition(bdp, which_boundary, USER_DEFINED_MASS_FLUX),
+    : BoundaryCondition(bdp, which_boundary, USER_DEFINED_ENERGY_FLUX),
       filename_(fname)
 {
     is_wall_flag = true;
     sets_conv_flux_flag = false;
     sets_visc_flux_flag = false; // in the general sense
                                  // we specially intercept the
-                                 // the diffusive species fluxes 
+                                 // the energy fluxes 
                                  // in visc.cxx
     start_interpreter();
 }
@@ -31,7 +31,7 @@ UserDefinedEnergyFluxBC(const UserDefinedEnergyFluxBC &bc)
 
 UserDefinedEnergyFluxBC::
 UserDefinedEnergyFluxBC()
-    : BoundaryCondition(0, 0, USER_DEFINED),
+    : BoundaryCondition(0, 0, USER_DEFINED_ENERGY_FLUX),
       filename_("")
 {
     is_wall_flag = false;
