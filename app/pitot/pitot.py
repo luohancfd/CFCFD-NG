@@ -171,7 +171,10 @@ available to me as part of cfpylib inside the cfcfd code collection.
         a series of similar pitot test cases in one go. Saves me doing so
         much stuff manually.
     30-Apr-2014: Fixed up some issues with the reflected shock mode.
-        Also made pitot work with no throad by setting M_throat = 0.0.
+        Also made pitot work with no throat by setting M_throat = 0.0.
+    08-May-2014:
+        Added the 2.5 mm diapgragm driver condition from David Gildfind's PhD
+        as I was working with it as a custom driver anyway.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -199,7 +202,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "30-Apr-2014"
+VERSION_STRING = "08-May-2014"
 
 DEBUG_PITOT = False
 

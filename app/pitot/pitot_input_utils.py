@@ -462,6 +462,7 @@ def state_builder(cfg):
     if cfg['facility'] == 'x2':
         if cfg['piston'] == 'lwp': 
             #This is the tuned driver condition designed by David Gildfind in his PhD.
+            #This corresponds to the 2mm steel diaphragm condition usually used.
             states['s4']=primary_driver_x2[cfg['driver_gas']][0].clone()
             p4 = 2.79e7; T4 = 2700.0 #Pa, K
             states['s4'].set_pT(p4,T4)
@@ -477,7 +478,23 @@ def state_builder(cfg):
             V['s4']=0.0
             M['s4']=0.0
             M['s3s'] = 1.0
-                  
+        elif cfg['piston'] == 'lwp-2.5mm':
+            #This is the condition from David Gildfind's PhD where the lwp
+            # is used with a 2.5 mm steel diaphragm. Condition is based off an
+            # isentropic compression from the fill pressure to the burst pressure.
+             driver_p = 77200.0 #driver fill pressure, Pa
+             driver_T = 300.0 #driver temperature, K
+             states['primary_driver_fill'] = primary_driver_x2[cfg['driver_gas']][0].clone()
+             states['primary_driver_fill'].set_pT(driver_p, driver_T)
+             p4 = 35700000 #primary driver burst pressure, Pa 
+             T4 = states['primary_driver_fill'].T*\
+             (p4/states['primary_driver_fill'].p)**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
+             states['s4'] = states['primary_driver_fill'].clone()
+             states['s4'].set_pT(p4,T4)
+             V['s4']=0.0
+             M['s4']=0.0
+             M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
+
     elif cfg['facility'] == 'x3':
         states['s4']=primary_driver_x3[cfg['driver_gas']][0].clone()
         p4 = 2.79e7; T4 = 2700.0 #Pa, K
