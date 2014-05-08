@@ -216,7 +216,7 @@ def shock_tube_calculation(cfg, states, V, M):
         Make sure you set the fill pressure in state 1 before you start!"""
         
         print '-'*60
-        print "current guess for Vs1 = {0} m/s".format(Vs1)            
+        print "Current guess for Vs1 = {0} m/s".format(Vs1)            
         
         try:
             if solver == 'eq' or solver == 'pg':
@@ -390,6 +390,7 @@ def shock_tube_calculation(cfg, states, V, M):
                 else: 
                     cfg['Vs1_guess_1'] = 1000.0; cfg['Vs1_guess_2'] = 2000.0
                 cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, cfg['Vs1_guess_1'], cfg['Vs1_guess_2'], tol=1.0e-3,limits=[1000.0,1000000.0])
+        if PRINT_STATUS: print '-' * 60
         if PRINT_STATUS: print "From secant solve: Vs1 = {0} m/s".format(cfg['Vs1'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
         if PRINT_STATUS: print "Now that Vs1 is known, finding conditions at states 2 and 3."
@@ -526,7 +527,8 @@ def acceleration_tube_calculation(cfg, states, V, M):
         """Compute the velocity mismatch for a given shock speed in front of the 
         unsteady expansion from state 2 to state 7."""
         
-        print "current guess for Vs2 = {0} m/s".format(Vs2)
+        print '-'*60
+        print "Current guess for Vs2 = {0} m/s".format(Vs2)
                
         (V6, V6g) = normal_shock(state5, Vs2, state6, ideal_gas_guess)
                
@@ -535,6 +537,9 @@ def acceleration_tube_calculation(cfg, states, V, M):
                    
         # Across the expansion, we get a velocity, V7g.
         V7g, state7 = finite_wave_dp('cplus', V2g, state2, p7, steps=steps)
+        
+        print "Current p6 = {0} Pa, current p7 = {1} Pa.".format(state6.p, state7.p)
+        print "Current V6g = {0} m/s, current V7g = {1} m/s.".format(V6g, V7g)      
 
         return (V6g - V7g)/V6g    
         
@@ -572,6 +577,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
             cfg['Vs2_guess_1'] = cfg['Vs1']+7000.0; cfg['Vs2_guess_2'] = 15100.0
         cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, \
         cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], tol=1.0e-5,limits=[cfg['Vs2_lower'],cfg['Vs2_upper']])
+        if PRINT_STATUS: print '-'*60
         if PRINT_STATUS: print "From secant solve: Vs2 = {0} m/s".format(cfg['Vs2'])
         cfg['Vs2'] = cfg['Vs2']*cfg['expansion_factor'] #need to take account of this...
         if PRINT_STATUS: print "Vs2 (with expansion factor multiplier of {0}) = {1} m/s"\
@@ -588,8 +594,10 @@ def acceleration_tube_calculation(cfg, states, V, M):
     #do any modifications that were requested to the velocity behind the shock here 
     if cfg['expand_to'] == 'flow-behind-shock':
         V['s6'] = V['s6']*cfg['expansion_factor']
+        print "State 7 is being expanded to V6 ({0}) multiplied by an expansion factor of {1}.".format(V['s6'], cfg['expansion_factor'])
     elif cfg['expand_to'] == 'shock-speed':
         V['s6'] = cfg['Vs2'] #expansion factor is already considered above
+        print "State 7 is being expanded to the shock speed of Vs2 ({0} m/s).".format(V['s6'])
     V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], V['s6'], steps=cfg['acc_tube_expansion_steps'])
     
     if cfg['state7_no_ions']:
