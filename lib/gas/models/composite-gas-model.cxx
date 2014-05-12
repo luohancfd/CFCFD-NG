@@ -21,6 +21,7 @@ extern "C" {
 #include "../../util/source/lua_service.hh"
 #include "composite-gas-model.hh"
 #include "perfect-gas-EOS.hh"
+#include "simple-gas-EOS.hh"
 #include "noble-abel-gas-EOS.hh"
 #include "van-der-waals-gas-EOS.hh"
 #include "Bender-EOS.hh"
@@ -74,6 +75,9 @@ Composite_gas_model(string cfile)
     }
     else if ( EOS == "van der Waals gas" ) {
      	EOS_ = (Equation_of_state*) new van_der_Waals_gas(L);
+    }
+    else if ( EOS == "simple gas" ) {
+        EOS_ = (Equation_of_state*) new Simple_gas(L);
     }
     else if ( EOS == "Bender" ) {
         EOS_ = (Equation_of_state*) new Bender_EOS(L);

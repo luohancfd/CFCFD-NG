@@ -212,6 +212,7 @@ MODELS_OBJECTS := CEA-Cp-functor.o \
 	composite-gas-model.o \
 	REFPROP-gas-model.o \
 	perfect-gas-EOS.o \
+	simple-gas-EOS.o \
 	noble-abel-gas-EOS.o \
 	van-der-waals-gas-EOS.o \
 	Bender-EOS.o \
@@ -444,6 +445,10 @@ perfect-gas-EOS.o : $(MODELS)/perfect-gas-EOS.cxx $(MODELS)/perfect-gas-EOS.hh \
 	$(MODELS)/equation-of-state.hh $(MODELS)/gas_data.hh $(UTIL_SRC)/lua_service.hh $(LUA_INCLUDE_DIR)
 	$(CXXCOMPILE) $(CXXFLAG) $(MODELS)/perfect-gas-EOS.cxx -I$(LUA_INCLUDE_DIR)
 
+simple-gas-EOS.o : $(MODELS)/simple-gas-EOS.cxx $(MODELS)/simple-gas-EOS.hh \
+	$(MODELS)/equation-of-state.hh $(MODELS)/gas_data.hh $(UTIL_SRC)/lua_service.hh $(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(MODELS)/simple-gas-EOS.cxx -I$(LUA_INCLUDE_DIR)
+
 noble-abel-gas-EOS.o : $(MODELS)/noble-abel-gas-EOS.cxx $(MODELS)/noble-abel-gas-EOS.hh \
 	$(MODELS)/equation-of-state.hh $(MODELS)/gas_data.hh $(UTIL_SRC)/lua_service.hh $(LUA_INCLUDE_DIR)
 	$(CXXCOMPILE) $(CXXFLAG) $(MODELS)/noble-abel-gas-EOS.cxx -I$(LUA_INCLUDE_DIR)
@@ -455,6 +460,7 @@ van-der-waals-gas-EOS.o : $(MODELS)/van-der-waals-gas-EOS.cxx $(MODELS)/van-der-
 Bender-EOS.o : $(MODELS)/Bender-EOS.cxx $(MODELS)/Bender-EOS.hh \
 	$(MODELS)/equation-of-state.hh $(MODELS)/gas_data.hh $(UTIL_SRC)/lua_service.hh $(LUA_INCLUDE_DIR)
 	$(CXXCOMPILE) $(CXXFLAG) $(MODELS)/Bender-EOS.cxx -I$(LUA_INCLUDE_DIR)
+
 
 MBWR-EOS.o : $(MODELS)/MBWR-EOS.cxx $(MODELS)/MBWR-EOS.hh \
 	$(MODELS)/equation-of-state.hh $(MODELS)/gas_data.hh $(UTIL_SRC)/lua_service.hh $(LUA_INCLUDE_DIR)
@@ -798,6 +804,9 @@ van_der_Waals_gas.lua : $(TOOLS)/van_der_Waals_gas.lua
 
 real_gas_Bender.lua : $(TOOLS)/real_gas_Bender.lua
 	cp $(TOOLS)/real_gas_Bender.lua .
+
+simple_gas.lua : $(TOOLS)/simple_gas.lua
+	cp $(TOOLS)/simple_gas.lua .
 
 real_gas_MBWR.lua : $(TOOLS)/real_gas_MBWR.lua
 	cp $(TOOLS)/real_gas_MBWR.lua .

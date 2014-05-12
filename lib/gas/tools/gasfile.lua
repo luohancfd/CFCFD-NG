@@ -36,6 +36,16 @@ ideal_gas = {
    diffusion_coeffs = "hard sphere"
 }
 
+simple_gas = {
+   value_list = {"M", "gamma", "d", "e_zero", "q"},
+   model_list = {"viscosity", "thermal_conductivity"},
+   EOS = "simple gas",
+   TBM = "constant specific heats",
+   mixing_rule = "Wilke",
+   sound_speed = "equilibrium",
+   diffusion_coeffs = "hard sphere"
+}
+
 thermally_perfect_gas = {
    value_list = {"M", "d"},
    model_list = {"viscosity", "thermal_conductivity"},
@@ -126,6 +136,7 @@ multi_T_gas = {
 
 gas_models = {}
 gas_models["ideal gas"] = ideal_gas
+gas_models["simple gas"] = simple_gas
 gas_models["thermally perfect gas"] = thermally_perfect_gas
 gas_models["Noble-Abel gas"] = Noble_Abel_gas
 gas_models["van der Waals gas"] = van_der_Waals_gas
