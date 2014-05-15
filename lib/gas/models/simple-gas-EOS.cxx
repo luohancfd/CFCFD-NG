@@ -62,11 +62,6 @@ int
 Simple_gas::
 s_eval_pressure(Gas_data &Q)
 {
-    int status;
-    double R = s_gas_constant(Q, status);
-    if ( status != SUCCESS )
-	return status;
-    // else proceed
     Q.p = simple_pressure(Q.rho);
     
     // fill in the electron pressure if electrons exist
@@ -95,11 +90,6 @@ int
 Simple_gas::
 s_eval_density(Gas_data &Q)
 {
-    int status;
-    double R = s_gas_constant(Q, status);
-    if ( status != SUCCESS )
-	return status;
-    // else proceed
     Q.rho = simple_density(Q.p);
     return SUCCESS;
 }
