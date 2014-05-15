@@ -142,71 +142,25 @@ int viscous_flux_3D(Block *A)
 		Vtx3 = A->get_vtx(i+1,j+1,k+1);
 		Vtx4 = A->get_vtx(i+1,j,k+1);
 		// Determine some of the interface properties.
-                if ( G.viscous_upwinding ) {
-                    // Select one corner, based on the wind direction.
-	            // When getting the velocity for upwinding, use the interface value
-	            // unless we are at one of the block boundaries. 
-	            // Use the interior cell value for boundary faces because we want to 
-	            // know which direction is upwind, even for no-slip boundaries.
-	            double vt1dp = 0.0;
-	            double vt2dp = 0.0;
-	            if ( i == A->imin-1 ) {
-		        vt1dp = dot(A->get_cell(i+1,j,k)->fs->vel, IFace->t1);
-		        vt2dp = dot(A->get_cell(i+1,j,k)->fs->vel, IFace->t2);
-	            } else if ( i == A->imax ) {
-		        vt1dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t1);
-		        vt2dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t2);
-	            } else {
-		        vt1dp = dot(fs.vel,IFace->t1);
-		        vt2dp = dot(fs.vel,IFace->t2);
-	            }
-		    define(`select_upwind_scalar_value', 
-                           `if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { $1 = Vtx1->$1; } else { $1 = Vtx4->$1; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { $1 = Vtx2->$1; } else { $1 = Vtx3->$1; }
-                           }')dnl
-		    define(`select_upwind_array_element', 
-                           `if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { $1[$2] = Vtx1->$1[$2]; } else { $1[$2] = Vtx4->$1[$2]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { $1[$2] = Vtx2->$1[$2]; } else { $1[$2] = Vtx3->$1[$2]; }
-                           }')dnl
-		    for_each_scalar_derivative(`select_upwind_scalar_value')
-		    for ( size_t itm=0; itm<ntm; ++itm ) {
-                        select_upwind_array_element(dTdx,itm)
-                        select_upwind_array_element(dTdy,itm)
-                        select_upwind_array_element(dTdz,itm)
-                    }
-	            if( G.diffusion ) {
-                        // Needed for diffusion model, below.
-		        for( size_t isp = 0; isp < nsp; ++isp ) {
-                            select_upwind_array_element(dfdx,isp)
-                            select_upwind_array_element(dfdy,isp)
-                            select_upwind_array_element(dfdz,isp)
-		        }
-                    }
-                } else {
-                    // Symmetric average.
-		    define(`average_scalar_over_face',
-                           `$1 = 0.25*(Vtx1->$1+Vtx2->$1+Vtx3->$1+Vtx4->$1);')dnl
-		    define(`average_array_element_over_face', 
-                           `$1[$2] = 0.25*(Vtx1->$1[$2]+Vtx2->$1[$2]+Vtx3->$1[$2]+Vtx4->$1[$2]);')dnl
-		    for_each_scalar_derivative(`average_scalar_over_face')
-		    for ( size_t itm=0; itm<ntm; ++itm ) {
-                        average_array_element_over_face(dTdx,itm)
-                        average_array_element_over_face(dTdy,itm)
-                        average_array_element_over_face(dTdz,itm)
-                    }
-	            if( G.diffusion ) {
-                        // Needed for diffusion model, below.
-		        for( size_t isp = 0; isp < nsp; ++isp ) {
-                            average_array_element_over_face(dfdx,isp)
-                            average_array_element_over_face(dfdy,isp)
-                            average_array_element_over_face(dfdz,isp)
-		        }
-                    }
-                }		    
+                // Symmetric average.
+		define(`average_scalar_over_face',
+                       `$1 = 0.25*(Vtx1->$1+Vtx2->$1+Vtx3->$1+Vtx4->$1);')dnl
+		define(`average_array_element_over_face', 
+                       `$1[$2] = 0.25*(Vtx1->$1[$2]+Vtx2->$1[$2]+Vtx3->$1[$2]+Vtx4->$1[$2]);')dnl
+		for_each_scalar_derivative(`average_scalar_over_face')
+		for ( size_t itm=0; itm<ntm; ++itm ) {
+                    average_array_element_over_face(dTdx,itm)
+                    average_array_element_over_face(dTdy,itm)
+                    average_array_element_over_face(dTdz,itm)
+                }
+	        if( G.diffusion ) {
+                    // Needed for diffusion model, below.
+		    for( size_t isp = 0; isp < nsp; ++isp ) {
+                        average_array_element_over_face(dfdx,isp)
+                        average_array_element_over_face(dfdy,isp)
+                        average_array_element_over_face(dfdz,isp)
+		    }
+                }
                 k_eff[0] = viscous_factor * (fs.gas->k[0] + fs.k_t);
 		for ( size_t itm=1; itm<ntm; ++itm ) {
 		    k_eff[itm] = viscous_factor * fs.gas->k[itm];
@@ -335,54 +289,20 @@ int viscous_flux_3D(Block *A)
 		Vtx3 = A->get_vtx(i+1,j+1,k+1);
 		Vtx4 = A->get_vtx(i+1,j+1,k);
 		// Determine some of the interface properties.
-                if ( G.viscous_upwinding ) {
-                    // Select one corner, based on the wind direction.
-	            // When getting the velocity for upwinding, use the interface value
-	            // unless we are at one of the block boundaries. 
-	            // Use the interior cell value for boundary faces because we want to 
-	            // know which direction is upwind, even for no-slip boundaries.
-	            double vt1dp = 0.0;
-	            double vt2dp = 0.0;
-	            if ( j == A->jmin-1 ) {
-		        vt1dp = dot(A->get_cell(i,j+1,k)->fs->vel, IFace->t1);
-		        vt2dp = dot(A->get_cell(i,j+1,k)->fs->vel, IFace->t2);
-	            } else if ( j == A->jmax ) {
-		        vt1dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t1);
-		        vt2dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t2);
-	            } else {
-		        vt1dp = dot(fs.vel,IFace->t1);
-		        vt2dp = dot(fs.vel,IFace->t2);
-	            }
-		    for_each_scalar_derivative(`select_upwind_scalar_value')
-		    for ( size_t itm=0; itm<ntm; ++itm ) {
-                        select_upwind_array_element(dTdx,itm)
-                        select_upwind_array_element(dTdy,itm)
-                        select_upwind_array_element(dTdz,itm)
-                    }
-	            if( G.diffusion ) {
-                        // Needed for diffusion model, below.
-		        for( size_t isp = 0; isp < nsp; ++isp ) {
-                            select_upwind_array_element(dfdx,isp)
-                            select_upwind_array_element(dfdy,isp)
-                            select_upwind_array_element(dfdz,isp)
-		        }
-                    }
-                } else {
-                    // Symmetric average.
- 		    for_each_scalar_derivative(`average_scalar_over_face')
-		    for ( size_t itm=0; itm<ntm; ++itm ) {
-                        average_array_element_over_face(dTdx,itm)
-                        average_array_element_over_face(dTdy,itm)
-                        average_array_element_over_face(dTdz,itm)
-                    }
- 	            if( G.diffusion ) {
-                        // derivatives needed for diffusion model, below
-		        for( size_t isp = 0; isp < nsp; ++isp ) {
-                            average_array_element_over_face(dfdx,isp)
-                            average_array_element_over_face(dfdy,isp)
-                            average_array_element_over_face(dfdz,isp)
-		        }
-                    }
+                // Symmetric average.
+ 		for_each_scalar_derivative(`average_scalar_over_face')
+		for ( size_t itm=0; itm<ntm; ++itm ) {
+                    average_array_element_over_face(dTdx,itm)
+                    average_array_element_over_face(dTdy,itm)
+                    average_array_element_over_face(dTdz,itm)
+                }
+ 	        if( G.diffusion ) {
+                    // derivatives needed for diffusion model, below
+		    for( size_t isp = 0; isp < nsp; ++isp ) {
+                        average_array_element_over_face(dfdx,isp)
+                        average_array_element_over_face(dfdy,isp)
+                        average_array_element_over_face(dfdz,isp)
+		    }
                 }
                 k_eff[0] = viscous_factor * (fs.gas->k[0] + fs.k_t);
 		for ( size_t itm=1; itm<ntm; ++itm ) {
@@ -512,54 +432,20 @@ int viscous_flux_3D(Block *A)
 		Vtx3 = A->get_vtx(i+1,j+1,k+1);
 		Vtx4 = A->get_vtx(i,j+1,k+1);
 		// Determine some of the interface properties.
-                if ( G.viscous_upwinding ) {
-                    // Select one corner, based on the wind direction.
-	            // When getting the velocity for upwinding, use the interface value
-	            // unless we are at one of the block boundaries. 
-	            // Use the interior cell value for boundary faces because we want to 
-	            // know which direction is upwind, even for no-slip boundaries.
-	            double vt1dp = 0.0;
-	            double vt2dp = 0.0;
-	            if ( k == A->kmin-1 ) {
-		        vt1dp = dot(A->get_cell(i,j,k+1)->fs->vel, IFace->t1);
-		        vt2dp = dot(A->get_cell(i,j,k+1)->fs->vel, IFace->t2);
-	            } else if ( k == A->kmax ) {
-		        vt1dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t1);
-		        vt2dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t2);
-	            } else {
-		        vt1dp = dot(fs.vel,IFace->t1);
-		        vt2dp = dot(fs.vel,IFace->t2);
-	            }
-		    for_each_scalar_derivative(`select_upwind_scalar_value')
-		    for ( size_t itm=0; itm<ntm; ++itm ) {
-                        select_upwind_array_element(dTdx,itm)
-                        select_upwind_array_element(dTdy,itm)
-                        select_upwind_array_element(dTdz,itm)
-                    }
-	            if( G.diffusion ) {
-                        // Needed for diffusion model, below.
-		        for( size_t isp = 0; isp < nsp; ++isp ) {
-                            select_upwind_array_element(dfdx,isp)
-                            select_upwind_array_element(dfdy,isp)
-                            select_upwind_array_element(dfdz,isp)
-		        }
-                    }
-                } else {
-                    // Symmetric average.
-		    for_each_scalar_derivative(`average_scalar_over_face')
-		    for ( size_t itm=0; itm<ntm; ++itm ) {
-                        average_array_element_over_face(dTdx,itm)
-                        average_array_element_over_face(dTdy,itm)
-                        average_array_element_over_face(dTdz,itm)
-                    }
- 	            if( G.diffusion ) {
-                        // derivatives needed for diffusion model, below
-		        for( size_t isp = 0; isp < nsp; ++isp ) {
-                            average_array_element_over_face(dfdx,isp)
-                            average_array_element_over_face(dfdy,isp)
-                            average_array_element_over_face(dfdz,isp)
-		        }
-                    }
+                // Symmetric average.
+		for_each_scalar_derivative(`average_scalar_over_face')
+		for ( size_t itm=0; itm<ntm; ++itm ) {
+                    average_array_element_over_face(dTdx,itm)
+                    average_array_element_over_face(dTdy,itm)
+                    average_array_element_over_face(dTdz,itm)
+                }
+ 	        if( G.diffusion ) {
+                    // derivatives needed for diffusion model, below
+		    for( size_t isp = 0; isp < nsp; ++isp ) {
+                        average_array_element_over_face(dfdx,isp)
+                        average_array_element_over_face(dfdy,isp)
+                        average_array_element_over_face(dfdz,isp)
+		    }
                 }
                 k_eff[0] = viscous_factor * (fs.gas->k[0] + fs.k_t);
 		for ( size_t itm=1; itm<ntm; ++itm ) {

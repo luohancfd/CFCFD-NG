@@ -145,8 +145,6 @@ struct global_data
     double viscous_factor;
     // The amount by which to increment the viscous factor during soft-start.
     double viscous_factor_increment;
-    // true for viscous flux from upwind direction, false for average of both directions.
-    bool viscous_upwinding;
     double viscous_time_delay;
 
     // When the diffusion is calculated is treated as part of the viscous calculation:

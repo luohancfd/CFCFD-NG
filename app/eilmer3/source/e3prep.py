@@ -289,8 +289,6 @@ class GlobalData(object):
       active (if L{viscous_flag} was set to 1).
     * viscous_factor_increment: (float) Increment for the viscous_factor
       after viscous_delay has passed.
-    * viscous_upwinding_flag: (0/1) Set to 1 to calculate viscous flux from
-      upwind direction only. Set to 0 (the default) to use average of both directions.
     * diffusion_flag: (0/1) Set to 1 to compute multi-component diffusion of species
     * diffusion_model: (string) set the type (by name) of multi-component diffusion model
     * diffusion_delay: (float) Sometimes, the diffusion terms make it difficult to
@@ -439,7 +437,7 @@ class GlobalData(object):
                 'radiation_update_frequency', 'mhd_flag',\
                 'BGK_flag', 'velocity_buckets', 'vcoords', 'vweights',\
                 'viscous_flag', 'viscous_delay', 'viscous_factor_increment',\
-                'separate_update_for_viscous_flag', 'viscous_upwinding_flag',\
+                'separate_update_for_viscous_flag',\
                 'diffusion_flag', 'diffusion_model', 'diffusion_delay', \
                 'diffusion_factor_increment', 'separate_update_for_diffusion_flag', \
                 'diffusion_lewis_number', 'diffusion_schmidt_number', \
@@ -504,7 +502,6 @@ class GlobalData(object):
         self.separate_update_for_viscous_flag = 0
         self.viscous_delay = 0.0
         self.viscous_factor_increment = 0.01
-        self.viscous_upwinding_flag = 0
         self.diffusion_flag = 0
         self.diffusion_model = "None"
         self.diffusion_delay = 0.0
@@ -665,7 +662,6 @@ class GlobalData(object):
         fp.write("viscous_flag = %d\n" % self.viscous_flag)
         fp.write("viscous_delay = %e\n" % self.viscous_delay)
         fp.write("viscous_factor_increment = %e\n" % self.viscous_factor_increment)
-        fp.write("viscous_upwinding_flag = %d\n" % self.viscous_upwinding_flag)
         fp.write("diffusion_flag = %d\n" % self.diffusion_flag)
         fp.write("diffusion_model = %s\n" % self.diffusion_model)
         fp.write("diffusion_delay = %e\n" % self.diffusion_delay)

@@ -116,155 +116,8 @@ int viscous_flux_3D(Block *A)
 		Vtx3 = A->get_vtx(i+1,j+1,k+1);
 		Vtx4 = A->get_vtx(i+1,j,k+1);
 		// Determine some of the interface properties.
-                if ( G.viscous_upwinding ) {
-                    // Select one corner, based on the wind direction.
-	            // When getting the velocity for upwinding, use the interface value
-	            // unless we are at one of the block boundaries. 
-	            // Use the interior cell value for boundary faces because we want to 
-	            // know which direction is upwind, even for no-slip boundaries.
-	            double vt1dp = 0.0;
-	            double vt2dp = 0.0;
-	            if ( i == A->imin-1 ) {
-		        vt1dp = dot(A->get_cell(i+1,j,k)->fs->vel, IFace->t1);
-		        vt2dp = dot(A->get_cell(i+1,j,k)->fs->vel, IFace->t2);
-	            } else if ( i == A->imax ) {
-		        vt1dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t1);
-		        vt2dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t2);
-	            } else {
-		        vt1dp = dot(fs.vel,IFace->t1);
-		        vt2dp = dot(fs.vel,IFace->t2);
-	            }
-		    		    		    if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dudx = Vtx1->dudx; } else { dudx = Vtx4->dudx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dudx = Vtx2->dudx; } else { dudx = Vtx3->dudx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dudy = Vtx1->dudy; } else { dudy = Vtx4->dudy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dudy = Vtx2->dudy; } else { dudy = Vtx3->dudy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dudz = Vtx1->dudz; } else { dudz = Vtx4->dudz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dudz = Vtx2->dudz; } else { dudz = Vtx3->dudz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dvdx = Vtx1->dvdx; } else { dvdx = Vtx4->dvdx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dvdx = Vtx2->dvdx; } else { dvdx = Vtx3->dvdx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dvdy = Vtx1->dvdy; } else { dvdy = Vtx4->dvdy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dvdy = Vtx2->dvdy; } else { dvdy = Vtx3->dvdy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dvdz = Vtx1->dvdz; } else { dvdz = Vtx4->dvdz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dvdz = Vtx2->dvdz; } else { dvdz = Vtx3->dvdz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dwdx = Vtx1->dwdx; } else { dwdx = Vtx4->dwdx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dwdx = Vtx2->dwdx; } else { dwdx = Vtx3->dwdx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dwdy = Vtx1->dwdy; } else { dwdy = Vtx4->dwdy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dwdy = Vtx2->dwdy; } else { dwdy = Vtx3->dwdy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dwdz = Vtx1->dwdz; } else { dwdz = Vtx4->dwdz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dwdz = Vtx2->dwdz; } else { dwdz = Vtx3->dwdz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dtkedx = Vtx1->dtkedx; } else { dtkedx = Vtx4->dtkedx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dtkedx = Vtx2->dtkedx; } else { dtkedx = Vtx3->dtkedx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dtkedy = Vtx1->dtkedy; } else { dtkedy = Vtx4->dtkedy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dtkedy = Vtx2->dtkedy; } else { dtkedy = Vtx3->dtkedy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dtkedz = Vtx1->dtkedz; } else { dtkedz = Vtx4->dtkedz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dtkedz = Vtx2->dtkedz; } else { dtkedz = Vtx3->dtkedz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { domegadx = Vtx1->domegadx; } else { domegadx = Vtx4->domegadx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { domegadx = Vtx2->domegadx; } else { domegadx = Vtx3->domegadx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { domegady = Vtx1->domegady; } else { domegady = Vtx4->domegady; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { domegady = Vtx2->domegady; } else { domegady = Vtx3->domegady; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { domegadz = Vtx1->domegadz; } else { domegadz = Vtx4->domegadz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { domegadz = Vtx2->domegadz; } else { domegadz = Vtx3->domegadz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dpedx = Vtx1->dpedx; } else { dpedx = Vtx4->dpedx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dpedx = Vtx2->dpedx; } else { dpedx = Vtx3->dpedx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dpedy = Vtx1->dpedy; } else { dpedy = Vtx4->dpedy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dpedy = Vtx2->dpedy; } else { dpedy = Vtx3->dpedy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dpedz = Vtx1->dpedz; } else { dpedz = Vtx4->dpedz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dpedz = Vtx2->dpedz; } else { dpedz = Vtx3->dpedz; }
-                           }
-
-		    for ( size_t itm=0; itm<ntm; ++itm ) {
-                        if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dTdx[itm] = Vtx1->dTdx[itm]; } else { dTdx[itm] = Vtx4->dTdx[itm]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dTdx[itm] = Vtx2->dTdx[itm]; } else { dTdx[itm] = Vtx3->dTdx[itm]; }
-                           }
-                        if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dTdy[itm] = Vtx1->dTdy[itm]; } else { dTdy[itm] = Vtx4->dTdy[itm]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dTdy[itm] = Vtx2->dTdy[itm]; } else { dTdy[itm] = Vtx3->dTdy[itm]; }
-                           }
-                        if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dTdz[itm] = Vtx1->dTdz[itm]; } else { dTdz[itm] = Vtx4->dTdz[itm]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dTdz[itm] = Vtx2->dTdz[itm]; } else { dTdz[itm] = Vtx3->dTdz[itm]; }
-                           }
-                    }
-	            if( G.diffusion ) {
-                        // Needed for diffusion model, below.
-		        for( size_t isp = 0; isp < nsp; ++isp ) {
-                            if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dfdx[isp] = Vtx1->dfdx[isp]; } else { dfdx[isp] = Vtx4->dfdx[isp]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dfdx[isp] = Vtx2->dfdx[isp]; } else { dfdx[isp] = Vtx3->dfdx[isp]; }
-                           }
-                            if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dfdy[isp] = Vtx1->dfdy[isp]; } else { dfdy[isp] = Vtx4->dfdy[isp]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dfdy[isp] = Vtx2->dfdy[isp]; } else { dfdy[isp] = Vtx3->dfdy[isp]; }
-                           }
-                            if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dfdz[isp] = Vtx1->dfdz[isp]; } else { dfdz[isp] = Vtx4->dfdz[isp]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dfdz[isp] = Vtx2->dfdz[isp]; } else { dfdz[isp] = Vtx3->dfdz[isp]; }
-                           }
-		        }
-                    }
-                } else {
-                    // Symmetric average.
-		    		    		    dudx = 0.25*(Vtx1->dudx+Vtx2->dudx+Vtx3->dudx+Vtx4->dudx);
+                // Symmetric average.
+						dudx = 0.25*(Vtx1->dudx+Vtx2->dudx+Vtx3->dudx+Vtx4->dudx);
        dudy = 0.25*(Vtx1->dudy+Vtx2->dudy+Vtx3->dudy+Vtx4->dudy);
        dudz = 0.25*(Vtx1->dudz+Vtx2->dudz+Vtx3->dudz+Vtx4->dudz);
        dvdx = 0.25*(Vtx1->dvdx+Vtx2->dvdx+Vtx3->dvdx+Vtx4->dvdx);
@@ -283,20 +136,19 @@ int viscous_flux_3D(Block *A)
        dpedy = 0.25*(Vtx1->dpedy+Vtx2->dpedy+Vtx3->dpedy+Vtx4->dpedy);
        dpedz = 0.25*(Vtx1->dpedz+Vtx2->dpedz+Vtx3->dpedz+Vtx4->dpedz);
 
-		    for ( size_t itm=0; itm<ntm; ++itm ) {
-                        dTdx[itm] = 0.25*(Vtx1->dTdx[itm]+Vtx2->dTdx[itm]+Vtx3->dTdx[itm]+Vtx4->dTdx[itm]);
-                        dTdy[itm] = 0.25*(Vtx1->dTdy[itm]+Vtx2->dTdy[itm]+Vtx3->dTdy[itm]+Vtx4->dTdy[itm]);
-                        dTdz[itm] = 0.25*(Vtx1->dTdz[itm]+Vtx2->dTdz[itm]+Vtx3->dTdz[itm]+Vtx4->dTdz[itm]);
-                    }
-	            if( G.diffusion ) {
-                        // Needed for diffusion model, below.
-		        for( size_t isp = 0; isp < nsp; ++isp ) {
-                            dfdx[isp] = 0.25*(Vtx1->dfdx[isp]+Vtx2->dfdx[isp]+Vtx3->dfdx[isp]+Vtx4->dfdx[isp]);
-                            dfdy[isp] = 0.25*(Vtx1->dfdy[isp]+Vtx2->dfdy[isp]+Vtx3->dfdy[isp]+Vtx4->dfdy[isp]);
-                            dfdz[isp] = 0.25*(Vtx1->dfdz[isp]+Vtx2->dfdz[isp]+Vtx3->dfdz[isp]+Vtx4->dfdz[isp]);
-		        }
-                    }
-                }		    
+		for ( size_t itm=0; itm<ntm; ++itm ) {
+                    dTdx[itm] = 0.25*(Vtx1->dTdx[itm]+Vtx2->dTdx[itm]+Vtx3->dTdx[itm]+Vtx4->dTdx[itm]);
+                    dTdy[itm] = 0.25*(Vtx1->dTdy[itm]+Vtx2->dTdy[itm]+Vtx3->dTdy[itm]+Vtx4->dTdy[itm]);
+                    dTdz[itm] = 0.25*(Vtx1->dTdz[itm]+Vtx2->dTdz[itm]+Vtx3->dTdz[itm]+Vtx4->dTdz[itm]);
+                }
+	        if( G.diffusion ) {
+                    // Needed for diffusion model, below.
+		    for( size_t isp = 0; isp < nsp; ++isp ) {
+                        dfdx[isp] = 0.25*(Vtx1->dfdx[isp]+Vtx2->dfdx[isp]+Vtx3->dfdx[isp]+Vtx4->dfdx[isp]);
+                        dfdy[isp] = 0.25*(Vtx1->dfdy[isp]+Vtx2->dfdy[isp]+Vtx3->dfdy[isp]+Vtx4->dfdy[isp]);
+                        dfdz[isp] = 0.25*(Vtx1->dfdz[isp]+Vtx2->dfdz[isp]+Vtx3->dfdz[isp]+Vtx4->dfdz[isp]);
+		    }
+                }
                 k_eff[0] = viscous_factor * (fs.gas->k[0] + fs.k_t);
 		for ( size_t itm=1; itm<ntm; ++itm ) {
 		    k_eff[itm] = viscous_factor * fs.gas->k[itm];
@@ -425,155 +277,8 @@ int viscous_flux_3D(Block *A)
 		Vtx3 = A->get_vtx(i+1,j+1,k+1);
 		Vtx4 = A->get_vtx(i+1,j+1,k);
 		// Determine some of the interface properties.
-                if ( G.viscous_upwinding ) {
-                    // Select one corner, based on the wind direction.
-	            // When getting the velocity for upwinding, use the interface value
-	            // unless we are at one of the block boundaries. 
-	            // Use the interior cell value for boundary faces because we want to 
-	            // know which direction is upwind, even for no-slip boundaries.
-	            double vt1dp = 0.0;
-	            double vt2dp = 0.0;
-	            if ( j == A->jmin-1 ) {
-		        vt1dp = dot(A->get_cell(i,j+1,k)->fs->vel, IFace->t1);
-		        vt2dp = dot(A->get_cell(i,j+1,k)->fs->vel, IFace->t2);
-	            } else if ( j == A->jmax ) {
-		        vt1dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t1);
-		        vt2dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t2);
-	            } else {
-		        vt1dp = dot(fs.vel,IFace->t1);
-		        vt2dp = dot(fs.vel,IFace->t2);
-	            }
-		    if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dudx = Vtx1->dudx; } else { dudx = Vtx4->dudx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dudx = Vtx2->dudx; } else { dudx = Vtx3->dudx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dudy = Vtx1->dudy; } else { dudy = Vtx4->dudy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dudy = Vtx2->dudy; } else { dudy = Vtx3->dudy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dudz = Vtx1->dudz; } else { dudz = Vtx4->dudz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dudz = Vtx2->dudz; } else { dudz = Vtx3->dudz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dvdx = Vtx1->dvdx; } else { dvdx = Vtx4->dvdx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dvdx = Vtx2->dvdx; } else { dvdx = Vtx3->dvdx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dvdy = Vtx1->dvdy; } else { dvdy = Vtx4->dvdy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dvdy = Vtx2->dvdy; } else { dvdy = Vtx3->dvdy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dvdz = Vtx1->dvdz; } else { dvdz = Vtx4->dvdz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dvdz = Vtx2->dvdz; } else { dvdz = Vtx3->dvdz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dwdx = Vtx1->dwdx; } else { dwdx = Vtx4->dwdx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dwdx = Vtx2->dwdx; } else { dwdx = Vtx3->dwdx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dwdy = Vtx1->dwdy; } else { dwdy = Vtx4->dwdy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dwdy = Vtx2->dwdy; } else { dwdy = Vtx3->dwdy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dwdz = Vtx1->dwdz; } else { dwdz = Vtx4->dwdz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dwdz = Vtx2->dwdz; } else { dwdz = Vtx3->dwdz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dtkedx = Vtx1->dtkedx; } else { dtkedx = Vtx4->dtkedx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dtkedx = Vtx2->dtkedx; } else { dtkedx = Vtx3->dtkedx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dtkedy = Vtx1->dtkedy; } else { dtkedy = Vtx4->dtkedy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dtkedy = Vtx2->dtkedy; } else { dtkedy = Vtx3->dtkedy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dtkedz = Vtx1->dtkedz; } else { dtkedz = Vtx4->dtkedz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dtkedz = Vtx2->dtkedz; } else { dtkedz = Vtx3->dtkedz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { domegadx = Vtx1->domegadx; } else { domegadx = Vtx4->domegadx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { domegadx = Vtx2->domegadx; } else { domegadx = Vtx3->domegadx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { domegady = Vtx1->domegady; } else { domegady = Vtx4->domegady; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { domegady = Vtx2->domegady; } else { domegady = Vtx3->domegady; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { domegadz = Vtx1->domegadz; } else { domegadz = Vtx4->domegadz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { domegadz = Vtx2->domegadz; } else { domegadz = Vtx3->domegadz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dpedx = Vtx1->dpedx; } else { dpedx = Vtx4->dpedx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dpedx = Vtx2->dpedx; } else { dpedx = Vtx3->dpedx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dpedy = Vtx1->dpedy; } else { dpedy = Vtx4->dpedy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dpedy = Vtx2->dpedy; } else { dpedy = Vtx3->dpedy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dpedz = Vtx1->dpedz; } else { dpedz = Vtx4->dpedz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dpedz = Vtx2->dpedz; } else { dpedz = Vtx3->dpedz; }
-                           }
-
-		    for ( size_t itm=0; itm<ntm; ++itm ) {
-                        if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dTdx[itm] = Vtx1->dTdx[itm]; } else { dTdx[itm] = Vtx4->dTdx[itm]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dTdx[itm] = Vtx2->dTdx[itm]; } else { dTdx[itm] = Vtx3->dTdx[itm]; }
-                           }
-                        if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dTdy[itm] = Vtx1->dTdy[itm]; } else { dTdy[itm] = Vtx4->dTdy[itm]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dTdy[itm] = Vtx2->dTdy[itm]; } else { dTdy[itm] = Vtx3->dTdy[itm]; }
-                           }
-                        if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dTdz[itm] = Vtx1->dTdz[itm]; } else { dTdz[itm] = Vtx4->dTdz[itm]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dTdz[itm] = Vtx2->dTdz[itm]; } else { dTdz[itm] = Vtx3->dTdz[itm]; }
-                           }
-                    }
-	            if( G.diffusion ) {
-                        // Needed for diffusion model, below.
-		        for( size_t isp = 0; isp < nsp; ++isp ) {
-                            if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dfdx[isp] = Vtx1->dfdx[isp]; } else { dfdx[isp] = Vtx4->dfdx[isp]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dfdx[isp] = Vtx2->dfdx[isp]; } else { dfdx[isp] = Vtx3->dfdx[isp]; }
-                           }
-                            if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dfdy[isp] = Vtx1->dfdy[isp]; } else { dfdy[isp] = Vtx4->dfdy[isp]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dfdy[isp] = Vtx2->dfdy[isp]; } else { dfdy[isp] = Vtx3->dfdy[isp]; }
-                           }
-                            if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dfdz[isp] = Vtx1->dfdz[isp]; } else { dfdz[isp] = Vtx4->dfdz[isp]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dfdz[isp] = Vtx2->dfdz[isp]; } else { dfdz[isp] = Vtx3->dfdz[isp]; }
-                           }
-		        }
-                    }
-                } else {
-                    // Symmetric average.
- 		    dudx = 0.25*(Vtx1->dudx+Vtx2->dudx+Vtx3->dudx+Vtx4->dudx);
+                // Symmetric average.
+ 		dudx = 0.25*(Vtx1->dudx+Vtx2->dudx+Vtx3->dudx+Vtx4->dudx);
        dudy = 0.25*(Vtx1->dudy+Vtx2->dudy+Vtx3->dudy+Vtx4->dudy);
        dudz = 0.25*(Vtx1->dudz+Vtx2->dudz+Vtx3->dudz+Vtx4->dudz);
        dvdx = 0.25*(Vtx1->dvdx+Vtx2->dvdx+Vtx3->dvdx+Vtx4->dvdx);
@@ -592,19 +297,18 @@ int viscous_flux_3D(Block *A)
        dpedy = 0.25*(Vtx1->dpedy+Vtx2->dpedy+Vtx3->dpedy+Vtx4->dpedy);
        dpedz = 0.25*(Vtx1->dpedz+Vtx2->dpedz+Vtx3->dpedz+Vtx4->dpedz);
 
-		    for ( size_t itm=0; itm<ntm; ++itm ) {
-                        dTdx[itm] = 0.25*(Vtx1->dTdx[itm]+Vtx2->dTdx[itm]+Vtx3->dTdx[itm]+Vtx4->dTdx[itm]);
-                        dTdy[itm] = 0.25*(Vtx1->dTdy[itm]+Vtx2->dTdy[itm]+Vtx3->dTdy[itm]+Vtx4->dTdy[itm]);
-                        dTdz[itm] = 0.25*(Vtx1->dTdz[itm]+Vtx2->dTdz[itm]+Vtx3->dTdz[itm]+Vtx4->dTdz[itm]);
-                    }
- 	            if( G.diffusion ) {
-                        // derivatives needed for diffusion model, below
-		        for( size_t isp = 0; isp < nsp; ++isp ) {
-                            dfdx[isp] = 0.25*(Vtx1->dfdx[isp]+Vtx2->dfdx[isp]+Vtx3->dfdx[isp]+Vtx4->dfdx[isp]);
-                            dfdy[isp] = 0.25*(Vtx1->dfdy[isp]+Vtx2->dfdy[isp]+Vtx3->dfdy[isp]+Vtx4->dfdy[isp]);
-                            dfdz[isp] = 0.25*(Vtx1->dfdz[isp]+Vtx2->dfdz[isp]+Vtx3->dfdz[isp]+Vtx4->dfdz[isp]);
-		        }
-                    }
+		for ( size_t itm=0; itm<ntm; ++itm ) {
+                    dTdx[itm] = 0.25*(Vtx1->dTdx[itm]+Vtx2->dTdx[itm]+Vtx3->dTdx[itm]+Vtx4->dTdx[itm]);
+                    dTdy[itm] = 0.25*(Vtx1->dTdy[itm]+Vtx2->dTdy[itm]+Vtx3->dTdy[itm]+Vtx4->dTdy[itm]);
+                    dTdz[itm] = 0.25*(Vtx1->dTdz[itm]+Vtx2->dTdz[itm]+Vtx3->dTdz[itm]+Vtx4->dTdz[itm]);
+                }
+ 	        if( G.diffusion ) {
+                    // derivatives needed for diffusion model, below
+		    for( size_t isp = 0; isp < nsp; ++isp ) {
+                        dfdx[isp] = 0.25*(Vtx1->dfdx[isp]+Vtx2->dfdx[isp]+Vtx3->dfdx[isp]+Vtx4->dfdx[isp]);
+                        dfdy[isp] = 0.25*(Vtx1->dfdy[isp]+Vtx2->dfdy[isp]+Vtx3->dfdy[isp]+Vtx4->dfdy[isp]);
+                        dfdz[isp] = 0.25*(Vtx1->dfdz[isp]+Vtx2->dfdz[isp]+Vtx3->dfdz[isp]+Vtx4->dfdz[isp]);
+		    }
                 }
                 k_eff[0] = viscous_factor * (fs.gas->k[0] + fs.k_t);
 		for ( size_t itm=1; itm<ntm; ++itm ) {
@@ -734,155 +438,8 @@ int viscous_flux_3D(Block *A)
 		Vtx3 = A->get_vtx(i+1,j+1,k+1);
 		Vtx4 = A->get_vtx(i,j+1,k+1);
 		// Determine some of the interface properties.
-                if ( G.viscous_upwinding ) {
-                    // Select one corner, based on the wind direction.
-	            // When getting the velocity for upwinding, use the interface value
-	            // unless we are at one of the block boundaries. 
-	            // Use the interior cell value for boundary faces because we want to 
-	            // know which direction is upwind, even for no-slip boundaries.
-	            double vt1dp = 0.0;
-	            double vt2dp = 0.0;
-	            if ( k == A->kmin-1 ) {
-		        vt1dp = dot(A->get_cell(i,j,k+1)->fs->vel, IFace->t1);
-		        vt2dp = dot(A->get_cell(i,j,k+1)->fs->vel, IFace->t2);
-	            } else if ( k == A->kmax ) {
-		        vt1dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t1);
-		        vt2dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t2);
-	            } else {
-		        vt1dp = dot(fs.vel,IFace->t1);
-		        vt2dp = dot(fs.vel,IFace->t2);
-	            }
-		    if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dudx = Vtx1->dudx; } else { dudx = Vtx4->dudx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dudx = Vtx2->dudx; } else { dudx = Vtx3->dudx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dudy = Vtx1->dudy; } else { dudy = Vtx4->dudy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dudy = Vtx2->dudy; } else { dudy = Vtx3->dudy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dudz = Vtx1->dudz; } else { dudz = Vtx4->dudz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dudz = Vtx2->dudz; } else { dudz = Vtx3->dudz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dvdx = Vtx1->dvdx; } else { dvdx = Vtx4->dvdx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dvdx = Vtx2->dvdx; } else { dvdx = Vtx3->dvdx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dvdy = Vtx1->dvdy; } else { dvdy = Vtx4->dvdy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dvdy = Vtx2->dvdy; } else { dvdy = Vtx3->dvdy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dvdz = Vtx1->dvdz; } else { dvdz = Vtx4->dvdz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dvdz = Vtx2->dvdz; } else { dvdz = Vtx3->dvdz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dwdx = Vtx1->dwdx; } else { dwdx = Vtx4->dwdx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dwdx = Vtx2->dwdx; } else { dwdx = Vtx3->dwdx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dwdy = Vtx1->dwdy; } else { dwdy = Vtx4->dwdy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dwdy = Vtx2->dwdy; } else { dwdy = Vtx3->dwdy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dwdz = Vtx1->dwdz; } else { dwdz = Vtx4->dwdz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dwdz = Vtx2->dwdz; } else { dwdz = Vtx3->dwdz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dtkedx = Vtx1->dtkedx; } else { dtkedx = Vtx4->dtkedx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dtkedx = Vtx2->dtkedx; } else { dtkedx = Vtx3->dtkedx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dtkedy = Vtx1->dtkedy; } else { dtkedy = Vtx4->dtkedy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dtkedy = Vtx2->dtkedy; } else { dtkedy = Vtx3->dtkedy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dtkedz = Vtx1->dtkedz; } else { dtkedz = Vtx4->dtkedz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dtkedz = Vtx2->dtkedz; } else { dtkedz = Vtx3->dtkedz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { domegadx = Vtx1->domegadx; } else { domegadx = Vtx4->domegadx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { domegadx = Vtx2->domegadx; } else { domegadx = Vtx3->domegadx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { domegady = Vtx1->domegady; } else { domegady = Vtx4->domegady; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { domegady = Vtx2->domegady; } else { domegady = Vtx3->domegady; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { domegadz = Vtx1->domegadz; } else { domegadz = Vtx4->domegadz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { domegadz = Vtx2->domegadz; } else { domegadz = Vtx3->domegadz; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dpedx = Vtx1->dpedx; } else { dpedx = Vtx4->dpedx; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dpedx = Vtx2->dpedx; } else { dpedx = Vtx3->dpedx; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dpedy = Vtx1->dpedy; } else { dpedy = Vtx4->dpedy; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dpedy = Vtx2->dpedy; } else { dpedy = Vtx3->dpedy; }
-                           }
-       if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dpedz = Vtx1->dpedz; } else { dpedz = Vtx4->dpedz; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dpedz = Vtx2->dpedz; } else { dpedz = Vtx3->dpedz; }
-                           }
-
-		    for ( size_t itm=0; itm<ntm; ++itm ) {
-                        if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dTdx[itm] = Vtx1->dTdx[itm]; } else { dTdx[itm] = Vtx4->dTdx[itm]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dTdx[itm] = Vtx2->dTdx[itm]; } else { dTdx[itm] = Vtx3->dTdx[itm]; }
-                           }
-                        if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dTdy[itm] = Vtx1->dTdy[itm]; } else { dTdy[itm] = Vtx4->dTdy[itm]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dTdy[itm] = Vtx2->dTdy[itm]; } else { dTdy[itm] = Vtx3->dTdy[itm]; }
-                           }
-                        if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dTdz[itm] = Vtx1->dTdz[itm]; } else { dTdz[itm] = Vtx4->dTdz[itm]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dTdz[itm] = Vtx2->dTdz[itm]; } else { dTdz[itm] = Vtx3->dTdz[itm]; }
-                           }
-                    }
-	            if( G.diffusion ) {
-                        // Needed for diffusion model, below.
-		        for( size_t isp = 0; isp < nsp; ++isp ) {
-                            if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dfdx[isp] = Vtx1->dfdx[isp]; } else { dfdx[isp] = Vtx4->dfdx[isp]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dfdx[isp] = Vtx2->dfdx[isp]; } else { dfdx[isp] = Vtx3->dfdx[isp]; }
-                           }
-                            if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dfdy[isp] = Vtx1->dfdy[isp]; } else { dfdy[isp] = Vtx4->dfdy[isp]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dfdy[isp] = Vtx2->dfdy[isp]; } else { dfdy[isp] = Vtx3->dfdy[isp]; }
-                           }
-                            if ( vt1dp >= 0.0 ) {
-		               if ( vt2dp >= 0.0 ) { dfdz[isp] = Vtx1->dfdz[isp]; } else { dfdz[isp] = Vtx4->dfdz[isp]; }
-                           } else {
-		               if ( vt2dp >= 0.0 ) { dfdz[isp] = Vtx2->dfdz[isp]; } else { dfdz[isp] = Vtx3->dfdz[isp]; }
-                           }
-		        }
-                    }
-                } else {
-                    // Symmetric average.
-		    dudx = 0.25*(Vtx1->dudx+Vtx2->dudx+Vtx3->dudx+Vtx4->dudx);
+                // Symmetric average.
+		dudx = 0.25*(Vtx1->dudx+Vtx2->dudx+Vtx3->dudx+Vtx4->dudx);
        dudy = 0.25*(Vtx1->dudy+Vtx2->dudy+Vtx3->dudy+Vtx4->dudy);
        dudz = 0.25*(Vtx1->dudz+Vtx2->dudz+Vtx3->dudz+Vtx4->dudz);
        dvdx = 0.25*(Vtx1->dvdx+Vtx2->dvdx+Vtx3->dvdx+Vtx4->dvdx);
@@ -901,19 +458,18 @@ int viscous_flux_3D(Block *A)
        dpedy = 0.25*(Vtx1->dpedy+Vtx2->dpedy+Vtx3->dpedy+Vtx4->dpedy);
        dpedz = 0.25*(Vtx1->dpedz+Vtx2->dpedz+Vtx3->dpedz+Vtx4->dpedz);
 
-		    for ( size_t itm=0; itm<ntm; ++itm ) {
-                        dTdx[itm] = 0.25*(Vtx1->dTdx[itm]+Vtx2->dTdx[itm]+Vtx3->dTdx[itm]+Vtx4->dTdx[itm]);
-                        dTdy[itm] = 0.25*(Vtx1->dTdy[itm]+Vtx2->dTdy[itm]+Vtx3->dTdy[itm]+Vtx4->dTdy[itm]);
-                        dTdz[itm] = 0.25*(Vtx1->dTdz[itm]+Vtx2->dTdz[itm]+Vtx3->dTdz[itm]+Vtx4->dTdz[itm]);
-                    }
- 	            if( G.diffusion ) {
-                        // derivatives needed for diffusion model, below
-		        for( size_t isp = 0; isp < nsp; ++isp ) {
-                            dfdx[isp] = 0.25*(Vtx1->dfdx[isp]+Vtx2->dfdx[isp]+Vtx3->dfdx[isp]+Vtx4->dfdx[isp]);
-                            dfdy[isp] = 0.25*(Vtx1->dfdy[isp]+Vtx2->dfdy[isp]+Vtx3->dfdy[isp]+Vtx4->dfdy[isp]);
-                            dfdz[isp] = 0.25*(Vtx1->dfdz[isp]+Vtx2->dfdz[isp]+Vtx3->dfdz[isp]+Vtx4->dfdz[isp]);
-		        }
-                    }
+		for ( size_t itm=0; itm<ntm; ++itm ) {
+                    dTdx[itm] = 0.25*(Vtx1->dTdx[itm]+Vtx2->dTdx[itm]+Vtx3->dTdx[itm]+Vtx4->dTdx[itm]);
+                    dTdy[itm] = 0.25*(Vtx1->dTdy[itm]+Vtx2->dTdy[itm]+Vtx3->dTdy[itm]+Vtx4->dTdy[itm]);
+                    dTdz[itm] = 0.25*(Vtx1->dTdz[itm]+Vtx2->dTdz[itm]+Vtx3->dTdz[itm]+Vtx4->dTdz[itm]);
+                }
+ 	        if( G.diffusion ) {
+                    // derivatives needed for diffusion model, below
+		    for( size_t isp = 0; isp < nsp; ++isp ) {
+                        dfdx[isp] = 0.25*(Vtx1->dfdx[isp]+Vtx2->dfdx[isp]+Vtx3->dfdx[isp]+Vtx4->dfdx[isp]);
+                        dfdy[isp] = 0.25*(Vtx1->dfdy[isp]+Vtx2->dfdy[isp]+Vtx3->dfdy[isp]+Vtx4->dfdy[isp]);
+                        dfdz[isp] = 0.25*(Vtx1->dfdz[isp]+Vtx2->dfdz[isp]+Vtx3->dfdz[isp]+Vtx4->dfdz[isp]);
+		    }
                 }
                 k_eff[0] = viscous_factor * (fs.gas->k[0] + fs.k_t);
 		for ( size_t itm=1; itm<ntm; ++itm ) {

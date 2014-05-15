@@ -404,7 +404,6 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_boolean("global_data", "viscous_flag", G.viscous, false);
     dict.parse_double("global_data", "viscous_delay", G.viscous_time_delay, 0.0);
     dict.parse_double("global_data", "viscous_factor_increment", G.viscous_factor_increment, 0.01);
-    dict.parse_boolean("global_data", "viscous_upwinding_flag", G.viscous_upwinding, false);
     // FIX-ME 2013-04-23 should probably merge diffusion_model and diffusion_flag
     // as we have done for turbulence_model, below.
     dict.parse_boolean("global_data", "diffusion_flag", G.diffusion, false);
@@ -416,7 +415,6 @@ int read_config_parameters(const string filename, bool master)
 	cout << "viscous_flag = " << G.viscous << endl;
 	cout << "viscous_delay = " << G.viscous_time_delay << endl;
 	cout << "viscous_factor_increment = " << G.viscous_factor_increment << endl;
-	cout << "viscous_upwinding_flag = " << G.viscous_upwinding << endl;
 	cout << "diffusion_flag = " << G.diffusion << endl;
 	cout << "diffusion_delay = " << G.diffusion_time_delay << endl;
 	cout << "diffusion_factor_increment = " << G.diffusion_factor_increment << endl;
