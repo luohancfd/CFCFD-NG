@@ -5,7 +5,10 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <vector>
 #include "l1d.hh"
+#include <iostream>
+#include <fstream>
 
 // We may have zero or more pistons pushing against the gas.
 class PistonData {
@@ -33,6 +36,8 @@ public:
     int brakes_on;      /* Flag for the piston brakes       */
     int brakes_on_old;
     int is_restrain;    /* Flag for initial restraint       */
+                        /* 1 = restrained, 0 = free         */	
+                        /* 2 = read-in trajectory from "piston_trajectory.dat"  */						
     int is_restrain_old;
                         /* 1 = restrained, 0 = free         */
     int hit_buffer_count; /* recording buffer strikes       */
@@ -52,7 +57,10 @@ public:
     double Pf;          /* pressure on front face, N/m**2   */
     double Pb;          /* pressure on back face, N/m**2    */
     double Friction;    /* friction force, N                */
-
+    std::vector<double> Ptime;  /* piston timing, m            */
+    std::vector<double> Pvel;   /* piston velocity, m/s        */
+    std::vector<double> Pacc;   /* piston acceleration, m/s^2  */	
+		
     // Time derivatives. 
     double dt;          /* current time step, s             */
     double DxDt[NL];    /* velocity, m/s                    */

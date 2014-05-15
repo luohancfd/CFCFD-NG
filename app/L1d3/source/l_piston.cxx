@@ -92,10 +92,6 @@ PistonData::PistonData(int indx, double dt_init, std::string config_file_name, i
 	cout << "    x0 = " << x0 << endl;
 	cout << "    v0 = " << V0 << endl;
     }
-    for ( int i=0; i < NL; ++i ) {
-	DxDt[i] = V; // The [0] value is used by write_state() so we set it now.
-	DVDt[i] = 0.0;
-    }
     // Mass decay
     dict.parse_double(section, "f_decay", f_decay, 0.0);
     dict.parse_double(section, "mass_limit", mass_limit, 0.0);
@@ -107,8 +103,36 @@ PistonData::PistonData(int indx, double dt_init, std::string config_file_name, i
 	apply_decay = 1;
     else 
 	apply_decay = 0;
+	
+    // If the user specified "is_restrain" to a value of 2, the piston follows a predefined trajectory
+    if (is_restrain == 2) {
+	if (echo_input == 1) {
+             cout << "predefined piston trajectory option enabled" << endl;   // send information to command line
+             cout << "reading piston trajectory from file: piston_trajectory.dat\n";
+        }
+       	// read in external file 
+	ifstream file;
+	file.open("piston_trajectory.dat");
+	if(file.fail()){
+		cerr << "failed to open file piston_trajectory.dat" << endl;
+		exit(1);
+	}
+	//begin reading in file
+	double tmp;
+        file >> tmp; // Grab one value to get started
+	while (!file.eof()) {
+		Ptime.push_back(tmp);
+		file >> tmp;
+		Pvel.push_back(tmp);
+		file >> tmp;
+		Pacc.push_back(tmp);
+                // Try to get next time value.
+                file >> tmp;
+                // If file is at end, we'll find out at top of loop.
+	}
+	file.close();
+    }
 }
-
 
 PistonData::PistonData(const PistonData& pd)
 {
@@ -146,6 +170,9 @@ PistonData::PistonData(const PistonData& pd)
     Pf = pd.Pf;
     Pb = pd.Pb;
     Friction = pd.Friction;
+    Ptime = pd.Ptime;
+    Pvel = pd.Pvel;
+    Pacc = pd.Pacc;
     dt = pd.dt;
     for ( int i = 0; i < NL; ++i ) {
 	DxDt[i] = pd.DxDt[i];
@@ -256,7 +283,33 @@ int PistonData::time_derivatives(int time_level, double sim_time)
         DVDt[time_level] = 0.0;
         return 0;
     }
-
+    // If the user specified "is_restrain" to a value of 2, the piston follows a predefined trajectory
+    if ( is_restrain == 2 ) {
+	//locate time index
+	size_t tidx0 = 0;
+	size_t tidx1 = 0;
+	for ( size_t i = 0; i < Ptime.size(); ++i ) {
+	    if ( Ptime[i] >= sim_time ) {
+		tidx1 = i;
+		tidx0 = tidx1-1;
+		break;
+	    }
+	}
+	if ( tidx1 == 0 ) {
+            V = Pvel[0];
+	    DxDt[time_level] = V;
+	    DVDt[time_level] = Pacc[0];
+	}
+	else {
+	    double frac = (sim_time - Ptime[tidx0])/(Ptime[tidx1] - Ptime[tidx0]);
+	    V = Pvel[tidx0] + frac*(Pvel[tidx1] - Pvel[tidx0]);
+            DxDt[time_level] = V;
+	    DVDt[time_level] = Pacc[tidx0] + frac*(Pacc[tidx1] - Pacc[tidx0]);
+	}
+	// For this specified motion case, we are now done setting derivatives
+	return 0;
+    }
+		
     // Check for buffer strike only while we're moving forward.
     if ( x > x_buffer && V > V_TOL && on_buffer == 0 ) {
         hit_buffer_count += 1;
@@ -334,12 +387,15 @@ int PistonData::time_derivatives(int time_level, double sim_time)
 int PistonData::predictor_step(void)
 // Use the time derivatives to advance the piston dynamics forward by time step dt.
 {
-    if ( is_restrain || brakes_on ) {
+    if ( (is_restrain == 1) || brakes_on ) {
         x = x_old;
         V = 0.0;
     } else if ( on_buffer == 1 ) {
         x = x_old;
         V = 0.0 + dt * DVDt[0];
+    } else if ( is_restrain == 2 ) {
+        x = x_old + dt * DxDt[0];
+        V = DxDt[0]; // Set from file
     } else {
         x = x_old + dt * DxDt[0];
         V = V_old + dt * DVDt[0];
@@ -360,12 +416,15 @@ int PistonData::predictor_step(void)
 int PistonData::corrector_step(void)
 // Use the time derivatives to advance the piston dynamics forward by time step dt.
 {
-    if ( is_restrain || brakes_on ) {
+    if ( (is_restrain == 1) || brakes_on ) {
         x = x_old;
         V = 0.0;
     } else if ( on_buffer == 1 ) {
         x = x_old;
         V = 0.0 + dt * 0.5 * (DVDt[1] + DVDt[0]);
+    } else if ( is_restrain == 2 ) {
+        x = x_old + dt * 0.5 * (DxDt[1] + DxDt[0]);
+        V = DxDt[0]; // Set from file
     } else {
         x = x_old + dt * 0.5 * (DxDt[1] + DxDt[0]);
         V = V_old + dt * 0.5 * (DVDt[1] + DVDt[0]);

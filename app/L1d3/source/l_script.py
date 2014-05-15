@@ -865,7 +865,7 @@ class Piston(object):
             restraint until the pressure behind the piston reaches
             a critical value.  The piston is then allowed to slide.
         :param is_restrain: (int) Status flag for restraint.
-            0=free-to-move, 1=restrained.
+            0=free-to-move, 1=restrained, 2=predefined trajectory read from external file
         :param with_brakes: (int) Flag to indicate the presence of brakes.
             0=no-brakes, 1=piston-does-have-brakes.
             Such brakes, as on the T4 shock tunnel, allow forward
