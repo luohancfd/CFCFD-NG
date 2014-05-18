@@ -20,6 +20,24 @@ default.d = {
    description = 'equivalent hard-sphere diameter, sigma from L-J parameters',
    reference = 'value for air: Bird, Stewart and Lightfoot (2001), p. 864'
 }
+default.p_a = {
+   value = 101325.0,
+   units = 'Pa',
+   description = 'reference pressure for air in simple gas model',
+   reference = 'Ask Kan (Jason) Qin'
+}
+default.rho_a = {
+   value = 10.0,
+   units = 'kg/m^3',
+   description = 'reference density for air in simple gas model',
+   reference = 'Ask Kan (Jason) Qin'
+}
+default.k_s = {
+   value = 1.0,
+   units = '-',
+   description = 'reference k_s for air in simple gas model',
+   reference = 'Ask Kan (Jason) Qin'
+}
 -- transport properties for air (as default)
 default.viscosity = { 
    model = "Sutherland",

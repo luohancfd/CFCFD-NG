@@ -37,7 +37,7 @@ ideal_gas = {
 }
 
 simple_gas = {
-   value_list = {"M", "gamma", "d", "e_zero", "q"},
+   value_list = {"M", "gamma", "e_zero", "q", "d", "p_a", "rho_a", "k_s"},
    model_list = {"viscosity", "thermal_conductivity"},
    EOS = "simple gas",
    TBM = "constant specific heats",

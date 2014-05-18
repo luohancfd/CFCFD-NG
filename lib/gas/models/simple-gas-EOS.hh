@@ -22,8 +22,9 @@ public:
     ~Simple_gas();
     
 private:
-    std::vector<double> R_;
+    double R_;
     int iel_;	// electron isp index
+    double p_a_, rho_a_, k_s_;
     
     int s_eval_pressure(Gas_data &Q);
     int s_eval_temperature(Gas_data &Q);
@@ -37,8 +38,8 @@ private:
     double s_dpdT_i_const_rho(const Gas_data &Q, int itm, int &status);
 };
 
-double simple_pressure(double rho);
+double simple_pressure(double rho, double p_a, double rho_a, double k_s);
 double simple_temperature(double rho, double p, double R);
-double simple_density(double p);
+double simple_density(double p, double p_a, double rho_a, double k_s);
 
 #endif
