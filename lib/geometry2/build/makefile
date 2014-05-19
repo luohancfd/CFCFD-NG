@@ -103,7 +103,7 @@ lua_shared_library: $(LUA_SHARED_LIBRARY)
 #--------------- EXE Files ----------------------------------
 
 geom_test.x : geom_test.o $(LIBGEOM2)
-	$(CXXLINK) -o geom_test.x geom_test.o $(LIBGEOM2) $(LLIB)
+	$(CXXLINK) $(LFLAG) -o geom_test.x geom_test.o $(LIBGEOM2) $(LLIB)
 
 geom_test.py : $(SRC)/geom_test.py
 	cp $(SRC)/geom_test.py .
@@ -121,27 +121,27 @@ polar_test.py : $(SRC)/polar_test.py
 	cp $(SRC)/polar_test.py .
 
 gpath_test.x : gpath_test.o $(LIBGEOM2)
-	$(CXXLINK) -o gpath_test.x gpath_test.o $(LIBGEOM2) $(LLIB)
+	$(CXXLINK) $(LFLAG) -o gpath_test.x gpath_test.o $(LIBGEOM2) $(LLIB)
 
 test_create_cubic.x : test_create_cubic.o $(LIBGEOM2) no_fuss_linear_algebra.o
-	$(CXXLINK) -o test_create_cubic.x test_create_cubic.o $(LIBGEOM2) \
+	$(CXXLINK) $(LFLAG) -o test_create_cubic.x test_create_cubic.o $(LIBGEOM2) \
 		no_fuss_linear_algebra.o $(LLIB)
 
 
 secant_test.x : secant_test.o secant.o
-	$(CXXLINK) -o secant_test.x secant_test.o secant.o $(LLIB)
+	$(CXXLINK) $(LFLAG) -o secant_test.x secant_test.o secant.o $(LLIB)
 
 surface_test.x : surface_test.o $(LIBGEOM2)
-	$(CXXLINK) -o surface_test.x surface_test.o $(LIBGEOM2) $(LLIB)
+	$(CXXLINK) $(LFLAG) -o surface_test.x surface_test.o $(LIBGEOM2) $(LLIB)
 
 triangle_patch_test.x : triangle_patch_test.o $(LIBGEOM2)
-	$(CXXLINK) -o triangle_patch_test.x triangle_patch_test.o $(LIBGEOM2) $(LLIB)
+	$(CXXLINK) $(LFLAG) -o triangle_patch_test.x triangle_patch_test.o $(LIBGEOM2) $(LLIB)
 
 revolved_surface_test.x : revolved_surface_test.o $(LIBGEOM2)
-	$(CXXLINK) -o revolved_surface_test.x revolved_surface_test.o $(LIBGEOM2) $(LLIB)
+	$(CXXLINK) $(LFLAG) -o revolved_surface_test.x revolved_surface_test.o $(LIBGEOM2) $(LLIB)
 
 fobject_test.x : fobject_test.o $(LIBGEOM2)
-	$(CXXLINK) -o fobject_test.x fobject_test.o $(LIBGEOM2) $(LLIB)
+	$(CXXLINK) $(LFLAG) -o fobject_test.x fobject_test.o $(LIBGEOM2) $(LLIB)
 
 surface_test.py : $(SRC)/surface_test.py
 	cp $(SRC)/surface_test.py .
@@ -171,17 +171,17 @@ blockgrid3d.py : $(SRC)/blockgrid3d.py
 	cp $(SRC)/blockgrid3d.py .
 
 fit_spline.x : fit_spline.o best_fit_spline.o $(LIBGEOM2)
-	$(CXXLINK) -o fit_spline.x fit_spline.o best_fit_spline.o $(LIBGEOM2) $(LLIB)
+	$(CXXLINK) $(LFLAG) -o fit_spline.x fit_spline.o best_fit_spline.o $(LIBGEOM2) $(LLIB)
 
 # A Lua interpreter with geometry functions built in.
 lgeom : $(SRC)/lgeom.cxx $(LIBGEOM2) $(LIBLUAGEOM2) $(LIBLUA)
-	$(CXXLINK) $(LDFLAG) -o lgeom $(SRC)/lgeom.cxx $(LIBLUAGEOM2) \
+	$(CXXLINK) $(LFLAG) $(LDFLAG) -o lgeom $(SRC)/lgeom.cxx $(LIBLUAGEOM2) \
 		$(LIBGEOM2) $(LIBLUA) $(LLIB) \
 		-I$(LUA_INCLUDE_DIR) -ldl -lreadline -lhistory -lncurses
 
 # A library module for a Lua interpreter -- lua> require "geometry"
 $(LUAGEOM2_MODULE) : $(LUA_OBJECTS) $(LIBGEOM2) $(LIBLUA)
-	$(CXXLINK) $(LDFLAG) -shared -o geometry.so $(LUA_OBJECTS) \
+	$(CXXLINK) $(LFLAG) $(LDFLAG) -shared -o geometry.so $(LUA_OBJECTS) \
 		$(LIBGEOM2) $(LIBLUA) $(LLIB)
 
 geom_test.lua : $(SRC)/geom_test.lua
@@ -220,18 +220,18 @@ $(LIBLUA):
 
 # Dynamic link library for MINGW32 environment on MS-Windows
 _libgeom2.dll : libgeom2_wrap.o $(LIBGEOM2) $(LIBPYTHON)
-	$(CXXLINK) $(LDFLAG) -shared -o _libgeom2.dll libgeom2_wrap.o \
+	$(CXXLINK) $(LFLAG) $(LDFLAG) -shared -o _libgeom2.dll libgeom2_wrap.o \
 		-L$(PYTHON_DIR)/libs \
 		$(LIBGEOM2) $(LIBPYTHON) $(LLIB)
 
 # Shared object for Unix/Linux
 _libgeom2.so : libgeom2_wrap.o $(LIBGEOM2)
-	$(CXXLINK) $(LDFLAG) -shared -o _libgeom2.so libgeom2_wrap.o \
+	$(CXXLINK) $(LFLAG) $(LDFLAG) -shared -o _libgeom2.so libgeom2_wrap.o \
 		$(LIBGEOM2) $(LLIB)
 
 # Dynamic library for Mac OS X
 _libgeom2.dylib : libgeom2_wrap.o $(LIBGEOM2)
-	$(CXXLINK) $(LDFLAG) -o _libgeom2.dylib libgeom2_wrap.o \
+	$(CXXLINK) $(LFLAG) $(LDFLAG) -o _libgeom2.dylib libgeom2_wrap.o \
 		$(LIBGEOM2) $(LLIB) -framework Python \
 		-bundle -bundle_loader $(PYTHON_BIN_DIR)/python
 

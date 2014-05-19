@@ -140,6 +140,10 @@ endif
 
 ifeq ($(TARGET), for_gnu_debug)
     # UNIX/Linux workstation with the GNU C compiler and debug+profiling
+    # 2014-05-20 Let's make use of some gcc 4.8.x features, including the address sanitizer.
+    # Note, however, that only the statically linked executables are useful from this build.
+    # You should build without installing and then manually copy just the executables
+    # into $(E3BIN).
     COMPILE := gcc$(GNU_SUFFIX) 
     LINK    := gcc$(GNU_SUFFIX)
     CXXCOMPILE := g++$(GNU_SUFFIX)
@@ -147,24 +151,23 @@ ifeq ($(TARGET), for_gnu_debug)
     # Unix/Linux is default
     CFLAG   := -c -fPIC -W -Wall -pedantic -ggdb $(MARCH_FLAG)
     LFLAG   := -fPIC -pedantic -ggdb $(MARCH_FLAG)
-    CXXFLAG := -c -fPIC -std=c++0x -Wall -pedantic -ggdb $(MARCH_FLAG)
+    CXXFLAG := -c -fPIC -std=c++11 -Wall -pedantic -ggdb $(MARCH_FLAG)
     ifeq ($(findstring CYGWIN, $(SYSTEM)), CYGWIN)
         # CYGWIN environment on MS-Windows
         CFLAG   := -c -W -Wall -pedantic -g $(MARCH_FLAG)
         LFLAG   := -g -Wl,stack=0x8000000 $(MARCH_FLAG)
-        CXXFLAG := -c -std=c++0x -Wall -pedantic -g $(MARCH_FLAG)
+        CXXFLAG := -c -std=c++11 -Wall -pedantic -g $(MARCH_FLAG)
     endif
     ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
         # MINGW32 environment on MS-Windows
         CFLAG   := -c -W -Wall -pedantic -g $(MARCH_FLAG)
         LFLAG   := -g -Wl,stack=0x8000000 $(MARCH_FLAG)
-        CXXFLAG := -c -std=c++0x -Wall -pedantic -g $(MARCH_FLAG)
+        CXXFLAG := -c -std=c++11 -Wall -pedantic -g $(MARCH_FLAG)
     endif
-    CFLAG   += -ftrapping-math -fsignaling-nans -DDEBUG
-    CXXFLAG += -ftrapping-math -fsignaling-nans -DDEBUG
-    LFLAG   += -ftrapping-math -fsignaling-nans -DDEBUG
+    CFLAG   += -ftrapping-math -fsignaling-nans -Og -fsanitize=address -fno-omit-frame-pointer -DDEBUG
+    CXXFLAG += -ftrapping-math -fsignaling-nans -Og -fsanitize=address -fno-omit-frame-pointer -DDEBUG
+    LFLAG   += -ftrapping-math -fsignaling-nans -Og -fsanitize=address -DDEBUG
     LLIB    := -lm
-    # Have removed -lefence in favour of valgrind. 
 endif
 
 ifeq ($(TARGET), for_gprof)
@@ -416,13 +419,17 @@ endif
 
 ifeq ($(TARGET), for_openmpi_debug)
     # OpenMPI on Linux.
+    # 2014-05-20 Let's make use of some gcc 4.8.x features, including the address sanitizer.
+    # Note, however, that only the statically linked executables are useful from this build.
+    # You should build without installing and then manually copy just the executables
+    # into $(E3BIN).
     COMPILE := mpicc
     LINK    := mpicc
     CXXCOMPILE := mpicxx
     CXXLINK := mpicxx
-    CFLAG   := -c $(OPT) -fPIC -ggdb -Wall -pedantic 
-    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -ggdb -Wall -pedantic 
-    LFLAG   :=  $(OPT) -fPIC -ggdb
+    CFLAG   := -c -fPIC -ggdb -Wall -pedantic -Og -fsanitize=address -fno-omit-frame-pointer 
+    CXXFLAG := -c -std=c++11 -fPIC -ggdb -Wall -pedantic -Og -fsanitize=address -fno-omit-frame-pointer  
+    LFLAG   := -fPIC -ggdb -Og -fsanitize=address
     LLIB    := -lm
 endif
 
