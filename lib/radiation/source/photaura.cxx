@@ -289,10 +289,23 @@ variably_integrated_emission_for_gas_state( Gas_data &Q, double wavel_switch, do
     double j_total = 0.0;
     
     if ( spectrally_resolved == true ) {
-    	cout << "radiative_variably_integrated_emission_for_gas_state()" << endl
-    	     << "Not presently available with spectrally resolved option." << endl
-    	     << "bailing out!" << endl;
-    	exit( BAD_INPUT_ERROR );
+        // 0. Create a CoeffSpectra class to perform the spectral calculations
+        CoeffSpectra S;
+
+        // 1. Store the radiation spectrum for the specified gas-state
+        spectra_for_gas_state( Q, S );
+        if ( DEBUG_RAD > 0 ) cout << "S.nu.size() = " << S.nu.size() << endl;
+
+        // 2. Integrate the emission coefficient over the requested frequency range using trapezoidal method
+        int inu_switch = get_nu_index( S.nu, lambda2nu(wavel_switch), adaptive_spectral_grid) + 1;
+
+        for( int inu=1; inu<inu_switch; ++inu ) {
+            j_total += 0.5 * ( S.j_nu[inu] + S.j_nu[inu-1] ) * ( S.nu[inu] - S.nu[inu-1] ) * Lambda_u;
+        }
+
+        for( int inu=inu_switch; inu<(int)S.nu.size(); ++inu ) {
+            j_total += 0.5 * ( S.j_nu[inu] + S.j_nu[inu-1] ) * ( S.nu[inu] - S.nu[inu-1] ) * Lambda_l;
+        }
     }
     else {
     	j_total = sum_optically_variable_emission_coefficients(Q,wavel_switch,Lambda_l,Lambda_u);
