@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <cstdlib>
 
 #include "../../util/source/useful.h"
 #include "../../util/source/lua_service.hh"
