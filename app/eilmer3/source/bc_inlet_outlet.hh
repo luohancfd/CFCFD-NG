@@ -23,5 +23,5 @@ public:
     virtual ~InletOutletBC();
     virtual void print_info(std::string lead_in);
     virtual int apply_convective(double t);
-    virtual int apply_viscous(double t); 
+    //virtual int apply_viscous(double t); 
 };

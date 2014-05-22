@@ -67,8 +67,10 @@ int InletOutletBC::apply_convective(double t)
     // We assume that this boundary is an outflow boundary.
     size_t i, j, k;
     FV_Cell *src_cell, *dest_cell;
+    FV_Interface *dest_face;
     Gas_model *gmodel = get_gas_model_ptr();
     Block & bd = *bdp;
+    double U;
 
     switch ( which_boundary ) {
     case NORTH:
@@ -76,6 +78,17 @@ int InletOutletBC::apply_convective(double t)
         for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
+                // Although this is principally an inviscid BC,
+		// we need the face values for derivatives.
+		dest_face = src_cell->iface[NORTH];
+                dest_face->fs->copy_values_from(*(src_cell->fs));
+                ConservedQuantities &F = *(dest_face->F);
+                if (F.mass < 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_face->fs->vel.x,2)+pow(dest_face->fs->vel.y,2)+pow(dest_face->fs->vel.z,2) );
+                     dest_face->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_face->fs->omega = dest_face->fs->gas->rho*dest_face->fs->tke/dest_face->fs->gas->mu/u_turb_lam ;           
+                } // end if
+                // Inviscid BC
 		dest_cell = bd.get_cell(i,j+1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
@@ -83,7 +96,12 @@ int InletOutletBC::apply_convective(double t)
 		    for ( size_t imode=0; imode <= dest_cell->fs->gas->T.size(); ++imode )
 			dest_cell->fs->gas->T[imode] = Tout;
 		}
-		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent    
+		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
+                if (F.mass < 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_cell->fs->vel.x,2)+pow(dest_cell->fs->vel.y,2)+pow(dest_cell->fs->vel.z,2) );
+                     dest_cell->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_cell->fs->omega = dest_cell->fs->gas->rho*dest_cell->fs->tke/dest_cell->fs->gas->mu/u_turb_lam ;           
+                } // end if 
 		dest_cell = bd.get_cell(i,j+2,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
@@ -92,6 +110,11 @@ int InletOutletBC::apply_convective(double t)
 			dest_cell->fs->gas->T[imode] = Tout;
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
+                if (F.mass < 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_cell->fs->vel.x,2)+pow(dest_cell->fs->vel.y,2)+pow(dest_cell->fs->vel.z,2) );
+                     dest_cell->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_cell->fs->omega = dest_cell->fs->gas->rho*dest_cell->fs->tke/dest_cell->fs->gas->mu/u_turb_lam ;           
+                } // end if 
 	    } // end i loop
 	} // for k
 	break;
@@ -100,6 +123,17 @@ int InletOutletBC::apply_convective(double t)
         for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
+                // Although this is principally an inviscid BC,
+		// we need the face values for derivatives.
+		dest_face = src_cell->iface[EAST];
+                dest_face->fs->copy_values_from(*(src_cell->fs));                
+                ConservedQuantities &F = *(dest_face->F);
+                if (F.mass < 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_face->fs->vel.x,2)+pow(dest_face->fs->vel.y,2)+pow(dest_face->fs->vel.z,2) );
+                     dest_face->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_face->fs->omega = dest_face->fs->gas->rho*dest_face->fs->tke/dest_face->fs->gas->mu/u_turb_lam ;           
+                } // end if
+                // Inviscid BC
 		dest_cell = bd.get_cell(i+1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
@@ -108,6 +142,11 @@ int InletOutletBC::apply_convective(double t)
 			dest_cell->fs->gas->T[imode] = Tout;
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
+                if (F.mass < 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_cell->fs->vel.x,2)+pow(dest_cell->fs->vel.y,2)+pow(dest_cell->fs->vel.z,2) );
+                     dest_cell->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_cell->fs->omega = dest_cell->fs->gas->rho*dest_cell->fs->tke/dest_cell->fs->gas->mu/u_turb_lam ;           
+                } // end if 
 		dest_cell = bd.get_cell(i+2,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
@@ -116,6 +155,11 @@ int InletOutletBC::apply_convective(double t)
 			dest_cell->fs->gas->T[imode] = Tout;
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
+                if (F.mass < 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_cell->fs->vel.x,2)+pow(dest_cell->fs->vel.y,2)+pow(dest_cell->fs->vel.z,2) );
+                     dest_cell->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_cell->fs->omega = dest_cell->fs->gas->rho*dest_cell->fs->tke/dest_cell->fs->gas->mu/u_turb_lam ;           
+                } // end if 
 	    } // end j loop
 	} // for k
 	break;
@@ -124,6 +168,17 @@ int InletOutletBC::apply_convective(double t)
         for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
+                // Although this is principally an inviscid BC,
+		// we need the face values for derivatives.
+		dest_face = src_cell->iface[SOUTH];
+                dest_face->fs->copy_values_from(*(src_cell->fs));
+                ConservedQuantities &F = *(dest_face->F);
+                if (F.mass > 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_face->fs->vel.x,2)+pow(dest_face->fs->vel.y,2)+pow(dest_face->fs->vel.z,2) );
+                     dest_face->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_face->fs->omega = dest_face->fs->gas->rho*dest_face->fs->tke/dest_face->fs->gas->mu/u_turb_lam ;           
+                } // end if
+                // Inviscid BC
 		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
@@ -132,6 +187,11 @@ int InletOutletBC::apply_convective(double t)
 			dest_cell->fs->gas->T[imode] = Tout;
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
+                if (F.mass > 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_cell->fs->vel.x,2)+pow(dest_cell->fs->vel.y,2)+pow(dest_cell->fs->vel.z,2) );
+                     dest_cell->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_cell->fs->omega = dest_cell->fs->gas->rho*dest_cell->fs->tke/dest_cell->fs->gas->mu/u_turb_lam ;           
+                } // end if 
 		dest_cell = bd.get_cell(i,j-2,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
@@ -140,6 +200,11 @@ int InletOutletBC::apply_convective(double t)
 			dest_cell->fs->gas->T[imode] = Tout;
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
+                if (F.mass > 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_cell->fs->vel.x,2)+pow(dest_cell->fs->vel.y,2)+pow(dest_cell->fs->vel.z,2) );
+                     dest_cell->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_cell->fs->omega = dest_cell->fs->gas->rho*dest_cell->fs->tke/dest_cell->fs->gas->mu/u_turb_lam ;           
+                } // end if 
 	    } // end i loop
 	} // for k
 	break;
@@ -148,6 +213,17 @@ int InletOutletBC::apply_convective(double t)
         for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
+                // Although this is principally an inviscid BC,
+		// we need the face values for derivatives.
+		dest_face = src_cell->iface[WEST];
+                dest_face->fs->copy_values_from(*(src_cell->fs));
+                ConservedQuantities &F = *(dest_face->F);
+                if (F.mass > 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_face->fs->vel.x,2)+pow(dest_face->fs->vel.y,2)+pow(dest_face->fs->vel.z,2) );
+                     dest_face->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_face->fs->omega = dest_face->fs->gas->rho*dest_face->fs->tke/dest_face->fs->gas->mu/u_turb_lam ;           
+                } // end if
+                // Inviscid BC
 		dest_cell = bd.get_cell(i-1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
@@ -156,6 +232,11 @@ int InletOutletBC::apply_convective(double t)
 			dest_cell->fs->gas->T[imode] = Tout;
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent*/ 
+                if (F.mass > 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_cell->fs->vel.x,2)+pow(dest_cell->fs->vel.y,2)+pow(dest_cell->fs->vel.z,2) );
+                     dest_cell->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_cell->fs->omega = dest_cell->fs->gas->rho*dest_cell->fs->tke/dest_cell->fs->gas->mu/u_turb_lam ;           
+                } // end if  
 		dest_cell = bd.get_cell(i-2,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
@@ -164,6 +245,11 @@ int InletOutletBC::apply_convective(double t)
 			dest_cell->fs->gas->T[imode] = Tout;
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
+                if (F.mass > 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_cell->fs->vel.x,2)+pow(dest_cell->fs->vel.y,2)+pow(dest_cell->fs->vel.z,2) );
+                     dest_cell->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_cell->fs->omega = dest_cell->fs->gas->rho*dest_cell->fs->tke/dest_cell->fs->gas->mu/u_turb_lam ;           
+                } // end if  
 	    } // end j loop
 	} // for k
  	break;
@@ -172,6 +258,17 @@ int InletOutletBC::apply_convective(double t)
         for (i = bd.imin; i <= bd.imax; ++i) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
+                // Although this is principally an inviscid BC,
+		// we need the face values for derivatives.
+		dest_face = src_cell->iface[TOP];
+                dest_face->fs->copy_values_from(*(src_cell->fs));
+                ConservedQuantities &F = *(dest_face->F);
+                if (F.mass < 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_face->fs->vel.x,2)+pow(dest_face->fs->vel.y,2)+pow(dest_face->fs->vel.z,2) );
+                     dest_face->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_face->fs->omega = dest_face->fs->gas->rho*dest_face->fs->tke/dest_face->fs->gas->mu/u_turb_lam ;           
+                } // end if
+                // Inviscid BC
 		dest_cell = bd.get_cell(i,j,k+1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
@@ -180,6 +277,11 @@ int InletOutletBC::apply_convective(double t)
 			dest_cell->fs->gas->T[imode] = Tout;
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
+                if (F.mass < 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_cell->fs->vel.x,2)+pow(dest_cell->fs->vel.y,2)+pow(dest_cell->fs->vel.z,2) );
+                     dest_cell->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_cell->fs->omega = dest_cell->fs->gas->rho*dest_cell->fs->tke/dest_cell->fs->gas->mu/u_turb_lam ;           
+                } // end if 
 		dest_cell = bd.get_cell(i,j,k+2);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
@@ -188,6 +290,11 @@ int InletOutletBC::apply_convective(double t)
 			dest_cell->fs->gas->T[imode] = Tout;
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
+                if (F.mass < 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_cell->fs->vel.x,2)+pow(dest_cell->fs->vel.y,2)+pow(dest_cell->fs->vel.z,2) );
+                     dest_cell->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_cell->fs->omega = dest_cell->fs->gas->rho*dest_cell->fs->tke/dest_cell->fs->gas->mu/u_turb_lam ;           
+                } // end if 
 	    } // end j loop
 	} // for i
 	break;
@@ -196,6 +303,17 @@ int InletOutletBC::apply_convective(double t)
         for (i = bd.imin; i <= bd.imax; ++i) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
+                // Although this is principally an inviscid BC,
+		// we need the face values for derivatives.
+		dest_face = src_cell->iface[BOTTOM];
+                dest_face->fs->copy_values_from(*(src_cell->fs));
+                ConservedQuantities &F = *(dest_face->F);
+                if (F.mass > 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_face->fs->vel.x,2)+pow(dest_face->fs->vel.y,2)+pow(dest_face->fs->vel.z,2) );
+                     dest_face->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_face->fs->omega = dest_face->fs->gas->rho*dest_face->fs->tke/dest_face->fs->gas->mu/u_turb_lam ;           
+                } // end if
+                // Inviscid BC
 		dest_cell = bd.get_cell(i,j,k-1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
@@ -204,6 +322,11 @@ int InletOutletBC::apply_convective(double t)
 			dest_cell->fs->gas->T[imode] = Tout;
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
+                if (F.mass > 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_cell->fs->vel.x,2)+pow(dest_cell->fs->vel.y,2)+pow(dest_cell->fs->vel.z,2) );
+                     dest_cell->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_cell->fs->omega = dest_cell->fs->gas->rho*dest_cell->fs->tke/dest_cell->fs->gas->mu/u_turb_lam ;           
+                } // end if 
 		dest_cell = bd.get_cell(i,j,k-2);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
@@ -212,6 +335,11 @@ int InletOutletBC::apply_convective(double t)
 			dest_cell->fs->gas->T[imode] = Tout;
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
+                if (F.mass > 0) { // Add tke and omega values
+                     U = sqrt( pow(dest_cell->fs->vel.x,2)+pow(dest_cell->fs->vel.y,2)+pow(dest_cell->fs->vel.z,2) );
+                     dest_cell->fs->tke = 1.5*pow((I_turb*U),2) ;
+                     dest_cell->fs->omega = dest_cell->fs->gas->rho*dest_cell->fs->tke/dest_cell->fs->gas->mu/u_turb_lam ;           
+                } // end if 
 	    } // end j loop
 	} // for i
  	break;
@@ -223,117 +351,3 @@ int InletOutletBC::apply_convective(double t)
 
     return SUCCESS;
 } // end InletOutletBC::apply_convective(double t)
-
-int InletOutletBC::apply_viscous(double t)
-{
-    size_t i, j, k;
-    FV_Cell *src_cell;
-    FV_Interface *dest_face;
-    Block & bd = *bdp;
-    double U;
-
-    switch ( which_boundary ) {
-    case NORTH:
-	j = bd.jmax;
-        for (k = bd.kmin; k <= bd.kmax; ++k) {
-	    for (i = bd.imin; i <= bd.imax; ++i) {
-		src_cell = bd.get_cell(i,j,k);
-		dest_face = src_cell->iface[NORTH];
-                dest_face->fs->copy_values_from(*(src_cell->fs));
-                ConservedQuantities &F = *(dest_face->F);
-                if (F.mass < 0) {
-                     U = sqrt( pow(dest_face->fs->vel.x,2)+pow(dest_face->fs->vel.y,2)+pow(dest_face->fs->vel.z,2) );
-                     dest_face->fs->tke = 1.5*pow((I_turb*U),2) ;
-                     dest_face->fs->omega = dest_face->fs->gas->rho*dest_face->fs->tke/dest_face->fs->gas->mu/u_turb_lam ;           
-                } // end if       
-	    } // end i loop
-	} // for k
-	break;
-    case EAST:
-	i = bd.imax;
-        for (k = bd.kmin; k <= bd.kmax; ++k) {
-	    for (j = bd.jmin; j <= bd.jmax; ++j) {
-		src_cell = bd.get_cell(i,j,k);
-		dest_face = src_cell->iface[EAST];
-                dest_face->fs->copy_values_from(*(src_cell->fs));
-                ConservedQuantities &F = *(dest_face->F);
-                if (F.mass < 0) {
-                     U = sqrt( pow(dest_face->fs->vel.x,2)+pow(dest_face->fs->vel.y,2)+pow(dest_face->fs->vel.z,2) );
-                     dest_face->fs->tke = 1.5*pow((I_turb*U),2) ;
-                     dest_face->fs->omega = dest_face->fs->gas->rho*dest_face->fs->tke/dest_face->fs->gas->mu/u_turb_lam ;           
-                } // end if     
-	    } // end j loop
-	} // for k
-	break;
-    case SOUTH:
-	j = bd.jmin;
-        for (k = bd.kmin; k <= bd.kmax; ++k) {
-	    for (i = bd.imin; i <= bd.imax; ++i) {
-		src_cell = bd.get_cell(i,j,k);
-		dest_face = src_cell->iface[SOUTH];
-                dest_face->fs->copy_values_from(*(src_cell->fs));
-                ConservedQuantities &F = *(dest_face->F);
-                if (F.mass > 0) {
-                     U = sqrt( pow(dest_face->fs->vel.x,2)+pow(dest_face->fs->vel.y,2)+pow(dest_face->fs->vel.z,2) );
-                     dest_face->fs->tke = 1.5*pow((I_turb*U),2) ;
-                     dest_face->fs->omega = dest_face->fs->gas->rho*dest_face->fs->tke/dest_face->fs->gas->mu/u_turb_lam ;           
-                } // end if     
-	    } // end i loop
-	} // for k
-	break;
-    case WEST:
-	i = bd.imin;
-        for (k = bd.kmin; k <= bd.kmax; ++k) {
-	    for (j = bd.jmin; j <= bd.jmax; ++j) {
-		src_cell = bd.get_cell(i,j,k);
-		dest_face = src_cell->iface[WEST];
-                dest_face->fs->copy_values_from(*(src_cell->fs));
-                ConservedQuantities &F = *(dest_face->F);
-                if (F.mass > 0) {
-                     U = sqrt( pow(dest_face->fs->vel.x,2)+pow(dest_face->fs->vel.y,2)+pow(dest_face->fs->vel.z,2) );
-                     dest_face->fs->tke = 1.5*pow((I_turb*U),2) ;
-                     dest_face->fs->omega = dest_face->fs->gas->rho*dest_face->fs->tke/dest_face->fs->gas->mu/u_turb_lam ;           
-                } // end if     
-	    } // end j loop
-	} // for k
- 	break;
-    case TOP:
-	k = bd.kmax;
-        for (i = bd.imin; i <= bd.imax; ++i) {
-	    for (j = bd.jmin; j <= bd.jmax; ++j) {
-		src_cell = bd.get_cell(i,j,k);
-		dest_face = src_cell->iface[TOP];
-                dest_face->fs->copy_values_from(*(src_cell->fs));
-                ConservedQuantities &F = *(dest_face->F);
-                if (F.mass < 0) {
-                     U = sqrt( pow(dest_face->fs->vel.x,2)+pow(dest_face->fs->vel.y,2)+pow(dest_face->fs->vel.z,2) );
-                     dest_face->fs->tke = 1.5*pow((I_turb*U),2) ;
-                     dest_face->fs->omega = dest_face->fs->gas->rho*dest_face->fs->tke/dest_face->fs->gas->mu/u_turb_lam ;           
-                } // end if     
-	    } // end j loop
-	} // for i
-	break;
-    case BOTTOM:
-	k = bd.kmin;
-        for (i = bd.imin; i <= bd.imax; ++i) {
-	    for (j = bd.jmin; j <= bd.jmax; ++j) {
-		src_cell = bd.get_cell(i,j,k);
-		dest_face = src_cell->iface[BOTTOM];
-                dest_face->fs->copy_values_from(*(src_cell->fs));
-                ConservedQuantities &F = *(dest_face->F);
-                if (F.mass > 0) {
-                     U = sqrt( pow(dest_face->fs->vel.x,2)+pow(dest_face->fs->vel.y,2)+pow(dest_face->fs->vel.z,2) );
-                     dest_face->fs->tke = 1.5*pow((I_turb*U),2);
-                     dest_face->fs->omega = dest_face->fs->gas->rho*dest_face->fs->tke/dest_face->fs->gas->mu/u_turb_lam;           
-                } // end if     
-	    } // end j loop
-	} // for i
- 	break;
-    default:
-	printf( "Error: apply_viscous not implemented for boundary %d\n", 
-		which_boundary );
-	return NOT_IMPLEMENTED_ERROR;
-    } // end switch
-
-    return SUCCESS;
-} // end InletOutletBC::apply_viscous(double t)
