@@ -39,7 +39,7 @@ double solve(std::function<double (double)>f, double x1, double x2, double tol)
 	f3 = f(x3);
 	if ( f3 == 0.0 ) return x3;
 	eps = (f3 + copysign(sqrt(f3*f3-f1*f2),f2))/f2;
-	x4 = x3 - f3*eps*(x1-x2)/(f1 - eps*f3);
+	x4 = x3 - f3*eps*(x1-x3)/(f1 - eps*f3);
 	f4 = f(x4);
 	if ( f4 == 0.0 ) return x4;
 	// Contract the bracket.
