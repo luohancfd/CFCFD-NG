@@ -88,6 +88,7 @@ int main(int argc, char **argv)
 #   define  SELECT_Q    8
 #   define  SELECT_S    9
 #   define  SELECT_Z    10
+#   define  SELECT_Ma   11
     option = SELECT_P;
     echo_input = 0;
 
@@ -196,7 +197,11 @@ int main(int argc, char **argv)
         } else if (strcmp(argv[i], "-Z") == 0) {
             option = SELECT_Z;
             i++;
-            printf("Acoustic Impedance, option = %d.\n", option);			
+            printf("Acoustic Impedance, option = %d.\n", option);	
+        } else if (strcmp(argv[i], "-Ma") == 0) {
+            option = SELECT_Ma;
+            i++;
+            printf("Mach number, option = %d.\n", option);
         } else if (strcmp(argv[i], "-help") == 0) {
             command_line_error = 1;
             printf("Printing usage message...\n\n");
@@ -236,7 +241,7 @@ int main(int argc, char **argv)
         printf("-tecplot                  (generic)\n");
         printf("-help                     (print this message)\n");
         printf("To select a variable, pick one of:\n");
-        printf("-p -rho -u -e -T -a -q -tau -S -Z   (default is -p)\n");
+        printf("-p -rho -u -e -T -a -q -tau -S -Z -Ma   (default is -p)\n");
         printf("\n");
         exit(1);
     }   /* end if command_line_error */
@@ -361,6 +366,8 @@ int main(int argc, char **argv)
                         varray[js][nt_write][nx] = A[js].Cell[ix].entropy;
                     } else if (option == SELECT_Z) {
                         varray[js][nt_write][nx] = A[js].Cell[ix].gas->rho*A[js].Cell[ix].gas->a;
+                    } else if (option == SELECT_Ma) {
+                        varray[js][nt_write][nx] = A[js].Cell[ix].u/A[js].Cell[ix].gas->a;
 		    } else {
                         printf("Invalid option: start again.\n");
                         exit(-1);
@@ -412,6 +419,8 @@ int main(int argc, char **argv)
                         varray[js][nt_write][nx] = icell->entropy;
                     } else if (option == SELECT_Z) {
                         varray[js][nt_write][nx] = icell->gas->rho*icell->gas->a;
+                    } else if (option == SELECT_Ma) {
+                        varray[js][nt_write][nx] = icell->u/icell->gas->a;
                     } else {
                         printf("Invalid option: start again.\n");
                         exit(-1);
@@ -490,6 +499,10 @@ int main(int argc, char **argv)
         strcpy(name_tag, "_Z");
 	strcat(var_name, "Z,Ns/m^3");
 	strcat(var_name_tec, "Z:[Ns/m^3]");	
+    } else if (option == SELECT_Ma) {
+        strcpy(name_tag, "_Ma");
+	strcat(var_name, "Ma");
+	strcat(var_name_tec, "Ma");
     }   /* end if */
     strcat(oname, name_tag);
     if ( tecplot_format ) {
