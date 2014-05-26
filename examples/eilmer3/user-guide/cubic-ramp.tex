@@ -1,0 +1,181 @@
+% cubic-ramp.tex
+
+\section{Hypersonic flow over a concave surface.}
+\label{sec:cubic-ramp}
+%
+This is one of the two hypersonic flows studied by Mohammadian\,\cite{mohammadian_1972a}
+in the Imperial College gun tunnel, more than 4 decades ago.
+The gun tunnel was operated with a total pressure of 1600\,psia (11.03\,MPa) and 
+a total temperature of 1300\,K with a Mach 12.25 contoured nozzle.
+
+\medskip
+Since we don't have full information on the tunnel and its operating condition, 
+we have to make a few assumptions.
+First, we assume that the nozzle produced a parallel and uniform flow of ideal air 
+with free stream conditions $p$ = 63.43\,Pa, $T$=41.92\,K and $u$ = 1.59\,km/s.
+Using Sutherland's expression for the viscosity of air, 
+we estimate the viscosity of the free stream to be $\mu = 2.593 \times 10^{-6}$\,Pa.s.
+Taking a length scale $L = 1$\,inch, we compute a Reynolds number $Re_L = 0.86 \times 10^{5}$,
+which is the same as that reported in the original paper\,\cite{mohammadian_1972a}.
+
+\bigskip
+\subsection{Input script (.py)}
+%
+Figure\,\ref{fig:cubic-ramp-geometry} shows the flow region, as modelled for simulation.
+The region is very simple but we have divided it into 22 blocks so that the computational load 
+can be shared across a number of CPU cores.
+
+\begin{figure}[htbp]
+ \centering
+ \includegraphics[width=\textwidth,viewport=0 0 520 214,clip=true]{../2D/cubic-ramp/cubic-ramp-edited.pdf}
+ \caption{Schematic view of the simulated flow region for the hypersonic flow
+          over Mohammadian's concave ramp.}
+ \label{fig:cubic-ramp-geometry}
+\end{figure}
+
+\medskip
+The concave ramp is defined by
+$$
+y = \frac{1}{150} \, x^3
+$$
+where $x$ is in inches and the surface angle is less than 28$^o$.
+Beyond that point, the ramp surface is assumed straight until the corner
+at $x$ = 6.4\,inches.
+The ramp surface temperature was assumed to be a constant 296\,K.
+
+\noindent
+\topbar
+\lstinputlisting[language={}]{../2D/cubic-ramp/cubic-ramp.py}
+\bottombar
+
+
+\bigskip
+\subsection{Running the simulation}
+%
+In terms of required computer time, this simulation is fairly demanding,
+taking more than 12 hours on a 4-core workstation.
+The job scipts submitted to the batch system are shown below.
+Note that the preparation script sets up the mapping of the full set of 22 blocks to fit onto 4 MPI tasks.
+
+\noindent
+\topbar
+\lstinputlisting[language={}]{../2D/cubic-ramp/prep.sh}\index{mpimap!example of use}
+\bottombar\\
+\topbar
+\lstinputlisting[language={}]{../2D/cubic-ramp/run.sh}
+\bottombar\\
+
+\subsection{Results}
+%
+Figure\,\ref{fig:cubic-ramp-field-data} shows some of the flow field data 
+at $t$=1\,ms after flow start.
+This is sufficient time for the flow to reach steady state.
+
+\begin{figure}[htbp]
+ \centering
+ \subfloat[Pressure field.]{\includegraphics[width=0.7\textwidth]
+    {../2D/cubic-ramp/cubic-ramp-factor-2-log10p-field-1-ms.png}\label{fig:cubic-ramp-pressure}}\\
+ \subfloat[Temperature field.]{\includegraphics[width=0.7\textwidth]
+    {../2D/cubic-ramp/cubic-ramp-factor-2-T-field-1-ms.png}\label{fig:cubic-ramp-temperature}}\\
+ \subfloat[Mach number.]{\includegraphics[width=0.7\textwidth]
+    {../2D/cubic-ramp/cubic-ramp-factor-2-M-field-1-ms.png}\label{fig:cubic-ramp-mach}}
+ \caption{Computed flow field at $t$=1\,ms.}
+ \label{fig:cubic-ramp-field-data}
+\end{figure}
+
+\medskip
+The logarithmic pressure field shows the leading-edge interaction shock propagating into the free-stream
+flow but then intersecting the ramp about two-thirds of the way along its length.
+The gradually increasing pressure can also be seen in the near-surface region, leading up to this intersection.
+
+\medskip
+The temperature field shows more clearly the boundary layer that grows along the concave surface.
+It also shows the compression of the boundary-layer flow as the surface curves up.
+The oblique shock propagating up over the top of the ramp is a combination of the reflected lead-edge
+interaction shock and the coalesced compression waves from the curved ramp.
+
+\clearpage
+
+\medskip
+Although the computed flow field looks plausible,
+the real proof of success of the simulation is in comparison with the experimental data.
+Figure\,\ref{fig:cubic-ramp-data-compare} shows the pressure and heat-transfer
+along the surface of the ramp.
+The simulation has done a good job of estimating the pressure distribution for the early part of the ramp,
+and does a fair job all the way up to the sharp corner at the top of the ramp,
+although there appears to be a mismatch in the location of this corner 
+(indicated by the sharp drop in pressure at the right end of each data set).
+
+\medskip
+The simulation has also done a good job on the heat transfer estimate,
+which has been computed from the field data using the script in Section\,\ref{cubic-ramp-post-processing}.
+Mohammadian has not provided dimensional data in the original paper so we have normalized the simulation
+data is the same way as can be best guessed (with the assistance of Andrew Knisely, University of Illinois).
+First, we compute local heat transfer from the normal gradient of temperature at the ramp surface,
+followed by Stanton number as
+$$
+St = \frac{q}{\rho U C_p (T_0 - T_w)}
+$$
+and then plot the combination $St . Re_x^{\frac{1}{2}}$, to remove the singularity in heat transfer
+at the leading edge of the ramp.
+Agreement for the early part of the plate to 110\,mm is excellent, so we can have some 
+confidence in the codes ability to model hypersonic viscous interactions, however,
+what happens beyond that point is not captured by this purely two-dimensional simulation.
+
+\begin{figure}[htbp]
+ \centering
+ \subfloat[Pressure.]{\includegraphics[width=0.5\textwidth]
+    {../2D/cubic-ramp/surface-pressure.pdf}\label{fig:cubic-ramp-surface-pressure}}
+ \subfloat[Heat transfer.]{\includegraphics[width=0.5\textwidth]
+    {../2D/cubic-ramp/surface-heat-transfer.pdf}\label{fig:cubic-ramp-heat-transfer}}
+ \caption{Distribution of pressure and heat transfer along the concave ramp.
+   Simulation data is recorded at $t$=1\,ms into the simulation.
+   Experimental data is from Ref.\,\cite{mohammadian_1972a}.}
+ \label{fig:cubic-ramp-data-compare}
+\end{figure}
+
+\medskip
+The boundary-layer thickness, as identified by the outer edge of the maximum density gradient 
+seen in a schlieren image was also provided by Mohammadian.
+Figure\,\ref{fig:cubic-ramp-grad-rho-field} shows the density gradient field of the simulated
+flow and, from this image, corresponding points were measured manually
+(with the assistance of the \verb!g3data! program).
+These boundary-layer thickness data are shown in Figure\,\ref{fig:cubic-ramp-delta-star}, 
+together with the experimental values from Ref.\cite{mohammadian_1972a}.
+Although there is some scatter in the simulation-derived data, comparison is good.
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../2D/cubic-ramp/cubic-ramp-factor-2-grad-rho-field-1-ms-zoom-with-scale.png}
+ \caption{Computed density gradient field.}
+ \label{fig:cubic-ramp-grad-rho-field}
+\end{figure}
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../2D/cubic-ramp/delta-star.pdf}
+ \caption{Estimates of the boundary-layer displacement thickness along the ramp.}
+ \label{fig:cubic-ramp-delta-star}
+\end{figure}
+
+
+\bigskip
+\subsection{Postprocessing to get heat transfer}
+\label{cubic-ramp-post-processing}
+%
+The scripts below use the functions imported from \verb!e3_flow.py!
+at a slightly higher level than in the cone20 example.
+The first extracts the data for the cell nearest to the ramp surface
+and uses that data to compute the expected shear stress and heat transfer at the surface.
+
+\noindent
+\topbar
+\lstinputlisting[language={}]{../2D/cubic-ramp/surface_properties.py}
+\bottombar
+
+\subsection{Notes}
+\begin{itemize}
+ \item Plotting was done with the following GNUPlot scripts.
+ \lstinputlisting[language={}]{../2D/cubic-ramp/surface-pressure.gnuplot}
+ \lstinputlisting[language={}]{../2D/cubic-ramp/surface-heat-transfer.gnuplot}
+\end{itemize}

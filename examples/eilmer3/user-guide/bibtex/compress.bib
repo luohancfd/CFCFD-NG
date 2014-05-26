@@ -1,0 +1,2067 @@
+@string {arfm = "Annual Review of Fluid Mechanics"}
+@string {jfm  = "Journal of Fluid Mechanics"}
+@string {jcp  = "Journal of Computational Physics"}
+
+@string {pf  = "The Physics of Fluids"}
+@string {pfa = "The Physics of Fluids (A)"}
+@string {pfb = "The Physics of Fluids (B)"}
+
+@string {caf   = "Computers and Fluids"}
+@string {cmame = " Computer Methods in Applied Mechanics and Engineering"}
+
+@string {taj   = "The Aeronautical Journal"}
+
+@string {aiaaj     = "A.I.A.A. Journal"}
+@string {aiaajsr   = "A.I.A.A. Journal of Spacecraft and Rockets"}
+@string {aiaajpp   = "A.I.A.A. Journal of Propulsion and Power"}
+@string {aiaaja    = "A.I.A.A. Journal of Aircraft"}
+@string {aiaajtpht = "A.I.A.A. Journal of Thermophysics and Heat Transfer"}
+
+@string {ijnmf = "International Journal for Numerical Methods in Fluids"}
+@string {ijnme = "International Journal for Numerical Methods in Engineering"}
+@string {ijhff = "International Journal for Heat and Fluid Flow"}
+
+@string {siamssc = "SIAM Journal on Scientific and Statistical Computing"}
+@string {siamna  = "SIAM Journal on Numerical Analysis"}
+
+@string {nasatp = "NASA Technical Paper"}
+@string {nasatm = "NASA Technical Memorandum"}
+@string {nasacr = "NASA Contractor Report"}
+
+-aa-
+
+@TECHREPORT {abgrall_91a,
+   AUTHOR = {Abgrall, R.},
+   TITLE = {Design of an essentially non-oscillatory reconstruction
+	procedure on finite-element type meshes.},
+   INSTITUTION = {},
+   YEAR = {1991},
+   TYPE = {ICASE Report},
+   NUMBER = {91-84},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {abgrall_merlo_91,
+   AUTHOR = {Abgrall, R. and Merlo, A.},
+   TITLE = {Numerical simulations around models in hypersonic
+	wind tunnels.},
+   BOOKTITLE = {Aerothermodynamics for Space Vehicles. SP-318.},
+   YEAR = {1991},
+   PAGES = {189--195},
+   PUBLISHER = {European Space Agency},
+   ANNOTE = {* multi-block solver}
+   }
+
+@TECHREPORT {anderson_etal_85,
+   AUTHOR = {Anderson, W. K. and Thomas, J. L. and van Leer, B.},
+   TITLE = {A comparison of finite volume flux vector splittings
+	for the {Euler} equations.},
+   INSTITUTION = {},
+   YEAR = {1985},
+   MONTH = { January },
+   TYPE = {AIAA Paper},
+   NUMBER = {85-0122},
+   ADDRESS = {},
+   ANNOTE = {* third-order upwind biased interpolation/reconstruction}
+   }
+
+@ARTICLE {anderson_bonhaus_93,
+   AUTHOR = { Anderson, W. K. and Bonhaus, D. L. },
+   TITLE = { An implicit upwind algorithm for computing turbulent
+         flows on unstructured grids. },
+   JOURNAL = caf,
+   YEAR = { 1993 },
+   VOLUME = { 23 },
+   NUMBER = { 1 },
+   PAGES = { 1--21 },
+   ANNOTE = {}
+   }
+
+@TECHREPORT {atkins_87,
+   AUTHOR = {Atkins, H. L.},
+   TITLE = {Comparisons and applications of time-accurate
+	finite-volume methods for solving unsteady {Euler} equations.},
+   INSTITUTION = {},
+   YEAR = {1987},
+   TYPE = {AIAA Paper},
+   NUMBER = {87-0189},
+   ADDRESS = {},
+   ANNOTE = {* axisymmetric (but 2d) test case including radial
+	shock}
+   }
+
+@TECHREPORT {atkins_88,
+   AUTHOR = {Atkins, H. L.},
+   TITLE = {Numerical and analytical study of the inlet 
+            startup process in a shock tunnel environment.  },
+   INSTITUTION = {},
+   YEAR = {1988},
+   TYPE = {AIAA Paper},
+   NUMBER = {88-0601},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {atkins_89,
+   AUTHOR = {Atkins, H. L.},
+   TITLE = {Analysis of a second-order-accurate finite-volume method
+	for temporally-growing compressible shear layers.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-1809},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+-bb-
+
+@TECHREPORT {bardina_etal_85,
+   AUTHOR = {Bardina, J. and Venkatapathy, E. and Lombard, C. K.},
+   TITLE = {Two dimensional and axisymmetric heat-transfer results
+	with the {CSCM} upwind implicit method.},
+   INSTITUTION = {},
+   YEAR = {1985},
+   TYPE = {AIAA Paper},
+   NUMBER = {85-0923},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {batina_93,
+   AUTHOR = {Batina, J. T.},
+   TITLE = {Implicit upwind solution algorithms for the
+         three-dimensional unstructured meshes. },
+   JOURNAL = aiaaj,
+   YEAR = {1993},
+   VOLUME = {31},
+   NUMBER = {5},
+   PAGES = {801--805},
+   ANNOTE = {}
+   }
+
+@ARTICLE { baum_lohner_94,
+   AUTHOR  = { Baum, J. D. and Lohner, R. },
+   TITLE   = { Numerical simulation of shock-box interaction using adaptive
+               finite-element scheme. },
+   JOURNAL = aiaaj,
+   YEAR    = { 1994 },
+   VOLUME  = { 32 },
+   NUMBER  = { 4 },
+   PAGES   = { 682 },
+   ANNOTE  = { * very detailed calculations of what seem to be 2D flows }
+   }
+
+@ARTICLE {baysal_hoffman_92,
+   AUTHOR = {Baysal, O. and Hoffman, W. B.},
+   TITLE = {Simulation of three-dimensional shear flow around a nozzle
+         at high speeds.},
+   JOURNAL = {Transactions of the ASME, Journal of Fluids Engineering.},
+   YEAR = {1992},
+   VOLUME = {114},
+   NUMBER = {},
+   PAGES = {178--185},
+   ANNOTE = {}
+   }
+
+@ARTICLE {benson_91,
+   AUTHOR = {Benson, D. J.},
+   TITLE = {A new two-dimensional flux-limited shock viscosity
+	for impact calculations.},
+   JOURNAL = {Computer Methods in Applied Mechanics and Engineering},
+   YEAR = {1991},
+   VOLUME = {93},
+   NUMBER = {},
+   PAGES = {39--95},
+   ANNOTE = {}
+   }
+
+@ARTICLE {berman_etal_83,
+   AUTHOR = {Berman, H. A. and Anderson, J. D. and Drummond, J. P.},
+   TITLE = {Supersonic flow over a rearward facing step with 
+	transverse nonreacting hydrogen injection.},
+   JOURNAL = aiaaj,
+   YEAR = {1983},
+   VOLUME = {21},
+   NUMBER = {12},
+   PAGES = {1707--1713},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {boretti_90,
+   AUTHOR = {Boretti, A. A.},
+   TITLE = {Two-dimensional {Euler} and {Navier}-{Stokes} 
+	time accurate simulations of fan rotor flows.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = nasatm,
+   NUMBER = {102402},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+-cc-
+
+@TECHREPORT {carpenter_89,
+   AUTHOR = {Carpenter, M. H.},
+   TITLE = {Three-dimensional computations of cross-flow injection
+	and combustion in a supersonic flow.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-1870},
+   ADDRESS = {},
+   ANNOTE = {* 3D version of SPARK}
+   }
+
+@ARTICLE {carpenter_90a,
+   AUTHOR = {Carpenter, M. H.},
+   TITLE = {A high order compact numerical algorithm for supersonic
+	flows.},
+   JOURNAL = {},
+   YEAR = {1990},
+   VOLUME = {},
+   NUMBER = {},
+   PAGES = {},
+   ANNOTE = {* obtained directly from Mark}
+   }
+
+@ARTICLE {chakrabartty_89,
+   AUTHOR = {Chakrabartty, S. K.},
+   TITLE = {Numerical solutions of {Navier}-{Stokes} equations for
+	two dimensional viscous compressible flows.},
+   JOURNAL = aiaaj,
+   YEAR = {1989},
+   VOLUME = {27},
+   NUMBER = {7},
+   PAGES = {843--844},
+   ANNOTE = {* cell-vertex N-S scheme}
+   }
+
+@ARTICLE {chakrabartty_90,
+   AUTHOR = {Chakrabartty, S. K.},
+   TITLE = {Vertex-based finite-volume solution of the 
+	two-dimensional {Navier}-{Stokes} equations.},
+   JOURNAL = aiaaj,
+   YEAR = {1990},
+   VOLUME = {28},
+   NUMBER = {10},
+   PAGES = {1829--1831},
+   ANNOTE = {}
+   }
+
+@ARTICLE {chang_etal_88,
+   AUTHOR = {Chang, C. -L. and Kronzon, Y. and Merkle, C. L.},
+   TITLE = {Time-iterative solutions of viscous supersonic nozzle
+	flows.},
+   JOURNAL = aiaaj,
+   YEAR = {1988},
+   VOLUME = {26},
+   NUMBER = {10},
+   PAGES = {1208--1215},
+   ANNOTE = {* steady state calculations
+	* upstream influence of back-pressure in the boundary layer
+	}
+   }
+
+@ARTICLE { chen_93,
+   AUTHOR = { Chen, H. },
+   TITLE = { Discrete {Boltzmann} systems and fluid flows. },
+   JOURNAL = { Computers in Physics },
+   YEAR = { 1993 },
+   VOLUME = { 7 },
+   NUMBER = { 6 },
+   PAGES = { 632--637 },
+   ANNOTE = {}
+   }
+
+@TECHREPORT {chima_etal_86,
+   AUTHOR = {Chima, R. V. and Turkel, E. and Schaffer, S.},
+   TITLE = {Comparisons of three explicit multigrid methods for the 
+	{Euler} and {Navier}-{Stokes} equations.},
+   INSTITUTION = {},
+   YEAR = {1986},
+   TYPE = nasatm,
+   NUMBER = {88878},
+   ADDRESS = {},
+   ANNOTE = {* also ICOMP-86-3 and AIAA-87-????
+	* test case was a shock-boundary layer interaction
+	* hakkinen's data
+	}
+   }
+
+@TECHREPORT {colella_etal_89,
+   AUTHOR = {Colella, P. and Henderson, L. F. and Puckett, E. G.},
+   TITLE = {A numerical study of shock wave refraction at a gas
+	interface.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-1973-CP},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {colella_henderson_90,
+   AUTHOR = {Colella, P. and Henderson, L. F.},
+   TITLE = {The {von} {Neumann} paradox for the diffraction 
+	of weak shock waves.},
+   JOURNAL = jfm,
+   YEAR = {1990},
+   VOLUME = {213},
+   NUMBER = {},
+   PAGES = {71--94},
+   ANNOTE = {}
+   }
+
+-dd-
+
+@TECHREPORT {dadone_grossman_91,
+   AUTHOR = {Dadone, A. and Grossman, B.},
+   TITLE = {A rotated upwind scheme for the {Euler} equations.},
+   INSTITUTION = {},
+   YEAR = {1991},
+   TYPE = {AIAA Paper},
+   NUMBER = {91-0635},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {daripa_90,
+   AUTHOR = {Daripa, P.},
+   TITLE = {On applications of a complex variable method in
+	compressible flows.},
+   JOURNAL = jcp,
+   YEAR = {1990},
+   VOLUME = {88},
+   NUMBER = {},
+   PAGES = {337--361},
+   ANNOTE = {* does this hold possibilities for Contour Dynamics
+	type simulations???
+	}
+   }
+
+@INPROCEEDINGS {davies_etal_89,
+   AUTHOR = {Davies, C. B. and Venkatapathy, E. and Deiwert, G. S.},
+   TITLE = {{SAGE}. A {2-D} self-adaptive grid evolution code and its
+	application in computational fluid dynamics.},
+   BOOKTITLE = {{NASA} Computational Fluid Dynamics Conference},
+   YEAR = {1989},
+   PAGES = {239--253},
+   PUBLISHER = {},
+   ANNOTE = {* this is only a collection of slides -- 
+	very little detail}
+   }
+
+@TECHREPORT {decker_turkel_90,
+   AUTHOR = {Decker, N. H. and Turkel, E.},
+   TITLE = {Multigrid for hypersonic inviscid flows.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {ICASE Report},
+   NUMBER = {90-54},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {dezeeuw_powell_93,
+   AUTHOR = {De Zeeuw, D. and Powell, K. G.},
+   TITLE = {An adaptively refined cartesian mesh solver for the
+         {Euler} equations.},
+   JOURNAL = jcp,
+   YEAR = {1993},
+   VOLUME = {104},
+   NUMBER = {1},
+   PAGES = {56--68},
+   ANNOTE = {}
+   }
+
+@ARTICLE { drikakis_tsangaris_93,
+   AUTHOR = { Drikakis, D. and Tsangaris, S. },
+   TITLE = { Real gas effects for compressible nozzle flows. },
+   JOURNAL = { Transactions of the ASME. Journal of Fluids Engineering. },
+   YEAR = { 1993 },
+   VOLUME = { 115 },
+   NUMBER = {},
+   PAGES = { 115--120 },
+   ANNOTE = {}
+   }
+
+@ARTICLE {durlofsky_etal_92,
+   AUTHOR = {Durlofsky, L. J. and Engquist, B. and Osher, S.},
+   TITLE = {Triangle based adaptive stencils for the solution of
+	hyperbolic conservation laws.},
+   JOURNAL = jcp,
+   YEAR = {1992},
+   VOLUME = {98},
+   NUMBER = {},
+   PAGES = {64--73},
+   ANNOTE = {* simple scheme to get second order on unstructured
+	triangular meshes
+	}
+   }
+
+-ee-
+
+@TECHREPORT {eberle_93,
+   AUTHOR = { Eberle, A. },
+   TITLE = { Recent {CFD} enhancements for structured mesh
+         {Navier}-{Stokes} and {Euler} solvers. },
+   INSTITUTION = {},
+   YEAR = { 1993 },
+   TYPE = { AIAA Paper },
+   NUMBER = { 93-5068 },
+   ADDRESS = {},
+   ANNOTE = { * smooth limiters make a difference }
+   }
+
+@ARTICLE { eidelman_etal_1984a,
+   AUTHOR  = { Eidelman, S. and Colella, P. and Shreeve, R. P. },
+   TITLE   = { Application of the {Godunov} method and its second-order
+               extension to cascade flow modelling. },
+   JOURNAL = aiaaj,
+   YEAR    = { 1984 },
+   VOLUME  = { 22 },
+   NUMBER  = { 11 },
+   PAGES   = { 1609--1615 },
+   ANNOTE  = {}
+   }
+
+@INPROCEEDINGS {esser_gronig_87,
+   AUTHOR = {Esser, B. and Gronig, H.},
+   TITLE = {Equilibrium shock tube flow of real gases.},
+   BOOKTITLE = {Shock Tubes and Waves.},
+   YEAR = {1987},
+   PAGES = {663--669},
+   PUBLISHER = {},
+   ANNOTE = {* real gas riemann solver
+	* iterative - secant method
+	* exact wave relations used for both shocks and expansions}
+   }
+
+-ff-
+
+@INPROCEEDINGS {falcovitz_birman_93,
+   AUTHOR = {Falcovitz, J. and Birman, A.},
+   TITLE = {A singularities tracking conservation law scheme for
+         compressible duct flows.},
+   BOOKTITLE = {Proceedings of the Eighteenth International Symposium
+             on Shock Waves, Sendai.},
+   YEAR = {1991},
+   PAGES = {1107--1111},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {fenno_etal_92,
+   AUTHOR = {Fenno, C. C. and Street, C. L. and Hassan, H. A.},
+   TITLE = {Use of finite volume schemes for transition simulation.},
+   JOURNAL = aiaaj,
+   YEAR = {1992},
+   VOLUME = {30},
+   NUMBER = {4},
+   PAGES = {1122--1125},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {flores_89,
+   AUTHOR = {Flores, J.},
+   TITLE = {The simulation of hypersonic flow using a zonal
+	approach.},
+   BOOKTITLE = {Tenth Australasian Fluid Mechanics Conference,
+	Melbourne.},
+   YEAR = {1989},
+   PAGES = {6.33--6.36},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {fouladi_baysal_92,
+   AUTHOR = {Fouladi, K. and Baysal, O.},
+   TITLE = {Viscous simulation method for unsteady flows past
+         multicomponent configurations.},
+   JOURNAL = {Transactions of the ASME, Journal of Fluids Engineering.},
+   YEAR = {1992},
+   VOLUME = {114},
+   NUMBER = {},
+   PAGES = {161--169},
+   ANNOTE = {}
+   }
+
+-gg-
+
+@TECHREPORT {giles_83,
+   AUTHOR = {Giles, M.},
+   TITLE = {{Eigenmode} analysis of unsteady one-dimensional {Euler} 
+	equations.},
+   INSTITUTION = {},
+   YEAR = {1983},
+   TYPE = {NASA Contractor Report},
+   NUMBER = {172217},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {giles_88,
+   AUTHOR = {Giles, M.},
+   TITLE = {Non-reflecting boundary conditions for the {Euler}
+	equations.},
+   INSTITUTION = {},
+   YEAR = {1988},
+   TYPE = {CFDL Report},
+   NUMBER = {88-1},
+   ADDRESS = {Department of Aeronautics and Astronautics, MIT},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {giles_89,
+   AUTHOR = {Giles, M.},
+   TITLE = {Non-reflecting boundary conditions for {Euler} equation
+	calculations.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-1942-CP},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {giles_90,
+   AUTHOR = {Giles, M. B.},
+   TITLE = {Nonreflecting boundary conditions for {Euler} equation
+	calculations.},
+   JOURNAL = aiaaj,
+   YEAR = {1990},
+   VOLUME = {28},
+   NUMBER = {12},
+   PAGES = {2050--2058},
+   ANNOTE = {* seems to be the revised version of AIAA-89-1942}
+   }
+
+@ARTICLE {glaister_88,
+   AUTHOR = {Glaister, P.},
+   TITLE = {Flux difference splitting for the {Euler} equations
+	with axial symmetry.},
+   JOURNAL = {Journal of Engineering Mathematics},
+   YEAR = {1988},
+   VOLUME = {22},
+   NUMBER = {2},
+   PAGES = {107--121},
+   ANNOTE = {* spherical shock test case }
+   }
+
+@ARTICLE {gnoffo_83,
+   AUTHOR = {Gnoffo, P. A.},
+   TITLE = {A finite-volume, adaptive grid algorithm applied
+	to planetary entry flowfields.},
+   JOURNAL = aiaaj,
+   YEAR = {1983},
+   VOLUME = {21},
+   NUMBER = {9},
+   PAGES = {1249--1254},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {gnoffo_90a,
+   AUTHOR = {Gnoffo, P. A.},
+   TITLE = {An upwind-biased point implicit relaxation algorithm
+	for viscous, compressible perfect-gas flows.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = nasatp,
+   NUMBER = {2953},
+   ADDRESS = {},
+   ANNOTE = {* CFD for the aerobrake experiment}
+   }
+
+@INPROCEEDINGS {grasso_etal_90,
+   AUTHOR = {Grasso, F. and Bassi, F. and Harten, A.},
+   TITLE = {ENO schemes for viscous high speed flows.},
+   BOOKTITLE = {12th International Conference on Numerical Methods
+	in Fluid Dynamics},
+   YEAR = {1990},
+   PAGES = {},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {grasso_magi_91,
+   AUTHOR = {Grasso, F. and Magi, V.},
+   TITLE = {Numerical methodologies for the compressible 
+	{Navier}-{Stokes} equations for two-phase flows.},
+   BOOKTITLE = {Modern Research Topics in Aerospace Propulsion},
+   YEAR = {1991},
+   PAGES = {227--250},
+   PUBLISHER = {Springer-Verlag},
+   ANNOTE = {}
+   }
+
+@ARTICLE {grasso_etal_92,
+   AUTHOR = {Grasso, F. and Marini, M. and Passalacqua, M.},
+   TITLE = {Viscous high-speed flow computations by adaptive mesh 
+	embedding techniques.},
+   JOURNAL = aiaaj,
+   YEAR = {1992},
+   VOLUME = {30},
+   NUMBER = {7},
+   PAGES = {1780--1788},
+   ANNOTE = {}
+   }
+
+@ARTICLE {grasso_marini_93,
+   AUTHOR = {Grasso, F. and Marini, M.},
+   TITLE = {Multiblock implicit total variation diminishing solution
+         of high-speed internal flows.},
+   JOURNAL = aiaajpp,
+   YEAR = {1993},
+   VOLUME = {9},
+   NUMBER = {2},
+   PAGES = {255--262},
+   ANNOTE = {}
+   }
+
+-hh-
+
+@ARTICLE {hasen_82,
+   AUTHOR = {Hasen, G. A.},
+   TITLE = {{Navier}-{Stokes} solutions for an axisymmetric nozzle.},
+   JOURNAL = aiaaj,
+   YEAR = {1982},
+   VOLUME = {20},
+   NUMBER = {9},
+   PAGES = {1219--1227},
+   ANNOTE = {* was also paper AIAA 81-1474R
+	* MacCormack scheme for axisymmetric flow.
+	}
+   }
+
+@TECHREPORT {hawkin_gottlieb_90,
+   AUTHOR = {Hawken, D. F. and Gottlieb, J. J.},
+   TITLE = {Prediction of two-dimensional time-dependent gasdynamic
+	flows for hypersonic studies.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {UTIAS Report},
+   NUMBER = {335},
+   ADDRESS = {},
+   ANNOTE = {* inlet simulations with Euler calculations
+	* time-dependent
+	}
+   }
+
+@ARTICLE {hedstrom_79,
+   AUTHOR = {Hedstrom, G. W.},
+   TITLE = {Nonreflecting boundary conditions for nonlinear 
+	hyperbolic systems.},
+   JOURNAL = jcp,
+   YEAR = {1979},
+   VOLUME = {30},
+   NUMBER = {},
+   PAGES = {222--237},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {hehmsoth_demmig_87,
+   AUTHOR = {Hehmsoth, H. -H. and Demmig, F.},
+   TITLE = {Comparative study of numerical methods for two-phase
+	flow-shock front propagation.},
+   BOOKTITLE = {Shock Tubes and Waves.},
+   YEAR = {1987},
+   PAGES = {655--661},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {hoffman_etal_87,
+   AUTHOR = {Hoffman, J. J. and Birch, S. F. and Hopcroft, R. G.
+	and Holcomb, J. E.},
+   TITLE = {{Navier}-{Stokes} calculations of rocket base flows.},
+   INSTITUTION = {},
+   YEAR = {1987},
+   TYPE = {AIAA Paper},
+   NUMBER = {87-0466},
+   ADDRESS = {},
+   ANNOTE = {* Navier-Stokes solver to go with the zonal grid paper
+	of holcomb_87}
+   }
+
+@INPROCEEDINGS {hui_91,
+   AUTHOR = {Hui, W. H.},
+   TITLE = {Accurate computation of steady discontinuous flow.},
+   BOOKTITLE = {Proceedings of the Asian Pacific Conference on
+             Computational Mechanics, Hong Kong},
+   YEAR = {1991},
+   PAGES = {1499--1504},
+   PUBLISHER = {A. A. Balkema},
+   ANNOTE = {}
+   }
+
+@ARTICLE {hui_loh_92,
+   AUTHOR = {Hui, W. H. and Loh, C. Y.},
+   TITLE = {A new {Lagrangian} method for steady supersonic flow
+         computation Part II. Slip-line resolution.},
+   JOURNAL = jcp,
+   YEAR = {1992},
+   VOLUME = {103},
+   NUMBER = {2},
+   PAGES = {450--464},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {hung_maccormack_75,
+   AUTHOR = {Hung, C. M. and MacCormack, R. W.},
+   TITLE = {Numerical solutions of supersonic and hypersonic
+	laminar flows over a two-dimensional compression corner.},
+   INSTITUTION = {},
+   YEAR = {1975},
+   TYPE = {AIAA Paper},
+   NUMBER = {75-2},
+   ADDRESS = {},
+   ANNOTE = {* wedge induced separation
+	* comparison with Holden's data
+	}
+   }
+
+@ARTICLE {hussaini_etal_80,
+   AUTHOR = {Hussaini, M. Y. and Baldwin, B. S. and MacCormack, R. W.},
+   TITLE = {Asymptotic features of shock-wave boundary-layer 
+	interaction.},
+   JOURNAL = aiaaj,
+   YEAR = {1980},
+   VOLUME = {18},
+   NUMBER = {8},
+   PAGES = {1014--1016},
+   ANNOTE = {* have used asymptotic solutions for the 
+	free-interaction problem to check the accuracy of the
+	numerical simulations.
+	* however, the more accurate, lower Re numerical solutions
+	have pressure profiles which are further away from the
+	asymptotic solution than less accurate high Re numerical solns.
+	}
+   }
+
+@ARTICLE {hwang_liu_92,
+   AUTHOR = {Hwang, C. J. and Liu, J. L.},
+   TITLE = {Locally implicit hybrid algorithm for steady and unsteady
+	viscous flows.},
+   JOURNAL = aiaaj,
+   YEAR = {1992},
+   VOLUME = {30},
+   NUMBER = {5},
+   PAGES = {1228--1236},
+   ANNOTE = {}
+   }
+
+@ARTICLE {hwang_wu_92,
+   AUTHOR = {Hwang, C. J. and Wu, S. J.},
+   TITLE = {Global and local remeshing algorithms for compressible
+         flows.},
+   JOURNAL = jcp,
+   YEAR = {1992},
+   VOLUME = {102},
+   NUMBER = {1},
+   PAGES = {98--113},
+   ANNOTE = {}
+   }
+
+@ARTICLE {hwang_wu_93,
+   AUTHOR = {Hwang, C. J. and Wu, S. J.},
+   TITLE = {Adaptive finite volume upwind approach on mixed
+         quadrilateral-triangular meshes.},
+   JOURNAL = aiaaj,
+   YEAR = {1993},
+   VOLUME = {31},
+   NUMBER = {1},
+   PAGES = {61--67},
+   ANNOTE = {}
+   }
+
+-ii-
+-jj-
+
+@TECHREPORT {jameson_etal_81,
+   AUTHOR = {Jameson, A. and Schmidt, W. and Turkel, E.},
+   TITLE = {Numerical solutions of the {Euler} equations by finite
+	volume methods using {Runge}-{Kutta} time-stepping schemes.},
+   INSTITUTION = {},
+   YEAR = {1981},
+   TYPE = {AIAA Paper},
+   NUMBER = {81-1259},
+   ADDRESS = {},
+   ANNOTE = {* one of the classics}
+   }
+
+-kk-
+
+@ARTICLE {Kanarachos_vournas_93,
+   AUTHOR = { Kanarachos, A. E. and Vournas, I. P. },
+   TITLE = { Multigrid technique for the compressible {Euler} and
+         {Navier}-{Stokes} equations. },
+   JOURNAL = { Engineering Computations },
+   YEAR = {1993},
+   VOLUME = {10},
+   NUMBER = {2},
+   PAGES = {123--137},
+   ANNOTE = {}
+   }
+
+@ARTICLE {katz_shaughnessy_90a,
+   AUTHOR = {Katz, I. M. and Shaughnessy, E. J.},
+   TITLE = {Computer aided analysis of {1-D} compressible flow 
+	problems in a {Lagrangian} particle description using 
+	the Alpha method.},
+   JOURNAL = caf,
+   YEAR = {1990},
+   VOLUME = {18},
+   NUMBER = {1},
+   PAGES = {75--101},
+   ANNOTE = {}
+   }
+
+@ARTICLE {katz_shaughnessy_90b,
+   AUTHOR = {Katz, I. M. and Shaughnessy, E. J.},
+   TITLE = {The equations of {1-D} compressible flow with area change
+	in a {Lagrangian} particle description.},
+   JOURNAL = caf,
+   YEAR = {1990},
+   VOLUME = {18},
+   NUMBER = {2},
+   PAGES = {183--190},
+   ANNOTE = {}
+   }
+
+@ARTICLE {kashimura_etal_86,
+   AUTHOR = {Kashimura, H. and Iwata, N. and Nishida, M.},
+   TITLE = {Numerical analysis of the wave propagation in a duct with
+         an area change by the random choice method.},
+   JOURNAL = {Bulletin of the JSME},
+   YEAR = {1986},
+   VOLUME = {29},
+   NUMBER = {251},
+   PAGES = {1440--1445},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {kumar_84,
+   AUTHOR = {Kumar, A.},
+   TITLE = {User's guide for {NASCRIN}: A vectorized code for 
+	calculating two-dimensional supersonic internal flow fields.},
+   INSTITUTION = {},
+   YEAR = {1984},
+   TYPE = nasatm,
+   NUMBER = {85708},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {kumar_etal_89,
+   AUTHOR = {Kumar, A. and Anderson, E. C. and Korte, J. J.},
+   TITLE = {A need for a new {CFD} based hypersonic wind tunnel
+	nozzle design procedure.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {Informal Report},
+   NUMBER = {},
+   ADDRESS = {},
+   ANNOTE = {* 72nd Semi-Annual meeting of the Supersonic Tunnel
+	Association, Princeton University, October 3&4 1989.
+	* not to be referenced}
+   }
+
+@TECHREPORT {kuruvila_anderson_85,
+   AUTHOR = {Kuruvila, G. and Anderson, J. D.},
+   TITLE = {A study of the effects of numerical dissipation
+	on the calculation of supersonic separated flows.},
+   INSTITUTION = {},
+   YEAR = {1985},
+   TYPE = {AIAA Paper},
+   NUMBER = {85-0301},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+-ll-
+
+@ARTICLE {lappas_etal_93,
+   AUTHOR = {Lappas, T. Leonard, A. and Dimotakis, P. E.},
+   TITLE = {An adaptive {Lagrangian} method for computing {1D}
+         reacting and non-reacting flows.},
+   JOURNAL = jcp,
+   YEAR = {1993},
+   VOLUME = {104},
+   NUMBER = {2},
+   PAGES = {361--376},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {lee_batina_91,
+   AUTHOR = {Lee, E. M. and Batina, J. T.},
+   TITLE = {Conical {Euler} methodology for unsteady vortical
+	flows about rolling delta wings.},
+   INSTITUTION = {},
+   YEAR = {1991},
+   TYPE = {AIAA Paper},
+   NUMBER = {91-0730},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {li_83,
+   AUTHOR = {Li, C. P.},
+   TITLE = {On a finite-difference method for solving unsteady
+	viscous flow problems.},
+   INSTITUTION = {},
+   YEAR = {1983},
+   TYPE = {AIAA Paper},
+   NUMBER = {83-0560},
+   ADDRESS = {},
+   ANNOTE = {* has some interesting test cases including the
+	shock/separated-boundary-layer problem.
+	}
+   }
+
+@ARTICLE {loh_liou_93,
+   AUTHOR = {Loh, C. -Y. and Liou, M. -S.},
+   TITLE = {Lagrangian solution of supersonic real gas flows.},
+   JOURNAL = jcp,
+   YEAR = {1993},
+   VOLUME = {104},
+   NUMBER = {1},
+   PAGES = {150--161},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {lohner_86,
+   AUTHOR = {Lohner, R.},
+   TITLE = {{FEM-FCT} and adaptive refinement schemes for strongly
+	unsteady flows.},
+   BOOKTITLE = {Numerical Methods for Compressible Flows -
+	Finite Difference, Element and Volume Techniques},
+   YEAR = {1986},
+   PAGES = {93--114},
+   PUBLISHER = {The American Society of Mechanical Engineers},
+   ANNOTE = {* adaptive grid procedure + criteria for refinement}
+   }
+
+@TECHREPORT {lohner_etal_89,
+   AUTHOR = {Lohner, R. and Baum, J. D. and Loth, E. and
+	Ramamurti, R.},
+   TITLE = {A finite element solver for axisymmetric compressible
+	flows.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-1794},
+   ADDRESS = {},
+   ANNOTE = {* extension to axi-symmetric flow
+	* high order interpolation of all unknowns
+	* transient and steady flows.
+	* subsonic, transonic and supersonic
+	}
+   }
+
+@ARTICLE {long_91,
+   AUTHOR = {Long, L. N.},
+   TITLE = {{Navier}-{Stokes} and {Monte} {Carlo} results for
+	hypersonic flow.},
+   JOURNAL = aiaaj,
+   YEAR = {1991},
+   VOLUME = {29},
+   NUMBER = {2},
+   PAGES = {200--207},
+   ANNOTE = {* mentions rule for y+
+	* mentions viscous time-step limitation
+	}
+   }
+
+-mm-
+
+@TECHREPORT {maccormack_69,
+   AUTHOR = {MacCormack, R. W.},
+   TITLE = {The effect of viscosity in hypervelocity impact 
+	cratering.},
+   INSTITUTION = {},
+   YEAR = {1969},
+   TYPE = {AIAA Paper},
+   NUMBER = {69-354},
+   ADDRESS = {},
+   ANNOTE = {* this seems to be the starting point for the technique
+	of the same name
+	* it is an adaption of the Lax-Wendroff 2nd order technique
+	}
+   }
+
+@INPROCEEDINGS {maccormack_71,
+   AUTHOR = {MacCormack, R. W.},
+   TITLE = {Numerical solution of the interaction of a shock wave
+	with a laminar boundary layer.},
+   BOOKTITLE = {Lecture Notes in Physics, Vol. 8},
+   YEAR = {1971},
+   PAGES = {151--163},
+   PUBLISHER = {Springer-Verlag},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {maccormack_baldwin_75,
+   AUTHOR = {MacCormack, R. W. and Baldwin, B. S.},
+   TITLE = {A numerical method for solving the {Navier}-{Stokes}
+	equations with application to shock-boundary layer
+	interactions.},
+   INSTITUTION = {},
+   YEAR = {1975},
+   TYPE = {AIAA Paper},
+   NUMBER = {75-1},
+   ADDRESS = {},
+   ANNOTE = {* test case Hakkinen's 59 data
+	* steady state limit only
+	}
+   }
+
+@TECHREPORT {maccormack_81,
+   AUTHOR = {MacCormack, R. W.},
+   TITLE = {A numerical method for solving the equations of 
+	compressible flow.},
+   INSTITUTION = {},
+   YEAR = {1981},
+   TYPE = {AIAA Paper},
+   NUMBER = {81-0110},
+   ADDRESS = {},
+   ANNOTE = {* implicit extension to the 1969 method
+	* example used -- laminar BL and oblique shock
+	* comparisons don't tell much 
+	* computed pressures rise faster than measurements
+	}
+   }
+
+@ARTICLE {maccormack_82,
+   AUTHOR = {MacCormack, R. W.},
+   TITLE = {A numerical method for solving the equations of
+	compressible flow.},
+   JOURNAL = aiaaj,
+   YEAR = {1982},
+   VOLUME = {20},
+   NUMBER = {9},
+   PAGES = {1275--1281},
+   ANNOTE = {* presented as AIAA-81-0110}
+   }
+
+@ARTICLE {maccormack_lomax_??,
+   AUTHOR = {MacCormack, R. W. and Lomax, H.},
+   TITLE = {Numerical solution of compressible viscous flows.},
+   JOURNAL = {Annual Review of Fluid Mechanics},
+   YEAR = {},
+   VOLUME = {11},
+   NUMBER = {},
+   PAGES = {289--316},
+   ANNOTE = {}
+   }
+
+@ARTICLE {marchant_weatherill_93,
+   AUTHOR = { Marchant, M. J. and Weatherill, N. P. },
+   TITLE = { Adaptivity techniques for compressible inviscid flows. },
+   JOURNAL = cmame,
+   YEAR = {1993},
+   VOLUME = {106},
+   NUMBER = {1-2},
+   PAGES = {83--106},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {mavriplis_etal_89,
+   AUTHOR = {Mavriplis, D. J. and Jameson, A. and Martinelli, L.},
+   TITLE = {Multigrid solution of the {Navier}-{Stokes} equations
+	on triangular meshes.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {ICASE Report},
+   NUMBER = {89-11},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {mavriplis_90a,
+   AUTHOR = {Mavriplis, D. J.},
+   TITLE = {{Euler} and {Navier}-{Stokes} computations for 
+	two-dimensional geometries using unstructured meshes.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {ICASE Report},
+   NUMBER = {90-3},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {mavriplis_91b,
+   AUTHOR = {Mavriplis, D. J.},
+   TITLE = {Three-dimensional unstructured multigrid for the
+	{Euler} equations.},
+   INSTITUTION = {},
+   YEAR = {1991},
+   TYPE = {ICASE Report},
+   NUMBER = {91-41},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {mavriplis_92a,
+   AUTHOR = {Mavriplis, D. J.},
+   TITLE = {Three-dimensional unstructured multigrid for the {Euler}
+	equations.},
+   JOURNAL = aiaaj,
+   YEAR = {1992},
+   VOLUME = {30},
+   NUMBER = {7},
+   PAGES = {1753--1761},
+   ANNOTE = {}
+   }
+
+@ARTICLE {mcguirk_page_90,
+   AUTHOR = {McGuirk, J. J. and Page, G. J.},
+   TITLE = {Shock capturing using a pressure-correction method.},
+   JOURNAL = aiaaj,
+   YEAR = {1990},
+   VOLUME = {28},
+   NUMBER = {10},
+   PAGES = {1751--1757},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {milthorpe_91,
+   AUTHOR = {Milthorpe, J. F.},
+   TITLE = {Numerical simulation of two-dimensional and axi-symmetric
+	compressible flows.},
+   BOOKTITLE = {18th International Symposium on Shock Waves},
+   YEAR = {1991},
+   PAGES = {},
+   PUBLISHER = {},
+   ANNOTE = {* seems to ba a cartesian mesh code}
+   }
+
+@ARTICLE {milthorpe_92,
+   AUTHOR = {Milthorpe, J. F.},
+   TITLE = {Simulation of supersonic and hypersonic flows.},
+   JOURNAL = ijnmf,
+   YEAR = {1992},
+   VOLUME = {14},
+   NUMBER = {},
+   PAGES = {267--288},
+   ANNOTE = {}
+   }
+
+@ARTICLE {mitty_etal_93,
+   AUTHOR = {Mitty, T. J. and Jameson, A. and Baker, T. J.},
+   TITLE = {Solution of three-dimensional supersonic flowfields
+         via adapting unstructured meshes. },
+   JOURNAL = caf,
+   YEAR = {1993},
+   VOLUME = {22},
+   NUMBER = {2/3},
+   PAGES = {271--283},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {munz_87,
+   AUTHOR = {Munz, C. -D.},
+   TITLE = {Two-step schemes for the {Euler} equations and numerical
+	experiments on the stability of converging cylindrical
+	shock waves.},
+   BOOKTITLE = {Shock Tubes and Waves.},
+   YEAR = {1987},
+   PAGES = {685--691},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+-nn-
+
+@TECHREPORT {netterfield_91,
+   AUTHOR = {Netterfield, M. P.},
+   TITLE = {Computation of the aerodynamics of spinning bodies
+	using a point-implicit method.},
+   INSTITUTION = {},
+   YEAR = {1991},
+   TYPE = {AIAA Paper},
+   NUMBER = {91-0339},
+   ADDRESS = {},
+   ANNOTE = {* Fluid Gravity Engineering Ltd, Witley, Surry, UK}
+   }
+
+@INPROCEEDINGS {netterfield_91b,
+   AUTHOR = {Netterfield, M. P.},
+   TITLE = {Hypersonic aerothermodynamic computations using a 
+	point-implicit {TVD} method.},
+   BOOKTITLE = {Aerothermodynamics for Space Vehicles. SP-318.},
+   YEAR = {1991},
+   PAGES = {259--266},
+   PUBLISHER = {European Space Agency},
+   ANNOTE = {}
+   }
+
+-oo-
+
+@ARTICLE {obayashi_92,
+   AUTHOR = {Obayashi, S.},
+   TITLE = {Freestream capturing for moving coordinates in three
+	dimensions.},
+   JOURNAL = aiaaj,
+   YEAR = {1992},
+   VOLUME = {30},
+   NUMBER = {4},
+   PAGES = {1125--1128},
+   ANNOTE = {}
+   }
+
+-pp-
+
+@ARTICLE {pan_cheng_93,
+   AUTHOR = { Pan, D. and Cheng, J. -C. },
+   TITLE = { A second-order upwind finite-volume method for the
+         {Euler} solution on unstructured triangular meshes. },
+   JOURNAL = ijnmf,
+   YEAR = {1993},
+   VOLUME = {16},
+   NUMBER = {},
+   PAGES = {1079--1098},
+   ANNOTE = {}
+   }
+
+@ARTICLE {peace_shaw_92,
+   AUTHOR = {Peace, A. J. and Shaw, J. A.},
+   TITLE = {The modelling of aerodynamic flows by solution of the
+         {Euler} equations on mixed polyhedral grids.},
+   JOURNAL = ijnme,
+   YEAR = {1992},
+   VOLUME = {35},
+   NUMBER = {10},
+   PAGES = {2003--2029},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {peery_imlay_88,
+   AUTHOR = {Peery, K. M. and Imlay, S. T.},
+   TITLE = {Blunt-body flow simulations.},
+   INSTITUTION = {},
+   YEAR = {1988},
+   TYPE = {AIAA Paper},
+   NUMBER = {88-2904},
+   ADDRESS = {},
+   ANNOTE = {* carbuncle problem with Roe's approx. Riemann solver}
+   }
+
+@TECHREPORT {peraire_etal_88,
+   AUTHOR = {Peraire, J. and Peiro, J. and Formaggia, L. and
+	Morgan, K. and Zienkiewicz, O. C.},
+   TITLE = {Finite element {Euler} computations in three dimensions.},
+   INSTITUTION = {},
+   YEAR = {1988},
+   TYPE = {AIAA Paper},
+   NUMBER = {88--0032},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {peraire_etal_93,
+   AUTHOR = { Peraire, J. and Peiro, J. and Morgan, K. },
+   TITLE = { Finite element multigrid solution of {Euler} flows
+         past installed aaero-engines. },
+   JOURNAL = {Computational Mechanics},
+   YEAR = {1993},
+   VOLUME = {11},
+   NUMBER = {5/6},
+   PAGES = {433--451},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {pollet_drouin_91,
+   AUTHOR = {Pollet, M. and Drouin, N.},
+   TITLE = {Comparison of transport schemes for {Navier}-{Stokes}
+         equations application to rocket propulsion.},
+   BOOKTITLE = {Numerical Methods is Laminar and Turbulent Flow.
+             Volume 7, Part 2.},
+   YEAR = {1991},
+   PAGES = {1496},
+   PUBLISHER = {Pineridge Press},
+   ANNOTE = {}
+   }
+
+@ARTICLE {pordal_etal_92,
+   AUTHOR = {Pordal, H. S. and Khosla, P. K. and Rubin, S. G.},
+   TITLE = {A flux-split solution procedure for unsteady inlet
+         flow calculations.},
+   JOURNAL = {Transactions of the ASME, Journal of Fluids Engineering.},
+   YEAR = {1992},
+   VOLUME = {114},
+   NUMBER = {},
+   PAGES = {198--204},
+   ANNOTE = {}
+   }
+
+-qq-
+
+@TECHREPORT {quirk_92a,
+   AUTHOR = {Quirk, J. J.},
+   TITLE = {An alternative to unstructured grids for computing gas
+	dynamic flows around arbitrarily complex two-dimensional
+	bodies.},
+   INSTITUTION = {},
+   YEAR = {1992},
+   TYPE = {ICASE Report},
+   NUMBER = {92-7},
+   ADDRESS = {},
+   ANNOTE = {* cartesian mesh with cut cells}
+   }
+
+@ARTICLE { quirk_93,
+   AUTHOR = { Quirk, J. J. },
+   TITLE = { An alternative to unstructured grids for computing
+         gas dynamic flows around arbitrarily complex two-dimensional
+         bodies. },
+   JOURNAL = caf,
+   YEAR = { 1993 },
+   VOLUME = { 23 },
+   NUMBER = { 1 },
+   PAGES = { 125--142 },
+   ANNOTE = {}
+   }
+
+-rr-
+
+@TECHREPORT {radespiel_swanson_91,
+   AUTHOR = {Radespiel, R. and Swanson, R. C.},
+   TITLE = {Progress with multigrid schemes for hypersonic flow
+	problems.},
+   INSTITUTION = {},
+   YEAR = {1991},
+   TYPE = {ICASE Report},
+   NUMBER = {91-89},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {radespiel_etal_90,
+   AUTHOR = {Radespiel, R. and Rossow, C. and Swanson, R. C.},
+   TITLE = {Efficient cell-vertex multigrid scheme for the 
+	three-dimensional {Navier}-{Stokes} equations.},
+   JOURNAL = aiaaj,
+   YEAR = {1990},
+   VOLUME = {28},
+   NUMBER = {8},
+   PAGES = {1464--1472},
+   ANNOTE = {}
+   }
+
+@ARTICLE {reggio_etal_92,
+   AUTHOR = {Reggio, M. and Trepanier, J. Y. and Camarero, R.},
+   TITLE = {Numerical simulation of the gas flow in a
+	circuit-breaker.},
+   JOURNAL = ijnme,
+   YEAR = {1992},
+   VOLUME = {34},
+   NUMBER = {2},
+   PAGES = {607--618},
+   ANNOTE = {* unstructured adaptive grid with moving boundaries}
+   }
+
+@TECHREPORT {riley_deJarnette_90,
+   AUTHOR = {Riley, C. J. and DeJarnette, F. R},
+   TITLE = {An approximate method for calculating three-dimensional
+	inviscid hypersonic flow fields.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = nasatp,
+   NUMBER = {3018},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {roe_87,
+   AUTHOR = {Roe, P. L.},
+   TITLE = {Finite-volume methods for the compressible
+         {Navier}-{Stokes} equations.},
+   BOOKTITLE = {Numerical Methods is Laminar and Turbulent Flow.
+             Volume 5, Part 2.},
+   YEAR = {1987},
+   PAGES = {2088},
+   PUBLISHER = {Pineridge Press},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {rogers_weidner_88,
+   AUTHOR = {Rogers, R. C. and Weidner, E. H.},
+   TITLE = { Numerical analysis of the transient flow
+             from a shock tunnel facility.  },
+   INSTITUTION = {},
+   YEAR = {1988},
+   TYPE = {AIAA Paper},
+   NUMBER = {88-3261},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {rogers_weidner_83,
+   AUTHOR = {Rogers, R. C. and Weidner, E. H.},
+   TITLE = { Numerical predictions of residence time behind 
+             a rearward-facing step with transverse injection.  },
+   BOOKTITLE = { 20th JANNAF Combustion Meeting. },
+   YEAR = {1983},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {rudy_etal_89,
+   AUTHOR = {Rudy, D. H. and Kumar, A. and Gnoffo, P. A. and
+	Chakravarthy, S. R.},
+   TITLE = {A validation study of four {Navier}-{Stokes} codes 
+	for high-speed flows.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-1838},
+   ADDRESS = {},
+   ANNOTE = {* test cases from Holden_78 high Mach number data
+	* wedge induced separation
+	* shock wave - boundary layer separation
+	* The three upwind codes all closely agree while
+	the finite-difference code has problems after shock
+	impingement
+	}
+   }
+
+@ARTICLE {rusanov_??,
+   AUTHOR = {Rusanov, V. V.},
+   TITLE = {A blunt body in a supersonic stream.},
+   JOURNAL = {Annual Review of Fluid Mechanics},
+   YEAR = {},
+   VOLUME = {8},
+   NUMBER = {},
+   PAGES = {377--404},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {ryan_etal_89,
+   AUTHOR = {Ryan, J. S. and Flores, J. and Chow, C. -Y.},
+   TITLE = {Development and validation of {CNS} ({Compressible}
+	{Navier}-{Stokes}) for hypersonic applications.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-1839},
+   ADDRESS = {},
+   ANNOTE = {* defines a Y+ and suggests a value of 0.2 for 
+	adequate resolution
+	* NOTE the definition for Y+ incorrectly includes a_infinity
+	* Zonal approach with different equations in different
+	zones
+	}
+   }
+
+@ARTICLE {ryan_etal_90,
+   AUTHOR = {Ryan, J. S. and Flores, J. and Chow, C. -Y.},
+   TITLE = {Development and validation of a {Navier}-{Stokes}
+	code for hypersonic external flow.},
+   JOURNAL = aiaajsr,
+   YEAR = {1990},
+   VOLUME = {27},
+   NUMBER = {2},
+   PAGES = {160--166},
+   ANNOTE = {* updated version of AIAA-89-1839}
+   }
+
+-ss-
+
+@ARTICLE {sanders_92,
+   AUTHOR = {Sanders, R.},
+   TITLE = {A staggered mesh finite difference scheme for the
+	computation of compressible flows.},
+   JOURNAL = ijnme,
+   YEAR = {1992},
+   VOLUME = {34},
+   NUMBER = {2},
+   PAGES = {507--517},
+   ANNOTE = {* something different for shock capturing}
+   }
+
+@ARTICLE {selmin_formaggia_92,
+   AUTHOR = {Selmin, V. and Formaggia, L.},
+   TITLE = {Simulation of hypersonic flows on unstructured grids.},
+   JOURNAL = ijnme,
+   YEAR = {1992},
+   VOLUME = {34},
+   NUMBER = {2},
+   PAGES = {569--606},
+   ANNOTE = {* unstructured, adaptive grids}
+   }
+
+@ARTICLE {sinha_etal_71,
+   AUTHOR = {Sinha, R and Zakkay, V. and Erdos, J.},
+   TITLE = {Flowfield analysis of plumes of two-dimensional
+	underexpanded jets by a time-dependent method.},
+   JOURNAL = aiaaj,
+   YEAR = {1971},
+   VOLUME = {9},
+   NUMBER = {12},
+   PAGES = {2363--2370},
+   ANNOTE = {}
+   }
+
+@ARTICLE {smarr_etal_84,
+   AUTHOR = {Smarr, L. L. and Norman, M. L. and Winkler, K-H. A.},
+   TITLE = {Shocks, interfaces, and petterns in supersonic jets.},
+   JOURNAL = {Physica D},
+   YEAR = {1984},
+   VOLUME = {12},
+   NUMBER = {},
+   PAGES = {83--106},
+   ANNOTE = {* upwinding code}
+   }
+
+@ARTICLE {so_zhang_91a,
+   AUTHOR = {So, R. M. C. and Zhang, H. S.},
+   TITLE = {Flux-coordinate splitting technique for the
+	{Navier}-{Stokes} equations.},
+   JOURNAL = aiaaj,
+   YEAR = {1991},
+   VOLUME = {29},
+   NUMBER = {9},
+   PAGES = {1418--1425},
+   ANNOTE = {}
+   }
+
+@ARTICLE {sod_78,
+   AUTHOR = {Sod, G. A.},
+   TITLE = {A survey of several finite difference methods for
+	systems of nonlinear hyperbolic conservation laws.},
+   JOURNAL = jcp,
+   YEAR = {1978},
+   VOLUME = {27},
+   NUMBER = {1},
+   PAGES = {1--31},
+   ANNOTE = {* this seems to be the start of the famous 1D
+	shock tube TEST CASE
+	}
+   }
+
+@INPROCEEDINGS {sod_87,
+   AUTHOR = {Sod, G. A.},
+   TITLE = {A random vortex method for compressible turbulent flows.},
+   BOOKTITLE = {Numerical Methods is Laminar and Turbulent Flow.
+             Volume 5, Part 2.},
+   YEAR = {1987},
+   PAGES = {2075},
+   PUBLISHER = {Pineridge Press},
+   ANNOTE = {}
+   }
+
+@ARTICLE {stolcis_johnson_90a,
+   AUTHOR = {Stolcis, L. and Johnson. L. J.},
+   TITLE = {Solution of the {Euler} equations on unstructured
+	grids for two-dimensional flow.},
+   JOURNAL = taj,
+   YEAR = {1990},
+   VOLUME = {June/July},
+   NUMBER = {},
+   PAGES = {181--195},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {stolcis_johnston_90b,
+   AUTHOR = {Stolcis, L. and Johnston, L. J.},
+   TITLE = {Implementation of a high resolution {TVD} scheme for
+	compressible inviscid flow on unstructured grids.},
+   BOOKTITLE = {12th International Conference on Numerical Methods
+	in Fluid Dynamics},
+   YEAR = {1990},
+   PAGES = {},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {stolcis_johnston_87,
+   AUTHOR = {Stolcis, L. and Johnston, L. J.},
+   TITLE = {Compressible flow calculations using a two-equation
+         turbulence model and unstructured grids.},
+   BOOKTITLE = {Numerical Methods is Laminar and Turbulent Flow.
+             Volume 7, Part 2.},
+   YEAR = {1991},
+   PAGES = {922--932},
+   PUBLISHER = {Pineridge Press},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {stoufflet_etal_87,
+   AUTHOR = {Stoufflet, B. and Periaux, J. and Fezoui, F. and
+	Dervieux, A.},
+   TITLE = {Numerical simulation of {3-D} hypersonic {Euler} flows
+	around space vehicles using adapted finite elements.},
+   INSTITUTION = {},
+   YEAR = {1987},
+   TYPE = {AIAA Paper},
+   NUMBER = {87-0560},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {sullins_etal_82,
+   AUTHOR = {Sullins, G. A. and Anderson, J. D. and Drummond, J. P.},
+   TITLE = {Numerical investigation of supersonic base flow with
+	parallel injection.},
+   INSTITUTION = {},
+   YEAR = {1982},
+   TYPE = {AIAA Paper},
+   NUMBER = {82-1001},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {swanson_turkel_85,
+   AUTHOR = {Swanson, R. C. and Turkel, E.},
+   TITLE = {A multistage time-stepping scheme for the 
+	{Navier}-{Stokes} equations.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {ICASE Report},
+   NUMBER = {84-62},
+   ADDRESS = {},
+   ANNOTE = {* also AIAA Paper 85-0035}
+   }
+
+@INPROCEEDINGS {swanson_etal_91,
+   AUTHOR = {Swanson, R. C. and Turkel, E. and White, J. A.},
+   TITLE = {An effective multigrid method for high-speed flows.},
+   BOOKTITLE = {Fifth Copper Mountain Conference on Multigrid
+	Methods},
+   YEAR = {1991},
+   PAGES = {},
+   PUBLISHER = {},
+   ANNOTE = {* viscous limit on the time stepping}
+   }
+
+@ARTICLE {swanson_etal_92,
+   AUTHOR = {Swanson, R. C. and Turkel, E. and White, J. A.},
+   TITLE = {An effective multigrid method for high-speed flows.},
+   JOURNAL = {Communications in Applied Numerical Methods},
+   YEAR = {1992},
+   VOLUME = {8},
+   NUMBER = {9},
+   PAGES = {671--681},
+   ANNOTE = {}
+   }
+
+@ARTICLE {swanson_turkel_92,
+   AUTHOR = {Swanson, R. C. and Turkel, E.},
+   TITLE = {On central-difference and upwind schemes.},
+   JOURNAL = jcp,
+   YEAR = {1992},
+   VOLUME = {101},
+   NUMBER = {},
+   PAGES = {292--306},
+   ANNOTE = {}
+   }
+
+-tt-
+
+@ARTICLE {takayama_inoue_91,
+   AUTHOR = { Takayama, K. and Inoue, O. },
+   TITLE = { Shock wave diffraction over a 90 degree sharp corner -
+         posters presented at the 18th {ISSW}. },
+   JOURNAL = { Shock Waves },
+   YEAR = {1991},
+   VOLUME = {1},
+   NUMBER = {301--312},
+   PAGES = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {thomas_etal_72,
+   AUTHOR = {Thomas, P. D. and Vinokur, M. and Bastianon, R. and
+             Conti, R. J.},
+   TITLE = {Numerical solution for the three-dimensional hypersonic 
+            flow field of a blunt delta body.},
+   JOURNAL = aiaaj,
+   YEAR = {1972},
+   VOLUME = {10},
+   NUMBER = {},
+   PAGES = {887--894},
+   ANNOTE = {Transformations used in the SPARK computations.}
+   }
+
+@INPROCEEDINGS {thomas_91,
+   AUTHOR = {Thomas, J. L.},
+   TITLE = {An implicit multigrid scheme for hypersonic 
+	strong-interaction flowfields.},
+   BOOKTITLE = {Fifth Copper Mountain Conference on Multigrid
+	Methods},
+   YEAR = {1991},
+   PAGES = {},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {thomas_92,
+   AUTHOR = {Thomas, J. L.},
+   TITLE = {An implicit multigrid scheme for hypersonic
+	strong-interaction flowfields.},
+   JOURNAL = {Communications in Applied Numerical Methods},
+   YEAR = {1992},
+   VOLUME = {8},
+   NUMBER = {9},
+   PAGES = {683--693},
+   ANNOTE = {}
+   }
+
+@ARTICLE {thompson_87,
+   AUTHOR = {Thompson, K. W.},
+   TITLE = {Time dependent boundary conditions for hyperbolic 
+	systems.},
+   JOURNAL = jcp,
+   YEAR = {1987},
+   VOLUME = {68},
+   NUMBER = {},
+   PAGES = {1--24},
+   ANNOTE = {}
+   }
+
+@ARTICLE {thompson_90,
+   AUTHOR = {Thompson, K. W.},
+   TITLE = {Time-dependent boundary conditions for hyperbolic
+	systems, II.},
+   JOURNAL = jcp,
+   YEAR = {1990},
+   VOLUME = {89},
+   NUMBER = {2},
+   PAGES = {439--461},
+   ANNOTE = {* general formalism that covers all cases}
+   }
+
+@ARTICLE {trepanier_etal_93,
+   AUTHOR = { Trepanier, J. Y. and Reggio, M. and Paraschivoiu, M.
+          and Camarero, R. },
+   TITLE = { Unsteady {Euler} solutions for arbitrarily moving
+         bodies and boundaries. },
+   JOURNAL = aiaaj,
+   YEAR = { 1993 },
+   VOLUME = { 31 },
+   NUMBER = { 10 },
+   PAGES = { 1869 },
+   ANNOTE = {}
+   }
+
+@TECHREPORT {turkel_etal_91,
+   AUTHOR = {Turkel, E. and Swanson, R. C. and Vasta, V. N. and
+	White, J. A.},
+   TITLE = {Multigrid for hypersonic viscous two- and
+	three-dimensional flows.},
+   INSTITUTION = {},
+   YEAR = {1991},
+   TYPE = {AIAA Paper},
+   NUMBER = {91-1572},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {tworzydlo_etal_92b,
+   AUTHOR = {Tworzydlo, W. W. and Huang, C. Y. and Oden, J. T.},
+   TITLE = {Adaptive implicit/explicit finite element methods for
+	axisymmetric viscous turbulent flows with moving boundaries.},
+   JOURNAL = cmame,
+   YEAR = {1992},
+   VOLUME = {97},
+   NUMBER = {2},
+   PAGES = {245--288},
+   ANNOTE = {}
+   }
+
+@ARTICLE {tworzydlo_etal_92a,
+   AUTHOR = {Tworzydlo, W. W. and Oden, J. T. and Thornton, E. A.},
+   TITLE = {Adaptive implicit/explicit finite element method for
+	compressible viscous flows.},
+   JOURNAL = cmame,
+   YEAR = {1992},
+   VOLUME = {95},
+   NUMBER = {},
+   PAGES = {397--440},
+   ANNOTE = {}
+   }
+
+-uu-
+
+@INPROCEEDINGS {uchiyama_inoue_93,
+   AUTHOR = { Uchiyama, N. and Inoue, O. },
+   TITLE = { Adaptive mesh refinement computation of compressible flow. },
+   BOOKTITLE = { 19th ISSW, Marseille. },
+   YEAR = {1993},
+   PAGES = {},
+   PUBLISHER = {},
+   ANNOTE = {* diffracting shock problem }
+   }
+
+@ARTICLE {uchiyama_inoue_92,
+   AUTHOR = { Uchiyama, N. and Inoue, O. },
+   TITLE = { On the performance of adaptive mesh refinement computation. },
+   JOURNAL = { Shock Waves },
+   YEAR = {1992},
+   VOLUME = {2},
+   NUMBER = {},
+   PAGES = {117--120},
+   ANNOTE = {* diffracting shock problem }
+   }
+
+-vv-
+
+@TECHREPORT {venkatakrishnan_mavriplis_91,
+   AUTHOR = {Venkatakrishnan, V. and Mavriplis, D. J.},
+   TITLE = {Implicit solvers for unstructured meshes.},
+   INSTITUTION = {},
+   YEAR = {1991},
+   TYPE = {ICASE Report},
+   NUMBER = {91-40},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {vilsmeier_hanel_93,
+   AUTHOR = { Vilsmeier, R. and Hanel, D. },
+   TITLE = { Adaptive methods on unstructured grids for {Euler}
+         and {Navier}-{Stokes} equations. },
+   JOURNAL = caf,
+   YEAR = {1993},
+   VOLUME = {22},
+   NUMBER = {4/5},
+   PAGES = {485--499},
+   ANNOTE = {}
+   }
+
+@ARTICLE {volpe_93,
+   AUTHOR = {Volpe, G.},
+   TITLE = {Performance of compressible flow codes at low {Mach}
+         numbers.},
+   JOURNAL = aiaaj,
+   YEAR = {1993},
+   VOLUME = {31},
+   NUMBER = {1},
+   PAGES = {49--56},
+   ANNOTE = {}
+   }
+
+@ARTICLE {vonneumann_richtmyer_50,
+   AUTHOR = {Von Neumann, J. and Richtmyer, R. D.},
+   TITLE = {A method for the numerical calculation of hydrodynamic
+	shocks.},
+   JOURNAL = {Journal of Applied Physics},
+   YEAR = {1950},
+   VOLUME = {21},
+   NUMBER = {},
+   PAGES = {232--237},
+   ANNOTE = {* the original paper on artificial dissipation}
+   }
+
+@INPROCEEDINGS {vos_bergman_90,
+   AUTHOR = {Vos, J. B. and Bergman, C. M.},
+   TITLE = {The development of a multi-block flow solver for
+	parallel computers.},
+   BOOKTITLE = {Supercomputing},
+   YEAR = {1990},
+   PAGES = {521--532},
+   PUBLISHER = {},
+   ANNOTE = {* explicit time-stepping -- commumication between
+	blocks
+	}
+   }
+
+@INPROCEEDINGS {vos_bergman_91,
+   AUTHOR = {Vos, J. B. and Bergman, C. M.},
+   TITLE = {A multiblock flow solver for inviscid hypersonic flows.},
+   BOOKTITLE = {Aerothermodynamics for Space Vehicles. SP-318.},
+   YEAR = {1991},
+   PAGES = {109--114},
+   PUBLISHER = {European Space Agency},
+   ANNOTE = {}
+   }
+
+-ww-
+
+@ARTICLE {wang_widhopf_90,
+   AUTHOR = {Wang, J. C. T. and Widhopf, G. F.},
+   TITLE = {Numerical simulation of blast flowfields using a high
+	resolution {TVD} finite volume scheme.},
+   JOURNAL = caf,
+   YEAR = {1990},
+   VOLUME = {18},
+   NUMBER = {1},
+   PAGES = {103-137},
+   ANNOTE = {* extensive experimental verification
+	* axisymmetric flows}
+   }
+
+@INPROCEEDINGS {wanie_schmatz_91,
+   AUTHOR = {Wanie, K. M. and Schmatz, M. A.},
+   TITLE = {Verification and application of the {NSFLEX} method for 
+	hypersonic flow conditions.},
+   BOOKTITLE = {Aerothermodynamics for Space Vehicles. SP-318.},
+   YEAR = {1991},
+   PAGES = {249--257},
+   PUBLISHER = {European Space Agency},
+   ANNOTE = {* multiblock flow solver}
+   }
+
+@INPROCEEDINGS {winzell_91,
+   AUTHOR = {Winzell, B.},
+   TITLE = {Validation of a computational method for laminar
+	hypersonic flow around blunt bodies and the application 
+	to the full {Hermes} spacecraft.},
+   BOOKTITLE = {Aerothermodynamics for Space Vehicles. SP-318.},
+   YEAR = {1991},
+   PAGES = {51--59},
+   PUBLISHER = {European Space Agency},
+   ANNOTE = {}
+   }
+
+-xx-
+-yy-
+
+@ARTICLE {yabe_etal_91,
+   AUTHOR = {Yabe, T. and Aoki, T. and Sakaguchi, G. and
+	Wang, P. -Y. and Ishikawa, T.},
+   TITLE = {The compact {CIP} (Cubic-interpolated pseudo-particle)
+	method as a general hyperbolic solver.},
+   JOURNAL = caf,
+   YEAR = {1991},
+   VOLUME = {19},
+   NUMBER = {3/4},
+   PAGES = {421--431},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {yadlin_etal_91,
+   AUTHOR = {Yadlin, Y. and Tysinger, T. L. and Caughey, D. A.},
+   TITLE = {Parallel block multigrid solution of the compressible
+	{Navier}-{Stokes} equations.},
+   BOOKTITLE = {AIAA 10th Computational Fluid Dynamics Conference},
+   YEAR = {1991},
+   PAGES = {965--966},
+   PUBLISHER = {},
+   ANNOTE = {* multiblock grid}
+   }
+
+@INPROCEEDINGS {yamamoto_etal_87,
+   AUTHOR = {Yamamoto, M. and Hatakeyama, M. and Oguchi, H.},
+   TITLE = {Shock-tube flow simulation by a modified finite volume
+	method.},
+   BOOKTITLE = {Shock Tubes and Waves.},
+   YEAR = {1987},
+   PAGES = {725--731},
+   PUBLISHER = {},
+   ANNOTE = {* forward facing step problem with experimental data}
+   }
+
+@ARTICLE {yang_etal_87,
+   AUTHOR = {Yang, J. Y. and Lombard, C. K. and Bershader, D.},
+   TITLE = {Numerical simulation of transient inviscid shock tube
+	flows.},
+   JOURNAL = aiaaj,
+   YEAR = {1987},
+   VOLUME = {25},
+   NUMBER = {2},
+   PAGES = {245--251},
+   ANNOTE = {* upwind scheme - TVD
+	* one dimensional shock tube problem
+	* two dimensional shock tube flows over a circular arc aerofoil
+	and a shock running up a ramp}
+   }
+
+@INPROCEEDINGS {yang_etal_90,
+   AUTHOR = {Yang, J. Y. and Hsu, C. -A. and Lee, T. H.},
+   TITLE = {A numerical study of third-order nonoscillatory
+	schemes for the {Euler} equations.},
+   BOOKTITLE = {12th International Conference on Numerical Methods
+	in Fluid Dynamics},
+   YEAR = {1990},
+   PAGES = {},
+   PUBLISHER = {},
+   ANNOTE = {* look to have a very nice shock tunnel nozzle starting
+	simulation
+	* contoured nozzle, large Mach number ??
+	* perfect gas, 2-dimensional?
+	}
+   }
+
+@ARTICLE {yang_hsu_92,
+   AUTHOR = {Yang, J. Y. and Hsu, C. A.},
+   TITLE = {High-resolution, nonoscillatory schemes for unsteady
+	compressible flows.},
+   JOURNAL = aiaaj,
+   YEAR = {1992},
+   VOLUME = {30},
+   NUMBER = {6},
+   PAGES = {1570--1575},
+   ANNOTE = {* journal article from yang_etal_90
+	* flow over an elliptic cylinder
+	* starting flow through a nozzle
+	}
+   }
+
+@ARTICLE {yang_etal_93,
+   AUTHOR = {Yang, J. Y. and Hsu, C. A. and Hui, W. H.},
+   TITLE = {Solution of steady {Euler} equations in a generalized
+         {Lagrangian} formulation.},
+   JOURNAL = aiaaj,
+   YEAR = {1993},
+   VOLUME = {31},
+   NUMBER = {2},
+   PAGES = {266--272},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {yungster_91,
+   AUTHOR = {Yungster, S.},
+   TITLE = {Numerical study of shock-wave/boundary layer interactions
+	in premixed hydrogen-air hypersonic flows.},
+   INSTITUTION = {},
+   YEAR = {1991},
+   TYPE = {AIAA Paper},
+   NUMBER = {91-0413},
+   ADDRESS = {},
+   ANNOTE = {* used laminar data from skebe_etal_87 as a 
+	test case for the high Mach number calculations
+	}
+   }
+
+-zz-
+
+@ARTICLE {zhang_so_90,
+   AUTHOR = {Zhang, H. S. and So, R. M. C.},
+   TITLE = {Calculation of the material interface in a pressure-wave
+	supercharger.},
+   JOURNAL = {Proceedings of the Institute of Mechanical Engineers},
+   YEAR = {1990},
+   VOLUME = {204},
+   NUMBER = {},
+   PAGES = {151--161},
+   ANNOTE = {}
+   }
+
+@ARTICLE {zhang_so_91a,
+   AUTHOR = {Zhang, H. S. and So, R. M. C.},
+   TITLE = {A flux-coordinate-splitting technique for flows with
+	shocks and contact discontinuities.},
+   JOURNAL = {Computers and Fluids},
+   YEAR = {1991},
+   VOLUME = {20},
+   NUMBER = {4},
+   PAGES = {421--442},
+   ANNOTE = {}
+   }
+
+@ARTICLE {zhang_zhuang_92,
+   AUTHOR = {Zhang, H. and Zhuang, F.},
+   TITLE = {{NND} schemes and their applications to numerical
+	simulation of two- and three-dimensional flows.},
+   JOURNAL = {Advances in Applied Mechanics},
+   YEAR = {1992},
+   VOLUME = {29},
+   NUMBER = {},
+   PAGES = {193--256},
+   ANNOTE = {* non-oscillatory schemes for the N-S equations
+	* uses third-order viscous terms with no adjustable parameters
+	}
+   }
