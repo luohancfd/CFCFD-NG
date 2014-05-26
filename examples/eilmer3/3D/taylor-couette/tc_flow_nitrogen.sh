@@ -2,7 +2,7 @@
 #PBS -S /bin/bash
 #PBS -N tc_flow
 #PBS -q workq
-#PBS -l select=5:ncpus=8:NodeType=medium:mpiprocs=8 -A uq-SCRAMSPACE
+#PBS -l select=5:ncpus=8:NodeType=medium:mpiprocs=8 -A uq-XXX
 #PBS -l walltime=40:00:00
 echo "-------------------------------------------"
 echo "Begin MPI job..."

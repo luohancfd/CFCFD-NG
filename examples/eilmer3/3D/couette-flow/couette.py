@@ -1,4 +1,5 @@
 # couette.py
+# Jason (Kan) Qin, November 2013
 
 from math import pi, sin, cos
 

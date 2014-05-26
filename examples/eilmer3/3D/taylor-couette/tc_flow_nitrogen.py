@@ -1,4 +1,5 @@
 # taylor_couette.py
+# Jason (Kan) Qin, December 2013
 
 from math import pi, sin, cos, sqrt
 
