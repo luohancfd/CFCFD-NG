@@ -1363,40 +1363,64 @@ the boundary conditions were permitted to be specified as a list of
 or \texttt{Block3D} objects, respectively.
 Available boundary condition classes include:\index{boundary conditions!list of available}
   \begin{itemize}\index{boundary conditions}
-    \item \texttt{AdjacentBC()}\index{boundary conditions!AdjacentBC} for cases where one block interfaces with another.
-    \item \texttt{SupInBC(inflow\_condition, label='')}\index{boundary conditions!SupInBC} where we want to specify the inflow condition
+    \item \verb!AdjacentBC(other_block=-1, other_face=-1, orientation=0,!\\
+      \verb!reorient_vector_quantities=False,!\\
+      \verb!Rmatrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], label='')!\index{boundary conditions!AdjacentBC}\\
+      Usually this boundary condition is applied implicitly, by calling the function\\
+      \verb!identify_block_connections()!, for cases where one block interfaces with another
+      and the block boundaries are cleanly aligned, however, it can be applied manually for cases where you want 
+      the flow to be plumbed from on block face into another and the blocks are not geometrically aligned.
+      A non-unity transformation matrix, \verb!Rmatrix!, can be provided for cases where the flow vector quantities need to
+      be reoriented when they are copied from the other boundary to this one.
+    \item \verb!SupInBC(inflow_condition, label='')!\index{boundary conditions!SupInBC} where we want to specify the inflow condition
       that gets copies into the ghost cells each time step.
       The optional \texttt{label} has an empty default value but may be used to group boundary surfaces symbolically
       in the postprocessing stage.
-      Paul Petrie-Repar has made use of these labels in his \texttt{CGNS} postprocessing program.
-    \item \texttt{ExtrapolateOutBC(x\_order=0, sponge\_flag=0, label='')}\index{boundary conditions!ExtrapolateOutBC} where we want a (mostly supersonic) outflow
+      Paul Petrie-Repar has made use of these labels in his \verb!CGNS! postprocessing program.
+    \item \verb!ExtrapolateOutBC(x_order=0, sponge_flag=0, label='')!\index{boundary conditions!ExtrapolateOutBC} where we want a (mostly supersonic) outflow
       condition.
-      Flow data is effectively copied (\texttt{x\_order=0}) or linearly-extrapolated (\texttt{x\_order=1})
+      Flow data is effectively copied (\verb!x_order=0!) or linearly-extrapolated (\verb!x_order=1!)
       from just inside the boundary to the ghost cells just outside the boundary, every time step.
       In subsonic flow, this can lead to unphysical bahaviour.
-    \item \texttt{SlipWallBC(label='')}\index{boundary conditions!SlipWallBC} where we want a solid wall with no viscous effects.
+    \item \verb!SlipWallBC(label='')!\index{boundary conditions!SlipWallBC} where we want a solid wall with no viscous effects.
       This is the default boundary condition where no other condition is specified.
-    \item \texttt{AdiabaticBC(label='')}\index{boundary conditions!AdiabaticBC} where we want viscous effects to impose no-slip at the wall
+    \item \verb!AdiabaticBC(label='')!\index{boundary conditions!AdiabaticBC} where we want viscous effects to impose no-slip at the wall
       but where there is no heat transfer. 
       Note that we need to set \verb!gdata.viscous_flag = 1! (see Section~\ref{sec:sim-control-parameters}, Viscous effects) 
       to make this boundary condition effective.
-    \item \texttt{FixedTBC(Twall, label='')}\index{boundary conditions!FixedTBC} where we want viscous effects to impose a no-slip velocity 
+    \item \verb!FixedTBC(Twall, label='')!\index{boundary conditions!FixedTBC} where we want viscous effects to impose a no-slip velocity 
       condition and a fixed wall temperature.
-      As for the \texttt{AdiabaticBC}, we need to set \verb!gdata.viscous_flag = 1! (see Section~\ref{sec:sim-control-parameters}, Viscous effects) 
+      As for the \verb!AdiabaticBC!, we need to set \verb!gdata.viscous_flag = 1! (see Section~\ref{sec:sim-control-parameters}, Viscous effects) 
       to make this boundary condition effective.
-    \item \texttt{SubsonicInBC(stagnation\_condition, label='')}\index{boundary conditions!SubsonicInBC} where the flow is assumed subsonic and
-      we specify the stagnation pressure and temperature and a velocity \emph{direction} at the boundary. The magnitude of the velocity vector has
-      no meaning, only the direction specified by its components is important. Also note, that for multi-temperature simulations, all of the temperatures
-      are set to the 0th entry in the temperature array. This should usually be a reasonable physical approximation because this boundary condition
-      is typically used to simulate inflow from a reservoir, and stagnated flow in a reservoir has ample time to equilibriate at a common temperature.
-      The implementation of this boundary condition may not be time accurate, particularly when large waves cross the boundary. However, it
-      tends to work well in the steady-state limit.
-    \item \texttt{TransientUniBC(filename, label='')}\index{boundary conditions!TransientUniBC} where we want to specify the time-history of
+    \item \verb!SubsonicInBC(stagnation_condition, mass_flux=0.0, relax_factor=0.05, !\\
+      \verb!direction_type='normal', direction_vector=[1.0,0.0,0.0],!\\
+      \verb!direction_alpha=0.0, direction_beta=0.0,label='')!\index{boundary conditions!SubsonicInBC} \\
+      The flow is assumed subsonic and we specify the stagnation pressure and temperature and 
+      a velocity \emph{direction} at the boundary. 
+      When applied at each time step, the average local pressure across the block boundary
+      is used with the stagnation conditions to compute a stream-flow condition.
+      Depending on the value for \verb!direction_type!, the computed velocity's direction can be set 
+      \verb!'normal'! to the local boundary, 
+      \verb!'uniform'! in direction and aligned with \verb!direction_vector!, 
+      \verb!'radial'! in through a cylindrical surface using flow angles \verb!direction_alpha! and \verb!direction_beta!,
+      or \verb!'axial'! in through a circular surface using the same flow angles.
+      For the case with a nonzero value specified for \verb!mass_flux!, the current mass flux (per unit area)
+      across the block face is computed and the nominal stagnation pressure is incremented 
+      such that the mass flux across the boundary relaxes toward the specified value.
+      The value for \verb!relax_factor! adjusts the rate of convergence for this feedback mechanism.
+      Also note, that for multi-temperature simulations, all of the temperatures
+      are set to the 0th entry in the temperature array. 
+      This should usually be a reasonable physical approximation because this boundary condition
+      is typically used to simulate inflow from a reservoir, and stagnated flow in a reservoir 
+      has ample time to equilibriate at a common temperature.
+      The implementation of this boundary condition may not be time accurate, 
+      particularly when large waves cross the boundary, however, it tends to work well in the steady-state limit.
+    \item \verb!TransientUniBC(filename, label='')!\index{boundary conditions!TransientUniBC} where we want to specify the time-history of
       the inflow condition.
-    \item \texttt{StaticProfileBC(filename, label='')}\index{boundary conditions!StaticProfileBC} where we want to apply a steady-state inflow
+    \item \verb!StaticProfileBC(filename, n_profile=1, label='')!\index{boundary conditions!StaticProfileBC} where we want to apply a steady-state inflow
        which may vary in space.
-    \item \texttt{FixedPOutBC(Pout, x\_order=0, label='')}\index{boundary conditions!FixedPOutBC} 
-      is like \texttt{ExtrapolateOutBC()} but with a specified back pressure.
+    \item \verb!FixedPOutBC(Pout, Tout=300.0, use_Tout=False, x_order=0, label='')!\index{boundary conditions!FixedPOutBC} \\
+      is like \verb!ExtrapolateOutBC()! but with a specified back pressure and, possible, a temperature.
       This can be analogous to a vacuum pump that removes gas at the boundary to maintain
       a fixed pressure in the ghost cells.
     \item \verb!UserDefinedBC(filename, is_wall=0, sets_conv_flux=0, sets_visc_flux=0,!\\
@@ -1420,7 +1444,8 @@ Available boundary condition classes include:\index{boundary conditions!list of 
        If not, the internal viscous derivatives are used to compute fluxes based on the supplied interface data.
        See Appendix\,\ref{udf-sec} for the details of setting up this boundary condition.
     \item \verb!AdjacentPlusUDFBC(other_block, other_face, orientation, filename,!\\
-          \verb!is_wall=0, sets_conv_flux=0, sets_visc_flux=0, label='')!\index{boundary conditions!AdjacentPlusUDFBC}: 
+          \verb!is_wall=0, sets_conv_flux=0, sets_visc_flux=0,! \\
+          \verb!reorient_vector_quantities=False, Rmatrix=None, label='')!\index{boundary conditions!AdjacentPlusUDFBC}: \\
        is a combination of the \texttt{AdjacentBC} and \texttt{UserDefinedBC}.
        At each time step, the flow data is first exchanged, as per the usual
        \texttt{AdjacentBC}.  Then the user-defined functions are applied.
@@ -1437,6 +1462,12 @@ Available boundary condition classes include:\index{boundary conditions!list of 
        $\vec{c}$ is the point on the axis of rotation and $\vec{\omega}$ is the angular velocity.
        This combination allows the setting of planar and cylindrical moving surfaces.
        Optionally, the wall temperature may also be set.  If not, the condition defaults to an adiabatic wall.
+    \item \verb!MappedCellBC(ghost_cell_trans_fn=lambda x, y, z: (x, y, z),!\\
+          \verb!reorient_vector_quantities=False, !\\
+          \verb!Rmatrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],!\\
+          \verb!mapped_cell_list=[], label="")!\index{boundary conditions!MappedCellBC}:
+       is something like the \verb!AdjacentBC! but with an ad-hoc
+       mapping of destination(ghost)-cell location to source-cell location.
   \end{itemize}
 Note that, 
 when creating these objects in the Python input script, the Python language requires the parentheses
@@ -1445,16 +1476,31 @@ even for the cases where no arguments, such as \texttt{Twall}, are required.
 \subsection{Setting conditions for individual boundaries}
 \label{setting-individual-boundary-conditions-sec}\index{boundary conditions!setting individually}
 %
-If you have not already set all appropriate boundary conditions through the \texttt{bc\_list}
+If you have not already set all appropriate boundary conditions through the \verb!bc_list!
 argument of the block constructor, you may apply boundary conditions to specific faces 
 of a \texttt{Block2D} or \texttt{Block3D} object by calling its method
-\texttt{
-\begin{tabbing}
-set\_BC(\=face\_name, type\_of\_BC, inflow\_condition=None, x\_order=0,\\
-      \>sponge\_flag=None, Twall=None, Pout=None, filename=None,\\
-      \>is\_wall=0, sets\_conv\_flux=0, sets\_visc\_flux=0, label='')
-\end{tabbing}\index{boundary conditions!set\_BC}
-}
+
+\noindent
+\begin{verbatim}
+set_BC(face_name, type_of_BC,
+       inflow_condition=None, x_order=0, sponge_flag=None,
+       Twall=None, Pout=None, Tout=300.0, use_Tout=False,
+       r_omega=None, centre=None, v_trans=None, 
+       filename=None, n_profile=1,
+       is_wall=0, sets_conv_flux=0, sets_visc_flux=0,
+       Twall_flag=False,
+       reorient_vector_quantities=False, 
+       Rmatrix=[1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0],
+       assume_ideal=0, mdot=None, emissivity=None,
+       Twall_i=None, Twall_f=None, t_i=None, t_f=None,
+       mass_flux=0.0, p_init=100.0e3, relax_factor=0.05,
+       direction_type="normal", direction_vector=[1.0,0.0,0.0],
+       direction_alpha=0.0, direction_beta=0.0,
+       ghost_cell_trans_fn=lambda x, y, z: (x, y, z),
+       I_turb=0.0, u_turb_lam=1.0,
+       label='')
+\end{verbatim}\index{boundary conditions!set\_BC}
+
 \noindent
 and specifying the face and type of boundary condition.
 When this function is called, it creates a suitable boundary condition object 
@@ -1507,18 +1553,10 @@ specifying the boundary conditions when the block is created.
         set the rotational centre and \verb!v_trans! is used to configure the translational velocity of surface.
         Initially, moving wall is a kind of adiabatic wall, if you want to set a fixed temperature condition,
         \verb!Twall_flag! should be \verb!True! temperature to and the temperature specified as \verb!Twall!.
+      \item \texttt{MAPPED\_CELL}:
     \end{itemize}
-  \item \texttt{inflow\_condition}: the flow condition used for
-    \texttt{SUP\_IN}, default value None.
-  \item \texttt{x\_order}: Order of extrapolation for \texttt{EXTRAPOLATE\_OUT} and 
-    \texttt{FIXED\_P\_OUT}, default value 0.
-  \item \texttt{sponge\_flag}: Andrew Denman's flag, default value None.
-  \item \texttt{Twall}: static temperature of the wall in degrees K, default value None.
-  \item \texttt{Pout}: static pressure in Pa applied to the ghost cells, default value None.
-  \item \texttt{label}: symbolic label for the boundary, default value is an empty string.
 \end{itemize}
-You need only specify the properties that are relevant to the specific
-boundary condition.
+You need only specify the other properties that are relevant to the specific boundary condition.
 
 %------------------------------------------------------------------
 \bigskip

@@ -1202,8 +1202,8 @@ class MappedCellBC(BoundaryCondition):
                  mapped_cell_list=[],
                  label=""):
         """
-        Construct an outflow BC that extrapolates the interior flow data but
-        applies a computed pressure to achieve a required mass flux.
+        Something like the AdjacentBC but with a more general approach to finding the
+        source of the incoming flow data.
 
         :param ghost_cell_trans_fn: User-supplied transform function mapping from 
             ghost-cell position to source-cell position.
