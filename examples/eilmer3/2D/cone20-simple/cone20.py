@@ -1,12 +1,8 @@
-## \file cone20.py
-## \brief Simple job-specification file for e3prep.py
-## \author PJ, 08-Feb-2005
-##
-## 15-Sep-2008 -- simplified version for Eilmer3
-##
-## We have set this file up very much like the cone20.sit file
-## so that users may more-easily see the correspondence between
-## the Tcl and Python elements.
+# cone20.py
+# Simple job-specification file for e3prep.py
+# PJ, 08-Feb-2005
+#     15-Sep-2008 -- simplified version for Eilmer3
+#     29-May-2014 -- discard old way of setting BCs
 
 job_title = "Mach 1.5 flow over a 20 degree cone."
 print job_title
@@ -15,7 +11,6 @@ print job_title
 gdata.dimensions = 2
 gdata.title = job_title
 gdata.axisymmetric_flag = 1
-gdata.stringent_cfl = 1  # to match the old mb_cns behaviour
 
 # Accept defaults for air giving R=287.1, gamma=1.4
 select_gas_model(model='ideal gas', species=['air'])
@@ -24,40 +19,34 @@ select_gas_model(model='ideal gas', species=['air'])
 initial = FlowCondition(p=5955.0,  u=0.0,    v=0.0, T=304.0)
 inflow  = FlowCondition(p=95.84e3, u=1000.0, v=0.0, T=1103.0)
 
-# Set up two quadrilaterals in the (x,y)-plane be first defining
-# the corner nodes, then the lines between those corners and then
-# the boundary elements for the blocks.
-# The labelling is not significant; it is just to make the SVG picture
-# look the same as that produced by the Tcl scriptit program.
+# Set up two quadrilaterals in the (x,y)-plane by first defining
+# the corner nodes, then the lines between those corners.
 a = Node(0.0, 0.0, label="A")
 b = Node(0.2, 0.0, label="B")
 c = Node(1.0, 0.29118, label="C")
 d = Node(1.0, 1.0, label="D")
 e = Node(0.2, 1.0, label="E")
 f = Node(0.0, 1.0, label="F")
-
 ab = Line(a, b); bc = Line(b, c) # lower boundary including cone surface
 fe = Line(f, e); ed = Line(e, d) # upper boundary
 af = Line(a, f); be = Line(b, e); cd = Line(c, d) # vertical lines
 
-# Define the blocks, boundary conditions and set the discretisation.
+# Define the blocks, with particular discretisation.
 nx0 = 10; nx1 = 30; ny = 40
 blk_0 = Block2D(make_patch(fe, be, ab, af), nni=nx0, nnj=ny,
                 fill_condition=initial, label="BLOCK-0")
 blk_1 = Block2D(make_patch(ed, cd, bc, be, "AO"), nni=nx1, nnj=ny,
                 fill_condition=initial, label="BLOCK-1",
                 hcell_list=[(9,0)], xforce_list=[0,0,1,0])
+
+# Set boundary conditions.
 identify_block_connections()
-blk_0.bc_list[WEST] = SupInBC(inflow, label="inflow-boundary") # one way to set a BC
-blk_1.set_BC(EAST, EXTRAPOLATE_OUT, label="outflow-boundary")   # another way
+blk_0.bc_list[WEST] = SupInBC(inflow, label="inflow-boundary")
+blk_1.bc_list[EAST] = ExtrapolateOutBC(label="outflow-boundary")
 
 # Do a little more setting of global data.
-gdata.viscous_flag = 1
-gdata.flux_calc = ADAPTIVE
-gdata.compression_tolerance = -0.05 # the old default value
 gdata.max_time = 5.0e-3  # seconds
 gdata.max_step = 3000
-gdata.write_at_step = 25
 gdata.dt = 1.0e-6
 gdata.dt_plot = 1.5e-3
 gdata.dt_history = 10.0e-5

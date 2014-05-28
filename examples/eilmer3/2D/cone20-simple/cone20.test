@@ -29,8 +29,8 @@ test number-of-steps {The main simulation takes a certain number of steps.} -bod
 	    set final_steps [lindex [split $line] 5]
 	}
     }
-    set final_steps
-} -result {1126}
+    list [expr abs($final_steps - 862) < 3]
+} -result {1}
 
 test shock-angle {The shock angle should be close to 49 degrees.} -body {
     set shock_angle 0

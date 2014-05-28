@@ -1,1 +1,1 @@
-../../../examples/poshax3/FireII/1634s/2T/README.txt
+../../../examples/poshax3/FireII/1634s/Panesi_comparison/README.txt

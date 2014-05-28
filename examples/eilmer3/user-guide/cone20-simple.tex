@@ -13,7 +13,7 @@ plotting programs have been built or installed correctly.
 
 \medskip
 Assuming that you have the program executable files built and
-accessible on your system's search \texttt{PATH}, 
+accessible on your system's search \texttt{PATH}, as described in Appendix\,\ref{getting-started-file},
 try the following commands:\\
 %
 \topbar\\
@@ -24,7 +24,7 @@ try the following commands:\\
 and, within a minute or so, you should end up with a number of files
 with various solution data plotted.
 The grid and initial solution are created and the time-evolution of the
-flow field is computed for 5\,ms (with 1105 time steps being required).
+flow field is computed for 5\,ms (with 862 time steps being required).
 The commands invoke the shell scripts displayed in 
 subsection~\ref{cone20-sh-files}.
 %
@@ -152,10 +152,9 @@ in the middle of the script.
       These double dashes are a little hard to distinguish in the shell
       scripts.
 
-\item Run time is approximately 79 seconds for 1126 steps on a computer with 
-      an Intel Dual Pentium E2160, 1.6\,GHz processor.
-      As of September 2008, we have much optimisation to do.
-      Of course, the shared-memory code does not make use of the second processor,
+\item Run time is approximately 17 seconds for 862 steps on a computer with 
+      an AMD Phenom II X4 840, 800\,MHz processor.
+      Of course, the shared-memory code does not make use of the other 4 processor cores,
       however, there is an MPI version of the code that can.
 
 \item This cone20.py file really has full access to the Python interpreter
@@ -175,7 +174,7 @@ in the middle of the script.
       \lstinputlisting[language={}]{../2D/cone20-simple/cp.awk}\index{xforce\_list!example of use}
 
 \item The script \texttt{cone20\_run\_mpi.sh} is available for running the simulation
-  with the parallel version of the code on a machine with LAM-MPI installed.
+  with the parallel version of the code on a machine with OpenMPI installed.
   This script is essentially the same as shown for the shared-memory simulation
   with the MPI simulation being started with the commands:\index{e3mpi.exe!example of use}
 \begin{verbatim}
@@ -183,19 +182,5 @@ mpirun -np 2 e3mpi.exe -f cone20 --run
 \end{verbatim}
   The only other modification required is to look for the surface-force data in the
   log file \texttt{e3mpi.0001.log} rather than \texttt{e3shared.log}.
-
-\item It turned out to be handy 
-  (while trying to debug one of those nasty memory segmentation violations) 
-  to be able to run the debug version of the MPI code within the valgrind 
-  instrumentation and profiling environment with the commands:
-\begin{verbatim}
-$ cd ~/work/eilmer3/2D/cone20-simple/
-$ script xxxx
-$ mpirun -np 2 valgrind --tool=memcheck e3mpi.exe -f cone20 --run
-$ exit
-\end{verbatim}
-  The \texttt{script} and \texttt{exit} start and stop recording of all of the console output
-  to the file \texttt{xxxx}.
-  If you have a few errors, valgrind output can be verbose.
 
 \end{itemize}
