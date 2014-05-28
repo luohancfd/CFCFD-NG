@@ -1,0 +1,61 @@
+% rutowski.tex
+
+\section{Radiating argon shock layer with thermochemical nonequilibrium}
+\label{sec:}
+\index{radiation transport model!example of use}
+\index{finite-rate chemistry!example of use}
+\index{energy exchange!example of use}
+\index{gas model!two temperature!example of use}
+%
+
+\newpage
+
+\subsection{Eilmer3 input scripts (.py)}
+
+\subsubsection{Part 1 -- inviscid flow}
+
+\topbar
+\lstinputlisting[language={}]{../2D/Rutowski-hemisphere/Ms_12.70/part1-inviscid/hemisphere.py}
+\bottombar
+
+\subsubsection{Part 2 -- viscous flow}
+
+\topbar
+\lstinputlisting[language={}]{../2D/Rutowski-hemisphere/Ms_12.70/part2-viscous/hemisphere.py}
+\bottombar
+
+\subsubsection{Part 3 -- viscous flow with radiation coupling}
+
+\topbar
+\lstinputlisting[language={}]{../2D/Rutowski-hemisphere/Ms_12.70/part3-viscous-with-radiation/hemisphere.py}
+\bottombar
+
+\subsection{Chemical reaction script (.lua)}
+
+\topbar
+\lstinputlisting[language={}]{../2D/Rutowski-hemisphere/kinetic-models/Ar-2T-chemical-reactions.lua}
+\bottombar
+
+\subsection{Thermal energy exchange script (.lua)}
+
+\topbar
+\lstinputlisting[language={}]{../2D/Rutowski-hemisphere/kinetic-models/Ar-2T-energy-exchange.lua}
+\bottombar
+
+\subsection{Radiation model script (.py)}
+
+\topbar
+\lstinputlisting[language={}]{../2D/Rutowski-hemisphere/Ms_12.70/part3-viscous-with-radiation/Ar-nonequilibrium-radiation.py}
+\bottombar
+
+\subsection{Tcl run script}
+\topbar
+\lstinputlisting[language={}]{../2D/Rutowski-hemisphere/Ms_12.70/Rutowski-long.test}
+\bottombar
+
+\subsection{Error checking script (.py)}
+\topbar
+\lstinputlisting[language={}]{../2D/Rutowski-hemisphere/Ms_12.70/compute_qrad_error.py}
+\bottombar
+
+\subsection{Notes}
