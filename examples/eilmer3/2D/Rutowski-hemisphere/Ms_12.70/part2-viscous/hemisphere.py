@@ -82,34 +82,34 @@ psurf, west = make_parametric_surface( M_inf=M_inf, R=Rn, \
                                        f_s=1.0/(1.0-gamma) )
 
 # boundary conditions
-bc_list=[ExtrapolateOutBC(),			# outflow
-         FixedTBC(T_wall),				# surface
-         SlipWallBC(),					# symmetry
-         SupInBC(inflow)]				# inflow
-		  
+bc_list=[ExtrapolateOutBC(),              # outflow
+         FixedTBC(T_wall),                # surface
+         SlipWallBC(),                    # symmetry
+         SupInBC(inflow)]                 # inflow
+          
 # catalycity boundary conditions
 wc_bc_list=[NonCatalyticWBC(),                # outflow
-		   SuperCatalyticWBC([1.0,0.0,0.0]),  # surface
-		   NonCatalyticWBC(),                 # symmetry
-		   NonCatalyticWBC()]                # inflow
+           SuperCatalyticWBC([1.0,0.0,0.0]),  # surface
+           NonCatalyticWBC(),                 # symmetry
+           NonCatalyticWBC()]                 # inflow
                                        
 # mesh clustering
 beta0 = 1.1; dx0 = 5.0e-1; dx1 = 5.0e-2
 beta1 = 1.0
-cf_list = [BHRCF(beta0,dx0,dx1,gamma),	# outflow
-           RCF(0,1,beta1),				# surface
-           BHRCF(beta0,dx0,dx1,gamma),	# symmetry
-           RCF(0,1,beta1)]				# inflow         
+cf_list = [BHRCF(beta0,dx0,dx1,gamma),    # outflow
+           RCF(0,1,beta1),                # surface
+           BHRCF(beta0,dx0,dx1,gamma),    # symmetry
+           RCF(0,1,beta1)]                # inflow         
 
 # computation domain
 blk_0 = SuperBlock2D(psurf=psurf,
-		     fill_condition=initial,
-		     nni=60, nnj=45,
-		     nbi=2, nbj=2,
-		     cf_list=cf_list,
-		     bc_list=bc_list,
-			 wc_bc_list=wc_bc_list,
-		     label="BLOCK-0")
+             fill_condition=initial,
+             nni=60, nnj=45,
+             nbi=2, nbj=2,
+             cf_list=cf_list,
+             bc_list=bc_list,
+             wc_bc_list=wc_bc_list,
+             label="BLOCK-0")
 
 identify_block_connections()
 
