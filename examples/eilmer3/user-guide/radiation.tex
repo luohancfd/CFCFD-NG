@@ -1,6 +1,7 @@
 % radiation.tex
 \section{Radiation transport models}
 \label{app:rt-models}
+\index{radiation transport model!available models}
 
 A variety of radiation transport models are implemented in Eilmer3:
 
@@ -27,7 +28,7 @@ transport_data = {
 \end{lstlisting}
 \bottombar
 
-A description of the Lua input fields for the discrete transfer radiation transport model is given in Table~\ref {tab:OT-input}.
+A description of the Lua input fields for the optically thin radiation transport model is given in Table~\ref {tab:OT-input}.
 
 \begin{table}[h]
  \begin{center}
@@ -46,7 +47,7 @@ A description of the Lua input fields for the discrete transfer radiation transp
 
 The tangent slab radiation transport model is selected by setting the \texttt{transport\_model} field in the \texttt{transport\_data} field to \texttt{"tangent slab"}.
 No other input parameters need to be set.
-The following code snippet gives an example of selecting and defining the parameters for the optically thin model:
+The following code snippet gives an example of selecting and defining the parameters for the tangent slab model:
 
 \noindent \topbar
 \begin{lstlisting}[basicstyle=\ttfamily\normalsize]
@@ -58,7 +59,7 @@ transport_data = {
 
 \subsection{Modified discrete transfer model}
 
-The modified discrete transfer radiation transport model is selected by setting the \texttt{transport\_model} field in the \texttt{transport\_data} field to \texttt{"discrete transfer"}.
+An implementation of the modified discrete transfer radiation transport model is selected by setting the \texttt{transport\_model} field in the \texttt{transport\_data} field to \texttt{"discrete transfer"}.
 The following code snippet gives an example of selecting and defining the parameters for the discrete transfer model:
 
 \noindent \topbar
@@ -73,11 +74,11 @@ transport_data = {
 \end{lstlisting}
 \bottombar
 
-A description of the Lua input fields for the discrete transfer radiation transport model is given in Table~\ref {tab:DTM-input}.
+A description of the Lua input fields for the modified discrete transfer radiation transport model is given in Table~\ref {tab:DTM-input}.
 
 \begin{table}[h]
  \begin{center}
-  \caption{Description of Lua input fields for the discrete transfer radiation transport model}
+  \caption{Description of Lua input fields for the modified discrete transfer radiation transport model}
   \label{tab:DTM-input}
 \begin{tabular}{llp{8cm}}
  \hline \hline

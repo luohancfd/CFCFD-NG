@@ -17,7 +17,13 @@ gdata.axisymmetric_flag = 1
 #
 # 1. Setup the gas model
 #
-species = select_gas_model(model='two temperature gas', species=['N2', 'N2_plus', 'NO', 'NO_plus', 'O2', 'O2_plus', 'N', 'N_plus', 'O', 'O_plus', 'e_minus'])
+species = select_gas_model(model='two temperature gas', \
+							species=[ 'N2', 'N2_plus', \
+									  'NO', 'NO_plus', \
+									  'O2', 'O2_plus', \
+									   'N',  'N_plus', \
+									   'O',  'O_plus', \
+											'e_minus' ] )
 set_reaction_update("Park93-s03-AIC-EIIC.lua")
 set_energy_exchange_update("air-TV-TE.lua")
 gm = get_gas_model_ptr()
@@ -45,8 +51,10 @@ gm.eval_thermo_state_rhoT(Q)
 M_inf = u_inf / Q.a
 p_inf = Q.p
 print "p_inf = %0.1f, M_inf = %0.1f" % ( p_inf, M_inf )
-inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
-initial = FlowCondition(p=p_inf/10.0, u=0.0, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
+inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=[T_inf]*ntm, \
+                        massf=massf_inf)
+initial = FlowCondition(p=p_inf/10.0, u=0.0, v=0.0, T=[T_inf]*ntm, \
+                        massf=massf_inf)
 
 #
 # 3. Define the geometry
@@ -71,7 +79,8 @@ d = Node( 0.0, c.y - abs(c.x), label='d')
 east = Polyline( [Arc(a,b,o),Line(b,c)] )
 
 # parametric surface
-psurf, west = make_parametric_surface( bx_scale, by_scale, M_inf, Rn, axi=gdata.axisymmetric_flag )
+psurf, west = make_parametric_surface( bx_scale, by_scale, M_inf, Rn, \
+									   axi=gdata.axisymmetric_flag )
 #
 # 4. Define the blocks, boundary conditions and set the discretisation
 #
@@ -82,7 +91,10 @@ blk_0 = SuperBlock2D(psurf=psurf,
 		     fill_condition=initial,
 		     nni=nnx, nnj=nny,
 		     nbi=nbx, nbj=nby,
-		     bc_list=[ExtrapolateOutBC(), SlipWallBC(), SlipWallBC(), SupInBC(inflow)],
+		     bc_list=[ExtrapolateOutBC(), \
+		                    SlipWallBC(), \
+		                    SlipWallBC(), \
+		                    SupInBC(inflow)],
 		     wc_bc_list=[NonCatalyticWBC()]*4,
 		     label="BLOCK-0", hcell_list=[(nnx,1)])
  

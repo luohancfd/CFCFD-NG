@@ -1,17 +1,15 @@
-# first the transport model
+# 1. transport model
 gdata.transport_model = "monte carlo"
 gdata.nrays = 32768
 gdata.clustering = "by area"
 gdata.absorption = "partitioned energy"
 
-# first the spectral model
+# 2. spectral model
 gdata.spectral_model = "photaura"
 gdata.lambda_min = 1.0e7 / 150000.0
 gdata.lambda_max = 1.0e7 / 1000.0
 gdata.spectral_points = int ( ( 1.0e7 / gdata.lambda_min - 1.0e7 / gdata.lambda_max ) * 0.1 )
 gdata.adaptive_spectral_grid = False
-
-# now the radiators
 
 params = {
 "species"               : [ 'Ar', 'Ar_plus', 'e_minus' ],

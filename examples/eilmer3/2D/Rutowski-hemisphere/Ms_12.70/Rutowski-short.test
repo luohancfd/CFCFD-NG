@@ -28,7 +28,7 @@ test run-viscous-stage {Run the viscous stage.} -body {
 
 test run-viscous-with-radiation-stage {Run the viscous with radiation stage.} -body {   
     cd part3-viscous-with-radiation/
-    exec radmodel.py -i argon-radiators-NIST-TB-QSS.py -L rad-model.lua > LOGFILE_PREP
+    exec radmodel.py -i Ar-nonequilibrium-radiation.py -L rad-model.lua > LOGFILE_PREP
     exec e3prep.py --job=hemisphere >> LOGFILE_PREP
    
     puts "Run e3mpi for one body length on new grid"
