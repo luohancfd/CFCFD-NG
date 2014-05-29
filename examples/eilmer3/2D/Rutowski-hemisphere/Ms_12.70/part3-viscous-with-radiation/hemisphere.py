@@ -89,17 +89,17 @@ psurf, west = make_parametric_surface( M_inf=M_inf, R=Rn, \
                                        f_s=1.0/(1.0-gamma) )
                                        
 # boundary conditions
- bc_list=[ExtrapolateOutBC(),              # outflow
-          FixedTBC(T_wall),                # surface
-          SlipWallBC(),                    # symmetry
-          SupInBC(inflow)],                # inflow
+bc_list=[ExtrapolateOutBC(),              # outflow
+         FixedTBC(T_wall),                # surface
+         SlipWallBC(),                    # symmetry
+         SupInBC(inflow)]                 # inflow
           
 # catalycity boundary conditions
- bc_list=[ExtrapolateOutBC(),              # outflow
-          FixedTBC(T_wall),                # surface
-          SlipWallBC(),                    # symmetry
-          SupInBC(inflow)],                # inflow
-                                       
+wc_bc_list=[NonCatalyticWBC(),                # outflow
+           SuperCatalyticWBC([1.0,0.0,0.0]),  # surface
+           NonCatalyticWBC(),                 # symmetry
+           NonCatalyticWBC()]                 # inflow
+
 # mesh clustering
 beta0 = 1.1; dx0 = 5.0e-1; dx1 = 5.0e-2
 beta1 = 1.0

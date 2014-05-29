@@ -8,7 +8,48 @@
 \index{gas model!two temperature!example of use}
 %
 
-\newpage
+\subsection{Introduction}
+
+Rutowski \textit{et al.}~\cite{RB64} measured the total and radiative heat fluxes at the stagnation point of a 1\,inch diameter hemisphere immersed in a freestream flow of shock heated argon.
+A schematic of the experimental setup is depicted in Figure~\ref{fig:schematic}.
+The hemispherical model was placed in the test section of a 3 inch diameter stainless steel shock tube at the Lockheed Research Laboratories~\cite{MBR+62}.  
+Incident shock waves with velocities up to 4.3\,km/s ($M_s = 13.2$) were driven through the argon test gas at an initial pressure of 10\,Torr.
+Total heat transfer at the stagnation point was measured with a surface mounted calorimetric gauge, in which a thin strip of polished platinum is exposed to the flow and the heat transfer determined from change in resistivity.
+Radiative heat transfer was measured with a similar gauge mounted behind a sapphire window that allowed transmission in the wavelength range $180 \leq \lambda \leq 6000$\,nm.
+The platinum strip was determined to have a weighted average absorptivity of 0.4, however some experiments were also performed with a thin layer of camphor lampblack to give an absorptivity of 1.0.
+The error in the total heat transfer and radiative measurements were estimated to be $\pm 5$\,\% and $\pm 15$\,\%, respectively. 
+ 
+
+\begin{figure}
+ \centering
+ \includegraphics[scale=0.5]{../2D/Rutowski-hemisphere/figures/schematic.pdf}
+ \caption{Schematic diagram of hemispherical model immersed in shock heat flow (adapted from Rutowski \textit{et al.}~\cite{RB64}).}
+  \label{fig:schematic}
+\end{figure}
+
+In the present work a shock Mach number of 12.7 is considered.
+The computational domain and boundary conditions are illustrated in Figure~\ref{fig:domain}.
+The stainless steel surface is modelled as a fixed temperature, fully catalytic wall at 300\,K.
+% chemical reactions
+% energy exchange
+% transport model
+
+
+\begin{figure}
+\centering
+ \subfloat[Computation domain] {
+  \includegraphics[width=0.49\linewidth]{../2D/Rutowski-hemisphere/figures/domain.pdf}
+ }
+ \subfloat[Computation grid] {
+  \includegraphics[width=0.28\linewidth]{../2D/Rutowski-hemisphere/figures/grid.png} \vspace{1cm}
+ }
+ \caption{Computational domain and grid for Navier--Stokes simulations of the Rutowski and Bershader~\cite{RB64} experiments.}
+  \label{fig:domain}
+\end{figure}
+
+% plot of results
+
+
 
 \subsection{Eilmer3 input scripts (.py)}
 
