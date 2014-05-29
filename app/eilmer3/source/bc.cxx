@@ -1091,7 +1091,6 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     std::vector<double> mdot;
     std::vector<double> vnf;
     vnf.resize(get_gas_model_ptr()->get_number_of_species(), 0.0);
-    int xforce_flag = 0;
     std::vector<double> r_omega; r_omega.resize(3, 0.0);
     std::vector<double> centre; centre.resize(3, 0.0);
     std::vector<double> v_trans; v_trans.resize(3, 0.0);
@@ -1313,7 +1312,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     }
     
     newBC->wc_bc = wc_bc;
-    newBC->xforce_flag = xforce_flag;
+    dict.parse_int(section, "xforce_flag", newBC->xforce_flag, 0);
     if ( newBC == 0 ) {
 	cout << "Problem creating b.c.\n";
 	cout << "bdp= " << bdp << endl;
