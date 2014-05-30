@@ -40,6 +40,7 @@ test run-viscous-with-radiation-stage {Run the viscous with radiation stage.} -b
     exec set_control_parameter.py hemisphere.control max_time 7.55855e-06
     exec mpirun -np 4 e3mpi.exe -f hemisphere -q -t 2 -r >> LOGFILE_RUN
     puts "Final radiation transport calculation"
+    # exec radmodel.py -i Ar-nonequilibrium-radiation-180to6000nm.py -L rad-model.lua >> LOGFILE_PREP
     exec e3rad.exe -f hemisphere -q -t 3 -r >> LOGFILE_RUN
 
     puts "Extract final surface heat flux profile"

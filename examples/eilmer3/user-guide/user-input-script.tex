@@ -526,17 +526,44 @@ inflow  = FlowCondition(p=4464.0, u=10284.0, v=0.0, T=10140.42,
 %
 The selection of a radiation transport model and the definition of its parameters
 is done in a Lua file.
-The following entry in the Eilmer input script requests the radiative source terms and heat fluxes
- to be recomputed every 100 time steps and directs \texttt{e3prep.py} to the file \texttt{rad-model.lua} 
- for the details of the desired radiation transport and spectral modelling:
+The format for the Lua file describing the radiation transport model is give in Appendix~\ref{app:rt-models}.
+A radiation model is brought into an Eilmer3 simulation via the \texttt{select\_radiation\_model} function:
 
 \noindent\topbar\\
-\texttt{select\_radiation\_model( input\_file="rad-model.lua", update\_frequency=100 )} 
+\texttt{select\_radiation\_model( input\_file=None, update\_frequency=1, scaling=True )} 
 \index{select\_radiation\_model} \\
 \bottombar\\
 
-%
-The format for the Lua file describing the radiation transport model is give in Appendix~\ref{app:rt-models}.
+The input variables are:
+
+\begin{description}
+ \item[ \texttt{input\_file}] The name of the Lua file with the radiation transport and spectral model definitions (defaults to \texttt{None})
+ \item[\texttt{update\_frequency}] Number of time steps between re-calculation of the radiation solution (defaults to \texttt{1})
+  \item[\texttt{scaling}] Flag to request scaling of stored radiation solution based on density and temperature for time steps where the radiation solution is not re-calculated due to the update frequency being greater than 1 (defaults to \texttt{True})
+\end{description}
+ 
+
+For example, the following entry in the Eilmer input script requests the radiative source terms and heat fluxes
+ to be recomputed every 100 time steps with scaling between recomputed solutions and directs \texttt{e3prep.py} to the file \texttt{rad-model.lua} 
+ for the details of the desired radiation transport and spectral modelling:
+
+\noindent\topbar\\
+\texttt{select\_radiation\_model( input\_file="rad-model.lua", update\_frequency=100},\\
+ \texttt{scaling=True )} 
+\index{select\_radiation\_model} \\
+\bottombar\\
+
+This setup of the radiation model would be appropriate for simulations that can be run on a single processor in reasonable time (i.e. \texttt{e3shared.exe} is used to run the simulation from beginning to end), or with radiation transport models that can be parallelised via OpenMPI (e.g. optically thin or tangent slab models).
+For more computationally intensive simulations, or when using the Monte--Carlo and Discrete Transfer models, it is desirable  to use the parallelised flowfield (\texttt{e3mpi.exe}) and radiation (\texttt{e3rad.exe}) solvers to enable faster run times\footnote{The shuffling between \texttt{e3mpi.exe} and \texttt{e3rad.exe} is required for the Monte--Carlo and Discrete Transfer models as they are not implemented in \texttt{e3mpi.exe}}.
+In this situation, the update frequency would be set to zero:
+
+\noindent\topbar\\
+\texttt{select\_radiation\_model( input\_file="rad-model.lua", update\_frequency=0},\\
+ \texttt{scaling=True )} 
+\index{select\_radiation\_model} \\
+\bottombar\\
+
+ and the recalculation of the radiation field coordinated via running  \texttt{e3rad.exe} (see the description of the Rutowski hemisphere simulation in \textsection~\ref{sec:rutowski}  for an example of this).
 
 %-------------------------------------------------------------------
 \newpage
