@@ -1,0 +1,8 @@
+Begin estimate_shock_angle.py
+len(xs)= 31 len(ys)= 31
+m= 1.17334169433 b= -0.23650833075
+shock_angle_rad= 0.86498782402
+shock_angle_deg= 49.5601516465
+average_deviation_metres= 0.00172102136883
+Done.
+
