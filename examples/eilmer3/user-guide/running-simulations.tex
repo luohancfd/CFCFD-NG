@@ -83,6 +83,18 @@ Create the geometry definition and a grid with the command\\
          individual solution times.
          Also, these files are stored in ``gzip'' format with a ``.gz'' extension by default.\index{gzip}
 
+\subsection{Checking your grid}
+%
+Before running the simulation code, it is worth checking that your grid has turned out as planned.
+Many a simulation has failed to start because its grid was flawed.
+Common problems include grids that are twisted or have adjoining blocks with edges that do not match
+where they are supposed to be joined.
+To get a set of plot files that can be loaded into \verb!Paraview! for examination, use the post-processing program:\\
+\texttt{\$ e3post.py --job=}\textit{job}\texttt{ --tindx=0 --vtk-xml} \\
+and then pick up the resulting files for inspection with \verb!Paraview!.
+Look ahead to Sec.\,\ref{sec:e3post} for a more complete discussion of the postprocessing stage.
+
+
 \newpage
 \subsection{Running the simulation (with e3shared.exe)} 
 Run the simulation code to produce flow data at subsequent times.\footnote{If the simulation
@@ -142,7 +154,7 @@ the MPI (Message Passing Interface) library\footnote{See, for example, \url{http
 and runtime environment.
 The notes in Appendix\,\ref{getting-started-file} show how to build and run 
 the Eilmer3 executable for OpenMPI.\footnote{These notes are also available in HTML form at the URL
-\url{http://www.mech.uq.edu.au/cfcfd/}.}
+\url{http://cfcfd.mechmining.uq.edu.au/}.}
 To run Eilmer3 across multiple processors\index{e3mpi.exe!running a simulation}
 on a local machine use the following command\\
 \texttt{\$ mpirun -np \textit{n} e3mpi.exe --job=name --run}\\
@@ -165,8 +177,7 @@ The details of using Eilmer3 in this way are described in Appendix~\ref{app:load
 The user can build and run the shared-memory version of the radiation transport solver,
 \texttt{e3rad.exe}\index{e3rad.exe}, on computers with the OpenMP API.
 The notes in Appendix\,\ref{getting-started-file} show how to build and run 
-the Eilmer3 radiation transport solver executable for OpenMP.\footnote{These notes are
-also available in HTML form at the URL \url{http://www.mech.uq.edu.au/cfcfd/}.}
+the Eilmer3 radiation transport solver executable for OpenMP.
 Note that you should first make the \verb!e3shared! and \verb!e3mpi!, then ``make clean'' 
 and, finally, make \verb!e3rad!.
 
@@ -234,13 +245,13 @@ and reformatted it for plotting, however, it has continued to sprout features an
 complex to describe.
 To see its command-line options, just run it without any options at all.
 It should then print a \textit{usage} message which provides some hints.
-As of mid-September 2013, this message is:
+As of 1$^{st}$ June 2013, this message is:
 
 \noindent
 {\footnotesize
 \begin{verbatim}
 Begin e3post.py...
-Source code revision string:  e704ffaa4f5b+ 1169+ default tip
+Source code revision string:  124700b0c003+ 1605+ default tip
 
 Usage:
 e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|9999|last|all|xxxx>]
@@ -251,6 +262,7 @@ e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|9999|last|all|xxxx>]
           [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]
           [--add-molef --gmodel-file="gas-model.lua"]
           [--add-transport-coeffs --gmodel-file="gas-model.lua"]
+          [--add-user-computed-vars="user-script.py"]
 
           [--vtk-xml] [--binary-format] [--tecplot] [--plot3d]
 
@@ -260,7 +272,10 @@ e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|9999|last|all|xxxx>]
           [--slice-along-line="x0,y0,z0,x1,y1,z1,N"]
           [--surface-list="blk,surface-name;..."]
 
+          [--static-flow-profile="blk,face-name;..."]
+
           [--heat-flux-list="blk-range,surf-range,i-range,j-range,k-range;..."]
+          [--bc-surface-list="blk-range,surf-range,i-range,j-range,k-range;..."]
           [--tangent-slab-list="blk-range,i-range,j-range,k-range;..."]
 
           [--probe="x,y,z;..."]
@@ -273,6 +288,8 @@ e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|9999|last|all|xxxx>]
 
           [--prepare-restart] [--prepare-fstc-restart]
           [--put-into-folders]
+
+          [--verbosity=<int>]
 
 For further information, see the online documentation, the Eilmer3 User Guide
 and the source code.
@@ -397,6 +414,11 @@ Other house-keeping options for continuing old simulations:
 \end{itemize}
 Note that you must use double-quotes on some specification strings to prevent the command shell 
 from pulling the string apart (or otherwise changing it) before giving it to \texttt{e3post.py}.
+It is also worth noting that, by default, \verb!e3post.py! does not write anything to the console while it
+it running successfully.
+If you want more commentary while it is doing its work, supply a nonzero integer to the option \verb!--verbosity!.
+A value of 1 should give you a brief summary of the main activities whereas a value of 2 will prompt many more
+messages.
 
 \medskip 
 Ad hoc postprocessing\index{postprocessing!customized} is possible by picking up the cell-centre flow
@@ -407,9 +429,13 @@ selected flow properties in numpy arrays.
 Note that three-dimensional arrays are always used, even for two-dimensional simulations
 where the k-index has the single value 0.
 The examples that make up the bulk of this manual show some of the things that are possible.
-Two specific applications of writing a custom postprocessing script are the estimation of 
-surface force on the 10$^o$ ramp case (Section \ref{simple-ramp-sec}) and 
-finding the location of the bow shock for the finite cylinder simulation.
+Some specific applications of writing a custom postprocessing script are:
+\begin{itemize}
+ \item estimating the angle of the shock in the axisymmetric flow over a cone (Sec.\ref{cone20-simple-sec})
+ \item the estimation of surface force on the 10$^o$ ramp case (Section \ref{simple-ramp-sec}) and
+ \item finding the location of the bow shock for the finite cylinder simulation (Sec.\,\ref{sec:finite-cyl-sec}).
+\end{itemize}
+ 
 
 \subsection{Supervisory GUI}
 %

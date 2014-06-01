@@ -1,5 +1,5 @@
 #! /bin/sh
-# cone20_run.sh
+# cone20_run_mpi.sh
 # exercise the Navier-Stokes solver for the Cone20 test case.
 # It is assumed that the path is set correctly.
 
@@ -8,10 +8,7 @@
 e3prep.py --job=cone20 --do-svg
 
 # Integrate the solution in time using the parallel processing code. 
-# On my Ububtu machine, I have the LAM-MPI package installed.
-# lamboot
 mpirun -np 2 e3mpi.exe -f cone20 --run
-# lamhalt
 
 # Extract the solution data and reformat.
 # If no time is specified, the final solution found is output.

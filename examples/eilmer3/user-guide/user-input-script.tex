@@ -686,9 +686,13 @@ Look in the source code files \texttt{gpath.hh} and \texttt{gpath.cxx} for detai
 These may be found in the directory \texttt{cfcfd3/lib/geometry2/source/}.
 
 \subsubsection{Surfaces}
+\label{parametric-surface-sec}
 %
 The \texttt{ParametricSurface}\index{geometric element!ParametricSurface} class 
 represents two-dimensional objects which can be constructed from \texttt{Path} objects.
+These can be used as the \verb!ParametricSurface! objects that are passed to the \verb!Block2D! constructor
+(Sec.\,\ref{block2d-sec}) or they can be used to form the bounding surfaces of a 3D \verb!ParametricVolume! object
+(Sec.\,\ref{parametric-volume-sec}).
 Examples are:
 \begin{itemize}
 \item \texttt{CoonsPatch}($p_S, p_N, p_W, p_E$): a transfinite interpolated
@@ -728,6 +732,13 @@ Examples are:
   The difference with the corresponding CoonsPatch is that the internal grid, here,
   tries to be orthogonal to the edges and maintain
   equal cell areas across the surface.
+\item \verb!make_patch(!$p_N, p_E, p_S, p_W$, \verb!grid_type='TFI', tol=1.0e-6)!: an interpolated surface, 
+  \index{geometric element!mesh_patch} bounded by four paths.
+  It actually returns either a \verb!CoonsPatch! (TFI, by default) or 
+  an \verb!AOPatch! object (\verb!grid_type='AO'!).
+  The convenience that it provides is in accepting the same order for the paths (\textit{i.e.} N,E,S,W)
+  as the other lists that are used as arguments when constructing a \verb!Block2D! object.
+  Look ahead to Sec.\ref{block2d-sec}.
 \item \texttt{MeshPatch}: a surface defined over a structured mesh of
   quadrilateral facets.\index{geometric element!MeshPatch}
   This might be useful for generating new grids from files imported from
@@ -768,6 +779,7 @@ Again, see the source code for details.
 
 
 \subsubsection{Volumes}
+\label{parametric-volume-sec}
 %
 Finally, in its most general form, a 
 \texttt{ParametricVolume}($S_N, S_E, S_S, S_W, S_T, S_B$) \index{geometric element!ParametricVolume}
@@ -847,13 +859,18 @@ the \texttt{e3prep.py} program and these represent\footnote{The
   \texttt{e3\_block.py}\index{module!e3\_block.py}. }:
 \begin{itemize}
 \item \texttt{psurf}: a region of 2D space bounded by 4 edges.
+    Any flat \verb!ParametricSurface! object (from Sec.\,\ref{parametric-surface-sec}) should work.
     This region is often constructed from 4 geometric paths via a call to
     \texttt{make\_patch(north, east, south, west, grid\_type)}\index{make\_patch} where the
     default value for \texttt{grid\_type} is ``TFI'' \textit{i.e.} transfinite interpolation
     or Coons' patch.\index{grid!TFI}\index{grid!transfinite interpolation}
     Another possible form of grid is ``AO'', the area-orthogonality grid.\index{grid!AO}\index{grid!area orthogonality}
-    This is the usual way of specifying the flow domain, which will be discretized 
-    using \texttt{nni, nnj, and cf\_list}.
+    Sometimes, if the blocks are straight-sided quadrilaterals, it will be convenient to define them
+    just with the corner points.
+    For this case, constructing \verb!CoonsPatch! and \verb!AOPatch! objects directly from the
+    corner points may be convenient.
+    Providing a constructed \verb!ParametricSurface! is the usual way of specifying the flow domain, 
+    which will be discretized using \texttt{nni, nnj, and cf\_list}.
     Note that all geometric elements should have zero values for their z-components when
     doing a 2D flow simulation.
     Since most constructors will have a default value of zero for the z-component, this
@@ -1104,7 +1121,7 @@ The first constraint is easy to meet by defining each edge once only and
 reusing that path in the definition of different blocks.
 Sometimes, the orientation of a pair of blocks and 
 the particular directions of the paths within each block means that 
-one defining edge needs to be in the opposite sense tothe original.
+one defining edge needs to be in the opposite sense to the original.
 In this case the \texttt{clone()} and \texttt{reverse()} methods may be useful.
 The script actually uses the equivalent \texttt{copy(direction=-1)} method call.
 
@@ -1385,10 +1402,25 @@ Then, the boundaries that you want to connect have corners and faces that really
 \section{Specifying flow conditions at block boundaries}
 \label{boundary-conditions-sec}\index{boundary conditions}
 %
-Back in Sections\,\ref{block2d-sec} and \ref{block3d-sec}, 
-the boundary conditions were permitted to be specified as a list of 
-\texttt{BoundaryCondition} objects passed to the constructor of \texttt{Block2D} 
-or \texttt{Block3D} objects, respectively.
+The preferred way to set boundary conditions is to assign specific \verb!BoundaryCondition! objects
+to the \verb!bc_list! within each constructed \verb!Block2D! or \verb!Block3D! object.
+Back in Sections\,\ref{block2d-sec} and \ref{block3d-sec}, it was shown that
+the boundary conditions could be specified as a list of \verb!BoundaryCondition! objects 
+passed to the constructor of \texttt{Block2D} or \texttt{Block3D} objects, respectively.
+You have to provide a list with the correct number of entries, which is 4 for 2D blocks and 6 for 3D blocks.
+If you don't have a particular \verb!BoundaryCondition! object for each element of the list,
+just specify \verb!None! for the missing entries.
+
+\medskip
+Alternatively, \verb!BoundaryCondition! objects can be assigned individually 
+to elements of the \verb!bc_list! attribute after block construction.
+For example:
+\begin{verbatim}
+blk_0.bc_list[WEST] = SupInBC(inflow, label="inflow-boundary")
+blk_1.bc_list[EAST] = ExtrapolateOutBC(label="outflow-boundary")
+\end{verbatim}
+
+\noindent\medskip
 Available boundary condition classes include:\index{boundary conditions!list of available}
   \begin{itemize}\index{boundary conditions}
     \item \verb!AdjacentBC(other_block=-1, other_face=-1, orientation=0,!\\
@@ -1482,7 +1514,9 @@ Available boundary condition classes include:\index{boundary conditions!list of 
     \item \verb!MovingWallBC(r_omega=None, centre=None, v_trans=None,!\\
           \verb!Twall_flag=False, Twall=None, label='')!\index{boundary conditions!MovingWallBC}:
        allows the user to specify a no-slip wall condition where the wall surface has a non-zero velocity.
-       \verb!r_omega!, \verb!centre! and \verb!v_trans! are specified as tuples of 3-components giving
+       Note that this is only for \textit{tangential} velocity at the wall and, to have any effect,
+       needs to have \verb!viscous_flag = 1!.
+       Values for \verb!r_omega!, \verb!centre! and \verb!v_trans! are specified as tuples of 3-components giving
        the angular-velocity, a point on the axis or rotation and a superimposed translational velocity.
        The actual velocity of a point on the wall is then given by the vector expression 
        $\vec{\omega} \times (\vec{r} - \vec{c}) + \vec{v}_{trans}$,
@@ -1501,7 +1535,7 @@ Note that,
 when creating these objects in the Python input script, the Python language requires the parentheses
 even for the cases where no arguments, such as \texttt{Twall}, are required.
   
-\subsection{Setting conditions for individual boundaries}
+\subsection{Setting conditions with setBC (deprecated)}
 \label{setting-individual-boundary-conditions-sec}\index{boundary conditions!setting individually}
 %
 If you have not already set all appropriate boundary conditions through the \verb!bc_list!
