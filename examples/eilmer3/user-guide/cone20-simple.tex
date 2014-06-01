@@ -23,13 +23,6 @@ assuming axial symmetry about the centreline of the projectile.
 \label{cone20-flight-fig}
 \end{figure}
 
-\subsection{Input script (.py)}\index{boundary conditions!set\_BC!example of use}
-%
-To build our simulation, we abstract the boxed region from Figure\,\ref{cone20-flight-fig}
-and consider the axisymmetric flow of an ideal, inviscid gas over a sharp-nosed cone 
-with 20 degree half angle.
-With the constraint of axisymmetry implies zero angle of incidence for the original 3D flow.
-
 \medskip
 The resulting flow, in the steady-state limit, should have a single shock that is 
 straight in this 2D meridional plane (but conical in the original 3D space).
@@ -37,6 +30,14 @@ The angle of this shock can be checked against Taylor and Maccoll's gas-dynamic 
 since the simulation demands few computational resources (in both memory and run time), 
 it is useful for checking that the simulation and
 plotting programs have been built and installed correctly.
+
+
+\subsection{Input script (.py)}\index{boundary conditions!set\_BC!example of use}
+%
+To build our simulation, we abstract the boxed region from Figure\,\ref{cone20-flight-fig}
+and consider the axisymmetric flow of an ideal, inviscid gas over a sharp-nosed cone 
+with 20 degree half angle.
+The constraint of axisymmetry implies zero angle of incidence for the original 3D flow.
 
 \begin{figure}[htbp]
 \begin{center}
@@ -133,7 +134,7 @@ Also, when following a line that crosses the shock,
 a small number of cells to be counted before the full pressure jump has been reached.
 In an ideal, inviscid simulation, the shock should be a zero-thickness transition.
 This can be approached by increasing the mesh resolution, as seen in Figure\,\ref{cone20-high-res-fig}.
-The high-resolution solution is looking clean but the computational cost, in terms of time, 
+The high-resolution solution is looking clean but the computational cost, in terms of calculation time, 
 has gone up from a few seconds to nearly 2 hours.
 
 \begin{figure}[htbp]
@@ -151,6 +152,33 @@ flow state across the whole simulation domain and then, subject to the applied b
 integrates the conservation equations for in a \textit{time-accurate} manner.
 In this case of a constant free stream flow coming onto a sharp cone, the flow field evolves toward 
 a steady state.
+Figure\,\ref{cone20-p-field-evolution-fig} shows the pressure field at a number of times
+through the simulation.
+The time increment, in seconds, between the frames was specified 
+in the input script as \verb!gdata.dt_plot = 1.5e-3!.
+
+\begin{figure}[htbp]
+\begin{center}
+\begin{tabular}{cc}
+\includegraphics[width=0.45\textwidth]{../2D/cone20-simple/cone20-p-field-fine-t-1p5.png} &
+\includegraphics[width=0.45\textwidth]{../2D/cone20-simple/cone20-p-field-fine-t-3p0.png} \\
+\includegraphics[width=0.45\textwidth]{../2D/cone20-simple/cone20-p-field-fine-t-4p5.png} &
+\includegraphics[width=0.45\textwidth]{../2D/cone20-simple/cone20-p-field-fine-t-5p0.png} \\
+\end{tabular}
+\end{center}
+\caption{Evolution of the pressure field, times as indicated.}
+\label{cone20-p-field-evolution-fig}
+\end{figure}
+
+\medskip
+Although not obvious in the figure, a lot of detailed flow structure has passed through the flow domain
+even before the 1.5 milliseconds frame.
+From then until the final time of 5.0\,milliseconds, not a lot seems to be happening.
+It would be tempting to terminate the simulation at 3.0\,milliseconds, however, 
+depending on how accurately you need to need to report flow quantities, you may need to run much longer 
+to achieve a sufficiently steady flow.
+
+\medskip
 A key flow parameter of interest might be the drag on the cone and we can get \verb!Eilmer3! to
 occasionally write out the integrated forces on the cone surface with the \verb!xforce_list = [0,0,1,0]!
 argument used when constructing the second block.
@@ -158,7 +186,8 @@ This causes \verb!Eilmer3! to write the integrated forces to the log file
 at the same frequency as history files are written.
 We then use an Awk program (\verb!cp.awk!) to filter the log file, 
 extracting lines that have the x-force data of interest.
-New users might like to use an equivalent program written in Python.
+New users might like to use an equivalent program written in Python, 
+however, it is difficult to better then Awk when it comes to writing a filter program.
 
 \noindent \topbar
 \lstinputlisting[language={}]{../2D/cone20-simple/cp.awk}\index{xforce\_list!example of use}
@@ -185,6 +214,8 @@ Note the sudden rise as the shock structure driven by the free-stream flow
 arrives at the cone surface.
 There is a more gradual rise after this initial jump as the conical flow region
 fills out and becomes steady.
+You can now see the motivation for choosing 5.0\,milliseconds as the end time
+for the simulation.
 
 \begin{figure}[htbp]
 \begin{center}

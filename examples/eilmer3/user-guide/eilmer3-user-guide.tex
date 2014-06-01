@@ -221,8 +221,26 @@ to more complex.
 Initially, simple box regions and single-species ideal gas models are used, followed by
 examples with curved boundaries, equilibrium gas models and, also, 
 multi-species thermally-perfect gases with finite-rate chemical kinetics.
-Later examples also use more of Python's capabilities with the input script for the 
-heat-transfer to a sphere, for example, being written as a template script and a top-level 
+The Rutowski simulation (Sec.\ref{sec:rutowski}) is probably the most sophisticated example
+with respect to phemonological models.
+It exercises just about every capability the code has, 
+including radiation energy exchange and thermal nonequilibrium,
+in a simulation of a radiating flow of argon over a sphere.
+
+\medskip
+The first example, of ideal, inviscid flow over a cone (Sec.\,\ref{cone20-simple-sec}), 
+is a simple flow situation but the description provided here goes into fair detail 
+on setting up the simulation and then on extracting interesting flow quantities 
+to help in the interpretation of the results. 
+It is recommended reading for all beginning users.
+Once you have run and mastered this particular example, 
+pick whichever example most closely matches your flow of interest 
+and have a go at building your own simulation.
+
+\medskip
+Later examples also use more of Python's capabilities.
+The input script for the heat-transfer to a sphere (Sec,\,\ref{sphere-heat-transfer-sec}), 
+for example, being written as a template script and a top-level 
 coordinating script that runs the simulation a number of times with better grid resolution.
 
 % 2D examples
