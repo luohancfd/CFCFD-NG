@@ -1627,16 +1627,23 @@ You need only specify the other properties that are relevant to the specific bou
 % 
 Zones of heating or cooling may be defined within the flow domain as rectangular (2D) 
 or regular hexahedral (3D) patches which are specified by two diagonally-opposite
-corners (\texttt{point0} and \texttt{point1}).
+corners (\verb!point0! and \verb!point1!).
 For example, we could specify\\
-\texttt{HeatZone(qdot, point0, point1, label="")}\index{HeatZone}\\
-where \texttt{qdot} is the heat addition per unit volume in W/m$^3$.
-The corners of each hexahedral zone are given by the \texttt{Vector} values 
-\texttt{point0} and \texttt{point1}.
-If the centre of a cell lies within the heat zone, \texttt{qdot} is added to
+\verb!HeatZone(qdot, point0, point1, label="")!\index{HeatZone}\\
+where \verb!qdot! is the heat addition per unit volume in W/m$^3$.
+The corners of each zone are given by the \verb!Vector! values \verb!point0! and \verb!point1!.
+In a two-dimensional simulation, 
+\verb!point0! corresponds to \verb!p00! in Figure\,\ref{block2d-defn-fig} (on page\,\pageref{block2d-defn-fig}) 
+while \verb!point1! corresponds to \verb!p11!, at the opposite corner of the patch.
+In three-dimensional simulation, 
+\verb!point0! corresponds to \verb!p0! in Figure\,\ref{block-defn-fig} (on page\,\pageref{block-defn-fig}) 
+while \texttt{point1} corresponds to \verb!p6! at the diagonally-opposite vertex of the hexahedral block.
+
+\medskip
+If the centre of a cell lies within the heat zone, \verb!qdot! is added to
 the source term in the energy equation every time step during the simulation. When using
-a HeatZone it is necessary to give at least \texttt{gdata.heat\_time\_stop} a positive non-zero
-value and \texttt{gdata.heat\_time\_start} and \texttt{gdata.heat\_factor\_increment} can also be modified
+a HeatZone it is necessary to give at least \verb!gdata.heat_time_stop! a positive non-zero
+value and \verb!gdata.heat_time_start! and \verb!gdata.heat_factor_increment! can also be modified
 as appropriate.
 A HeatZone might be used to model the deposition of energy into a small volume from 
 a high-power laser, for example.
@@ -1890,16 +1897,19 @@ sketch.window(\=xmin=0.0, ymin=0.0, xmax=1.0, ymax=1.0,\\
 }
 
 \noindent
-sets the mapping from the lower-left to upper-right points in simulation geometry 
-to the corresponding points on a page.
+sets the mapping from the lower-left point (xmin,ymin) to 
+upper-right point (xmax,ymax) in the simulation space 
+to the corresponding points on a display page.
 Axes may also be drawn with:\\
 \texttt{sketch.xaxis(x0, x1, xtic, y\_offset)} \\
 \texttt{sketch.yaxis(y0, y1, ytic, x\_offset)} \\
-where small negative values may be given for the offset values in order to move
+where small negative values may be given for the offset values, in order to move
 the axes clear of the main sketch elements.
+Note that these axis parameters are specified in the coordinate system of the simulation space
+and that all values are in metres.
 
-\medskip
-Of course, this sketch environment is only available for 2D simulations.
-For 3D rendering, there is an option for most geometric elements to be rendered as
-Virtual Reality Markup Language (VRML) strings.\index{VRML}  
-These VRML strings may be manually written to a file as part of the user's input script.
+% \medskip
+% Of course, this sketch environment is only available for 2D simulations.
+% For 3D rendering, there is an option for most geometric elements to be rendered as
+% Virtual Reality Markup Language (VRML) strings.\index{VRML}  
+% These VRML strings may be manually written to a file as part of the user's input script.

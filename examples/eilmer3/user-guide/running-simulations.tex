@@ -146,6 +146,35 @@ if run with the \verb!-q! option.
 See the \texttt{--heat-flux-list} option in Section\,\ref{sec:e3post} for a hint at how to extract the data and then
 have a look in the data files to see what specific data has been captured. 
 
+\medskip
+For reference, here are the hints that are written out when the \verb!--help! option is given on the command line:
+{\scriptsize
+\begin{verbatim}
+$ e3shared.exe --help
+Usage: e3shared.exe [OPTION...]
+  -f, --job=<job_name>               job_name is typically the same as root_file_name
+  -r, --run                          run the main simulation time-stepper
+  -t, --tindx=<int>                  start with this set of flow data
+  -z, --zip-files                    use gzipped flow and grid files
+  -a, --no-zip-files                 use ASCII (not gzipped) flow and grid files
+  -q, --heat-flux-files              write heat-flux files
+  -s, --surface-files                write surface files
+  -v, --verbosity=<int>              set verbosity level for messages
+  -w, --max-wall-clock=<seconds>     maximum wall-clock time in seconds
+  -m, --mpimap=<mpimap_file>         use this specific MPI map of blocks to rank
+
+Help options:
+  -?, --help                         Show this help message
+      --usage                        Display brief usage message
+\end{verbatim}
+} % end scriptsize
+\noindent
+By default, the starting value for \verb!tindx! will be zero, 
+gzipped flow and grid files will be assumed, heat-flux and surface files will not be written,
+\verb!verbosity! will be zero (\textit{i.e.} at a minimum), 
+and the wall-clock time will not be limited.
+
+
 \subsection{Running the simulation in parallel (e3mpi.exe)}
 %
 One can build and run the distributed-memory version of the program, 
@@ -202,7 +231,7 @@ with the command\\
 This renames the 9999 flow files and tidies up the \textit{job}\texttt{.times} file to reflect the changes.
 }
 checking the state of the simulation at the end of run, then editing the \textit{job}\texttt{.control} 
-file and changing the parameters \texttt{dt} \texttt{max\_time} and \texttt{max\_steps} to suitable values.
+file and changing the parameters \texttt{dt}, \texttt{max\_time} and \texttt{max\_steps} to suitable values.
 Do \underline{not} run \texttt{e3prep.py} again, else it will write all over the \textit{job}.times file
 that you need to retain and your newly edited \textit{job}\texttt{.control} file.
 At this point, you should be ready to run the main simulation program again.
@@ -220,7 +249,7 @@ Note that your old and new soltions need to have consistent data, such as number
 \texttt{ExistingSolution} works with the data available in the old solution and 
 is not smart enough to fill in missing values.
 
-\newpage
+% \newpage
 \subsection{Postprocessing (with e3post.py)}\index{postprocessing} 
 \label{sec:e3post}
 %
