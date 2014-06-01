@@ -8,7 +8,8 @@ Figure\,\ref{cone20-flight-fig} is a reproduction of Fig.\,3 from Maccoll's 1937
 and shows a shadowgraph image of a two-pounder projectile, in flight at Mach 1.576.
 We'll restrict our simulation to just the gas flow coming onto and moving up the conical surface 
 of the projectile and work in a frame of reference attached to the projectile.
-Further, we will assume that all of the interesting features of the flow can be 
+Further, we will assume that all of the interesting features of the three-dimensional flow can be 
+characterized a two-dimensional plane.
 The red lines mark out the region of our gas flow simulation, 
 assuming axial symmetry about the centreline of the projectile.
 
@@ -145,6 +146,27 @@ has gone up from a few seconds to nearly 2 hours.
 \end{figure}
 
 \medskip
+Since Eilmer3 is a simulation program, it starts with some initial (but possibly variable) 
+flow state across the whole simulation domain and then, subject to the applied boundary conditions,
+integrates the conservation equations for in a \textit{time-accurate} manner.
+In this case of a constant free stream flow coming onto a sharp cone, the flow field evolves toward 
+a steady state.
+A key flow parameter of interest might be the drag on the cone and we can get \verb!Eilmer3! to
+occasionally write out the integrated forces on the cone surface with the \verb!xforce_list = [0,0,1,0]!
+argument used when constructing the second block.
+This causes \verb!Eilmer3! to write the integrated forces to the log file 
+at the same frequency as history files are written.
+We then use an Awk program (\verb!cp.awk!) to filter the log file, 
+extracting lines that have the x-force data of interest.
+New users might like to use an equivalent program written in Python.
+
+\noindent \topbar
+\lstinputlisting[language={}]{../2D/cone20-simple/cp.awk}\index{xforce\_list!example of use}
+\bottombar
+      
+\medskip
+Before plotting the drag force history, 
+it is convenient to normalize it into a history of drag coefficient.
 From Chart 5 in Ref.\,\cite{ames_53}, the expected steady-state shock wave
 angle is 49$^o$ and, from Chart 6, the pressure coefficient is
 $$
@@ -159,6 +181,10 @@ C_p = \frac{f_x - p_{\infty} A}{q_{\infty} A}
 $$
 from the simulated axial force, $f_x$, written into the simulation log file
 and frontal area of the cone, $A$.
+Note the sudden rise as the shock structure driven by the free-stream flow
+arrives at the cone surface.
+There is a more gradual rise after this initial jump as the conical flow region
+fills out and becomes steady.
 
 \begin{figure}[htbp]
 \begin{center}
@@ -170,12 +196,15 @@ and frontal area of the cone, $A$.
 \label{cone20-axial-force-fig}
 \end{figure}
 
-\medskip
+\subsection{Accessing the field data for specialized postprocessing}
+%
 Beyond the usual slice-and-dice type of postprocessing that is provided by \verb!e3post.py!, 
 it may be useful to do specialized calculations on the flow data.
 In this flow, the shock is expected to be straight and we can compute
 that it should have an angle of $\beta = 48.96^o$, with respect to the free-stream direction,
-using one of the gas-dynamic functions from \verb!cfpylib!: 
+using one of the gas-dynamic functions\footnote{For documentation on the functions in \texttt{cfpylib},
+look at the web site \texttt{http://cfcfd.mechmining.uq.edu.au/} under the heading \texttt{Libraries}.} 
+from \verb!cfpylib!
 \begin{verbatim}
 from cfpylib.gasdyn.ideal_gas_flow import beta_cone
 from math import degrees, radians
@@ -215,6 +244,66 @@ in the middle of the script.
 \lstinputlisting[language={}]{../2D/cone20-simple/estimate_shock_angle.py}
 \bottombar
 
+\subsection{Grid convergence}
+%
+Determining a single value for some parameter is only part of the complete job.
+Usually, you must provide some guide as to the reliability of that value and
+this is often done with a grid convergence study.
+For our estimate of shock wave angle, we could follow the initial simulation run with a 
+number of runs on successively finer meshes and check that the estimated values converge 
+in the limit of cell size going to zero.
+
+\medskip
+Since this example is not very demanding for low-resolution grid, 
+it is easy to double the grid resolution a couple of times over and get
+data over a good range of cell sizes.
+Figure\,\ref{cone20-grid-convergence-fig} shows the raw shock angle estimates
+converging nicely to a value of 49$^o$.
+In general, this is usually the end point for our analysis.
+Since we have a reference value computed via the Taylor-Maccoll theory,
+we can also look at the convergence to the \textit{true} value and,
+given sufficient computational resource, 
+it looks at though we can get as close as we wish.
+
+\begin{figure}
+ \centering
+ \parbox{0.45\textwidth}{
+ \begin{tikzpicture}
+  \begin{axis}[xlabel={$\Delta x$, cm},
+               ylabel={$\beta$, degrees},
+               xmin=0, xmax=3,
+               width=0.4\textwidth]
+   \addplot[only marks,mark=*] coordinates{
+    (2.5, 49.56)
+    (1.25, 49.29)
+    (0.625, 49.13)
+    (0.3125, 49.05)
+   };
+  \end{axis}
+ \end{tikzpicture}
+ }
+ \parbox{0.45\textwidth}{
+ \begin{tikzpicture}
+  \begin{axis}[xlabel={$\Delta x$, cm},
+               ylabel={$(\beta - \beta_{ref}) / \beta_{ref}$},
+               xmin=0, xmax=3, ymin=0,
+               width=0.4\textwidth]
+   \addplot[only marks,mark=*] coordinates{
+    (2.5, 0.6)
+    (1.25, 0.33)
+    (0.625, 0.17)
+    (0.3125, 0.09)
+   };
+   \addplot[no marks, color=red, smooth, domain=0:2.5]{0.264*x};
+  \end{axis}
+ \end{tikzpicture}
+ }
+ \caption{Convergence of the shock angle and its relative error with mesh refinement.
+          $\beta_{ref} = 48.96^o$.}
+ \label{cone20-grid-convergence-fig}
+\end{figure}
+
+
 \subsection{Notes}
 \begin{itemize}
 \item Remember that long-format command-line options start with two dashes.
@@ -238,10 +327,6 @@ in the middle of the script.
       Where this might happen in a non-obvious way is in the importing
       of foreign modules (to do something interesting in your script)
       with the command ``from \textit{module-name} import *''.
-
-\item Awk script for extracting x-force data from the simulation log file.
-      New users might like to use an equivalent program written in Python.
-      \lstinputlisting[language={}]{../2D/cone20-simple/cp.awk}\index{xforce\_list!example of use}
 
 \item The script \texttt{cone20\_run\_mpi.sh} is available for running the simulation
   with the parallel version of the code on a machine with OpenMPI installed.
