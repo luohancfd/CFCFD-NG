@@ -33,7 +33,7 @@ This condition has three experiment datapoints available for comparison.
 The simulation is run in three parts:
 
 \begin{enumerate}
-\item Inviscid (Euler eqations, 10 body lengths of flow)
+\item Inviscid (Euler equations, 10 body lengths of flow)
 \item Viscous (Navier--Stokes equations, 5 body length of flow)
 \item Viscous with radiation-flowfield coupling (Navier--Stokes equations, 2 body lengths of flow with 2 radiation transport calculations)
 \end{enumerate}
@@ -64,6 +64,8 @@ Clustering is applied in the vicinity of the shock front and boundary layer to e
 
 The argon plasma is modelled via the consideration of three species (Ar, Ar$^+$ and e$^-$) and two temperatures (a heavy particle translation temperature, $T$, and a combined free electron and bound electronic temperature, $T_e$).
 This allows the nonequilibrium between heavy-particle and free-electron translation to be captured whilst acknowledging the efficiency of bound electronic excitation via free electron impact.
+The electronic energy of the heavy particle species are calculated assuming Boltzmann distribution of the electronic state populations.
+The electronic level structure of Ar and Ar$^+$ are represented with 8 and 13 grouped levels, respectively, using the energy level from NIST ASD~\cite{NIST_ASD}. 
 
 \subsubsection{Viscous transport}
 
@@ -117,9 +119,6 @@ Three radiation mechanisms are considered:
 425 individual Ar lines and 307 individual Ar$^+$ lines from the NIST ASD~\cite{NIST_ASD} are considered, and  photoionization cross-sections are obtained from TOPBase~\cite{TOPbase}.
 The experimentally measured Stark widths for 48 Ar lines collated by Griem~\cite{Griem74} are implemented, with the remaining lines using the empirical fit suggested by Park~\cite{Park82}.
 The upper and lower state populations for the Ar atom are determined via application of a collisional-radiative model in the QSS limit~\cite{park_1990}.
-
-\par
-
 The spectral grid is uniformally distributed in wavenumber space in the range $1000 \leq \eta \leq 150000$~$^{1/\text{cm}}$, with a resolution of 1 point / 10~$^{1/\text{cm}}$.
 
 \subsection{Results}
@@ -153,7 +152,7 @@ The hot shock layer is a net emitter of radiation (blue), whilst the cool and de
 The computed surface radiative heating profiles are compared with the experiment measurements in Figure~\ref{fig:rutowskiResults}.
 The computed result at the stagnation point in the spectral range $67 \leq \lambda \leq 10000$\,nm of approximately 5.1~kW/cm$^2$ is in agreement with the blackened guage data to within the measurement uncertainty bounds.
 The computed result for the supposed range of sensitivity for the radiometer ($180 \leq \lambda \leq 6000$\,nm), however, is slightly lower than the measured data.
-Further investigation is required to resolve this anomally.  
+A finer spectral grid may improve the agreement with experiment by allowing the peaks of the atomic lines to be better resolved.
 
 \begin{figure}
  \centering
@@ -187,7 +186,11 @@ Further investigation is required to resolve this anomally.
  \label{fig:rutowskiResults}
 \end{figure}
 
+\subsection{Run script (.sh)}
 
+\topbar
+\lstinputlisting[language={}]{../2D/Rutowski-hemisphere/Ms_12.70/run.sh}
+\bottombar
 
 \subsection{Eilmer3 input scripts (.py)}
 
