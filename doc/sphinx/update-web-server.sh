@@ -1,15 +1,15 @@
 #! /bin/bash
 
-echo "About to rsync html files to viking."
+echo "About to rsync html files to cfcfd.zones.eait.uq.edu.au"
 
-echo "Please enter your username on viking:"
+echo "Please enter your username on cfcfd.zones.eait.uq.edu.au:"
 read username
 
 echo "A password may have to be supplied for each rsync."
 echo "Note that we assume several external directories"
 echo "(of theses, etc) are available."
 
-DEST=${username}@viking.mech.uq.edu.au:/var/www/html/cfcfd/
+DEST=${username}@cfcfd.zones.eait.uq.edu.au:/opt/local/share/httpd/htdocs/
 
 echo "1. Sphinx-generated HTML docs..."
 rsync -av _build/html/ ${DEST}
