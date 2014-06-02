@@ -212,6 +212,8 @@ A finer spectral grid may improve the agreement with experiment by allowing the 
 \lstinputlisting[language={}]{../2D/Rutowski-hemisphere/Ms_12.70/part3-viscous-with-radiation/hemisphere.py}
 \bottombar
 
+\clearpage
+
 \subsection{Chemical reaction script (.lua)}
 
 \topbar
@@ -251,5 +253,6 @@ A finer spectral grid may improve the agreement with experiment by allowing the 
 \begin{itemize}
  \item The radiation-flowfield coupling is relatively weak for this case, and therefore the flowfield solution with and without radiation are relatively similar.
 For cases where radiation-flowfield coupling is stronger, difficulties may arise when the scaling of the radiation source term is turned on.
- \item The radiation portion of this simulation can be run in parallel on a shared memory computer.  See \url{http://cfcfd.mechmining.uq.edu.au/eilmer3.html#building-and-running-the-radiation-transport-solver} for intructions on how to compile \texttt{e3rad.exe} for parallel computations.
+ \item The radiation portion of this simulation can be run in parallel on a shared memory computer.
+ See \url{http://cfcfd.mechmining.uq.edu.au/eilmer3.html} for intructions on how to compile \texttt{e3rad.exe} for parallel computations.
 \end{itemize}
