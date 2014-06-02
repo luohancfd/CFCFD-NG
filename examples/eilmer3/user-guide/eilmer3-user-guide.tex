@@ -1,6 +1,9 @@
 % eilmer3-user-guide.tex
 % PJ, March 2007 -- elmer2 version
 %     September 2008 -- eilmer3 version
+%     June 2014 -- revise for 2014 edition
+% There are some troublesome pgfplots commands, probably to do with differing versions of pgf/tikz.
+% A good build in kile results in 3 warnings, only.
 %
 \documentclass[12pt,a4paper,twoside]{article}
 \usepackage[body={16cm,24.5cm}]{geometry}
@@ -367,10 +370,90 @@ of the package of source files.\\
 
 \cleardoublepage
 \section{cfpylib modules}\index{module!cfpylib}
+\label{cfpylib-sec}
 There are a number of modules that are useful for the definition of flow
-simulations but are not part of the Eilmer code.
-These are available in a separate Python library that may be imported into the
-user's job definition script.
+simulations but are not part of the core Eilmer code.
+These are available in a \verb!cfpylib! Python library that may be imported into the
+user's input or postprocessing scripts.
+This library has become a bit of a catch-all 
+for various utility modules and functions that don't fit
+directly into the main application source directories or 
+the gas or geometry libraries.
+Documentation for the individual functions can be found online 
+at \url{http://cfcfd.mechmining.uq.edu.au/}, under the link to \verb!Libraries!.
+Alternatively, you may use Python's introspection facility or 
+look at the source code directly. 
+
+\subsection{Numerical Methods module}
+  \begin{itemize}
+   \item \verb!nm.collect_run_stats!: Run an executable a number of times and report.
+   \item \verb!nm.adapti!: Adaptive quadrature using Newton-Cotes 5- and 3-point rules.
+   \item \verb!nm.least_squares!: Fits a generalized polynomial basis to given data.
+   \item \verb!nm.line_search!: Implementation of an algorithm for optimization from Gerald and Wheatley.
+   \item \verb!nm.nelmin!: Nelder-Mead simplex minimization of a nonlinear (multivariate) function.
+   \item \verb!nm.ode!: Integrate a set of first-order ODEs.
+   \item \verb!nm.roberts!: Node distribution and coordinate stretching functions.
+   \item \verb!nm.secant_method!: Function solver, using the secant method.
+   \item \verb!nm.sode!: Integrate a set of stiff ODEs.
+   \item \verb!nm.stats!: Simple statistics for arrays of values. 
+         To replace those in scipy, just in case scipy is not installed.
+   \item \verb!nm.zero_solvers!: A small collection of function solvers, including bracketing.
+  \end{itemize}
+
+\subsection{Gas Dynamics module}
+  \begin{itemize}
+   \item \verb!gasdyn.billig!: Fred Billig's correlations for hypersonic shock-wave shapes.
+         This module is shown completely in the following Section\,\ref{billig-correlation}.
+   \item \verb!gasdyn.ideal_gas_flow!: One-dimensional steady flow of an ideal gas.
+         This module includes many small functions grouped into:
+         \begin{itemize}
+          \item Isentropic flow relations.
+          \item 1D (Normal) Shock Relations.
+          \item 1-D flow with heat addition (Rayleigh-line).
+          \item Prandtl-Meyer functions.
+          \item Oblique-shock relations.
+          \item Taylor-Maccoll conical flow.
+         \end{itemize}
+   \item \verb!gasdyn.cea2_gas!: Thermodynamic properties of a gas mixture in chemical equilibrium.
+         This module interfaces to the CEA code by writing a small input file,
+         running the CEA code as a child process and then reading the results
+         from the CEA plot file.
+   \item \verb!gasdyn.libgas_gas!: Access the gas models from the libgas library.
+         This module gives you access to the same gas-model library as used in the 
+         main simulation program.
+   \item \verb!gasdyn.ideal_gas!: Thermodynamic properties of an ideal gas.
+         This module provides a look-alike Gas class for use in 
+         the gas flow functions.  Where ever cea2\_gas works, so should this.
+   \item \verb!gasdyn.gas_flow!: Gas flow calculations using CEA2 or ideal Gas objects.
+         The functions are generalized versions of those in gasdyn.ideal\_gas\_flow.
+   \item \verb!gasdyn.sutherland!: Sutherland form of viscosity and thermal conductivity 
+         for a few gases.  Species available: Air, N2, O2, H2, CO2, CO, Ar.
+  \end{itemize}
+
+\subsection{Flow (house-keeping) module}
+  \begin{itemize}
+   \item \verb!flow.blockflow2d!: Pick up the flow data for mbcns2 block-structured grids.
+   \item \verb!flow.vtk_xml_writer!: Writing of BlockGrid2D and BlockFlow2D (mbcns2) objects to VTK XML files.
+   \item \verb!flow.tecplot_writer!: Writing of BlockGrid2D and BlockFlow2D (mbcns2) objects to Tecplot files.
+  \end{itemize}
+
+\subsection{Geometry module}
+  \begin{itemize}
+   \item \verb!geom.minimal_geometry!: A bare minimum geometry library to do
+         some of the work required by Rowan's laura2vtk.py.
+   \item \verb!geom.svg_render!: Render a drawing in Scalable Vector Graphics format.
+   \item \verb!geom.transform_pyfunc!: Apply a matrix transformation to a Python function.
+         The functions provided by this module are used to manipulate a python function
+         prior to using the function to create a path with libprep3's PyFunctionPath.
+         Available transformations are rotation and translation.
+  \end{itemize}
+
+\subsection{Utility module}
+  \begin{itemize}
+   \item \verb!util.flatten!: Function to flatten a nested list.
+   \item \verb!util.FortranFile!: Defines a file-derived class to read/write Fortran unformatted files.
+  \end{itemize}
+
  
 \subsection{Billig shock shape correlation}\index{Billig}
 \label{billig-correlation}

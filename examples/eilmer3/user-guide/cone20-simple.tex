@@ -9,7 +9,7 @@ and shows a shadowgraph image of a two-pounder projectile, in flight at Mach 1.5
 We'll restrict our simulation to just the gas flow coming onto and moving up the conical surface 
 of the projectile and work in a frame of reference attached to the projectile.
 Further, we will assume that all of the interesting features of the three-dimensional flow can be 
-characterized a two-dimensional plane.
+characterized in a two-dimensional plane.
 The red lines mark out the region of our gas flow simulation, 
 assuming axial symmetry about the centreline of the projectile.
 
@@ -129,7 +129,8 @@ The shock displayed in the pressure field shows features that are characteristic
 of a flow solution produced by a ``shock-capturing'' code such as \verb!Eilmer3!.
 With the coarse grid, the shock has a stair-case appearance.
 This is accentuated by the plotting program which was set to display 
-the cell-average value as a uniform colour within each cell.
+the cell-average value as a uniform colour within each cell.\footnote{
+If you want a smoother appearance, you can use the Paraview filter \texttt{Cell Data to Point Data}.}
 Also, when following a line that crosses the shock,
 a small number of cells to be counted before the full pressure jump has been reached.
 In an ideal, inviscid simulation, the shock should be a zero-thickness transition.
@@ -149,7 +150,7 @@ has gone up from a few seconds to nearly 2 hours.
 \medskip
 Since Eilmer3 is a simulation program, it starts with some initial (but possibly variable) 
 flow state across the whole simulation domain and then, subject to the applied boundary conditions,
-integrates the conservation equations for in a \textit{time-accurate} manner.
+integrates the conservation equations forward in a \textit{time-accurate} manner.
 In this case of a constant free stream flow coming onto a sharp cone, the flow field evolves toward 
 a steady state.
 Figure\,\ref{cone20-p-field-evolution-fig} shows the pressure field at a number of times
@@ -187,7 +188,7 @@ at the same frequency as history files are written.
 We then use an Awk program (\verb!cp.awk!) to filter the log file, 
 extracting lines that have the x-force data of interest.
 New users might like to use an equivalent program written in Python, 
-however, it is difficult to better then Awk when it comes to writing a filter program.
+however, the Awk language is very convenient for writing filter programs.
 
 \noindent \topbar
 \lstinputlisting[language={}]{../2D/cone20-simple/cp.awk}\index{xforce\_list!example of use}
@@ -233,7 +234,8 @@ Beyond the usual slice-and-dice type of postprocessing that is provided by \verb
 it may be useful to do specialized calculations on the flow data.
 In this flow, the shock is expected to be straight and we can compute
 that it should have an angle of $\beta = 48.96^o$, with respect to the free-stream direction,
-using one of the gas-dynamic functions\footnote{For documentation on the functions in \texttt{cfpylib},
+using one of the gas-dynamic functions\footnote{For an overview the functions in \texttt{cfpylib}, 
+see Appendix\,\ref{cfpylib-sec} then, for more information on each specific function,
 look at the web site \texttt{http://cfcfd.mechmining.uq.edu.au/} under the heading \texttt{Libraries}.} 
 from \verb!cfpylib!
 \begin{verbatim}
@@ -285,7 +287,7 @@ number of runs on successively finer meshes and check that the estimated values 
 in the limit of cell size going to zero.
 
 \medskip
-Since this example is not very demanding for low-resolution grid, 
+Since this example is not very demanding for a low-resolution grid, 
 it is easy to double the grid resolution a couple of times over and get
 data over a good range of cell sizes.
 Figure\,\ref{cone20-grid-convergence-fig} shows the raw shock angle estimates
