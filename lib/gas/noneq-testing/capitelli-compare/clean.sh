@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -R gasmodels/*
-rm -R libgas_results/*
-rm -R plots/*
+rm -r gasmodels/
+rm -r libgas_results/
+rm -r plots/
 

@@ -28,7 +28,7 @@ plot 'capitelli_data/$X.txt' u 1:5 w l lw 3 t 'Capitelli (2006)', \
      'libgas_results/$X.txt'  u 1:4 w l lw 3 t 'lib/gas'
 EOF
 
-mkdir plots/$X
+mkdir -p plots/$X
 
 mv *.eps plots/$X/
 done

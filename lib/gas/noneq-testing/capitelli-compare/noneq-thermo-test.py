@@ -2,8 +2,16 @@
 
 import sys
 import os
+sys.path.append(os.path.expandvars("$HOME/e3bin"))
+sys.path.append("") # so that we can find user's scripts in current directory
 from gaspy import *
 from time import time
+
+if not os.path.exists('gasmodels'):
+    os.makedirs('gasmodels')
+if not os.path.exists('libgas_results'):
+    os.makedirs('libgas_results')
+
 
 def main():
     if len(sys.argv)!=2:
