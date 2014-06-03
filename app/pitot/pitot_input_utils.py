@@ -524,12 +524,14 @@ def state_builder(cfg):
                 p4 = cfg['p4'] #Pa
                 T4 = states['primary_driver_fill'].T*\
                 (cfg['p4']/states['primary_driver_fill'].p)**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
+                print "p4 = {0} Pa, T4 = {1} K.".format(p4, T4)
             else:
                 print "Performing isentropic compression from driver fill condition over compression ratio of {0}.".format(cfg['compression_ratio'])
                 cfg['pressure_ratio'] = cfg['compression_ratio']**states['primary_driver_fill'].gam #pressure ratio is compression ratio to the power of gamma
                 p4 = states['primary_driver_fill'].p*cfg['pressure_ratio'] #Pa
                 T4 = states['primary_driver_fill'].T*\
                 (cfg['pressure_ratio'])**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
+                print "p4 = {0} Pa, T4 = {1} K.".format(p4, T4)
             states['s4'] =  states['primary_driver_fill'].clone()
             states['s4'].set_pT(p4,T4)
         V['s4']=0.0

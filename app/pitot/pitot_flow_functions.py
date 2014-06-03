@@ -349,6 +349,10 @@ def shock_tube_calculation(cfg, states, V, M):
         states['s1'].set_pT(cfg['p1'],cfg['T0'])
         
     elif cfg['test'] =="fulltheory-pressure": #get Vs1 for our chosen fill pressure
+        if cfg['state2_no_ions']:
+            # Need to turn ions off for state 2 here if it is required to make 
+            # shock to state 2 work
+            states['s2'].with_ions = False 
         if cfg['shock_switch']: #if we've been told to do a shock here instead of an expansion, do a shock instead of an expansion
             if PRINT_STATUS: print "The shock switch is turned on, therefore doing a shock here instead of the normal expansion... Turn this off if you didn't want it" 
             cfg['Vs1'] = secant(primary_shock_speed_reflected_iterator, 2000.0, 1500.0, tol=1.0e-5,limits=[500.0,10000.0])
@@ -381,8 +385,11 @@ def shock_tube_calculation(cfg, states, V, M):
             elif cfg['tunnel_mode'] == 'nr-shock-tunnel': #start with a higher speed guess in nr-shock-tunnel mode
                 if cfg['secondary']:
                     cfg['Vs1_guess_1'] = cfg['Vsd']+5000.0; cfg['Vs1_guess_2'] = cfg['Vsd']+6000.0
-                else: 
-                    cfg['Vs1_guess_1'] = 6000.0; cfg['Vs1_guess_2'] = 8000.0
+                else:
+                    if cfg['p1'] > 1000.0:
+                        cfg['Vs1_guess_1'] = 6000.0; cfg['Vs1_guess_2'] = 8000.0
+                    else:
+                        cfg['Vs1_guess_1'] = 10000.0; cfg['Vs1_guess_2'] = 12000.0
                 cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, cfg['Vs1_guess_1'], cfg['Vs1_guess_2'], tol=1.0e-3,limits=[1000.0,1000000.0])
             elif cfg['tunnel_mode'] == 'reflected-shock-tunnel': #start with a much lower speed guess in nr-shock-tunnel mode
                 if cfg['secondary']:
@@ -467,6 +474,12 @@ def shock_tube_calculation(cfg, states, V, M):
     if PRINT_STATUS: 
         print "state 2: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s2'].p, states['s2'].T) 
         print "state 3: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s3'].p, states['s3'].T) 
+        
+    if cfg['state2_no_ions']:
+        # Turn with ions back on so it will be on for other states based on s7
+        # if we turned it off to make the unsteady expansion work
+        states['s2'].with_ions = True 
+    
     
     #get mach numbers for the txt_output
     cfg['Ms1'] = cfg['Vs1']/states['s1'].a
@@ -637,7 +650,7 @@ def rs_calculation(cfg, states, V, M):
     states['s5'] = states['s2'].clone()
     # then perform the reflected shock
     cfg['Vr'] = reflected_shock(states['s2'], V['s2'], states['s5'])
-    cfg['Mr'] = cfg['Vr']/states['s2'].a
+    cfg['Mr'] = (V['s2']+cfg['Vr'])/states['s2'].a #normally this would be V2 - Vr, but it's plus here as Vr has been left positive
     V['s5'] = 0.0
     M['s5']= V['s5']/states['s5'].a
     
