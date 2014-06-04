@@ -1,0 +1,183 @@
+% e3march-user-guide.tex
+% PJ, June 2014
+%
+\documentclass[12pt,a4paper,twoside]{article}
+\usepackage[body={16cm,24.5cm}]{geometry}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue}
+\usepackage{graphicx}
+\usepackage{makeidx}
+% \usepackage{showidx}
+\usepackage{listings}
+\usepackage{lscape}
+\usepackage{longtable}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{subfig}
+\lstset{basicstyle=\ttfamily\scriptsize, showstringspaces=false, identifierstyle=, keywordstyle=}
+\lstset{numbers=left, numberstyle=\tiny, stepnumber=1, numbersep=5pt}
+\newcommand{\code}[2]{
+ \hrulefill
+ \scriptsize
+ \lstinputlisting{#2}
+ \hrulefill
+ \vspace{2em}
+ \normalsize
+}
+%\usepackage{booktabs}
+%\usepackage{pgfplots} \pgfplotsset{compat=newest} % Doesn't work on LinuxMint 13; need something more recent.
+
+%------------------------------------------------------------------
+% a couple horizontal bars to delimit embedded code
+% the width suits the page size set above and
+% the mathmode eliminates spaces between the three elements
+\newcommand{\topbar}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule[2.0mm]{159.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\bottombar}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule{159.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\topbarshort}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule[2.0mm]{149.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\bottombarshort}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule{149.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+%------------------------------------------------------------------
+
+\title{
+    A block-marching {CFD} solver for compressible flow.
+}
+\author{
+    Mechanical Engineering Report 2014/06\\
+    Wilson Y. K. Chan ~ Peter A. Jacobs  ~ Fabian Zander\thanks{Institut fuer Raumfahrtsysteme
+      Universitaet Stuttgart, Pfaffenwaldring 29, 70569 Stuttgart.}\\
+    ~ Rowan J. Gollan and Luke Doherty\\
+    Centre for Hypersonics, The University of Queensland, Brisbane, Australia.
+}
+\makeindex
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+
+\end{abstract}
+
+\cleardoublepage
+\tableofcontents
+
+%------------------------------------------------------------------
+\cleardoublepage
+\baselineskip = 1.5pc
+
+\section{Introduction}
+%
+Eilmer3 is a transient compressible flow solver that uses block-structured 
+grids\,\cite{gollan_jacobs_2013a,jacobs_etal_2014a,jacobs_etal_2014b}.  
+Since it is a simulation code that uses explicit updates for the solution 
+of the full Navier-Stokes equations and all parts of the flow field are included in all time steps, 
+the calculation can become very computationally expensive, especially when using fine grids.  
+Further, if the primary interest is in the long-term or steady-state solution over the domain, 
+much of the intermediate (transient flow) data is irrelevant and is then discarded.
+
+\medskip
+A large class of flow problems of interest to our research group may be described 
+as mostly supersonic flow with a dominant direction and having duct-like boundary surfaces.  
+Specific examples include supersonic wind-tunnel nozzles and scramjet inlets, combustors and thrust nozzles.  
+For these flows, the upstream parts of the flow field settle early and remain unchanged 
+while the downstream parts of the flow solution evolve to steady state.  
+Of course, specialized CFD codes based on parabolized Navier-Stokes equations are available 
+for producing fast solutions for this class of flow, however, 
+they are limited in the presence of strong shock-wave boundary-layer interactions.
+
+\medskip
+The “block-marching” approach that we have developed for Eilmer3 has some advantages 
+in that it retains the use of the full transient solver for 
+the complete Navier-Stokes equations but accelerates the overall computation 
+by concentrating on subsets of blocks, until they reach steady-state, 
+marching in the dominant flow direction and building up the steady solution for the full domain. 
+Our first attempt at making the flow simulation code into a form of space-marching code
+was to sequence the processing of blocks within the main C++ sumulation code\,\cite{zander_etal_2011b},
+however, that approach could not easily make use of many processors on a cluster computer. 
+Instead, a higher-level \textit{coordinating} approach was coded 
+as a set of shell scripts which coordinated separate computation jobs on subsets of blocks
+and could make use of several processors by running these jobs on the local cluster computer\,\cite{chan_2012a}.  
+
+\medskip
+The present implementation has been rewritten in a modern scripting language (Python) 
+and is essentially a coordinating program that delegates the actual work 
+of solving the flow equations on subsets of the original grid to an underlying CFD solver.  
+Behind the scenes, it generates a potentially large simulation, 
+with many block-structured grids covering the full domain and organised in a regular array.  
+It then works through the large array of blocks, one subset at a time, 
+setting up a small transient calculation with adjusted boundary conditions and 
+submitting that to the original transient solver for integration.  
+On the completion of each sub-problem, the coordinating program marshalls the blocks 
+of steady state data such that the full set of blocks is finally presented 
+as a single solution field at the end of the process.  
+A computational advantage of this approach is that we may continue to make use 
+of a cluster computer to accelerate the individual subset calculations.  
+As well, it requires no changes to the underlying flow solver, 
+so it may be applied to any flow solver for which we can automate the writing of job files. 
+
+\medskip
+In the following sections, we will more completely describe the approach 
+and provide verification and validation examples.  
+% We will also provide an example of its application to nozzle flow calculation 
+% and nozzle surface design, an application that benefits greatly 
+% from having fast flow calculations available.
+
+\section{Simulation Process -- Block Marching}
+
+\clearpage
+\section{Examples}
+
+\subsection{Channel with circular-arc bump}
+%
+Classic case for testing inviscid solvers.  
+Sudden changes at start and end of bump set off oblique shocks that propagate across blocks..
+
+
+\subsection{Reacting flow in a supersonic streamtube}
+%
+From Fabs' report.  
+We have to get our chemistry right...
+
+
+\subsection{Laminar boundary layer on a flat plate}
+%
+Comparison with Shetz boundary-layer code.
+
+
+\subsection{Turbulent boundary layer on a flat plate}
+%
+Coles flat plate, maybe.
+
+
+\subsection{Mohammadian convex plate}
+%
+Laminar boundary layer with pressure gradient.
+
+
+\subsection{Glancing shock interaction with a boundary layer}
+%
+3D case
+
+
+\clearpage
+\bibliographystyle{unsrt}
+\bibliography{bibtex/pj,bibtex/computing,bibtex/gas_dynamic,bibtex/adm,bibtex/gas,bibtex/dan,bibtex/upwind,bibtex/wilson}
+
+\clearpage
+\appendix
+\section{Source code}
+
+\noindent
+\code{}{../../../app/eilmer3/source/e3march.py}
+
+\clearpage
+\phantomsection % re-set the hyperref anchor so that TOC page number link is correct.
+\addcontentsline{toc}{part}{\indexname}
+\printindex
+\end{document}

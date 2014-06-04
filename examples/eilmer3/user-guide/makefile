@@ -1,5 +1,5 @@
-# makefile for eilmer3-user-guide
-# PJ, March 2007
+# makefile for eilmer3-user-guide and e3march-user-guide
+# PJ, March 2007, June 2014
 
 eilmer3-user-guide.pdf: eilmer3-user-guide.tex \
 		axi-cylinder.tex \
@@ -42,17 +42,26 @@ eilmer3-user-guide.pdf: eilmer3-user-guide.tex \
 	pdflatex eilmer3-user-guide
 	pdflatex eilmer3-user-guide
 
+e3march-user-guide.pdf: e3march-user-guide.tex
+	export BIBINPUTS=$HOME/papers/bibtex/
+	pdflatex e3march-user-guide
+	- bibtex e3march-user-guide
+	pdflatex e3march-user-guide
+	makeindex -l e3march-user-guide
+	pdflatex e3march-user-guide
+	pdflatex e3march-user-guide
+
 clean:
-	- rm eilmer3-user-guide.log \
+	- rm eilmer3-user-guide.log e3march-user-guide.log \
 		*.aux \
-		eilmer3-user-guide.idx \
-		eilmer3-user-guide.ilg \
-		eilmer3-user-guide.ind \
-		eilmer3-user-guide.bbl \
-		eilmer3-user-guide.blg \
-		eilmer3-user-guide.out \
-		eilmer3-user-guide.toc
+		eilmer3-user-guide.idx e3march-user-guide.idx \
+		eilmer3-user-guide.ilg e3march-user-guide.ilg \
+		eilmer3-user-guide.ind e3march-user-guide.ind \
+		eilmer3-user-guide.bbl e3march-user-guide.bbl \
+		eilmer3-user-guide.blg e3march-user-guide.blg \
+		eilmer3-user-guide.out e3march-user-guide.out \
+		eilmer3-user-guide.toc e3march-user-guide.toc
 
 all_clean:
 	make clean
-	- rm eilmer3-user-guide.pdf
+	- rm eilmer3-user-guide.pdf e3march-user-guide.pdf
