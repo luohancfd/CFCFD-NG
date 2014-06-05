@@ -269,6 +269,8 @@ def run_pitot(cfg = {}, config_file = None):
     #--------------------- shock tube-------------------------------------------
     
     try:
+        if 'state2_no_ions' not in cfg:
+            cfg['state2_no_ions'] = False
         cfg, states, V, M = shock_tube_calculation(cfg, states, V, M)
     except Exception as e:
         print "Error {0}".format(str(e))

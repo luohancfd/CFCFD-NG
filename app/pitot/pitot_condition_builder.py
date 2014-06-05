@@ -161,11 +161,11 @@ def output_builder(cfg, states, V, M):
     
     # Now make the basic string   
     
-    basic = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}"\
+    basic = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}"\
             .format(cfg['test_number'], driver_gas, cfg['psd1'], 
                     cfg['p1'], cfg['p5'], cfg['Vsd'], cfg['Vs1'], cfg['Vs2'], 
                     states['s7'].p, states['s7'].T, states['s7'].rho, 
-                    V['s7'], M['s7'])
+                    V['s7'], M['s7'],cfg['stagnation_enthalpy']/10**6)
                     
     # then make other strings that are needed and add what is required.               
     
@@ -221,6 +221,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     results['rho7'].append(states['s7'].rho)
     results['V7'].append(V['s7'])
     results['M7'].append(M['s7'])
+    results['Ht'].append(cfg['stagnation_enthalpy']/10**6)
     
     if cfg['nozzle']:
         results['arearatio'].append(cfg['area_ratio'])
@@ -303,6 +304,9 @@ def condition_builder_summary_builder(cfg, results, condition_builder_summary_fi
                 elif variable[0] == 'r':
                     summary_line = "Variable {0} varies from {1:.7f} - {2:.7f} kg/m**3."\
                     .format(variable, min_value, max_value)
+                elif variable[0] == 'H':
+                    summary_line = "Variable {0} varies from {1:.7f} - {2:.7f} MJ/kg."\
+                    .format(variable, min_value, max_value)                    
                 else:
                     summary_line = "Variable {0} varies from {1:.1f} - {2:.1f}."\
                     .format(variable, min_value, max_value)
@@ -348,7 +352,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     # print a line explaining the results
     intro_line_1 = "# Output of pitot area condition building program."
     condition_builder_output.write(intro_line_1 + '\n')
-    basic = "#test number,driver condition,psd1,p1,p5,Vsd,Vs1,Vs2,p7,T7,rho7,V7,M7"
+    basic = "#test number,driver condition,psd1,p1,p5,Vsd,Vs1,Vs2,p7,T7,rho7,V7,M7,Ht"
     nozzle = ",arearatio,p8,T8,rho8,V8,M8"
     if cfg['nozzle']:
         basic = basic + nozzle
@@ -369,7 +373,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     # need to make a list to create a series of empty lists in the results
     # dictionary to store the data. the list is tailored to the test condition
     basic_list = ['test number','driver condition','psd1','p1','p5','Vsd','Vs1',
-                  'Vs2','p7','T7','rho7','V7','M7']
+                  'Vs2','p7','T7','rho7','V7','M7','Ht']
     nozzle_list = ['arearatio','p8','T8','rho8','V8','M8']
     if cfg['nozzle']:
         basic_list = basic_list + nozzle_list
