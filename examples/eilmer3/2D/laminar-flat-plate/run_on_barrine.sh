@@ -3,12 +3,12 @@
 #PBS -S /bin/bash
 #PBS -N laminar_plate
 #PBS -l walltime=2:00:00
-#PBS -l select=4:ncpus=4 -A uq-Jacobs
+#PBS -l select=4:ncpus=4:mpiprocs=4 -A uq-Jacobs
 #PBS -V
 
 . /usr/share/modules/init/bash
 module load intel-mpi
-module load intel-cc-11
+module load intel-cc-13
 module load python
 
 echo "Where are my nodes?"

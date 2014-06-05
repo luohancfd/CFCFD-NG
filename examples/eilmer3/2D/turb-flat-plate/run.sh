@@ -8,7 +8,7 @@
 
 . /usr/share/modules/init/bash
 module load intel-mpi
-module load intel-cc-11
+module load intel-cc-13
 module load python
 
 echo "Where are my nodes?"

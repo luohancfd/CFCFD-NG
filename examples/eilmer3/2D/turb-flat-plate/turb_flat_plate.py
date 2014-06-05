@@ -13,7 +13,6 @@ from cfpylib.gasdyn import sutherland
 
 gdata.title = "Mabey's Mach 4.5 flow over a flat plate (k-omega)"
 print gdata.title
-gdata.turbulence_flag = 1 
 gdata.turbulence_model = "k_omega"
 gdata.viscous_flag = 1
 gdata.flux_calc = AUSMDV
