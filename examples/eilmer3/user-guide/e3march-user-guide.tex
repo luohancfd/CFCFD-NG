@@ -131,12 +131,6 @@ and provide verification and validation examples.
 
 \section{Simulation Process -- Block Marching}
 %
-The block-marching solver \texttt{e3march.py} is written to execute the Eilmer3 flow solver 
-on two columns of blocks from the global array of blocks at a time. For each subsequent run, 
-the Eilmer3 flow solver is shifted downstream by one column of blocks, finishing only when 
-all blocks have been solved. It has been shown in Reference\,\cite{zander_etal_2011b} that
-this process of shifting by one column removes any errors that may be introduced by the 
-applied outlet boundary conditions when flow calculations are shifted by two columns instead. 
 To aid the description of the block-marching approach, a simple example which involves 
 Mach\,4 flow over a 10$^\circ$ wedge is used. The geometrical setup for this example is 
 shown in Figure~\ref{f:10-deg-wedge-schema}. For this example, a total of eight blocks is 
@@ -147,6 +141,14 @@ used, and the direction of Mach\,4 inflow is from left to right.
    \caption{Schematic of the 10$^\circ$ wedge example.}
    \label{f:10-deg-wedge-schema}
 \end{figure}
+
+\medskip
+The block-marching solver \texttt{e3march.py} is written to execute the Eilmer3 flow solver 
+on two columns of blocks from the global array of blocks at a time. For each subsequent run, 
+the Eilmer3 flow solver is shifted downstream by one column of blocks, finishing only when 
+all blocks have been solved. It has been shown in Reference\,\cite{zander_etal_2011b} that
+this process of shifting by one column removes any errors that may be introduced by the 
+applied outlet boundary conditions when flow calculations are shifted by two columns instead. 
 
 \medskip
 Upon activating \texttt{e3march.py}, a temporary folder (called \texttt{master}) is 
