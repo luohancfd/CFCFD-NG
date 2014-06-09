@@ -128,7 +128,96 @@ and provide verification and validation examples.
 % and nozzle surface design, an application that benefits greatly 
 % from having fast flow calculations available.
 
+
 \section{Simulation Process -- Block Marching}
+%
+The block-marching solver \texttt{e3march.py} is written to execute the Eilmer3 flow solver 
+on two columns of blocks from the global array of blocks at a time. For each subsequent run, 
+the Eilmer3 flow solver is shifted downstream by one column of blocks, finishing only when 
+all blocks have been solved. It has been shown in Reference\,\cite{zander_etal_2011b} that
+this process of shifting by one column removes any errors that may be introduced by the 
+applied outlet boundary conditions when flow calculations are shifted by two columns instead. 
+To aid the description of the block-marching approach, a simple example which involves 
+Mach\,4 flow over a 10$^\circ$ wedge is used. The geometrical setup for this example is 
+shown in Figure~\ref{f:10-deg-wedge-schema}. For this example, a total of eight blocks is 
+used, and the direction of Mach\,4 inflow is from left to right.
+%
+\begin{figure}[htbp]
+   \centerline{ \includegraphics[width=10cm]{figs/10-deg-wedge-schematic.png} }
+   \caption{Schematic of the 10$^\circ$ wedge example.}
+   \label{f:10-deg-wedge-schema}
+\end{figure}
+
+\medskip
+Upon activating \texttt{e3march.py}, a temporary folder (called \texttt{master}) is 
+created to store copies of the global Eilmer3 configuration files, grid files and initial 
+flow solution files. A sub-folder (called \texttt{/flow/t0001}) is also created in the 
+\texttt{master} folder for the accumulation of converged solutions generated from each 
+local run of the Eilmer3 flow solver. 
+
+\medskip
+Run\,0 of the block-marching solver starts with the first two most upstream columns of 
+blocks, as shown in the left diagram of Figure~\ref{f:wedge10-run-0}. The upstream column 
+which includes Block-0 and Block-1 is labelled Column\,A, while the downstream column 
+which includes Block-2 and Block-3 is labelled Column\,B. The inflow boundary condition 
+for this run is set as that specified for the global simulation, while the outflow 
+boundary condition is set as an extrapolated outflow. The initial flow conditions in 
+this run is also set as that in the global simulation. On the right diagram of 
+Figure~\ref{f:wedge10-run-0}, the converged solutions from Run\,0 are shown. The flow
+solutions for the blocks in Column\,A are stored in the \texttt{master/flow/t0001} 
+folder (as shown in the dashed area in bottom-left corner of Figure~\ref{f:wedge10-run-0}, 
+while those for the blocks in Column\,B are used as initial conditions for the next 
+local run. In addition, flow profiles from the last two slices for each block in 
+Column\,A are extracted to be used as inflow boundary conditions for the next run.
+%
+\begin{figure}[htbp]
+   \centerline{ \includegraphics[width=15cm]{figs/e3march-run-0.png} }
+   \caption{Run\,0 of the 10$^\circ$ wedge example.}
+   \label{f:wedge10-run-0}
+\end{figure}
+
+\medskip
+Run\,1 of the block-marching solver continues downstream by one column of blocks, 
+as shown in Figure~\ref{f:wedge10-run-1}. Column\,A now consists of Block-2 and 
+Block-3, while Column\,B consists of Block-4 and Block-5. For this run, the inflow
+comprises of the two flow profiles extracted from the previous run. The initial
+conditions for Column\,A are the converged solutions from the previous run, while
+the initial conditions for Column\,B are built by propagating the flow properties
+in the most downstream vertical slice of cells in Column\,A to all vertical slices
+in Column\,B, as shown in the left diagram of Figure~\ref{f:wedge10-run-1}. The 
+initial conditions for Column\,B are generated in this manner to help the simulation 
+achieve a faster convergence to the steady-state solution. Upon the completion of 
+Run\,1, the converged solutions are treated in the same manner as that for the 
+converged solutions in Run\,0, as shown in Figure~\ref{f:wedge10-run-1}.
+%
+\begin{figure}
+   \centerline{ \includegraphics[width=16cm]{figs/e3march-run-1.png} }
+   \caption{Run\,1 of the 10$^\circ$ wedge example.}
+   \label{f:wedge10-run-1}
+\end{figure}
+%
+\begin{figure}
+   \centerline{ \includegraphics[width=16cm]{figs/e3march-run-2.png} }
+   \caption{Run\,2 of the 10$^\circ$ wedge example.}
+   \label{f:wedge10-run-2}
+\end{figure}
+
+\medskip
+These steps are then repeated for Run\,2, as shown in Figure~\ref{f:wedge10-run-2}.
+Since there are no remaining blocks to solve, this is the final run of the block-marching
+process for this example. When Run\,2 is completed, the last two columns of data are 
+stored in the \texttt{master/flow/t0001} folder, as shown 
+in Figure~\ref{f:wedge10-run-2}. The block-marching process is then completed with the
+transfer of all files in the \texttt{master} folder to the original working directory
+and the deletion of any files that have been generated as a result of the block-marching
+process.
+
+\medskip
+For each local run of the block-marching process, the run time is that for the global 
+simulation divided by the number of local runs. In addition, the final time step for 
+each local run is used as the initial time step for the next run to help achieve 
+faster convergence to the steady-state solution.
+
 
 \clearpage
 \section{Examples}
