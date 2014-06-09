@@ -1744,9 +1744,12 @@ int FV_Cell::chemical_increment(double dt, double T_frozen)
     global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     Reaction_update *rupdate = get_reaction_update_ptr();
-
-    // Make a copy so that we can print out if things go wrong.
-    Gas_data gcopy(*(fs->gas));
+    constexpr bool copy_gas_in_case_of_failure = false;
+    Gas_data *gcopy;
+    if ( copy_gas_in_case_of_failure ) {
+	// Make a copy so that we can print out if things go wrong.
+	gcopy = new Gas_data(*(fs->gas));
+    }
     double T_save = fs->gas->T[0];
     if ( G.ignition_zone_active ) {
 	// When active, replace gas temperature with an effective ignition temperature
@@ -1757,19 +1760,18 @@ int FV_Cell::chemical_increment(double dt, double T_frozen)
 	    }
 	}
     }
-
     int flag = rupdate->update_state(*(fs->gas), dt, dt_chem, gmodel);
-
     if ( G.ignition_zone_active ) {
-	// Replace ignition temperature with actual gas temperature
+	// Restore actual gas temperature
 	fs->gas->T[0] = T_save;
     }
-
-
     if ( flag != SUCCESS ) {
 	cout << "The chemical_increment() failed for cell: " << id << endl;
-	cout << "The gas state before the update was:\n";
-	gcopy.print_values();
+	if ( copy_gas_in_case_of_failure ) {
+	    cout << "The gas state before the update was:\n";
+	    gcopy->print_values();
+	    delete gcopy;
+	}
 	cout << "The gas state after the update was:\n";
 	fs->gas->print_values();
 	return flag;
