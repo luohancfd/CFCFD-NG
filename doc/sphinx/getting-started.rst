@@ -102,6 +102,7 @@ To a basic Fedora 16 installation, you should add the following packages:
 #. scipy
 #. readline-devel (for Lua)
 #. popt-devel
+#. sympy (to run the Method-of-Manufactured-Solutions test case for Eilmer3)
 
 To a basic Ubuntu 10.04 (or any recent Debian derivative) installation, 
 you should add the following packages and their dependencies:
@@ -125,7 +126,7 @@ you should add the following packages and their dependencies:
 #. bwidget
 #. gnuplot
 #. tcl-dev (if you want to build IMOC)
-#. maxima (to run the Method-of-Manufactured-Solutions test case for Eilmer3)
+#. python-sympy (to run the Method-of-Manufactured-Solutions test case for Eilmer3)
 
 Compiler versions
 -----------------
