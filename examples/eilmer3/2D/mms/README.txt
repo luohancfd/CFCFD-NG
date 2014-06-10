@@ -38,3 +38,16 @@ With first order boundary conditions in place, the error for
 the L2 norm in density on a ni=nj=16 grid has dropped considerably to:
   0.001086
 ----------------------------------------------------------------------------
+10-June-2014
+
+In this change, we now use sympy to generate the source terms. This has introduced
+a small difference in the compute L2 norm in density for case 2 (and probably
+for the other cases as well). For some time, we have been running case 2 as the
+default in the test suite. I have convinced myself that this difference in L2
+norm is because of subtle differences in the precision of floating point value representations
+when using maxima-generated source terms as compared to sympy-generated source terms.
+For the record, I have included some images that compare these differences.
+------------------------------------------------------------------------------
+
+
+

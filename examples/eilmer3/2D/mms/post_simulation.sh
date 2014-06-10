@@ -8,7 +8,7 @@ e3post.py --job=mms --tindx=7 --gmodel-file="very-viscous-air.lua" \
 echo "----------------------------------------------------------------------"
 echo "Check simulation against analytical data:"
 e3post.py --job=mms --tindx=20 --gmodel-file="very-viscous-air.lua" \
-    --ref-function=analytic_solution_wrapper.py \
+    --ref-function=analytic_solution.py \
     --global-norm-list="rho,L2"
 
 echo "----------------------------------------------------------------------"

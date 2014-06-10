@@ -13,8 +13,7 @@ configure -verbose {start body error}
 
 test run-preprocessor {Run the preprocessing stage.} -body {
     exec cp mms-regular.py mms.py
-    exec maxima --batch=make_source_terms.mac > LOGFILE_PREP
-    exec python f90_to_lua.py >> LOGFILE_PREP
+    exec python make_source_terms.py > LOGFILE_PREP
     exec e3prep.py --job=mms >> LOGFILE_PREP
 } -result {} -returnCodes {0}
 
@@ -25,7 +24,7 @@ test run-simulation {Run the shared-memory simulation code.} -body {
 test run-postprocessor {Run the postprocessing stage.} -body {
     exec e3post.py --job=mms --tindx=20 \
         --gmodel-file="very-viscous-air.lua" \
-	--ref-function=analytic_solution_wrapper.py \
+	--ref-function=analytic_solution.py \
 	--per-block-norm-list=0,rho,L2\;0,rho,L1 \
 	--global-norm-list=rho,L2 > LOGFILE_POST
 } -result {} -returnCodes {0}
@@ -56,7 +55,7 @@ test check-density {The density difference with respect to the analytic solution
 	    set L2_density_error [lindex [split $line] 2]
 	}
     }
-    expr abs($L2_density_error - 0.002985)/0.002985 < 1.0e-2
+    expr abs($L2_density_error - 0.00298237)/0.00298237 < 1.0e-2
 } -result {1}
 
 cleanupTests
