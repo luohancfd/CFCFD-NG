@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # Translate f90 code for evaluating source-term expressions
-# into Lua-compatible code, then past it into the Lua file
+# into Lua-compatible code, then paste it into the Lua file
 # that gets called by Eilmer3.
 # PJ, 29-May-2011
 

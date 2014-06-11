@@ -12,8 +12,7 @@ If you thought that the user-defined source terms for
 the Euler case (Section\,\ref{mms-euler-sec}) were ugly,
 the viscous terms are so bad we no longer look at them.
 Here all of the source-term code is machine generated, 
-principally by the Maxima computer algebra system and then 
-with a bit of text processing by a Python script.
+principally by the SymPy computer algebra system (\url{http://sympy.org}).
 
 \begin{figure}[htbp]
 \begin{center}
@@ -51,27 +50,28 @@ Rowan might like to add his convergence plots here...
 \newpage
 \subsection{Source term file (.lua)}
 %
-The source terms are generated with the aid of the Maxima computer algebra system
+The source terms are generated with the aid of the SymPy computer algebra system
 and inserted into the following template.
 The expressions for \texttt{fmass}, \texttt{fxmom}, \texttt{fymom}, and \texttt{fe}
-turn out to be 10, 23, 23 and 124 lines of 80-column text.\\
+turn out to be 10, 23, 23 and 124 lines of 80-column text.\footnote{For the Maxima generated version.  
+The SymPy version is similar but the source text is no longer wrapped at 80 characters.}\\
 \topbar
 \lstinputlisting[language={}]{../2D/mms/udf-source-template.lua}
 \bottombar
 
 \bigskip
 \noindent
-The Maxima script to do the real work is:\\
+The Python script to do the real work is:\\
 \topbar
-\lstinputlisting[language={}]{../2D/mms/make_source_terms.mac}
+\lstinputlisting[language={}]{../2D/mms/make_source_terms.py}
 \bottombar
 
-\bigskip
-\noindent
-And the generated Fortran90 code is translated into Lua code with the Python script:\\
-\topbar
-\lstinputlisting[language={}]{../2D/mms/f90_to_lua.py}
-\bottombar
+%\bigskip
+%\noindent
+%And the generated Fortran90 code is translated into Lua code with the Python script:\\
+%\topbar
+%\lstinputlisting[language={}]{../2D/mms/f90_to_lua.py}
+%\bottombar
 
 \newpage
 \noindent
@@ -113,11 +113,6 @@ a reference solution described by a Python file.
 \subsection{Python reference-function files}
 \topbar
 \lstinputlisting[language={}]{../2D/mms/analytic_solution.py}
-\bottombar
-
-\newpage
-\topbar
-\lstinputlisting[language={}]{../2D/mms/analytic_solution_wrapper.py}
 \bottombar
 
 \subsection{Notes}
