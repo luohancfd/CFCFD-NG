@@ -7,6 +7,13 @@
 # minimize() function in cfcfd3/lib/cfpylib/nm/nelmin.py. 
 #
 # Wilson Chan, 30 Nov 2013.
+#
+# Wilson Chan, 05 Jun 2014 
+#   - added a secondary function, as recommended by Han Wei, to stop
+#     the nozzle contour from curving towards the nozzle axis. The 
+#     inward-curving phenomena is brought about by the optimiser trying 
+#     to create an oblique shock that cancels out the expansion waves
+#     to get the coreflow more uniform. See f_penalty in the code.
 # ------------------------------------------------------------------
 
 import sys, os
@@ -32,11 +39,17 @@ def objective_function(y):
     dtheta_target = 0.02  # Target variation in outflow angle (in degrees)
     dM_target = 0.01      # Target variation in Mach number
 
+    # Flag for the inclusion of a secondary penalty function in our optimisation. 
+    # Switch this on, if your optimised nozzle contour always ends with a negative
+    # gradient (i.e. the nozzle curves towards its axis near the exit of the contour.) 
+    # This secondary penalty function should limit this inward-turning phenomena.
+    include_penalty_function = 0
+
     # Read in the x-coordinates for all points and the y-coordinates for
     # the first nFixedPts points - they are fixed and not changed in the 
     # optimisation run.
     x_fixed = []; y_fixed = []
-    fi = open('Bezier-control-pts-t4-m4.initial.data', 'r')
+    fi = open(basename+'.initial.data', 'r')
     fi.readline()  # Skip the first line
     while True:
         buf = fi.readline().strip()
@@ -48,7 +61,7 @@ def objective_function(y):
  
     # Use x and y to create new data file containing Bezier control
     # points to generate the internal contour of the nozzle.
-    fo = open('Bezier-control-pts-t4-m4.data', 'w')
+    fo = open(basename+'.data', 'w')
     fo.write('#    x, m    y, m \n')
     for indx in range(nFixedPts):
         fo.write('%.7f %.7f \n' % (x_fixed[indx], y_fixed[indx]))
@@ -105,8 +118,22 @@ def objective_function(y):
     f_theta = phi_theta**2 / N * f_theta
     f_M = phi_M**2 / N * f_M
 
+    # Secondary penalty function
+    if include_penalty_function == 1:
+        # Whenever the Bezier control points start going towards the nozzle axis, 
+        # impose a really large penalty. Note though that this means that the 
+        # optimiser might never reach its target objective of 1.0.
+        if min(y) < 0.0:
+            f_penalty = 1e9
+        else:
+            f_penalty = 0.0
+
     # Objective function
-    obj_funct = (f_theta + f_M)**2
+    if include_penalty_function == 1:
+        obj_funct = (f_theta + f_M + f_penalty)**2
+    else:
+        obj_funct = (f_theta + f_M)**2
+
     return obj_funct
 
 
@@ -140,8 +167,11 @@ def get_design_variables(filename, nFixedPts):
 if __name__ == '__main__':
     print "Begin the optimisation of the T4 Mach 4 nozzle..."
     print "---------------------------------------------------"
+    # Basename for file containing Bezier control points
+    global basename
+    basename = 'Bezier-control-pts-t4-m4'
     # List of N design variables 
-    x = get_design_variables('Bezier-control-pts-t4-m4.initial.data', 2)
+    x = get_design_variables(basename+'.initial.data', 2)
     # List of N increments to apply to x when 
     # forming the initial simplex.
     dx = [0.003, 0.003, 0.005, 0.005, 0.005, 0.005, 0.005]

@@ -358,7 +358,8 @@ if $gridFileName in ['None']:
     # Bezier control points that make up the nozzle contour. 
     if $contourFileName in ['Bezier-control-pts-t4-m7.data',\
                             'Bezier-control-pts-t4-m8.data',\
-                            'Bezier-control-pts-t4-m10.data']:
+                            'Bezier-control-pts-t4-m10.data',\
+                            'Bezier-control-pts-custom-nozzle.data']:
         # For the T4 Mach 7, 8 and Mach 10 nozzles, the control points 
         # start from the first pair of coordinates in the given data 
         # file.
@@ -390,7 +391,8 @@ if $gridFileName in ['None']:
     # .. and the expansion region.
     if $contourFileName in ['Bezier-control-pts-t4-m7.data',\
                             'Bezier-control-pts-t4-m8.data',\
-                            'Bezier-control-pts-t4-m10.data']:
+                            'Bezier-control-pts-t4-m10.data',\
+                            'Bezier-control-pts-custom-nozzle.data']:
         n_north = Bezier(bezCtrlPts)
         
         # For the Mach 10 nozzle the Bezier curve is longer than 
@@ -485,7 +487,8 @@ if $gridFileName in ['None']:
     by = $by     # clustering in the radial direction
     if $contourFileName in ['Bezier-control-pts-t4-m7.data',\
                             'Bezier-control-pts-t4-m8.data',\
-                            'Bezier-control-pts-t4-m10.data']:
+                            'Bezier-control-pts-t4-m10.data',\
+                            'Bezier-control-pts-custom-nozzle.data']:
         # To accomodate for the natural clustering induced by the Bezier curves
         # for these nozzle we only cluster towards the nozzle exit.
         x_clust = RobertsClusterFunction(0, 1, bx)
@@ -517,7 +520,8 @@ if $gridFileName in ['None']:
     # Non-uniform spacing in logical space for the SOUTH boundary of "nozzle_blk"
     if $contourFileName in ['Bezier-control-pts-t4-m7.data',\
                             'Bezier-control-pts-t4-m8.data',\
-                            'Bezier-control-pts-t4-m10.data']:
+                            'Bezier-control-pts-t4-m10.data',\
+                            'Bezier-control-pts-custom-nozzle.data']:
         logical_noz = roberts(arange(0.0, 1.+delta, delta), 0.0, bx)
     else:
         logical_noz = roberts(arange(0.0, 1.+delta, delta), 0.5, bx)
