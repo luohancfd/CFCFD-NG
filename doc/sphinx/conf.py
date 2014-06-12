@@ -42,7 +42,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Compressible Flow CFD'
-copyright = u'2012, Peter Jacobs, Rowan Gollan and many others'
+copyright = u'2012-2014, Peter Jacobs, Rowan Gollan, Daniel Potter and many others'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
