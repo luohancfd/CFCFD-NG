@@ -16,7 +16,7 @@ double test_fun_2(double x, double a) {
 }
 
 void main() {
-    writeln("Begin self-test of Ridder's method...");
+    writeln("Begin demonstration of using Ridder's function solver...");
     writeln();
     writeln("Example 1 is from Gerald and Wheatley, p. 45");
     writeln("Solve f(x) = x^3 + x^2 - 3x -3 = 0 with initial ",
