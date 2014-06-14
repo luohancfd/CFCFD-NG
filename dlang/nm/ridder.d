@@ -8,7 +8,7 @@
  * added bracketing 19-Mar-2014
  * D version 13-Jun-2014
  */
-module Ridder;
+module ridder;
 import std.math;
 
 /**

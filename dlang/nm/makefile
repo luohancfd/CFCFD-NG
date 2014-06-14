@@ -1,12 +1,18 @@
 # makefile for the Numerical Methods package
 # Builds all of the demonstration programs.
 
-demo: ridder_demo
+DEMOS := ridder_demo linesearch_demo
+
+demo: ${DEMOS}
 	echo "Demo codes built."
 
 clean:
 	- rm *.o
-	- rm ./ridder_demo
+	- rm ${DEMOS}
 
 ridder_demo: ridder_demo.d ridder.d
-	dmd -unittest ridder_demo.d
+	dmd -unittest -g ridder_demo.d
+
+# Don't know why we have to include linesearch.d on the command line.
+linesearch_demo: linesearch_demo.d linesearch.d
+	dmd -unittest -g linesearch_demo.d linesearch.d
