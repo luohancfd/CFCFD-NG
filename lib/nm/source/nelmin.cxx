@@ -1,4 +1,4 @@
-/* \file nelmin_test.cxx
+/* \file nelmin.cxx
  * \ingroup nm
  * \brief Implementation of Nelder-Mead simplex minimization.
  * \author PJ
