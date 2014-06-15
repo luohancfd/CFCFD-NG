@@ -46,7 +46,7 @@ double testFunction3(double[] z)
     double a1 = z[0]; double a2 = z[1]; 
     double alpha1 = z[2]; double alpha2 = z[3];
     double sum_residuals = 0.0;
-    foreach (i; 0..6) {
+    foreach (i; 0 .. 6) {
 	double t = x[i];
 	double eta = a1 * exp(alpha1 * t) + a2 * exp(alpha2 * t);
 	double r = y[i] - eta;

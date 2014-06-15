@@ -21,7 +21,7 @@ import std.math;
  *     t0: is the starting value of the independent variable
  *     h: the requested step size
  *     y0: an array of starting values for the dependent variables
- *         It is assumed that the y-elements are indexed 0..n-1
+ *         It is assumed that the y-elements are indexed 0 .. n-1
  *         where n = y0.length
  *     y1: an array of final values of the dependent variables
  *     err: estimates of the errors in the values of y1

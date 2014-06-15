@@ -91,7 +91,7 @@ bool minimize(alias f)(ref double[] x,
     // f is a user-specified objective function f(x).
     double[][] vertex_list = new double[][N+1];
     double[] f_list = new double[N+1];
-    foreach (i; 0..N+1) {
+    foreach (i; 0 .. N+1) {
 	auto p = x.dup;
 	if ( i > 0 ) p[i-1] += dx[i-1];
 	vertex_list[i] = p;
@@ -157,7 +157,7 @@ bool minimize(alias f)(ref double[] x,
     {
 	dx[] *= ratio;
 	double[] p = vertex_list[lowest()].dup; // save to use below
-	foreach (i; 0..N+1) {
+	foreach (i; 0 .. N+1) {
 	    vertex_list[i][] = p.dup;
 	    if ( i >= 1 ) vertex_list[i][i-1] += dx[i-1];
 	    f_list[i] = f(vertex_list[i]);
@@ -171,7 +171,7 @@ bool minimize(alias f)(ref double[] x,
     {
 	double[] xmid = new double[N];
 	foreach(ref elem; xmid) elem = 0.0;
-	foreach (i; 0..N+1) {
+	foreach (i; 0 .. N+1) {
 	    if (i == exclude ) continue;
 	    xmid[] += vertex_list[i][];
 	}
@@ -183,7 +183,7 @@ bool minimize(alias f)(ref double[] x,
     void contract_about_one_point(int i_con)
     {
 	double[] p_con = vertex_list[i_con].dup;
-	foreach (i; 0..N+1) {
+	foreach (i; 0 .. N+1) {
 	    if ( i == i_con ) continue;
 	    double[] p = vertex_list[i].dup;
 	    p[] = 0.5 * (p[] + p_con[]);
