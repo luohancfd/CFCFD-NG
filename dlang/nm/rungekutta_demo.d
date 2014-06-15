@@ -10,8 +10,11 @@ import std.stdio;
 import std.math;
 import rungekutta;
 
-/** Test system 1 from Cheney and Kincaid 6th ed, section 11.3.
+/** Test system 1 
  * Third-order system with a simple analytic solution.
+ * Adapted from section 11.3 in Cheney and Kincaid, 6th ed.
+ * Except for the zero-based indexing, the notation is
+ * chosen to match that in the text.
  */
 double[] testSystem1(double t, double[] x)
 {
@@ -33,9 +36,10 @@ void main()
 {
     writeln("Begin demonstration of ODE stepper...");
     double[] x0=[0.0, 0.0, 0.0];
-    double h = 0.01;
-    ODEStepResult result = rkf45_step!(testSystem1)(0.0, x0, h);
-    writeln("x1 = ", result.y1);
-    writeln("exact = ", solution1(h));
+    double[] x1=x0.dup;
+    double[] err=x0.dup;
+    double t1 = rkf45_step!(testSystem1)(0.0, 0.2, x0, x1, err);
+    writeln("x1 = ", x1);
+    writeln("exact = ", solution1(t1));
     writeln("Done.");
 }
