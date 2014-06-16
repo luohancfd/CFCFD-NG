@@ -171,10 +171,34 @@ def txt_file_output(cfg, states, V, M):
                 pitot[it_string] = states[it_string].p/1000.0
                 p0[it_string] = states[it_string].p/1.0e6
             else:
-                pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
-                #make total condition of relevant state for printing
-                total_state = total_condition(states[it_string], V[it_string])
-                p0[it_string] = total_state.p/1.0e6
+                try:
+                    pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
+                except:
+                    try:
+                        #try again with no ions turned on if it bails out
+                        states[it_string].with_ions = False
+                        pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
+                        states[it_string].with_ions = True
+                    except:
+                        # if this fails just give up and print 0.0
+                        print "Failed to find pitot pressure for {0} will add 0.0 to print out.".format(it_string)
+                        pitot[it_string] = 0.0
+                try:
+                    #make total condition of relevant state for printing
+                    total_state = total_condition(states[it_string], V[it_string])
+                    p0[it_string] = total_state.p/1.0e6
+                except:
+                    try:
+                        #try again with no ions turned on if it bails out
+                        states[it_string].with_ions = False
+                        total_state = total_condition(states[it_string], V[it_string])
+                        p0[it_string] = total_state.p/1.0e6
+                        states[it_string].with_ions = True
+                    except:
+                        #failed again, we'll just leave it out
+                        print "Failed to find total condition for {0} will add 0.0 to print out.".format(it_string)
+                        p0[it_string] = 0.0
+                    
             
             if states[it_string].p < 1.0e6: #change how the pressure is printed if it's too big, it keeps ruining the printouts!
                 conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<7.0f}{8:<9.1f}"\
@@ -210,14 +234,9 @@ def txt_file_output(cfg, states, V, M):
     if cfg['tunnel_mode'] == 'expansion-tube':    
         for i in range(5,8): #acc tube extra states
             it_string = 's{0}'.format(i)
-            try:
-                condition_printer(it_string)
-            except:
-                #try again with ions off.
-                states[it_string].with_ions = False
-                condition_printer(it_string)
-                states[it_string].with_ions = True
-                
+            condition_printer(it_string)
+                    
+                    
     if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
          condition_printer('s5')
             
@@ -236,33 +255,53 @@ def txt_file_output(cfg, states, V, M):
         condition_printer('s10w')
                                            
     #some other useful calculations at the end
-          
-    states['test_section_total'] = total_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
-    states['test_section_pitot'] = pitot_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
+    try:
+        states['test_section_total'] = total_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
+        states['test_section_pitot'] = pitot_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
+        cfg['stagnation_enthalpy'] = states['test_section_total'].h #J/kg
+    except:
+        try:
+            # try again with ions turned off.
+            states[cfg['test_section_state']].with_ions = False
+            states['test_section_total'] = total_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
+            states['test_section_pitot'] = pitot_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
+            cfg['stagnation_enthalpy'] = states['test_section_total'].h #J/kg
+            states[cfg['test_section_state']].with_ions = True
+        except:
+            # just give up if it bails out again
+            states['test_section_total'] = None
+            states['test_section_pitot'] = None
+            cfg['stagnation_enthalpy'] = None
     
-    cfg['stagnation_enthalpy'] = states['test_section_total'].h #J/kg
-    if cfg['nozzle']:        
-        stag_enth = 'The total enthalpy (Ht) leaving the nozzle is {0:<.5g} MJ/kg.'\
-        .format(cfg['stagnation_enthalpy']/10**6)
-    elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'expansion-tube':
-        stag_enth = 'The total enthalpy (Ht) at the end of the acceleration tube (state 7) is {0:<.5g} MJ/kg.'\
-        .format(cfg['stagnation_enthalpy']/10**6)
-    elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'nr-shock-tunnel':
-        stag_enth = 'The total enthalpy (Ht) at the end of the shock tube (state 2) is {0:<.5g} MJ/kg.'\
-        .format(cfg['stagnation_enthalpy']/10**6)
-    elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'reflected-shock-tunnel':
-        stag_enth = 'The total enthalpy (Ht) in the stagnated region (state 5) is {0:<.5g} MJ/kg.'\
-        .format(cfg['stagnation_enthalpy']/10**6)
+    if cfg['stagnation_enthalpy']:        
+        if cfg['nozzle']:        
+            stag_enth = 'The total enthalpy (Ht) leaving the nozzle is {0:<.5g} MJ/kg.'\
+            .format(cfg['stagnation_enthalpy']/10**6)
+        elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'expansion-tube':
+            stag_enth = 'The total enthalpy (Ht) at the end of the acceleration tube (state 7) is {0:<.5g} MJ/kg.'\
+            .format(cfg['stagnation_enthalpy']/10**6)
+        elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'nr-shock-tunnel':
+            stag_enth = 'The total enthalpy (Ht) at the end of the shock tube (state 2) is {0:<.5g} MJ/kg.'\
+            .format(cfg['stagnation_enthalpy']/10**6)
+        elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+            stag_enth = 'The total enthalpy (Ht) in the stagnated region (state 5) is {0:<.5g} MJ/kg.'\
+            .format(cfg['stagnation_enthalpy']/10**6)
+    else:
+        stag_enth = "Was unable to find total condition. Therefore, unable to print stagnation enthalpy."
     print stag_enth
     txt_output.write(stag_enth + '\n')
     
-    #calculate flight equivalent velocity
-    #for a description of why this is, refer to Bianca Capra's thesis page 104 - 105
-    #Capra, B., Aerothermodynamic Simulation of Subscale Models of the FIRE II and
-    #Titan Explorer Vehicles in Expansion Tubes, Ph.D. thesis, the University of Queens-
-    #land, St. Lucia, Australia, 2006.
-    cfg['u_eq'] = math.sqrt(2.0*cfg['stagnation_enthalpy']) 
-    u_eq_print = 'The flight equivalent velocity (Ue) is {0:<.5g} m/s.'.format(cfg['u_eq'])
+    if cfg['stagnation_enthalpy']:
+        #calculate flight equivalent velocity
+        #for a description of why this is, refer to Bianca Capra's thesis page 104 - 105
+        #Capra, B., Aerothermodynamic Simulation of Subscale Models of the FIRE II and
+        #Titan Explorer Vehicles in Expansion Tubes, Ph.D. thesis, the University of Queens-
+        #land, St. Lucia, Australia, 2006.
+        cfg['u_eq'] = math.sqrt(2.0*cfg['stagnation_enthalpy']) 
+        u_eq_print = 'The flight equivalent velocity (Ue) is {0:<.5g} m/s.'.format(cfg['u_eq'])
+    else:
+        u_eq_print = "Unable to find equivalent velocity as stagnation enthalpy could not be found."
+        
     print u_eq_print
     txt_output.write(u_eq_print + '\n')
     
@@ -449,8 +488,33 @@ def csv_file_output(cfg, states, V, M):
                 pitot[it_string] = states[it_string].p/1000.0
                 p0[it_string] = states[it_string].p/1.0e6
             else:
-                pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
-                p0[it_string] = p0_p(M[it_string], states[it_string].gam)*states[it_string].p/1.0e6
+                try:
+                    pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
+                except:
+                    try:
+                        #try again with no ions turned on if it bails out
+                        states[it_string].with_ions = False
+                        pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
+                        states[it_string].with_ions = True
+                    except:
+                        # if this fails just give up and print 0.0
+                        print "Failed to find pitot pressure for {0} will add 0.0 to csv print out.".format(it_string)
+                        pitot[it_string] = 0.0
+                try:
+                    #make total condition of relevant state for printing
+                    total_state = total_condition(states[it_string], V[it_string])
+                    p0[it_string] = total_state.p/1.0e6
+                except:
+                    try:
+                        #try again with no ions turned on if it bails out
+                        states[it_string].with_ions = False
+                        total_state = total_condition(states[it_string], V[it_string])
+                        p0[it_string] = total_state.p/1.0e6
+                        states[it_string].with_ions = True
+                    except:
+                        #failed again, we'll just leave it out
+                        print "Failed to find total condition for {0} will add 0.0 to print out.".format(it_string)
+                        p0[it_string] = 0.0
             
             csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.4f},{7:<8.0f},{8:<9.1f}"\
             .format(it_string, states[it_string].p, states[it_string].T,
@@ -493,21 +557,36 @@ def csv_file_output(cfg, states, V, M):
         
     if 'stagnation_enthalpy' not in cfg:
         #if stagnation enthalpy and u_eq not already calculated, calculate them here
-        states['test_section_total'] = total_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
-        states['test_section_pitot'] = pitot_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
-        cfg['stagnation_enthalpy'] = states['test_section_total'].h #J/kg
+        try:
+            states['test_section_total'] = total_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
+            states['test_section_pitot'] = pitot_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
+            cfg['stagnation_enthalpy'] = states['test_section_total'].h #J/kg
+        except:
+            try:
+                # try again with ions turned off.
+                states[cfg['test_section_state']].with_ions = False
+                states['test_section_total'] = total_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
+                states['test_section_pitot'] = pitot_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
+                cfg['stagnation_enthalpy'] = states['test_section_total'].h #J/kg
+                states[cfg['test_section_state']].with_ions = True
+            except:
+                # just give up if it bails out again
+                states['test_section_total'] = None
+                states['test_section_pitot'] = None
+                cfg['stagnation_enthalpy'] = None
         #calculate flight equivalent velocity
         #for a description of why this is, refer to Bianca Capra's thesis page 104 - 105
         #Capra, B., Aerothermodynamic Simulation of Subscale Models of the FIRE II and
         #Titan Explorer Vehicles in Expansion Tubes, Ph.D. thesis, the University of Queens-
         #land, St. Lucia, Australia, 2006.
-        cfg['u_eq'] = math.sqrt(2.0*cfg['stagnation_enthalpy']) 
-                                     
-    csv_stag_enth = 'Ht,{0:<.5g} MJ/kg.'.format(cfg['stagnation_enthalpy']/10**6)
-    csv_output.write(csv_stag_enth + '\n')
-    
-    csv_u_eq_print = 'Ue,{0:<.5g} m/s.'.format(cfg['u_eq'])
-    csv_output.write(csv_u_eq_print + '\n')
+        if cfg['stagnation_enthalpy']:
+            cfg['u_eq'] = math.sqrt(2.0*cfg['stagnation_enthalpy']) 
+    if cfg['stagnation_enthalpy']:                                 
+        csv_stag_enth = 'Ht,{0:<.5g} MJ/kg.'.format(cfg['stagnation_enthalpy']/10**6)
+        csv_output.write(csv_stag_enth + '\n')
+        
+        csv_u_eq_print = 'Ue,{0:<.5g} m/s.'.format(cfg['u_eq'])
+        csv_output.write(csv_u_eq_print + '\n')
 
     if cfg['calculate_test_time']: 
         csv_basic_test_time_printout = 'Basic test time,{0:.2f} microseconds'.format(cfg['t_test_basic']*1.0e6)

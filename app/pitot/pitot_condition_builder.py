@@ -83,18 +83,20 @@ def calculate_number_of_test_runs(cfg):
     """Function that uses a simple function to calculate the amount of test
        runs that the program has to perform.
     """
-    
-    if len(cfg['secondary_list']) == 2: #if this is true, secondary driver will be used
+    if True in cfg['secondary_list']:
         total_with_sd = len(cfg['driver_condition_list'])*\
         len(cfg['psd1_list'])*len(cfg['p1_list'])*len(cfg['p5_list'])
-        
-    total_without_sd = len(cfg['driver_condition_list'])*len(cfg['p1_list'])\
-    *len(cfg['p5_list'])
+        total = total_with_sd
     
-    if len(cfg['secondary_list']) == 2: 
-        return total_with_sd + total_without_sd
-    else:
-        return total_without_sd
+    if False in cfg['secondary_list']:
+        total_without_sd = len(cfg['driver_condition_list'])*len(cfg['p1_list'])\
+        *len(cfg['p5_list'])
+        total = total_without_sd
+        
+    if len(cfg['secondary_list']) == 2:
+        total = total_with_sd + total_without_sd
+    
+    return total
     
 def condition_builder_test_run(cfg, condition_builder_output, results):
     """Function that takes the fully built config dictionary
