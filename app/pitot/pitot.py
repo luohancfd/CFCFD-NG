@@ -175,6 +175,9 @@ available to me as part of cfpylib inside the cfcfd code collection.
     08-May-2014:
         Added the 2.5 mm diapgragm driver condition from David Gildfind's PhD
         as I was working with it as a custom driver anyway.
+    16-Jun-2014:
+        Added some more random driver conditions. Other stuff from Dave's PhD.
+        Stuff from the first secondary driver paper.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -202,7 +205,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "03-Jun-2014"
+VERSION_STRING = "16-Jun-2014"
 
 DEBUG_PITOT = False
 

@@ -459,8 +459,9 @@ def state_builder(cfg):
     if PRINT_STATUS: print "Building initial gas states."
             
     #state 4 is diaphragm burst state (taken to basically be a total condition)
+    print "Setting up driver condition."
     if cfg['facility'] == 'x2':
-        if cfg['piston'] == 'lwp': 
+        if cfg['piston'] == 'lwp' or cfg['piston'] == 'lwp-2mm': 
             #This is the tuned driver condition designed by David Gildfind in his PhD.
             #This corresponds to the 2mm steel diaphragm condition usually used.
             states['s4']=primary_driver_x2[cfg['driver_gas']][0].clone()
@@ -478,7 +479,7 @@ def state_builder(cfg):
             V['s4']=0.0
             M['s4']=0.0
             M['s3s'] = 1.0
-        elif cfg['piston'] == 'lwp-2.5mm':
+        elif cfg['piston'] == 'lwp-2.5mm-isentropic':
             #This is the condition from David Gildfind's PhD where the lwp
             # is used with a 2.5 mm steel diaphragm. Condition is based off an
             # isentropic compression from the fill pressure to the burst pressure.
@@ -494,6 +495,44 @@ def state_builder(cfg):
              V['s4']=0.0
              M['s4']=0.0
              M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
+        elif cfg['piston'] == 'lwp-2.5mm':
+            # This is the same as above, but based on numbers in Dave's PhD's tables
+            states['s4']=primary_driver_x2[cfg['driver_gas']][0].clone()
+            p4 = 35.7e6; T4 = 3077.0 #Pa, K
+            states['s4'].set_pT(p4,T4)
+            V['s4']=0.0
+            M['s4']=0.0
+            M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
+        elif cfg['piston'] == 'lwp-1.2mm':
+            # This is the same as above, but based on numbers in Dave's PhD's tables
+            states['s4']=primary_driver_x2[cfg['driver_gas']][0].clone()
+            p4 = 15.5e6; T4 = 1993.0 #Pa, K
+            states['s4'].set_pT(p4,T4)
+            V['s4']=0.0
+            M['s4']=0.0
+            M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
+        elif 'lwp-2mm-new-paper': 
+            #This is the condition from the first secondary driver paper
+            # by Gildfind and James
+            # it sets different conditions based on whether the driver is 80% He 
+            # or 100% He, will not work with 90% He.
+            states['s4']=primary_driver_x2[cfg['driver_gas']][0].clone()
+            if cfg['driver_gas'] == 'He:0.80,Ar:0.20':
+                # from table 2 of the paper
+                p4 = 23.9e6; T4 = 2747.0 #Pa, K
+            elif cfg['driver_gas'] == 'He:1.0':
+                # from table 3 of the paper
+                p4 = 27.4e6; T4 = 2903.0 #Pa, K
+            else:
+                print "This driver condition only works with 100% He and 80% He driver conditions."
+                print "Bailing out."
+                raise Exception, "pitot_input_utils.state_builder() Incorrect driver combination." 
+            states['s4'].set_pT(p4,T4)
+            V['s4']=0.0
+            M['s4']=0.0
+            M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
+        
+        print "p4 = {0} Pa, T4 = {1} K.".format(p4, T4)
 
     elif cfg['facility'] == 'x3':
         states['s4']=primary_driver_x3[cfg['driver_gas']][0].clone()
@@ -502,6 +541,8 @@ def state_builder(cfg):
         V['s4']=0.0
         M['s4']=0.0
         M['s3s']=primary_driver_x3[cfg['driver_gas']][1]
+        
+        print "p4 = {0} Pa, T4 = {1} K.".format(p4, T4)
         
     elif cfg['facility'] == 'custom':
         # set driver fill condition
