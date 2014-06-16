@@ -29,4 +29,10 @@ void main()
     writeln("g += f -> ", g);
     g /= 2.0;
     writeln("g /= 2.0 -> ", g);
+    Vector3 u = unit(g);
+    writeln("unit(g) = ", u, " magnitude = ", abs(u));
+    Vector3 x = new Vector3(1.0, 0.0, 0.0);
+    Vector3 y = new Vector3(0.0, 1.0, 0.0);
+    Vector3 z = cross(x,y);
+    writeln("z = ", z);
 }
