@@ -130,22 +130,22 @@ class Vector3 {
     }
 } // end class Vector3
     
-double dot(in ref Vector3 v1, in ref Vector3 v2) {
+double dot(in Vector3 v1, in Vector3 v2) {
     double result = 0.0;
     // Maybe we should be careful with underflow and overflow...
     foreach(i; 0 .. 3) result += v1._p[i] * v2._p[i];
     return result;
 }
 
-double abs(in ref Vector3 v) {
+double abs(in Vector3 v) {
     return sqrt(v.dot(v));
 }
 
-Vector3 unit(in ref Vector3 v) {
+Vector3 unit(in Vector3 v) {
     return new Vector3(v).normalize();
 }
 
-Vector3 cross(in ref Vector3 v1, in ref Vector3 v2) {
+Vector3 cross(in Vector3 v1, in Vector3 v2) {
     Vector3 v3 = new Vector3();
     v3._p[0] = v1._p[1] * v2._p[2] - v2._p[1] * v1._p[2];
     v3._p[1] = v2._p[0] * v1._p[2] - v1._p[0] * v2._p[2];
@@ -153,7 +153,7 @@ Vector3 cross(in ref Vector3 v1, in ref Vector3 v2) {
     return v3;
 }
 
-bool approxEqualVectors(in ref Vector3 v1, in ref Vector3 v2) {
+bool approxEqualVectors(in Vector3 v1, in Vector3 v2) {
     return (approxEqual(v1._p[0], v2._p[0]) && 
 	    approxEqual(v1._p[1], v2._p[1]) &&
 	    approxEqual(v1._p[2], v2._p[2]));
