@@ -225,36 +225,36 @@ unittest {
     assert(b.z == 0.0, "b.z fail");
     // Check operators
     b = -a;
-    assert(b.x == -a.x && b.y == -a.y && b.z == -a.z, "unary negation fail");
+    assert(b.x == -a.x && b.y == -a.y && b.z == -a.z, "unary negation");
 
     b = new Vector3(1.0);
     Vector3 c = a + b;
-    assert(c.y == a.y+b.y, "vector addition fail");
+    assert(c.y == a.y+b.y, "vector addition");
     c = a - b;
-    assert(c.y == a.y-b.y, "vector subtraction fail");
+    assert(c.y == a.y-b.y, "vector subtraction");
     Vector3 d = a.dup;
     a.y = 99.0;
-    assert(a.y == 99.0 && d.y == 2.2, "dup followed by vector addition fail");
+    assert(a.y == 99.0 && d.y == 2.2, "dup followed by vector addition");
 
     Vector3 e = a * 2.0;
     Vector3 f = 3.0 * d;
-    assert(e.z == 6.0 && f.z == 9.0, "scalar multiply fail");
+    assert(e.z == 6.0 && f.z == 9.0, "scalar multiply");
     Vector3 g = d / 3.0;
-    assert(g.z == 1.0, "scalar division fail");
+    assert(g.z == 1.0, "scalar division");
 
     g += f;
-    assert(g.z == 10.0, "plus-assign fail");
+    assert(g.z == 10.0, "plus-assign");
     g /= 2.0;
-    assert(g.z == 5.0, "divide-assign fail");
+    assert(g.z == 5.0, "divide-assign");
 
     Vector3 u = unit(g);
-    assert(approxEqual(abs(u), 1.0), "unit, dot, abs fail");
+    assert(approxEqual(abs(u), 1.0), "unit, dot, abs");
 
     Vector3 x = new Vector3(1.0, 0.0, 0.0);
     Vector3 y = new Vector3(0.0, 1.0, 0.0);
     Vector3 z = cross(x,y);
     Vector3 zref = new Vector3(0.0,0.0,1.0);
-    assert(approxEqualVectors(z, zref), "cross product fail");
+    assert(approxEqualVectors(z, zref), "cross product");
 
     Vector3 n = unit(new Vector3(1.0,1.0,0.0));
     Vector3 t1 = unit(new Vector3(-1.0,1.0,0.0));
@@ -263,14 +263,16 @@ unittest {
     Vector3 h_ref = new Vector3(h);
     to_local_frame(h, n, t1, t2);
     assert(approxEqualVectors(h, new Vector3(sqrt(1.0/2.0), -sqrt(1.0/2.0), 1.0)),
-	   "to_local_frame fail");
+	   "to_local_frame");
     to_xyz_frame(h, n, t1, t2);
-    assert(approxEqualVectors(h, h_ref), "to_xyz_frame fail");
+    assert(approxEqualVectors(h, h_ref), "to_xyz_frame");
 }
 
 
 //------------------------------------------------------------------------
-// Geometry functions that make use of Vector3 objects...
+// Geometry functions projection and mapping.
+
+double radians(double degrees) { return PI*degrees/180.0; }
 
 /**
  * Project the point q onto the plane, along the vector qr.
@@ -304,6 +306,40 @@ int project_onto_plane(ref Vector3 q, in Vector3 qr,
     } 
 } // end project_onto_plane()
 
+/// Map space so that a neutral plane wraps onto a cylinder of radius H.
+ref Vector3 map_neutral_plane_to_cylinder(ref Vector3 p, double H )
+{
+    // The axis of the hypothetical cylinder coincides with the x-axis thus
+    // H is also the distance of the neutral plane above the x-axis.
+    // For Hannes Wojciak and Paul Petrie-Repar's turbomachinery grids.
+    if ( H > 0.0 ) {
+	double theta = p.y / H;
+	double old_z = p.z;
+	p.z = old_z * cos(theta);
+	p.y = old_z * sin(theta);
+	// x remains the same
+    }
+    return p;
+}
+
+int inside_triangle(in Vector3 p, in Vector3 a, in Vector3 b, in Vector3 c)
+{
+    Vector3 n = unit(cross(a-c, b-c)); // normal to plane of triangle
+    double area1 = 0.5 * dot(cross(p-a, p-b), n); // projected area of triangle pab
+    double area2 = 0.5 * dot(cross(p-b, p-c), n);
+    double area3 = 0.5 * dot(cross(p-c, p-a), n);
+    // Only a point inside the triangle will have all areas positive.
+    if ( area1 > 0.0 && area2 > 0.0 && area3 > 0.0 ) return 1;
+    // However, the point may be damned close to an edge but
+    // missing because of floating-point round-off.
+    double tol = 1.0e-12;
+    if ( (fabs(area1) < tol && area2 > -tol && area3 > -tol) || 
+	 (fabs(area2) < tol && area1 > -tol && area3 > -tol) || 
+	 (fabs(area3) < tol && area1 > -tol && area2 > -tol) ) return 2;
+    // Otherwise, the point is outside the triangle.
+    return 0;
+}
+
 unittest {
     Vector3 a = new Vector3(1.0, 0.0, 0.0); // plane through a,b,c
     Vector3 b = new Vector3(1.0, 1.0, 0.0);
@@ -311,5 +347,208 @@ unittest {
     Vector3 qr = new Vector3(3.0, 3.0, -3.0); // direction
     Vector3 q = new Vector3(0.0, 0.0, 1.0); // start point
     int flag =  project_onto_plane(q, qr, a, b, c);
-    assert(approxEqualVectors(q, new Vector3(1.0,1.0,0.0)), "project_onto_plane fail");
+    assert(approxEqualVectors(q, new Vector3(1.0,1.0,0.0)), "project_onto_plane");
+    Vector3 myp = new Vector3(1.0, 1.0, 1.0);
+    map_neutral_plane_to_cylinder(myp, 1.0);
+    assert(approxEqualVectors(myp, new Vector3(1.0, sin(1.0), cos(1.0))), "cylinder map");
+    assert(inside_triangle(new Vector3(0.65, 0.0, 0.0), a, b, c) > 0, "inside triangle");
+    assert(!inside_triangle(new Vector3(0.65, -0.1, 0.0), a, b, c), "outside triangle");
+}
+
+
+//------------------------------------------------------------------------
+// Geometry functions projection and mapping.
+
+/** Quadrilateral properties of centroid, associated unit normals and area.
+ *   p3-----p2
+ *   |      |
+ *   |      |
+ *   p0-----p1
+ * Resultant normal vector is up, toward you.
+ * Assume that all points are in the one plane.
+ */
+void quad_properties(in Vector3 p0, in Vector3 p1, in Vector3 p2, in Vector3 p3,
+		     ref Vector3 centroid,
+		     ref Vector3 n, ref Vector3 t1, ref Vector3 t2,
+		     ref double area,
+		     double tol=1.0e-12, double area_tol=1.0e-20)
+{
+    centroid = 0.25 * (p0 + p1 + p2 + p3);
+    // Compute areas via the cross products.
+    Vector3 vector_area = 0.25 * cross(p1-p0+p2-p3, p3-p0+p2-p1);
+    // unit-normal and area
+    area = abs(vector_area);
+    if ( area > area_tol ) {
+	n = unit(vector_area);
+	// Tangent unit-vectors: 
+	// t1 is parallel to side01 and side32, 
+	// t2 is normal to n and t1
+	t1 = unit((p1-p0)+(p2-p3)); // Works even if one edge has zero length.
+	t2 = unit(cross(n, t1)); // Calling unit() to tighten up the magnitude.
+    } else {
+	// We have nothing meaningful to put into the unit vectors.
+	throw new Exception("Effectively zero area quadrilateral.");
+    }
+    if ( fabs(abs(n)-1.0) > tol || fabs(abs(t1)-1.0) > tol || fabs(abs(t2)-1.0) > tol ) {
+	throw new Exception("Failed to produce unit vectors properly.");
+    }
+} // end quad_properties()
+
+void tetrahedron_properties(in Vector3 p0, in Vector3 p1, in Vector3 p2, in Vector3 p3,
+			    ref Vector3 centroid, ref double volume)
+{
+    volume = dot(p3-p0, cross(p1-p0, p2-p0)) / 6.0;
+    centroid = 0.25 * (p0 + p1 + p2 + p3);
+} // end tetrahedron_properties()
+
+// Because of the way we lose precision when reading and writing files,
+// it may be that the vertices are not quite in their ideal position.
+// We need a couple of finite, but small, tolerances to deal with 
+// collapsed volumes.
+double smallButSignificantVolume = 1.0e-12;
+double verySmallVolume = 1.0e-20;
+
+void wedge_properties(in Vector3 p0, in Vector3 p1, in Vector3 p2, 
+		     const Vector3 p3, in Vector3 p4, in Vector3 p5,
+		     ref Vector3 centroid, ref double volume)
+{
+    double v1, v2, v3;
+    Vector3 c1, c2, c3;
+    tetrahedron_properties(p0, p4, p5, p3, c1, v1);
+    tetrahedron_properties(p0, p5, p4, p1, c2, v2);
+    tetrahedron_properties(p0, p1, p2, p5, c3, v3);
+    volume = v1 + v2 + v3;
+    if ( (volume < 0.0 && fabs(volume) < smallButSignificantVolume) ||
+	 (volume >= 0.0 && volume < verySmallVolume) ) {
+	// We assume that we have a collapsed wedge; no real problem.
+	volume = 0.0;
+	// equally-weighted tetrahedral centroids.
+	centroid = (c1 + c2 + c3) / 3.0;
+	return;
+    }
+    if ( volume < 0.0 ) {
+	// Something has gone wrong with our wedge geometry.
+	centroid = (c1 + c2 + c3) / 3.0;
+        throw new Exception("significant negative volume.");
+    }
+    // Weight the tetrahedral centroids with their volumes.
+    centroid = (c1*v1 + c2*v2 + c3*v3) / volume;
+} // end wedge_properties()
+
+double tetragonal_dipyramid_volume(in Vector3 p0, in Vector3 p1, 
+				   in Vector3 p2, in Vector3 p3, 
+				   in Vector3 pb, in Vector3 pc)
+// J. Grandy (1997) Efficient Computation of Volume of Hexahedral Cells UCRL-ID-128886.
+// Base of each dipyramid is specified clockwise from the outside.
+// pc is apex
+// pb is barycentre of base quad.
+// base quad p0->p1->p2->p3->p0 counterclockwise when looking from pc toward base.
+{
+    double volume = dot(pc-pb, cross(p1-p0+p2-p3, p3-p0+p2-p1)) / 12.0;
+    if ( (volume < 0.0 && fabs(volume) < smallButSignificantVolume) ||
+	 (volume >= 0.0 && volume < verySmallVolume) ) {
+	// We assume that we have a collapsed pyramid (all points coplanar);
+	// no real problem here but it may be a problem for the client code.
+	// That code should test the value of volume, on return.
+	volume = 0.0;
+    }
+    if ( volume < 0.0 ) {
+	// Something has gone wrong with our geometry.
+        throw new Exception("significant negative volume.");
+    }
+    return volume;
+} // end tetragonal_dipyramid_volume()
+
+void hex_cell_properties(in Vector3 p0, in Vector3 p1, in Vector3 p2, in Vector3 p3,
+			 in Vector3 p4, in Vector3 p5, in Vector3 p6, in Vector3 p7,
+			 ref Vector3 centroid, ref double volume,
+			 ref double iLen, ref double jLen, ref double kLen)
+{
+    // PJ 10-Sep-2012
+    // When computing the volume of Rolf's thin, warped cells, we have to do 
+    // something better than splitting our cell into six tetrahedra.
+    centroid = 0.125 * (p0+p1+p2+p3+p4+p5+p6+p7);
+    // Mid-points of faces.
+    Vector3 pmN = 0.25*(p3+p2+p6+p7);
+    Vector3 pmE = 0.25*(p1+p2+p6+p5);
+    Vector3 pmS = 0.25*(p0+p1+p5+p4);
+    Vector3 pmW = 0.25*(p0+p3+p7+p4);
+    Vector3 pmT = 0.25*(p4+p5+p6+p7);
+    Vector3 pmB = 0.25*(p0+p1+p2+p3);
+    // Lengths between mid-points of faces.
+    // Note that we are assuming that the hexahedron is not very skewed
+    // when we later use these values as the widths of the hex cell.
+    iLen = abs(pmE - pmW);
+    jLen = abs(pmN - pmS);
+    kLen = abs(pmT - pmB);
+    // writeln("Single hexahedron divided into six tetragonal dipyramids.");
+    // J. Grandy (1997) Efficient Computation of Volume of Hexahedral Cells UCRL-ID-128886.
+    // Base of each dipyramid is specified clockwise from the outside.
+    volume = 0.0;
+    volume += tetragonal_dipyramid_volume(p6, p7, p3, p2, pmN, centroid); // North
+    volume += tetragonal_dipyramid_volume(p5, p6, p2, p1, pmE, centroid); // East
+    volume += tetragonal_dipyramid_volume(p4, p5, p1, p0, pmS, centroid); // South
+    volume += tetragonal_dipyramid_volume(p7, p4, p0, p3, pmW, centroid); // West
+    volume += tetragonal_dipyramid_volume(p7, p6, p5, p4, pmT, centroid); // Top
+    volume += tetragonal_dipyramid_volume(p0, p1, p2, p3, pmB, centroid); // Bottom
+    if ( (volume < 0.0 && fabs(volume) < smallButSignificantVolume) ||
+	 (volume >= 0.0 && volume < verySmallVolume) ) {
+	// We assume that we have a collapsed hex cell;
+	// no real problem here but it may be a problem for the client code.
+	// That code should test the value of volume, on return.
+	volume = 0.0;
+    }
+    if ( volume < 0.0 ) {
+	// Something has gone wrong with our geometry.
+        throw new Exception("significant negative volume.");
+    }
+    return; 
+} // end hex_cell_properties()
+
+
+unittest {
+    Vector3 p0 = new Vector3(0.0, 0.0, 1.0);
+    Vector3 p1 = new Vector3(1.0, 0.0, 1.0);
+    Vector3 p2 = new Vector3(1.0, 1.0, 1.0);
+    Vector3 p3 = new Vector3(0.0, 1.0, 1.0);
+    Vector3 centroid, n, t1, t2;
+    double area;
+    quad_properties(p0, p1, p2, p3, centroid, n, t1, t2, area);
+    assert(approxEqual(area, 1.0), "quad_properties area");
+    assert(approxEqualVectors(centroid, new Vector3(0.5,0.5,1.0)), "quad_properties centroid");
+    assert(approxEqualVectors(n, new Vector3(0.0,0.0,1.0)), "quad_properties normal");
+    assert(approxEqualVectors(t1, new Vector3(1.0,0.0,0.0)), "quad_properties t1");
+    assert(approxEqualVectors(t2, new Vector3(0.0,1.0,0.0)), "quad_properties t2");
+
+    // Build tetrahedron with equilateral triangle (side 1.0) on xy plane.
+    p0 = new Vector3(0, 0, 0);
+    p1 = new Vector3(cos(radians(30)), sin(radians(30)), 0.0);
+    p2 = new Vector3(0.0, 1.0, 0.0);
+    double dx = 0.5 * tan(radians(30));
+    double dL = cos(radians(30));
+    double dz = sqrt(dL*dL - dx*dx);
+    p3 = new Vector3(dx, 0.5, dz);
+    double volume;
+    tetrahedron_properties(p0, p1, p2, p3, centroid, volume);
+    assert(approxEqualVectors(centroid, new Vector3(dx,0.5,0.25*dz)), "tetrahedron centroid");
+    assert(approxEqual(volume, cos(radians(30))*0.5*dz/3), "tetrahedron volume");
+
+    // Build a wedge with the same equilateral-triangle base.
+    p3 = p0 + new Vector3(0, 0, 1.0);
+    Vector3 p4 = p1 + new Vector3(0, 0, 1.0);
+    Vector3 p5 = p2 + new Vector3(0, 0, 1.0);
+    wedge_properties(p0, p1, p2, p3, p4, p5, centroid, volume);
+    assert(approxEqualVectors(centroid, new Vector3(dx,0.5,0.5)), "wedge centroid");
+    assert(approxEqual(volume, cos(radians(30))*0.5*1.0), "wedge volume");
+
+    // Simple cube for the hex cell.
+    p0 = new Vector3(0,0,0); p1 = new Vector3(1,0,0);
+    p2 = new Vector3(1,1,0); p3 = new Vector3(0,1,0);
+    p4 = new Vector3(0,0,1); p5 = new Vector3(1,0,1);
+    Vector3 p6 = new Vector3(1,1,1); Vector3 p7 = new Vector3(0,1,1);
+    double iLen, jLen, kLen;
+    hex_cell_properties(p0, p1, p2, p3, p4, p5, p6, p7, centroid, volume,
+			iLen, jLen, kLen);
+    assert(approxEqualVectors(centroid, new Vector3(0.5,0.5,0.5)), "hex centroid");
+    assert(approxEqual(volume, 1.0), "hex volume");
 }
