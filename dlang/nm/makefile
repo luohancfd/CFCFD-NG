@@ -1,7 +1,8 @@
 # makefile for the Numerical Methods package
 # Builds all of the demonstration programs.
 
-DEMO_PROGRAMS := ridder_demo linesearch_demo nelmin_demo rungekutta_demo
+DEMO_PROGRAMS := ridder_demo linesearch_demo nelmin_demo rungekutta_demo \
+	newtoncotes_demo
 
 demo: ${DEMO_PROGRAMS}
 	echo "Demo codes built."
@@ -22,3 +23,6 @@ nelmin_demo: nelmin_demo.d nelmin.d
 
 rungekutta_demo: rungekutta_demo.d rungekutta.d
 	dmd -unittest -g rungekutta_demo.d rungekutta.d
+
+newtoncotes_demo: newtoncotes_demo.d newtoncotes.d
+	dmd -unittest -g newtoncotes_demo.d newtoncotes.d
