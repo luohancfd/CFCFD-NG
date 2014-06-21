@@ -40,7 +40,7 @@ double apply_gauss_rule(alias f)(double a, double b, double[] xs, double[] ws)
 {
     double xmid = 0.5 * (b + a);
     double xrange2 = 0.5 * (b - a);
-    uint N = xs.length;
+    size_t N = xs.length;
     double result = 0.0;
     foreach(i; 0 .. N) {
 	double x = xmid + xs[i] * xrange2; // transform from range -1.0 +1.0

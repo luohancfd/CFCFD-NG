@@ -78,7 +78,7 @@ bool minimize(alias f)(ref double[] x,
     bool converged = false;
     n_fe = 0;
     n_restart = 0;
-    int N = x.length;
+    size_t N = x.length;
     // Might have to check for NaNs as well.
     if ( dx.length != x.length ) {
 	dx = x.dup;
