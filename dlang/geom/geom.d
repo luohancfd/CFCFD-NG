@@ -10,16 +10,10 @@ import std.conv;
 import std.stdio;
 import std.math;
 
-class Vector3 {
-    double[] _p;
-
-    this() { 
-	_p = new double[3];
-	_p[0] = _p[1] = _p[2] = 0.0;
-    }
+struct Vector3 {
+    package double[3] _p;
 
     this(in double[] p) {
-	_p = new double[3];
 	switch ( p.length ) {
 	case 0: _p[0] = _p[1] = _p[2] = 0.0; break;
 	case 1: _p[0] = p[0]; _p[1] = _p[2] = 0.0; break;
@@ -29,14 +23,18 @@ class Vector3 {
     }
 
     this(in double p0, in double p1=0.0, in double p2=0.0) {
-	_p = new double[3];
-	_p[0] = p0;
+ 	_p[0] = p0;
 	_p[1] = p1;
 	_p[2] = p2;
     }
 
     this(in Vector3 other) {
-	_p = other._p.dup;
+	_p[] = other._p[];
+    }
+
+    // Postblit constructor (Alexandrescu Section 7.1.3.4)
+    this(this) {
+	_p = _p.dup;
     }
 
     // Note that the following three properties hand out references
@@ -46,56 +44,65 @@ class Vector3 {
     @property ref double z() { return _p[2]; }
 
     @property Vector3 dup() {
-	return new Vector3(this);
+	return Vector3(this);
     }
 
-    override string toString() {
+    string toString() {
 	return "Vector3(" ~ to!string(_p) ~ ")";
     }
 
     // Some operators, at least those that make sense.
-    // Note that they make new values and do not alter the original object.
-    // Note 2, the const does not refer to the returned (new) object.
-    const Vector3 opUnary(string op)() if (op == "+") {
-	Vector3 result = new Vector3();
+    Vector3 opUnary(string op)() if (op == "+") {
+	Vector3 result;
 	result._p[] = this._p[];
 	return result;
     }
 
-    const Vector3 opUnary(string op)() if (op == "-") {
-	Vector3 result = new Vector3();
+    Vector3 opUnary(string op)() if (op == "-") {
+	Vector3 result;
 	result._p[] = - this._p[];
 	return result;
     }
 
     const Vector3 opBinary(string op)(in Vector3 rhs) if (op == "+") {
-	Vector3 result = new Vector3();
+	Vector3 result;
 	result._p[] = this._p[] + rhs._p[];
 	return result;
     }
 
     const Vector3 opBinary(string op)(in Vector3 rhs) if (op == "-") {
-	Vector3 result = new Vector3();
+	Vector3 result;
 	result._p[] = this._p[] - rhs._p[];
 	return result;
     }
 
     const Vector3 opBinary(string op)(in double rhs) if (op == "*") {
-	Vector3 result = new Vector3();
+	Vector3 result;
 	result._p[] = this._p[] * rhs;
 	return result;
     }
 
     const Vector3 opBinaryRight(string op)(in double lhs) if (op == "*") {
-	Vector3 result = new Vector3();
+	Vector3 result;
 	result._p[] = this._p[] * lhs;
 	return result;
     }
 
     const Vector3 opBinary(string op)(in double rhs) if (op == "/") {
-	Vector3 result = new Vector3();
+	Vector3 result;
 	result._p[] = this._p[] / rhs;
 	return result;
+    }
+
+    // Assignment operators. (Alexandrescu Section 7.1.5.1)
+    ref Vector3 opAssign(ref Vector3 rhs) {
+	_p[] = rhs._p[];
+	return this;
+    }
+
+    ref Vector3 opAssign(Vector3 rhs) {
+	_p[] = rhs._p[];
+	return this;
     }
 
     // Combined assignment operators do change the original object.
@@ -158,14 +165,14 @@ double abs(in Vector3 v) {
  * Returns a unit vector in the same direction as v.
  */
 Vector3 unit(in Vector3 v) {
-    return new Vector3(v).normalize();
+    return Vector3(v).normalize();
 }
 
 /**
  * Vector cross product.
  */
 Vector3 cross(in Vector3 v1, in Vector3 v2) {
-    Vector3 v3 = new Vector3();
+    Vector3 v3;
     v3._p[0] = v1._p[1] * v2._p[2] - v2._p[1] * v1._p[2];
     v3._p[1] = v2._p[0] * v1._p[2] - v1._p[0] * v2._p[2];
     v3._p[2] = v1._p[0] * v2._p[1] - v2._p[0] * v1._p[1];
@@ -215,8 +222,8 @@ bool approxEqualVectors(in Vector3 v1, in Vector3 v2) {
 
 unittest {
     // Check that we have separate data with the correct values.
-    Vector3 a = new Vector3([1.0, 2.2, 3.0]);
-    Vector3 b = new Vector3(1.0);
+    Vector3 a = Vector3([1.0, 2.2, 3.0]);
+    Vector3 b = Vector3(1.0);
     assert(a.x == 1.0, "a.x fail");
     assert(a.y == 2.2, "a.y fail");
     assert(a.z == 3.0, "a.z fail");
@@ -227,14 +234,17 @@ unittest {
     b = -a;
     assert(b.x == -a.x && b.y == -a.y && b.z == -a.z, "unary negation");
 
-    b = new Vector3(1.0);
+    b = Vector3(1.0);
     Vector3 c = a + b;
     assert(c.y == a.y+b.y, "vector addition");
     c = a - b;
     assert(c.y == a.y-b.y, "vector subtraction");
     Vector3 d = a.dup;
     a.y = 99.0;
-    assert(a.y == 99.0 && d.y == 2.2, "dup followed by vector addition");
+    assert(a.y == 99.0 && d.y == 2.2, "dup followed by vector change");
+    Vector3 d2 = a;
+    a.y = 3.3;
+    assert(a.y == 3.3 && d2.y == 99.0, "assignment followed by vector change");
 
     Vector3 e = a * 2.0;
     Vector3 f = 3.0 * d;
@@ -250,19 +260,19 @@ unittest {
     Vector3 u = unit(g);
     assert(approxEqual(abs(u), 1.0), "unit, dot, abs");
 
-    Vector3 x = new Vector3(1.0, 0.0, 0.0);
-    Vector3 y = new Vector3(0.0, 1.0, 0.0);
+    Vector3 x = Vector3(1.0, 0.0, 0.0);
+    Vector3 y = Vector3(0.0, 1.0, 0.0);
     Vector3 z = cross(x,y);
-    Vector3 zref = new Vector3(0.0,0.0,1.0);
+    Vector3 zref = Vector3(0.0,0.0,1.0);
     assert(approxEqualVectors(z, zref), "cross product");
 
-    Vector3 n = unit(new Vector3(1.0,1.0,0.0));
-    Vector3 t1 = unit(new Vector3(-1.0,1.0,0.0));
+    Vector3 n = unit(Vector3(1.0,1.0,0.0));
+    Vector3 t1 = unit(Vector3(-1.0,1.0,0.0));
     Vector3 t2 = cross(n, t1);
-    Vector3 h = new Vector3(1.0,0.0,1.0);
-    Vector3 h_ref = new Vector3(h);
+    Vector3 h = Vector3(1.0,0.0,1.0);
+    Vector3 h_ref = Vector3(h);
     to_local_frame(h, n, t1, t2);
-    assert(approxEqualVectors(h, new Vector3(sqrt(1.0/2.0), -sqrt(1.0/2.0), 1.0)),
+    assert(approxEqualVectors(h, Vector3(sqrt(1.0/2.0), -sqrt(1.0/2.0), 1.0)),
 	   "to_local_frame");
     to_xyz_frame(h, n, t1, t2);
     assert(approxEqualVectors(h, h_ref), "to_xyz_frame");
@@ -341,18 +351,18 @@ int inside_triangle(in Vector3 p, in Vector3 a, in Vector3 b, in Vector3 c)
 }
 
 unittest {
-    Vector3 a = new Vector3(1.0, 0.0, 0.0); // plane through a,b,c
-    Vector3 b = new Vector3(1.0, 1.0, 0.0);
-    Vector3 c = new Vector3(0.5, 0.0, 0.0);
-    Vector3 qr = new Vector3(3.0, 3.0, -3.0); // direction
-    Vector3 q = new Vector3(0.0, 0.0, 1.0); // start point
+    Vector3 a = Vector3(1.0, 0.0, 0.0); // plane through a,b,c
+    Vector3 b = Vector3(1.0, 1.0, 0.0);
+    Vector3 c = Vector3(0.5, 0.0, 0.0);
+    Vector3 qr = Vector3(3.0, 3.0, -3.0); // direction
+    Vector3 q = Vector3(0.0, 0.0, 1.0); // start point
     int flag =  project_onto_plane(q, qr, a, b, c);
-    assert(approxEqualVectors(q, new Vector3(1.0,1.0,0.0)), "project_onto_plane");
-    Vector3 myp = new Vector3(1.0, 1.0, 1.0);
+    assert(approxEqualVectors(q, Vector3(1.0,1.0,0.0)), "project_onto_plane");
+    Vector3 myp = Vector3(1.0, 1.0, 1.0);
     map_neutral_plane_to_cylinder(myp, 1.0);
-    assert(approxEqualVectors(myp, new Vector3(1.0, sin(1.0), cos(1.0))), "cylinder map");
-    assert(inside_triangle(new Vector3(0.65, 0.0, 0.0), a, b, c) > 0, "inside triangle");
-    assert(!inside_triangle(new Vector3(0.65, -0.1, 0.0), a, b, c), "outside triangle");
+    assert(approxEqualVectors(myp, Vector3(1.0, sin(1.0), cos(1.0))), "cylinder map");
+    assert(inside_triangle(Vector3(0.65, 0.0, 0.0), a, b, c) > 0, "inside triangle");
+    assert(!inside_triangle(Vector3(0.65, -0.1, 0.0), a, b, c), "outside triangle");
 }
 
 
@@ -507,48 +517,48 @@ void hex_cell_properties(in Vector3 p0, in Vector3 p1, in Vector3 p2, in Vector3
 
 
 unittest {
-    Vector3 p0 = new Vector3(0.0, 0.0, 1.0);
-    Vector3 p1 = new Vector3(1.0, 0.0, 1.0);
-    Vector3 p2 = new Vector3(1.0, 1.0, 1.0);
-    Vector3 p3 = new Vector3(0.0, 1.0, 1.0);
+    Vector3 p0 = Vector3(0.0, 0.0, 1.0);
+    Vector3 p1 = Vector3(1.0, 0.0, 1.0);
+    Vector3 p2 = Vector3(1.0, 1.0, 1.0);
+    Vector3 p3 = Vector3(0.0, 1.0, 1.0);
     Vector3 centroid, n, t1, t2;
     double area;
     quad_properties(p0, p1, p2, p3, centroid, n, t1, t2, area);
     assert(approxEqual(area, 1.0), "quad_properties area");
-    assert(approxEqualVectors(centroid, new Vector3(0.5,0.5,1.0)), "quad_properties centroid");
-    assert(approxEqualVectors(n, new Vector3(0.0,0.0,1.0)), "quad_properties normal");
-    assert(approxEqualVectors(t1, new Vector3(1.0,0.0,0.0)), "quad_properties t1");
-    assert(approxEqualVectors(t2, new Vector3(0.0,1.0,0.0)), "quad_properties t2");
+    assert(approxEqualVectors(centroid, Vector3(0.5,0.5,1.0)), "quad_properties centroid");
+    assert(approxEqualVectors(n, Vector3(0.0,0.0,1.0)), "quad_properties normal");
+    assert(approxEqualVectors(t1, Vector3(1.0,0.0,0.0)), "quad_properties t1");
+    assert(approxEqualVectors(t2, Vector3(0.0,1.0,0.0)), "quad_properties t2");
 
     // Build tetrahedron with equilateral triangle (side 1.0) on xy plane.
-    p0 = new Vector3(0, 0, 0);
-    p1 = new Vector3(cos(radians(30)), sin(radians(30)), 0.0);
-    p2 = new Vector3(0.0, 1.0, 0.0);
+    p0 = Vector3(0, 0, 0);
+    p1 = Vector3(cos(radians(30)), sin(radians(30)), 0.0);
+    p2 = Vector3(0.0, 1.0, 0.0);
     double dx = 0.5 * tan(radians(30));
     double dL = cos(radians(30));
     double dz = sqrt(dL*dL - dx*dx);
-    p3 = new Vector3(dx, 0.5, dz);
+    p3 = Vector3(dx, 0.5, dz);
     double volume;
     tetrahedron_properties(p0, p1, p2, p3, centroid, volume);
-    assert(approxEqualVectors(centroid, new Vector3(dx,0.5,0.25*dz)), "tetrahedron centroid");
+    assert(approxEqualVectors(centroid, Vector3(dx,0.5,0.25*dz)), "tetrahedron centroid");
     assert(approxEqual(volume, cos(radians(30))*0.5*dz/3), "tetrahedron volume");
 
     // Build a wedge with the same equilateral-triangle base.
-    p3 = p0 + new Vector3(0, 0, 1.0);
-    Vector3 p4 = p1 + new Vector3(0, 0, 1.0);
-    Vector3 p5 = p2 + new Vector3(0, 0, 1.0);
+    p3 = p0 + Vector3(0, 0, 1.0);
+    Vector3 p4 = p1 + Vector3(0, 0, 1.0);
+    Vector3 p5 = p2 + Vector3(0, 0, 1.0);
     wedge_properties(p0, p1, p2, p3, p4, p5, centroid, volume);
-    assert(approxEqualVectors(centroid, new Vector3(dx,0.5,0.5)), "wedge centroid");
+    assert(approxEqualVectors(centroid, Vector3(dx,0.5,0.5)), "wedge centroid");
     assert(approxEqual(volume, cos(radians(30))*0.5*1.0), "wedge volume");
 
     // Simple cube for the hex cell.
-    p0 = new Vector3(0,0,0); p1 = new Vector3(1,0,0);
-    p2 = new Vector3(1,1,0); p3 = new Vector3(0,1,0);
-    p4 = new Vector3(0,0,1); p5 = new Vector3(1,0,1);
-    Vector3 p6 = new Vector3(1,1,1); Vector3 p7 = new Vector3(0,1,1);
+    p0 = Vector3(0,0,0); p1 = Vector3(1,0,0);
+    p2 = Vector3(1,1,0); p3 = Vector3(0,1,0);
+    p4 = Vector3(0,0,1); p5 = Vector3(1,0,1);
+    Vector3 p6 = Vector3(1,1,1); Vector3 p7 = Vector3(0,1,1);
     double iLen, jLen, kLen;
     hex_cell_properties(p0, p1, p2, p3, p4, p5, p6, p7, centroid, volume,
 			iLen, jLen, kLen);
-    assert(approxEqualVectors(centroid, new Vector3(0.5,0.5,0.5)), "hex centroid");
+    assert(approxEqualVectors(centroid, Vector3(0.5,0.5,0.5)), "hex centroid");
     assert(approxEqual(volume, 1.0), "hex volume");
 }

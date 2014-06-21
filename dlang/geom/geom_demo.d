@@ -11,13 +11,13 @@ import geom;
 void main()
 {
     writeln("Begin demonstration of the geometric primitives.");
-    Vector3 a = new Vector3([1.0, 2.2, 3.0]);
-    Vector3 b = new Vector3(1.0);
+    Vector3 a = Vector3([1.0, 2.2, 3.0]);
+    Vector3 b = Vector3(1.0);
     writeln("a = ", a, ", b = ", b);
     writeln("Done.");
     Vector3 c = a + b;
     writeln("c = a + b = ", c);
-    Vector3 d = a.dup;
+    Vector3 d = a;
     a.y = 99.0;
     writeln("a = ", a, ", d = ", d); 
     Vector3 e = a * 2.0;
@@ -31,16 +31,16 @@ void main()
     writeln("g /= 2.0 -> ", g);
     Vector3 u = unit(g*2);
     writeln("unit(g*2) = ", u, " magnitude = ", abs(u));
-    Vector3 x = new Vector3(1.0, 0.0, 0.0);
-    Vector3 y = new Vector3(0.0, 1.0, 0.0);
+    Vector3 x = Vector3(1.0, 0.0, 0.0);
+    Vector3 y = Vector3(0.0, 1.0, 0.0);
     Vector3 z = cross(x,y);
     writeln("z = ", z);
 
-    Vector3 n = unit(new Vector3(1.0,1.0,0.0));
-    Vector3 t1 = unit(new Vector3(-1.0,1.0,0.0));
+    Vector3 n = unit(Vector3(1.0,1.0,0.0));
+    Vector3 t1 = unit(Vector3(-1.0,1.0,0.0));
     Vector3 t2 = cross(n, t1);
-    Vector3 h = new Vector3(1.0,0.0,1.0);
-    Vector3 h_ref = new Vector3(h);
+    Vector3 h = Vector3(1.0,0.0,1.0);
+    Vector3 h_ref = Vector3(h);
     writeln("original h = ", h);
     to_local_frame(h, n, t1, t2);
     writeln("in local frame h = ", h);
@@ -48,11 +48,11 @@ void main()
     writeln("back to global frame h = ", h);
 
     writeln("Try out geometric functions that build on Vector3 objects.");
-    a = new Vector3(1.0, 0.0, 0.0); // plane through a,b,c
-    b = new Vector3(1.0, 1.0, 0.0);
-    c = new Vector3(0.5, 0.0, 0.0);
-    Vector3 qr = new Vector3(3.0, 3.0, -3.0); // direction
-    Vector3 q = new Vector3(0.0, 0.0, 1.0); // start point
+    a = Vector3(1.0, 0.0, 0.0); // plane through a,b,c
+    b = Vector3(1.0, 1.0, 0.0);
+    c = Vector3(0.5, 0.0, 0.0);
+    Vector3 qr = Vector3(3.0, 3.0, -3.0); // direction
+    Vector3 q = Vector3(0.0, 0.0, 1.0); // start point
     int flag =  project_onto_plane(q, qr, a, b, c);
     writeln("projected point q = ", q);
 }
