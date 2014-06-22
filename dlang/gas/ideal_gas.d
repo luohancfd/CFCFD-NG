@@ -9,16 +9,38 @@
 module ideal_gas;
 import gas_model;
 import std.math;
+import std.stdio;
+import std.file;
+import std.json;
 
 class Ideal_gas: Gas_model {
 public:
     this() {
-	// Default model is ideal air
+	// Default model is ideal air, as initialized in the private data.
 	_n_species = 1;
 	_n_modes = 1;
     }
-    this(string file_name="gas_model.json") {
-	// Read my parameters from the gas-model file.
+    this(in char[] file_name) {
+	// writefln("Read my parameters from the gas-model file: %s", file_name);
+	this();
+	if (file_name.length > 0) {
+	    auto text = cast(string) read(file_name);
+	    auto items = parseJSON(text);
+	    _Mmass = items["M"].floating;
+	    _gamma = items["gamma"].floating;
+	    _Cv = R_universal/_Mmass / (_gamma - 1.0);
+	    _Cp = R_universal/_Mmass * _gamma/(_gamma - 1.0);
+	    // Reference values for entropy
+	    _s1 = items["s1"].floating;
+	    _T1 = items["T1"].floating;
+	    _p1 = items["p1"].floating;
+	    // Molecular transport coefficent constants.
+	    _mu_ref = items["mu_ref"].floating;
+	    _T_ref = items["T_ref"].floating;
+	    _S_mu = items["S_mu"].floating;
+	    _k_ref = items["k_ref"].floating;
+	    _S_k = items["S_k"].floating;
+	}
     }
 
     override void eval_thermo_state_pT(ref Gas_data Q) {
@@ -76,11 +98,11 @@ public:
 
 private:
     // Thermodynamic constants
-    double _Mmass = 28.96; // effective molecular mass
-    double _Rgas = R_universal/28.96; // J/kg/K
+    double _Mmass = 0.02896; // effective molecular mass kg/mole
+    double _Rgas = R_universal/0.02896; // J/kg/K
     double _gamma = 1.4;   // ratio of specific heats
-    double _Cv = R_universal/28.96 / 0.4; // J/kg/K
-    double _Cp = R_universal/28.96 * 1.4/0.4; // J/kg/K
+    double _Cv = R_universal/0.02896 / 0.4; // J/kg/K
+    double _Cp = R_universal/0.02896 * 1.4/0.4; // J/kg/K
     // Reference values for entropy
     double _s1 = 0.0; // J/kg/K
     double _T1 = 298.15; // K
@@ -104,7 +126,29 @@ private:
      *     ratio of property at temperature T to reference value.
      */
     double sutherland(double T, double T_ref, double s) {
-	return pow(T/T_ref, 1.5) * (T_ref + s)/(T + s);
+	return sqrt(T/T_ref)*(T/T_ref)*(T_ref + s)/(T + s);
     }
 
 } // end class Ideal_gas
+
+
+unittest {
+    import std.stdio;
+    auto gm = new Ideal_gas();
+    auto gd = new Gas_data(gm);
+    assert(approxEqual(gm.R(gd), 287.086), "gas constant");
+    assert(gm.n_modes == 1, "number of energy modes");
+    assert(gm.n_species == 1, "number of species");
+    assert(approxEqual(gd.p, 1.0e5), "pressure");
+    assert(approxEqual(gd.T[0], 300.0), "static temperature");
+    assert(approxEqual(gd.massf[0], 1.0), "massf[0]");
+
+    gm.eval_thermo_state_pT(gd);
+    gm.eval_sound_speed(gd);
+    assert(approxEqual(gd.rho, 1.16109), "density");
+    assert(approxEqual(gd.e[0], 215314.0), "internal energy");
+    assert(approxEqual(gd.a, 347.241), "density");
+    gm.eval_transport_coefficients(gd);
+    assert(approxEqual(gd.mu, 1.84691e-05), "viscosity");
+    assert(approxEqual(gd.k[0], 0.0262449), "conductivity");
+}

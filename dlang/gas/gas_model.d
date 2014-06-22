@@ -10,7 +10,7 @@
 
 module gas_model;
 
-immutable double R_universal = 8314.0; // J/kgmole.K
+immutable double R_universal = 8.314; // J/mole.K
 
 class Gas_model {
 public:
@@ -70,12 +70,23 @@ public:
 	p = p_init;
 	p_e = p_init;
 	T.length = gm.n_modes;
-	foreach(ref Tmode; T) Tmode = T_init;
+	foreach(ref Tmode; T) {
+	    Tmode = T_init;
+	}
+	e.length = gm.n_modes;
+	k.length = gm.n_modes;
 	massf.length = gm.n_species;
-	massf_init.length = massf.length;
-	massf[] = massf_init;
+	foreach(i; 0 .. gm.n_species) {
+	    try 
+		{ massf[i] = massf_init[i]; }
+	    catch (Exception e) 
+		{ massf[i] = 0.0; }
+	}
 	quality = quality_init;
-	// now, evaluate the rest of the properties using the gas model
+	// Now, evaluate the rest of the properties using the gas model.
+	gm.eval_thermo_state_pT(this);
+	gm.eval_sound_speed(this);
+	gm.eval_transport_coefficients(this);
     }
 
     this() {} // makes no sense to define the data in the absence of a model
