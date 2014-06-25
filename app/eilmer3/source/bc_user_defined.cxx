@@ -418,10 +418,17 @@ int UserDefinedBC::eval_conv_flux_udf(double t, size_t i, size_t j, size_t k, FV
     double csX = IFace->n.x; 
     double csY = IFace->n.y;
     double csZ = IFace->n.z;
+    global_data *gdp = get_global_data_ptr();
+    double dt_global = gdp->dt_global;
+    size_t t_level = gdp->t_level;
+    size_t t_step = gdp->step;
 
     lua_getglobal(L, "convective_flux");  // function to be called
     lua_newtable(L); // creates a table that is now at the TOS
     lua_pushnumber(L, t); lua_setfield(L, -2, "t");
+    lua_pushnumber(L, dt_global); lua_setfield(L, -2, "dt");
+    lua_pushinteger(L, t_step); lua_setfield(L, -2, "t_step");
+    lua_pushinteger(L, t_level); lua_setfield(L, -2, "t_level");
     lua_pushnumber(L, x); lua_setfield(L, -2, "x");
     lua_pushnumber(L, y); lua_setfield(L, -2, "y");
     lua_pushnumber(L, z); lua_setfield(L, -2, "z");
@@ -432,7 +439,7 @@ int UserDefinedBC::eval_conv_flux_udf(double t, size_t i, size_t j, size_t k, FV
     lua_pushinteger(L, j); lua_setfield(L, -2, "j");
     lua_pushinteger(L, k); lua_setfield(L, -2, "k");
     lua_pushinteger(L, which_boundary); lua_setfield(L, -2, "which_boundary");
-    int number_args = 1; // table of {t x y z csX csY csZ i j k which_boundary}
+    int number_args = 1; // table of {t dt t_step t_level x y z csX csY csZ i j k which_boundary}
     int number_results = 1; // one table of results returned on the stack.
     if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
 	handle_lua_error(L, "error running user flow function: %s\n",
@@ -479,11 +486,18 @@ int UserDefinedBC::eval_ghost_cell_udf(double t, size_t i, size_t j, size_t k, F
     double csX = IFace->n.x; 
     double csY = IFace->n.y;
     double csZ = IFace->n.z;
+    global_data *gdp = get_global_data_ptr();
+    double dt_global = gdp->dt_global;
+    size_t t_level = gdp->t_level;
+    size_t t_step = gdp->step;
     // cout << "UserDefinedBC::eval_inviscid_udf() Begin" << endl;
 
     lua_getglobal(L, "ghost_cell");  // function to be called
     lua_newtable(L); // creates a table that is now at the TOS
     lua_pushnumber(L, t); lua_setfield(L, -2, "t");
+    lua_pushnumber(L, dt_global); lua_setfield(L, -2, "dt");
+    lua_pushinteger(L, t_step); lua_setfield(L, -2, "t_step");
+    lua_pushinteger(L, t_level); lua_setfield(L, -2, "t_level");
     lua_pushnumber(L, x); lua_setfield(L, -2, "x");
     lua_pushnumber(L, y); lua_setfield(L, -2, "y");
     lua_pushnumber(L, z); lua_setfield(L, -2, "z");
@@ -494,7 +508,7 @@ int UserDefinedBC::eval_ghost_cell_udf(double t, size_t i, size_t j, size_t k, F
     lua_pushinteger(L, j); lua_setfield(L, -2, "j");
     lua_pushinteger(L, k); lua_setfield(L, -2, "k");
     lua_pushinteger(L, which_boundary); lua_setfield(L, -2, "which_boundary");
-    int number_args = 1; // table of {t x y z csX csY csZ i j k which_boundary}
+    int number_args = 1; // table of {t dt t_step t_level x y z csX csY csZ i j k which_boundary}
     int number_results = 2;
     // We are expecting two tables of results returned on the stack,
     // one for each ghost cell.
@@ -582,6 +596,7 @@ int UserDefinedBC::eval_iface_udf(double t, size_t i, size_t j, size_t k,
     global_data *gdp = get_global_data_ptr();
     double dt_global = gdp->dt_global;
     size_t t_level = gdp->t_level;
+    size_t t_step = gdp->step;
     double area = IFace->area[t_level];
     
     // Call the user-defined function which leaves a table of wall conditions
@@ -590,6 +605,7 @@ int UserDefinedBC::eval_iface_udf(double t, size_t i, size_t j, size_t k,
     lua_newtable(L); // creates a table that is now at the TOS
     lua_pushnumber(L, t); lua_setfield(L, -2, "t");
     lua_pushnumber(L, dt_global); lua_setfield(L, -2, "dt");
+    lua_pushinteger(L, t_step); lua_setfield(L, -2, "t_step");
     lua_pushinteger(L, t_level); lua_setfield(L, -2, "t_level");
     lua_pushnumber(L, x); lua_setfield(L, -2, "x");
     lua_pushnumber(L, y); lua_setfield(L, -2, "y");
@@ -608,7 +624,7 @@ int UserDefinedBC::eval_iface_udf(double t, size_t i, size_t j, size_t k,
     
 
     int number_args = 1; // table of
-                         // {t st t_level x y z csX csY csZ i j k
+                         // {t dt t_step t_level x y z csX csY csZ i j k
                          //  which_boundary fs}
     int number_results = 1; // table of at least {u v w T_wall massf} or nil
     if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
@@ -670,10 +686,17 @@ int UserDefinedBC::eval_visc_flux_udf(double t, size_t i, size_t j, size_t k, FV
     double csX = IFace->n.x; 
     double csY = IFace->n.y;
     double csZ = IFace->n.z;
+    global_data *gdp = get_global_data_ptr();
+    double dt_global = gdp->dt_global;
+    size_t t_level = gdp->t_level;
+    size_t t_step = gdp->step;
 
     lua_getglobal(L, "viscous_flux");  // function to be called
     lua_newtable(L); // creates a table that is now at the TOS
     lua_pushnumber(L, t); lua_setfield(L, -2, "t");
+    lua_pushnumber(L, dt_global); lua_setfield(L, -2, "dt");
+    lua_pushinteger(L, t_step); lua_setfield(L, -2, "t_step");
+    lua_pushinteger(L, t_level); lua_setfield(L, -2, "t_level");
     lua_pushnumber(L, x); lua_setfield(L, -2, "x");
     lua_pushnumber(L, y); lua_setfield(L, -2, "y");
     lua_pushnumber(L, z); lua_setfield(L, -2, "z");
@@ -684,7 +707,7 @@ int UserDefinedBC::eval_visc_flux_udf(double t, size_t i, size_t j, size_t k, FV
     lua_pushinteger(L, j); lua_setfield(L, -2, "j");
     lua_pushinteger(L, k); lua_setfield(L, -2, "k");
     lua_pushinteger(L, which_boundary); lua_setfield(L, -2, "which_boundary");
-    int number_args = 1; // table of {t x y z csX csY csZ i j k which_boundary}
+    int number_args = 1; // table of {t dt t_step t_level x y z csX csY csZ i j k which_boundary}
     int number_results = 1; // one table of results returned on the stack.
     if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
 	handle_lua_error(L, "error running user flow function: %s\n",
