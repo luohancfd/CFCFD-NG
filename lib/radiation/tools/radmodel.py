@@ -59,14 +59,14 @@ class GlobalRadData(object):
         # file header
         now = datetime.now()
         ofile.write("-- File: %s\n" % ( ofile_str ) )
-        ofile.write("-- This file was automatically created by 'script_rad2.py' from \n")
+        ofile.write("-- This file was automatically created by 'radmodel.py' from \n")
         ofile.write("-- input script '%s' at %s\n" % ( ifile_str, str(now) ) )
         ofile.write("\n")
         # spectral data
         ofile.write("spectral_data = {\n")
         ofile.write(tab+"spectral_model = '%s',\n" % self.spectral_model )
         if self.spectral_model=="parade":
-            ofile.write(tab+"control_template = 'control.template',\n" )
+            ofile.write(tab+"control_template = 'none',\n" )
             snbopt_template = 'none'
             for rad in self.radiators:
                 if rad.type=="triatomic_radiator" and rad.band_model=="SNB":
@@ -160,9 +160,9 @@ class GlobalRadData(object):
                 mbrad = True
             if rad.type=="triatomic_radiator" and rad.band_model=="SNB":
                 snb = True
-            ofile = open(path+"/control.template","w")
+            ofile = open(path+"/parade.con","w")
             ofile.write("c       This PARADE 3.1 control template file was automatically created\n")
-            ofile.write("c       by TRT_tools.py at %s\n" % datetime.now() )    
+            ofile.write("c       by radmodel.py at %s\n" % datetime.now() )    
             ofile.write("c       1. Spectrum control data:\n")
             ofile.write("c\n")
             ofile.write(" %d\t\twavlo   [A]\n" % (self.lambda_min*10) )
@@ -203,7 +203,7 @@ class GlobalRadData(object):
             ofile.write("  1         iout (row number for main outputs)\n")
             ofile.write("  1        jout (column number for main outputs)\n")
             ofile.write("  3            number of output switches\n")
-            ofile.write("  'N'          'par_res.imo' for each cell (y/n)\n")
+            ofile.write("  'Y'          'par_res.imo' for each cell (y/n)\n")
             ofile.write("  'N'          time integrated emission coefficient until cell number\n")
             ofile.write("  2            debug level (0: minimum output, 2: maximum output)\n")
             ofile.write("  60           max cell number for time integration (shock tube test)\n")

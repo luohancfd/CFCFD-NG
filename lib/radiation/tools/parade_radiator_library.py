@@ -31,16 +31,29 @@ class ParadeRadiator:
         if data_path[-1]!="/":
             data_path += "/"
         data_file_path = data_path + self.dat_file
-        if self.atoms>1:
-            ttr = mol_index*2 + 1
-            tv  = mol_index*2 + 2
+        #if self.atoms>1:
+        #    ttr = mol_index*2 + 1
+        #    tv  = mol_index*2 + 2
+        #else:
+        #    ttr = 1
+        #    tv  = 2  
+	## this has been updated based on the fireii example in PARADE v3.1.
+        if self.atoms==0:
+	    tt = self.iTe+1
+	    tr = 0
+            tv = 0
+	elif self.atoms==1:
+	    tt = self.iT+1
+            tr = 0
+            tv  = 0
         else:
-            ttr = 1
-            tv  = 2  
-        atoms = self.atoms
+            tt = self.iT+1
+            tr = self.iTr+1
+            tv  = self.iTv+1
+	atoms = self.atoms
         if self.band_model == "SNB":
             atoms *= -1              
-        string = " 'Y',        '%s'           %d         1 %d   %d   2,   '%s'\n" % ( self.pname, atoms, ttr, tv, data_file_path )
+        string = " 'Y',        '%s'           %d       %d   %d   %d   2,   '%s'\n" % ( self.pname, atoms, tt, tr, tv, data_file_path )
         for sys in self.systems:
             string += " 'b'    '%s'       'N'\n" % sys
         return string

@@ -29,6 +29,8 @@ extern "C" {
 #include "kernel.hh"
 #include "bc.hh"
 
+#define PRECOMPUTED_PARADE_SPECTRA 1
+
 const int NO_CLUSTERING = 0;
 const int CLUSTERING_BY_VOLUME = 1;
 const int CLUSTERING_BY_AREA = 2;
@@ -441,7 +443,11 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 		     << ": Recomputing spectra for cell: " << ic
 		     << " in block: " << ib << endl;
 #               endif
+#               if PRECOMPUTED_PARADE_SPECTRA
+		cell->read_precomputed_parade_spectra( ib, ic );
+#               else
 		cell->recompute_spectra( rsm_[omp_get_thread_num()] );
+#               endif
 		double j_total = 0.0;
 		if ( rsm_[omp_get_thread_num()]->get_spectral_points()==1 )
 		    j_total = cell->X_->j_int[0];
@@ -1184,7 +1190,11 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 		     << ": Recomputing spectra for cell: " << ic
 		     << " in block: " << ib;
 #               endif
+#               if PRECOMPUTED_PARADE_SPECTRA
+		cell->read_precomputed_parade_spectra( ib, ic );
+#               else
 		cell->recompute_spectra( rsm_[omp_get_thread_num()] );
+#               endif
 		double j_total = 0.0;
 		if ( rsm_[omp_get_thread_num()]->get_spectral_points()==1 )
 		    j_total = cell->X_->j_int[0];

@@ -116,6 +116,8 @@ public:
 public:    
     void recompute_spectra( RadiationSpectralModel * rsm );
     
+    void read_precomputed_parade_spectra( size_t ib, size_t ic );
+
     void set_CFD_cell_indices( size_t ii, size_t jj, size_t kk );
     
     void get_CFD_cell_indices( size_t &ii, size_t &jj, size_t &kk );

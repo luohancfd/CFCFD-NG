@@ -12,11 +12,20 @@
 #include <iomanip>
 #include <fstream>
 #include <cmath>
+#include <algorithm>
+
+#ifdef _OPENMP
+#include <omp.h>
+#else
+#define omp_get_thread_num() 0
+#define omp_get_max_threads() 1
+#endif
 
 #include "ray_tracing_pieces.hh"
 
 #include "../../../lib/radiation/source/spectral_model.hh"
 #include "../../../lib/radiation/source/radiation_constants.hh"
+#include "../../../lib/util/source/useful.h"
 
 using namespace std;
 
@@ -125,6 +134,71 @@ void RayTracingCell::recompute_spectra( RadiationSpectralModel * rsm )
         X_->calculate_cumulative_emission(true);
     }
     
+    return;
+}
+
+void RayTracingCell::read_precomputed_parade_spectra( size_t ib, size_t ic )
+{
+    // 0. Make sure the vectors in CoeffSpectra are sized to zero.
+    X_->clear_data();
+
+    // 3. Pick up the solution and insert it into CoeffSpectra
+    ostringstream path;
+    path << "block-" << ib << "/par_res_" << ic << ".txt";
+    cout << path << endl;
+    ifstream specfile( path.str() );
+    if ( !specfile.is_open() ) {
+        cout << "RayTracingCell::read_precomputed_parade_spectra()" << endl
+             << "Could not open parade spectra file '" << path.str() << "'." << endl
+             << "Exiting program." << endl;
+        exit( FAILURE );
+    }
+    
+    // Discard 8 header lines
+    char header[128];
+    for ( int i=0; i<8; ++i )
+		specfile.getline(header,128);
+
+    // Remaining lines should be spectral data
+    // Note that the parade data starts from the lower wavelength whereas the
+    // CoeffSpectra class starts from the highest wavelength, and parade outputs
+    // j_lambda whereas we need j_nu (hence the conversion)
+    double lambda_ang, nu, j_lambda, kappa;
+    while ( specfile >> lambda_ang >> j_lambda >> kappa ) {
+        nu = lambda2nu( lambda_ang/10.0 );
+        X_->nu.push_back( nu );
+        X_->j_nu.push_back( j_lambda * RC_c_SI / nu / nu );
+        X_->kappa_nu.push_back( kappa );
+    }
+    specfile.close();
+    
+    if ( X_->nu.size()==0 ) {
+        cout << "RayTracingCell::read_precomputed_parade_spectra()" << endl
+             << "No valid spectral data read from file: " << path.str() << endl
+             << "Check the contents of the file and try again." << endl;
+        exit( FAILURE );
+    }
+
+    // We want ascending frequencies for consistency with photaura model
+    if ( X_->nu.front() > X_->nu.back() ) {
+        reverse( X_->nu.begin(), X_->nu.end() );
+        reverse( X_->j_nu.begin(), X_->j_nu.end() );
+        reverse( X_->kappa_nu.begin(), X_->kappa_nu.end() );
+    }
+
+    // The Monte-Carlo models need the integrated emission spectra
+    X_->integrate_emission_spectra();
+    
+    // Also store the cumulative (integrated) emission coefficient
+    if ( X_->nu.size()==1 ) {
+	// This is the equilibrum air model
+	X_->j_int.resize(1);
+        X_->j_int[0] = X_->j_nu[0];
+    }
+    else {
+        X_->calculate_cumulative_emission(true);
+    }
+
     return;
 }
 
