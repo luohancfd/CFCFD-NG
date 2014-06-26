@@ -29,7 +29,7 @@ extern "C" {
 #include "kernel.hh"
 #include "bc.hh"
 
-#define PRECOMPUTED_PARADE_SPECTRA 1
+#define PRECOMPUTED_PARADE_SPECTRA 0
 
 const int NO_CLUSTERING = 0;
 const int CLUSTERING_BY_VOLUME = 1;
