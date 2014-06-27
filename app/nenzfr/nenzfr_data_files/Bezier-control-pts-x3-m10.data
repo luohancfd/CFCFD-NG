@@ -1,0 +1,25 @@
+#Bezier control points of Mach 10 nozzle for the X3 expansion tunnel
+
+#Some notes on this nozzle:
+#This nozzle was designed by Michael G. Davey for his Bachelor's thesis:
+#Michael G. Davey. 2006. “A Hypersonic Nozzle for the X3 Expansion Tube”. 
+#Bachelor of Engineering, The University of Queensland. Page 26
+#The nozzle contour was directly scaled from X2 nozzle contour designed 
+#for turbulent flow, as can be found in Michael Scott's PhD thesis:
+#Michael P. Scott. 2006. “Development and Modelling of Expansion Tubes”. 
+#Doctor of Philosophy, The University of Queensland. Page 145
+#The X2 nozzle in use was Michael Scott's design for laminar flow, since 
+#the turbulent design wasn't available at the time of nozzle fabrication.
+
+#Whom to blame: Han Wei <han.wei@uq.edu.au> 04-Jun-2014
+
+#   x, m    y, m
+0.00    0.091300
+0.30    0.106080
+0.60    0.116159
+0.90    0.147362
+1.20    0.152316
+1.50    0.186220
+1.80    0.197773
+2.15    0.215372
+2.59    0.221067
