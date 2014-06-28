@@ -2,7 +2,7 @@
 # Builds all of the demonstration programs.
 
 DEMO_PROGRAMS := ridder_demo linesearch_demo nelmin_demo rungekutta_demo \
-	newtoncotes_demo gaussquad_demo
+	newtoncotes_demo gaussquad_demo bbla_demo
 
 demo: ${DEMO_PROGRAMS}
 	echo "Demo codes built."
@@ -29,3 +29,6 @@ newtoncotes_demo: newtoncotes_demo.d newtoncotes.d
 
 gaussquad_demo: gaussquad_demo.d gaussquad.d
 	dmd -unittest -g gaussquad_demo.d gaussquad.d
+
+bbla_demo: bbla_demo.d bbla.d
+	dmd -unittest -g bbla_demo.d bbla.d
