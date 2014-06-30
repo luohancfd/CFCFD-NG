@@ -424,10 +424,20 @@ unittest {
 }
 
 /**
- * LU decomposition with backsubstitution.
+ * First stage of a linear equation solver that uses LU decomposition 
+ * followed by a separate backsubstitution.
  *
- * Since we allow partial pivotion by swapping rows,
- * we need to keep a record of the row permutations.
+ * Params:
+ *     c: incoming matrix, outgoing LU matrices combined 
+ *        as described in Section 2.2 of Gerald and Wheatley
+ *        section 2.2 Elimination methods.
+ *     very_small_value: used in our test for singularity
+ *
+ * Returns:
+ *     A list of row permutation pairs.
+ *     Since we allow partial pivotion by swapping rows,
+ *     we need to keep a record of the row permutations
+ *     to be passed into the solve function.
  */
 int[2][] decomp(ref Matrix c, double very_small_value=1.0e-16)
 {
@@ -461,7 +471,17 @@ int[2][] decomp(ref Matrix c, double very_small_value=1.0e-16)
     return permutList;
 } // end decomp()
 
-void solve(ref Matrix c, ref Matrix rhs, int[2][] permutList)
+/**
+ * Second stage of the linear equation solver.
+ * 
+ * Params:
+ *     c:  decomposed matrix from the first stage.
+ *         This matrix may be reused for any number of RHS vectors.
+ *     rhs: on input one or more column vectors for the right-hand side
+ *         on return, these are the solution vectors.
+ *     permutList: list of row-permutation pairs from the first stage.
+ */
+void solve(in Matrix c, ref Matrix rhs, in int[2][] permutList)
 {
     size_t nrows = c.nrows;
     if (rhs.ncols < 1 || rhs.nrows != nrows) {
