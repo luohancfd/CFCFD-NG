@@ -276,6 +276,56 @@ Matrix transpose(in Matrix other)
     return my_matrix;
 }
 
+Matrix hstack(in Matrix[] matrixList)
+{
+    bool consistent = true;
+    size_t nrows = matrixList[0].nrows;
+    size_t ncols = 0;
+    foreach(mat; matrixList) {
+	ncols += mat.ncols;
+	if ( nrows != mat.nrows ) consistent = false;
+    }
+    if ( !consistent ) {
+	throw new Error("Matrices need to have the same number of rows");
+    }
+    Matrix result = new Matrix(nrows, ncols);
+    size_t colStart = 0;
+    foreach(mat; matrixList) {
+	foreach(row; 0 .. mat.nrows) {
+	    foreach(col; 0 .. mat.ncols) {
+		result[row, colStart+col] = mat[row, col];
+	    }
+	}
+	colStart += mat.ncols;
+    }
+    return result;
+}
+
+Matrix vstack(in Matrix[] matrixList)
+{
+    bool consistent = true;
+    size_t ncols = matrixList[0].ncols;
+    size_t nrows = 0;
+    foreach(mat; matrixList) {
+	nrows += mat.nrows;
+	if ( ncols != mat.ncols ) consistent = false;
+    }
+    if ( !consistent ) {
+	throw new Error("Matrices need to have the same number of columns");
+    }
+    Matrix result = new Matrix(nrows, ncols);
+    size_t rowStart = 0;
+    foreach(mat; matrixList) {
+	foreach(row; 0 .. mat.nrows) {
+	    foreach(col; 0 .. mat.ncols) {
+		result[rowStart+row, col] = mat[row, col];
+	    }
+	}
+	rowStart += mat.nrows;
+    }
+    return result;
+}
+
 Matrix dot(in Matrix a, in Matrix b)
 {
     if ( a.ncols != b.nrows ) {
@@ -340,7 +390,7 @@ void gaussJordanElimination(ref Matrix c, double very_small_value=1.0e-16)
 	if ( abs(c[p,j]) < very_small_value ) {
 	    throw new Exception("matrix is essentially singular");
 	}
-	c.swapRows(p,j);
+	if ( p != j ) c.swapRows(p,j);
 	// Scale row j to get unity on the diagonal.
 	double cjj = c[j,j];
 	foreach(col; 0 .. c.ncols) c[j,col] /= cjj;
@@ -354,10 +404,12 @@ void gaussJordanElimination(ref Matrix c, double very_small_value=1.0e-16)
 } // end gaussJordanElimination()
 
 unittest {
-    Matrix Ab = new Matrix([[0.0,  2.0,  0.0,  1.0,  0.0],
-			    [2.0,  2.0,  3.0,  2.0, -2.0],
-			    [4.0, -3.0,  0.0,  1.0, -7.0],
-			    [6.0,  1.0, -6.0, -5.0,  6.0]]);
+    Matrix A = new Matrix([[0.0,  2.0,  0.0,  1.0],
+			   [2.0,  2.0,  3.0,  2.0],
+			   [4.0, -3.0,  0.0,  1.0],
+			   [6.0,  1.0, -6.0, -5.0]]);
+    Matrix b = new Matrix([0.0, -2.0, -7.0, 6.0], "column");
+    Matrix Ab = hstack([A,b]);
     Matrix Aonly = Ab.sliceDup(0, 4, 0, 4);
     Matrix bonly = Ab.sliceDup(0, 4, 4, 5);
     gaussJordanElimination(Ab);
@@ -367,6 +419,102 @@ unittest {
     double[] x = Ab.getColumn(4);
     Matrix new_rhs = dot(Aonly, new Matrix(x));
     assert(approxEqualMatrix(new_rhs, bonly), "check rhs");
-    Matrix residual = new_rhs - bonly;
+    Matrix residual = new_rhs - b;
     assert(approxEqualMatrix(residual, new Matrix([0,0,0,0])), "zero residual");
+}
+
+/**
+ * LU decomposition with backsubstitution.
+ *
+ * Since we allow partial pivotion by swapping rows,
+ * we need to keep a record of the row permutations.
+ */
+int[2][] decomp(ref Matrix c, double very_small_value=1.0e-16)
+{
+    if (c.ncols != c.nrows) {
+	throw new Exception("require a square matrix");
+    }
+    int[2][] permutList;
+
+    foreach(j; 0 .. c.nrows) {
+	// Select pivot.
+	size_t p = j;
+	foreach(i; j+1 .. c.nrows) {
+	    if ( abs(c[i,j]) > abs(c[p,j]) ) p = i;
+	}
+	if ( abs(c[p,j]) < very_small_value ) {
+	    throw new Exception("matrix is essentially singular");
+	}
+	if ( p != j ) {
+	    c.swapRows(p,j);
+	    permutList ~= [p,j];
+	}
+	// Do the elimination to get zeros in column j, below the diagonal.
+	// Don't disturb the previous multipliers stored in columns to the left.
+	foreach(i; j+1 .. c.nrows) {
+	    double multiplier = c[i,j]/c[j,j];
+	    foreach(col; j .. c.ncols) c[i,col] -= multiplier * c[j,col];
+	    c[i,j] = multiplier; // Save in the newly-zeroed spot.
+	}
+    } // end foreach j
+
+    return permutList;
+} // end decomp()
+
+void solve(ref Matrix c, ref Matrix rhs, int[2][] permutList)
+{
+    size_t nrows = c.nrows;
+    if (rhs.ncols < 1 || rhs.nrows != nrows) {
+	throw new Exception("invalid right-hand side");
+    }
+    // Get the right-hand side rows into final order.
+    foreach(pair; permutList) {
+	rhs.swapRows(pair[0], pair[1]);
+    }
+    // Forward elimination, using the stored multipliers.
+    foreach(i; 1 .. nrows) {
+	foreach(j; 0 .. i) {
+	    double multiplier = c[i,j];
+	    foreach(col; 0 .. rhs.ncols) rhs[i,col] -= multiplier * rhs[j,col];
+	}
+    }
+    // Back substitution to obtain the solution vector(s).
+    foreach(col; 0 .. rhs.ncols) {
+	rhs[nrows-1, col] /= c[nrows-1,nrows-1];
+	for ( int i = nrows-2; i >= 0; --i ) {
+	    double my_sum = rhs[i,col];
+	    foreach(j; i+1 .. nrows) my_sum -= c[i,j] * rhs[j,col];
+	    rhs[i,col] = my_sum/c[i,i];
+	}
+    }
+} // end solve()
+
+Matrix inverse(in Matrix a)
+{
+    int n = a.nrows;
+    if ( n != a.ncols && n == 0 ) {
+	throw new Exception("matrix should be square and not empty");
+    }
+    auto c = new Matrix(a);
+    auto perm = decomp(c);
+    auto x = eye(n);
+    solve(c, x, perm);
+    return x;
+}
+
+unittest {
+    auto A = new Matrix([[0.0,  2.0,  0.0,  1.0],
+			 [2.0,  2.0,  3.0,  2.0],
+			 [4.0, -3.0,  0.0,  1.0],
+			 [6.0,  1.0, -6.0, -5.0]]);
+    auto b = new Matrix([0.0, -2.0, -7.0, 6.0], "column");
+    auto c = new Matrix(A);
+    auto perm = decomp(c);
+    auto x = new Matrix(b);
+    solve(c, x, perm);
+    auto residual = b - dot(A,x);
+    assert(approxEqualMatrix(residual, new Matrix([0,0,0,0])), "zero residual");
+
+    auto y = inverse(A);
+    assert(approxEqualMatrix(dot(A,y), eye(4)), "inverse calculation");
 }
