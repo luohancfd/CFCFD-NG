@@ -434,8 +434,8 @@ unittest {
  *     very_small_value: used in our test for singularity
  *
  * Returns:
- *     A list of row permutation pairs.
- *     Since we allow partial pivotion by swapping rows,
+ *     A list of row-permutation pairs (the indices of the swapped rows).
+ *     Since we allow partial-pivoting by swapping rows,
  *     we need to keep a record of the row permutations
  *     to be passed into the solve function.
  */
@@ -444,7 +444,7 @@ int[2][] decomp(ref Matrix c, double very_small_value=1.0e-16)
     if (c.ncols != c.nrows) {
 	throw new Exception("require a square matrix");
     }
-    int[2][] permutList;
+    int[2][] permuteList;
 
     foreach(j; 0 .. c.nrows) {
 	// Select pivot.
@@ -457,7 +457,7 @@ int[2][] decomp(ref Matrix c, double very_small_value=1.0e-16)
 	}
 	if ( p != j ) {
 	    c.swapRows(p,j);
-	    permutList ~= [p,j];
+	    permuteList ~= [p,j];
 	}
 	// Do the elimination to get zeros in column j, below the diagonal.
 	// Don't disturb the previous multipliers stored in columns to the left.
@@ -468,7 +468,7 @@ int[2][] decomp(ref Matrix c, double very_small_value=1.0e-16)
 	}
     } // end foreach j
 
-    return permutList;
+    return permuteList;
 } // end decomp()
 
 /**
@@ -477,19 +477,19 @@ int[2][] decomp(ref Matrix c, double very_small_value=1.0e-16)
  * Params:
  *     c:  decomposed matrix from the first stage.
  *         This matrix may be reused for any number of RHS vectors.
- *     rhs: on input one or more column vectors for the right-hand side
+ *     rhs: on input, one or more column vectors for the right-hand side
  *         on return, these are the solution vectors.
- *     permutList: list of row-permutation pairs from the first stage.
+ *     permuteList: list of row-permutation pairs from the first stage.
  */
-void solve(in Matrix c, ref Matrix rhs, in int[2][] permutList)
+void solve(in Matrix c, ref Matrix rhs, in int[2][] permuteList)
 {
     size_t nrows = c.nrows;
     if (rhs.ncols < 1 || rhs.nrows != nrows) {
 	throw new Exception("invalid right-hand side");
     }
     // Get the right-hand side rows into final order.
-    foreach(pair; permutList) {
-	rhs.swapRows(pair[0], pair[1]);
+    foreach(rowPair; permuteList) {
+	rhs.swapRows(rowPair[0], rowPair[1]);
     }
     // Forward elimination, using the stored multipliers.
     foreach(i; 1 .. nrows) {
