@@ -56,3 +56,89 @@ OH.CEA_coeffs = {
  },
   ref="from CEA2::thermo.inp"
 }
+
+-- Nonequilibrium data
+
+OH.species_type = "polar diatomic"
+OH.eps0 = {
+   value = 1.0,
+   units = 'J',
+   description = 'Depth of the intermolecular potential minimum',
+   reference = 'Find me!'
+}
+OH.sigma = {
+   value = 1.0,
+   units = 'm',
+   description = 'Hard sphere collision diameter',
+   reference = 'Find me!'
+}
+OH.r0 = {
+   value = 1.0,
+   units = 'm',
+   description = 'Zero of the intermolecular potential',
+   reference = 'Find me!'
+}
+OH.r_eq = {
+   value = 1.0,
+   units = 'm',
+   description = 'Equilibrium intermolecular distance',
+   reference = 'Find me!'
+}
+OH.f_m = {
+   value = 1.0,
+   units = 'ND',
+   description = 'Mass factor = ( M ( Ma^2 + Mb^2 ) / ( 2 Ma Mb ( Ma + Mb ) )',
+   reference = 'Calculate me!'
+}
+OH.mu = {
+   value = 1.0,
+   units = 'kg/particle',
+   description = 'Reduced mass of constituent atoms',
+   reference = 'Calculate me!'
+}
+OH.alpha = {
+   value = 1.0,
+   units = 'Angstrom^3',
+   description = 'Polarizability',
+   reference = 'Find me!'
+}
+OH.mu_B = {
+   value = 1.0,
+   units = 'Debye',
+   description = 'Dipole moment',
+   reference = 'Find me!'
+}
+OH.s_0 = {
+   value = 10801.81,
+   units = 'J/kg-K',
+   description = 'Standard state entropy at 1 bar',
+   reference = 'NIST Chemistry WebBook: http://webbook.nist.gov/chemistry/'
+}
+OH.h_f = {
+   value = 2191889.27,
+   units = 'J/kg',
+   description = 'Heat of formation',
+   reference = 'from CEA2::thermo.inp'
+}
+OH.I = {
+   value = 73847505.07,
+   units = 'J/kg',
+   description = 'Ground state ionization energy',
+   reference = 'NIST Chemistry WebBook: http://webbook.nist.gov/chemistry/'
+}
+OH.Z = {
+   value = 0,
+   units = 'ND',
+   description = 'Charge number',
+   reference = 'NA'
+}
+OH.electronic_levels = {
+   n_levels = 2,
+   ref = 'Huber & Herzberg (1979), Luque & Crosley (1998)',
+   -- =====================================================================================================================================================================
+   --   n       Te         re       g   dzero      we         wexe      weye            weze          be         alphae       de         betae        spn-orb     l   s  
+   -- =====================================================================================================================================================================
+   ilev_0  = {      0.00,  0.96966, 1,  37275.0,  3737.7941,  84.91456,  0.558406E+00, -2.59739E-02,  18.89638,  0.7242E+00,  19.38E-04, 4.320E-05,  -139.21E+00,  1,  2 },
+   ilev_1  = {  32683.97,  1.0121,  1,  20406.2,  3178.3554,  92.68141, -1.773050E+00,  3.07923E-01,  17.38922,  0.7868E+00,  20.39E-04, 0.000E-00,    0.000E+00,  0,  2 },
+   -- =====================================================================================================================================================================
+}
