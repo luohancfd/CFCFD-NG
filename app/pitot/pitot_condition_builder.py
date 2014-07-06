@@ -163,9 +163,11 @@ def output_builder(cfg, states, V, M):
     
     # Now make the basic string   
     
-    basic = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}"\
+    basic = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18}"\
             .format(cfg['test_number'], driver_gas, cfg['psd1'], 
-                    cfg['p1'], cfg['p5'], cfg['Vsd'], cfg['Vs1'], cfg['Vs2'], 
+                    cfg['p1'], cfg['p5'], cfg['Vsd'], cfg['Vs1'], cfg['Vs2'],
+                    states['s2'].p, states['s2'].T, states['s2'].rho, 
+                    V['s2'], M['s2'],
                     states['s7'].p, states['s7'].T, states['s7'].rho, 
                     V['s7'], M['s7'],cfg['stagnation_enthalpy']/10**6)
                     
@@ -218,6 +220,11 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     results['Vsd'].append(cfg['Vsd'])
     results['Vs1'].append(cfg['Vs1'])
     results['Vs2'].append(cfg['Vs2'])
+    results['p2'].append(states['s2'].p)
+    results['T2'].append(states['s2'].T)
+    results['rho2'].append(states['s2'].rho)
+    results['V2'].append(V['s2'])
+    results['M2'].append(M['s2'])
     results['p7'].append(states['s7'].p)
     results['T7'].append(states['s7'].T)
     results['rho7'].append(states['s7'].rho)
@@ -354,7 +361,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     # print a line explaining the results
     intro_line_1 = "# Output of pitot area condition building program."
     condition_builder_output.write(intro_line_1 + '\n')
-    basic = "#test number,driver condition,psd1,p1,p5,Vsd,Vs1,Vs2,p7,T7,rho7,V7,M7,Ht"
+    basic = "#test number,driver condition,psd1,p1,p5,Vsd,Vs1,Vs2,p2,T2,rho2,V2,M2,p7,T7,rho7,V7,M7,Ht"
     nozzle = ",arearatio,p8,T8,rho8,V8,M8"
     if cfg['nozzle']:
         basic = basic + nozzle
@@ -375,7 +382,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     # need to make a list to create a series of empty lists in the results
     # dictionary to store the data. the list is tailored to the test condition
     basic_list = ['test number','driver condition','psd1','p1','p5','Vsd','Vs1',
-                  'Vs2','p7','T7','rho7','V7','M7','Ht']
+                  'Vs2','p2','T2','rho2','V2','M2','p7','T7','rho7','V7','M7','Ht']
     nozzle_list = ['arearatio','p8','T8','rho8','V8','M8']
     if cfg['nozzle']:
         basic_list = basic_list + nozzle_list
