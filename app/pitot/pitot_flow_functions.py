@@ -591,10 +591,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
         cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, \
         cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], tol=1.0e-5,limits=[cfg['Vs2_lower'],cfg['Vs2_upper']])
         if PRINT_STATUS: print '-'*60
-        if PRINT_STATUS: print "From secant solve: Vs2 = {0} m/s".format(cfg['Vs2'])
-        cfg['Vs2'] = cfg['Vs2']*cfg['expansion_factor'] #need to take account of this...
-        if PRINT_STATUS: print "Vs2 (with expansion factor multiplier of {0}) = {1} m/s"\
-        .format(cfg['expansion_factor'] ,cfg['Vs2'])        
+        if PRINT_STATUS: print "From secant solve: Vs2 = {0} m/s".format(cfg['Vs2'])     
 
         if PRINT_STATUS: print "Now that Vs2 is known, finding conditions at state 6 and 7."
     elif cfg['test'] == 'experiment':
@@ -609,8 +606,8 @@ def acceleration_tube_calculation(cfg, states, V, M):
         V['s6'] = V['s6']*cfg['expansion_factor']
         print "State 7 is being expanded to V6 ({0}) multiplied by an expansion factor of {1}.".format(V['s6'], cfg['expansion_factor'])
     elif cfg['expand_to'] == 'shock-speed':
-        V['s6'] = cfg['Vs2'] #expansion factor is already considered above
-        print "State 7 is being expanded to the shock speed of Vs2 ({0} m/s).".format(V['s6'])
+        V['s6'] = cfg['Vs2']*cfg['expansion_factor'] 
+        print "State 7 is being expanded to the shock speed of Vs2 ({0} m/s) multiplied by an expansion factor of {1}.".format(V['s6'], cfg['expansion_factor'])
     V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], V['s6'], steps=cfg['acc_tube_expansion_steps'])
     
     if cfg['state7_no_ions']:

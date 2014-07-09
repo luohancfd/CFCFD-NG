@@ -106,6 +106,8 @@ def condition_builder_test_run(cfg, condition_builder_output, results):
     
     condition_status = True #This will be turned to False if the condition fails
     
+    cfg['filename'] = cfg['original_filename'] + '-test-{0}'.format(cfg['test_number'])
+    
     print '-'*60
     print "Running test {0} of {1}.".format(cfg['test_number'], cfg['number_of_test_runs'])
     try:
@@ -350,6 +352,9 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     # also make one to store how many runs are successful
     
     cfg['number_of_test_runs'] = calculate_number_of_test_runs(cfg)
+    
+    import copy
+    cfg['original_filename'] = copy.copy(cfg['filename'])
     
     counter = 0
     good_counter = 0
