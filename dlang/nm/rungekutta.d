@@ -5,11 +5,26 @@
  *
  * Author: Peter J.
  * Version: 2014-Jun-15, adapted from the mech2700 class example
+ *          2014-Jul-09, preallocate work arrays and pass them in.
  *
  */
 
 module rungekutta;
 import std.math;
+
+/**
+ * Allocate workspace arrays for the ODE stepper.
+ *
+ * To avoid the allocation of the intermediate arrays at every update,
+ * we get the user to preallocate them with this function.
+ */
+double[][] allocate_rk45_workspace(uint n)
+{
+    double[][] workspace_arrays;
+    workspace_arrays.length = 7;
+    foreach(ref vect; workspace_arrays) vect.length = n;
+    return workspace_arrays;
+} // end allocate_rk45_workspace()
 
 /**
  * Steps the set of ODEs by the Runge-Kutta-Fehlberg method.
@@ -30,16 +45,24 @@ import std.math;
  *     the final value of the dependent variable
  */
 double rkf45_step(alias f)(double t0, double h, double[] y0,
-			   ref double[] y1, ref double[] err)
+			   ref double[] y1, ref double[] err,
+			   ref double[][] work_arrays)
     if ( is(typeof(f(0.0, [0.0,0.0])) == double[]) )
 {
     // Assuming a system of equations, we need arrays for the intermediate data.
-    double[] k1 = y0.dup; double[] k2 = y0.dup; double[] k3 = y0.dup; 
-    double[] k4 = y0.dup; double[] k5 = y0.dup; double[] k6 = y0.dup;
-    double[] ytmp = y0.dup;
+    double[] k1 = work_arrays[1];
+    if ( k1.length != y0.length ) {
+	throw new Exception("Array lengths don't match the workspace and.");
+    }
+    double[] k2 = work_arrays[2];
+    double[] k3 = work_arrays[3]; 
+    double[] k4 = work_arrays[4];
+    double[] k5 = work_arrays[5];
+    double[] k6 = work_arrays[6];
+    double[] ytmp = work_arrays[0];
     // Build up the sample point information as per the text book descriptions.
-    // We use ytmp to hold the result of the array expressions because the 
-    // dmd 2.065 compiler would choke on those expressions in the function call.
+    // We assign the result of intermediate array expressions to ytmp
+    // because that's needed for D.
     k1[] = f(t0, y0);
     ytmp[] = y0[] + 0.25*h*k1[];
     k2[] = f(t0 + h/4.0, ytmp);
@@ -63,3 +86,25 @@ double rkf45_step(alias f)(double t0, double h, double[] y0,
     return t0 + h;
 } // end rkf45_step()
 
+unittest {
+    double[] testSystem1(double t, double[] x)
+    {
+	double dx0dt =  -8.0/3.0*x[0] -  4.0/3.0*x[1] +     x[2] + 12.0;
+	double dx1dt = -17.0/3.0*x[0] -  4.0/3.0*x[1] +     x[2] + 29.0;
+	double dx2dt = -35.0/3.0*x[0] + 14.0/3.0*x[1] - 2.0*x[2] + 48.0;
+	return [dx0dt, dx1dt, dx2dt];
+    }
+    double[] solution1(double t)
+    {
+	double x = exp(-3.0*t)/6.0*(6.0-50.0*exp(t)+10.0*exp(2.0*t)+34.0*exp(3.0*t));
+	double y = exp(-3.0*t)/6.0*(12.0-125.0*exp(t)+40.0*exp(2.0*t)+73.0*exp(3.0*t));
+	double z = exp(-3.0*t)/6.0*(14.0-200.0*exp(t)+70.0*exp(2.0*t)+116.0*exp(3.0*t));
+	return [x, y, z];
+    }
+    double[] x0=[0.0, 0.0, 0.0];
+    double[] x1=x0.dup;
+    double[] err=x0.dup;
+    auto work = allocate_rk45_workspace(3);
+    double t1 = rkf45_step!(testSystem1)(0.0, 0.2, x0, x1, err, work);
+    assert(approxEqual(x1, solution1(t1)), "Single step of rkf45.");
+}

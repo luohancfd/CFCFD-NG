@@ -38,7 +38,8 @@ void main()
     double[] x0=[0.0, 0.0, 0.0];
     double[] x1=x0.dup;
     double[] err=x0.dup;
-    double t1 = rkf45_step!(testSystem1)(0.0, 0.2, x0, x1, err);
+    auto work = allocate_rk45_workspace(3);
+    double t1 = rkf45_step!(testSystem1)(0.0, 0.2, x0, x1, err, work);
     writeln("x1 = ", x1);
     writeln("exact = ", solution1(t1));
     writeln("Done.");
