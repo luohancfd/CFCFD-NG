@@ -44,24 +44,17 @@
 \begin{document}
 \maketitle
 
-% For some reason, the abstract environment causes the labelling in
-% the metapost figures to disappear; strange!
-% \begin{abstract}
-% \end{abstract}
 \centerline{\textbf{Abstract}}
 \medskip
 An axisymmetric contoured nozzle tailored for specific flight conditions
 of $M\,=\,7$, $p_0\,=\,6.035$\,MPa, $T_0\,=\,2432.2$\,K has been designed 
 for the T4 reflected shock tunnel facility. It has a throat diameter of 
-0.021\,m and an exit diameter of 0.136583\,m, which corresponds to a 
+0.021\,m and an exit diameter of 0.273166\,m, which corresponds to a 
 throat-to-exit area ratio of 169.2. The nozzle has a throat-to-exit length 
 of 1\,m. The nozzle produces a uniform core flow diamond with a maximum 
 axial length of 1.1\,m and a maximum diameter of 0.2\,m. Cross-sectional 
 flow profiles taken at the exit plane of the nozzle show that the Mach number
 varies by $\pm\,0.4$\% and the flow angularity varies by $\pm\,0.13^{\circ}$.
-%It has a throat diameter of 0.021\,m, a nominal exit area of 0.0586\,m$^2$ 
-%and a throat-to-exit length of 1\,m.
-
 \medskip
 The initial design was based on scaling an existing nozzle that was designed
 for a nearby operating condition. Starting with this scaled contour for the
@@ -155,55 +148,6 @@ the fabrication of the nozzle are included in Appendix~\ref{app:manufacturing-dr
 %presents details of the experimental survey of the nozzle outflow that was 
 %conducted to verify the performance of the newly-fabricated nozzle.
 
-%
-%%---------------------------------------------------------------------------------
-%\section{A review of current nozzle design methodologies}
-%\label{sec:lit-review}
-%%
-%FROM CHRIS CRADDOCK TECH REPORT. 
-%The design of all of the current T4 hypersonic axisymmetric nozzles
-%was based on the classical method proposed by Prandtl and Buseman [1] in 1929. The
-%method uses the method of characteristics (MOC) in an inverse design mode to determine
-%an inviscid nozzle wall contour that produces the desired uniform exit flow. The contour
-%is then corrected with a displacement thickness obtained from a boundary-layer (BL)
-%calculation to account for the boundary layer that develops along the nozzle wall. The
-%underlying assumption behind this method is that the boundary layer flow and core flow
-%are uncoupled.
-%
-%In low Mach number nozzles, where boundary layers are thin, the location where the
-%flow characteristics reflect is closely approximated by the inviscid contour as assumed
-%by the MOC/BL technique. However, for thick boundary layers, as developed in high
-%Mach number nozzles, the flow characteristics effectively reflect between the wall and
-%the inviscid contour [4] such that the actual characteristic lags the design characteristic as
-%shown in Fig. 1. Hypersonic nozzles designed for Mach numbers of 7 to 8 begin to show
-%this effect where turbulent boundary layers grow to a large percentage of the exit radius
-%[3]. As a direct consequence of the miscalculation of characteristic reflection, complete
-%cancellation of expansion waves is no longer achieved and disturbances are introduced
-%into the test flow at the nozzle exit.
-%
-%A relatively new nozzle design method that correctly models the interaction between
-%the core flow and the boundary layer in high Mach number nozzles where the boundary
-%layer becomes thick, involves coupling a computational flow solver and an optimization
-%algorithm [16, 15, 22]. Computational flow solvers based on the Navier-Stokes equations
-%can be used to calculate accurate flow solutions for a given nozzle design. The flow
-%solution and nozzle contour can then be forwarded to an optimization algorithm that iteratively
-%perturbs the contour until the desired exit flow is achieved. The accuracy of the
-%design method is limited only by the accuracy of the flow solver used to perform the flowfield
-%calculations. Also, the design method is not limited to axisymmetric nozzles since
-%it can be used for designing three-dimensional square cross-section nozzles by simply
-%employing a three-dimensional flow solver.
-%
-%The optimization design method is used in this study to design a new nozzle for the
-%T4 shock tunnel. The primary motivation for designing a new nozzle is the “HyShot”
-%scramjet experiment. The HyShot scramjet experiment consists of a flight test and a series
-%of data gathering experiments performed in the T4 shock tunnel. One of the aims of the
-%study is to compare flight test data against data obtained in the tunnel and verify that data
-%obtained using the T4 shock tunnel is representative real flight conditions. As such, the
-%shock tunnel nozzle that produces the experimental test flow has to be designed so that it
-%reproduces the same flow conditions experienced in flight. At the time of designing the
-%nozzle, the average estimated flight conditions through the flight test were those shown in
-%Table 1.
-
 
 %---------------------------------------------------------------------------------
 \section{Design methodology}
@@ -263,12 +207,6 @@ in the \texttt{nelmin.py} script, can be found in the \texttt{cfcfd3/lib/cfpylib
 folder in the \texttt{cfcfd3} package. Details for accessing the \texttt{cfcfd3} 
 package can be found on the website \texttt{http://www.mech.uq.edu.au/cfcfd/}.
 
-%\texttt{NENZFr} is chosen over 
-%\texttt{sm3d} because it has a more up-to-date chemistry database and is more maintained
-%than \texttt{sm3d}. Even though \texttt{NENZFr} uses the time-accurate \texttt{Eilmer3} 
-%code, it has a quasi-space-marching capability that can be used in parallel mode to
-%accelerate the simulations.
-
 
 \subsection{Target nozzle-exit conditions and design constraints}
 \label{sec:nozzle-design:target-conds-and-constraints}
@@ -319,7 +257,7 @@ This is especially disadvantageous in hypersonic impulse facilities because
 it limits the already-short test time durations. For the T4 Mach\,7.6 nozzle, 
 the nozzle length of 1.11\,m was dictated by the maximum length of the 
 aluminium ingot that was to be used in the manufacture of the nozzle. Since 
-the chosen nozzle length for the T4 Mach\,7.6 nozzle produced an test core 
+the chosen nozzle length for the T4 Mach\,7.6 nozzle produced a test core 
 that is sufficiently large and uniform, it was decided that an initial 
 estimate of the nozzle length for the new Mach\,7 nozzle can be made by 
 scaling with the design Mach number. The scaled nozzle length for the new 
@@ -337,34 +275,6 @@ contour to reflect the area ratio, nozzle length and nozzle-exit diameter
 needed for the new nozzle. The other alternative is to use a MOC-generated
 contour that has been corrected for the displacement thickness of the 
 boundary layer that develops on the nozzle wall.
-
-%Before the optimisation loop can be started, an initial contour for the nozzle is
-%needed. The easiest way is to scale any existing nozzle contour to reflect the
-%area ratio, nozzle length and nozzle-exit diameter needed. However, the use of this
-%method increases the risks of the Nelder and Mead optimiser to get caught in a local
-%minima. Even if the Nelder and Mead optimiser does converge to a global minima, the
-%use of this method to generate an initial nozzle contour causes the optimiser to
-%use more function evaluations to converge to the desired profile. Using a good 
-%estimate of the initial contour negates these disadvantages. A good estimate of
-%the initial contour can be generated by applying the more traditional nozzle design
-%technique - the Method-of-Characteristics (MOC) method. The MOC method generates an
-%inviscid contour that can then be corrected for the displacement thickness of the
-%boundary layer that develops on the nozzle wall. 
-%
-%For the current study, two optimisation runs were conducted - one started with
-%a nozzle contour that has been geometrically scaled from the contour of the 
-%Mach\,7.6 nozzle, and the other started with a nozzle contour that has been 
-%generated by the MOC method and corrected for boundary layer displacement 
-%thickness. Detailed descriptions of how an initial contour is generated by 
-%both the geometrical-scaling method and the MOC method can be found in 
-%Appendix~\ref{app:initial-contour}. The results from the optimisation runs 
-%show that, by starting the optimisation from the nozzle contour that has been 
-%scaled from the Mach\,7.6 nozzle, the final optimised nozzle contour produces 
-%nozzle-exit conditions that are closer to the design target parameters. A more 
-%detailed discussion of the comparison of the nozzle-exit conditions from both 
-%optimisation runs is presented in Appendix~\ref{app:opt-run-with-different-initial-contour}. 
-%Note that only results from the optimisation run that has been started with the 
-%scaled nozzle contour are presented in Section~\ref{sec:nozzle-design:optimisation-results}.
 
 For the current study, two optimisation runs were conducted - one started with
 a nozzle contour that has been geometrically scaled from the contour of the 
@@ -469,7 +379,6 @@ nominally-stagnant nozzle-supply region.
   \end{center}
  \end{small}
 \end{table}
-%
 
 
 \subsection{Optimisation of the initial contour}
@@ -509,8 +418,8 @@ of variation in Mach number and flow angle across the core flow at the
 nozzle-exit plane. All of the computational cells from the axis to the 
 edge of the core flow\footnote{The edge of the core flow was defined as 
 the radial position on the outflow plane where the gradient 
-$\partial M / \partial r$  became less than $-$20.0 along a radial line 
-moving out from the axis (approximate edge of the boundary layer.} at the
+$\partial M / \partial r$  became less than $-$20.0 per metre along a radial 
+line moving out from the axis (approximate edge of the boundary layer.} at the
 exit plane were used to evaluate the objective function which was defined as,
 %
 \begin{equation}
@@ -537,11 +446,8 @@ where the symbol $N$ denotes the number of cells in the core flow. Two
 weighting parameters, $\phi_{\theta}$ and $\phi_M$, were used to scale the 
 contributions of the flow angle variation function $f_{\theta}$ and Mach 
 number variation function $f_M$. The scaling parameters were set so that both
-functions would evaluate to 1 or less if all of the cells within the core 
-flow have a variation in Mach number and flow angle less than a prescribed 
-target. 
-%The optimization algorithm would then interpret both targets as 
-%equally important for achieving a satisfactory nozzle shape. 
+functions would evaluate to 1 or less if all of the cells within the core flow 
+have a variation in Mach number and flow angle less than a prescribed target. 
 The targets were set to a variation of Mach number across the core flow at the 
 exit plane of less than 0.01 and a variation of flow angularity less than 0.02$^{\circ}$,
 as per those set for the design of the Mach\,7.6 nozzle by \shortciteB{Craddock2000}.
@@ -645,10 +551,9 @@ location did not significantly affect the flow conditions at the exit plane of
 the nozzle (see Appendix~\ref{app:effects-BL-trans-location} for more details
 on the study of the effects of varying the transition location).
 
-To speed up the convergence of the simulations, \texttt{NENZFr} was also 
-run in a multi-processor quasi-block-marching mode. More details of the
-quasi-block-marching capability of \texttt{NENZFr} is described in the
-report by \shortciteB{Doherty2012}.
+To speed up the convergence of the simulations, \texttt{NENZFr} was also run 
+in a multi-processor block-marching mode. More details of the block-marching 
+capability is described in the report by \shortciteB{Chan2014e}.
 
 
 \subsection{Optimisation results}
@@ -817,15 +722,6 @@ nozzle produces a core flow diamond with a maximum axial length of 1.2\,m and
 a maximum diameter of 0.2\,m.
 
 
-%
-%%---------------------------------------------------------------------------------
-%\section{Sensitivity study}
-%\label{sec:sensitivity-study}
-%%
-%Sensitivity of the quality of the nozzle outflow to the varying nozzle-supply 
-%conditions from using different diaphragms..?
-
-
 %---------------------------------------------------------------------------------
 \section{Manufacture}
 \label{sec:nozzle-manufacture}
@@ -858,7 +754,7 @@ fasteners) can be found in Appendix~\ref{app:manufacturing-drawings}.
 An axisymmetric contoured nozzle tailored for specific flight conditions
 of $M\,=\,7$, $p_0\,=\,6.035$\,MPa, $T_0\,=\,2432.2$\,K has been designed 
 for the T4 reflected shock tunnel facility. It has a throat diameter of 
-0.021\,m and an exit diameter of 0.136583\,m, which corresponds to a 
+0.021\,m and an exit diameter of 0.273166\,m, which corresponds to a 
 throat-to-exit area ratio of 169.2. The nozzle has a throat-to-exit length 
 of 1\,m. The nozzle produces a uniform core flow diamond with a maximum 
 axial length of 1.1\,m and a maximum diameter of 0.2\,m. Cross-sectional 
@@ -866,147 +762,16 @@ flow profiles taken at the exit plane of the nozzle show that the Mach number
 varies by $\pm\,0.4$\% and the flow angularity varies by $\pm\,0.13^{\circ}$.
 
 
-
-
-%---------------------------------------------------------------------------------
-%\section{Experimental verification of the nozzle design}
-%\label{sec:expt-verification}
-%%
-%INCLUDE RESULTS OF PITOT AND CONE PROBE SURVEYS OF THE NOZZLE.
-
-%---------------------------------------------------------------------------------
-
 \newpage
-%\bibliographystyle{unsrt}
-\bibliography{./phd_bibliography}
+\bibliography{../phd_bibliography}
 \bibliographystyle{newapa}  % When using newapa bib style, remember to include
                             % \usepackage{newapa} in the preamble.
 
-
 \newpage
 
 
 %---------------------------------------------------------------------------------
-%  START OF THE APPENDICES ...
-%---------------------------------------------------------------------------------
 \appendix
-
-%%---------------------------------------------------------------------------------
-%\newpage
-%\section{Generating the initial nozzle contour}
-%\label{app:initial-contour}
-%%
-%
-%\subsection{Geometrical-scaling method to generate an initial contour}
-%\label{app:initial-contour:geometric-scaling}
-%%
-%
-%\subsection{The use of Method-Of-Characteristics to generate an initial contour}
-%\label{app:initial-contour:MOC-method}
-%%
-%Before the optimisation loop can be started, an initial contour for the nozzle is
-%needed. The easiest way is to scale any existing nozzle contour to reflect the
-%area ratio, nozzle length and nozzle-exit diameter needed. However, the use of this
-%method increases the risks of the Nelder and Mead optimiser to get caught in a local
-%minima. Even if the Nelder and Mead optimiser does converge to a global minima, the
-%use of this method to generate an initial nozzle contour causes the optimiser to
-%use more function evaluations to converge to the desired profile. Using a good 
-%estimate of the initial contour negates these disadvantages. A good estimate of
-%the initial contour can be generated by applying the more traditional nozzle design
-%technique - the Method-of-Characteristics (MOC) method. The MOC method generates an
-%inviscid contour that can then be corrected for the displacement thickness of the
-%boundary layer that develops on the nozzle wall. 
-%
-%A inviscid \texttt{NENZFr} simulation of the inviscid contour is then conducted to extract
-%flow properties along the nozzle wall. The distribution is assumed to be boundary layer 
-%edge properties and is passed into the \texttt{bl.exe} code written by Smart REF?? This code
-%returns values for displacement thickness along the nozzle wall. The distribution of 
-%displacement thickness is then used to offset the inviscid contour to accommodate for the 
-%boundary layer growth. The input script to this code is shown in Figure??? The corrected
-%contour is then scaled down only in the $x$-direction to a nozzle length of 1.0\,m. The 
-%scaled and corrected contour, called MOC/BL contour, is then fed to the optimiser.
-%
-%To start a MOC simulation, an estimate of the inflow conditions and the throat diameter
-%is needed. Following the procedures of \cite{Jacobs1989}, the MOC calculation is started 
-%at the end of the conical expansion area of the nozzle. REASONS?? REF?? ADD PARA TO 
-%DESCRIBE SEMI-CONICAL CONTOURED NOZZLES WITH EMPHASIS ON THE DIFFERENT REGIONS??? 
-%Although it was mentioned in Section~\ref{sec:nozzle-design:target-conds-and-constraints}
-%that the nozzle-supply conditions cannot simply be assumed to be stagnation 
-%conditions of the target nozzle-exit conditions, this stagnation conditions can be 
-%used as initial nozzle-supply conditions for the design process (? Seems that the 
-%stagnation conditions shots are not significantly different from the nozzle-supply 
-%conditions at lower stagnation enthalpies - see shot 7961). 
-%
-%The throat diameter can be estimated using the \texttt{nozzle\_equilibrium\_calc.py}
-%script. The inputs to this script are the nozzle-supply pressure, temperature,
-%target Mach number, nozzle-exit diameter and nozzle length. The script uses \texttt{CEA2}
-%to work out the other properties in the nozzle-supply region. These properties are
-%then isentropically expanded over a small axial length of the nozzle. The expanded
-%flow properties are then re-entered into \texttt{CEA2} to extract new thermodynamic
-%properties for the next expansion step. For the type of application here, the use
-%of thermodynamic equilibrium to work out the properties is mandatory. Using the 
-%isentropic $A$/$A^{\star}$-$M$ relation and thermodynamic properties from \texttt{CEA2}, 
-%the flow is then expanded through the sonic throat until the exit of the nozzle by 
-%stepping through infinitesimally-small steps of Mach number. The exit of the nozzle 
-%is defined as when the Mach number reaches the target Mach number. Using the given
-%nozzle-exit diameter and the calculated area-ratio, the diameter of the nozzle throat
-%can then be estimated. The displacement thickness can then be estimated using Blasius'
-%theory for flat plates. This value is then doubled and used to reduce the initially
-%estimated nozzle throat diameter to account for boundary layer growth (the nozzle-exit
-%diameter is fixed, so the nozzle throat diameter has to be reduced to keep the area-ratio
-%the same). The resulting throat diameter is 0.02151\,m.
-%
-%With the throat diameter, the inflow properties needed for the MOC calculation can
-%then be estimated. This can be done by using the \texttt{find-M-and-gamma-given-A-on-Astar.py}
-%script. *** MY SCRIPT find-M-and-gamma-given-A-on-Astar.py MAY BE WRONG!!!! ****
-%The inputs to this script are the same as that of the \texttt{nozzle\_equilibrium\_calc.py}
-%script. In addition, the divergence angle and length of the conical expansion is
-%also needed. Bearing in mind that the divergence angle may be changed in the optimisation
-%loop, we then pick a divergence angle that has been used in the design of four nozzles by 
-%\cite{Jacobs1989} of 14$^{\circ}$. Although not directly specified in the report, the
-%length of the conical expansion seems to be determined by using 8\% of the overall nozzle
-%length. For the new T4 Mach 7 nozzle, the target nozzle length is 1.0\,m. This results in
-%a conical expansion length of 0.088\,m. The \texttt{find-M-and-gamma-given-A-on-Astar.py}
-%script returns a Mach number of 3.77 and a ratio of specific heats of ?????. These values
-%together with the coordinates of the end of the conical expansion are used as input to
-%the MOC calculation. In addition, the source of the radial flow is assumed to be the point
-%where the conical expansion line intersects the axis of the nozzle. 
-%
-%The MOC calculations are conducted using the \texttt{iMOC} code that has been written
-%by Jacobs REF?? The inputs to the program are the ratio of specific heats and Mach number 
-%at the exit of the conical expansion, the coordinates of the source and the exit corner 
-%point of the conical expansion. \texttt{iMOC} then generates the Mach number of the core
-%flow $M_{core}$. Because the source of the radial flow has been assumed, this source point
-%can be adjusted until $M_{core}$ matches that of the target Mach number. The input script
-%for the \texttt{iMOC} calculations are shown in Figure????. The resulting core flow starts 
-%at  $x$\,=\,0.36\,m and the nozzle length is 1,21812\,m. The inviscid contour has an exit
-%diameter of 0.24496\,m. 
-%
-%A inviscid \texttt{NENZFr} simulation of the inviscid contour is then conducted to extract
-%flow properties along the nozzle wall. The distribution is assumed to be boundary layer 
-%edge properties and is passed into the \texttt{bl.exe} code written by Smart REF?? This code
-%returns values for displacement thickness along the nozzle wall. The distribution of 
-%displacement thickness is then used to offset the inviscid contour to accommodate for the 
-%boundary layer growth. The input script to this code is shown in Figure??? The corrected
-%contour is then scaled down only in the $x$-direction to a nozzle length of 1.0\,m. The 
-%scaled and corrected contour, called MOC/BL contour, is then fed to the optimiser.
-
-
-%%---------------------------------------------------------------------------------
-%\newpage
-%\section{Results from the other optimisation run}
-%\label{app:opt-run-with-different-initial-contour}
-%%
-%Before the
-%
-%%
-%%---------------------------------------------------------------------------------
-%\newpage
-%\section{Pastva's B\`ezier curve-fitting code}
-%\label{app:bezier-curve-fitting-code}
-%%
-%Pastva's B\`ezier curve-fitting code
-
 
 %---------------------------------------------------------------------------------
 \newpage
@@ -1121,24 +886,6 @@ from the throat, most flow variables at the exit of the nozzle (other than the s
 pressure) are not significantly affected by differences in the location where the 
 boundary layer transitions to turbulence.
 
-
-%%---------------------------------------------------------------------------------
-%\newpage
-%\section{B\`ezier control points for the nozzle contour}
-%\label{app:Bezier-control-pts}
-%%
-%The B\`ezier control points for the Mach\,7 nozzle contour are listed here. For users
-%who would like to use these control points for either their CFD simulations or for
-%manufacturing purposes, the authors highly recommend that the control points be 
-%taken from the master copy \texttt{contour-t4-m7.data} which can be located in the 
-%\texttt{cfcfd3} package in the \texttt{cfcfd3/app/nenzfr/nenzfr\_data\_files/} folder. 
-%Details for accessing the cfcfd3 package can be found on 
-%\texttt{http://www.mech.uq.edu.au/cfcfd/index.html}. This is to avoid having
-%multiple master copies of the control points data.
-%%
-%\vspace{5mm}
-%\lstinputlisting[language={}]{nozzle-contour-data/Bezier-control-pts-t4-m7.data}
-
 %---------------------------------------------------------------------------------
 \newpage
 \section{Coordinates for the nozzle contour}
@@ -1147,7 +894,7 @@ boundary layer transitions to turbulence.
 The coordinates for the Mach\,7 nozzle contour are listed here. For users
 who would like to use these coordinates for either their CFD simulations or for
 manufacturing purposes, the authors highly recommend that the coordinates be 
-taken from the master copy \texttt{contour-t4-m6.data} which can be located in the 
+taken from the master copy \texttt{contour-t4-m7.data} which can be located in the 
 \texttt{cfcfd3/app/nenzfr/nenzfr\_data\_files/} folder in the cfcfd3 package. Details
 for accessing the \texttt{cfcfd3} package can be found on 
 \texttt{http://www.mech.uq.edu.au/cfcfd/index.html}. This is to avoid having
@@ -1161,20 +908,20 @@ multiple master copies of the coordinates data.
 \section{Manufacturing drawings}
 \label{app:manufacturing-drawings}
 
-\includepdf[landscape]{technical-drawings/T4-M7-10_Sheet_1.pdf}
-\includepdf[landscape]{technical-drawings/T4-M7-10_Sheet_2.pdf}
-\includepdf[landscape]{technical-drawings/T4-M7-1_Sheet_1.pdf}
-\includepdf[landscape]{technical-drawings/T4-M7-1_Sheet_2.pdf}
-\includepdf[landscape]{technical-drawings/T4-M7-2.pdf}
-\includepdf[landscape]{technical-drawings/T4-M7-3_Sheet_1.pdf}
-\includepdf[landscape]{technical-drawings/T4-M7-3_Sheet_2.pdf}
-\includepdf[landscape]{technical-drawings/T4-M7-4.pdf}
-\includepdf[landscape]{technical-drawings/T4-M7-5.pdf}
-\includepdf[landscape]{technical-drawings/T4-M7-6.pdf}
-\includepdf[landscape]{technical-drawings/T4-M7-7_Sheet_1.pdf}
-\includepdf[landscape]{technical-drawings/T4-M7-7_Sheet_2.pdf}
-\includepdf[landscape]{technical-drawings/T4-M7-8.pdf}
-\includepdf[landscape]{technical-drawings/T4-M7-9.pdf}
+\includepdf[landscape]{../../project-Mach-7-nozzle/CAD-M7-nozzle/T4-M7-Nozzle-Drawings/T4-M7-10_Sheet_1.pdf}
+\includepdf[landscape]{../../project-Mach-7-nozzle/CAD-M7-nozzle/T4-M7-Nozzle-Drawings/T4-M7-10_Sheet_2.pdf}
+\includepdf[landscape]{../../project-Mach-7-nozzle/CAD-M7-nozzle/T4-M7-Nozzle-Drawings/T4-M7-1_Sheet_1.pdf}
+\includepdf[landscape]{../../project-Mach-7-nozzle/CAD-M7-nozzle/T4-M7-Nozzle-Drawings/T4-M7-1_Sheet_2.pdf}
+\includepdf[landscape]{../../project-Mach-7-nozzle/CAD-M7-nozzle/T4-M7-Nozzle-Drawings/T4-M7-2.pdf}
+\includepdf[landscape]{../../project-Mach-7-nozzle/CAD-M7-nozzle/T4-M7-Nozzle-Drawings/T4-M7-3_Sheet_1.pdf}
+\includepdf[landscape]{../../project-Mach-7-nozzle/CAD-M7-nozzle/T4-M7-Nozzle-Drawings/T4-M7-3_Sheet_2.pdf}
+\includepdf[landscape]{../../project-Mach-7-nozzle/CAD-M7-nozzle/T4-M7-Nozzle-Drawings/T4-M7-4.pdf}
+\includepdf[landscape]{../../project-Mach-7-nozzle/CAD-M7-nozzle/T4-M7-Nozzle-Drawings/T4-M7-5.pdf}
+\includepdf[landscape]{../../project-Mach-7-nozzle/CAD-M7-nozzle/T4-M7-Nozzle-Drawings/T4-M7-6.pdf}
+\includepdf[landscape]{../../project-Mach-7-nozzle/CAD-M7-nozzle/T4-M7-Nozzle-Drawings/T4-M7-7_Sheet_1.pdf}
+\includepdf[landscape]{../../project-Mach-7-nozzle/CAD-M7-nozzle/T4-M7-Nozzle-Drawings/T4-M7-7_Sheet_2.pdf}
+\includepdf[landscape]{../../project-Mach-7-nozzle/CAD-M7-nozzle/T4-M7-Nozzle-Drawings/T4-M7-8.pdf}
+\includepdf[landscape]{../../project-Mach-7-nozzle/CAD-M7-nozzle/T4-M7-Nozzle-Drawings/T4-M7-9.pdf}
 
 %---------------------------------------------------------------------------------
 
