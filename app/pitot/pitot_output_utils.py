@@ -253,7 +253,38 @@ def txt_file_output(cfg, states, V, M):
         
     if cfg['wedge']:
         condition_printer('s10w')
-                                           
+        
+    # added some extra code to calculate pre and post nozzle stagnation enthalpy 
+    # if the user wants it
+    if 'all_total' not in cfg:
+        cfg['all_total'] = False
+            
+    if cfg['all_total'] and cfg['nozzle']:
+        print "Calculating nozzle entry total condition as the user has asked for this."
+        try:
+            states['nozzle_entry_total'] = total_condition(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']])
+            states['nozzle_entry_pitot'] = pitot_condition(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']])
+            cfg['nozzle_entry_stagnation_enthalpy'] = states['nozzle_entry_total'].h #J/kg
+        except:
+            try:
+                # try again with ions turned off.
+                states[cfg['nozzle_entry_state']].with_ions = False
+                states['nozzle_entry_total'] = total_condition(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']])
+                states['nozzle_entry_pitot'] = pitot_condition(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']])
+                cfg['nozzle_entry_stagnation_enthalpy'] = states['nozzle_entry_total'].h #J/kg
+                states[cfg['nozzle_entry_state']].with_ions = True
+            except:
+                # just give up if it bails out again
+                states['nozzle_entry_total'] = None
+                states['nozzle_entry_pitot'] = None
+                cfg['nozzle_entry_stagnation_enthalpy'] = None
+        if cfg['nozzle_entry_stagnation_enthalpy']:        
+            nozzle_entry_stag_enth = 'The total enthalpy (Ht) entering the nozzle is {0:<.5g} MJ/kg.'\
+            .format(cfg['nozzle_entry_stagnation_enthalpy']/10**6)
+            print nozzle_entry_stag_enth
+            txt_output.write(nozzle_entry_stag_enth + '\n')
+                
+            
     #some other useful calculations at the end
     try:
         states['test_section_total'] = total_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
@@ -390,8 +421,8 @@ def txt_file_output(cfg, states, V, M):
         #test section pitot condition
         gas_condition_printer(states['test_section_pitot'], \
         'Test section state ({0}) pitot condition:'.format(cfg['test_section_state']), \
-        cfg['solver'])        
-      
+        cfg['solver'])
+     
         if cfg['conehead']:
             #conehead condition in test section
             gas_condition_printer(states['s10c'], \

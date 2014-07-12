@@ -666,6 +666,7 @@ def test_section_setup(cfg, states, V, M):
         if PRINT_STATUS: print "Starting steady expansion through the nozzle."
         (V['s8'], states['s8']) = steady_flow_with_area_change(states['s7'], V['s7'], cfg['area_ratio'])
         M['s8']= V['s8']/states['s8'].a
+        cfg['nozzle_entry_state'] = 's7'
         cfg['test_section_state'] = 's8'
     elif cfg['tunnel_mode'] == 'expansion-tube' and not cfg['nozzle']:
         cfg['test_section_state'] = 's7' 
@@ -673,6 +674,7 @@ def test_section_setup(cfg, states, V, M):
         if PRINT_STATUS: print "Starting steady expansion through the nozzle."
         (V['s8'], states['s8']) = steady_flow_with_area_change(states['s2'], V['s2'], cfg['area_ratio'])
         M['s8']= V['s8']/states['s8'].a
+        cfg['nozzle_entry_state'] = 's2'
         cfg['test_section_state'] = 's8'
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' and not cfg['nozzle']:            
         cfg['test_section_state'] = 's2'
@@ -680,6 +682,7 @@ def test_section_setup(cfg, states, V, M):
         if PRINT_STATUS: print "Starting steady expansion through the nozzle."
         (V['s8'], states['s8']) = steady_flow_with_area_change(states['s5'], V['s5'], cfg['area_ratio'])
         M['s8']= V['s8']/states['s8'].a
+        cfg['nozzle_entry_state'] = 's5'
         cfg['test_section_state'] = 's8'
     elif cfg['tunnel_mode'] == 'reflected-shock-tunnel' and not cfg['nozzle']:            
         cfg['test_section_state'] = 's5'        
