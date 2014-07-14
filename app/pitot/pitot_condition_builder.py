@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "04-Jan-2014"
+VERSION_STRING = "14-Jul-2014"
 
 
 import sys
@@ -359,6 +359,31 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     counter = 0
     good_counter = 0
     
+    # print how many tests we're going to run, and the ranges.
+    
+    print '-'*60    
+    print "{0} tests will be run.".format(cfg['number_of_test_runs'])
+    
+    if True in cfg['secondary_list']:
+        if len(cfg['psd1_list']) > 1:
+            print 'psd1 will be changed from from {0} - {1} Pa in increments of {2} Pa.'\
+            .format(cfg['psd1_list'][0], cfg['psd1_list'][-1], cfg['psd1_list'][1] - cfg['psd1_list'][0])
+        else:
+            print 'psd1 is kept at {0} Pa.'.format(cfg['psd1_list'][0])
+            
+    if len(cfg['p1_list']) > 1:
+        print 'p1 will be changed from from {0} - {1} Pa in increments of {2} Pa.'\
+        .format(cfg['p1_list'][0], cfg['p1_list'][-1], cfg['p1_list'][1] - cfg['p1_list'][0])
+    else:
+        print 'p1 is kept at {0} Pa.'.format(cfg['p1_list'][0])
+        
+    if cfg['tunnel_mode'] == 'expansion-tube':
+        if len(cfg['p5_list']) > 1:
+            print 'p5 will be changed from from {0} - {1} Pa in increments of {2} Pa.'\
+            .format(cfg['p5_list'][0], cfg['p5_list'][-1], cfg['p5_list'][1] - cfg['p5_list'][0])
+        else:
+            print 'p5 is kept at {0} Pa.'.format(cfg['p5_list'][0])
+        
     #open our csv file ready to go
     
     # open a file to start saving results
@@ -464,7 +489,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     # now analyse results dictionary and print some results to the screen
     # and another external file
     
-    condition_builder_summary_file = open(cfg['filename']+'-condition-builder-summary.txt',"w")
+    condition_builder_summary_file = open(cfg['original_filename']+'-condition-builder-summary.txt',"w")
     # print a line explaining the results
     summary_line_1 = "# Summary of pitot condition building program output."
     condition_builder_summary_file.write(summary_line_1 + '\n')

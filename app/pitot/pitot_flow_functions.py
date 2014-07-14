@@ -57,6 +57,7 @@ def secondary_driver_calculation(cfg, states, V, M):
         
         Make sure you set the fill pressure in sd1 before you start!"""
         
+        print '-'*60
         print "current guess for Vsd = {0} m/s".format(Vsd)            
         
         (Vsd2, Vsd2g) = normal_shock(statesd1, Vsd, statesd2)
@@ -66,6 +67,9 @@ def secondary_driver_calculation(cfg, states, V, M):
         
         # Across the expansion, we get a velocity, V5g.
         Vsd3g, statesd3 = finite_wave_dp('cplus', V3sg, state3s, psd3, steps=steps)
+        
+        print "Current psd2 = {0} Pa, current psd3 = {1} Pa.".format(statesd2.p, statesd3.p)
+        print "Current Vsd2g = {0} m/s, current Vsd3g = {1} m/s.".format(Vsd2g, Vsd3g)   
 
         return (Vsd2g - Vsd3g)/Vsd2g
         
