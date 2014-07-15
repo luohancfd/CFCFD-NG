@@ -264,14 +264,14 @@ def txt_file_output(cfg, states, V, M):
         try:
             states['nozzle_entry_total'] = total_condition(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']])
             states['nozzle_entry_pitot'] = pitot_condition(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']])
-            cfg['nozzle_entry_stagnation_enthalpy'] = states['nozzle_entry_total'].h #J/kg
+            cfg['nozzle_entry_stagnation_enthalpy'] = states['nozzle_entry_total'].h - states['s1'].h #J/kg (take away the initial enthalpy in state 1 to get the change)
         except:
             try:
                 # try again with ions turned off.
                 states[cfg['nozzle_entry_state']].with_ions = False
                 states['nozzle_entry_total'] = total_condition(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']])
                 states['nozzle_entry_pitot'] = pitot_condition(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']])
-                cfg['nozzle_entry_stagnation_enthalpy'] = states['nozzle_entry_total'].h #J/kg
+                cfg['nozzle_entry_stagnation_enthalpy'] = states['nozzle_entry_total'].h - states['s1'].h #J/kg (take away the initial enthalpy in state 1 to get the change)
                 states[cfg['nozzle_entry_state']].with_ions = True
             except:
                 # just give up if it bails out again
@@ -279,8 +279,8 @@ def txt_file_output(cfg, states, V, M):
                 states['nozzle_entry_pitot'] = None
                 cfg['nozzle_entry_stagnation_enthalpy'] = None
         if cfg['nozzle_entry_stagnation_enthalpy']:        
-            nozzle_entry_stag_enth = 'The total enthalpy (Ht) entering the nozzle is {0:<.5g} MJ/kg.'\
-            .format(cfg['nozzle_entry_stagnation_enthalpy']/10**6)
+            nozzle_entry_stag_enth = 'The total enthalpy (Ht) entering the nozzle is {0:<.5g} MJ/kg ({1} - s1).'\
+            .format(cfg['nozzle_entry_stagnation_enthalpy']/10**6, cfg['nozzle_entry_state'])
             print nozzle_entry_stag_enth
             txt_output.write(nozzle_entry_stag_enth + '\n')
                 
@@ -289,14 +289,14 @@ def txt_file_output(cfg, states, V, M):
     try:
         states['test_section_total'] = total_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
         states['test_section_pitot'] = pitot_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
-        cfg['stagnation_enthalpy'] = states['test_section_total'].h #J/kg
+        cfg['stagnation_enthalpy'] = states['test_section_total'].h - states['s1'].h #J/kg (take away the initial enthalpy in state 1 to get the change)
     except:
         try:
             # try again with ions turned off.
             states[cfg['test_section_state']].with_ions = False
             states['test_section_total'] = total_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
             states['test_section_pitot'] = pitot_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
-            cfg['stagnation_enthalpy'] = states['test_section_total'].h #J/kg
+            cfg['stagnation_enthalpy'] = states['test_section_total'].h - states['s1'].h #J/kg (take away the initial enthalpy in state 1 to get the change)
             states[cfg['test_section_state']].with_ions = True
         except:
             # just give up if it bails out again
@@ -306,16 +306,16 @@ def txt_file_output(cfg, states, V, M):
     
     if cfg['stagnation_enthalpy']:        
         if cfg['nozzle']:        
-            stag_enth = 'The total enthalpy (Ht) leaving the nozzle is {0:<.5g} MJ/kg.'\
+            stag_enth = 'The total enthalpy (Ht) leaving the nozzle is {0:<.5g} MJ/kg (H8 - h1).'\
             .format(cfg['stagnation_enthalpy']/10**6)
         elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'expansion-tube':
-            stag_enth = 'The total enthalpy (Ht) at the end of the acceleration tube (state 7) is {0:<.5g} MJ/kg.'\
+            stag_enth = 'The total enthalpy (Ht) at the end of the acceleration tube (state 7) is {0:<.5g} MJ/kg (H7 - h1).'\
             .format(cfg['stagnation_enthalpy']/10**6)
         elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'nr-shock-tunnel':
-            stag_enth = 'The total enthalpy (Ht) at the end of the shock tube (state 2) is {0:<.5g} MJ/kg.'\
+            stag_enth = 'The total enthalpy (Ht) at the end of the shock tube (state 2) is {0:<.5g} MJ/kg (H2 - h1).'\
             .format(cfg['stagnation_enthalpy']/10**6)
         elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'reflected-shock-tunnel':
-            stag_enth = 'The total enthalpy (Ht) in the stagnated region (state 5) is {0:<.5g} MJ/kg.'\
+            stag_enth = 'The total enthalpy (Ht) in the stagnated region (state 5) is {0:<.5g} MJ/kg (H5 - h1).'\
             .format(cfg['stagnation_enthalpy']/10**6)
     else:
         stag_enth = "Was unable to find total condition. Therefore, unable to print stagnation enthalpy."
@@ -591,14 +591,14 @@ def csv_file_output(cfg, states, V, M):
         try:
             states['test_section_total'] = total_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
             states['test_section_pitot'] = pitot_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
-            cfg['stagnation_enthalpy'] = states['test_section_total'].h #J/kg
+            cfg['stagnation_enthalpy'] = states['test_section_total'].h - states['s1'].h #J/kg (take away the initial enthalpy in state 1 to get the change) #J/kg
         except:
             try:
                 # try again with ions turned off.
                 states[cfg['test_section_state']].with_ions = False
                 states['test_section_total'] = total_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
                 states['test_section_pitot'] = pitot_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
-                cfg['stagnation_enthalpy'] = states['test_section_total'].h #J/kg
+                cfg['stagnation_enthalpy'] = states['test_section_total'].h - states['s1'].h #J/kg (take away the initial enthalpy in state 1 to get the change) #J/kg
                 states[cfg['test_section_state']].with_ions = True
             except:
                 # just give up if it bails out again
