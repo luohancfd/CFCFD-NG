@@ -34,6 +34,7 @@ Summary of options::
 |           [--slice-at-point="blk-range,index-pair,x,y,z;..."]
 |           [--slice-along-line="x0,y0,z0,x1,y1,z1,N"]
 |           [--surface-list="blk,surface-name;..."]
+|           [--local-surface-list="blk,surface-name;..."]
 |           [--static-flow-profile="blk,face-name"]
 | 
 |           [--heat-flux-list="blk-range,surf-range,i-range,j-range,k-range;..."]
@@ -144,7 +145,7 @@ shortOptions = ""
 longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "binary-format", "tecplot", 
                "prepare-restart", "put-into-folders", "tindx=", "output-file=", 
                "slice-list=", "slice-at-point=", "slice-along-line=", "surface-list=",
-               "static-flow-profile=",
+               "static-flow-profile=", "local-surface-list=",
                "ref-function=", "compare-job=", "compare-tindx=",
                "report-norms", "per-block-norm-list=", "global-norm-list=",
                "probe=", "add-pitot-p", "add-total-p",
@@ -174,6 +175,7 @@ def printUsage():
     print "          [--slice-at-point=\"blk-range,index-pair,x,y,z;...\"]"
     print "          [--slice-along-line=\"x0,y0,z0,x1,y1,z1,N\"]"
     print "          [--surface-list=\"blk,surface-name;...\"]"
+    print "          [--local-surface-list=\"blk,surface-name;...\"]"
     print ""
     print "          [--static-flow-profile=\"blk,face-name;...\"]"
     print ""
@@ -561,6 +563,133 @@ def select_surface_from_block(block_grid, block_flow, which_surface):
             for j in range(njc):
                 for var in var_list:
                     surface_flow.data[var][j,k,0] = block_flow.data[var][i,j,k]
+    return surface_grid, surface_flow
+
+# Write the surface data at local frame of reference
+#
+def select_surface_from_block_local(block_grid, block_flow, which_surface):
+    """
+    Selects one of the bounding surfaces from the block and constructs grid
+    and flow objects that have one dimension less.  These objects can then be
+    used when writing data to the plotting files so that we can have 
+    corresponding VTK files for the surfaces of blocks at local frame
+    of reference.
+
+    Note that this operation really only makes sense for 3D blocks.
+    """
+    which_surface = faceDict[which_surface] # string or integer ---> integer
+    if which_surface == BOTTOM or which_surface == TOP:
+        niv = block_grid.ni; njv = block_grid.nj
+        surface_grid = StructuredGrid((niv,njv,1))
+        if which_surface == BOTTOM:
+            k = 0
+        else:
+            k = block_grid.nk-1
+        for i in range(niv):
+            for j in range(njv):
+                surface_grid.x[i,j,0] = block_grid.x[i,j,k]
+                surface_grid.y[i,j,0] = block_grid.y[i,j,k]
+                surface_grid.z[i,j,0] = block_grid.z[i,j,k]
+        nic = niv - 1; njc = njv - 1
+        if which_surface == BOTTOM:
+            k = 0
+        else:
+            k = block_flow.nk-1
+        var_list = copy(block_flow.vars)
+        surface_flow = StructuredGridFlow()
+        surface_flow.vars = var_list
+        surface_flow.ni = nic; surface_flow.nj = njc; surface_flow.nk = 1
+        for variable in var_list:
+            surface_flow.data[variable] = zeros((nic,njc,1),'d')
+        for j in range(njc):
+            for i in range(nic):
+                for var in var_list:
+                    surface_flow.data[var][i,j,0] = block_flow.data[var][i,j,k]
+        # Change the velocity vector into local frame of reference
+        for j in range(njc):
+            for i in range(nic):
+                    rotation_angle = math.atan2(block_flow.data["pos.y"][i,j,k], block_flow.data["pos.x"][i,j,k])
+                    rotation_angle = math.atan2(block_flow.data["pos.y"][i,j,k], block_flow.data["pos.x"][i,j,k])
+                    surface_flow_vel_x_local = block_flow.data["vel.x"][i,j,k]*math.cos(rotation_angle) \
+                                               + block_flow.data["vel.y"][i,j,k]*math.sin(rotation_angle)
+                    surface_flow_vel_y_local = block_flow.data["vel.y"][i,j,k]*math.cos(rotation_angle) \
+                                               - block_flow.data["vel.x"][i,j,k]*math.sin(rotation_angle)
+                    surface_flow.data["vel.x"][i,j,0] = surface_flow_vel_x_local
+                    surface_flow.data["vel.y"][i,j,0] = surface_flow_vel_y_local
+    if which_surface == NORTH or which_surface == SOUTH:
+        niv = block_grid.ni; nkv = block_grid.nk
+        surface_grid = StructuredGrid((niv,nkv,1))
+        if which_surface == SOUTH:
+            j = 0
+        else:
+            j = block_grid.nj-1
+        for i in range(niv):
+            for k in range(nkv):
+                surface_grid.x[i,k,0] = block_grid.x[i,j,k]
+                surface_grid.y[i,k,0] = block_grid.y[i,j,k]
+                surface_grid.z[i,k,0] = block_grid.z[i,j,k]
+        nic = niv - 1; nkc = nkv - 1
+        if which_surface == SOUTH:
+            j = 0
+        else:
+            j = block_flow.nj-1
+        var_list = copy(block_flow.vars)
+        surface_flow = StructuredGridFlow()
+        surface_flow.vars = var_list;
+        surface_flow.ni = nic; surface_flow.nj = nkc; surface_flow.nk = 1
+        for variable in var_list:
+            surface_flow.data[variable] = zeros((nic,nkc,1),'d')
+        for k in range(nkc):
+            for i in range(nic):
+                for var in var_list:
+                    surface_flow.data[var][i,k,0] = block_flow.data[var][i,j,k]
+        # Change the velocity vector into local frame of reference
+        for k in range(nkc):
+            for i in range(nic):
+                    rotation_angle = math.atan2(block_flow.data["pos.y"][i,j,k], block_flow.data["pos.x"][i,j,k])
+                    surface_flow_vel_x_local = block_flow.data["vel.x"][i,j,k]*math.cos(rotation_angle) \
+                                               + block_flow.data["vel.y"][i,j,k]*math.sin(rotation_angle)
+                    surface_flow_vel_y_local = block_flow.data["vel.y"][i,j,k]*math.cos(rotation_angle) \
+                                               - block_flow.data["vel.x"][i,j,k]*math.sin(rotation_angle)
+                    surface_flow.data["vel.x"][i,k,0] = surface_flow_vel_x_local
+                    surface_flow.data["vel.y"][i,k,0] = surface_flow_vel_y_local
+    if which_surface == WEST or which_surface == EAST:
+        njv = block_grid.nj; nkv = block_grid.nk
+        surface_grid = StructuredGrid((njv,nkv,1))
+        if which_surface == WEST: 
+            i = 0
+        else:
+            i = block_grid.ni-1
+        for k in range(nkv):
+            for j in range(njv):
+                surface_grid.x[j,k,0] = block_grid.x[i,j,k]
+                surface_grid.y[j,k,0] = block_grid.y[i,j,k]
+                surface_grid.z[j,k,0] = block_grid.z[i,j,k]
+        njc = njv - 1; nkc = nkv - 1
+        if which_surface == WEST:
+            i = 0
+        else:
+            i = block_flow.ni-1
+        var_list = copy(block_flow.vars)
+        surface_flow = StructuredGridFlow()
+        surface_flow.vars = var_list;
+        surface_flow.ni = njc; surface_flow.nj = nkc; surface_flow.nk = 1
+        for variable in var_list:
+            surface_flow.data[variable] = zeros((njc,nkc,1),'d')
+        for k in range(nkc):
+            for j in range(njc):
+                for var in var_list:
+                    surface_flow.data[var][j,k,0] = block_flow.data[var][i,j,k]
+        # Change the velocity vector into local frame of reference
+        for k in range(nkc):
+            for j in range(njc):
+                    rotation_angle = math.atan2(block_flow.data["pos.y"][i,j,k], block_flow.data["pos.x"][i,j,k])
+                    surface_flow_vel_x_local = block_flow.data["vel.x"][i,j,k]*math.cos(rotation_angle) \
+                                               + block_flow.data["vel.y"][i,j,k]*math.sin(rotation_angle)
+                    surface_flow_vel_y_local = block_flow.data["vel.y"][i,j,k]*math.cos(rotation_angle) \
+                                               - block_flow.data["vel.x"][i,j,k]*math.sin(rotation_angle)
+                    surface_flow.data["vel.x"][j,k,0] = surface_flow_vel_x_local
+                    surface_flow.data["vel.y"][j,k,0] = surface_flow_vel_y_local
     return surface_grid, surface_flow
 
 # --------------------------------------------------------------------
@@ -1232,7 +1361,8 @@ if __name__ == '__main__':
             raise ValueError("Do not know what to do with option tindx= %s" % tindx_str)
     #
     if uoDict.has_key("--vtk-xml") or uoDict.has_key("--ref-function") or \
-            uoDict.has_key("--compare-job") or uoDict.has_key("--surface-list"): 
+            uoDict.has_key("--compare-job") or uoDict.has_key("--surface-list") or \
+            uoDict.has_key("--local-surface-list"): 
         # At this point, the tindx_list may have several entries and 
         # the Visit and PVD files accumulate information about each entry.
         # This allows the construction of animations built from multiple
@@ -1398,6 +1528,31 @@ if __name__ == '__main__':
                                 surface_grid_list, surface_flow_list, times_dict[tindx],
                                 uoDict.has_key("--binary-format"))
         #
+        if uoDict.has_key("--local-surface-list"):
+            if verbosity_level > 0:
+                print "Extract a set of surfaces for t=", times_dict[tindx], "at local frame of reference and write as VTK files."
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
+            surface_list_str = uoDict.get("--local-surface-list", "")
+            surface_list_str = surface_list_str.lower().strip()
+            if verbosity_level > 0:
+                print "local_surface_list_str=", surface_list_str
+            surface_list = surface_list_str.split(";")
+            surface_grid_list = []
+            surface_flow_list = []
+            for surf in surface_list:
+                items = surf.split(",")
+                blk_id = int(items[0])
+                which_surface = faceDict[items[1]]
+                sgrid, sflow = select_surface_from_block_local(grid[blk_id], flow[blk_id], which_surface)
+                surface_grid_list.append(sgrid)
+                surface_flow_list.append(sflow)
+            outputName = uoDict.get("--output-file", rootName)
+            write_VTK_XML_files(outputName+".local-surface", tindx, 
+                                len(surface_grid_list), 
+                                surface_grid_list, surface_flow_list, times_dict[tindx],
+                                uoDict.has_key("--binary-format"))
+        #
         if uoDict.has_key("--static-flow-profile"):
             if verbosity_level > 0:
                 print "Write a set of static-flow profiles for t=", times_dict[tindx]
@@ -1491,7 +1646,8 @@ if __name__ == '__main__':
                 print "Probably an error; no surface profile written."
     #
     if uoDict.has_key("--vtk-xml") or uoDict.has_key("--ref-function") or \
-            uoDict.has_key("--compare-job") or uoDict.has_key("--surface-list"): 
+            uoDict.has_key("--compare-job") or uoDict.has_key("--surface-list") or \
+            uoDict.has_key("--local-surface-list"): 
         finish_PVD_file(rootName)
 
     if verbosity_level > 0: print "End e3post.py."
