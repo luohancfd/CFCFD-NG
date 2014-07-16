@@ -43,40 +43,41 @@ public:
 	}
     }
 
-    override void eval_thermo_state_pT(ref Gas_data Q) {
+    override void update_thermo_from_pT(ref Gas_data Q) {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	Q.rho = Q.p / (Q.T[0] * _Rgas);
 	Q.e[0] = Q.T[0] * _Cv;
     }
-    override void eval_thermo_state_rhoe(ref Gas_data Q) {
+    override void update_thermo_from_rhoe(ref Gas_data Q) {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	Q.T[0] = Q.e[0] / _Cv;
 	Q.p = Q.rho * _Rgas * Q.T[0];
     }
-    override void eval_thermo_state_rhoT(ref Gas_data Q) {
+    override void update_thermo_from_rhoT(ref Gas_data Q) {
 	throw new Exception("not implemented");
     }
-    override void eval_thermo_state_rhop(ref Gas_data Q) {
+    override void update_thermo_from_rhop(ref Gas_data Q) {
 	throw new Exception("not implemented");
     }
-    override void eval_thermo_state_ps(ref Gas_data Q, double s) {
+    override void update_thermo_from_ps(ref Gas_data Q, double s) {
 	throw new Exception("not implemented");
     }
-    override void eval_thermo_state_hs(ref Gas_data Q, double s) {
+    override void update_thermo_from_hs(ref Gas_data Q, double s) {
 	throw new Exception("not implemented");
     }
-    override void eval_sound_speed(ref Gas_data Q) {
+    override void update_sound_speed(ref Gas_data Q) {
 	Q.a = sqrt(_gamma * _Rgas * Q.T[0]);
     }
-    override void eval_transport_coefficients(ref Gas_data Q) {
+    override void update_trans_coeffs(ref Gas_data Q) {
 	assert(Q.k.length == 1, "incorrect number of modes");
 	Q.mu = _mu_ref * sutherland(Q.T[0], _T_ref, _S_mu);
 	Q.k[0] = _k_ref * sutherland(Q.T[0], _T_ref, _S_k);
     }
+    /*
     override void eval_diffusion_coefficients(ref Gas_data Q) {
 	throw new Exception("not implemented");
     }
-
+    */
     override double dedT_const_v(in Gas_data Q) {
 	return _Cv;
     }
@@ -143,12 +144,12 @@ unittest {
     assert(approxEqual(gd.T[0], 300.0), "static temperature");
     assert(approxEqual(gd.massf[0], 1.0), "massf[0]");
 
-    gm.eval_thermo_state_pT(gd);
-    gm.eval_sound_speed(gd);
+    gm.update_thermo_from_pT(gd);
+    gm.update_sound_speed(gd);
     assert(approxEqual(gd.rho, 1.16109), "density");
     assert(approxEqual(gd.e[0], 215314.0), "internal energy");
     assert(approxEqual(gd.a, 347.241), "density");
-    gm.eval_transport_coefficients(gd);
+    gm.update_trans_coeffs(gd);
     assert(approxEqual(gd.mu, 1.84691e-05), "viscosity");
     assert(approxEqual(gd.k[0], 0.0262449), "conductivity");
 }

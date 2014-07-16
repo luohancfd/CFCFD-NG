@@ -14,10 +14,10 @@ void main() {
     auto gm = new Ideal_gas();
     auto gd = new Gas_data(gm);
     writefln("R= %s, pressure= %s, temperature= %s", gm.R(gd), gd.p, gd.T[0]);
-    gm.eval_thermo_state_pT(gd);
-    gm.eval_sound_speed(gd);
+    gm.update_thermo_from_pT(gd);
+    gm.update_sound_speed(gd);
     writefln("rho= %s, e= %s, a= %s", gd.rho, gd.e[0], gd.a);
-    gm.eval_transport_coefficients(gd);
+    gm.update_trans_coeffs(gd);
     writefln("mu= %s, k= %s", gd.mu, gd.k[0]);
     writeln("Done.");
 }

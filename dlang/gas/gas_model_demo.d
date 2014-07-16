@@ -14,8 +14,8 @@ void main() {
     auto gm = init_gas_model("ideal-air-gas-model.json");
     auto gd = new Gas_data(gm);
     writefln("R= %s, pressure= %s, temperature= %s", gm.R(gd), gd.p, gd.T[0]);
-    gm.eval_thermo_state_pT(gd);
-    gm.eval_sound_speed(gd);
+    gm.update_thermo_from_pT(gd);
+    gm.update_sound_speed(gd);
     writefln("rho= %s, e= %s, a= %s", gd.rho, gd.e[0], gd.a); 
     writeln("Done.");
 }

@@ -18,15 +18,15 @@ public:
     @property uint n_modes() { return _n_modes; }
 
     // Methods to be overridden.
-    void eval_thermo_state_pT(ref Gas_data Q) {}
-    void eval_thermo_state_rhoe(ref Gas_data Q) {}
-    void eval_thermo_state_rhoT(ref Gas_data Q) {}
-    void eval_thermo_state_rhop(ref Gas_data Q) {}
-    void eval_thermo_state_ps(ref Gas_data Q, double s) {}
-    void eval_thermo_state_hs(ref Gas_data Q, double s) {}
-    void eval_sound_speed(ref Gas_data Q) {}
-    void eval_transport_coefficients(ref Gas_data Q) {}
-    void eval_diffusion_coefficients(ref Gas_data Q) {}
+    void update_thermo_from_pT(ref Gas_data Q) {}
+    void update_thermo_from_rhoe(ref Gas_data Q) {}
+    void update_thermo_from_rhoT(ref Gas_data Q) {}
+    void update_thermo_from_rhop(ref Gas_data Q) {}
+    void update_thermo_from_ps(ref Gas_data Q, double s) {}
+    void update_thermo_from_hs(ref Gas_data Q, double s) {}
+    void update_sound_speed(ref Gas_data Q) {}
+    void update_trans_coeffs(ref Gas_data Q) {}
+//    void update_diff_coeffs(ref Gas_data Q) {}
 
     // Methods to be overridden.
     double dedT_const_v(in Gas_data Q) { return 0.0; }
@@ -58,7 +58,7 @@ public:
     /// Transport properties
     double mu;   /// viscosity, Pa.s
     double[] k;  /// thermal conductivities, W/(m.k)
-    double[][] D_AB; /// binary diffusion coefficients
+//    double[][] D_AB; /// binary diffusion coefficients
     double sigma;    /// electrical conductivity, S/m
     /// Composition
     double[] massf;  /// species mass fractions
@@ -84,9 +84,9 @@ public:
 	}
 	quality = quality_init;
 	// Now, evaluate the rest of the properties using the gas model.
-	gm.eval_thermo_state_pT(this);
-	gm.eval_sound_speed(this);
-	gm.eval_transport_coefficients(this);
+	gm.update_thermo_from_pT(this);
+	gm.update_sound_speed(this);
+	gm.update_trans_coeffs(this);
     }
 
     this() {} // makes no sense to define the data in the absence of a model

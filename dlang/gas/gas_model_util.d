@@ -50,12 +50,12 @@ unittest {
     assert(approxEqual(gd.T[0], 300.0), "static temperature");
     assert(approxEqual(gd.massf[0], 1.0), "massf[0]");
 
-    gm.eval_thermo_state_pT(gd);
-    gm.eval_sound_speed(gd);
+    gm.update_thermo_from_pT(gd);
+    gm.update_sound_speed(gd);
     assert(approxEqual(gd.rho, 1.16109), "density");
     assert(approxEqual(gd.e[0], 215314.0), "internal energy");
     assert(approxEqual(gd.a, 347.241), "density");
-    gm.eval_transport_coefficients(gd);
+    gm.update_trans_coeffs(gd);
     assert(approxEqual(gd.mu, 1.84691e-05), "viscosity");
     assert(approxEqual(gd.k[0], 0.0262449), "conductivity");
 }
