@@ -9,6 +9,7 @@
  */
 
 module gas_model;
+import std.conv;
 
 immutable double R_universal = 8.314; // J/mole.K
 
@@ -65,7 +66,8 @@ public:
     double quality;  /// vapour quality
 
     this(Gas_model gm, double p_init, double[] T_init, 
-	 double[] massf_init=[1.0,], double quality_init=1.0)
+	 double[] massf_init=[1.0,], double quality_init=1.0,
+	 double sigma_init=0.0)
     {
 	p = p_init;
 	p_e = p_init;
@@ -87,6 +89,7 @@ public:
 		{ massf[i] = 0.0; }
 	}
 	quality = quality_init;
+	sigma = sigma_init;
 	// Now, evaluate the rest of the properties using the gas model.
 	gm.update_thermo_from_pT(this);
 	gm.update_sound_speed(this);
@@ -94,19 +97,21 @@ public:
     }
 
     this(Gas_model gm, double p_init, double T_init, 
-	 double[] massf_init=[1.0,], double quality_init=1.0)
+	 double[] massf_init=[1.0,], double quality_init=1.0,
+	 double sigma_init=0.0)
     {
 	double[] Tlocal;
 	Tlocal.length = gm.n_modes;
 	foreach(ref Tmode; Tlocal) {
 	    Tmode = T_init;
 	}
-	this(gm, p_init, Tlocal, massf_init, quality_init);
+	this(gm, p_init, Tlocal, massf_init, quality_init, sigma_init);
     }
 
     this() {} // makes no sense to define the data in the absence of a model
 
-    this(Gas_data other) {
+    this(Gas_data other) 
+    {
 	rho = other.rho;
 	p = other.p;
 	p_e = other.p_e;
@@ -119,5 +124,24 @@ public:
 	sigma = other.sigma;
 	massf = other.massf.dup;
 	quality = other.quality;
+    }
+
+    override string toString()
+    {
+	char[] repr;
+	repr ~= "Gas_data(";
+	repr ~= "rho=" ~ to!string(rho);
+	repr ~= ", p=" ~ to!string(p);
+	repr ~= ", p_e=" ~ to!string(p_e);
+	repr ~= ", a=" ~ to!string(a);
+	repr ~= ", T=" ~ to!string(T);
+	repr ~= ", e=" ~ to!string(e);
+	repr ~= ", mu=" ~ to!string(mu);
+	repr ~= ", k=" ~ to!string(k);
+	repr ~= ", massf=" ~ to!string(massf);
+	repr ~= ", quality=" ~ to!string(quality);
+	repr ~= ", sigma=" ~ to!string(sigma);
+	repr ~= ")";
+	return to!string(repr);
     }
 } // end class Gas_data

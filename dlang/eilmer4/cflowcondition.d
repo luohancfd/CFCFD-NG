@@ -1,20 +1,29 @@
-// cflowcondition.d
+/**
+ * cflowcondition.d
+ * Flow condition class for use in the CFD codes.
+ *
+ * Author: Peter J. and Rowan G.
+ * Version: 2014-07-17: initial cut, to explore options.
+ */
 
 module cflowcondition;
 
 import std.string;
+import std.conv;
 import geom;
 import gas_model;
 import gas_model_util;
 
 class CFlowCondition {
 public:
-    Gas_data gas;
-    Vector3 vel;
-    Vector3 B;
-    double tke, omega;
-    double mu_t, k_t;
-    int S; // shock indicator
+    Gas_data gas;  // gas state
+    Vector3 vel;   // flow velocity, m/s
+    Vector3 B;     // magnetic field strength
+    double tke;    // turbulent kinetic energy 0.5(u'^2+v'^2+w'^2)
+    double omega;  // turbulence 'frequency' in k-omega model
+    double mu_t;   // turbulence viscosity
+    double k_t;    // turbulence thermal-conductivity
+    int S;         // shock indicator, value 0 or 1
 
     this(Gas_model gm, double p_init, double T_init[], Vector3 vel_init,
 	 double[] massf_init=[1.0,], double quality_init=1.0,
@@ -36,7 +45,8 @@ public:
 
     this() {} // makes no sense to define the data in the absence of a model
 
-    this(CFlowCondition other) {
+    this(CFlowCondition other)
+    {
 	_gm = other._gm;
 	gas = new Gas_data(other._gm, other.gas.p, other.gas.T, other.gas.massf,
 			   other.gas.quality); 
@@ -47,6 +57,22 @@ public:
 	mu_t = other.mu_t;
 	k_t = other.k_t;
 	S = other.S;
+    }
+
+    override string toString()
+    {
+	char[] repr;
+	repr ~= "CFlowCondition(";
+	repr ~= "gas=" ~ to!string(gas);
+	repr ~= ", vel=" ~ to!string(vel);
+	repr ~= ", B=" ~ to!string(B);
+	repr ~= ", tke=" ~ to!string(tke);
+	repr ~= ", omega=" ~ to!string(omega);
+	repr ~= ", mu_t=" ~ to!string(mu_t);
+	repr ~= ", k_t=" ~ to!string(k_t);
+	repr ~= ", S=" ~ to!string(S);
+	repr ~= ")";
+	return to!string(repr);
     }
 
 private:

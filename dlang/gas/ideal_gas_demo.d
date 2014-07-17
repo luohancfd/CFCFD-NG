@@ -12,6 +12,7 @@ import ideal_gas;
 void main() {
     writeln("Begin demonstration of using the Ideal_gas and Gas_data classes...");
     auto gm = new Ideal_gas();
+    writeln("gm=", gm);
     auto gd = new Gas_data(gm, 100.0e3, 300.0);
     writefln("R= %s, pressure= %s, temperature= %s", gm.R(gd), gd.p, gd.T[0]);
     gm.update_thermo_from_pT(gd);

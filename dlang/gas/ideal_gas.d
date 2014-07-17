@@ -12,6 +12,7 @@ import std.math;
 import std.stdio;
 import std.file;
 import std.json;
+import std.conv;
 
 class Ideal_gas: Gas_model {
 public:
@@ -41,6 +42,24 @@ public:
 	    _k_ref = items["k_ref"].floating;
 	    _S_k = items["S_k"].floating;
 	}
+    }
+
+    override string toString()
+    {
+	char[] repr;
+	repr ~= "Ideal_gas(";
+	repr ~= "Mmass=" ~ to!string(_Mmass);
+	repr ~= ", gamma=" ~ to!string(_gamma);
+	repr ~= ", s1=" ~ to!string(_s1);
+	repr ~= ", T1=" ~ to!string(_T1);
+	repr ~= ", p1=" ~ to!string(_p1);
+	repr ~= ", mu_ref=" ~ to!string(_mu_ref);
+	repr ~= ", T_ref=" ~ to!string(_T_ref);
+	repr ~= ", S_mu=" ~ to!string(_S_mu);
+	repr ~= ", k_ref=" ~ to!string(_k_ref);
+	repr ~= ", S_k=" ~ to!string(_S_k);
+	repr ~= ")";
+	return to!string(repr);
     }
 
     override void update_thermo_from_pT(ref Gas_data Q) {

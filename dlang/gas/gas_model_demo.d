@@ -17,5 +17,6 @@ void main() {
     gm.update_thermo_from_pT(gd);
     gm.update_sound_speed(gd);
     writefln("rho= %s, e= %s, a= %s", gd.rho, gd.e[0], gd.a); 
+    writeln("gd= ", gd);
     writeln("Done.");
 }
