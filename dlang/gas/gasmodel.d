@@ -1,5 +1,5 @@
 /**
- * gas_model.d
+ * gasmodel.d
  * Storage arrangement for the data defining a gas state,
  * interface description of the gas model functionality and
  * utilities to create specific gas model objects.
@@ -8,46 +8,46 @@
  * Version: 2014-06-22, first cut, exploring the options.
  */
 
-module gas_model;
+module gasmodel;
 import std.conv;
 
 immutable double R_universal = 8.314; // J/mole.K
 
-class Gas_model {
+class GasModel {
 public:
     @property uint n_species() { return _n_species; }
     @property uint n_modes() { return _n_modes; }
 
     // Methods to be overridden.
-    void update_thermo_from_pT(ref Gas_data Q) {}
-    void update_thermo_from_rhoe(ref Gas_data Q) {}
-    void update_thermo_from_rhoT(ref Gas_data Q) {}
-    void update_thermo_from_rhop(ref Gas_data Q) {}
-    void update_thermo_from_ps(ref Gas_data Q, double s) {}
-    void update_thermo_from_hs(ref Gas_data Q, double s) {}
-    void update_sound_speed(ref Gas_data Q) {}
-    void update_trans_coeffs(ref Gas_data Q) {}
-//    void update_diff_coeffs(ref Gas_data Q) {}
+    void update_thermo_from_pT(ref GasState Q) {}
+    void update_thermo_from_rhoe(ref GasState Q) {}
+    void update_thermo_from_rhoT(ref GasState Q) {}
+    void update_thermo_from_rhop(ref GasState Q) {}
+    void update_thermo_from_ps(ref GasState Q, double s) {}
+    void update_thermo_from_hs(ref GasState Q, double s) {}
+    void update_sound_speed(ref GasState Q) {}
+    void update_trans_coeffs(ref GasState Q) {}
+//    void update_diff_coeffs(ref GasState Q) {}
 
     // Methods to be overridden.
-    double dedT_const_v(in Gas_data Q) { return 0.0; }
-    double dhdT_const_p(in Gas_data Q) { return 0.0; }
-    double gas_constant(in Gas_data Q) { return 0.0; }
-    double internal_energy(in Gas_data Q) { return 0.0; }
-    double enthalpy(in Gas_data Q) { return 0.0; }
-    double entropy(in Gas_data Q) { return 0.0; }
+    double dedT_const_v(in GasState Q) { return 0.0; }
+    double dhdT_const_p(in GasState Q) { return 0.0; }
+    double gas_constant(in GasState Q) { return 0.0; }
+    double internal_energy(in GasState Q) { return 0.0; }
+    double enthalpy(in GasState Q) { return 0.0; }
+    double entropy(in GasState Q) { return 0.0; }
     
-    final double Cv(in Gas_data Q) { return dedT_const_v(Q); }
-    final double Cp(in Gas_data Q) { return dhdT_const_p(Q); }
-    final double R(in Gas_data Q) { return gas_constant(Q); }
-    final double gamma(in Gas_data Q) { return Cp(Q)/Cv(Q); }
+    final double Cv(in GasState Q) { return dedT_const_v(Q); }
+    final double Cp(in GasState Q) { return dhdT_const_p(Q); }
+    final double R(in GasState Q) { return gas_constant(Q); }
+    final double gamma(in GasState Q) { return Cp(Q)/Cv(Q); }
 protected:
     uint _n_species;
     uint _n_modes;
 }
 
 
-class Gas_data {
+class GasState {
 public:
     /// Thermodynamic properties.
     double rho;  /// density, kg/m**3
@@ -59,13 +59,13 @@ public:
     /// Transport properties
     double mu;   /// viscosity, Pa.s
     double[] k;  /// thermal conductivities, W/(m.k)
-//    double[][] D_AB; /// binary diffusion coefficients
+    // double[][] D_AB; /// binary diffusion coefficients
     double sigma;    /// electrical conductivity, S/m
     /// Composition
     double[] massf;  /// species mass fractions
     double quality;  /// vapour quality
 
-    this(Gas_model gm, double p_init, double[] T_init, 
+    this(GasModel gm, double p_init, double[] T_init, 
 	 double[] massf_init=[1.0,], double quality_init=1.0,
 	 double sigma_init=0.0)
     {
@@ -96,7 +96,7 @@ public:
 	gm.update_trans_coeffs(this);
     }
 
-    this(Gas_model gm, double p_init, double T_init, 
+    this(GasModel gm, double p_init, double T_init, 
 	 double[] massf_init=[1.0,], double quality_init=1.0,
 	 double sigma_init=0.0)
     {
@@ -110,7 +110,7 @@ public:
 
     this() {} // makes no sense to define the data in the absence of a model
 
-    this(Gas_data other) 
+    this(GasState other) 
     {
 	rho = other.rho;
 	p = other.p;
@@ -129,7 +129,7 @@ public:
     override string toString()
     {
 	char[] repr;
-	repr ~= "Gas_data(";
+	repr ~= "GasState(";
 	repr ~= "rho=" ~ to!string(rho);
 	repr ~= ", p=" ~ to!string(p);
 	repr ~= ", p_e=" ~ to!string(p_e);
@@ -144,4 +144,4 @@ public:
 	repr ~= ")";
 	return to!string(repr);
     }
-} // end class Gas_data
+} // end class GasState

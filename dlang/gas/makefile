@@ -1,6 +1,6 @@
 # makefile for the gas module
 
-DEMO_PROGRAMS := gas_model_demo ideal_gas_demo
+DEMO_PROGRAMS := gasmodel_demo idealgas_demo
 
 demo: ${DEMO_PROGRAMS}
 	echo "Demo programs built."
@@ -9,8 +9,8 @@ clean:
 	- rm *.o
 	- rm ${DEMO_PROGRAMS}
 
-gas_model_demo: gas_model_demo.d gas_model.d ideal_gas.d gas_model_util.d
-	dmd -unittest -g gas_model_demo.d gas_model.d gas_model_util.d ideal_gas.d
+gasmodel_demo: gasmodel_demo.d gasmodel.d idealgas.d gasmodelutil.d
+	dmd -unittest -g gasmodel_demo.d gasmodel.d gasmodelutil.d idealgas.d
 
-ideal_gas_demo: ideal_gas_demo.d gas_model.d ideal_gas.d
-	dmd -unittest -g ideal_gas_demo.d gas_model.d ideal_gas.d
+idealgas_demo: idealgas_demo.d gasmodel.d idealgas.d
+	dmd -unittest -g idealgas_demo.d gasmodel.d idealgas.d

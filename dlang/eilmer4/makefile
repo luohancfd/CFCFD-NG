@@ -1,7 +1,7 @@
 # makefile for Eilmer3
 # Builds all of the demonstration programs.
 
-DEMO_PROGRAMS := globaldata_demo cflowcondition_demo
+DEMO_PROGRAMS := globalconfig_demo flowstate_demo
 
 demo: ${DEMO_PROGRAMS}
 	echo "Demo codes built."
@@ -10,12 +10,12 @@ clean:
 	- rm *.o
 	- rm ${DEMO_PROGRAMS}
 
-globaldata_demo: globaldata_demo.d globaldata.d
-	dmd -unittest -g globaldata_demo.d globaldata.d
+globalconfig_demo: globalconfig_demo.d globalconfig.d
+	dmd -unittest -g globalconfig_demo.d globalconfig.d
 
-cflowcondition_demo: cflowcondition_demo.d cflowcondition.d \
-	../gas/gas_model.d ../gas/gas_model_util.d ../gas/ideal_gas.d
+flowstate_demo: flowstate_demo.d flowstate.d \
+	../gas/gasmodel.d ../gas/gasmodelutil.d ../gas/idealgas.d
 	dmd -unittest -g -I../gas/ -I../geom/ \
-		cflowcondition_demo.d cflowcondition.d \
-		../gas/gas_model.d ../gas/gas_model_util.d ../gas/ideal_gas.d \
+		flowstate_demo.d flowstate.d \
+		../gas/gasmodel.d ../gas/gasmodelutil.d ../gas/idealgas.d \
 		../geom/geom.d

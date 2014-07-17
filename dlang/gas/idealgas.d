@@ -1,20 +1,20 @@
 /**
- * ideal_gas.d
+ * idealgas.d
  * Ideal gas model for use in the CFD codes.
  *
  * Author: Peter J. and Rowan G.
  * Version: 2014-06-22: initial cut, to explore options.
  */
 
-module ideal_gas;
-import gas_model;
+module idealgas;
+import gasmodel;
 import std.math;
 import std.stdio;
 import std.file;
 import std.json;
 import std.conv;
 
-class Ideal_gas: Gas_model {
+class IdealGas: GasModel {
 public:
     this() {
 	// Default model is ideal air, as initialized in the private data.
@@ -47,7 +47,7 @@ public:
     override string toString()
     {
 	char[] repr;
-	repr ~= "Ideal_gas(";
+	repr ~= "IdealGas(";
 	repr ~= "Mmass=" ~ to!string(_Mmass);
 	repr ~= ", gamma=" ~ to!string(_gamma);
 	repr ~= ", s1=" ~ to!string(_s1);
@@ -62,57 +62,57 @@ public:
 	return to!string(repr);
     }
 
-    override void update_thermo_from_pT(ref Gas_data Q) {
+    override void update_thermo_from_pT(ref GasState Q) {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	Q.rho = Q.p / (Q.T[0] * _Rgas);
 	Q.e[0] = Q.T[0] * _Cv;
     }
-    override void update_thermo_from_rhoe(ref Gas_data Q) {
+    override void update_thermo_from_rhoe(ref GasState Q) {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	Q.T[0] = Q.e[0] / _Cv;
 	Q.p = Q.rho * _Rgas * Q.T[0];
     }
-    override void update_thermo_from_rhoT(ref Gas_data Q) {
+    override void update_thermo_from_rhoT(ref GasState Q) {
 	throw new Exception("not implemented");
     }
-    override void update_thermo_from_rhop(ref Gas_data Q) {
+    override void update_thermo_from_rhop(ref GasState Q) {
 	throw new Exception("not implemented");
     }
-    override void update_thermo_from_ps(ref Gas_data Q, double s) {
+    override void update_thermo_from_ps(ref GasState Q, double s) {
 	throw new Exception("not implemented");
     }
-    override void update_thermo_from_hs(ref Gas_data Q, double s) {
+    override void update_thermo_from_hs(ref GasState Q, double s) {
 	throw new Exception("not implemented");
     }
-    override void update_sound_speed(ref Gas_data Q) {
+    override void update_sound_speed(ref GasState Q) {
 	Q.a = sqrt(_gamma * _Rgas * Q.T[0]);
     }
-    override void update_trans_coeffs(ref Gas_data Q) {
+    override void update_trans_coeffs(ref GasState Q) {
 	assert(Q.k.length == 1, "incorrect number of modes");
 	Q.mu = _mu_ref * sutherland(Q.T[0], _T_ref, _S_mu);
 	Q.k[0] = _k_ref * sutherland(Q.T[0], _T_ref, _S_k);
     }
     /*
-    override void eval_diffusion_coefficients(ref Gas_data Q) {
+    override void eval_diffusion_coefficients(ref GasState Q) {
 	throw new Exception("not implemented");
     }
     */
-    override double dedT_const_v(in Gas_data Q) {
+    override double dedT_const_v(in GasState Q) {
 	return _Cv;
     }
-    override double dhdT_const_p(in Gas_data Q) {
+    override double dhdT_const_p(in GasState Q) {
 	return _Cp;
     }
-    override double gas_constant(in Gas_data Q) {
+    override double gas_constant(in GasState Q) {
 	return R_universal/_Mmass;
     }
-    override double internal_energy(in Gas_data Q) {
+    override double internal_energy(in GasState Q) {
 	return Q.e[0];
     }
-    override double enthalpy(in Gas_data Q) {
+    override double enthalpy(in GasState Q) {
 	return Q.e[0] + Q.p/Q.rho;
     }
-    override double entropy(in Gas_data Q) {
+    override double entropy(in GasState Q) {
 	return _s1 + _Cp * log(Q.T[0]/_T1) - _Rgas * log(Q.p/_p1);
     }
 
@@ -154,8 +154,8 @@ private:
 
 unittest {
     import std.stdio;
-    auto gm = new Ideal_gas();
-    auto gd = new Gas_data(gm, 100.0e3, 300.0);
+    auto gm = new IdealGas();
+    auto gd = new GasState(gm, 100.0e3, 300.0);
     assert(approxEqual(gm.R(gd), 287.086), "gas constant");
     assert(gm.n_modes == 1, "number of energy modes");
     assert(gm.n_species == 1, "number of species");

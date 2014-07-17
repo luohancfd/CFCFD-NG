@@ -1,8 +1,8 @@
-// globaldata.d
+// globalconfig.d
 
-module globaldata;
+module globalconfig;
 
-final class GlobalData {
+final class GlobalConfig {
     static int dimensions = 2;
     static int nblocks;
     static double[] times;

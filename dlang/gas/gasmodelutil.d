@@ -1,39 +1,40 @@
 /**
- * gas_model_util.d
- * Utility functions that make use of the Gas_model class and its derived classes.
+ * gasmodelutil.d
+ * Utility functions that make use of the gasmodel class and its derived classes.
  *
  * Author: Peter J. and Rowan G.
  * Version: 2014-06-22, first cut, exploring the options.
  */
 
-module gas_model_util;
-import gas_model;
-import ideal_gas;
+module gasmodelutil;
+
+import gasmodel;
+import idealgas;
 import std.file;
 import std.stdio;
 import std.json;
 
 /**
- * We get the instructions for setting up the Gas_model object
+ * We get the instructions for setting up the GasModel object
  * from the JSON file.  The first item should be a model name
- * which we use to select the specific Gas_model class.
+ * which we use to select the specific GasModel class.
  * When constructing a specific object we pass the name of the 
  * same JSON file through to the class so that it may pick out
  * it's specific parameters.
- * As new Gas_model classes are added to the collection, just 
+ * As new GasModel classes are added to the collection, just 
  * add a new case to the switch statement below.
  */
-Gas_model init_gas_model(in char[] file_name="gas-model.json") {
+GasModel init_gas_model(in char[] file_name="gas-model.json") {
     auto text = cast(string) read(file_name);
     auto items = parseJSON(text);
     string gas_model_name = items["model"].str;
-    Gas_model gm;
+    GasModel gm;
     switch ( gas_model_name ) {
     case "Ideal_gas":
-	gm = new Ideal_gas(file_name);
+	gm = new IdealGas(file_name);
 	break;
     default:
-	gm = new Ideal_gas("");
+	gm = new IdealGas("");
     }
     return gm;
 }
@@ -42,7 +43,7 @@ Gas_model init_gas_model(in char[] file_name="gas-model.json") {
 unittest {
     import std.math;
     auto gm = init_gas_model("ideal-air-gas-model.json");
-    auto gd = new Gas_data(gm, 100.0e3, 300.0);
+    auto gd = new GasState(gm, 100.0e3, 300.0);
     assert(approxEqual(gm.R(gd), 287.086), "gas constant");
     assert(gm.n_modes == 1, "number of energy modes");
     assert(gm.n_species == 1, "number of species");
