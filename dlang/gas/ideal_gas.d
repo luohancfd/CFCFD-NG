@@ -136,7 +136,7 @@ private:
 unittest {
     import std.stdio;
     auto gm = new Ideal_gas();
-    auto gd = new Gas_data(gm);
+    auto gd = new Gas_data(gm, 100.0e3, 300.0);
     assert(approxEqual(gm.R(gd), 287.086), "gas constant");
     assert(gm.n_modes == 1, "number of energy modes");
     assert(gm.n_species == 1, "number of species");

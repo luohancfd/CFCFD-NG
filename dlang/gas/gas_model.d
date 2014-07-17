@@ -64,14 +64,18 @@ public:
     double[] massf;  /// species mass fractions
     double quality;  /// vapour quality
 
-    this(Gas_model gm, double p_init=100.0e3, double T_init=300.0, 
+    this(Gas_model gm, double p_init, double[] T_init, 
 	 double[] massf_init=[1.0,], double quality_init=1.0)
     {
 	p = p_init;
 	p_e = p_init;
 	T.length = gm.n_modes;
-	foreach(ref Tmode; T) {
-	    Tmode = T_init;
+	foreach(i; 0 .. gm.n_modes) {
+	    try
+		{ T[i] = T_init[i]; }
+	    catch (Exception e)
+		// We assume that at least 1 temperature arrived.
+		{ T[i] = T_init[0]; }
 	}
 	e.length = gm.n_modes;
 	k.length = gm.n_modes;
@@ -87,6 +91,17 @@ public:
 	gm.update_thermo_from_pT(this);
 	gm.update_sound_speed(this);
 	gm.update_trans_coeffs(this);
+    }
+
+    this(Gas_model gm, double p_init, double T_init, 
+	 double[] massf_init=[1.0,], double quality_init=1.0)
+    {
+	double[] Tlocal;
+	Tlocal.length = gm.n_modes;
+	foreach(ref Tmode; Tlocal) {
+	    Tmode = T_init;
+	}
+	this(gm, p_init, Tlocal, massf_init, quality_init);
     }
 
     this() {} // makes no sense to define the data in the absence of a model
