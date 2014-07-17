@@ -18,5 +18,8 @@ void main() {
     gm.update_sound_speed(gd);
     writefln("rho= %s, e= %s, a= %s", gd.rho, gd.e[0], gd.a); 
     writeln("gd= ", gd);
+    auto gd2 = new GasState(gm, 200.0e3, 400.0);
+    gd2.copy_values_from(gd);
+    writeln("gd2=", gd2);
     writeln("Done.");
 }

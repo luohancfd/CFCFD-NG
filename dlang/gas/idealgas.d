@@ -62,32 +62,32 @@ public:
 	return to!string(repr);
     }
 
-    override void update_thermo_from_pT(ref GasState Q) {
+    override const void update_thermo_from_pT(ref GasState Q) {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	Q.rho = Q.p / (Q.T[0] * _Rgas);
 	Q.e[0] = Q.T[0] * _Cv;
     }
-    override void update_thermo_from_rhoe(ref GasState Q) {
+    override const void update_thermo_from_rhoe(ref GasState Q) {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	Q.T[0] = Q.e[0] / _Cv;
 	Q.p = Q.rho * _Rgas * Q.T[0];
     }
-    override void update_thermo_from_rhoT(ref GasState Q) {
+    override const void update_thermo_from_rhoT(ref GasState Q) {
 	throw new Exception("not implemented");
     }
-    override void update_thermo_from_rhop(ref GasState Q) {
+    override const void update_thermo_from_rhop(ref GasState Q) {
 	throw new Exception("not implemented");
     }
-    override void update_thermo_from_ps(ref GasState Q, double s) {
+    override const void update_thermo_from_ps(ref GasState Q, double s) {
 	throw new Exception("not implemented");
     }
-    override void update_thermo_from_hs(ref GasState Q, double s) {
+    override const void update_thermo_from_hs(ref GasState Q, double s) {
 	throw new Exception("not implemented");
     }
-    override void update_sound_speed(ref GasState Q) {
+    override const void update_sound_speed(ref GasState Q) {
 	Q.a = sqrt(_gamma * _Rgas * Q.T[0]);
     }
-    override void update_trans_coeffs(ref GasState Q) {
+    override const void update_trans_coeffs(ref GasState Q) {
 	assert(Q.k.length == 1, "incorrect number of modes");
 	Q.mu = _mu_ref * sutherland(Q.T[0], _T_ref, _S_mu);
 	Q.k[0] = _k_ref * sutherland(Q.T[0], _T_ref, _S_k);
@@ -97,22 +97,22 @@ public:
 	throw new Exception("not implemented");
     }
     */
-    override double dedT_const_v(in GasState Q) {
+    override const double dedT_const_v(in GasState Q) {
 	return _Cv;
     }
-    override double dhdT_const_p(in GasState Q) {
+    override const double dhdT_const_p(in GasState Q) {
 	return _Cp;
     }
-    override double gas_constant(in GasState Q) {
+    override const double gas_constant(in GasState Q) {
 	return R_universal/_Mmass;
     }
-    override double internal_energy(in GasState Q) {
+    override const double internal_energy(in GasState Q) {
 	return Q.e[0];
     }
-    override double enthalpy(in GasState Q) {
+    override const double enthalpy(in GasState Q) {
 	return Q.e[0] + Q.p/Q.rho;
     }
-    override double entropy(in GasState Q) {
+    override const double entropy(in GasState Q) {
 	return _s1 + _Cp * log(Q.T[0]/_T1) - _Rgas * log(Q.p/_p1);
     }
 
@@ -145,7 +145,7 @@ private:
      * Returns:
      *     ratio of property at temperature T to reference value.
      */
-    double sutherland(double T, double T_ref, double s) {
+    const double sutherland(double T, double T_ref, double s) {
 	return sqrt(T/T_ref)*(T/T_ref)*(T_ref + s)/(T + s);
     }
 

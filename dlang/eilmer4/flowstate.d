@@ -25,15 +25,14 @@ public:
     double k_t;    // turbulence thermal-conductivity
     int S;         // shock indicator, value 0 or 1
 
-    this(GasModel gm, double p_init, double T_init[], Vector3 vel_init,
-	 double[] massf_init=[1.0,], double quality_init=1.0,
-	 Vector3 B_init=(0.0,0.0,0.0),
-	 double tke_init=0.0, double omega_init=1.0,
-	 double mu_t_init=0.0, double k_t_init=0.0,
-	 int S_init=0)
+    this(in GasModel gm, in double p_init, in double T_init[], in Vector3 vel_init,
+	 in double[] massf_init=[1.0,], in double quality_init=1.0,
+	 in Vector3 B_init=(0.0,0.0,0.0),
+	 in double tke_init=0.0, in double omega_init=1.0,
+	 in double mu_t_init=0.0, in double k_t_init=0.0,
+	 in int S_init=0)
     {
-	_gm = gm;
-	gas = new GasState(_gm, p_init, T_init, massf_init, quality_init);
+	gas = new GasState(gm, p_init, T_init, massf_init, quality_init);
 	vel = vel_init;
 	B = B_init;
 	tke = tke_init;
@@ -45,11 +44,22 @@ public:
 
     this() {} // makes no sense to define the data in the absence of a model
 
-    this(FlowState other)
+    this(in GasModel gm, in FlowState other)
     {
-	_gm = other._gm;
-	gas = new GasState(other._gm, other.gas.p, other.gas.T, other.gas.massf,
+	gas = new GasState(gm, other.gas.p, other.gas.T, other.gas.massf,
 			   other.gas.quality); 
+	vel = other.vel;
+	B = other.B;
+	tke = other.tke;
+	omega = other.omega;
+	mu_t = other.mu_t;
+	k_t = other.k_t;
+	S = other.S;
+    }
+
+    void copy_values_from(in FlowState other)
+    {
+	gas.copy_values_from(other.gas);
 	vel = other.vel;
 	B = other.B;
 	tke = other.tke;
@@ -74,7 +84,4 @@ public:
 	repr ~= ")";
 	return to!string(repr);
     }
-
-private:
-    GasModel _gm;  // don't want clients to be digging the gas model out of here.
 }

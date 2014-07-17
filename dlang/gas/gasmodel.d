@@ -15,32 +15,32 @@ immutable double R_universal = 8.314; // J/mole.K
 
 class GasModel {
 public:
-    @property uint n_species() { return _n_species; }
-    @property uint n_modes() { return _n_modes; }
+    @property const uint n_species() { return _n_species; }
+    @property const uint n_modes() { return _n_modes; }
 
     // Methods to be overridden.
-    void update_thermo_from_pT(ref GasState Q) {}
-    void update_thermo_from_rhoe(ref GasState Q) {}
-    void update_thermo_from_rhoT(ref GasState Q) {}
-    void update_thermo_from_rhop(ref GasState Q) {}
-    void update_thermo_from_ps(ref GasState Q, double s) {}
-    void update_thermo_from_hs(ref GasState Q, double s) {}
-    void update_sound_speed(ref GasState Q) {}
-    void update_trans_coeffs(ref GasState Q) {}
-//    void update_diff_coeffs(ref GasState Q) {}
+    const void update_thermo_from_pT(ref GasState Q) {}
+    const void update_thermo_from_rhoe(ref GasState Q) {}
+    const void update_thermo_from_rhoT(ref GasState Q) {}
+    const void update_thermo_from_rhop(ref GasState Q) {}
+    const void update_thermo_from_ps(ref GasState Q, double s) {}
+    const void update_thermo_from_hs(ref GasState Q, double s) {}
+    const void update_sound_speed(ref GasState Q) {}
+    const void update_trans_coeffs(ref GasState Q) {}
+    // const void update_diff_coeffs(ref GasState Q) {}
 
     // Methods to be overridden.
-    double dedT_const_v(in GasState Q) { return 0.0; }
-    double dhdT_const_p(in GasState Q) { return 0.0; }
-    double gas_constant(in GasState Q) { return 0.0; }
-    double internal_energy(in GasState Q) { return 0.0; }
-    double enthalpy(in GasState Q) { return 0.0; }
-    double entropy(in GasState Q) { return 0.0; }
+    const double dedT_const_v(in GasState Q) { return 0.0; }
+    const double dhdT_const_p(in GasState Q) { return 0.0; }
+    const double gas_constant(in GasState Q) { return 0.0; }
+    const double internal_energy(in GasState Q) { return 0.0; }
+    const double enthalpy(in GasState Q) { return 0.0; }
+    const double entropy(in GasState Q) { return 0.0; }
     
-    final double Cv(in GasState Q) { return dedT_const_v(Q); }
-    final double Cp(in GasState Q) { return dhdT_const_p(Q); }
-    final double R(in GasState Q) { return gas_constant(Q); }
-    final double gamma(in GasState Q) { return Cp(Q)/Cv(Q); }
+    final const double Cv(in GasState Q) { return dedT_const_v(Q); }
+    final const double Cp(in GasState Q) { return dhdT_const_p(Q); }
+    final const double R(in GasState Q) { return gas_constant(Q); }
+    final const double gamma(in GasState Q) { return Cp(Q)/Cv(Q); }
 protected:
     uint _n_species;
     uint _n_modes;
@@ -65,9 +65,9 @@ public:
     double[] massf;  /// species mass fractions
     double quality;  /// vapour quality
 
-    this(GasModel gm, double p_init, double[] T_init, 
-	 double[] massf_init=[1.0,], double quality_init=1.0,
-	 double sigma_init=0.0)
+    this(in GasModel gm, in double p_init, in double[] T_init, 
+	 in double[] massf_init=[1.0,], in double quality_init=1.0,
+	 in double sigma_init=0.0)
     {
 	p = p_init;
 	p_e = p_init;
@@ -96,9 +96,9 @@ public:
 	gm.update_trans_coeffs(this);
     }
 
-    this(GasModel gm, double p_init, double T_init, 
-	 double[] massf_init=[1.0,], double quality_init=1.0,
-	 double sigma_init=0.0)
+    this(in GasModel gm, in double p_init, in double T_init, 
+	 in double[] massf_init=[1.0,], in double quality_init=1.0,
+	 in double sigma_init=0.0)
     {
 	double[] Tlocal;
 	Tlocal.length = gm.n_modes;
@@ -110,7 +110,23 @@ public:
 
     this() {} // makes no sense to define the data in the absence of a model
 
-    this(GasState other) 
+    this(in GasState other) 
+    {
+	rho = other.rho;
+	p = other.p;
+	p_e = other.p_e;
+	a = other.a;
+	e = other.e.dup;
+	T = other.T.dup;
+	mu = other.mu;
+	k = other.k.dup;
+	// D_AB
+	sigma = other.sigma;
+	massf = other.massf.dup;
+	quality = other.quality;
+    }
+
+    void copy_values_from(in GasState other) 
     {
 	rho = other.rho;
 	p = other.p;
