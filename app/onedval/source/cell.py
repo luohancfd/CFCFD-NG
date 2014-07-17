@@ -82,6 +82,19 @@ class TriCell(Cell):
         TriCell.count = TriCell.count + 1
         return
 
+class AxiCell(Cell):
+    """
+    An axisymmetric cell defined by inner and outer radii.
+    """
+    count = 0
+    def __init__(self, data, pts):
+        Cell.__init__(self, data)
+        self._centroid = 0.5*(pts[0] + pts[1])
+        self._normal = Vector(1.0, 0.0, 0.0)
+        self._area = self._centroid.y*(pts[1].y - pts[0].y)
+        AxiCell.count = AxiCell.count + 1
+        return
+
 def unique(lst):
     seen = set()
     unique = []
@@ -192,6 +205,75 @@ def create_cells_from_slice(fname, var_map, scale):
         except ZeroDivisionError:
             print "An attempt to create a cell with essentially zero area was made."
             
+    return cells
+
+def create_cells_from_line(fname, var_map, scale):
+    f = open(fname, 'r')
+    # Read Title line and discard
+    f.readline()
+    # Gather variables
+    var_list = []
+    while 1:
+        line = f.readline()
+        if line.startswith('ZONE'):
+            break
+        if line.startswith('VARIABLES'):
+            tks = line.split()
+            var_list.append(tks[2].strip('"'))
+        else:
+            v = line.strip().strip('"')
+            var_list.append(v)
+    # Read Strand and Soltime info and discard
+    f.readline()
+    # Read number of points in i
+    tks = f.readline().split()
+    npoints = int(tks[0].split("=")[1][:-1])
+    # Read data packing and discard
+    f.readline()
+    # Read datatype and discard
+    f.readline()
+    # Read all data and place it in tks
+    tks = f.read().split()
+    f.close()
+    # Now pick up data
+    data = {}
+    pos = 0
+    for v in var_list:
+        data[v] = []
+    for i in range(npoints):
+        for v in var_list:
+            data[v].append(float(tks[pos]))
+            pos = pos + 1
+    # Create cells; first and last are special
+    xlabel = var_map['x']
+    ylabel = var_map['y']
+    zlabel = var_map['z']
+    cells = []
+    # First cell:
+    pt0 = Vector(data[xlabel][0], data[ylabel][0], data[zlabel][0])
+    pt1 = Vector(data[xlabel][1], data[ylabel][1], data[zlabel][1])
+    pts = [ pt0, 0.5*(pt0+pt1) ]
+    d = {}
+    for v in data.keys():
+        d[v] = data[v][0]
+    cells.append(AxiCell(d, pts))
+    # Interior cells:
+    for i in range(1,npoints-1):
+        ptA = Vector(data[xlabel][i-1], data[ylabel][i-1], data[zlabel][i-1])
+        ptB = Vector(data[xlabel][i], data[ylabel][i], data[zlabel][i])
+        ptC = Vector(data[xlabel][i+1], data[ylabel][i+1], data[zlabel][i+1])
+        pts = [ 0.5*(ptA+ptB), 0.5*(ptB+ptC) ]
+        d = {}
+        for v in data.keys():
+            d[v] = data[v][i]
+        cells.append(AxiCell(d, pts))
+    # Last cell
+    ptB = Vector(data[xlabel][npoints-2], data[ylabel][npoints-2], data[zlabel][npoints-2])
+    ptC = Vector(data[xlabel][npoints-1], data[ylabel][npoints-1], data[zlabel][npoints-1])
+    pts = [ 0.5*(ptB+ptC), ptC ]
+    for v in data.keys():
+        d[v] = data[v][npoints-1]
+    cells.append(AxiCell(d, pts))
     
     return cells
 

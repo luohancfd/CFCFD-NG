@@ -17,7 +17,7 @@ the 2D surface based on the methods selected by the user.
 import sys
 from math import *
 from gaspy import *
-from cell import create_cells_from_slice, area
+from cell import create_cells_from_slice, create_cells_from_line, area
 from prop_avg import *
 from copy import copy
 
@@ -217,6 +217,12 @@ def main():
         print "on to the next slice and ignore the 'bad' slice."
         cfg['skip_bad_slices'] = True
 
+    # 1i. Look for what kind of geometry
+    if not 'geometry_type' in cfg:
+        print "No 'geometry_type' was set."
+        print "The default type of 3D will be used."
+        cfg['geometry_type'] = '3D'
+
     # 2. Read data from slices and process
     print "onedval: Reading in data from slice(s)"
     f = open(cfg['output_file'], 'w')
@@ -229,7 +235,10 @@ def main():
     for slice_file in sys.argv[2:]:
         result = 'success'
         print "onedval: Creating cells from slice: ", slice_file
-        cells = create_cells_from_slice(slice_file, cfg['variable_map'], cfg['grid_scale'])
+        if cfg['geometry_type'] == 'axi':
+            cells = create_cells_from_line(slice_file, cfg['variable_map'], cfg['grid_scale'])
+        else:
+            cells = create_cells_from_slice(slice_file, cfg['variable_map'], cfg['grid_scale'])
         print "Total number of cells created from slice: ", len(cells)
         # 2a. apply filtering if required
         if 'filter_function' in cfg:
