@@ -23,7 +23,10 @@ public:
     double areaxy;    // x,y-plane area of secondary cells (for spatial derivatives)
     double volume;  // volume of 3D secondary cells (for spatial derivatives)
     // Derivatives of primary-cell variables.
-    double[][] grad_vel; // velocity derivatives
+    double[][] grad_vel; // velocity derivatives stored as a second-order tensor
+                         // [[du/dx du/dy du/dz]
+                         //  [dv/dx dv/dy dv/dz]
+                         //  [dw/dx dw/dy dw/dz]]
     Vector3 grad_T;      // Temperature derivatives (static temperature only)
     Vector3 grad_tke;    // turbulence kinetic energy
     Vector3 grad_omega;  // pseudo vorticity for k-omega turbulence

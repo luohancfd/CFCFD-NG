@@ -37,6 +37,7 @@ public:
     this(in GasModel gm, size_t id_init=0)
     {
 	id = id_init;
+	area.length = n_time_levels;
 	fs = new FlowState(gm, 100.0e3, [300.0,], Vector3(0.0,0.0,0.0));
 	F = new ConservedQuantities(gm);
     }
@@ -59,12 +60,11 @@ public:
     void copy_values_from(in FVInterface other, uint type_of_copy)
     {
 	switch ( type_of_copy ) {
-	case copy_flow_state_only:
+	case copy_flow_data:
 	    fs.copy_values_from(other.fs);
-	case copy_all_flow_data:
 	    F.copy_values_from(other.F);
 	    break;
-	case copy_grid_data_only:
+	case copy_grid_data:
 	    pos = other.pos;
 	    vel = other.vel;
 	    Ybar = other.Ybar;

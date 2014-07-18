@@ -10,6 +10,7 @@ import conservedquantities;
 import fvcore;
 import fvinterface;
 import fvvertex;
+import fvcell;
 
 void main()
 {
@@ -40,5 +41,9 @@ void main()
     auto vtx = new FVVertex(gm);
     writeln("vtx=", vtx);
 
+    auto cell = new FVCell(gm);
+    writeln("cell=", cell);
+
+    writeln("variable_list_for_cell=", variable_list_for_cell());
     writeln("done.");
 }
