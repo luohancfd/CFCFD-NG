@@ -33,7 +33,7 @@ struct CHeatZone {
 };
 
 struct CIgnitionZone {
-    double Tig;  // specified temerpature for ignition
+    double Tig;  // temperature to use with reaction_update, to ensure ignition
     double x0, y0, z0;
     double x1, y1, z1;
 };

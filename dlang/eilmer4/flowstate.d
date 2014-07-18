@@ -82,8 +82,8 @@ public:
 	}
 	gas.copy_average_values_from(gasList, gm);
 	// Accumulate from a clean slate and then divide.
-	vel.x = 0.0; vel.y = 0.0; vel.z = 0.0;
-	B.x = 0.0; B.y = 0.0; B.z = 0.0;
+	vel.refx = 0.0; vel.refy = 0.0; vel.refz = 0.0;
+	B.refx = 0.0; B.refy = 0.0; B.refz = 0.0;
 	tke = 0.0;
 	omega = 0.0;
 	mu_t = 0.0;

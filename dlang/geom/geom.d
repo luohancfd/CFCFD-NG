@@ -37,11 +37,16 @@ struct Vector3 {
 	_p = _p.dup;
     }
 
+    // For a lot of geometric work, it will be convenient to use
+    // x,y,z notation.
+    @property const double x() { return _p[0]; }
+    @property const double y() { return _p[1]; }
+    @property const double z() { return _p[2]; }
     // Note that the following three properties hand out references
-    // to the elements, so we can't control changes to the elements.
-    @property ref double x() { return _p[0]; }
-    @property ref double y() { return _p[1]; }
-    @property ref double z() { return _p[2]; }
+    // to the elements, so that we may change their values.
+    @property ref double refx() { return _p[0]; }
+    @property ref double refy() { return _p[1]; }
+    @property ref double refz() { return _p[2]; }
 
     @property Vector3 dup() {
 	return Vector3(this);
@@ -240,10 +245,10 @@ unittest {
     c = a - b;
     assert(c.y == a.y-b.y, "vector subtraction");
     Vector3 d = a.dup;
-    a.y = 99.0;
+    a.refy = 99.0;
     assert(a.y == 99.0 && d.y == 2.2, "dup followed by vector change");
     Vector3 d2 = a;
-    a.y = 3.3;
+    a.refy = 3.3;
     assert(a.y == 3.3 && d2.y == 99.0, "assignment followed by vector change");
 
     Vector3 e = a * 2.0;
@@ -325,8 +330,8 @@ ref Vector3 map_neutral_plane_to_cylinder(ref Vector3 p, double H )
     if ( H > 0.0 ) {
 	double theta = p.y / H;
 	double old_z = p.z;
-	p.z = old_z * cos(theta);
-	p.y = old_z * sin(theta);
+	p.refz = old_z * cos(theta);
+	p.refy = old_z * sin(theta);
 	// x remains the same
     }
     return p;

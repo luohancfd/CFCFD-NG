@@ -59,8 +59,8 @@ public:
     void clear_values()
     {
 	mass = 0.0;
-	momentum.x = 0.0; momentum.y = 0.0; momentum.z = 0.0;
-	B.x = 0.0; B.y = 0.0; B.z = 0.0;
+	momentum.refx = 0.0; momentum.refy = 0.0; momentum.refz = 0.0;
+	B.refx = 0.0; B.refy = 0.0; B.refz = 0.0;
 	total_energy = 0.0;
 	foreach(ref mf; massf) mf = 0.0;
 	foreach(ref e; energies) e = 0.0;
