@@ -36,6 +36,7 @@ public:
 
     this(in GasModel gm, size_t id_init=0)
     {
+	id = id_init;
 	fs = new FlowState(gm, 100.0e3, [300.0,], Vector3(0.0,0.0,0.0));
 	F = new ConservedQuantities(gm);
     }
@@ -89,6 +90,11 @@ public:
 	} // end switch
     }
 
+    void copy_grid_level_to_level(uint from_level, uint to_level)
+    {
+	area[to_level] = area[from_level];
+    }
+
     override string toString()
     {
 	char[] repr;
@@ -107,10 +113,4 @@ public:
 	repr ~= ")";
 	return to!string(repr);
     }
-	 
-/+ [TODO]
-    FV_Interface(const FV_Interface &iface);
-    int copy_values_from(const FV_Interface &src, int type_of_copy);
-    int copy_grid_level_to_level(size_t from_level, size_t to_level);
-+/
 } // end of class FV_Interface

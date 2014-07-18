@@ -9,6 +9,7 @@ import flowstate;
 import conservedquantities;
 import fvcore;
 import fvinterface;
+import fvvertex;
 
 void main()
 {
@@ -35,6 +36,9 @@ void main()
 
     auto iface = new FVInterface(gm);
     writeln("iface=", iface);
+
+    auto vtx = new FVVertex(gm);
+    writeln("vtx=", vtx);
 
     writeln("done.");
 }
