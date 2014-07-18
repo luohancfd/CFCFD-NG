@@ -142,6 +142,41 @@ public:
 	quality = other.quality;
     }
 
+    // Note that we must not send the current object in the others list as well.
+    void copy_average_values_from(in GasState[] others, in GasModel gm) 
+    {
+	uint n = others.length;
+	if (n == 0) throw new Error("Need to average from a nonempty array.");
+	foreach(other; others) {
+	    if ( this is other ) throw new Error("Must not include destination in source list.");
+	}
+	// Accumulate from a clean slate and then divide.
+	p = 0.0;
+	p_e = 0.0;
+	foreach(ref elem; T) elem = 0.0;
+	sigma = 0.0;
+	foreach(ref elem; massf) elem = 0.0;
+	quality = 0.0;
+	foreach(other; others) {
+	    p += other.p;
+	    p_e += other.p_e;
+	    foreach(i; 0 .. T.length) T[i] += other.T[i];
+	    sigma += other.sigma;
+	    foreach(i; 0 .. massf.length) massf[i] += other.massf[i];
+	    quality += other.quality;
+	}
+	p /= n;
+	p_e /= n;
+	foreach(ref elem; T) elem /= n;
+	sigma /= n;
+	foreach(ref elem; massf) elem /= n;
+	quality /= n;
+	// Now, evaluate the rest of the properties using the gas model.
+	gm.update_thermo_from_pT(this);
+	gm.update_sound_speed(this);
+	gm.update_trans_coeffs(this);
+    }
+
     override string toString()
     {
 	char[] repr;
@@ -160,4 +195,9 @@ public:
 	repr ~= ")";
 	return to!string(repr);
     }
+
+/+ [TODO]
+    double * copy_values_to_buffer(double *buf) const;
+    double * copy_values_from_buffer(double *buf);
++/
 } // end class GasState

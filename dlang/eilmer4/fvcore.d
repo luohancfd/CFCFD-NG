@@ -34,10 +34,13 @@ string[] updateSchemeName = [ "euler", "pc", "midpoint",
 			      "classic_rk3", "tvd_rk3", "denman_rk3" ];
 uint[string] updateSchemeIndex;
 
+// [TODO] think about the following...
 enum
-    copy_all_cell_data = 0,
+    copy_all_data = 0,
     copy_flow_state_only = 1,
-    copy_cell_lengths_only = 2;
+    copy_all_flow_data = 2,
+    copy_cell_lengths_only = 3,
+    copy_grid_data_only = 4;
 
 // n_time_levels is used to size the time-derivative vectors.
 enum

@@ -44,7 +44,7 @@ public:
 
     this() {} // makes no sense to define the data in the absence of a model
 
-    this(in GasModel gm, in FlowState other)
+    this(in FlowState other, in GasModel gm)
     {
 	gas = new GasState(gm, other.gas.p, other.gas.T, other.gas.massf,
 			   other.gas.quality); 
@@ -69,6 +69,44 @@ public:
 	S = other.S;
     }
 
+    // Note that we must not send the current object in the others list as well.
+    void copy_average_values_from(in FlowState[] others, in GasModel gm)
+    {
+	uint n = others.length;
+	if (n == 0) throw new Error("Need to average from a nonempty array.");
+	GasState[] gasList;
+	// We need to be honest and not to fiddle with the other gas states.
+	foreach(other; others) {
+	    if ( this is other ) throw new Error("Must not include destination in source list.");
+	    gasList ~= cast(GasState)other.gas;
+	}
+	gas.copy_average_values_from(gasList, gm);
+	// Accumulate from a clean slate and then divide.
+	vel.x = 0.0; vel.y = 0.0; vel.z = 0.0;
+	B.x = 0.0; B.y = 0.0; B.z = 0.0;
+	tke = 0.0;
+	omega = 0.0;
+	mu_t = 0.0;
+	k_t = 0.0;
+	S = 0; // remember that shock detector is an integer flag
+	foreach(other; others) {
+	    vel += other.vel;
+	    B += other.B;
+	    tke += other.tke;
+	    omega += other.omega;
+	    mu_t += other.mu_t;
+	    k_t += other.k_t;
+	    S += other.S;
+	}
+	vel /= n;
+	B /= n;
+	tke /= n;
+	omega /= n;
+	mu_t /= n;
+	k_t /= n;
+	S = (S > 0) ? 1 : 0;
+    }
+
     override string toString()
     {
 	char[] repr;
@@ -84,4 +122,9 @@ public:
 	repr ~= ")";
 	return to!string(repr);
     }
-}
+/+ [TODO]
+    double * copy_values_to_buffer(double *buf) const;
+    double * copy_values_from_buffer(double *buf);
+    int BGK_equilibrium(void);
++/
+} // end class FlowState

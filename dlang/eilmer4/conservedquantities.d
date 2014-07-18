@@ -7,6 +7,9 @@
  */
 
 module conservedquantities;
+
+import std.string;
+import std.conv;
 import geom;
 import gasmodel;
 
@@ -64,4 +67,20 @@ public:
 	tke = 0.0;
 	omega = 0.0;
     }
-}
+
+    override string toString()
+    {
+	char[] repr;
+	repr ~= "ConservedQuantities(";
+	repr ~= "mass=" ~ to!string(mass);
+	repr ~= ", momentum=" ~ to!string(momentum);
+	repr ~= ", B=" ~ to!string(B);
+	repr ~= ", total_energy=" ~ to!string(total_energy);
+	repr ~= ", massf=" ~ to!string(massf);
+	repr ~= ", energies=" ~ to!string(energies);
+	repr ~= ", tke=" ~ to!string(tke);
+	repr ~= ", omega=" ~ to!string(omega);
+	repr ~= ")";
+	return to!string(repr);
+    }
+} // end class ConservedQuantities

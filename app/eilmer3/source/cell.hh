@@ -132,7 +132,7 @@ public:
     int status; // state of the interface with respect to pistons
     // Geometry
     Vector3 pos;       ///< \brief position of the (approx) midpoint
-    Vector3 vel;       ///< \brief gas velocity, m/s
+    Vector3 vel;       ///< \brief face (grid) velocity, m/s
     double Ybar;       ///< \brief Y-coordinate of the mid-point
     double length;     ///< \brief Interface length in the x,y-plane
     std::vector<double> area; ///< \brief  Area m**2 for each time-level.

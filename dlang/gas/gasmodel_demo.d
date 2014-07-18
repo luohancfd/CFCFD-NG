@@ -19,7 +19,11 @@ void main() {
     writefln("rho= %s, e= %s, a= %s", gd.rho, gd.e[0], gd.a); 
     writeln("gd= ", gd);
     auto gd2 = new GasState(gm, 200.0e3, 400.0);
-    gd2.copy_values_from(gd);
     writeln("gd2=", gd2);
+    auto gd3 = new GasState(gm, 100.0e3, 300.0);
+    gd3.copy_average_values_from([gd2, gd], gm);
+    writeln("after average gd3=", gd3);
+    gd2.copy_values_from(gd);
+    writeln("after copy gd2=", gd2);
     writeln("Done.");
 }
