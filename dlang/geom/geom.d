@@ -409,10 +409,15 @@ void quad_properties(in Vector3 p0, in Vector3 p1, in Vector3 p2, in Vector3 p3,
     }
 } // end quad_properties()
 
+double tetrahedron_volume(in Vector3 p0, in Vector3 p1, in Vector3 p2, in Vector3 p3)
+{
+    return dot(p3-p0, cross(p1-p0, p2-p0)) / 6.0;
+} // end tetrahedron_volume()
+
 void tetrahedron_properties(in Vector3 p0, in Vector3 p1, in Vector3 p2, in Vector3 p3,
 			    ref Vector3 centroid, ref double volume)
 {
-    volume = dot(p3-p0, cross(p1-p0, p2-p0)) / 6.0;
+    volume = tetrahedron_volume(p0, p1, p2, p3);
     centroid = 0.25 * (p0 + p1 + p2 + p3);
 } // end tetrahedron_properties()
 

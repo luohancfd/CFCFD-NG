@@ -32,9 +32,9 @@ void main()
     writeln("cleared Q=", Q);
 
     init_fvcore();
-    writeln("faceName[faceIndex[\"south\"]]=", faceName[faceIndex["south"]]);
-    writeln("updateSchemeName[updateSchemeIndex[\"classic_rk3\"]]=",
-	    updateSchemeName[updateSchemeIndex["classic_rk3"]]);
+    writeln("face_name[face_index[\"south\"]]=", face_name[face_index["south"]]);
+    writeln("update_scheme_name[update_scheme_index[\"classic_rk3\"]]=",
+	    gasdynamic_update_scheme_name[gasdynamic_update_scheme_index["classic_rk3"]]);
 
     auto iface = new FVInterface(gm);
     writeln("iface=", iface);

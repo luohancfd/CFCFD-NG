@@ -18,9 +18,10 @@ enum
     top = 4,
     bottom = 5;
 
-string[] faceName = [ "north", "east", "south", "west", "top", "bottom" ];
-uint[string] faceIndex;
+string[] face_name = [ "north", "east", "south", "west", "top", "bottom" ];
+uint[string] face_index; // initialized with a call to init_fv_core()
 
+// Symbolic names for the time-stepping schemes used to update the gasdynamic eqn.
 enum 
     euler_update = 0, 
     pc_update = 1,
@@ -29,9 +30,13 @@ enum
     tvd_rk3_update = 4,
     denman_rk3_update = 5;
 
-string[] updateSchemeName = [ "euler", "pc", "midpoint", 
-			      "classic_rk3", "tvd_rk3", "denman_rk3" ];
-uint[string] updateSchemeIndex;
+int gasdynamic_update_scheme = pc_update;
+
+string[] gasdynamic_update_scheme_name = ["euler", "predictor-corrector", "midpoint", 
+					  "classic-rk3", "tvd-rk3", "denman-rk3"];
+int[] number_of_stages_for_update_scheme = [1, 2, 2, 3, 3, 3];
+uint[string] gasdynamic_update_scheme_index; // initialized with a call to init_fv_core()
+
 
 // [TODO] think about the following...
 enum
@@ -55,12 +60,12 @@ enum
 
 void init_fvcore()
 {
-    faceIndex = [ "north":north, "east":east, "south":south,
-		  "west":west, "top":top, "bottom":bottom ];
-    updateSchemeIndex = [ "euler":euler_update,
-			  "pc":pc_update,
-			  "midpoint":midpoint_update, 
-			  "classic_rk3":classic_rk3_update,
-			  "tvd_rk3":tvd_rk3_update,
-			  "denman_rk3":denman_rk3_update ];
+    face_index = ["north":north, "east":east, "south":south,
+		  "west":west, "top":top, "bottom":bottom];
+    gasdynamic_update_scheme_index = ["euler":euler_update,
+				      "pc":pc_update,
+				      "midpoint":midpoint_update, 
+				      "classic_rk3":classic_rk3_update,
+				      "tvd_rk3":tvd_rk3_update,
+				      "denman_rk3":denman_rk3_update];
 }

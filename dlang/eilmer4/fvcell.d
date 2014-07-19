@@ -126,6 +126,14 @@ public:
 	pos[to_level] = pos[from_level];
 	volume[to_level] = volume[from_level];
 	areaxy[to_level] = areaxy[from_level];
+	// When working over all cells in a block, the following copies
+	// will no doubt do some doubled-up work, but it should be otherwise benign.
+	foreach(ref face; iface) {
+	    if ( face ) face.copy_grid_level_to_level(from_level, to_level);
+	}
+	foreach(ref v; vtx) {
+	    if ( v ) v.copy_grid_level_to_level(from_level, to_level);
+	}
     }
 
     override string toString()
@@ -151,21 +159,101 @@ public:
 	return to!string(repr);
     }
 
+    const bool point_is_inside(in Vector3 p, int dimensions, int gtl)
+    // Returns true if the point p is inside or on the cell surface.
+    {
+	if ( dimensions == 2 ) {
+	    // In 2 dimensions,
+	    // we split the x,y-plane into half-planes and check which side p is on.
+	    double xA = vtx[1].pos[gtl].x; double yA = vtx[1].pos[gtl].y;
+	    double xB = vtx[1].pos[gtl].x; double yB = vtx[2].pos[gtl].y;
+	    double xC = vtx[3].pos[gtl].x; double yC = vtx[3].pos[gtl].y;
+	    double xD = vtx[0].pos[gtl].x; double yD = vtx[0].pos[gtl].y;
+	    // Now, check to see if the specified point is on the
+	    // left of (or on) each bloundary line AB, BC, CD and DA.
+	    if ((p.x - xB) * (yA - yB) >= (p.y - yB) * (xA - xB) &&
+		(p.x - xC) * (yB - yC) >= (p.y - yC) * (xB - xC) &&
+		(p.x - xD) * (yC - yD) >= (p.y - yD) * (xC - xD) &&
+		(p.x - xA) * (yD - yA) >= (p.y - yA) * (xD - xA)) {
+		return true;
+	    } else {
+		return false;
+	    }
+	} else {
+	    // In 3 dimensions,
+	    // the test consists of dividing the 6 cell faces into triangular facets
+	    // with outwardly-facing normals and then computing the volumes of the
+	    // tetrahedra formed by these facets and the sample point p.
+	    // If any of the tetrahedra volumes are positive
+	    // (i.e. p is on the positive side of a facet) and we assume a convex cell,
+	    // it means that the point is outside the cell and we may say so
+	    // without further testing.
+
+	    // North
+	    if ( tetrahedron_volume(vtx[2].pos[gtl], vtx[3].pos[gtl], vtx[7].pos[gtl], p) > 0.0 ) return false;
+	    if ( tetrahedron_volume(vtx[7].pos[gtl], vtx[6].pos[gtl], vtx[2].pos[gtl], p) > 0.0 ) return false;
+	    // East
+	    if ( tetrahedron_volume(vtx[1].pos[gtl], vtx[2].pos[gtl], vtx[6].pos[gtl], p) > 0.0 ) return false;
+	    if ( tetrahedron_volume(vtx[6].pos[gtl], vtx[5].pos[gtl], vtx[1].pos[gtl], p) > 0.0 ) return false;
+	    // South
+	    if ( tetrahedron_volume(vtx[0].pos[gtl], vtx[1].pos[gtl], vtx[5].pos[gtl], p) > 0.0 ) return false;
+	    if ( tetrahedron_volume(vtx[5].pos[gtl], vtx[4].pos[gtl], vtx[0].pos[gtl], p) > 0.0 ) return false;
+	    // West
+	    if ( tetrahedron_volume(vtx[3].pos[gtl], vtx[0].pos[gtl], vtx[4].pos[gtl], p) > 0.0 ) return false;
+	    if ( tetrahedron_volume(vtx[4].pos[gtl], vtx[7].pos[gtl], vtx[3].pos[gtl], p) > 0.0 ) return false;
+	    // Bottom
+	    if ( tetrahedron_volume(vtx[1].pos[gtl], vtx[0].pos[gtl], vtx[3].pos[gtl], p) > 0.0 ) return false;
+	    if ( tetrahedron_volume(vtx[3].pos[gtl], vtx[2].pos[gtl], vtx[1].pos[gtl], p) > 0.0 ) return false;
+	    // Top
+	    if ( tetrahedron_volume(vtx[4].pos[gtl], vtx[5].pos[gtl], vtx[6].pos[gtl], p) > 0.0 ) return false;
+	    if ( tetrahedron_volume(vtx[6].pos[gtl], vtx[7].pos[gtl], vtx[4].pos[gtl], p) > 0.0 ) return false;
+	    // If we arrive here, we haven't determined that the point is outside...
+	    return true;
+	} // end dimensions != 2
+    } // end point_is_inside()
+
+    const void copy_values_to_buffer(ref double[] buf, int type_of_copy, int gtl) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void copy_values_from_buffer(in double buf, int type_of_copy, int gtl) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void replace_flow_data_with_average(in FVCell[] src) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void scan_flow_values_from_string(string bufptr) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    const string write_flow_values_to_string() {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void scan_BGK_from_string(string bufptr) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    const string write_BGK_to_string() {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void encode_conserved(int gtl, int ftl, double omegaz, bool with_k_omega) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void decode_conserved(int gtl, int ftl, double omegaz, bool with_k_omega) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    bool check_flow_data() {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+
 /+ [TODO]
-    int point_is_inside(Vector3 &p, int dimensions, size_t gtl) const;
-    double * copy_values_to_buffer(double *buf, int type_of_copy, size_t gtl) const;
-    double * copy_values_from_buffer(double *buf, int type_of_copy, size_t gtl);
-    int replace_flow_data_with_average(std::vector<FV_Cell *> src);
-    int scan_values_from_string(char *bufptr);
-    std::string write_values_to_string() const;
-    int scan_BGK_from_string(char *bufptr);
-    std::string write_BGK_to_string() const;
-    int impose_chemistry_timestep(double dt);
-    int impose_thermal_timestep(double dt);
-    int set_fr_reactions_allowed(int flag);
-    int encode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k_omega);
-    int decode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k_omega);
-    bool check_flow_data(void);
     int time_derivatives(size_t gtl, size_t ftl, size_t dimensions, bool with_k_omega);
     int stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, bool with_k_omega);
     int stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega);
