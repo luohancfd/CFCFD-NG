@@ -17,6 +17,7 @@ class GasModel {
 public:
     @property const uint n_species() { return _n_species; }
     @property const uint n_modes() { return _n_modes; }
+    const string species_name(int i) { return _species_names[i]; }
 
     // Methods to be overridden.
     const void update_thermo_from_pT(ref GasState Q) {}
@@ -42,8 +43,10 @@ public:
     final const double R(in GasState Q) { return gas_constant(Q); }
     final const double gamma(in GasState Q) { return Cp(Q)/Cv(Q); }
 protected:
+    // These data need to be properly initialized by the derived class.
     uint _n_species;
     uint _n_modes;
+    string[] _species_names;
 }
 
 

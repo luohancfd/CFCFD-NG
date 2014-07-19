@@ -9,6 +9,7 @@
 module fvcell;
 
 import std.conv;
+import std.string;
 import geom;
 import gasmodel;
 import fvcore;
@@ -16,6 +17,7 @@ import flowstate;
 import conservedquantities;
 import fvvertex;
 import fvinterface;
+import globalconfig;
 
 
 class FVCell {
@@ -194,10 +196,31 @@ public:
 
 string[] variable_list_for_cell()
 {
+    // This function needs to be kept consistent with functions
+    // FVCell.write_values_to_string, FVCell.scan_values_from_string
+    // (found above) and with the corresponding Python functions
+    // write_cell_data and variable_list_for_cell
+    // that may be found in app/eilmer3/source/e3_flow.py.
     string[] list;
-    list ~= "pos.x";
-    list ~= "pos.y";
-    list ~= "pos.z";
-    // [TODO] finish this list -- need to have access to GlobalConfig data.
+    list ~= ["pos.x", "pos.y", "pos.z"];
+    list ~= ["rho", "vel.x", "vel.y", "vel.z"];
+    if ( GlobalConfig.MHD ) list ~= ["B.x", "B.y", "B.z"];
+    list ~= ["p", "a", "mu"];
+    auto gm = GlobalConfig.gmodel;
+    foreach(i; 0 .. gm.n_modes) list ~= "k[" ~ to!string(i) ~ "]";
+    list ~= ["mu_t", "k_t", "S"];
+    if ( GlobalConfig.radiation ) list ~= ["Q_rad_org", "f_rad_org", "Q_rE_rad"];
+    list ~= ["tke", "omega"];
+    foreach(i; 0 .. gm.n_species) {
+	auto name = cast(char[]) gm.species_name(i);
+	// Clean up name, replacing internal spaces with dashes.
+	name = strip(name);
+	auto indx = indexOf(name, ' ');
+	while ( indx > 0 ) { name[indx] = '-'; indx = indexOf(name, ' '); } 
+	list ~= ["massf[" ~ to!string(i) ~ "]-" ~ to!string(name)];
+    }
+    if ( gm.n_species > 1 ) list ~= ["dt_chem"];
+    foreach(i; 0 .. gm.n_modes) list ~= ["e[" ~ to!string(i) ~ "]", "T[" ~ to!string(i) ~ "]"];
+    if ( gm.n_modes > 1 ) list ~= ["dt_therm"];
     return list;
 } // end variable_list_for_cell()

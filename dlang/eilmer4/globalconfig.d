@@ -5,6 +5,7 @@ module globalconfig;
 
 import std.conv;
 import geom;
+import gasmodel;
 
 enum
     tm_none = 0,
@@ -52,6 +53,7 @@ class IgnitionZone : BlockZone {
 final class GlobalConfig {
     static string base_file_name = "job"; // Change this to suit at run time.
     static string title = "Eilmer4 simulation"; // Change this to suit at run time.
+    static GasModel gmodel;
 
     static int nBlocks; // Number of blocks in the overall simulation.
     static int dimensions = 2; // or 3

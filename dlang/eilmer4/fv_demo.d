@@ -11,6 +11,7 @@ import fvcore;
 import fvinterface;
 import fvvertex;
 import fvcell;
+import globalconfig;
 
 void main()
 {
@@ -44,6 +45,7 @@ void main()
     auto cell = new FVCell(gm);
     writeln("cell=", cell);
 
+    GlobalConfig.gmodel = gm; // The following call needs the gas model in place.
     writeln("variable_list_for_cell=", variable_list_for_cell());
     writeln("done.");
 }

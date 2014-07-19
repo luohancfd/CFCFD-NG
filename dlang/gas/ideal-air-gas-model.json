@@ -1,5 +1,6 @@
 {
     "model": "Ideal_gas",
+    "name": "ideal air",
     "M": 0.02896,
     "gamma": 1.4,
     "s1": 0.0,

@@ -17,9 +17,10 @@ import std.conv;
 class IdealGas: GasModel {
 public:
     this() {
-	// Default model is ideal air, as initialized in the private data.
+	// Default model is mostly initialized in the private data below.
 	_n_species = 1;
 	_n_modes = 1;
+	_species_names ~= "ideal air";
     }
     this(in char[] file_name) {
 	// writefln("Read my parameters from the gas-model file: %s", file_name);
@@ -27,6 +28,7 @@ public:
 	if (file_name.length > 0) {
 	    auto text = cast(string) read(file_name);
 	    auto items = parseJSON(text);
+	    _species_names ~= items["name"].str;
 	    _Mmass = items["M"].floating;
 	    _gamma = items["gamma"].floating;
 	    _Cv = R_universal/_Mmass / (_gamma - 1.0);
@@ -48,7 +50,8 @@ public:
     {
 	char[] repr;
 	repr ~= "IdealGas(";
-	repr ~= "Mmass=" ~ to!string(_Mmass);
+	repr ~= "name=\"" ~ _species_names[0] ~"\"";
+	repr ~= ", Mmass=" ~ to!string(_Mmass);
 	repr ~= ", gamma=" ~ to!string(_gamma);
 	repr ~= ", s1=" ~ to!string(_s1);
 	repr ~= ", T1=" ~ to!string(_T1);
@@ -155,6 +158,7 @@ private:
 unittest {
     import std.stdio;
     auto gm = new IdealGas();
+    assert(gm.species_name(0) == "ideal air", "species name list");
     auto gd = new GasState(gm, 100.0e3, 300.0);
     assert(approxEqual(gm.R(gd), 287.086), "gas constant");
     assert(gm.n_modes == 1, "number of energy modes");

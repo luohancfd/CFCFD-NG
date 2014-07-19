@@ -12,6 +12,9 @@ import gasmodelutil;
 void main() {
     writeln("Begin demonstration of using the gasmodel and Gas_data classes...");
     auto gm = init_gas_model("ideal-air-gas-model.json");
+    foreach(i; 0 .. gm.n_species) {
+	writeln("species[", i, "] name=", gm.species_name(i));
+    }
     auto gd = new GasState(gm, 100.0e3, 300.0);
     writefln("R= %s, pressure= %s, temperature= %s", gm.R(gd), gd.p, gd.T[0]);
     gm.update_thermo_from_pT(gd);

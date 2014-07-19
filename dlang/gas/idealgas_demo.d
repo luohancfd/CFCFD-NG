@@ -12,6 +12,7 @@ import idealgas;
 void main() {
     writeln("Begin demonstration of using the IdealGas and GasState classes...");
     auto gm = new IdealGas();
+    writeln("species name=", gm.species_name(0));
     writeln("gm=", gm);
     auto gd = new GasState(gm, 100.0e3, 300.0);
     writefln("R= %s, pressure= %s, temperature= %s", gm.R(gd), gd.p, gd.T[0]);
