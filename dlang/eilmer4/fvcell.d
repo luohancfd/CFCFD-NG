@@ -879,44 +879,317 @@ public:
     } // end stage_2_update_for_flow_on_moving_grid()
 
     void chemical_increment(double dt, double T_frozen) 
+    // Use the finite-rate chemistry module to update the species fractions
+    // and the other thermochemical properties.
     {
-	throw new Error("[TODO] not yet implemented");
-    }
+	throw new Error("[TODO] not yet ready for use");
+
+	if ( !fr_reactions_allowed || fs.gas.T[0] <= T_frozen ) return;
+	auto gmodel = GlobalConfig.gmodel;
+	// [TODO] auto rupdate = GlobalConfig.reaction_update_scheme;
+	const bool copy_gas_in_case_of_failure = false;
+	GasState gcopy;
+	if ( copy_gas_in_case_of_failure ) {
+	    // Make a copy so that we can print out if things go wrong.
+	    gcopy = new GasState(fs.gas);
+	}
+	double T_save = fs.gas.T[0];
+	if ( GlobalConfig.ignition_zone_active ) {
+	    // When active, replace gas temperature with an effective ignition temperature
+	    foreach(zone; GlobalConfig.ignition_zones) {
+		if ( zone.is_inside(pos[0], GlobalConfig.dimensions) ) fs.gas.T[0] = zone._Tig; 
+	    }
+	}
+	try {
+	    // [TODO] rupdate.update_state(fs.gas, dt, dt_chem, gmodel);
+	    if ( GlobalConfig.ignition_zone_active ) {
+		// Restore actual gas temperature
+		fs.gas.T[0] = T_save;
+	    }
+	} catch(Exception err) {
+	    writefln("catch %s", err.msg);
+	    writeln("The chemical_increment() failed for cell: ", id);
+	    if ( copy_gas_in_case_of_failure ) {
+		writeln("The gas state before the update was:");
+		writefln("gcopy %s", gcopy);
+	    }
+	    writeln("The gas state after the update was:");
+	    writefln("fs.gas %s", fs.gas);
+	}
+
+	// The update only changes mass fractions; we need to impose
+	// a thermodynamic constraint based on a call to the equation of state.
+	gmodel.update_thermo_from_rhoe(fs.gas);
+
+	// If we are doing a viscous sim, we'll need to ensure
+	// viscous properties are up-to-date
+	if ( GlobalConfig.viscous ) gmodel.update_trans_coeffs(fs.gas);
+	// [TODO] if ( GlobalConfig.diffusion ) gmodel.update_diffusion_coeffs(fs.gas);
+
+	// Finally, we have to manually update the conservation quantities
+	// for the gas-dynamics time integration.
+	// Species densities: mass of species isp per unit volume.
+	foreach(isp; 0 .. fs.gas.massf.length)
+	    U[0].massf[isp] = fs.gas.rho * fs.gas.massf[isp];
+    } // end chemical_increment()
 
     void thermal_increment(double dt, double T_frozen_energy) 
+    // Use the nonequilibrium multi-Temperature module to update the
+    // energy values and the other thermochemical properties.
+    // We are assuming that this is done after a successful gas-dynamic update
+    // and that the current conserved quantities are held in U[0].
     {
-	throw new Error("[TODO] not yet implemented");
-    }
+	throw new Error("[TODO] not yet ready for use");
+	if ( !fr_reactions_allowed || fs.gas.T[0] <= T_frozen_energy ) return;
+	auto gmodel = GlobalConfig.gmodel;
+	// [TODO] auto eeupdate = GlobalConfig.energy_exchange_update_scheme;
+
+	// [TODO] eeupdate.update_state(fs.gas, dt, dt_therm, gmodel);
+
+	// The update only changes modal energies, we need to impose
+	// a thermodynamic constraint based on a call to the equation
+	// of state.
+	gmodel.update_thermo_from_rhoe(fs.gas);
+
+	// If we are doing a viscous sim, we'll need to ensure
+	// viscous properties are up-to-date
+	if ( GlobalConfig.viscous ) gmodel.update_trans_coeffs(fs.gas);
+	// [TODO] if ( GlobalConfig.diffusion ) gmodel.update_diff_coeffs(fs.gas);
+
+	// Finally, we have to manually update the conservation quantities
+	// for the gas-dynamics time integration.
+	// Independent energies energy: Joules per unit volume.
+	foreach(imode; 0 .. U[0].energies.length) {
+	    U[0].energies[imode] = fs.gas.rho * fs.gas.e[imode];
+	}
+    } // end thermal_increment()
 
     double signal_frequency(int dimensions, bool with_k_omega) 
     {
-	throw new Error("[TODO] not yet implemented");
-    }
+	double signal;
+	double un_N, un_E, un_T, u_mag;
+	double Bn_N = 0.0;
+	double Bn_E = 0.0;
+	double Bn_T = 0.0;
+	double B_mag = 0.0;
+	double ca2 = 0.0;
+	double cfast = 0.0;
+	double gam_eff;
+	int statusf;
+	auto gmodel = GlobalConfig.gmodel;
+	FVInterface north_face = iface[north];
+	FVInterface east_face = iface[east];
+	FVInterface top_face = iface[top];
+	// Get the local normal velocities by rotating the
+	// local frame of reference.
+	// Also, compute the velocity magnitude and
+	// recall the minimum length.
+	un_N = fabs(dot(fs.vel, north_face.n));
+	un_E = fabs(dot(fs.vel, east_face.n));
+	if ( dimensions == 3 ) {
+	    un_T = fabs(dot(fs.vel, top_face.n));
+	    u_mag = sqrt(fs.vel.x*fs.vel.x + fs.vel.y*fs.vel.y + fs.vel.z*fs.vel.z);
+	}  else {
+	    un_T = 0.0;
+	    u_mag = sqrt(fs.vel.x*fs.vel.x + fs.vel.y*fs.vel.y);
+	}
+	if ( GlobalConfig.MHD ) {
+	    Bn_N = fabs(dot(fs.B, north_face.n));
+	    Bn_E = fabs(dot(fs.B, east_face.n));
+	    if ( dimensions == 3 ) {
+		Bn_T = fabs(dot(fs.B, top_face.n));
+	    }
+	    u_mag = sqrt(fs.vel.x * fs.vel.x + fs.vel.y * fs.vel.y + fs.vel.z * fs.vel.z);
+	    B_mag = sqrt(fs.B.x * fs.B.x + fs.B.y * fs.B.y + fs.B.z * fs.B.z);
+	}
+	// Check the INVISCID time step limit first,
+	// then add a component to ensure viscous stability.
+	if ( GlobalConfig.stringent_cfl ) {
+	    // Make the worst case.
+	    if ( GlobalConfig.MHD ) {
+		ca2 = B_mag*B_mag / fs.gas.rho;
+		cfast = sqrt( ca2 + fs.gas.a * fs.gas.a );
+		signal = (u_mag + cfast) / L_min;
+	    } else {
+		// Hydrodynamics only
+		signal = (u_mag + fs.gas.a) / L_min;
+	    }
+	} else {
+	    // Standard signal speeds along each face.
+	    double signalN, signalE, signalT;
+	    if ( GlobalConfig.MHD ) {
+		double catang2_N, catang2_E, cfast_N, cfast_E;
+		ca2 = B_mag * B_mag / fs.gas.rho;
+		ca2 = ca2 + fs.gas.a * fs.gas.a;
+		catang2_N = Bn_N * Bn_N / fs.gas.rho;
+		cfast_N = 0.5 * ( ca2 + sqrt( ca2*ca2 - 4.0 * (fs.gas.a * fs.gas.a * catang2_N) ) );
+		cfast_N = sqrt(cfast_N);
+		catang2_E = Bn_E * Bn_E / fs.gas.rho;
+		cfast_E = 0.5 * ( ca2 + sqrt( ca2*ca2 - 4.0 * (fs.gas.a * fs.gas.a * catang2_E) ) );
+		cfast_E = sqrt(cfast_E);
+		if ( dimensions == 3 ) {
+		    double catang2_T, cfast_T;
+		    catang2_T = Bn_T * Bn_T / fs.gas.rho;
+		    cfast_T = 0.5 * ( ca2 + sqrt( ca2*ca2 - 4.0 * (fs.gas.a * fs.gas.a * catang2_T) ) );
+		    cfast_T = sqrt(cfast_T);
+		    signalN = (un_N + cfast_N) / jLength;
+		    signal = signalN;
+		    signalE = (un_E + cfast_E) / iLength;
+		    if ( signalE > signal ) signal = signalE;
+		    signalT = (un_T + cfast_T) / kLength;
+		    if ( signalT > signal ) signal = signalT;
+		} else {
+		    signalN = (un_N + cfast) / jLength;
+		    signalE = (un_E + cfast) / iLength;
+		    signal = fmax(signalN, signalE);
+		}
+	    } else if ( dimensions == 3 ) {
+		// eilmer -- 3D cells
+		signalN = (un_N + fs.gas.a) / jLength;
+		signal = signalN;
+		signalE = (un_E + fs.gas.a) / iLength;
+		if ( signalE > signal ) signal = signalE;
+		signalT = (un_T + fs.gas.a) / kLength;
+		if ( signalT > signal ) signal = signalT;
+	    } else {
+		// mbcns2 -- 2D cells
+		// The velocity normal to the north face is assumed to run
+		// along the length of the east face.
+		signalN = (un_N + fs.gas.a) / jLength;
+		signalE = (un_E + fs.gas.a) / iLength;
+		signal = fmax(signalN, signalE);
+	    }
+	}
+	if ( GlobalConfig.viscous && fs.gas.mu > 10.0e-23) {
+	    // Factor for the viscous time limit.
+	    // This factor is not included if viscosity is zero.
+	    // See Swanson, Turkel and White (1991)
+	    gam_eff = gmodel.gamma(fs.gas);
+	    // Need to sum conductivities for TNE
+	    double k_total = 0.0;
+	    foreach(i; 0 .. fs.gas.k.length) k_total += fs.gas.k[i];
+	    double Prandtl = fs.gas.mu * gmodel.Cp(fs.gas) / k_total;
+	    if ( dimensions == 3 ) {
+		signal += 4.0 * GlobalConfig.viscous_factor * (fs.gas.mu + fs.mu_t)
+		    * gam_eff / (Prandtl * fs.gas.rho)
+		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength) + 1.0/(kLength*kLength));
+	    } else {
+		signal += 4.0 * GlobalConfig.viscous_factor * (fs.gas.mu + fs.mu_t) 
+		    * gam_eff / (Prandtl * fs.gas.rho)
+		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength));
+	    }
+	}
+	if ( with_k_omega == 1 ) {
+	    if ( fs.omega > signal ) signal = fs.omega;
+	}
+	return signal;
+    } // end signal_frequency()
 
     void turbulence_viscosity_zero() 
     {
-	throw new Error("[TODO] not yet implemented");
+	fs.mu_t = 0.0;
+	fs.k_t = 0.0;
     }
 
     void turbulence_viscosity_zero_if_not_in_zone() 
     {
-	throw new Error("[TODO] not yet implemented");
+	if ( in_turbulent_zone ) {
+	    /* Do nothing, leaving the turbulence quantities as set. */ ;
+	} else {
+	    /* Presume this part of the flow is laminar; clear turbulence quantities. */
+	    fs.mu_t = 0.0;
+	    fs.k_t = 0.0;
+	}
     }
 
     void turbulence_viscosity_limit(double factor) 
+    // Limit the turbulent viscosity to reasonable values relative to
+    // the local molecular viscosity.
+    // In shock started flows, we seem to get crazy values on the
+    // starting shock structure and the simulations do not progress.
     {
-	throw new Error("[TODO] not yet implemented");
+	fs.mu_t = fmin(fs.mu_t, factor * fs.gas.mu);
+	fs.k_t = fmin(fs.k_t, factor * fs.gas.k[0]); // ASSUMPTION re k[0]
     }
 
     void turbulence_viscosity_factor(double factor) 
+    // Scale the turbulent viscosity to model effects
+    // such as not-fully-developed turbulence that might be expected
+    // in short-duration transient flows.
     {
-	throw new Error("[TODO] not yet implemented");
+	fs.mu_t *= factor;
+	fs.k_t *= factor;
     }
 
     void turbulence_viscosity_k_omega() 
     {
-	throw new Error("[TODO] not yet implemented");
-    }
+/+
+	if ( G.turbulence_model != TM_K_OMEGA ) {
+	    // FIX-ME may have to do something better if another turbulence model is active.
+	    fs.mu_t = 0.0;
+	    fs.k_t = 0.0;
+	    return SUCCESS;
+	}
+	double dudx, dudy, dvdx, dvdy;
+	double S_bar_squared;
+	double C_lim = 0.875;
+	double beta_star = 0.09;
+	if ( G.dimensions == 2 ) {
+	    // 2D cartesian or 2D axisymmetric
+	    dudx = 0.25 * (vtx[0].dudx + vtx[1].dudx + vtx[2].dudx + vtx[3].dudx);
+	    dudy = 0.25 * (vtx[0].dudy + vtx[1].dudy + vtx[2].dudy + vtx[3].dudy);
+	    dvdx = 0.25 * (vtx[0].dvdx + vtx[1].dvdx + vtx[2].dvdx + vtx[3].dvdx);
+	    dvdy = 0.25 * (vtx[0].dvdy + vtx[1].dvdy + vtx[2].dvdy + vtx[3].dvdy);
+	    if ( G.axisymmetric ) {
+		// 2D axisymmetric
+		double v_over_y = fs.vel.y / pos[0].y;
+		S_bar_squared = dudx*dudx + dvdy*dvdy + v_over_y*v_over_y
+		    - 1.0/3.0 * (dudx + dvdy + v_over_y)
+		    * (dudx + dvdy + v_over_y)
+		    + 0.5 * (dudy + dvdx) * (dudy + dvdx) ;
+	    } else {
+		// 2D cartesian
+		S_bar_squared = dudx*dudx + dvdy*dvdy
+		    - 1.0/3.0 * (dudx + dvdy) * (dudx + dvdy)
+		    + 0.5 * (dudy + dvdx) * (dudy + dvdx);
+	    }
+	} else {
+	    // 3D cartesian
+	    double dudz, dvdz, dwdx, dwdy, dwdz;
+	    dudx = 0.125 * (vtx[0].dudx + vtx[1].dudx + vtx[2].dudx + vtx[3].dudx +
+			    vtx[4].dudx + vtx[5].dudx + vtx[6].dudx + vtx[7].dudx);
+	    dudy = 0.125 * (vtx[0].dudy + vtx[1].dudy + vtx[2].dudy + vtx[3].dudy +
+			    vtx[4].dudy + vtx[5].dudy + vtx[6].dudy + vtx[7].dudy);
+	    dudz = 0.125 * (vtx[0].dudz + vtx[1].dudz + vtx[2].dudz + vtx[3].dudz +
+			    vtx[4].dudz + vtx[5].dudz + vtx[6].dudz + vtx[7].dudz);
+	    dvdx = 0.125 * (vtx[0].dvdx + vtx[1].dvdx + vtx[2].dvdx + vtx[3].dvdx +
+			    vtx[4].dvdx + vtx[5].dvdx + vtx[6].dvdx + vtx[7].dvdx);
+	    dvdy = 0.125 * (vtx[0].dvdy + vtx[1].dvdy + vtx[2].dvdy + vtx[3].dvdy +
+			    vtx[4].dvdy + vtx[5].dvdy + vtx[6].dvdy + vtx[7].dvdy);
+	    dvdz = 0.125 * (vtx[0].dvdz + vtx[1].dvdz + vtx[2].dvdz + vtx[3].dvdz +
+			    vtx[4].dvdz + vtx[5].dvdz + vtx[6].dvdz + vtx[7].dvdz);
+	    dwdx = 0.125 * (vtx[0].dwdx + vtx[1].dwdx + vtx[2].dwdx + vtx[3].dwdx +
+			    vtx[4].dwdx + vtx[5].dwdx + vtx[6].dwdx + vtx[7].dwdx);
+	    dwdy = 0.125 * (vtx[0].dwdy + vtx[1].dwdy + vtx[2].dwdy + vtx[3].dwdy +
+			    vtx[4].dwdy + vtx[5].dwdy + vtx[6].dwdy + vtx[7].dwdy);
+	    dwdz = 0.125 * (vtx[0].dwdz + vtx[1].dwdz + vtx[2].dwdz + vtx[3].dwdz +
+			    vtx[4].dwdz + vtx[5].dwdz + vtx[6].dwdz + vtx[7].dwdz);
+	    // 3D cartesian
+	    S_bar_squared =  dudx*dudx + dvdy*dvdy + dwdz*dwdz
+		- 1.0/3.0*(dudx + dvdy + dwdz)*(dudx + dvdy + dwdz)
+		+ 0.5 * (dudy + dvdx) * (dudy + dvdx)
+		+ 0.5 * (dudz + dwdx) * (dudz + dwdx)
+		+ 0.5 * (dvdz + dwdy) * (dvdz + dwdy);
+	}
+	S_bar_squared = max(0.0, S_bar_squared);
+	double omega_t = max(fs.omega, C_lim*sqrt(2.0*S_bar_squared/beta_star));
+	fs.mu_t = fs.gas.rho * fs.tke / omega_t;
+	double Pr_t = G.turbulence_prandtl;
+	Gas_model *gmodel = get_gas_model_ptr();
+	int status_flag;
+	fs.k_t = gmodel.Cp(*(fs.gas), status_flag) * fs.mu_t / Pr_t;
++/
+    } // end turbulence_viscosity_k_omega()
 
     void update_k_omega_properties(double dt) 
     {
