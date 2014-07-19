@@ -13,6 +13,7 @@ import std.string;
 import std.array;
 import std.format;
 import std.stdio;
+import std.math;
 import geom;
 import gasmodel;
 import fvcore;
@@ -223,7 +224,8 @@ public:
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void replace_flow_data_with_average(in FVCell[] others) {
+    void replace_flow_data_with_average(in FVCell[] others) 
+    {
 	uint n = others.length;
 	if (n == 0) throw new Error("Need to average from a nonempty array.");
 	FlowState[] fsList;
@@ -241,7 +243,8 @@ public:
 	Q_rE_rad /= n;
     }
 
-    void scan_values_from_string(string buffer) {
+    void scan_values_from_string(string buffer) 
+    {
 	auto items = split(buffer);
 	auto gm = GlobalConfig.gmodel;
 	pos[0].refx = to!double(items.front); items.popFront();
@@ -290,7 +293,8 @@ public:
 	}
     }
 
-    const string write_values_to_string() {
+    const string write_values_to_string() 
+    {
 	auto writer = appender!string();
 	formattedWrite(writer, "%.12e %.12e %.12e %.12e %.12e %.12e %.12e %.12e",
 		       pos[0].x, pos[0].y, pos[0].z, volume[0], fs.gas.rho,
@@ -319,7 +323,8 @@ public:
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void encode_conserved(int gtl, int ftl, double omegaz, bool with_k_omega) {
+    void encode_conserved(int gtl, int ftl, double omegaz, bool with_k_omega) 
+    {
 	ConservedQuantities myU = U[ftl];
 
 	myU.mass = fs.gas.rho;
@@ -373,7 +378,8 @@ public:
 	}
     } // end encode_conserved()
 
-    void decode_conserved(int gtl, int ftl, double omegaz, bool with_k_omega) {
+    void decode_conserved(int gtl, int ftl, double omegaz, bool with_k_omega) 
+    {
 	ConservedQuantities myU = U[ftl];
 	auto gmodel = GlobalConfig.gmodel;
 	double e, ke, dinv, rE, me;
@@ -441,8 +447,36 @@ public:
 	// if ( GlobalConfig.diffusion ) gmodel.update_diff_coeffs(fs.gas);
     } // end decode_conserved()
 
-    bool check_flow_data() {
-	throw new Error("[TODO] not yet implemented");
+    bool check_flow_data() 
+    {
+	bool is_data_valid = fs.gas.check_values(true);
+	const double MAXVEL = 30000.0;
+	if (fabs(fs.vel.x) > MAXVEL || fabs(fs.vel.y) > MAXVEL || fabs(fs.vel.z) > MAXVEL) {
+	    writeln("Velocity bad ", fs.vel.x, " ", fs.vel.y, " ", fs.vel.z);
+	    is_data_valid = false;
+	}
+	if ( !isFinite(fs.tke) ) {
+	    writeln("Turbulence KE invalid number ", fs.tke);
+	    is_data_valid = false;
+	}
+	if ( fs.tke < 0.0 ) {
+	    writeln("Turbulence KE negative ", fs.tke);
+	    is_data_valid = false;
+	}
+	if ( !isFinite(fs.omega) ) {
+	    writeln("Turbulence frequency invalid number ", fs.omega);
+	    is_data_valid = false;
+	}
+	if ( fs.omega <= 0.0 ) {
+	    writeln("Turbulence frequency nonpositive ", fs.omega);
+	    is_data_valid = false;
+	}
+	if ( !is_data_valid ) {
+	    writeln("cell pos=", pos[0]);
+	    writeln(fs);
+	    writeln("----------------------------------------------------------");
+	}
+	return is_data_valid;
     } // end check_flow_data()
 
     void time_derivatives(int gtl, int ftl, int dimensions, bool with_k_omega) {

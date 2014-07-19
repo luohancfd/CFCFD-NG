@@ -55,6 +55,7 @@ void main()
     cell.scan_values_from_string(sample);
     cell.encode_conserved(0, 0, 0.0, true);
     cell.decode_conserved(0, 0, 0.0, true);
+    cell.check_flow_data();
     writeln("cell=", cell);
     writeln("string written=", cell.write_values_to_string());
     writeln("sample=", sample);

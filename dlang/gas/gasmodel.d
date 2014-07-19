@@ -11,6 +11,7 @@
 module gasmodel;
 import std.conv;
 import std.math;
+import std.stdio;
 
 immutable double R_universal = 8.314; // J/mole.K
 
@@ -179,7 +180,48 @@ public:
 	gm.update_thermo_from_pT(this);
 	gm.update_sound_speed(this);
 	gm.update_trans_coeffs(this);
-    }
+    } // end copy_average_values_from()
+
+    const bool check_values(bool print_message=true)
+    {
+	double RHOMIN = 0.0;
+	double TMIN = 1.0;
+	bool is_data_valid = true;
+
+	if ( !(isFinite(rho)) || rho < 1.01 * RHOMIN ) {
+	    if (print_message) writeln("Density invalid: ", rho);
+	    is_data_valid = false;
+	}
+	auto nmodes = e.length;
+	foreach(imode; 0 .. nmodes) {
+	    if ( !isFinite(T[imode]) || T[imode] < 1.01 * TMIN ) {
+		if ( print_message ) writeln("Temperature[", imode, "] invalid: ", T[imode]);
+		is_data_valid = false;
+	    }
+	    if ( !isFinite(e[imode]) ) {
+		if ( print_message ) writeln("Energy[", imode, "] invalid: ", e[imode]);
+		is_data_valid = false;
+	    }
+	}
+	if ( !isFinite(p) ) {
+	    if ( print_message ) writeln("Total pressure invalid: ", p);
+	    is_data_valid = false;
+	}
+	if ( !isFinite(p_e) ) {
+	    if ( print_message ) writeln("Electron pressure invalid: ", p_e);
+	    is_data_valid = false;
+	}
+	if ( !isFinite(a) ) {
+	    if ( print_message ) writeln("Sound speed invalid: ", a);
+	    is_data_valid = false;
+	}
+	double f_sum = 0.0; foreach(elem; massf) f_sum += elem;
+	if ( f_sum < 0.99 || f_sum > 1.01 || !isFinite(f_sum) ) {
+	    if ( print_message ) writeln("Mass fraction sum bad: ", f_sum);
+	    is_data_valid = false;
+	}
+	return is_data_valid;
+    } // end check_values()
 
     override string toString()
     {
