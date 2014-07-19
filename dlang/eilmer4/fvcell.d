@@ -10,6 +10,8 @@ module fvcell;
 
 import std.conv;
 import std.string;
+import std.array;
+import std.format;
 import geom;
 import gasmodel;
 import fvcore;
@@ -220,16 +222,92 @@ public:
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void replace_flow_data_with_average(in FVCell[] src) {
-	throw new Error("[TODO] not yet implemented");
+    void replace_flow_data_with_average(in FVCell[] others) {
+	uint n = others.length;
+	if (n == 0) throw new Error("Need to average from a nonempty array.");
+	FlowState[] fsList;
+	// We need to be honest and not to fiddle with the other gas states.
+	foreach(other; others) {
+	    if ( this is other ) throw new Error("Must not include destination in source list.");
+	    fsList ~= cast(FlowState)other.fs;
+	}
+	fs.copy_average_values_from(fsList, GlobalConfig.gmodel);
+	// Accumulate from a clean slate and then divide.
+	Q_rE_rad = 0.0;
+	foreach(other; others) {
+	    Q_rE_rad += other.Q_rE_rad;
+	}
+	Q_rE_rad /= n;
     }
 
-    void scan_flow_values_from_string(string bufptr) {
-	throw new Error("[TODO] not yet implemented");
+    void scan_values_from_string(string buffer) {
+	auto items = split(buffer);
+	auto gm = GlobalConfig.gmodel;
+	pos[0].refx = to!double(items.front); items.popFront();
+	pos[0].refy = to!double(items.front); items.popFront();
+	pos[0].refz = to!double(items.front); items.popFront();
+	volume[0] = to!double(items.front); items.popFront();
+	fs.gas.rho = to!double(items.front); items.popFront();
+	fs.vel.refx = to!double(items.front); items.popFront();
+	fs.vel.refy = to!double(items.front); items.popFront();
+	fs.vel.refz = to!double(items.front); items.popFront();
+	if ( GlobalConfig.MHD ) {
+	    fs.B.refx = to!double(items.front); items.popFront();
+	    fs.B.refy = to!double(items.front); items.popFront();
+	    fs.B.refz = to!double(items.front); items.popFront();
+	}
+	fs.gas.p = to!double(items.front); items.popFront();
+	fs.gas.a = to!double(items.front); items.popFront();
+	fs.gas.mu = to!double(items.front); items.popFront();
+	foreach(i; 0 .. gm.n_modes) {
+	    fs.gas.k[i] = to!double(items.front); items.popFront();
+	}
+	fs.mu_t = to!double(items.front); items.popFront();
+	fs.k_t = to!double(items.front); items.popFront();
+	fs.S = to!int(items.front); items.popFront();
+	if ( GlobalConfig.radiation ) {
+	    Q_rad_org = to!double(items.front); items.popFront();
+	    f_rad_org = to!double(items.front); items.popFront();
+	    Q_rE_rad = to!double(items.front); items.popFront();
+	} else {
+	    Q_rad_org = 0.0; f_rad_org = 0.0; Q_rE_rad = 0.0;
+	}
+	fs.tke = to!double(items.front); items.popFront();
+	fs.omega = to!double(items.front); items.popFront();
+	foreach(i; 0 .. gm.n_species) {
+	    fs.gas.massf[i] = to!double(items.front); items.popFront();
+	}
+	if ( gm.n_species > 1 ) {
+	    dt_chem = to!double(items.front); items.popFront();
+	}
+	foreach(i; 0 .. gm.n_modes) {
+	    fs.gas.e[i] = to!double(items.front); items.popFront();
+	    fs.gas.T[i] = to!double(items.front); items.popFront();
+	}
+	if ( gm.n_modes > 1 ) {
+	    dt_therm = to!double(items.front); items.popFront(); 
+	}
     }
 
-    const string write_flow_values_to_string() {
-	throw new Error("[TODO] not yet implemented");
+    const string write_values_to_string() {
+	auto writer = appender!string();
+	formattedWrite(writer, "%.12e %.12e %.12e %.12e %.12e %.12e %.12e %.12e",
+		       pos[0].x, pos[0].y, pos[0].z, volume[0], fs.gas.rho,
+		       fs.vel.x, fs.vel.y, fs.vel.z);
+	if ( GlobalConfig.MHD ) 
+	    formattedWrite(writer, " %.12e %.12e %.12e", fs.B.x, fs.B.y, fs.B.z); 
+	formattedWrite(writer, " %.12e %.12e %.12e", fs.gas.p, fs.gas.a, fs.gas.mu);
+	auto gm = GlobalConfig.gmodel;
+	foreach(i; 0 .. gm.n_modes) formattedWrite(writer, " %.12e", fs.gas.k[i]); 
+	formattedWrite(writer, " %.12e %.12e %d", fs.mu_t, fs.k_t, fs.S);
+	if ( GlobalConfig.radiation ) 
+	    formattedWrite(writer, " %.12e %.12e %.12e", Q_rad_org, f_rad_org, Q_rE_rad); 
+	formattedWrite(writer, " %.12e %.12e", fs.tke, fs.omega);
+	foreach(i; 0 .. gm.n_species) formattedWrite(writer, " %.12e", fs.gas.massf[i]); 
+	if ( gm.n_species > 1 ) formattedWrite(writer, " %.12e", dt_chem); 
+	foreach(i; 0 .. gm.n_modes) formattedWrite(writer, " %.12e %.12e", fs.gas.e[i], fs.gas.T[i]); 
+	if ( gm.n_modes > 1 ) formattedWrite(writer, " %.12e", dt_therm);
+	return writer.data();
     }
 
     void scan_BGK_from_string(string bufptr) {
@@ -252,33 +330,102 @@ public:
 	throw new Error("[TODO] not yet implemented");
     }
 
+    void time_derivatives(int gtl, int ftl, int dimensions, bool with_k_omega) {
+	throw new Error("[TODO] not yet implemented");
+    }
 
-/+ [TODO]
-    int time_derivatives(size_t gtl, size_t ftl, size_t dimensions, bool with_k_omega);
-    int stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, bool with_k_omega);
-    int stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega);
-    int stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega);
-    int stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega);
-    int stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega);
-    int chemical_increment(double dt, double T_frozen);
-    int thermal_increment(double dt, double T_frozen_energy);
-    double signal_frequency(size_t dimensions, bool with_k_omega);
-    int turbulence_viscosity_zero();
-    int turbulence_viscosity_zero_if_not_in_zone();
-    int turbulence_viscosity_limit(double factor);
-    int turbulence_viscosity_factor(double factor);
-    int turbulence_viscosity_k_omega();
-    int update_k_omega_properties(double dt);
-    int k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double tke, double omega);
-    int clear_source_vector();
-    int add_inviscid_source_vector(int gtl, double omegaz=0.0);
-    int add_viscous_source_vector(bool with_k_omega);
-    double calculate_wall_Reynolds_number(int which_boundary);
-    int store_rad_scaling_params(void);
-    int rescale_Q_rE_rad(void);
-    int reset_Q_rad_to_zero(void);
-    double rad_scaling_ratio(void) const;
-+/
+    void stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, bool with_k_omega) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void chemical_increment(double dt, double T_frozen) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void thermal_increment(double dt, double T_frozen_energy) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    double signal_frequency(int dimensions, bool with_k_omega) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void turbulence_viscosity_zero() {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void turbulence_viscosity_zero_if_not_in_zone() {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void turbulence_viscosity_limit(double factor) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void turbulence_viscosity_factor(double factor) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void turbulence_viscosity_k_omega() {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void update_k_omega_properties(double dt) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void k_omega_time_derivatives(ref double Q_rtke, ref double Q_romega, double tke, double omega) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void clear_source_vector() {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void add_inviscid_source_vector(int gtl, double omegaz=0.0) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void add_viscous_source_vector(bool with_k_omega) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    double calculate_wall_Reynolds_number(int which_boundary) {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void store_rad_scaling_params() {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void rescale_Q_rE_rad() {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    void reset_Q_rad_to_zero() {
+	throw new Error("[TODO] not yet implemented");
+    }
+
+    double rad_scaling_ratio() {
+	throw new Error("[TODO] not yet implemented");
+    }
+
 } // end class FVCell
 
 
@@ -301,10 +448,7 @@ string[] variable_list_for_cell()
     list ~= ["tke", "omega"];
     foreach(i; 0 .. gm.n_species) {
 	auto name = cast(char[]) gm.species_name(i);
-	// Clean up name, replacing internal spaces with dashes.
-	name = strip(name);
-	auto indx = indexOf(name, ' ');
-	while ( indx > 0 ) { name[indx] = '-'; indx = indexOf(name, ' '); } 
+	name = tr(name, " \t", "--", "s"); // Replace internal whitespace with dashes.
 	list ~= ["massf[" ~ to!string(i) ~ "]-" ~ to!string(name)];
     }
     if ( gm.n_species > 1 ) list ~= ["dt_chem"];

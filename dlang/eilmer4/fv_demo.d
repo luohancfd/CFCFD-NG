@@ -24,6 +24,7 @@ void main()
     flow3.copy_average_values_from([flow, flow2], gm);
     writeln("flow3=", flow3);
 
+    writeln("-----------------------");
     auto Q = new ConservedQuantities(gm);
     Q.mass = 99.0;
     Q.energies[0] = 301.0;
@@ -31,21 +32,30 @@ void main()
     Q.clear_values();
     writeln("cleared Q=", Q);
 
+    writeln("-----------------------");
     init_fvcore();
     writeln("face_name[face_index[\"south\"]]=", face_name[face_index["south"]]);
     writeln("update_scheme_name[update_scheme_index[\"classic_rk3\"]]=",
 	    gasdynamic_update_scheme_name[gasdynamic_update_scheme_index["classic_rk3"]]);
 
+    writeln("-----------------------");
     auto iface = new FVInterface(gm);
     writeln("iface=", iface);
 
+    writeln("-----------------------");
     auto vtx = new FVVertex(gm);
     writeln("vtx=", vtx);
 
+    writeln("-----------------------");
     auto cell = new FVCell(gm);
-    writeln("cell=", cell);
-
     GlobalConfig.gmodel = gm; // The following call needs the gas model in place.
     writeln("variable_list_for_cell=", variable_list_for_cell());
+    string sample = "1.0 2.0 3.0 0.000999 0.1 1.1 1.2 1.3 100.0e3 345.0 1.8e-5 "
+	~ "0.0123 0.999 0.0888 1 0.05 1.009 1.0 2.65e5 311";
+    cell.scan_values_from_string(sample);
+    writeln("cell=", cell);
+    writeln("string written=", cell.write_values_to_string());
+    writeln("sample=", sample);
+
     writeln("done.");
 }
