@@ -479,99 +479,492 @@ public:
 	return is_data_valid;
     } // end check_flow_data()
 
-    void time_derivatives(int gtl, int ftl, int dimensions, bool with_k_omega) {
-	throw new Error("[TODO] not yet implemented");
+    void time_derivatives(int gtl, int ftl, int dimensions, bool with_k_omega) 
+    // These are the spatial (RHS) terms in the semi-discrete governing equations.
+    // gtl : (grid-time-level) flow derivatives are evaluated at this grid level
+    // ftl : (flow-time-level) specifies where computed derivatives are to be stored.
+    //       0: Start of stage-1 update.
+    //       1: End of stage-1.
+    //       2: End of stage-2.
+    // dimensions : number of space dimensions (2 or 3)
+    {
+	FVInterface IFn = iface[north];
+	FVInterface IFe = iface[east];
+	FVInterface IFs = iface[south];
+	FVInterface IFw = iface[west];
+	FVInterface IFt = iface[top];
+	FVInterface IFb = iface[bottom];
+	// Cell volume (inverted).
+	double vol_inv = 1.0 / volume[gtl];
+	double integral;
+    
+	// Time-derivative for Mass/unit volume.
+	// Note that the unit normals for the interfaces are oriented
+	// such that the unit normals for the east, north and top faces
+	// are outward and the unit normals for the south, west and
+	// bottom faces are inward.
+	integral = -IFe.F.mass * IFe.area[gtl] - IFn.F.mass * IFn.area[gtl]
+	    + IFw.F.mass * IFw.area[gtl] + IFs.F.mass * IFs.area[gtl];
+	if ( dimensions == 3 )
+	    integral += IFb.F.mass * IFb.area[gtl] - IFt.F.mass * IFt.area[gtl];
+	dUdt[ftl].mass = vol_inv * integral + Q.mass;
+
+	// Time-derivative for X-Momentum/unit volume.
+	integral = -IFe.F.momentum.x * IFe.area[gtl] - IFn.F.momentum.x * IFn.area[gtl]
+	    + IFw.F.momentum.x * IFw.area[gtl] + IFs.F.momentum.x * IFs.area[gtl];
+	if ( dimensions == 3 )
+	    integral += IFb.F.momentum.x * IFb.area[gtl] - IFt.F.momentum.x * IFt.area[gtl];
+	dUdt[ftl].momentum.refx = vol_inv * integral + Q.momentum.x;
+	// Time-derivative for Y-Momentum/unit volume.
+	integral = -IFe.F.momentum.y * IFe.area[gtl] - IFn.F.momentum.y * IFn.area[gtl]
+	    + IFw.F.momentum.y * IFw.area[gtl] + IFs.F.momentum.y * IFs.area[gtl];
+	if ( dimensions == 3 )
+	    integral += IFb.F.momentum.y * IFb.area[gtl] - IFt.F.momentum.y * IFt.area[gtl];
+	dUdt[ftl].momentum.refy = vol_inv * integral + Q.momentum.y;
+    
+	// we require the z-momentum for MHD even in 2D
+	if ((dimensions == 3) || ( GlobalConfig.MHD )) {
+	    // Time-derivative for Z-Momentum/unit volume.
+	    integral = -IFe.F.momentum.z * IFe.area[gtl] - IFn.F.momentum.z * IFn.area[gtl]
+		+ IFw.F.momentum.z * IFw.area[gtl] + IFs.F.momentum.z * IFs.area[gtl];
+	}
+	if ( dimensions == 3) {
+	    integral += IFb.F.momentum.z * IFb.area[gtl] - IFt.F.momentum.z * IFt.area[gtl];
+	}
+	if ((dimensions == 3) || ( GlobalConfig.MHD )) {
+	    dUdt[ftl].momentum.refz = vol_inv * integral + Q.momentum.z;
+	} else {
+	    dUdt[ftl].momentum.refz = 0.0;
+	}
+    
+	if ( GlobalConfig.MHD ) {
+	    // Time-derivative for X-Magnetic Field/unit volume.
+	    integral = -IFe.F.B.x * IFe.area[gtl] - IFn.F.B.x * IFn.area[gtl]
+		+ IFw.F.B.x * IFw.area[gtl] + IFs.F.B.x * IFs.area[gtl];
+	    if ( dimensions == 3 )
+		integral += IFb.F.B.x * IFb.area[gtl] - IFt.F.B.x * IFt.area[gtl];
+	    dUdt[ftl].B.refx = vol_inv * integral + Q.B.x;
+	    // Time-derivative for Y-Magnetic Field/unit volume.
+	    integral = -IFe.F.B.y * IFe.area[gtl] - IFn.F.B.y * IFn.area[gtl]
+		+ IFw.F.B.y * IFw.area[gtl] + IFs.F.B.y * IFs.area[gtl];
+	    if ( dimensions == 3 )
+		integral += IFb.F.B.y * IFb.area[gtl] - IFt.F.B.y * IFt.area[gtl];
+	    dUdt[ftl].B.refy = vol_inv * integral + Q.B.y;
+	    // Time-derivative for Z-Magnetic Field/unit volume.
+	    integral = -IFe.F.B.z * IFe.area[gtl] - IFn.F.B.z * IFn.area[gtl]
+		+ IFw.F.B.z * IFw.area[gtl] + IFs.F.B.z * IFs.area[gtl];
+	    if ( dimensions == 3 ) {
+		integral += IFb.F.B.z * IFb.area[gtl] - IFt.F.B.z * IFt.area[gtl];
+	    }
+	    dUdt[ftl].B.refz = vol_inv * integral + Q.B.z;
+	}
+	else {
+	    dUdt[ftl].B.refx = 0.0;
+	    dUdt[ftl].B.refy = 0.0;
+	    dUdt[ftl].B.refz = 0.0;
+	}
+
+	// Time-derivative for Total Energy/unit volume.
+	integral = -IFe.F.total_energy * IFe.area[gtl] - IFn.F.total_energy * IFn.area[gtl]
+	    + IFw.F.total_energy * IFw.area[gtl] + IFs.F.total_energy * IFs.area[gtl];
+	if ( dimensions == 3 )
+	    integral += IFb.F.total_energy * IFb.area[gtl] - IFt.F.total_energy * IFt.area[gtl];
+	dUdt[ftl].total_energy = vol_inv * integral + Q.total_energy;
+    
+	if ( with_k_omega ) {
+	    integral = -IFe.F.tke * IFe.area[gtl] - IFn.F.tke * IFn.area[gtl]
+		+ IFw.F.tke * IFw.area[gtl] + IFs.F.tke * IFs.area[gtl];
+	    if ( dimensions == 3 )
+		integral += IFb.F.tke * IFb.area[gtl] - IFt.F.tke * IFt.area[gtl];
+	    dUdt[ftl].tke = vol_inv * integral + Q.tke;
+	
+	    integral = -IFe.F.omega * IFe.area[gtl] - IFn.F.omega * IFn.area[gtl]
+		+ IFw.F.omega * IFw.area[gtl] + IFs.F.omega * IFs.area[gtl];
+	    if ( dimensions == 3 )
+		integral += IFb.F.omega * IFb.area[gtl] - IFt.F.omega * IFt.area[gtl];
+	    dUdt[ftl].omega = vol_inv * integral + Q.omega;
+	} else {
+	    dUdt[ftl].tke = 0.0;
+	    dUdt[ftl].omega = 0.0;
+	}
+	// Time-derivative for individual species.
+	// The conserved quantity is the mass per unit
+	// volume of species isp and
+	// the fluxes are mass/unit-time/unit-area.
+	// Units of DmassfDt are 1/sec.
+	foreach(isp; 0 .. GlobalConfig.gmodel.n_species) {
+	    integral =
+		-IFe.F.massf[isp] * IFe.area[gtl]
+		- IFn.F.massf[isp] * IFn.area[gtl]
+		+ IFw.F.massf[isp] * IFw.area[gtl]
+		+ IFs.F.massf[isp] * IFs.area[gtl];
+	    if ( dimensions == 3 )
+		integral += IFb.F.massf[isp] * IFb.area[gtl] - IFt.F.massf[isp] * IFt.area[gtl];
+	    dUdt[ftl].massf[isp] = vol_inv * integral + Q.massf[isp];
+	}
+	// Individual energies.
+	// We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
+	// Instead we get this from the conservation of total energy
+	foreach(imode; 1 .. GlobalConfig.gmodel.n_modes) {
+	    integral =
+		-IFe.F.energies[imode] * IFe.area[gtl]
+		- IFn.F.energies[imode] * IFn.area[gtl]
+		+ IFw.F.energies[imode] * IFw.area[gtl]
+		+ IFs.F.energies[imode] * IFs.area[gtl];
+	    if ( dimensions == 3 )
+		integral += IFb.F.energies[imode] * IFb.area[gtl] - IFt.F.energies[imode] * IFt.area[gtl];
+	    dUdt[ftl].energies[imode] = vol_inv * integral + Q.energies[imode];
+	}
     } // end time_derivatives()
 
-    void stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, bool with_k_omega) {
+    void stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, bool with_k_omega) 
+    {
+	ConservedQuantities dUdt0 = dUdt[0];
+	ConservedQuantities U0 = U[0];
+	ConservedQuantities U1 = U[1];
+	double gamma_1 = 1.0; // for normal Predictor-Corrector or Euler update.
+	// In some parts of the code (viscous updates, k-omega updates)
+	// we use this function as an Euler update even when the main
+	// gasdynamic_update_scheme is of higher order.
+	if ( !force_euler ) {
+	    switch ( gasdynamic_update_scheme ) {
+	    case euler_update:
+	    case pc_update: gamma_1 = 1.0; break;
+	    case midpoint_update: gamma_1 = 0.5; break;
+	    case classic_rk3_update: gamma_1 = 0.5; break;
+	    case tvd_rk3_update: gamma_1 = 1.0; break;
+	    case denman_rk3_update: gamma_1 = 8.0/15.0; break;
+	    default:
+		throw new Error("FV_Cell.stage_1_update_for_flow_on_fixed_grid(): invalid update scheme.");
+	    }
+	}
+	U1.mass = U0.mass + dt * gamma_1 * dUdt0.mass;
+	// Side note: 
+	// It would be convenient (codewise) for the updates of these Vector3 quantities to
+	// be done with the Vector3 arithmetic operators but I suspect that the implementation
+	// of those oerators is such that a whole lot of Vector3 temporaries would be created.
+	U1.momentum.refx = U0.momentum.x + dt * gamma_1 * dUdt0.momentum.x;
+	U1.momentum.refy = U0.momentum.y + dt * gamma_1 * dUdt0.momentum.y;
+	U1.momentum.refz = U0.momentum.z + dt * gamma_1 * dUdt0.momentum.z;
+	if ( GlobalConfig.MHD ) {
+	    // Magnetic field
+	    U1.B.refx = U0.B.x + dt * gamma_1 * dUdt0.B.x;
+	    U1.B.refy = U0.B.y + dt * gamma_1 * dUdt0.B.y;
+	    U1.B.refz = U0.B.z + dt * gamma_1 * dUdt0.B.z;
+	}
+	U1.total_energy = U0.total_energy + dt * gamma_1 * dUdt0.total_energy;
+	if ( with_k_omega ) {
+	    U1.tke = U0.tke + dt * gamma_1 * dUdt0.tke;
+	    U1.tke = fmax(U1.tke, 0.0);
+	    U1.omega = U0.omega + dt * gamma_1 * dUdt0.omega;
+	    U1.omega = fmax(U1.omega, U0.mass);
+	    // ...assuming a minimum value of 1.0 for omega
+	    // It may occur (near steps in the wall) that a large flux of romega
+	    // through one of the cell interfaces causes romega within the cell
+	    // to drop rapidly.
+	    // The large values of omega come from Menter's near-wall correction that may be
+	    // applied outside the control of this finite-volume core code.
+	    // These large values of omega will be convected along the wall and,
+	    // if they are convected past a corner with a strong expansion,
+	    // there will be an unreasonably-large flux out of the cell.
+	} else {
+	    U1.tke = U0.tke;
+	    U1.omega = U0.omega;
+	}
+	foreach(isp; 0 .. U1.massf.length) {
+	    U1.massf[isp] = U0.massf[isp] + dt * gamma_1 * dUdt0.massf[isp];
+	}
+	// We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
+	// Instead we get this from the conservation of total energy
+	foreach(imode; 1 .. U1.energies.length) {
+	    U1.energies[imode] = U0.energies[imode] + dt * gamma_1 * dUdt0.energies[imode];
+	}
+    } // end stage_1_update_for_flow_on_fixed_grid()
+
+    void stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega) 
+    {
+	ConservedQuantities dUdt0 = dUdt[0];
+	ConservedQuantities dUdt1 = dUdt[1];
+	ConservedQuantities U_old = U[0];
+	if ( gasdynamic_update_scheme == denman_rk3_update ) U_old = U[1];
+	ConservedQuantities U2 = U[2];
+	double gamma_1 = 0.5; // Presume predictor-corrector.
+	double gamma_2 = 0.5;
+	switch ( gasdynamic_update_scheme ) {
+	case pc_update: gamma_1 = 0.5, gamma_2 = 0.5; break;
+	case midpoint_update: gamma_1 = 0.0; gamma_2 = 1.0; break;
+	case classic_rk3_update: gamma_1 = -1.0; gamma_2 = 2.0; break;
+	case tvd_rk3_update: gamma_1 = 0.25; gamma_2 = 0.25; break;
+	case denman_rk3_update: gamma_1 = -17.0/60.0; gamma_2 = 5.0/12.0; break;
+	default:
+	    throw new Error("FV_Cell.stage_2_update_for_flow_on_fixed_grid(): invalid update scheme.");
+	}
+	U2.mass = U_old.mass + dt * (gamma_1 * dUdt0.mass + gamma_2 * dUdt1.mass);
+	U2.momentum.refx = U_old.momentum.x + dt * (gamma_1 * dUdt0.momentum.x + gamma_2 * dUdt1.momentum.x);
+	U2.momentum.refy = U_old.momentum.y + dt * (gamma_1 * dUdt0.momentum.y + gamma_2 * dUdt1.momentum.y);
+	U2.momentum.refz = U_old.momentum.z + dt * (gamma_1 * dUdt0.momentum.z + gamma_2 * dUdt1.momentum.z);
+	if ( GlobalConfig.MHD ) {
+	    // Magnetic field
+	    U2.B.refx = U_old.B.x + dt * (gamma_1 * dUdt0.B.x + gamma_2 * dUdt1.B.x);
+	    U2.B.refy = U_old.B.y + dt * (gamma_1 * dUdt0.B.y + gamma_2 * dUdt1.B.y);
+	    U2.B.refz = U_old.B.z + dt * (gamma_1 * dUdt0.B.z + gamma_2 * dUdt1.B.z);
+	}
+	U2.total_energy = U_old.total_energy + 
+	    dt * (gamma_1 * dUdt0.total_energy + gamma_2 * dUdt1.total_energy);
+	if ( with_k_omega ) {
+	    U2.tke = U_old.tke + dt * (gamma_1 * dUdt0.tke + gamma_2 * dUdt1.tke);
+	    U2.tke = fmax(U2.tke, 0.0);
+	    U2.omega = U_old.omega + dt * (gamma_1 * dUdt0.omega + gamma_2 * dUdt1.omega);
+	    U2.omega = fmax(U2.omega, U_old.mass);
+	} else {
+	    U2.tke = U_old.tke;
+	    U2.omega = U_old.omega;
+	}
+	foreach(isp; 0 .. U2.massf.length) {
+	    U2.massf[isp] = U_old.massf[isp] + dt * (gamma_1 * dUdt0.massf[isp] + gamma_2 * dUdt1.massf[isp]);
+	}
+	// We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
+	// Instead we get this from the conservation of total energy
+	foreach(imode; 1 .. U2.energies.length) {
+	    U2.energies[imode] = U_old.energies[imode] + 
+		dt * (gamma_1 * dUdt0.energies[imode] + gamma_2 * dUdt1.energies[imode]);
+	}
+    } // end stage_2_update_for_flow_on_fixed_grid()
+
+    void stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega) 
+    {
+	ConservedQuantities dUdt0 = dUdt[0];
+	ConservedQuantities dUdt1 = dUdt[1];
+	ConservedQuantities dUdt2 = dUdt[2];
+	ConservedQuantities U_old = U[0];
+	if ( gasdynamic_update_scheme == denman_rk3_update ) U_old = U[2];
+	ConservedQuantities U3 = U[3];
+	double gamma_1 = 1.0/6.0; // presume TVD_RK3 scheme.
+	double gamma_2 = 1.0/6.0;
+	double gamma_3 = 4.0/6.0;
+	switch ( gasdynamic_update_scheme ) {
+	case classic_rk3_update: gamma_1 = 1.0/6.0; gamma_2 = 4.0/6.0; gamma_3 = 1.0/6.0; break;
+	case tvd_rk3_update: gamma_1 = 1.0/6.0; gamma_2 = 1.0/6.0; gamma_3 = 4.0/6.0; break;
+	    // FIX-ME: Really don't think that we have Andrew Denman's scheme ported correctly.
+	case denman_rk3_update: gamma_1 = 0.0; gamma_2 = -5.0/12.0; gamma_3 = 3.0/4.0; break;
+	default:
+	    throw new Error("FV_Cell::stage_3_update_for_flow_on_fixed_grid(): invalid update scheme.");
+	}
+	U3.mass = U_old.mass + dt * (gamma_1*dUdt0.mass + gamma_2*dUdt1.mass + gamma_3*dUdt2.mass);
+	U3.momentum.refx = U_old.momentum.x +
+	    dt * (gamma_1*dUdt0.momentum.x + gamma_2*dUdt1.momentum.x + gamma_3*dUdt2.momentum.x);
+	U3.momentum.refy = U_old.momentum.y +
+	    dt * (gamma_1*dUdt0.momentum.y + gamma_2*dUdt1.momentum.y + gamma_3*dUdt2.momentum.y);
+	U3.momentum.refz = U_old.momentum.z + 
+	    dt * (gamma_1*dUdt0.momentum.z + gamma_2*dUdt1.momentum.z + gamma_3*dUdt2.momentum.z);
+	if ( GlobalConfig.MHD ) {
+	    // Magnetic field
+	    U3.B.refx = U_old.B.x + dt * (gamma_1*dUdt0.B.x + gamma_2*dUdt1.B.x + gamma_3*dUdt2.B.x);
+	    U3.B.refy = U_old.B.y + dt * (gamma_1*dUdt0.B.y + gamma_2*dUdt1.B.y + gamma_3*dUdt2.B.y);
+	    U3.B.refz = U_old.B.z + dt * (gamma_1*dUdt0.B.z + gamma_2*dUdt1.B.z + gamma_3*dUdt2.B.z);
+	}
+	U3.total_energy = U_old.total_energy + 
+	    dt * (gamma_1*dUdt0.total_energy + gamma_2*dUdt1.total_energy + gamma_3*dUdt2.total_energy);
+	if ( with_k_omega ) {
+	    U3.tke = U_old.tke + dt * (gamma_1*dUdt0.tke + gamma_2*dUdt1.tke + gamma_3*dUdt2.tke);
+	    U3.tke = fmax(U3.tke, 0.0);
+	    U3.omega = U_old.omega + dt * (gamma_1*dUdt0.omega + gamma_2*dUdt1.omega + gamma_3*dUdt2.omega);
+	    U3.omega = fmax(U3.omega, U_old.mass);
+	} else {
+	    U3.tke = U_old.tke;
+	    U3.omega = U_old.omega;
+	}
+	foreach(isp; 0 .. U3.massf.length) {
+	    U3.massf[isp] = U_old.massf[isp] +
+		dt * (gamma_1*dUdt0.massf[isp] + gamma_2*dUdt1.massf[isp] + gamma_3*dUdt2.massf[isp]);
+	}
+	// We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
+	// Instead we get this from the conservation of total energy
+	foreach(imode; 1 .. U3.energies.length) {
+	    U3.energies[imode] = U_old.energies[imode] +
+		dt * (gamma_1*dUdt0.energies[imode] + gamma_2*dUdt1.energies[imode] +
+		      gamma_3*dUdt2.energies[imode]);
+	}
+    } // end stage_3_update_for_flow_on_fixed_grid()
+
+    void stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega) 
+    {
+	throw new Error("[TODO] not yet ready for use");
+	ConservedQuantities dUdt0 = dUdt[0];
+	ConservedQuantities U0 = U[0];
+	ConservedQuantities U1 = U[1];
+	double gamma_1 = 1.0;
+	double vr = volume[0] / volume[1];
+
+	U1.mass = vr * (U0.mass + dt * gamma_1 * dUdt0.mass);
+	U1.momentum.refx = vr * (U0.momentum.x + dt * gamma_1 * dUdt0.momentum.x);
+	U1.momentum.refy = vr * (U0.momentum.y + dt * gamma_1 * dUdt0.momentum.y);
+	U1.momentum.refz = vr * (U0.momentum.z + dt * gamma_1 * dUdt0.momentum.z);
+	if ( GlobalConfig.MHD ) {
+	    // Magnetic field
+	    U1.B.refx = vr * (U0.B.x + dt * gamma_1 * dUdt0.B.x);
+	    U1.B.refy = vr * (U0.B.y + dt * gamma_1 * dUdt0.B.y);
+	    U1.B.refz = vr * (U0.B.z + dt * gamma_1 * dUdt0.B.z);
+	}
+	U1.total_energy = vr * (U0.total_energy + dt * gamma_1 * dUdt0.total_energy);
+	if ( with_k_omega ) {
+	    U1.tke = vr * (U0.tke + dt * gamma_1 * dUdt0.tke);
+	    U1.tke = fmax(U1.tke, 0.0);
+	    U1.omega = vr * (U0.omega + dt * gamma_1 * dUdt0.omega);
+	    U1.omega = fmax(U1.omega, U0.mass);
+	} else {
+	    U1.tke = U0.tke;
+	    U1.omega = U0.omega;
+	}
+	foreach(isp; 0 .. U1.massf.length) {
+	    U1.massf[isp] = vr * (U0.massf[isp] + dt * gamma_1 * dUdt0.massf[isp]);
+	}
+	// We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
+	// Instead we get this from the conservation of total energy
+	foreach(imode; 1 .. U1.energies.length) {
+	    U1.energies[imode] = vr * (U0.energies[imode] + dt * gamma_1 * dUdt0.energies[imode]);
+	}
+    } // end stage_1_update_for_flow_on_moving_grid()
+
+    void stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega) 
+    {
+	throw new Error("[TODO] not yet ready for use");
+	ConservedQuantities dUdt0 = dUdt[0];
+	ConservedQuantities dUdt1 = dUdt[1];
+	ConservedQuantities U0 = U[0];
+	// ConservedQuantities U1 = U[1];
+	ConservedQuantities U2 = U[2];
+	double gamma_2 = 0.5;
+	double gamma_1 = 0.5;
+	double v_old = volume[0];
+	double vol_inv = 1.0 / volume[2];
+	gamma_1 *= volume[0]; gamma_2 *= volume[1]; // Roll-in the volumes for convenience below. 
+    
+	U2.mass = vol_inv * (v_old * U0.mass + dt * (gamma_1 * dUdt0.mass + gamma_2 * dUdt1.mass));
+	U2.momentum.refx = vol_inv * (v_old * U0.momentum.x + 
+				      dt * (gamma_1 * dUdt0.momentum.x + gamma_2 * dUdt1.momentum.x));
+	U2.momentum.refy = vol_inv * (v_old * U0.momentum.y + 
+				      dt * (gamma_1 * dUdt0.momentum.y + gamma_2 * dUdt1.momentum.y));
+	U2.momentum.refz = vol_inv * (v_old * U0.momentum.z + 
+				      dt * (gamma_1 * dUdt0.momentum.z + gamma_2 * dUdt1.momentum.z));
+	if ( GlobalConfig.MHD ) {
+	    // Magnetic field
+	    U2.B.refx = vol_inv * (v_old * U0.B.x + dt * (gamma_1 * dUdt0.B.x + gamma_2 * dUdt1.B.x));
+	    U2.B.refy = vol_inv * (v_old * U0.B.y + dt * (gamma_1 * dUdt0.B.y + gamma_2 * dUdt1.B.y));
+	    U2.B.refz = vol_inv * (v_old * U0.B.z + dt * (gamma_1 * dUdt0.B.z + gamma_2 * dUdt1.B.z));
+	}
+	U2.total_energy = vol_inv * (v_old * U0.total_energy + 
+				     dt * (gamma_1 * dUdt0.total_energy + gamma_2 * dUdt1.total_energy));
+	if ( with_k_omega ) {
+	    U2.tke = vol_inv * (v_old * U0.tke + dt * (gamma_1 * dUdt0.tke + gamma_2 * dUdt1.tke));
+	    U2.tke = fmax(U2.tke, 0.0);
+	    U2.omega = vol_inv * (v_old * U0.omega + dt * (gamma_1 * dUdt0.omega + gamma_2 * dUdt1.omega));
+	    U2.omega = fmax(U2.omega, U0.mass);
+	} else {
+	    U2.tke = vol_inv * (v_old * U0.tke);
+	    U2.omega = vol_inv * (v_old * U0.omega);
+	}
+	foreach(isp; 0 .. U2.massf.length) {
+	    U2.massf[isp] = vol_inv * (v_old * U0.massf[isp] +
+				       dt * (gamma_1 * dUdt0.massf[isp] + 
+					     gamma_2 * dUdt1.massf[isp]));
+	}
+	// We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
+	// Instead we get this from the conservation of total energy
+	foreach(imode; 1 .. U2.energies.length) {
+	    U2.energies[imode] = vol_inv * (v_old * U0.energies[imode] +
+					    dt * (gamma_1 * dUdt0.energies[imode] + 
+						  gamma_2 * dUdt1.energies[imode]));
+	}
+    } // end stage_2_update_for_flow_on_moving_grid()
+
+    void chemical_increment(double dt, double T_frozen) 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega) {
+    void thermal_increment(double dt, double T_frozen_energy) 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega) {
+    double signal_frequency(int dimensions, bool with_k_omega) 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega) {
+    void turbulence_viscosity_zero() 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega) {
+    void turbulence_viscosity_zero_if_not_in_zone() 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void chemical_increment(double dt, double T_frozen) {
+    void turbulence_viscosity_limit(double factor) 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void thermal_increment(double dt, double T_frozen_energy) {
+    void turbulence_viscosity_factor(double factor) 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    double signal_frequency(int dimensions, bool with_k_omega) {
+    void turbulence_viscosity_k_omega() 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void turbulence_viscosity_zero() {
+    void update_k_omega_properties(double dt) 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void turbulence_viscosity_zero_if_not_in_zone() {
+    void k_omega_time_derivatives(ref double Q_rtke, ref double Q_romega, double tke, double omega) 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void turbulence_viscosity_limit(double factor) {
+    void clear_source_vector() 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void turbulence_viscosity_factor(double factor) {
+    void add_inviscid_source_vector(int gtl, double omegaz=0.0) 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void turbulence_viscosity_k_omega() {
+    void add_viscous_source_vector(bool with_k_omega) 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void update_k_omega_properties(double dt) {
+    double calculate_wall_Reynolds_number(int which_boundary) 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void k_omega_time_derivatives(ref double Q_rtke, ref double Q_romega, double tke, double omega) {
+    void store_rad_scaling_params() 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void clear_source_vector() {
+    void rescale_Q_rE_rad() 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void add_inviscid_source_vector(int gtl, double omegaz=0.0) {
+    void reset_Q_rad_to_zero() 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void add_viscous_source_vector(bool with_k_omega) {
-	throw new Error("[TODO] not yet implemented");
-    }
-
-    double calculate_wall_Reynolds_number(int which_boundary) {
-	throw new Error("[TODO] not yet implemented");
-    }
-
-    void store_rad_scaling_params() {
-	throw new Error("[TODO] not yet implemented");
-    }
-
-    void rescale_Q_rE_rad() {
-	throw new Error("[TODO] not yet implemented");
-    }
-
-    void reset_Q_rad_to_zero() {
-	throw new Error("[TODO] not yet implemented");
-    }
-
-    double rad_scaling_ratio() {
+    double rad_scaling_ratio() 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
