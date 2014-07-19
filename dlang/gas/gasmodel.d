@@ -10,6 +10,7 @@
 
 module gasmodel;
 import std.conv;
+import std.math;
 
 immutable double R_universal = 8.314; // J/mole.K
 
@@ -204,3 +205,28 @@ public:
     double * copy_values_from_buffer(double *buf);
 +/
 } // end class GasState
+
+
+void scale_mass_fractions(double[] massf, double tolerance=0.0)
+{
+    auto my_nsp = massf.length;
+    if ( my_nsp == 1 ) {
+	// Single species, always expect massf[0]==1.0, so we can take a short-cut.
+	if ( fabs(massf[0] - 1.0) > 0.1 ) 
+	    throw new Error("Single species mass fraction far from 1.0");
+	massf[0] = 1.0;
+    } else {
+	// Multiple species, do the full job.
+	double massf_sum = 0.0;
+	foreach(isp; 0 .. my_nsp) {
+	    massf[isp] = massf[isp] >= 0.0 ? massf[isp] : 0.0;
+	    massf_sum += massf[isp];
+	}
+	if ( fabs(massf_sum - 1.0) > 0.1 )
+	    throw new Error("Sum of species mass fractions far from 1.0");
+	if ( fabs(massf_sum - 1.0) > tolerance ) {
+	    foreach(isp; 0 .. my_nsp) massf[isp] /= massf_sum;
+	}
+    }
+} // end scale_mass_fractions()
+

@@ -12,6 +12,7 @@ import std.conv;
 import std.string;
 import std.array;
 import std.format;
+import std.stdio;
 import geom;
 import gasmodel;
 import fvcore;
@@ -319,20 +320,134 @@ public:
     }
 
     void encode_conserved(int gtl, int ftl, double omegaz, bool with_k_omega) {
-	throw new Error("[TODO] not yet implemented");
-    }
+	ConservedQuantities myU = U[ftl];
+
+	myU.mass = fs.gas.rho;
+	// X-, Y- and Z-momentum per unit volume.
+	myU.momentum.refx = fs.gas.rho * fs.vel.x;
+	myU.momentum.refy = fs.gas.rho * fs.vel.y;
+	myU.momentum.refz = fs.gas.rho * fs.vel.z;
+	// Magnetic field
+	myU.B.refx = fs.B.x;
+	myU.B.refy = fs.B.y;
+	myU.B.refz = fs.B.z;
+	// Total Energy / unit volume = density
+	// (specific internal energy + kinetic energy/unit mass).
+	double e = 0.0; foreach(elem; fs.gas.e) e += elem;
+	double ke = 0.5 * (fs.vel.x * fs.vel.x + fs.vel.y * fs.vel.y + fs.vel.z * fs.vel.z);
+	if ( with_k_omega ) {
+	    myU.tke = fs.gas.rho * fs.tke;
+	    myU.omega = fs.gas.rho * fs.omega;
+	    myU.total_energy = fs.gas.rho * (e + ke + fs.tke);
+	} else {
+	    myU.tke = 0.0;
+	    myU.omega = fs.gas.rho * 1.0;
+	    myU.total_energy = fs.gas.rho * (e + ke);
+	}
+	if ( GlobalConfig.MHD ) {
+	    double me = 0.5 * (fs.B.x * fs.B.x + fs.B.y * fs.B.y + fs.B.z * fs.B.z);
+	    myU.total_energy += me;
+	}
+	// Species densities: mass of species is per unit volume.
+	foreach(isp; 0 .. myU.massf.length) {
+	    myU.massf[isp] = fs.gas.rho * fs.gas.massf[isp];
+	}
+	// Individual energies: energy in mode per unit volume
+	foreach(imode; 0 .. myU.energies.length) {
+	    myU.energies[imode] = fs.gas.rho * fs.gas.e[imode];
+	}
+    
+	if ( omegaz != 0.0 ) {
+	    // Rotating frame.
+	    // Finally, we adjust the total energy to make rothalpy.
+	    // We do this last because the gas models don't know anything
+	    // about rotating frames and we don't want to mess their
+	    // energy calculations around.
+	    double rho = fs.gas.rho;
+	    double x = pos[gtl].x;
+	    double y = pos[gtl].y;
+	    double rsq = x*x + y*y;
+	    // The conserved quantity is rothalpy. I = E - (u**2)/2
+	    // where rotating frame velocity  u = omegaz * r.
+	    myU.total_energy -= rho * 0.5 * omegaz * omegaz * rsq;
+	}
+    } // end encode_conserved()
 
     void decode_conserved(int gtl, int ftl, double omegaz, bool with_k_omega) {
-	throw new Error("[TODO] not yet implemented");
-    }
+	ConservedQuantities myU = U[ftl];
+	auto gmodel = GlobalConfig.gmodel;
+	double e, ke, dinv, rE, me;
+	// Mass / unit volume = Density
+	double rho = myU.mass;
+	fs.gas.rho = rho; // This is limited to nonnegative and finite values.
+	if ( rho <= 0.0 ) {
+	    writeln("FVCell.decode_conserved(): Density is below minimum rho= " ,rho);
+	    writeln("id= ", id, " x= ", pos[gtl].x, " y= ", pos[gtl].y, " z= ", pos[gtl].z);
+	    writeln(fs.gas);
+	}
+	dinv = 1.0 / rho;
+	if ( omegaz != 0.0 ) {
+	    // Rotating frame.
+	    // The conserved quantity is rothalpy so we need to convert
+	    // back to enthalpy to do the rest of the decode.
+	    double x = pos[gtl].x;
+	    double y = pos[gtl].y;
+	    double rsq = x*x + y*y;
+	    rE = myU.total_energy + rho * 0.5 * omegaz * omegaz * rsq;
+	} else {
+	    // Non-rotating frame.
+	    rE = myU.total_energy;
+	}
+	// Velocities from momenta.
+	fs.vel.refx = myU.momentum.x * dinv;
+	fs.vel.refy = myU.momentum.y * dinv;
+	fs.vel.refz = myU.momentum.z * dinv;
+	// Magnetic field
+	fs.B.refx = myU.B.x;
+	fs.B.refy = myU.B.y;
+	fs.B.refz = myU.B.z;
+	// Specific internal energy from total energy per unit volume.
+	ke = 0.5 * (fs.vel.x * fs.vel.x + fs.vel.y * fs.vel.y + fs.vel.z * fs.vel.z);
+	if ( GlobalConfig.MHD ) {
+	    me = 0.5*(fs.B.x*fs.B.x + fs.B.y*fs.B.y + fs.B.z*fs.B.z);
+	} else {
+	    me = 0.0;
+	}
+	if ( with_k_omega ) {
+	    fs.tke = myU.tke * dinv;
+	    fs.omega = myU.omega * dinv;
+	    e = (rE - myU.tke - me) * dinv - ke;
+	} else {
+	    fs.tke = 0.0;
+	    fs.omega = 1.0;
+	    e = (rE - me) * dinv - ke;
+	}
+	foreach(isp; 0 .. gmodel.n_species) fs.gas.massf[isp] = myU.massf[isp] * dinv; 
+	if ( gmodel.n_species > 1 ) scale_mass_fractions(fs.gas.massf);
+	foreach(imode; 0 .. gmodel.n_modes) fs.gas.e[imode] = myU.energies[imode] * dinv; 
+	// We can recompute e[0] from total energy and component
+	// modes NOT in translation.
+	if ( gmodel.n_modes > 1 ) {
+	    double e_tmp = 0.0;
+	    foreach(imode; 1 .. gmodel.n_modes) e_tmp += fs.gas.e[imode];
+	    fs.gas.e[0] = e - e_tmp;
+	} else {
+	    fs.gas.e[0] = e;
+	}
+	// Fill out the other variables: P, T, a, and viscous transport coefficients.
+	gmodel.update_thermo_from_rhoe(fs.gas);
+	gmodel.update_sound_speed(fs.gas);
+	if ( GlobalConfig.viscous ) gmodel.update_trans_coeffs(fs.gas);
+	// if ( GlobalConfig.diffusion ) gmodel.update_diff_coeffs(fs.gas);
+    } // end decode_conserved()
 
     bool check_flow_data() {
 	throw new Error("[TODO] not yet implemented");
-    }
+    } // end check_flow_data()
 
     void time_derivatives(int gtl, int ftl, int dimensions, bool with_k_omega) {
 	throw new Error("[TODO] not yet implemented");
-    }
+    } // end time_derivatives()
 
     void stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, bool with_k_omega) {
 	throw new Error("[TODO] not yet implemented");
