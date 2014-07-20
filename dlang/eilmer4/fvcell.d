@@ -1123,24 +1123,27 @@ public:
 
     void turbulence_viscosity_k_omega() 
     {
-/+
-	if ( G.turbulence_model != TM_K_OMEGA ) {
-	    // FIX-ME may have to do something better if another turbulence model is active.
+	if ( GlobalConfig.turbulence_model != tm_k_omega ) {
+	    // [TODO] may have to do something better if another turbulence model is active.
 	    fs.mu_t = 0.0;
 	    fs.k_t = 0.0;
-	    return SUCCESS;
+	    return;
 	}
 	double dudx, dudy, dvdx, dvdy;
 	double S_bar_squared;
 	double C_lim = 0.875;
 	double beta_star = 0.09;
-	if ( G.dimensions == 2 ) {
+	if ( GlobalConfig.dimensions == 2 ) {
 	    // 2D cartesian or 2D axisymmetric
-	    dudx = 0.25 * (vtx[0].dudx + vtx[1].dudx + vtx[2].dudx + vtx[3].dudx);
-	    dudy = 0.25 * (vtx[0].dudy + vtx[1].dudy + vtx[2].dudy + vtx[3].dudy);
-	    dvdx = 0.25 * (vtx[0].dvdx + vtx[1].dvdx + vtx[2].dvdx + vtx[3].dvdx);
-	    dvdy = 0.25 * (vtx[0].dvdy + vtx[1].dvdy + vtx[2].dvdy + vtx[3].dvdy);
-	    if ( G.axisymmetric ) {
+	    double avg2D(int i, int j)() 
+		if ( is(typeof(vtx[0].grad_vel[i][j]) == double) )
+	    {
+		return 0.25 * (vtx[0].grad_vel[i][j] + vtx[1].grad_vel[i][j] + 
+			       vtx[2].grad_vel[i][j] + vtx[3].grad_vel[i][j]);
+	    }
+	    dudx = avg2D!(0,0)(); dudy = avg2D!(0,1)();
+	    dvdx = avg2D!(1,0)(); dvdy = avg2D!(1,1)();
+	    if ( GlobalConfig.axisymmetric ) {
 		// 2D axisymmetric
 		double v_over_y = fs.vel.y / pos[0].y;
 		S_bar_squared = dudx*dudx + dvdy*dvdy + v_over_y*v_over_y
@@ -1156,50 +1159,253 @@ public:
 	} else {
 	    // 3D cartesian
 	    double dudz, dvdz, dwdx, dwdy, dwdz;
-	    dudx = 0.125 * (vtx[0].dudx + vtx[1].dudx + vtx[2].dudx + vtx[3].dudx +
-			    vtx[4].dudx + vtx[5].dudx + vtx[6].dudx + vtx[7].dudx);
-	    dudy = 0.125 * (vtx[0].dudy + vtx[1].dudy + vtx[2].dudy + vtx[3].dudy +
-			    vtx[4].dudy + vtx[5].dudy + vtx[6].dudy + vtx[7].dudy);
-	    dudz = 0.125 * (vtx[0].dudz + vtx[1].dudz + vtx[2].dudz + vtx[3].dudz +
-			    vtx[4].dudz + vtx[5].dudz + vtx[6].dudz + vtx[7].dudz);
-	    dvdx = 0.125 * (vtx[0].dvdx + vtx[1].dvdx + vtx[2].dvdx + vtx[3].dvdx +
-			    vtx[4].dvdx + vtx[5].dvdx + vtx[6].dvdx + vtx[7].dvdx);
-	    dvdy = 0.125 * (vtx[0].dvdy + vtx[1].dvdy + vtx[2].dvdy + vtx[3].dvdy +
-			    vtx[4].dvdy + vtx[5].dvdy + vtx[6].dvdy + vtx[7].dvdy);
-	    dvdz = 0.125 * (vtx[0].dvdz + vtx[1].dvdz + vtx[2].dvdz + vtx[3].dvdz +
-			    vtx[4].dvdz + vtx[5].dvdz + vtx[6].dvdz + vtx[7].dvdz);
-	    dwdx = 0.125 * (vtx[0].dwdx + vtx[1].dwdx + vtx[2].dwdx + vtx[3].dwdx +
-			    vtx[4].dwdx + vtx[5].dwdx + vtx[6].dwdx + vtx[7].dwdx);
-	    dwdy = 0.125 * (vtx[0].dwdy + vtx[1].dwdy + vtx[2].dwdy + vtx[3].dwdy +
-			    vtx[4].dwdy + vtx[5].dwdy + vtx[6].dwdy + vtx[7].dwdy);
-	    dwdz = 0.125 * (vtx[0].dwdz + vtx[1].dwdz + vtx[2].dwdz + vtx[3].dwdz +
-			    vtx[4].dwdz + vtx[5].dwdz + vtx[6].dwdz + vtx[7].dwdz);
-	    // 3D cartesian
+	    double avg3D(int i, int j)() 
+		if ( is(typeof(vtx[0].grad_vel[i][j]) == double) )
+	    {
+		return 0.125 * (vtx[0].grad_vel[i][j] + vtx[1].grad_vel[i][j] + 
+				vtx[2].grad_vel[i][j] + vtx[3].grad_vel[i][j] +
+				vtx[4].grad_vel[i][j] + vtx[5].grad_vel[i][j] + 
+				vtx[6].grad_vel[i][j] + vtx[7].grad_vel[i][j]);
+	    }
+	    dudx = avg3D!(0,0)(); dudy = avg3D!(0,1)(); dudz = avg3D!(0,2)();
+	    dvdx = avg3D!(1,0)(); dvdy = avg3D!(1,1)(); dvdz = avg3D!(1,2)();
+	    dwdx = avg3D!(2,0)(); dwdy = avg3D!(2,1)(); dwdz = avg3D!(2,2)();
 	    S_bar_squared =  dudx*dudx + dvdy*dvdy + dwdz*dwdz
 		- 1.0/3.0*(dudx + dvdy + dwdz)*(dudx + dvdy + dwdz)
 		+ 0.5 * (dudy + dvdx) * (dudy + dvdx)
 		+ 0.5 * (dudz + dwdx) * (dudz + dwdx)
 		+ 0.5 * (dvdz + dwdy) * (dvdz + dwdy);
 	}
-	S_bar_squared = max(0.0, S_bar_squared);
-	double omega_t = max(fs.omega, C_lim*sqrt(2.0*S_bar_squared/beta_star));
+	S_bar_squared = fmax(0.0, S_bar_squared);
+	double omega_t = fmax(fs.omega, C_lim*sqrt(2.0*S_bar_squared/beta_star));
 	fs.mu_t = fs.gas.rho * fs.tke / omega_t;
-	double Pr_t = G.turbulence_prandtl;
-	Gas_model *gmodel = get_gas_model_ptr();
-	int status_flag;
-	fs.k_t = gmodel.Cp(*(fs.gas), status_flag) * fs.mu_t / Pr_t;
-+/
+	double Pr_t = GlobalConfig.turbulence_prandtl;
+	auto gmodel = GlobalConfig.gmodel;
+	fs.k_t = gmodel.Cp(fs.gas) * fs.mu_t / Pr_t;
     } // end turbulence_viscosity_k_omega()
 
     void update_k_omega_properties(double dt) 
     {
-	throw new Error("[TODO] not yet implemented");
-    }
+	// Do not update k_omega properties if we are in laminar block
+	if ( !in_turbulent_zone ) return;
+
+	double DrtkeDt_perturbTke, DromegaDt_perturbTke;
+	double DrtkeDt_perturbOmega, DromegaDt_perturbOmega;
+	double DGkDzetak, DGkDzetaw, DGwDzetak, DGwDzetaw;
+	double DfkDk, DfkDw, DfwDk, DfwDw;
+	double Gk, Gw;
+	double delta_rtke, delta_romega;
+	double tke, omega;
+	double tke_current, omega_current;
+	double tke_updated, omega_updated;
+	double DrtkeDt_current, DromegaDt_current;
+	double DrtkeDt_updated, DromegaDt_updated;
+	double perturbFactor = 1.01;  // Perturbation factor for perturbation
+	// analysis to get derivatives
+	double tol = 1.0e-6;          // Tolerance for the Newton-solve loop
+
+	// Encode conserved quantities for cell.
+	U[0].tke = fs.gas.rho * fs.tke;
+	U[0].omega = fs.gas.rho * fs.omega;
+
+	// Start of implicit updating scheme.
+	tke_current = fs.tke; omega_current = fs.omega;  // Current values of tke and omega
+	tke_updated = fs.tke; omega_updated = fs.omega;  // First guess of updated values
+
+	// Work out values of Drtke_current and DromegaDt_current.
+	this.k_omega_time_derivatives(DrtkeDt_current, DromegaDt_current, tke_current, omega_current);
+
+	// Implicit updating scheme.
+	// A for-loop is used to limit the Newton-solve to 20 steps
+	// just in case convergence does not occur.
+	for ( int i = 1; i <= 20; ++i ) {
+	    // Work out unperturbed values of Drtke_updated and DromegaDt_updated.
+	    this.k_omega_time_derivatives(DrtkeDt_updated, DromegaDt_updated, tke_updated, omega_updated);
+	    // Perturb tke and obtain perturbed values of DrtkeDt_updated and DromegaDt_updated.
+	    tke = perturbFactor * tke_updated; omega = omega_updated;
+	    this.k_omega_time_derivatives(DrtkeDt_perturbTke, DromegaDt_perturbTke, tke, omega);
+	    // Perturb omega and obtain perturbed values of DrtkeDt_updated and DromegaDt_updated.
+	    tke = tke_updated; omega = perturbFactor * omega_updated;
+	    this.k_omega_time_derivatives(DrtkeDt_perturbOmega, DromegaDt_perturbOmega, tke, omega);
+	    // Compute derivatives from perturb values.
+	    // FIX-ME : Dividing by tke and omega (instead of rtke and romega) seems to work (gives
+	    //          same results as explicit update scheme), but we will keep this note here for
+	    //          future reference..
+	    DfkDk = (DrtkeDt_perturbTke - DrtkeDt_updated) / ((perturbFactor - 1.0) * tke_updated);
+	    DfkDw = (DrtkeDt_perturbOmega - DrtkeDt_updated) / ((perturbFactor - 1.0) * omega_updated);
+	    DfwDk = (DromegaDt_perturbTke - DromegaDt_updated) / ((perturbFactor - 1.0) * tke_updated);
+	    DfwDw = (DromegaDt_perturbOmega - DromegaDt_updated) / ((perturbFactor - 1.0) * omega_updated);
+	    // Compute components in matrix A of Ax=B problem.
+	    DGkDzetak = -1.0 + 0.5 * dt * DfkDk;
+	    DGkDzetaw = 0.5 * dt * DfkDw;
+	    DGwDzetak = 0.5 * dt * DfwDk;
+	    DGwDzetaw = -1.0 + 0.5 * dt * DfwDw;
+	    // Compute vector B of Ax=B problem.
+	    Gk = fs.gas.rho * tke_updated - fs.gas.rho * tke_current -
+		0.5 * dt * (DrtkeDt_updated + DrtkeDt_current);
+	    Gw = fs.gas.rho * omega_updated - fs.gas.rho * omega_current -
+		0.5 * dt * (DromegaDt_updated + DromegaDt_current);
+	    // Solve Ax=B algebraically.
+	    delta_rtke = (DGkDzetaw * Gw - DGwDzetaw * Gk) /
+		(DGwDzetak * DGkDzetaw - DGwDzetaw * DGkDzetak);
+	    delta_romega = (Gk - DGkDzetak * delta_rtke) / DGkDzetaw;
+	    // Assign the updated tke and omega values if delta_rtke and
+	    // delta_romega are both smaller than the given tolerance, and
+	    // then break out from the Newton-solve loop.
+	    if (fabs(delta_rtke) <= tol && fabs(delta_romega) <= tol) {
+		fs.tke = tke_updated;
+		fs.omega = omega_updated;
+		break;
+	    } else {
+		// Compute next estimates for rtke and romega from
+		// delta_rtke and delta_romega.
+		if (delta_rtke + fs.gas.rho * tke_updated < 0.0) {
+		    // Don't let rtke go negative.
+		    U[0].tke = fs.gas.rho * tke_updated;
+		} else {
+		    // Next estimate for rtke.
+		    U[0].tke = delta_rtke + fs.gas.rho * tke_updated;
+		}
+		if (delta_romega + fs.gas.rho * omega_updated < 0.0) {
+		    // Don't let romega go negative.
+		    U[0].omega = fs.gas.rho * omega_updated;
+		} else {
+		    // Next estimate for romega.
+		    U[0].omega = delta_romega + fs.gas.rho * omega_updated;
+		}
+		// Decode for the next step of the Newton-solve loop
+		tke_updated = U[0].tke / fs.gas.rho;
+		omega_updated = U[0].omega / fs.gas.rho;
+	    }
+	} // End of Newton-solve loop for implicit update scheme
+    } // end update_k_omega_properties()
 
     void k_omega_time_derivatives(ref double Q_rtke, ref double Q_romega, double tke, double omega) 
+    // Compute k-omega source terms.
+    //
+    // Production and Dissipation expressions for turbulence kinetic energy
+    // and turbulence frequency (or pseudo-vorticity). Based on Wilcox's 2006 model.
+    //
+    // Jan 2007: Initial implementation (Jan-Pieter Nap, PJ)
+    // Dec 2008: Implementation of the 3D terms (W Chan)
+    // Jan 2011: Minor modification to allow for implicit updating of tke and omega (W Chan)
+    //           All "fs->tke" and "fs->omega" instances are replaced with tke and omega.
+    // Jul 2014: Port to D by PJ
     {
-	throw new Error("[TODO] not yet implemented");
-    }
+	if ( GlobalConfig.turbulence_model != tm_k_omega ) {
+	    // [TODO] may need to do something better is another turbulence model is active.
+	    Q_rtke = 0.0;
+	    Q_romega = 0.0;
+	    return;
+	}
+	double dudx, dudy, dvdx, dvdy;
+	double dtkedx, dtkedy, domegadx, domegady;
+	double alpha = 0.52;
+	double beta_0 = 0.0708;
+	double beta;
+	double beta_star = 0.09;
+	double P_K, D_K, P_W, D_W;
+	double cross_diff;
+	double sigma_d = 0.0;
+	double WWS, X_w, f_beta;
+	if ( GlobalConfig.dimensions == 2 ) {
+	    // 2D cartesian or 2D axisymmetric
+	    // The following compile-time function is more complicated 
+	    // than the resulting 2D code and actually take up more space, 
+	    // however, it's practice for the main event (3D code, below).
+	    string avg2D(string name)
+	    {
+		return "0.25 * (vtx[0]." ~ name ~ " + vtx[1]." ~ name ~
+		    " + vtx[2]." ~ name ~ " + vtx[3]." ~ name ~ ")";
+	    }
+	    dudx = mixin(avg2D("grad_vel[0][0]"));
+	    dudy = mixin(avg2D("grad_vel[0][1]"));
+	    dvdx = mixin(avg2D("grad_vel[1][0]"));
+	    dvdy = mixin(avg2D("grad_vel[1][1]"));
+	    dtkedx = mixin(avg2D("grad_tke.x"));
+	    dtkedy = mixin(avg2D("grad_tke.y"));
+	    domegadx = mixin(avg2D("grad_omega.x"));
+	    domegady = mixin(avg2D("grad_omega.y"));
+	    if ( GlobalConfig.axisymmetric ) {
+		// 2D axisymmetric
+		double v_over_y = fs.vel.y / pos[0].y;
+		// JP.Nap correction from 03-May-2007 (-v_over_y in parentheses)
+		// P_K -= 0.6667 * mu_t * v_over_y * (dudx+dvdy-v_over_y);
+		// Wilson Chan correction to JP Nap's version (13 Dec 2008)
+		P_K = 2.0 * fs.mu_t * (dudx*dudx + dvdy*dvdy)
+		    + fs.mu_t * (dudy + dvdx) * (dudy + dvdx)
+		    - 2.0/3.0 * fs.mu_t * (dudx + dvdy + v_over_y)
+		    * (dudx + dvdy + v_over_y)
+		    + 2.0 * fs.mu_t * (v_over_y) * (v_over_y)
+		    - 2.0/3.0 * fs.gas.rho * tke * (dudx + dvdy + v_over_y);
+		WWS = 0.25 * (dvdx - dudy) * (dvdx - dudy) * v_over_y ;
+	    } else {
+		// 2D cartesian
+		P_K = 1.3333 * fs.mu_t * (dudx*dudx - dudx*dvdy + dvdy*dvdy)
+		    + fs.mu_t * (dudy + dvdx) * (dudy + dvdx)
+		    - 0.66667 * fs.gas.rho * tke * (dudx + dvdy);
+		WWS = 0.0 ;
+	    }
+	    cross_diff = dtkedx * domegadx + dtkedy * domegady ;
+	} else {
+	    // 3D cartesian
+	    double dudz, dvdz, dwdx, dwdy, dwdz;
+	    double dtkedz, domegadz;
+	    string avg3D(string name)
+	    {
+		return "0.125 * (vtx[0]." ~ name ~ " + vtx[1]." ~ name ~
+		    " + vtx[2]." ~ name ~ " + vtx[3]." ~ name ~ 
+		    " + vtx[4]." ~ name ~ " + vtx[5]." ~ name ~ 
+		    " + vtx[6]." ~ name ~ " + vtx[7]." ~ name ~ ")";
+	    }
+	    dudx = mixin(avg3D("grad_vel[0][0]"));
+	    dudy = mixin(avg3D("grad_vel[0][1]"));
+	    dudz = mixin(avg3D("grad_vel[0][2]"));
+	    dvdx = mixin(avg3D("grad_vel[1][0]"));
+	    dvdy = mixin(avg3D("grad_vel[1][1]"));
+	    dvdz = mixin(avg3D("grad_vel[1][2]"));
+	    dwdx = mixin(avg3D("grad_vel[2][0]"));
+	    dwdy = mixin(avg3D("grad_vel[2][1]"));
+	    dwdz = mixin(avg3D("grad_vel[2][2]"));
+	    dtkedx = mixin(avg3D("grad_tke.x"));
+	    dtkedy = mixin(avg3D("grad_tke.y"));
+	    dtkedz = mixin(avg3D("grad_tke.z"));
+	    domegadx = mixin(avg3D("grad_omega.x"));
+	    domegady = mixin(avg3D("grad_omega.y"));
+	    domegadz = mixin(avg3D("grad_omega.z"));
+	    P_K = 2.0 * fs.mu_t * (dudx*dudx + dvdy*dvdy + dwdz*dwdz)
+		- 2.0/3.0 * fs.mu_t * (dudx + dvdy + dwdz) * (dudx + dvdy + dwdz)
+		- 2.0/3.0 * fs.gas.rho * tke * (dudx + dvdy + dwdz)
+		+ fs.mu_t * (dudy + dvdx) * (dudy + dvdx)
+		+ fs.mu_t * (dudz + dwdx) * (dudz + dwdx)
+		+ fs.mu_t * (dvdz + dwdy) * (dvdz + dwdy) ;
+	    cross_diff = dtkedx * domegadx + dtkedy * domegady + dtkedz * domegadz ;
+	    WWS = 0.25 * (dudy - dvdx) * (dudy - dvdx) * dwdz
+		+ 0.25 * (dudz - dwdx) * (dudz - dwdx) * dvdy
+		+ 0.25 * (dvdz - dwdy) * (dvdz - dwdy) * dudx
+		+ 0.25 * (dudy - dvdx) * (dvdz - dwdy) * (dwdx + dudz)
+		+ 0.25 * (dudz - dwdx) * (dwdy - dvdz) * (dudy + dvdx)
+		+ 0.25 * (dvdx - dudy) * (dudz - dwdx) * (dwdy + dvdx) ;
+	}
+
+	D_K = beta_star * fs.gas.rho * tke * omega;
+    
+	// Apply a limit to the tke production as suggested by Jeff White, November 2007.
+	const double P_OVER_D_LIMIT = 25.0;
+	P_K = fmin(P_K, P_OVER_D_LIMIT*D_K);
+
+	if ( cross_diff > 0 ) sigma_d = 0.125;
+	P_W = alpha * omega / fmax(tke, small_tke) * P_K +
+	    sigma_d * fs.gas.rho / fmax(omega, small_omega) * cross_diff;
+
+	X_w = fabs(WWS / pow(beta_star*omega, 3)) ;
+	f_beta = (1.0 + 85.0 * X_w) / (1.0 + 100.0 * X_w) ;
+	beta = beta_0 * f_beta;
+	D_W = beta * fs.gas.rho * omega * omega;
+
+	Q_rtke = P_K - D_K;
+	Q_romega = P_W - D_W;
+    } // end k_omega_time_derivatives()
 
     void clear_source_vector() 
     {

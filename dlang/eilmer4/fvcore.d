@@ -54,8 +54,8 @@ enum
 // Minimum values for turbulent kinetic energy (m^2/s^2) and frequency (1/s)
 // for applying limiters in the k-omega model.
 enum
-    minimum_tke = 0.1,
-    minimum_omega = 1.0;
+    small_tke = 0.1,
+    small_omega = 1.0;
 
 
 void init_fvcore()
