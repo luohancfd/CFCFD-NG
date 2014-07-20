@@ -182,7 +182,7 @@ public:
 	gm.update_trans_coeffs(this);
     } // end copy_average_values_from()
 
-    const bool check_values(bool print_message=true)
+    bool check_values(bool print_message=true) const
     {
 	double RHOMIN = 0.0;
 	double TMIN = 1.0;
@@ -223,7 +223,7 @@ public:
 	return is_data_valid;
     } // end check_values()
 
-    override string toString()
+    override string toString() const
     {
 	char[] repr;
 	repr ~= "GasState(";
@@ -249,7 +249,7 @@ public:
 } // end class GasState
 
 
-void scale_mass_fractions(double[] massf, double tolerance=0.0)
+void scale_mass_fractions(ref double[] massf, double tolerance=0.0)
 {
     auto my_nsp = massf.length;
     if ( my_nsp == 1 ) {

@@ -30,7 +30,7 @@ public:
 	}
     }
 
-    override string toString()
+    override string toString() const
     {
 	char[] repr;
 	repr ~= "SBlock(";

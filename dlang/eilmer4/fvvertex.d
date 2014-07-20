@@ -82,7 +82,7 @@ public:
 	vel[to_level] = vel[from_level];
     }
 
-    override string toString()
+    override string toString() const
     {
 	char[] repr;
 	repr ~= "FVVertex(";

@@ -155,7 +155,7 @@ public:
 	}
     }
 
-    override string toString()
+    override string toString() const
     {
 	char[] repr;
 	repr ~= "FVCell(";
@@ -178,7 +178,7 @@ public:
 	return to!string(repr);
     }
 
-    const bool point_is_inside(in Vector3 p, int dimensions, int gtl)
+    bool point_is_inside(in Vector3 p, int dimensions, int gtl) const
     // Returns true if the point p is inside or on the cell surface.
     {
 	if ( dimensions == 2 ) {
@@ -231,11 +231,13 @@ public:
 	} // end dimensions != 2
     } // end point_is_inside()
 
-    const void copy_values_to_buffer(ref double[] buf, int type_of_copy, int gtl) {
+    void copy_values_to_buffer(ref double[] buf, int type_of_copy, int gtl) const
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    void copy_values_from_buffer(in double buf, int type_of_copy, int gtl) {
+    void copy_values_from_buffer(in double buf, int type_of_copy, int gtl) 
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
@@ -308,7 +310,7 @@ public:
 	}
     }
 
-    const string write_values_to_string() 
+    string write_values_to_string() const
     {
 	auto writer = appender!string();
 	formattedWrite(writer, "%.12e %.12e %.12e %.12e %.12e %.12e %.12e %.12e",
@@ -330,11 +332,13 @@ public:
 	return writer.data();
     }
 
-    void scan_BGK_from_string(string bufptr) {
+    void scan_BGK_from_string(string bufptr)
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
-    const string write_BGK_to_string() {
+    const string write_BGK_to_string()
+    {
 	throw new Error("[TODO] not yet implemented");
     }
 
@@ -462,7 +466,7 @@ public:
 	// if ( GlobalConfig.diffusion ) gmodel.update_diff_coeffs(fs.gas);
     } // end decode_conserved()
 
-    bool check_flow_data() 
+    bool check_flow_data() const
     {
 	bool is_data_valid = fs.gas.check_values(true);
 	const double MAXVEL = 30000.0;
@@ -897,17 +901,8 @@ public:
     // Use the finite-rate chemistry module to update the species fractions
     // and the other thermochemical properties.
     {
-	throw new Error("[TODO] not yet ready for use");
-
 	if ( !fr_reactions_allowed || fs.gas.T[0] <= T_frozen ) return;
 	auto gmodel = GlobalConfig.gmodel;
-	// [TODO] auto rupdate = GlobalConfig.reaction_update_scheme;
-	const bool copy_gas_in_case_of_failure = false;
-	GasState gcopy;
-	if ( copy_gas_in_case_of_failure ) {
-	    // Make a copy so that we can print out if things go wrong.
-	    gcopy = new GasState(fs.gas);
-	}
 	double T_save = fs.gas.T[0];
 	if ( GlobalConfig.ignition_zone_active ) {
 	    // When active, replace gas temperature with an effective ignition temperature
@@ -916,6 +911,8 @@ public:
 	    }
 	}
 	try {
+	    throw new Error("[TODO] not yet ready for use");
+	    // [TODO] auto rupdate = GlobalConfig.reaction_update_scheme;
 	    // [TODO] rupdate.update_state(fs.gas, dt, dt_chem, gmodel);
 	    if ( GlobalConfig.ignition_zone_active ) {
 		// Restore actual gas temperature
@@ -924,11 +921,7 @@ public:
 	} catch(Exception err) {
 	    writefln("catch %s", err.msg);
 	    writeln("The chemical_increment() failed for cell: ", id);
-	    if ( copy_gas_in_case_of_failure ) {
-		writeln("The gas state before the update was:");
-		writefln("gcopy %s", gcopy);
-	    }
-	    writeln("The gas state after the update was:");
+	    writeln("The gas state after the failed update is:");
 	    writefln("fs.gas %s", fs.gas);
 	}
 
@@ -954,23 +947,19 @@ public:
     // We are assuming that this is done after a successful gas-dynamic update
     // and that the current conserved quantities are held in U[0].
     {
-	throw new Error("[TODO] not yet ready for use");
 	if ( !fr_reactions_allowed || fs.gas.T[0] <= T_frozen_energy ) return;
 	auto gmodel = GlobalConfig.gmodel;
+	throw new Error("[TODO] not yet ready for use");
 	// [TODO] auto eeupdate = GlobalConfig.energy_exchange_update_scheme;
-
 	// [TODO] eeupdate.update_state(fs.gas, dt, dt_therm, gmodel);
-
 	// The update only changes modal energies, we need to impose
 	// a thermodynamic constraint based on a call to the equation
 	// of state.
 	gmodel.update_thermo_from_rhoe(fs.gas);
-
 	// If we are doing a viscous sim, we'll need to ensure
 	// viscous properties are up-to-date
 	if ( GlobalConfig.viscous ) gmodel.update_trans_coeffs(fs.gas);
 	// [TODO] if ( GlobalConfig.diffusion ) gmodel.update_diff_coeffs(fs.gas);
-
 	// Finally, we have to manually update the conservation quantities
 	// for the gas-dynamics time integration.
 	// Independent energies energy: Joules per unit volume.
@@ -979,7 +968,7 @@ public:
 	}
     } // end thermal_increment()
 
-    double signal_frequency(int dimensions, bool with_k_omega) 
+    double signal_frequency(int dimensions, bool with_k_omega) const
     {
 	double signal;
 	double un_N, un_E, un_T, u_mag;
@@ -992,9 +981,9 @@ public:
 	double gam_eff;
 	int statusf;
 	auto gmodel = GlobalConfig.gmodel;
-	FVInterface north_face = iface[north];
-	FVInterface east_face = iface[east];
-	FVInterface top_face = iface[top];
+	const FVInterface north_face = iface[north];
+	const FVInterface east_face = iface[east];
+	const FVInterface top_face = iface[top];
 	// Get the local normal velocities by rotating the
 	// local frame of reference.
 	// Also, compute the velocity magnitude and
@@ -1524,11 +1513,11 @@ public:
 	} // end if ( GlobalConfig.electric_field_work )
     } // end add_viscous_source_vector()
 
-    double calculate_wall_Reynolds_number(int which_boundary) 
+    double calculate_wall_Reynolds_number(int which_boundary)
     {
 	FVInterface IFace = iface[which_boundary];
 	GasModel gm = GlobalConfig.gmodel;
-	gm.update_thermo_from_rhoT(IFace.fs.gas);
+	gm.update_thermo_from_rhoT(IFace.fs.gas); // Note that we adjust IFace here.
 	double a_wall = IFace.fs.gas.a;
 	double cell_width = 0.0;
 	if ( which_boundary == east || which_boundary == west )

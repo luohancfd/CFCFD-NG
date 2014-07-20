@@ -68,7 +68,7 @@ public:
 	omega = 0.0;
     }
 
-    override string toString()
+    override string toString() const
     {
 	char[] repr;
 	repr ~= "ConservedQuantities(";

@@ -95,7 +95,7 @@ public:
 	area[to_level] = area[from_level];
     }
 
-    override string toString()
+    override string toString() const
     {
 	char[] repr;
 	repr ~= "FVInterface(";

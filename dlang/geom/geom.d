@@ -13,7 +13,8 @@ import std.math;
 struct Vector3 {
     package double[3] _p;
 
-    this(in double[] p) {
+    this(in double[] p)
+    {
 	switch ( p.length ) {
 	case 0: _p[0] = _p[1] = _p[2] = 0.0; break;
 	case 1: _p[0] = p[0]; _p[1] = _p[2] = 0.0; break;
@@ -22,111 +23,140 @@ struct Vector3 {
 	}
     }
 
-    this(in double p0, in double p1=0.0, in double p2=0.0) {
+    this(in double p0, in double p1=0.0, in double p2=0.0)
+    {
  	_p[0] = p0;
 	_p[1] = p1;
 	_p[2] = p2;
     }
 
-    this(in Vector3 other) {
+    this(in Vector3 other)
+    {
 	_p[] = other._p[];
     }
 
     // Postblit constructor (Alexandrescu Section 7.1.3.4)
-    this(this) {
+    this(this)
+    {
 	_p = _p.dup;
     }
 
     // For a lot of geometric work, it will be convenient to use
     // x,y,z notation.
-    @property const double x() { return _p[0]; }
-    @property const double y() { return _p[1]; }
-    @property const double z() { return _p[2]; }
+    @property double x() const { return _p[0]; }
+    @property double y() const { return _p[1]; }
+    @property double z() const { return _p[2]; }
     // Note that the following three properties hand out references
     // to the elements, so that we may change their values.
     @property ref double refx() { return _p[0]; }
     @property ref double refy() { return _p[1]; }
     @property ref double refz() { return _p[2]; }
 
-    @property Vector3 dup() {
+    @property Vector3 dup() const
+    {
 	return Vector3(this);
     }
 
-    string toString() {
+    string toString() const
+    {
 	return "Vector3(" ~ to!string(_p) ~ ")";
     }
 
     // Some operators, at least those that make sense.
-    Vector3 opUnary(string op)() if (op == "+") {
+    Vector3 opUnary(string op)()
+	if (op == "+")
+    {
 	Vector3 result;
 	result._p[] = this._p[];
 	return result;
     }
 
-    Vector3 opUnary(string op)() if (op == "-") {
+    Vector3 opUnary(string op)()
+	if (op == "-")
+    {
 	Vector3 result;
 	result._p[] = - this._p[];
 	return result;
     }
 
-    const Vector3 opBinary(string op)(in Vector3 rhs) if (op == "+") {
+    Vector3 opBinary(string op)(in Vector3 rhs) const
+	if (op == "+")
+    {
 	Vector3 result;
 	result._p[] = this._p[] + rhs._p[];
 	return result;
     }
 
-    const Vector3 opBinary(string op)(in Vector3 rhs) if (op == "-") {
+    Vector3 opBinary(string op)(in Vector3 rhs) const
+	if (op == "-")
+    {
 	Vector3 result;
 	result._p[] = this._p[] - rhs._p[];
 	return result;
     }
 
-    const Vector3 opBinary(string op)(in double rhs) if (op == "*") {
+    Vector3 opBinary(string op)(in double rhs) const
+	if (op == "*")
+    {
 	Vector3 result;
 	result._p[] = this._p[] * rhs;
 	return result;
     }
 
-    const Vector3 opBinaryRight(string op)(in double lhs) if (op == "*") {
+    Vector3 opBinaryRight(string op)(in double lhs) const
+	if (op == "*")
+    {
 	Vector3 result;
 	result._p[] = this._p[] * lhs;
 	return result;
     }
 
-    const Vector3 opBinary(string op)(in double rhs) if (op == "/") {
+    Vector3 opBinary(string op)(in double rhs) const
+	if (op == "/")
+    {
 	Vector3 result;
 	result._p[] = this._p[] / rhs;
 	return result;
     }
 
     // Assignment operators. (Alexandrescu Section 7.1.5.1)
-    ref Vector3 opAssign(ref Vector3 rhs) {
+    ref Vector3 opAssign(ref Vector3 rhs)
+    {
 	_p[] = rhs._p[];
 	return this;
     }
 
-    ref Vector3 opAssign(Vector3 rhs) {
+    ref Vector3 opAssign(Vector3 rhs)
+    {
 	_p[] = rhs._p[];
 	return this;
     }
 
     // Combined assignment operators do change the original object.
-    ref Vector3 opOpAssign(string op)(in Vector3 rhs) if (op == "+") {
+    ref Vector3 opOpAssign(string op)(in Vector3 rhs)
+	if (op == "+")
+    {
 	this._p[] += rhs._p[];
 	return this;
     }
 
-    ref Vector3 opOpAssign(string op)(in Vector3 rhs) if (op == "-") {
+    ref Vector3 opOpAssign(string op)(in Vector3 rhs)
+	if (op == "-")
+    {
 	this._p[] -= rhs._p[];
 	return this;
     }
 
-    ref Vector3 opOpAssign(string op)(in double rhs) if (op == "*") {
+    ref Vector3 opOpAssign(string op)(in double rhs)
+	if (op == "*")
+    {
 	this._p[] *= rhs;
 	return this;
     }
 
-    ref Vector3 opOpAssign(string op)(in double rhs) if (op == "/") {
+    ref Vector3 opOpAssign(string op)(in double rhs)
+	if (op == "/")
+    {
 	this._p[] /= rhs;
 	return this;
     }
@@ -136,7 +166,8 @@ struct Vector3 {
     /**
      * Scales the vector to unit magnitude.
      */
-    ref Vector3 normalize() {
+    ref Vector3 normalize()
+    {
         double magnitude = abs(this);
 	if ( magnitude > 0.0 ) {
 	    this /= magnitude;
@@ -152,7 +183,8 @@ struct Vector3 {
 /**
  * Returns the scalar dot product of two vectors.
  */   
-double dot(in Vector3 v1, in Vector3 v2) {
+double dot(in Vector3 v1, in Vector3 v2)
+{
     double result = 0.0;
     // Maybe we should be careful with underflow and overflow...
     foreach(i; 0 .. 3) result += v1._p[i] * v2._p[i];
@@ -162,21 +194,24 @@ double dot(in Vector3 v1, in Vector3 v2) {
 /**
  * Returns magnitude of the vector.
  */
-double abs(in Vector3 v) {
+double abs(in Vector3 v)
+{
     return sqrt(v.dot(v));
 }
 
 /**
  * Returns a unit vector in the same direction as v.
  */
-Vector3 unit(in Vector3 v) {
+Vector3 unit(in Vector3 v)
+{
     return Vector3(v).normalize();
 }
 
 /**
  * Vector cross product.
  */
-Vector3 cross(in Vector3 v1, in Vector3 v2) {
+Vector3 cross(in Vector3 v1, in Vector3 v2)
+{
     Vector3 v3;
     v3._p[0] = v1._p[1] * v2._p[2] - v2._p[1] * v1._p[2];
     v3._p[1] = v2._p[0] * v1._p[2] - v1._p[0] * v2._p[2];
@@ -219,7 +254,8 @@ void to_xyz_frame(ref Vector3 v, in Vector3 n, in Vector3 t1, in Vector3 t2)
 /**
  * Returns true is all of the components are approximately equal.
  */
-bool approxEqualVectors(in Vector3 v1, in Vector3 v2) {
+bool approxEqualVectors(in Vector3 v1, in Vector3 v2)
+{
     return (approxEqual(v1._p[0], v2._p[0]) && 
 	    approxEqual(v1._p[1], v2._p[1]) &&
 	    approxEqual(v1._p[2], v2._p[2]));
