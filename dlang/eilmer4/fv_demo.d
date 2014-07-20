@@ -16,7 +16,7 @@ import globalconfig;
 void main()
 {
     writeln("test fv modules");
-    auto gm = init_gas_model("ideal-air-gas-model.json");
+    auto gm = init_gas_model("sample-data/ideal-air-gas-model.json");
     auto flow = new FlowState(gm, 100.0e3, [300.0,], Vector3(1.0,0.0,0.0));
     writeln("flow=", flow);
     auto flow2 = new FlowState(gm, 120.0e3, [300.0,], Vector3(0.0,1.0,0.0));

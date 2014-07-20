@@ -1,7 +1,7 @@
 # makefile for Eilmer3
 # Builds all of the demonstration programs.
 
-DEMO_PROGRAMS := globalconfig_demo flowstate_demo fv_demo
+DEMO_PROGRAMS := globalconfig_demo flowstate_demo fv_demo block_demo
 
 GAS_MODEL_FILES := ../gas/gasmodel.d ../gas/gasmodelutil.d ../gas/idealgas.d
 
@@ -33,4 +33,19 @@ fv_demo: fv_demo.d fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		conservedquantities.d flowstate.d \
 		globalconfig.d globaldata.d block.d \
+		${GEOM_FILES} ${GAS_MODEL_FILES} 
+
+block_demo: block_demo.d \
+	block.d sblock.d ublock.d \
+	bc.d \
+	fvcore.d fvcell.d fvvertex.d fvinterface.d \
+	conservedquantities.d flowstate.d globalconfig.d globaldata.d block.d \
+	../gas/gasmodel.d ../gas/gasmodelutil.d ../gas/idealgas.d ../geom/geom.d
+	dmd -unittest -g -I../gas/ -I../geom/ \
+		block_demo.d \
+		fvcore.d fvcell.d fvvertex.d fvinterface.d \
+		conservedquantities.d flowstate.d \
+		globalconfig.d globaldata.d \
+		block.d sblock.d ublock.d \
+		bc.d \
 		${GEOM_FILES} ${GAS_MODEL_FILES} 
