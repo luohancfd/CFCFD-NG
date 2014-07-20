@@ -23,6 +23,21 @@ import fvvertex;
 import fvinterface;
 import globalconfig;
 
+// The following two functions are used at compile time.
+// They generate a string formula for averaging some quantity
+// over the set of cell vertices. 
+string avg_over_vtx_2D(string name)
+{
+    return "0.25 * (vtx[0]." ~ name ~ " + vtx[1]." ~ name ~
+	" + vtx[2]." ~ name ~ " + vtx[3]." ~ name ~ ")";
+}
+string avg_over_vtx_3D(string name)
+{
+    return "0.125 * (vtx[0]." ~ name ~ " + vtx[1]." ~ name ~
+	" + vtx[2]." ~ name ~ " + vtx[3]." ~ name ~ 
+	" + vtx[4]." ~ name ~ " + vtx[5]." ~ name ~ 
+	" + vtx[6]." ~ name ~ " + vtx[7]." ~ name ~ ")";
+}
 
 class FVCell {
 public:
@@ -1280,6 +1295,7 @@ public:
 	} // End of Newton-solve loop for implicit update scheme
     } // end update_k_omega_properties()
 
+
     void k_omega_time_derivatives(ref double Q_rtke, ref double Q_romega, double tke, double omega) 
     // Compute k-omega source terms.
     //
@@ -1311,21 +1327,16 @@ public:
 	if ( GlobalConfig.dimensions == 2 ) {
 	    // 2D cartesian or 2D axisymmetric
 	    // The following compile-time function is more complicated 
-	    // than the resulting 2D code and actually take up more space, 
+	    // than the resulting 2D code and actually take up just as much space, 
 	    // however, it's practice for the main event (3D code, below).
-	    string avg2D(string name)
-	    {
-		return "0.25 * (vtx[0]." ~ name ~ " + vtx[1]." ~ name ~
-		    " + vtx[2]." ~ name ~ " + vtx[3]." ~ name ~ ")";
-	    }
-	    dudx = mixin(avg2D("grad_vel[0][0]"));
-	    dudy = mixin(avg2D("grad_vel[0][1]"));
-	    dvdx = mixin(avg2D("grad_vel[1][0]"));
-	    dvdy = mixin(avg2D("grad_vel[1][1]"));
-	    dtkedx = mixin(avg2D("grad_tke.x"));
-	    dtkedy = mixin(avg2D("grad_tke.y"));
-	    domegadx = mixin(avg2D("grad_omega.x"));
-	    domegady = mixin(avg2D("grad_omega.y"));
+	    dudx = mixin(avg_over_vtx_2D("grad_vel[0][0]"));
+	    dudy = mixin(avg_over_vtx_2D("grad_vel[0][1]"));
+	    dvdx = mixin(avg_over_vtx_2D("grad_vel[1][0]"));
+	    dvdy = mixin(avg_over_vtx_2D("grad_vel[1][1]"));
+	    dtkedx = mixin(avg_over_vtx_2D("grad_tke.x"));
+	    dtkedy = mixin(avg_over_vtx_2D("grad_tke.y"));
+	    domegadx = mixin(avg_over_vtx_2D("grad_omega.x"));
+	    domegady = mixin(avg_over_vtx_2D("grad_omega.y"));
 	    if ( GlobalConfig.axisymmetric ) {
 		// 2D axisymmetric
 		double v_over_y = fs.vel.y / pos[0].y;
@@ -1351,28 +1362,21 @@ public:
 	    // 3D cartesian
 	    double dudz, dvdz, dwdx, dwdy, dwdz;
 	    double dtkedz, domegadz;
-	    string avg3D(string name)
-	    {
-		return "0.125 * (vtx[0]." ~ name ~ " + vtx[1]." ~ name ~
-		    " + vtx[2]." ~ name ~ " + vtx[3]." ~ name ~ 
-		    " + vtx[4]." ~ name ~ " + vtx[5]." ~ name ~ 
-		    " + vtx[6]." ~ name ~ " + vtx[7]." ~ name ~ ")";
-	    }
-	    dudx = mixin(avg3D("grad_vel[0][0]"));
-	    dudy = mixin(avg3D("grad_vel[0][1]"));
-	    dudz = mixin(avg3D("grad_vel[0][2]"));
-	    dvdx = mixin(avg3D("grad_vel[1][0]"));
-	    dvdy = mixin(avg3D("grad_vel[1][1]"));
-	    dvdz = mixin(avg3D("grad_vel[1][2]"));
-	    dwdx = mixin(avg3D("grad_vel[2][0]"));
-	    dwdy = mixin(avg3D("grad_vel[2][1]"));
-	    dwdz = mixin(avg3D("grad_vel[2][2]"));
-	    dtkedx = mixin(avg3D("grad_tke.x"));
-	    dtkedy = mixin(avg3D("grad_tke.y"));
-	    dtkedz = mixin(avg3D("grad_tke.z"));
-	    domegadx = mixin(avg3D("grad_omega.x"));
-	    domegady = mixin(avg3D("grad_omega.y"));
-	    domegadz = mixin(avg3D("grad_omega.z"));
+	    dudx = mixin(avg_over_vtx_3D("grad_vel[0][0]"));
+	    dudy = mixin(avg_over_vtx_3D("grad_vel[0][1]"));
+	    dudz = mixin(avg_over_vtx_3D("grad_vel[0][2]"));
+	    dvdx = mixin(avg_over_vtx_3D("grad_vel[1][0]"));
+	    dvdy = mixin(avg_over_vtx_3D("grad_vel[1][1]"));
+	    dvdz = mixin(avg_over_vtx_3D("grad_vel[1][2]"));
+	    dwdx = mixin(avg_over_vtx_3D("grad_vel[2][0]"));
+	    dwdy = mixin(avg_over_vtx_3D("grad_vel[2][1]"));
+	    dwdz = mixin(avg_over_vtx_3D("grad_vel[2][2]"));
+	    dtkedx = mixin(avg_over_vtx_3D("grad_tke.x"));
+	    dtkedy = mixin(avg_over_vtx_3D("grad_tke.y"));
+	    dtkedz = mixin(avg_over_vtx_3D("grad_tke.z"));
+	    domegadx = mixin(avg_over_vtx_3D("grad_omega.x"));
+	    domegady = mixin(avg_over_vtx_3D("grad_omega.y"));
+	    domegadz = mixin(avg_over_vtx_3D("grad_omega.z"));
 	    P_K = 2.0 * fs.mu_t * (dudx*dudx + dvdy*dvdy + dwdz*dwdz)
 		- 2.0/3.0 * fs.mu_t * (dudx + dvdy + dwdz) * (dudx + dvdy + dwdz)
 		- 2.0/3.0 * fs.gas.rho * tke * (dudx + dvdy + dwdz)
@@ -1408,47 +1412,203 @@ public:
     } // end k_omega_time_derivatives()
 
     void clear_source_vector() 
+    // When doing the gasdynamic update stages, the source vector values
+    // are accumulated for the inviscid and then viscous terms, so we 
+    // have to start with a clean slate, so to speak.
     {
-	throw new Error("[TODO] not yet implemented");
-    }
+	Q.mass = 0.0;
+	Q.momentum.refx = 0.0; Q.momentum.refy = 0.0; Q.momentum.refz = 0.0;
+	Q.B.refx = 0.0; Q.B.refy = 0.0; Q.B.refz = 0.0;
+	Q.total_energy = 0.0;
+	Q.tke = 0.0;
+	Q.omega = 0.0;
+	foreach(ref elem; Q.massf) elem = 0.0;
+	foreach(ref elem; Q.energies) elem = 0.0;
+	Q_rE_rad = 0.0;
+    } // end clear_source_vector()
 
     void add_inviscid_source_vector(int gtl, double omegaz=0.0) 
+    // Add the components of the source vector, Q, for inviscid flow.
+    //
+    // Currently, the axisymmetric equations include the
+    // pressure contribution to the y-momentum equation
+    // here rather than in the boundary fluxes.
+    // By default, assume 2D-planar, or 3D-Cartesian flow.
     {
-	throw new Error("[TODO] not yet implemented");
-    }
+	if ( omegaz != 0.0 ) {
+	    // Rotating frame.
+	    double rho = fs.gas.rho;
+	    double x = pos[gtl].x;
+	    double y = pos[gtl].y;
+	    double wx = fs.vel.x;
+	    double wy = fs.vel.y;
+	    // Coriolis and centrifugal forces contribute to momenta.
+	    Q.momentum.refx += rho * (omegaz*omegaz*x + 2.0*omegaz*wy);
+	    Q.momentum.refy += rho * (omegaz*omegaz*y - 2.0*omegaz*wx);
+	    // There is no contribution to the energy equation in the rotating frame
+	    // because it is implicit in the use of rothalpy as the conserved quantity.
+	}
+	if ( GlobalConfig.axisymmetric ) {
+	    // For axisymmetric flow:
+	    // pressure contribution from the Front and Back (radial) interfaces.
+	    Q.momentum.refy += fs.gas.p * areaxy[gtl] / volume[gtl];
+	}
+	// Species production (other than chemistry).
+	// For the chemistry, see chemical_increment().
+	// Individual energies (other than energy exchange)
+	// For the energy exchange, see thermal_increment()
+	// Radiation can potentially be removed from both the electronic and
+	// total energy source terms.
+	if ( GlobalConfig.radiation ) {
+	    // Radiative source term should be already calculated
+	    // Add value to total energy
+	    // FIX-ME: - assuming electronic mode is the last in the vector of energies
+	    //         - what about Q_renergies[0]?
+	    Q.total_energy += Q_rE_rad;
+	    Q.energies.back() += Q_rE_rad;
+	}
+    } // end add_inviscid_source_vector()
 
     void add_viscous_source_vector(bool with_k_omega) 
     {
-	throw new Error("[TODO] not yet implemented");
-    }
+	if ( GlobalConfig.axisymmetric ) {
+	    // For viscous, axisymmetric flow:
+	    double v_over_y = fs.vel.y / pos[0].y;
+	    double dudx = mixin(avg_over_vtx_2D("grad_vel[0][0]"));
+	    double dvdy = mixin(avg_over_vtx_2D("grad_vel[1][1]"));
+	    double mu = 
+		0.25 * (iface[east].fs.gas.mu + iface[west].fs.gas.mu +
+			iface[north].fs.gas.mu + iface[south].fs.gas.mu) +
+		0.25 * (iface[east].fs.mu_t + iface[west].fs.mu_t +
+			iface[north].fs.mu_t + iface[south].fs.mu_t);
+	    mu *= GlobalConfig.viscous_factor;
+	    double lmbda = -2.0/3.0 * mu;
+	    double tau_00 = 2.0 * mu * v_over_y + lmbda * (dudx + dvdy + v_over_y);
+	    // Y-Momentum; viscous stress contribution from the front and Back interfaces.
+	    // Note that these quantities are approximated at the
+	    // mid-point of the cell face and so should never be
+	    // singular -- at least I hope that this is so.
+	    Q.momentum.refy -= tau_00 * areaxy[0] / volume[0];
+	} // end if ( GlobalConfig.axisymmetric )
+
+	if ( with_k_omega ) {
+	    double Q_tke = 0.0; double Q_omega = 0.0;
+	    if ( in_turbulent_zone ) {
+		this.k_omega_time_derivatives(Q_tke, Q_omega, fs.tke, fs.omega);
+	    }
+	    Q.tke += Q_tke; Q.omega += Q_omega;
+	}
+
+	if ( GlobalConfig.electric_field_work ) {
+	    // Work done on electrons due to electric field induced by charge separation
+	    // on scales less than the Debye length
+	    // FIXME: Only consistent with ambipolar diffusion. Currently this is up to
+	    //        the user to enforce.
+	    double udivpe = 0.0;
+	    if ( GlobalConfig.dimensions == 2 ) {
+		// Estimate electron pressure gradient as average of all vertices
+		double dpedx = mixin(avg_over_vtx_2D("grad_pe.x"));
+		double dpedy = mixin(avg_over_vtx_2D("grad_pe.y"));
+		// Approximation for work done on electrons: u dot div(pe)
+		udivpe = fs.vel.x * dpedx + fs.vel.y * dpedy;
+	    } else {
+		// Estimate electron pressure gradient as average of all vertices
+		double dpedx = mixin(avg_over_vtx_3D("grad_pe.x"));
+		double dpedy = mixin(avg_over_vtx_3D("grad_pe.y"));
+		double dpedz = mixin(avg_over_vtx_3D("grad_pe.z"));
+		// Approximation for work done on electrons: u dot div(pe)
+		udivpe = fs.vel.x * dpedx + fs.vel.y * dpedy + fs.vel.z * dpedz;
+	    }
+	    // [TODO] FIXME: Assuming the free electron energy is included in the last mode
+	    Q.energies.back() += udivpe * GlobalConfig.diffusion_factor;
+	} // end if ( GlobalConfig.electric_field_work )
+    } // end add_viscous_source_vector()
 
     double calculate_wall_Reynolds_number(int which_boundary) 
     {
-	throw new Error("[TODO] not yet implemented");
-    }
+	FVInterface IFace = iface[which_boundary];
+	GasModel gm = GlobalConfig.gmodel;
+	gm.update_thermo_from_rhoT(IFace.fs.gas);
+	double a_wall = IFace.fs.gas.a;
+	double cell_width = 0.0;
+	if ( which_boundary == east || which_boundary == west )
+	    cell_width = iLength;
+	else if ( which_boundary == north || which_boundary == south )
+	    cell_width = jLength;
+	else if ( which_boundary == top || which_boundary == bottom )
+	    cell_width = kLength;
+	double Re_wall = IFace.fs.gas.rho * a_wall * cell_width / IFace.fs.gas.mu;
+	return Re_wall;
+    } // end calculate_wall_Reynolds_number()
 
     void store_rad_scaling_params() 
+    // Store parameters for (re-)scaling of radiative source term.
+    // Simple rho x T**4 scaling seems to be adequate.
     {
-	throw new Error("[TODO] not yet implemented");
-    }
+	// 1. Store the freshly computed radiative flux as the 'original'
+	Q_rad_org = Q_rE_rad;
+	// 2. Compute the scaling factor based on local gas properties
+	// NOTE: - The idea is that f_rad_org is proportional to actual value
+	//       - Assuming that the last temperature is the electronic temperature
+	double T = fs.gas.T.back();
+	if ( Q_rad_org <= 0.0 ) {
+	    // This cell is a net emitter
+	    f_rad_org = fs.gas.rho * pow(T, 4);
+	} else if ( Q_rad_org > 0.0 ) {
+	    // This cell is a net absorber
+	    f_rad_org = fs.gas.rho / pow(T, 4);
+	}
+    } // end store_rad_scaling_params()
 
     void rescale_Q_rE_rad() 
     {
-	throw new Error("[TODO] not yet implemented");
-    }
+	// 1. Compute the current scaling factor based on local gas properties
+	double T = fs.gas.T[0];
+	double f_rad_new = 1.0;
+	if ( Q_rad_org <= 0.0 ) {
+	    // This cell is a net emitter
+	    f_rad_new = fs.gas.rho * pow(T, 4);
+	}
+	else if ( Q_rad_org > 0.0 ) {
+	    // This cell is a net absorber
+	    f_rad_new = fs.gas.rho / pow(T, 4);
+	}
+	// 2. (Re-)scale the original source term
+	Q_rE_rad = ( f_rad_new / f_rad_org ) * Q_rad_org;
+    } // end rescale_Q_rE_rad()
 
     void reset_Q_rad_to_zero() 
     {
-	throw new Error("[TODO] not yet implemented");
-    }
+	Q_rE_rad = 0.0;
+    } // end reset_Q_rad_to_zero()
 
     double rad_scaling_ratio() 
     {
-	throw new Error("[TODO] not yet implemented");
-    }
+	// 1. Compute the current scaling factor based on local gas properties
+	double T = fs.gas.T[0];
+	double f_rad = 1.0;
+	if ( Q_rE_rad <= 0.0 ) {
+	    // This cell is a net emitter
+	    f_rad = fs.gas.rho * pow(T, 4);
+	}
+	else if ( Q_rE_rad > 0.0 ) {
+	    // This cell is a net absorber
+	    f_rad = fs.gas.rho / pow(T, 4);
+	}
+	return fabs( f_rad - f_rad_org ) / f_rad_org;
+    } // end rad_scaling_ratio()
 
 } // end class FVCell
 
+
+int number_of_values_in_cell_copy(int type_of_copy)
+// This function must match the copy-to/from-buffer methods above.
+// The buffers are used for communication between worker processes.
+{
+    throw new Error("[TODO] number_of_values_in_cell_copy() not yet implemented");
+    int number = 0;
+    return number;
+} // end number_of_values_in_cell_copy()
 
 string[] variable_list_for_cell()
 {
