@@ -148,7 +148,7 @@ public:
 	try {
 	    // Create the cell and interface objects for the entire block.
 	    foreach (gid; 0 .. ntot) {
-		_ctr ~= new FVCell(gm); _ctr[gid].id = gid;
+		_ctr ~= new FVCell(gm); _ctr[gid].id = to!int(gid);
 		auto ijk = to_ijk_indices(gid);
 		if ( ijk[0] >= imin && ijk[0] <= imax && 
 		     ijk[1] >= jmin && ijk[1] <= jmax && 
