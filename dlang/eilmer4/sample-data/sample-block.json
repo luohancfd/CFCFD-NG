@@ -1,5 +1,5 @@
 {
-    "ni": 10,
-    "nj": 6,
-    "nk": 4
+    "nicell": 10,
+    "njcell": 6,
+    "nkcell": 4
 }

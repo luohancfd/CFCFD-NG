@@ -57,7 +57,6 @@ final class GlobalConfig {
 
     static int nBlocks; // Number of blocks in the overall simulation.
     static int dimensions = 2; // or 3
-    static int nGhostCells = 2; // Number of ghost cells surrounding the active cells.
     static bool axisymmetric = false;
     // Low order reconstruction (1) uses just the cell-centre data as left- and right-
     // flow properties in the flux calculation.
