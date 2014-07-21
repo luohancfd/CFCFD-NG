@@ -260,7 +260,8 @@ public:
 	Q_rE_rad /= n;
     }
 
-    void scan_values_from_string(string buffer) 
+    void scan_values_from_string(string buffer)
+    // Note that the position data is read into grid_time_level 0.
     {
 	auto items = split(buffer);
 	auto gm = GlobalConfig.gmodel;
@@ -1607,7 +1608,7 @@ string[] variable_list_for_cell()
     // write_cell_data and variable_list_for_cell
     // that may be found in app/eilmer3/source/e3_flow.py.
     string[] list;
-    list ~= ["pos.x", "pos.y", "pos.z"];
+    list ~= ["pos.x", "pos.y", "pos.z", "volume"];
     list ~= ["rho", "vel.x", "vel.y", "vel.z"];
     if ( GlobalConfig.MHD ) list ~= ["B.x", "B.y", "B.z"];
     list ~= ["p", "a", "mu"];

@@ -11,6 +11,10 @@ import std.conv;
 import std.file;
 import std.json;
 import std.stdio;
+import std.format;
+import std.string;
+import std.array;
+import gzip;
 import geom;
 import gasmodel;
 import globalconfig;
@@ -24,9 +28,9 @@ public:
     int nicell;
     int njcell;
     int nkcell;
-    int imincell, imaxcell;
-    int jmincell, jmaxcell;
-    int kmincell, kmaxcell;
+    int imin, imax;
+    int jmin, jmax;
+    int kmin, kmax;
     int[] hicell, hjcell, hkcell; // locations of sample cells for history record
     int[] micell, mjcell, mkcell; // locations of monitor cells
 
@@ -71,8 +75,8 @@ public:
 	// Indices, in each grid direction for the active cells.
 	// These limits are inclusive. The mincell and max cell
 	// are both within the active set of cells.
-	imincell = nghost; imaxcell = imincell + nicell - 1;
-	jmincell = nghost; jmaxcell = jmincell + njcell - 1;
+	imin = nghost; imax = imin + nicell - 1;
+	jmin = nghost; jmax = jmin + njcell - 1;
 	if ( GlobalConfig.dimensions == 2 ) {
 	    // In 2D simulations, the k range is from 0 to 0 for the
 	    // storage arrays of cells and relevant faces.
@@ -81,11 +85,11 @@ public:
 		nkcell = 1;
 	    }
 	    _nkdim = 1;
-	    kmincell = 0; kmaxcell = 0;
+	    kmin = 0; kmax = 0;
 	} else {
 	    // In 3D simulations the k index is just like the i and j indices.
 	    _nkdim = nkcell + 2 * nghost;
-	    kmincell = nghost; kmaxcell = kmincell + nkcell - 1;
+	    kmin = nghost; kmax = kmin + nkcell - 1;
 	}
     } // end constructor
 
@@ -146,9 +150,9 @@ public:
 	    foreach (gid; 0 .. ntot) {
 		_ctr ~= new FVCell(gm); _ctr[gid].id = gid;
 		auto ijk = to_ijk_indices(gid);
-		if ( ijk[0] >= imincell && ijk[0] <= imaxcell && 
-		     ijk[1] >= jmincell && ijk[1] <= jmaxcell && 
-		     ijk[2] >= kmincell && ijk[2] <= kmaxcell ) {
+		if ( ijk[0] >= imin && ijk[0] <= imax && 
+		     ijk[1] >= jmin && ijk[1] <= jmax && 
+		     ijk[2] >= kmin && ijk[2] <= kmax ) {
 		    active_cells ~= _ctr[gid];
 		}
 		_ifi ~= new FVInterface(gm); _ifi[gid].id = gid;
@@ -173,7 +177,7 @@ public:
 	    throw new Error("Block.assemble_arrays() failed.");
 	}
 	if ( GlobalConfig.verbosity_level >= 2 ) {
-	    writefln("Done assembling for %d cells.", ntot);
+	    writefln("Done assembling arrays for %d cells.", ntot);
 	}
     } // end of assemble_arrays()
 
@@ -183,16 +187,16 @@ public:
     {
 	size_t kstart, kend;
 	if ( GlobalConfig.dimensions == 3 ) {
-	    kstart = kmincell - 1;
-	    kend = kmaxcell + 1;
+	    kstart = kmin - 1;
+	    kend = kmax + 1;
 	} else {
 	    kstart = 0;
 	    kend = 0;
 	}
 	// With these ranges, we also do the first layer of ghost cells.
 	for ( int k = kstart; k <= kend; ++k ) {
-	    for ( int j = jmincell-1; j <= jmaxcell+1; ++j ) {
-		for ( int i = imincell-1; i <= imaxcell+1; ++i ) {
+	    for ( int j = jmin-1; j <= jmax+1; ++j ) {
+		for ( int i = imin-1; i <= imax+1; ++i ) {
 		    FVCell cell = get_cell(i,j,k);
 		    cell.iface ~= get_ifj(i,j+1,k); // north
 		    cell.iface ~= get_ifi(i+1,j,k); // east
@@ -293,29 +297,153 @@ public:
     }
 
     // to be ported from block_io.cxx
-    void read_grid(string filename, bool zip_file=true, int gtl=0)
+    void read_grid(string filename, size_t gtl=0)
+    // Read the grid vertices from a gzip file.
     {
-	throw new Error("[TODO] Not implemented yet.");
-    }
+	int nivtx, njvtx, nkvtx;
+	double x, y, z;
+	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
+	    writeln("read_grid(): Start block ", id);
+	}
+	auto byLine = new GzipByLine(filename);
+	auto line = byLine.front; byLine.popFront();
+	formattedRead(line, "%d %d %d", &nivtx, &njvtx, &nkvtx);
+	if ( GlobalConfig.dimensions == 3 ) {
+	    if ( nivtx-1 != nicell || njvtx-1 != njcell || nkvtx-1 != nkcell ) {
+		throw new Error(text("For block[", id, "] we have a mismatch in 3D grid size.",
+                                     " Have read nivtx=", nivtx, " njvtx=", njvtx,
+				     " nkvtx=", nkvtx));
+	    }
+	    for ( size_t k = kmin; k <= kmax+1; ++k ) {
+		for ( size_t j = jmin; j <= jmax+1; ++j ) {
+		    for ( size_t i = imin; i <= imax+1; ++i ) {
+			line = byLine.front; byLine.popFront();
+			// Note that the line starts with whitespace.
+			formattedRead(line, " %g %g %g", &x, &y, &z);
+			auto vtx = get_vtx(i,j,k);
+			vtx.pos[gtl].refx = x;
+			vtx.pos[gtl].refy = y;
+			vtx.pos[gtl].refz = z;
+		    } // for i
+		} // for j
+	    } // for k
+	} else { // 2D case
+	    if ( nivtx-1 != nicell || njvtx-1 != njcell || nkvtx != 1 ) {
+		throw new Error(text("For block[", id, "] we have a mismatch in 2D grid size.",
+				     " Have read nivtx=", nivtx, " njvtx=", njvtx,
+				     " nkvtx=", nkvtx));
+	    }
+	    for ( size_t j = jmin; j <= jmax+1; ++j ) {
+		for ( size_t i = imin; i <= imax+1; ++i ) {
+		    line = byLine.front; byLine.popFront();
+		    // Note that the line starts with whitespace.
+		    formattedRead(line, " %g %g", &x, &y);
+		    auto vtx = get_vtx(i,j);
+		    vtx.pos[gtl].refx = x;
+		    vtx.pos[gtl].refy = y;
+		    vtx.pos[gtl].refz = 0.0;
+		} // for i
+	    } // for j
+	}
+    } // end read_grid()
 
-    void write_grid(string filename, double sim_time, bool zip_file=true, int gtl=0)
+    void write_grid(string filename, double sim_time, size_t gtl=0)
     {
-	throw new Error("[TODO] Not implemented yet.");
-    }
+	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
+	    writeln("write_grid(): Start block ", id);
+	}
+	size_t kmaxrange;
+	auto outfile = new GzipOut(filename);
+	auto writer = appender!string();
+	if ( GlobalConfig.dimensions == 3 ) {
+	    formattedWrite(writer, "%d %d %d  # ni nj nk\n", nicell+1, njcell+1, nkcell+1);
+	    kmaxrange = kmax + 1;
+	} else { // 2D case
+	    formattedWrite(writer, "%d %d %d  # ni nj nk\n", nicell+1, njcell+1, nkcell);
+	    kmaxrange = kmax;
+	}
+	outfile.compress(writer.data);
+	for ( size_t k = kmin; k <= kmaxrange; ++k ) {
+	    for ( size_t j = jmin; j <= jmax+1; ++j ) {
+		for ( size_t i = imin; i <= imax+1; ++i ) {
+		    auto vtx = get_vtx(i,j,k);
+		    writer = appender!string();
+		    formattedWrite(writer, "%20.12e %20.12e %20.12e\n", vtx.pos[gtl].x,
+				   vtx.pos[gtl].y, vtx.pos[gtl].z);
+		    outfile.compress(writer.data);
+		} // for i
+	    } // for j
+	} // for k
+	outfile.finish();
+    } // end write_grid()
 
-    double read_solution(string filename, bool zip_file=true, int gtl=0)
+    double read_solution(string filename)
+    // Note that the position data is read into grid-time-level 0
+    // by scan_values_from_string(). 
     {
-	throw new Error("[TODO] Not implemented yet.");
+	int ni, nj, nk;
+	double sim_time;
+	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
+	    writeln("read_solution(): Start block ", id);
+	}
+	auto byLine = new GzipByLine(filename);
+	auto line = byLine.front; byLine.popFront();
+	formattedRead(line, " %g", &sim_time);
+	line = byLine.front; byLine.popFront();
+	// ignore second line; it should be just the names of the variables
+	// [TODO] We should test the incoming strings against the current variable names.
+	line = byLine.front; byLine.popFront();
+	formattedRead(line, "%d %d %d", &ni, &nj, &nk);
+	if ( ni != nicell || nj != njcell || 
+	     nk != ((GlobalConfig.dimensions == 3) ? nkcell : 1) ) {
+	    throw new Error(text("For block[", id, "] we have a mismatch in solution size.",
+				 " Have read ni=", ni, " nj=", nj, " nk=", nk));
+	}	
+	for ( size_t k = kmin; k <= kmax; ++k ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t i = imin; i <= imax; ++i ) {
+		    line = byLine.front; byLine.popFront();
+		    get_cell(i,j,k).scan_values_from_string(line);
+		} // for i
+	    } // for j
+	} // for k
+	return sim_time;
     }
 
     // Returns sim_time from file.
 
-    void write_solution(string filename, double sim_time, bool zip_file=true, int gtl=0)
+    void write_solution(string filename, double sim_time)
+    // Write the flow solution (i.e. the primary variables at the cell centers)
+    // for a single block.
+    // This is almost Tecplot POINT format.
     {
-	throw new Error("[TODO] Not implemented yet.");
+	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
+	    writeln("write_solution(): Start block ", id);
+	}
+	auto outfile = new GzipOut(filename);
+	auto writer = appender!string();
+	formattedWrite(writer, "%20.12e\n", sim_time);
+	outfile.compress(writer.data);
+	writer = appender!string();
+	foreach(varname; variable_list_for_cell()) {
+	    formattedWrite(writer, " \"%s\"", varname);
+	}
+	formattedWrite(writer, "\n");
+	outfile.compress(writer.data);
+	writer = appender!string();
+	formattedWrite(writer, "%d %d %d\n", nicell, njcell, nkcell);
+	outfile.compress(writer.data);
+	for ( size_t k = kmin; k <= kmax; ++k ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t i = imin; i <= imax; ++i ) {
+		    outfile.compress(" " ~ get_cell(i,j,k).write_values_to_string() ~ "\n");
+		} // for i
+	    } // for j
+	} // for k
+	outfile.finish();
     }
 
-    void write_history(string filename, double sim_time, bool write_header=false, int gtl=0)
+    void write_history(string filename, double sim_time, bool write_header=false)
     {
 	throw new Error("[TODO] Not implemented yet.");
     }
