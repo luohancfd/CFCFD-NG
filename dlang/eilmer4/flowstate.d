@@ -72,7 +72,7 @@ public:
     // Note that we must not send the current object in the others list as well.
     void copy_average_values_from(in FlowState[] others, in GasModel gm)
     {
-	uint n = others.length;
+	size_t n = others.length;
 	if (n == 0) throw new Error("Need to average from a nonempty array.");
 	GasState[] gasList;
 	// We need to be honest and not to fiddle with the other gas states.

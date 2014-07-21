@@ -150,7 +150,7 @@ public:
     // Note that we must not send the current object in the others list as well.
     void copy_average_values_from(in GasState[] others, in GasModel gm) 
     {
-	uint n = others.length;
+	size_t n = others.length;
 	if (n == 0) throw new Error("Need to average from a nonempty array.");
 	foreach(other; others) {
 	    if ( this is other ) throw new Error("Must not include destination in source list.");

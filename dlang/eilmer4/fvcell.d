@@ -77,7 +77,7 @@ public:
     double rho_at_start_of_step, rE_at_start_of_step;
     // [TODO] implicit variables
 
-    this(in GasModel gm, size_t id_init=0)
+    this(in GasModel gm, int id_init=0)
     {
 	id = id_init;
 	pos.length = n_time_levels;
@@ -243,7 +243,7 @@ public:
 
     void replace_flow_data_with_average(in FVCell[] others) 
     {
-	uint n = others.length;
+	size_t n = others.length;
 	if (n == 0) throw new Error("Need to average from a nonempty array.");
 	FlowState[] fsList;
 	// We need to be honest and not to fiddle with the other gas states.
