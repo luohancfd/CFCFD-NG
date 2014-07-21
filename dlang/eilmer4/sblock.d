@@ -25,21 +25,21 @@ import block;
 
 class SBlock: Block {
 public:
-    int nicell;
-    int njcell;
-    int nkcell;
-    int imin, imax;
-    int jmin, jmax;
-    int kmin, kmax;
-    int[] hicell, hjcell, hkcell; // locations of sample cells for history record
-    int[] micell, mjcell, mkcell; // locations of monitor cells
+    size_t nicell;
+    size_t njcell;
+    size_t nkcell;
+    size_t imin, imax;
+    size_t jmin, jmax;
+    size_t kmin, kmax;
+    size_t[] hicell, hjcell, hkcell; // locations of sample cells for history record
+    size_t[] micell, mjcell, mkcell; // locations of monitor cells
 
 private:
     // Total number of cells in each direction for this block.
     // these will be used in the array allocation routines.
-    int _nidim;
-    int _njdim;
-    int _nkdim;
+    size_t _nidim;
+    size_t _njdim;
+    size_t _nkdim;
     // Most of the data is stored in the following arrays.
     // ctr = cell center values
     // ifi = east-facing face properties and fluxes (unit normal in the i-index direction)
@@ -67,9 +67,9 @@ public:
 	}
 	auto text = cast(string) read(file_name);
 	auto items = parseJSON(text);
-	nicell = to!int(items["nicell"].integer);
-	njcell = to!int(items["njcell"].integer);
-	nkcell = to!int(items["nkcell"].integer);
+	nicell = to!size_t(items["nicell"].integer);
+	njcell = to!size_t(items["njcell"].integer);
+	nkcell = to!size_t(items["nkcell"].integer);
 	_nidim = nicell + 2 * nghost;
 	_njdim = njcell + 2 * nghost;
 	// Indices, in each grid direction for the active cells.
@@ -105,7 +105,7 @@ public:
 	return to!string(repr);
     }
 
-    int to_global_index(int i, int j, int k) const
+    size_t to_global_index(size_t i, size_t j, size_t k) const
     {
 	if ( k < 0 || k >= _nkdim || j < 0 || j >= _njdim || i < 0 || i >= _nidim ) {
 	    throw new Error(text("SBlock:to_global_index: index out of bounds for block[", id,
@@ -115,22 +115,22 @@ public:
 	return k * (_njdim * _nidim) + j * _nidim + i; 
     }
 
-    int[] to_ijk_indices(int gid) const
+    size_t[] to_ijk_indices(size_t gid) const
     {
-	int k = gid / (_njdim * _nidim);
-	int j = (gid - k * (_njdim * _nidim)) / _nidim;
-	int i = gid - k * (_njdim * _nidim) - j * _nidim;
+	size_t k = gid / (_njdim * _nidim);
+	size_t j = (gid - k * (_njdim * _nidim)) / _nidim;
+	size_t i = gid - k * (_njdim * _nidim) - j * _nidim;
 	return [i, j, k];
     }
 
-    ref FVCell get_cell(int i, int j, int k=0) { return _ctr[to_global_index(i,j,k)]; }
-    ref FVInterface get_ifi(int i, int j, int k=0) { return _ifi[to_global_index(i,j,k)]; }
-    ref FVInterface get_ifj(int i, int j, int k=0) { return _ifj[to_global_index(i,j,k)]; }
-    ref FVInterface get_ifk(int i, int j, int k=0) { return _ifk[to_global_index(i,j,k)]; }
-    ref FVVertex get_vtx(int i, int j, int k=0) { return _vtx[to_global_index(i,j,k)]; }
-    ref FVInterface get_sifi(int i, int j, int k=0) { return _sifi[to_global_index(i,j,k)]; }
-    ref FVInterface get_sifj(int i, int j, int k=0) { return _sifj[to_global_index(i,j,k)]; }
-    ref FVInterface get_sifk(int i, int j, int k=0) { return _sifk[to_global_index(i,j,k)]; }
+    ref FVCell get_cell(size_t i, size_t j, size_t k=0) { return _ctr[to_global_index(i,j,k)]; }
+    ref FVInterface get_ifi(size_t i, size_t j, size_t k=0) { return _ifi[to_global_index(i,j,k)]; }
+    ref FVInterface get_ifj(size_t i, size_t j, size_t k=0) { return _ifj[to_global_index(i,j,k)]; }
+    ref FVInterface get_ifk(size_t i, size_t j, size_t k=0) { return _ifk[to_global_index(i,j,k)]; }
+    ref FVVertex get_vtx(size_t i, size_t j, size_t k=0) { return _vtx[to_global_index(i,j,k)]; }
+    ref FVInterface get_sifi(size_t i, size_t j, size_t k=0) { return _sifi[to_global_index(i,j,k)]; }
+    ref FVInterface get_sifj(size_t i, size_t j, size_t k=0) { return _sifj[to_global_index(i,j,k)]; }
+    ref FVInterface get_sifk(size_t i, size_t j, size_t k=0) { return _sifk[to_global_index(i,j,k)]; }
 
     void assemble_arrays()
     // We shouldn't be calling this until the essential bits of the GlobalConfig
@@ -144,7 +144,7 @@ public:
 	    throw new Error(text("resize_arrays(): invalid dimensions nidim=",
 				 _nidim, " njdim=", _njdim, " nkdim=", _nkdim));
 	}
-	int ntot = _nidim * _njdim * _nkdim;
+	size_t ntot = _nidim * _njdim * _nkdim;
 	try {
 	    // Create the cell and interface objects for the entire block.
 	    foreach (gid; 0 .. ntot) {
@@ -194,9 +194,9 @@ public:
 	    kend = 0;
 	}
 	// With these ranges, we also do the first layer of ghost cells.
-	for ( int k = kstart; k <= kend; ++k ) {
-	    for ( int j = jmin-1; j <= jmax+1; ++j ) {
-		for ( int i = imin-1; i <= imax+1; ++i ) {
+	for ( size_t k = kstart; k <= kend; ++k ) {
+	    for ( size_t j = jmin-1; j <= jmax+1; ++j ) {
+		for ( size_t i = imin-1; i <= imax+1; ++i ) {
 		    FVCell cell = get_cell(i,j,k);
 		    cell.iface ~= get_ifj(i,j+1,k); // north
 		    cell.iface ~= get_ifi(i+1,j,k); // east
@@ -300,7 +300,7 @@ public:
     void read_grid(string filename, size_t gtl=0)
     // Read the grid vertices from a gzip file.
     {
-	int nivtx, njvtx, nkvtx;
+	size_t nivtx, njvtx, nkvtx;
 	double x, y, z;
 	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
 	    writeln("read_grid(): Start block ", id);
@@ -381,7 +381,7 @@ public:
     // Note that the position data is read into grid-time-level 0
     // by scan_values_from_string(). 
     {
-	int ni, nj, nk;
+	size_t ni, nj, nk;
 	double sim_time;
 	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
 	    writeln("read_solution(): Start block ", id);
@@ -458,7 +458,7 @@ public:
 
 
 int find_nearest_cell(in Vector3 point, 
-		      ref int jb_near, ref int i_near, ref int j_near, ref int k_near,
+		      ref size_t jb_near, ref size_t i_near, ref size_t j_near, ref size_t k_near,
 		      int gtl)
 {
     int result_flag = 0;
@@ -467,7 +467,7 @@ int find_nearest_cell(in Vector3 point,
 }
 
 int locate_cell(in Vector3 point,
-		ref int jb_found, ref int i_found, ref int j_found, ref int k_found,
+		ref size_t jb_found, ref size_t i_found, ref size_t j_found, ref size_t k_found,
 		int gtl)
 {
     int result_flag = 0;
