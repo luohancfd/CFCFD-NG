@@ -222,46 +222,339 @@ public:
 	} // for k
     } // end bind_faces_and_vertices_to_cells()
 
-    // to be ported from block.cxx
     void identify_reaction_zones(int gtl)
+    // Set the reactions-allowed flag for cells in this block.
     {
-	throw new Error("[TODO] Not implemented yet.");
-    }
+	size_t total_cells_in_reaction_zones = 0;
+	size_t total_cells = 0;
+	foreach(cell; active_cells) {
+	    if ( GlobalConfig.reaction_zones.length > 0 ) {
+		cell.fr_reactions_allowed = false;
+		foreach(rz; GlobalConfig.reaction_zones) {
+		    if ( rz.is_inside(cell.pos[gtl], GlobalConfig.dimensions) ) {
+			cell.fr_reactions_allowed = true;
+		    }
+		} // foreach rz
+	    } else {
+		cell.fr_reactions_allowed = true;
+	    }
+	    total_cells_in_reaction_zones += (cell.fr_reactions_allowed ? 1: 0);
+	    total_cells += 1;
+	} // foreach cell
+	if ( GlobalConfig.reacting && GlobalConfig.verbosity_level >= 2 ) {
+	    writeln("identify_reaction_zones(): block ", id,
+		    " cells inside zones = ", total_cells_in_reaction_zones, 
+		    " out of ", total_cells);
+	    if ( GlobalConfig.reaction_zones.length == 0 ) {
+		writeln("Note that for no user-specified zones,",
+			" the whole domain is allowed to be reacting.");
+	    }
+	}
+    } // end identify_reaction_zones()
 
     void identify_turbulent_zones(int gtl)
+    // Set the in-turbulent-zone flag for cells in this block.
     {
-	throw new Error("[TODO] Not implemented yet.");
-    }
+	size_t total_cells_in_turbulent_zones = 0;
+	size_t total_cells = 0;
+	foreach(cell; active_cells) {
+	    if ( GlobalConfig.turbulent_zones.length > 0 ) {
+		cell.in_turbulent_zone = false;
+		foreach(tz; GlobalConfig.turbulent_zones) {
+		    if ( tz.is_inside(cell.pos[gtl], GlobalConfig.dimensions) ) {
+			cell.in_turbulent_zone = true;
+		    }
+		} // foreach tz
+	    } else {
+		cell.in_turbulent_zone = true;
+	    }
+	    total_cells_in_turbulent_zones += (cell.in_turbulent_zone ? 1: 0);
+	    total_cells += 1;
+	} // foreach cell
+	if ( GlobalConfig.turbulence_model != tm_none && 
+	     GlobalConfig.verbosity_level >= 2 ) {
+	    writeln("identify_turbulent_zones(): block ", id,
+		    " cells inside zones = ", total_cells_in_turbulent_zones, 
+		    " out of ", total_cells);
+	    if ( GlobalConfig.turbulent_zones.length == 0 ) {
+		writeln("Note that for no user-specified zones,",
+			" the whole domain is allowed to be turbulent.");
+	    }
+	}
+    } // end identify_turbulent_zones()
 
     void clear_fluxes_of_conserved_quantities()
     {
-	throw new Error("[TODO] Not implemented yet.");
-    }
+	for ( size_t k = kmin; k <= kmax; ++k ) {
+	    for (size_t j = jmin; j <= jmax; ++j) {
+		for (size_t i = imin; i <= imax+1; ++i) {
+		    get_ifi(i,j,k).F.clear_values();
+		} // for i
+	    } // for j
+	} // for k
+	for ( size_t k = kmin; k <= kmax; ++k ) {
+	    for (size_t j = jmin; j <= jmax+1; ++j) {
+		for (size_t i = imin; i <= imax; ++i) {
+		    get_ifj(i,j,k).F.clear_values();
+		} // for i
+	    } // for j
+	} // for k
+	if ( GlobalConfig.dimensions == 3 ) {
+	    for ( size_t k = kmin; k <= kmax+1; ++k ) {
+		for (size_t j = jmin; j <= jmax; ++j) {
+		    for (size_t i = imin; i <= imax; ++i) {
+			get_ifk(i,j,k).F.clear_values();
+		    } // for i
+		} // for j
+	    } // for k
+	} // end if G.dimensions == 3
+    } // end clear_fluxes_of_conserved_quantities()
 
     int count_invalid_cells(int gtl)
+    // Returns the number of cells that contain invalid data.
+    //
+    // This data can be identified by the density of internal energy 
+    // being on the minimum limit or the velocity being very large.
     {
-	throw new Error("[TODO] Not implemented yet.");
-    }
+	size_t number_of_invalid_cells = 0;
+	foreach(FVCell cell; active_cells) {
+	    if ( cell.check_flow_data() == false ) {
+		++number_of_invalid_cells;
+		auto ijk = to_ijk_indices(cell.id);
+		size_t i = ijk[0]; size_t j = ijk[1]; size_t k = ijk[2];
+		writefln("count_invalid_cells: block_id = %d, cell[%d,%d,%d]\n", id, i, j, k);
+		writeln(cell);
+		if ( GlobalConfig.adjust_invalid_cell_data ) {
+		    // We shall set the cell data to something that
+		    // is valid (and self consistent).
+		    FVCell other_cell;
+		    FVCell[] neighbours;
+		    printf( "Adjusting cell data to a local average.\n" );
+		    other_cell = get_cell(i-1,j,k);
+		    if ( other_cell.check_flow_data() ) neighbours ~= other_cell;
+		    other_cell = get_cell(i+1,j,k);
+		    if ( other_cell.check_flow_data() ) neighbours ~= other_cell;
+		    other_cell = get_cell(i,j-1,k);
+		    if ( other_cell.check_flow_data() ) neighbours ~= other_cell;
+		    other_cell = get_cell(i,j+1,k);
+		    if ( other_cell.check_flow_data() ) neighbours ~= other_cell;
+		    if ( GlobalConfig.dimensions == 3 ) {
+			other_cell = get_cell(i,j,k-1);
+			if ( other_cell.check_flow_data() ) neighbours ~= other_cell;
+			other_cell = get_cell(i,j,k+1);
+			if ( other_cell.check_flow_data() ) neighbours ~= other_cell;
+		    }
+		    if ( neighbours.length == 0 ) {
+			throw new Error(text("Block::count_invalid_cells(): "
+					     "There were no valid neighbours to replace cell data."));
+		    }
+		    cell.replace_flow_data_with_average(neighbours);
+		    cell.encode_conserved(gtl, 0, omegaz);
+		    cell.decode_conserved(gtl, 0, omegaz);
+		    writefln("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n",
+			     id, i, j, k);
+		    writeln(cell);
+		} // end adjust_invalid_cell_data 
+	    } // end of if invalid data...
+	} // foreach cell
+	return number_of_invalid_cells;
+    } // end count_invalid_cells()
 
     void init_residuals()
+    // Initialization of data for later computing residuals.
     {
-	throw new Error("[TODO] Not implemented yet.");
-    }
+	mass_residual = 0.0;
+	mass_residual_loc = Vector3(0.0, 0.0, 0.0);
+	energy_residual = 0.0;
+	energy_residual_loc = Vector3(0.0, 0.0, 0.0);
+	foreach(FVCell cell; active_cells) {
+	    cell.rho_at_start_of_step = cell.fs.gas.rho;
+	    cell.rE_at_start_of_step = cell.U[0].total_energy;
+	}
+    } // end init_residuals()
 
     void compute_residuals(int gtl)
+    // Compute the residuals using previously stored data.
+    //
+    // The largest residual of density for all cells was the traditional way
+    // mbcns/Elmer estimated the approach to steady state.
+    // However, with the splitting up of the increments for different physical
+    // processes, this residual calculation code needed a bit of an update.
+    // Noting that the viscous-stress, chemical and radiation increments
+    // do not affect the mass within a cell, we now compute the residuals 
+    // for both mass and (total) energy for all cells, the record the largest
+    // with their location. 
     {
-	throw new Error("[TODO] Not implemented yet.");
-    }
+	mass_residual = 0.0;
+	mass_residual_loc = Vector3(0.0, 0.0, 0.0);
+	energy_residual = 0.0;
+	energy_residual_loc = Vector3(0.0, 0.0, 0.0);
+	foreach(FVCell cell; active_cells) {
+	    double local_residual = (cell.fs.gas.rho - cell.rho_at_start_of_step) 
+		/ cell.fs.gas.rho;
+	    local_residual = fabs(local_residual);
+	    if ( local_residual > mass_residual ) {
+		mass_residual = local_residual;
+		mass_residual_loc.refx = cell.pos[gtl].x;
+		mass_residual_loc.refy = cell.pos[gtl].y;
+		mass_residual_loc.refz = cell.pos[gtl].z;
+	    }
+	    // In the following line, the zero index is used because,
+	    // at the end of the gas-dynamic update, that index holds
+	    // the updated data.
+	    local_residual = (cell.U[0].total_energy - cell.rE_at_start_of_step) 
+		/ cell.U[0].total_energy;
+	    local_residual = fabs(local_residual);
+	    if ( local_residual > energy_residual ) {
+		energy_residual = local_residual;
+		energy_residual_loc.refx = cell.pos[gtl].x;
+		energy_residual_loc.refy = cell.pos[gtl].y;
+		energy_residual_loc.refz = cell.pos[gtl].z;
+	    }
+	} // for cell
+    } // end compute_residuals()
 
     void determine_time_step_size()
+    // Compute the local time step limit for all cells in the block.
+    // The overall time step is limited by the worst-case cell.
     {
-	throw new Error("[TODO] Not implemented yet.");
-    }
+	double dt_local;
+	double cfl_local;
+	double signal;
+	double cfl_allow; // allowable CFL number, t_order dependent
+
+	// The following limits allow the simulation of the sod shock tube
+	// to get just a little wobbly around the shock.
+	// Lower values of cfl should be used for a smooth solution.
+	switch ( number_of_stages_for_update_scheme[gasdynamic_update_scheme] ) {
+	case 1: cfl_allow = 0.9; break;
+	case 2: cfl_allow = 1.2; break;
+	case 3: cfl_allow = 1.6; break;
+	default: cfl_allow = 0.9;
+	}
+	bool first = true;
+	foreach(FVCell cell; active_cells) {
+	    signal = cell.signal_frequency();
+	    cfl_local = GlobalConfig.dt_global * signal; // Current (Local) CFL number
+	    dt_local = GlobalConfig.cfl_target / signal; // Recommend a time step size.
+	    if ( first ) {
+		cfl_min = cfl_local;
+		cfl_max = cfl_local;
+		dt_allow = dt_local;
+		first = false;
+	    } else {
+		cfl_min = fmin(cfl_min, cfl_local);
+		cfl_max = fmax(cfl_max, cfl_local);
+		dt_allow = fmin(dt_allow, dt_local);
+	    }
+	} // foreach cell
+	if ( cfl_max < 0.0 || cfl_max > cfl_allow ) {
+	    writeln( "determine_time_step_size(): bad CFL number was encountered");
+	    writeln( "    cfl_max=", cfl_max, " for Block ", id);
+	    writeln( "    If this cfl_max value is not much larger than 1.0,");
+	    writeln( "    your simulation could probably be restarted successfully");
+	    writeln( "    with some minor tweaking.");
+	    writeln( "    That tweaking should probably include a reduction");
+	    writeln( "    in the size of the initial time-step, dt");
+	    writeln( "    If this job is a restart/continuation of an old job, look in");
+	    writeln( "    the old-job.finish file for the value of dt at termination.");
+	    throw new Error(text("Bad cfl number encountered cfl_max=", cfl_max));
+	}
+    } // end determine_time_step_size()
 
     void detect_shock_points()
+    // Detects shocks by looking for compression between adjacent cells.
+    //
+    // The velocity component normal to the cell interfaces
+    // is used as the indicating variable.
     {
-	throw new Error("[TODO] Not implemented yet.");
-    }
+	double uL, uR, aL, aR, a_min;
+
+	// Change in normalised velocity to indicate a shock.
+	// A value of -0.05 has been found suitable to detect the levels of
+	// shock compression observed in the "sod" and "cone20" test cases.
+	// It may need to be tuned for other situations, especially when
+	// viscous effects are important.
+	double tol = GlobalConfig.compression_tolerance;
+
+	// First, work across North interfaces and
+	// locate shocks using the (local) normal velocity.
+	for ( size_t k = kmin; k <= kmax; ++k ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
+		for ( size_t j = jmin-1; j <= jmax; ++j ) {
+		    auto cL = get_cell(i,j,k);
+		    auto cR = get_cell(i,j+1,k);
+		    auto IFace = cL.iface[north];
+		    uL = cL.fs.vel.x * IFace.n.x + cL.fs.vel.y * IFace.n.y + cL.fs.vel.z * IFace.n.z;
+		    uR = cR.fs.vel.x * IFace.n.x + cR.fs.vel.y * IFace.n.y + cR.fs.vel.z * IFace.n.z;
+		    aL = cL.fs.gas.a;
+		    aR = cR.fs.gas.a;
+		    if (aL < aR)
+			a_min = aL;
+		    else
+			a_min = aR;
+		    IFace.fs.S = ((uR - uL) / a_min < tol);
+		} // j loop
+	    } // i loop
+	} // for k
+    
+	// Second, work across East interfaces and
+	// locate shocks using the (local) normal velocity.
+	for ( size_t k = kmin; k <= kmax; ++k ) {
+	    for ( size_t i = imin-1; i <= imax; ++i ) {
+		for ( size_t j = jmin; j <= jmax; ++j ) {
+		    auto cL = get_cell(i,j,k);
+		    auto cR = get_cell(i+1,j,k);
+		    auto IFace = cL.iface[east];
+		    uL = cL.fs.vel.x * IFace.n.x + cL.fs.vel.y * IFace.n.y + cL.fs.vel.z * IFace.n.z;
+		    uR = cR.fs.vel.x * IFace.n.x + cR.fs.vel.y * IFace.n.y + cR.fs.vel.z * IFace.n.z;
+		    aL = cL.fs.gas.a;
+		    aR = cR.fs.gas.a;
+		    if (aL < aR)
+			a_min = aL;
+		    else
+			a_min = aR;
+		    IFace.fs.S = ((uR - uL) / a_min < tol);
+		} // j loop
+	    } // i loop
+	} // for k
+    
+	if ( GlobalConfig.dimensions == 3 ) {
+	    // Third, work across Top interfaces.
+	    for ( size_t i = imin; i <= imax; ++i ) {
+		for ( size_t j = jmin; j <= jmax; ++j ) {
+		    for ( size_t k = kmin-1; k <= kmax; ++k ) {
+			auto cL = get_cell(i,j,k);
+			auto cR = get_cell(i,j,k+1);
+			auto IFace = cL.iface[top];
+			uL = cL.fs.vel.x * IFace.n.x + cL.fs.vel.y * IFace.n.y + cL.fs.vel.z * IFace.n.z;
+			uR = cR.fs.vel.x * IFace.n.x + cR.fs.vel.y * IFace.n.y + cR.fs.vel.z * IFace.n.z;
+			aL = cL.fs.gas.a;
+			aR = cR.fs.gas.a;
+			if (aL < aR)
+			    a_min = aL;
+			else
+			    a_min = aR;
+			IFace.fs.S = ((uR - uL) / a_min < tol);
+		    } // for k
+		} // j loop
+	    } // i loop
+	} // if ( dimensions == 3 )
+    
+	// Finally, mark cells as shock points if any of their
+	// interfaces are shock points.
+	for ( size_t k = kmin; k <= kmax; ++k ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
+		for ( size_t j = jmin; j <= jmax; ++j ) {
+		    auto cell = get_cell(i,j,k);
+		    cell.fs.S = cell.iface[east].fs.S || cell.iface[west].fs.S ||
+			cell.iface[north].fs.S || cell.iface[south].fs.S ||
+			( GlobalConfig.dimensions == 3 && 
+			  (cell.iface[bottom].fs.S || cell.iface[top].fs.S) );
+		} // j loop
+	    } // i loop
+	} // for k
+    } // end detect_shock_points()
 
     void compute_primary_cell_geometric_data(int gtl)
     // Compute cell and interface geometric properties.
@@ -1597,25 +1890,6 @@ public:
     }
 
 } // end class SBlock
-
-
-int find_nearest_cell(in Vector3 point, 
-		      ref size_t jb_near, ref size_t i_near, ref size_t j_near, ref size_t k_near,
-		      int gtl)
-{
-    int result_flag = 0;
-    throw new Error("Not implemented yet.");
-    return result_flag;
-}
-
-int locate_cell(in Vector3 point,
-		ref size_t jb_found, ref size_t i_found, ref size_t j_found, ref size_t k_found,
-		int gtl)
-{
-    int result_flag = 0;
-    throw new Error("Not implemented yet.");
-    return result_flag;
-}
 
 
 

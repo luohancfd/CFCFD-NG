@@ -53,8 +53,8 @@ void main()
     string sample = "1.0 2.0 3.0 0.000999 0.1 1.1 1.2 1.3 100.0e3 345.0 1.8e-5 "
 	~ "0.0123 0.999 0.0888 1 0.05 1.009 1.0 2.65e5 311";
     cell.scan_values_from_string(sample);
-    cell.encode_conserved(0, 0, 0.0, true);
-    cell.decode_conserved(0, 0, 0.0, true);
+    cell.encode_conserved(0, 0, 0.0);
+    cell.decode_conserved(0, 0, 0.0);
     cell.check_flow_data();
     writeln("cell=", cell);
     writeln("string written=", cell.write_values_to_string());

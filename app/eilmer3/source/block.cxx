@@ -682,6 +682,11 @@ int Block::detect_shock_points(size_t dimensions)
 
 //-----------------------------------------------------------------------------
 
+// The following functions are only used by the Lua service functions and
+// should only be called upon in a shared-memory simulation.
+// If you call them up in a distributed-memory simulation, some of the blocks
+// will not be filled in with valid data and all bets will be off.
+
 int find_nearest_cell(double x, double y, double z, 
 		      size_t *jb_near,
 		      size_t *i_near, size_t *j_near, size_t *k_near,
