@@ -316,7 +316,7 @@ public:
     // This data can be identified by the density of internal energy 
     // being on the minimum limit or the velocity being very large.
     {
-	size_t number_of_invalid_cells = 0;
+	int number_of_invalid_cells = 0;
 	foreach(FVCell cell; active_cells) {
 	    if ( cell.check_flow_data() == false ) {
 		++number_of_invalid_cells;
