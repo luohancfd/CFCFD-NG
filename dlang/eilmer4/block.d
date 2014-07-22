@@ -25,6 +25,6 @@ public:
     int mncell;            // number of monitor cells
     double[] initial_T_value; // for monitor cells to check against
     FVCell[] active_cells; // collection of references to be used in foreach statements.
-    BoundaryCondition[] bcs; // collection of references to the boundary conditions
+    BoundaryCondition[] bc; // collection of references to the boundary conditions
 
 } // end class Block

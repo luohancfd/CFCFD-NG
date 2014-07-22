@@ -90,7 +90,7 @@ public:
 	Q = new ConservedQuantities(gm);
     }
 
-    void copy_values_from(in FVCell other, uint type_of_copy)
+    void copy_values_from(in FVCell other, int type_of_copy)
     {
 	switch ( type_of_copy ) {
 	case copy_flow_data:
