@@ -10,6 +10,8 @@ GEOM_FILES := ${GEOM_DIR}/geom.d
 GZIP_DIR := ../extern/gzip
 GZIP_FILES := ${GZIP_DIR}/gzip.d
 
+DFLAGS := -unittest -gc -wi
+
 demo: ${DEMO_PROGRAMS}
 	echo "Demo codes built."
 
@@ -19,7 +21,7 @@ clean:
 	- rm test-grid.txt.gz test-flow.txt.gz
 
 globalconfig_demo: globalconfig_demo.d globalconfig.d ${GEOM_FILES}
-	dmd -unittest -g -I${GEOM_DIR} -I${GAS_DIR} \
+	dmd ${DFLAGS} -I${GEOM_DIR} -I${GAS_DIR} \
 		globalconfig_demo.d globalconfig.d \
 		${GEOM_FILES} ${GAS_MODEL_FILES} 
 
@@ -32,7 +34,7 @@ flowstate_demo: flowstate_demo.d flowstate.d \
 fv_demo: fv_demo.d fvcore.d fvcell.d fvvertex.d fvinterface.d \
 	conservedquantities.d flowstate.d globalconfig.d globaldata.d block.d \
 	${GEOM_FILES} ${GAS_MODEL_FILES}
-	dmd -unittest -g -I${GAS_DIR} -I${GEOM_DIR} \
+	dmd ${DFLAGS} -I${GAS_DIR} -I${GEOM_DIR} \
 		fv_demo.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		conservedquantities.d flowstate.d \
@@ -45,7 +47,7 @@ block_demo: block_demo.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d \
 	conservedquantities.d flowstate.d globalconfig.d globaldata.d block.d \
 	${GEOM_FILES} ${GAS_MODEL_FILES} ${GZIP_FILES}
-	dmd -unittest -g -I${GEOM_DIR} -I${GAS_DIR} -I${GZIP_DIR} \
+	dmd ${DFLAGS} -I${GEOM_DIR} -I${GAS_DIR} -I${GZIP_DIR} \
 		block_demo.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		conservedquantities.d flowstate.d \

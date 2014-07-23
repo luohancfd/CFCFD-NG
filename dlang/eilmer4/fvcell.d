@@ -811,7 +811,6 @@ public:
 
     void stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega) 
     {
-	throw new Error("[TODO] not yet ready for use");
 	ConservedQuantities dUdt0 = dUdt[0];
 	ConservedQuantities U0 = U[0];
 	ConservedQuantities U1 = U[1];
@@ -846,11 +845,11 @@ public:
 	foreach(imode; 1 .. U1.energies.length) {
 	    U1.energies[imode] = vr * (U0.energies[imode] + dt * gamma_1 * dUdt0.energies[imode]);
 	}
+	throw new Error("[TODO] not yet ready for use");
     } // end stage_1_update_for_flow_on_moving_grid()
 
     void stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega) 
     {
-	throw new Error("[TODO] not yet ready for use");
 	ConservedQuantities dUdt0 = dUdt[0];
 	ConservedQuantities dUdt1 = dUdt[1];
 	ConservedQuantities U0 = U[0];
@@ -898,6 +897,7 @@ public:
 					    dt * (gamma_1 * dUdt0.energies[imode] + 
 						  gamma_2 * dUdt1.energies[imode]));
 	}
+	throw new Error("[TODO] not yet ready for use");
     } // end stage_2_update_for_flow_on_moving_grid()
 
     void chemical_increment(double dt, double T_frozen) 
@@ -914,7 +914,6 @@ public:
 	    }
 	}
 	try {
-	    throw new Error("[TODO] not yet ready for use");
 	    // [TODO] auto rupdate = GlobalConfig.reaction_update_scheme;
 	    // [TODO] rupdate.update_state(fs.gas, dt, dt_chem, gmodel);
 	    if ( GlobalConfig.ignition_zone_active ) {
@@ -942,6 +941,8 @@ public:
 	// Species densities: mass of species isp per unit volume.
 	foreach(isp; 0 .. fs.gas.massf.length)
 	    U[0].massf[isp] = fs.gas.rho * fs.gas.massf[isp];
+
+	throw new Error("[TODO] not yet ready for use");
     } // end chemical_increment()
 
     void thermal_increment(double dt, double T_frozen_energy) 
@@ -952,7 +953,6 @@ public:
     {
 	if ( !fr_reactions_allowed || fs.gas.T[0] <= T_frozen_energy ) return;
 	auto gmodel = GlobalConfig.gmodel;
-	throw new Error("[TODO] not yet ready for use");
 	// [TODO] auto eeupdate = GlobalConfig.energy_exchange_update_scheme;
 	// [TODO] eeupdate.update_state(fs.gas, dt, dt_therm, gmodel);
 	// The update only changes modal energies, we need to impose
@@ -969,6 +969,8 @@ public:
 	foreach(imode; 0 .. U[0].energies.length) {
 	    U[0].energies[imode] = fs.gas.rho * fs.gas.e[imode];
 	}
+
+	throw new Error("[TODO] not yet ready for use");
     } // end thermal_increment()
 
     double signal_frequency() const
@@ -1103,7 +1105,7 @@ public:
     void turbulence_viscosity_zero_if_not_in_zone() 
     {
 	if ( in_turbulent_zone ) {
-	    /* Do nothing, leaving the turbulence quantities as set. */ ;
+	    /* Do nothing, leaving the turbulence quantities as set. */
 	} else {
 	    /* Presume this part of the flow is laminar; clear turbulence quantities. */
 	    fs.mu_t = 0.0;
@@ -1599,9 +1601,7 @@ int number_of_values_in_cell_copy(int type_of_copy)
 // This function must match the copy-to/from-buffer methods above.
 // The buffers are used for communication between worker processes.
 {
-    throw new Error("[TODO] number_of_values_in_cell_copy() not yet implemented");
-    int number = 0;
-    return number;
+    return 0; // [TODO] something sensible, eventually.
 } // end number_of_values_in_cell_copy()
 
 string[] variable_list_for_cell()
