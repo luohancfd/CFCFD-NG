@@ -19,7 +19,7 @@ enum
     bottom = 5;
 
 string[] face_name = [ "north", "east", "south", "west", "top", "bottom" ];
-uint[string] face_index; // initialized with a call to init_fv_core()
+uint[string] face_index; // initialized with a call to init_fvcore()
 
 // Symbolic names for the time-stepping schemes used to update the gasdynamic eqn.
 enum 
@@ -35,7 +35,7 @@ int gasdynamic_update_scheme = pc_update;
 string[] gasdynamic_update_scheme_name = ["euler", "predictor-corrector", "midpoint", 
 					  "classic-rk3", "tvd-rk3", "denman-rk3"];
 int[] number_of_stages_for_update_scheme = [1, 2, 2, 3, 3, 3];
-uint[string] gasdynamic_update_scheme_index; // initialized with a call to init_fv_core()
+uint[string] gasdynamic_update_scheme_index; // initialized with a call to init_fvcore()
 
 
 // [TODO] think about the following...

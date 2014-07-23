@@ -31,13 +31,13 @@ flowstate_demo: flowstate_demo.d flowstate.d \
 		flowstate_demo.d flowstate.d \
 		${GEOM_FILES} ${GAS_MODEL_FILES} 
 
-fv_demo: fv_demo.d fvcore.d fvcell.d fvvertex.d fvinterface.d \
+fv_demo: fv_demo.d fvcore.d fvcell.d fvvertex.d fvinterface.d fluxcalc.d \
 	conservedquantities.d flowstate.d globalconfig.d globaldata.d block.d \
 	${GEOM_FILES} ${GAS_MODEL_FILES}
 	dmd ${DFLAGS} -I${GAS_DIR} -I${GEOM_DIR} \
 		fv_demo.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
-		conservedquantities.d flowstate.d \
+		conservedquantities.d flowstate.d fluxcalc.d \
 		globalconfig.d globaldata.d block.d \
 		${GEOM_FILES} ${GAS_MODEL_FILES} 
 

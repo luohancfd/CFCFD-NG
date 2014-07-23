@@ -12,6 +12,7 @@ import fvinterface;
 import fvvertex;
 import fvcell;
 import globalconfig;
+import fluxcalc;
 
 void main()
 {
@@ -59,6 +60,9 @@ void main()
     writeln("cell=", cell);
     writeln("string written=", cell.write_values_to_string());
     writeln("sample=", sample);
+
+    writeln("------------------------");
+    init_fluxcalc();
 
     writeln("done.");
 }

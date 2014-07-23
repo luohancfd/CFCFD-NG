@@ -79,8 +79,9 @@ final class GlobalConfig {
     //   false for neglecting multicomponent diffusion, 
     //   true when considering the diffusion 
     static bool diffusion = false; 
-    // A factor to scale the diffusion in order to achieve a soft start, separate to viscous effects.
+    // A factor to scale the diffusion in order to achieve a soft start.
     // The soft-start for diffusion effects may be handy for impulsively-started flows.
+    // Note that this is separate to viscous effects.
     static double diffusion_factor = 1.0;
     // The amount by which to increment the diffusion factor during soft-start.
     static double diffusion_factor_increment = 0.01;
@@ -109,11 +110,17 @@ final class GlobalConfig {
     // viscous effects are important.
     static double compression_tolerance = -0.30;
 
-    /// Set the tolerance to shear when applying the adaptive flux calculator.
-    /// We don't want EFM to be applied in situations of significant shear.
-    /// The shear value is computed as the tangential-velocity difference across an interface
-    /// normalised by the local sound speed.
+    // Default flux calculator is the adaptive mix of ausmdv and efm.
+    static int flux_calculator; // to be set later, possible in init_fluxcalc()
+
+    // Set the tolerance to shear when applying the adaptive flux calculator.
+    // We don't want EFM to be applied in situations of significant shear.
+    // The shear value is computed as the tangential-velocity difference across an interface
+    // normalised by the local sound speed.
     static double shear_tolerance = 0.20;
+
+    // Reference free-stream Mach number, for use in the ausm_plus_up flux calculator.
+    static double M_inf = 0.01;
 
     // Turning on the reactions activates the chemical update function calls.
     // Chemical equilibrium simulations (via Look-Up Table) does not use this
