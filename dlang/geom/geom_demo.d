@@ -42,9 +42,9 @@ void main()
     Vector3 h = Vector3(1.0,0.0,1.0);
     Vector3 h_ref = Vector3(h);
     writeln("original h = ", h);
-    to_local_frame(h, n, t1, t2);
+    h.transform_to_local_frame(n, t1, t2);
     writeln("in local frame h = ", h);
-    to_xyz_frame(h, n, t1, t2);
+    h.transform_to_global_frame(n, t1, t2);
     writeln("back to global frame h = ", h);
 
     writeln("Try out geometric functions that build on Vector3 objects.");

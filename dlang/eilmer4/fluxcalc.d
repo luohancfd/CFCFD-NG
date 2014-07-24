@@ -10,6 +10,7 @@ module fluxcalc;
 
 import std.math;
 import std.stdio;
+import std.conv;
 import geom;
 import gasmodelutil;
 import flowstate;
@@ -62,14 +63,14 @@ void compute_interface_flux(ref FlowState Lft, ref FlowState Rght,
     // Transform to interface frame of reference.
     Lft.vel -= IFace.vel;
     Rght.vel -= IFace.vel;
-    IFace.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
-    Lft.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
-    Rght.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+    IFace.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
+    Lft.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
+    Rght.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
 
     // also transform the magnetic field
     if ( GlobalConfig.MHD ) {
-	Lft.B.transform_to_local(IFace.n, IFace.t1, IFace.t2);
-        Rght.B.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	Lft.B.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
+        Rght.B.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
     }
 
     // Compute the fluxes in the local frame of the interface.
@@ -107,26 +108,26 @@ void compute_interface_flux(ref FlowState Lft, ref FlowState Rght,
     
     // Transform fluxes back from interface frame of reference to local frame of reference.
     // Flux of Total Energy
-    F.total_energy += 0.5 * F.mass * pow(vabs(IFace.vel),2) + dot(F.momentum, IFace.vel);
+    F.total_energy += 0.5 * F.mass * pow(abs(IFace.vel),2) + dot(F.momentum, IFace.vel);
     // Flux of momentum
     F.momentum += F.mass * IFace.vel;
  
     // Rotate momentum fluxes back to the global frame of reference.
-    F.momentum.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+    F.momentum.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
     // also transform the interface velocities
-    IFace.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+    IFace.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
     // also transform the magnetic field
     if ( GlobalConfig.MHD ) {
-	F.B.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	F.B.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
     }
 	
-    if ( do_print_fluxes ) {
+    debug ( 2 ) {
 	writeln("Interface fluxes");
 	writeln("xyz_mom=", F.momentum);
 	if ( GlobalConfig.MHD ) {
 	    writeln("xyz_B=", F.B);
 	}
-    }
+    } // end debug
     
 }
 

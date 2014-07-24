@@ -177,6 +177,38 @@ struct Vector3 {
 	}
 	return this;
     }
+
+    // Transform functions used to reorient vector values in the CFD codes.
+
+    /**
+     * Rotate v from the global xyz coordinate system into the local frame
+     * defined by the orthogonal unit vectors n,t1,t2.
+     *
+     * We assume, without checking, that these vectors do nicely define 
+     * such a local system.
+     */
+    void transform_to_local_frame(in Vector3 n, in Vector3 t1, in Vector3 t2)
+    {
+	double v_x = dot(this, n); // normal component
+	double v_y = dot(this, t1); // tangential component 1
+	double v_z = dot(this, t2); // tangential component 2
+	_p[0] = v_x;
+	_p[1] = v_y;
+	_p[2] = v_z;
+    }
+
+    /**
+     * Rotate v back into the global (xyz) coordinate system.
+     */
+    void transform_to_global_frame(in Vector3 n, in Vector3 t1, in Vector3 t2)
+    {
+	double v_x = _p[0]*n._p[0] + _p[1]*t1._p[0] + _p[2]*t2._p[0]; // global-x
+	double v_y = _p[0]*n._p[1] + _p[1]*t1._p[1] + _p[2]*t2._p[1]; // global-y
+	double v_z = _p[0]*n._p[2] + _p[1]*t1._p[2] + _p[2]*t2._p[2]; // global-z
+	_p[0] = v_x;
+	_p[1] = v_y;
+	_p[2] = v_z;
+    }
 } // end class Vector3
 
 
@@ -217,38 +249,6 @@ Vector3 cross(in Vector3 v1, in Vector3 v2)
     v3._p[1] = v2._p[0] * v1._p[2] - v1._p[0] * v2._p[2];
     v3._p[2] = v1._p[0] * v2._p[1] - v2._p[0] * v1._p[1];
     return v3;
-}
-
-// Transform functions used to reorient vector values in the CFD codes.
-
-/**
- * Rotate v from the global xyz coordinate system into the local frame
- * defined by the orthogonal unit vectors n,t1,t2.
- *
- * We assume, without checking, that these vectors do nicely define 
- * such a local system.
- */
-void to_local_frame(ref Vector3 v, in Vector3 n, in Vector3 t1, in Vector3 t2)
-{
-    double v_x = dot(v, n); // normal component
-    double v_y = dot(v, t1); // tangential component 1
-    double v_z = dot(v, t2); // tangential component 2
-    v._p[0] = v_x;
-    v._p[1] = v_y;
-    v._p[2] = v_z;
-}
-
-/**
- * Rotate v back into the global coordinate system.
- */
-void to_xyz_frame(ref Vector3 v, in Vector3 n, in Vector3 t1, in Vector3 t2)
-{
-    double v_x = v._p[0]*n._p[0] + v._p[1]*t1._p[0] + v._p[2]*t2._p[0]; // global-x
-    double v_y = v._p[0]*n._p[1] + v._p[1]*t1._p[1] + v._p[2]*t2._p[1]; // global-y
-    double v_z = v._p[0]*n._p[2] + v._p[1]*t1._p[2] + v._p[2]*t2._p[2]; // global-z
-    v._p[0] = v_x;
-    v._p[1] = v_y;
-    v._p[2] = v_z;
 }
 
 /**
@@ -312,11 +312,11 @@ unittest {
     Vector3 t2 = cross(n, t1);
     Vector3 h = Vector3(1.0,0.0,1.0);
     Vector3 h_ref = Vector3(h);
-    to_local_frame(h, n, t1, t2);
+    h.transform_to_local_frame(n, t1, t2);
     assert(approxEqualVectors(h, Vector3(sqrt(1.0/2.0), -sqrt(1.0/2.0), 1.0)),
 	   "to_local_frame");
-    to_xyz_frame(h, n, t1, t2);
-    assert(approxEqualVectors(h, h_ref), "to_xyz_frame");
+    h.transform_to_global_frame(n, t1, t2);
+    assert(approxEqualVectors(h, h_ref), "to_global_frame");
 }
 
 
