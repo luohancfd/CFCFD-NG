@@ -62,6 +62,8 @@ void main()
     writeln("sample=", sample);
 
     writeln("------------------------");
+    adaptive_flux(flow, flow2, iface);
+    writeln("iface=", iface);
 
     writeln("done.");
 }

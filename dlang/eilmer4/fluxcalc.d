@@ -12,6 +12,7 @@ import std.math;
 import std.stdio;
 import std.conv;
 import geom;
+import gasmodel;
 import gasmodelutil;
 import flowstate;
 import conservedquantities;
@@ -36,9 +37,6 @@ void compute_interface_flux(ref FlowState Lft, ref FlowState Rght,
  * by the end of the function. [TODO] check this assertion.
  */
 {
-    double WSL, WSR;
-    ConservedQuantities F = IFace.F;
-
     // Transform to interface frame of reference.
     Lft.vel -= IFace.vel;
     Rght.vel -= IFace.vel;
@@ -73,6 +71,8 @@ void compute_interface_flux(ref FlowState Lft, ref FlowState Rght,
         throw new Error(text("Invalid flux calculator, flux_claculator=.",
 			     GlobalConfig.flux_calculator));
     } // end switch
+
+    ConservedQuantities F = IFace.F;
 
     if ( omegaz != 0.0 ) {
 	// Rotating frame.
@@ -186,8 +186,204 @@ void set_flux_vector_in_global_frame(ref FVInterface IFace, ref FlowState fs,
 }
 
 void ausmdv(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
+// Wada and Liou's flux calculator.
+// 
+// Implemented from details in their AIAA paper 
+// with hints from Ian Johnston.
+// Y. Wada and M. -S. Liou (1994)
+// A flux splitting scheme with high-resolution and robustness for discontinuities.
+// AIAA-94-0083.
 {
-}
+    // Unpack the flow-state vectors for either side of the interface.
+    // Store in work vectors, those quantities that will be neede later.
+    double rL = Lft.gas.rho;
+    double pL = Lft.gas.p;
+    double pLrL = pL / rL;
+    double uL = Lft.vel.x;
+    double vL = Lft.vel.y;
+    double wL = Lft.vel.z;
+    double eL = 0.0; foreach(elem; Lft.gas.e) eL += elem;
+    double aL = Lft.gas.a;
+    double keL = 0.5 * (uL * uL + vL * vL + wL * wL);
+    double HL = eL + pLrL + keL;
+
+    double rR = Rght.gas.rho;
+    double pR = Rght.gas.p;
+    double pRrR = pR / rR;
+    double uR = Rght.vel.x;
+    double vR = Rght.vel.y;
+    double wR = Rght.vel.z;
+    double eR = 0.0; foreach(elem; Rght.gas.e) eR += elem;
+    double aR = Rght.gas.a;
+    double keR = 0.5 * (uR * uR + vR * vR + wR * wR);
+    double HR = eR + pRrR + keR;
+
+    /*
+     * This is the main part of the flux calculator.
+     */
+    /*
+     * Weighting parameters (eqn 32) for velocity splitting.
+     */
+    double alphaL = 2.0 * pLrL / (pLrL + pRrR);
+    double alphaR = 2.0 * pRrR / (pLrL + pRrR);
+    /*
+     * Common sound speed (eqn 33) and Mach numbers.
+     */
+    double am = fmax(aL, aR);
+    double ML = uL / am;
+    double MR = uR / am;
+    /*
+     * Left state: 
+     * pressure splitting (eqn 34) 
+     * and velocity splitting (eqn 30)
+     */
+    double pLplus, uLplus;
+    double duL = 0.5 * (uL + fabs(uL));
+    if (fabs(ML) <= 1.0) {
+	pLplus = pL * (ML + 1.0) * (ML + 1.0) * (2.0 - ML) * 0.25;
+	uLplus = alphaL * ((uL + am) * (uL + am) / (4.0 * am) - duL) + duL;
+    } else {
+	pLplus = pL * duL / uL;
+	uLplus = duL;
+    }
+    /*
+     * Right state: 
+     * pressure splitting (eqn 34) 
+     * and velocity splitting (eqn 31)
+     */
+    double pRminus, uRminus;
+    double duR = 0.5 * (uR - fabs(uR));
+    if (fabs(MR) <= 1.0) {
+	pRminus = pR * (MR - 1.0) * (MR - 1.0) * (2.0 + MR) * 0.25;
+	uRminus =
+	    alphaR * (-(uR - am) * (uR - am) / (4.0 * am) - duR) +
+	    duR;
+    } else {
+	pRminus = pR * duR / uR;
+	uRminus = duR;
+    }
+    /*
+     * Mass Flux (eqn 29)
+     */
+    // The mass flux is relative to the moving interface.
+    double ru_half = uLplus * rL + uRminus * rR;
+    /*
+     * Pressure flux (eqn 34)
+     */
+    double p_half = pLplus + pRminus;
+    /*
+     * Momentum flux: normal direction
+     *
+     * Compute blending parameter s (eqn 37),
+     * the momentum flux for AUSMV (eqn 21) and AUSMD (eqn 21)
+     * and blend (eqn 36).
+     */
+    double dp = pL - pR;
+    const double K_SWITCH = 10.0;
+    dp = K_SWITCH * fabs(dp) / fmin(pL, pR);
+    double s = 0.5 * fmin(1.0, dp);
+
+    double ru2_AUSMV = uLplus * rL * uL + uRminus * rR * uR;
+    double ru2_AUSMD = 0.5 * (ru_half * (uL + uR) - fabs(ru_half) * (uR - uL));
+
+    double ru2_half = (0.5 + s) * ru2_AUSMV + (0.5 - s) * ru2_AUSMD;
+
+    /*
+     * Assemble components of the flux vector.
+     */
+    ConservedQuantities F = IFace.F;
+    F.mass = ru_half;
+    F.momentum.refx = ru2_half + p_half;
+    if (ru_half >= 0.0) {
+	/* Wind is blowing from the left */
+	F.momentum.refy = ru_half * vL;
+	F.momentum.refz = ru_half * wL;
+	F.total_energy = ru_half * HL;
+	F.tke = ru_half * Lft.tke;
+	F.omega = ru_half * Lft.omega;
+    } else {
+	/* Wind is blowing from the right */
+	F.momentum.refy = ru_half * vR;
+	F.momentum.refz = ru_half * wR;
+	F.total_energy = ru_half * HR;
+	F.tke = ru_half * Rght.tke;
+	F.omega = ru_half * Rght.omega;
+    }
+    /* 
+     * Species mass fluxes 
+     */
+    auto gmodel = GlobalConfig.gmodel;
+    int nsp = gmodel.n_species;
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	if (ru_half >= 0.0) {
+	    /* Wind is blowing from the left */
+	    F.massf[isp] = ru_half * Lft.gas.massf[isp];
+	} else {
+	    /* Wind is blowing from the right */
+	    F.massf[isp] = ru_half * Rght.gas.massf[isp];
+	}
+    } /* isp loop */
+    /* 
+     * Individual energies 
+     */
+    int nmodes = gmodel.n_modes;
+    // NOTE: renergies[0] is never used so skipping (DFP 10/12/09)
+    if (ru_half >= 0.0) {
+	/* Wind is blowing from the left */
+	for ( int imode = 1; imode < nmodes; ++imode ) {
+	    F.energies[imode] = ru_half * Lft.gas.e[imode];
+	}
+	// NOTE: - the following relies on the free-electron mode being the last mode
+	//       - for single temp models F_renergies isn't used
+	//       - for multitemp modes with no free-electrons p_e is zero
+	// Add electron pressure work term onto final energy mode
+	F.energies[nmodes-1] += ru_half * Lft.gas.p_e / Lft.gas.rho;
+    } else {
+	/* Wind is blowing from the right */
+	for ( int imode = 1; imode < nmodes; ++imode ) {
+	    F.energies[imode] = ru_half * Rght.gas.e[imode];
+	}
+	// NOTE: - the following relies on the free-electron mode being the last mode
+	//       - for single temp models F_renergies isn't used
+	//       - for multitemp modes with no free-electrons p_e is zero
+	// Add electron pressure work term onto final energy mode
+	F.energies[nmodes-1] += ru_half * Rght.gas.p_e / Rght.gas.rho;
+    }
+
+    /*
+     * Apply entropy fix (section 3.5 in Wada and Liou's paper)
+     */
+    const double C_EFIX = 0.125;
+    bool caseA = ((uL - aL) < 0.0) && ((uR - aR) > 0.0);
+    bool caseB = ((uL + aL) < 0.0) && ((uR + aR) > 0.0);
+
+    double d_ua = 0.0;
+    if (caseA && !caseB)
+	d_ua = C_EFIX * ((uR - aR) - (uL - aL));
+    if (caseB && !caseA)
+	d_ua = C_EFIX * ((uR + aR) - (uL + aL));
+
+    if (d_ua != 0.0) {
+	F.mass -= d_ua * (rR - rL);
+	F.momentum.refx -= d_ua * (rR * uR - rL * uL);
+	F.momentum.refy -= d_ua * (rR * vR - rL * vL);
+	F.momentum.refz -= d_ua * (rR * wR - rL * wL);
+	F.total_energy -= d_ua * (rR * HR - rL * HL);
+	F.tke -= d_ua * (rR * Rght.tke - rL * Lft.tke);
+	F.omega -= d_ua * (rR * Rght.omega - rL * Lft.omega);
+    }   /* end of entropy fix (d_ua != 0) */
+
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	if (d_ua != 0.0) F.massf[isp] -= d_ua * (rR * Rght.gas.massf[isp] - 
+						 rL * Lft.gas.massf[isp]);
+    }
+
+    // NOTE: renergies[0] is never used so skipping (DFP 10/12/09)
+    for ( int imode = 1; imode < nmodes; ++imode ) {
+	if (d_ua != 0.0)
+	    F.energies[imode] -= d_ua * (rR * Rght.gas.e[imode] - rL * Lft.gas.e[imode]);
+    }
+} // end ausmdv()
 
 void efmflx(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
 /** \brief Compute the fluxes across an interface using
@@ -403,13 +599,440 @@ void exxef(double sn, ref double exx, ref double ef)
 } // end exxef
 
 void adaptive_flux(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
+// This adaptive flux calculator uses uses the Equilibrium Flux Method.
+// near shocks and AUSMDV away from shocks, however, we really don't want
+// EFM to be used across interfaces with strong shear.
+// EFM should still be able to do it's work as we really needed it for the
+// situations where the shock is closely aligned with the grid.
+// In that situation, we don't expect a stong shear at the interface.
+//
+// The actual work is passed off to the original flux calculation functions.
 {
-}
+    double sound_speed = 0.5 * (Lft.gas.a + Rght.gas.a);
+    double shear_y = fabs(Lft.vel.y - Rght.vel.y) / sound_speed;
+    double shear_z = fabs(Lft.vel.z - Rght.vel.z) / sound_speed;
+    bool shear_is_small = fmax(shear_y, shear_z) <= GlobalConfig.shear_tolerance;
+    if ( (Lft.S == 1 || Rght.S == 1) && shear_is_small ) {
+	efmflx(Lft, Rght, IFace);
+    } else {
+	ausmdv(Lft, Rght, IFace);
+    }
+} // end adaptive_flux()
 
 void ausm_plus_up(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
+// Liou's 2006 AUSM+up flux calculator
+//
+// A new version of the AUSM-family schemes, based 
+// on the low Mach number asymptotic analysis.
+// Ironically, this flux calculator causes simulations
+// initialised with 0.0 m/s velocities to crash.
+//
+// RJG -- 26-Apr-2013
+// Added a (+ EPSILON) to help with any divide by zero problems.
+// That being said, I'm not sure this helps with the 
+// crashes at zero velocity because it would seem that the flow
+// of control would pass through a different branch for these cases.
+//
+// M. -S. Liou (2006)
+// A sequel to AUSM, Part II: AUSM+-up for all speeds
+// Journal of Computational Physics, Vol 214, pp 137-170
+//
+// This code: W. Y. K. Chan & P. A. Jacobs
 {
-}
+    // Some helper functions
+    double M1plus(double M) { return 0.5*(M + fabs(M)); }
+    double M1minus(double M) { return 0.5*(M - fabs(M)); }
+    double M2plus(double M) { return 0.25*(M + 1.0)*(M + 1.0); }
+    double M2minus(double M) { return -0.25*(M - 1.0)*(M - 1.0); } 
+    double M4plus(double M, double beta) {
+	if ( fabs(M) >= 1.0 ) {
+	    return M1plus(M);
+	} else {
+	    double M2p = M2plus(M);
+	    double M2m = M2minus(M);
+	    return M2p*(1.0 - 16.0*beta*M2m);
+	}
+    }
+    double M4minus(double M, double beta) {
+	if ( fabs(M) >= 1.0 ) {
+	    return M1minus(M);
+	} else {
+	    double M2p = M2plus(M);
+	    double M2m = M2minus(M);
+	    return M2m*(1.0 + 16.0*beta*M2p);
+	}
+    }
+    double P5plus(double M, double alpha) {
+	if ( fabs(M) >= 1.0 ) {
+	    return (1.0/M)*M1plus(M);
+	} else {
+	    double M2p = M2plus(M);
+	    double M2m = M2minus(M);
+	    return M2p*((2.0 - M) - 16.0*alpha*M*M2m);
+	}
+    }
+    double P5minus(double M, double alpha) {
+	if ( fabs(M) >= 1.0 ) {
+	    return (1.0/M)*M1minus(M);
+	} else {
+	    double M2p = M2plus(M);
+	    double M2m = M2minus(M);
+	    return M2m*((-2.0 - M) + 16.0*alpha*M*M2p);
+	}
+    }
+    // Unpack the flow-state vectors for either side of the interface.
+    // Store in work vectors, those quantities that will be neede later.
+    double rL = Lft.gas.rho;
+    double pL = Lft.gas.p;
+    double uL = Lft.vel.x;
+    double vL = Lft.vel.y;
+    double wL = Lft.vel.z;
+    double eL = 0.0; foreach(elem; Lft.gas.e) eL += elem;
+    double aL = Lft.gas.a;
+    double keL = 0.5 * (uL * uL + vL * vL + wL * wL);
+    double HL = eL + pL/rL + keL;
+
+    double rR = Rght.gas.rho;
+    double pR = Rght.gas.p;
+    double uR = Rght.vel.x;
+    double vR = Rght.vel.y;
+    double wR = Rght.vel.z;
+    double eR = 0.0; foreach(elem; Rght.gas.e) eR += elem;
+    double aR = Rght.gas.a;
+    double keR = 0.5 * (uR * uR + vR * vR + wR * wR);
+    double HR = eR + pR/rR + keR;
+
+    /*
+     * This is the main part of the flux calculator.
+     */
+    /*
+     * Interface sound speed (eqns 28 & 30). 
+     * An approximation is used instead of these equations as
+     * suggested by Liou in his paper (see line below eqn 69).
+     */
+    double a_half = 0.5 * (aR + aL);
+    /*
+     * Left and right state Mach numbers (eqn 69).
+     */
+    double ML = uL / a_half;
+    double MR = uR / a_half;
+    /*
+     * Mean local Mach number (eqn 70).
+     */
+    double MbarSq = (uL*uL + uR*uR) / (2.0 * a_half *a_half);
+    /*
+     * Reference Mach number (eqn 71).
+     */
+    double M0Sq = fmin(1.0, fmax(MbarSq, GlobalConfig.M_inf));
+    /*
+     * Some additional parameters.
+     */
+    double fa = sqrt(M0Sq) * (2.0 - sqrt(M0Sq));   // eqn 72
+    double alpha = 0.1875 * (-4.0 + 5 * fa * fa);  // eqn 76
+    double beta = 0.125;                           // eqn 76
+
+    /*
+     * Left state: 
+     * M4plus(ML)
+     * P5plus(ML)
+     */
+    double M4plus_ML = M4plus(ML, beta);
+    double P5plus_ML = P5plus(ML, alpha);
+    
+    /*
+     * Right state: 
+     * M4minus(MR)
+     * P5minus(MR)
+     */
+    double M4minus_MR = M4minus(MR, beta);
+    double P5minus_MR = P5minus(MR, alpha);
+
+    /*
+     * Pressure diffusion modification for 
+     * mass flux (eqn 73) and pressure flux (eqn 75).
+     */
+    const double KP = 0.25;
+    const double KU = 0.75;
+    const double SIGMA = 1.0;
+    double r_half = 0.5*(rL + rR);
+    double Mp = -KP / fa * fmax((1.0 - SIGMA * MbarSq), 0.0) * (pR - pL) / (r_half*a_half*a_half);
+    double Pu = -KU * P5plus_ML * P5minus_MR * (rL + rR) * fa * a_half * (uR - uL);
+    /*
+     * Mass Flux (eqns 73 & 74).
+     */
+    double M_half = M4plus_ML + M4minus_MR + Mp;
+    double ru_half = a_half * M_half;
+    if ( M_half > 0.0 ) {
+       ru_half *= rL;
+    } else {
+       ru_half *= rR;
+    }
+    /*
+     * Pressure flux (eqn 75).
+     */
+    double p_half = P5plus_ML*pL + P5minus_MR*pR + Pu;
+
+    /*
+     * Momentum flux: normal direction
+     */
+    double ru2_half;
+    if ( ru_half >= 0.0 ) {
+	ru2_half = ru_half * uL;
+    } else {
+	ru2_half = ru_half * uR;
+    }
+    /*
+     * Assemble components of the flux vector.
+     */
+    ConservedQuantities F = IFace.F;
+    F.mass = ru_half;
+    F.momentum.refx = ru2_half + p_half;
+    if (ru_half >= 0.0) {
+	/* Wind is blowing from the left */
+	F.momentum.refy = ru_half * vL;
+	F.momentum.refz = ru_half * wL;
+	F.total_energy = ru_half * HL;
+	F.tke = ru_half * Lft.tke;
+	F.omega = ru_half * Lft.omega;
+    } else {
+	/* Wind is blowing from the right */
+	F.momentum.refy = ru_half * vR;
+	F.momentum.refz = ru_half * wR;
+	F.total_energy = ru_half * HR;
+	F.tke = ru_half * Rght.tke;
+	F.omega = ru_half * Rght.omega;
+    }
+    
+    /* 
+     * Species mass fluxes 
+     */
+    int nsp = GlobalConfig.gmodel.n_species;
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	if (ru_half >= 0.0) {
+	    /* Wind is blowing from the left */
+	    F.massf[isp] = ru_half * Lft.gas.massf[isp];
+	} else {
+	    /* Wind is blowing from the right */
+	    F.massf[isp] = ru_half * Rght.gas.massf[isp];
+	}
+    } /* isp loop */
+    /* 
+     * Individual energies 
+     */
+    int nmodes = GlobalConfig.gmodel.n_modes;
+    // NOTE: renergies[0] is never used so skipping (DFP 10/12/09)
+    if (ru_half >= 0.0) {
+	/* Wind is blowing from the left */
+	for ( int imode = 1; imode < nmodes; ++imode ) {
+	    F.energies[imode] = ru_half * Lft.gas.e[imode];
+	}
+	// NOTE: - the following relies on the free-electron mode being the last mode
+	//       - for single temp models F_renergies isn't used
+	//       - for multitemp modes with no free-electrons p_e is zero
+	// Add electron pressure work term onto final energy mode
+	F.energies[nmodes-1] += ru_half * Lft.gas.p_e / Lft.gas.rho;
+    } else {
+	/* Wind is blowing from the right */
+	for ( int imode = 1; imode < nmodes; ++imode ) {
+	    F.energies[imode] = ru_half * Rght.gas.e[imode];
+	}
+	// NOTE: - the following relies on the free-electron mode being the last mode
+	//       - for single temp models F_renergies isn't used
+	//       - for multitemp modes with no free-electrons p_e is zero
+	// Add electron pressure work term onto final energy mode
+	F.energies[nmodes-1] += ru_half * Rght.gas.p_e / Rght.gas.rho;
+    }
+} // end ausm_plus_up()
 
 void hlle(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
+// HLLE fluxes for MHD.
+// From V. Wheatley Matlab implementation
+// Author D. M. Bond
+// Port to D by PJ, 2014-07-24
 {
-}
+    double SAFESQRT(double x) { return (fabs(x)>1.0e-14) ? sqrt(x) : 0.0; }
+    // Unpack the flow-state vectors for either side of the interface.
+    // Store in work vectors, those quantities that will be neede later.
+    double rL = Lft.gas.rho;
+    double pL = Lft.gas.p;
+    double uL = Lft.vel.x;
+    double vL = Lft.vel.y;
+    double wL = Lft.vel.z;
+    double BxL = Lft.B.x;
+    double ByL = Lft.B.y;
+    double BzL = Lft.B.z;
+    double rR = Rght.gas.rho;
+    double pR = Rght.gas.p;
+    double uR = Rght.vel.x;
+    double vR = Rght.vel.y;
+    double wR = Rght.vel.z;
+    double BxR = Rght.B.x;
+    double ByR = Rght.B.y;
+    double BzR = Rght.B.z;
+
+    // Derive the gas "constants" from the local conditions.
+    GasModel gmodel = GlobalConfig.gmodel;
+    double cvL = gmodel.Cv(Lft.gas);
+    double RgasL = gmodel.R(Lft.gas);
+    double cvR = gmodel.Cv(Rght.gas);
+    double RgasR = gmodel.R(Rght.gas);
+    double rLsqrt = sqrt(rL);
+    double rRsqrt = sqrt(rR);
+    double alpha = rLsqrt / (rLsqrt + rRsqrt);
+    double cv = alpha * cvL + (1.0 - alpha) * cvR;
+    double Rgas = alpha * RgasL + (1.0 - alpha) * RgasR;
+    double cp = cv + Rgas;
+    double gam = cp / cv;
+
+    // Compute Roe Average State (currently simple average)
+    double rho = 0.5*(rL+rR);
+    double p   = 0.5*(pL+pR);
+    double u   = 0.5*(uL+uR);
+    //v   = 0.5*(vL+vR);
+    //w   = 0.5*(wL+wR);
+    double Bx  = 0.5*(BxL+BxR);
+    double By  = 0.5*(ByL+ByR);
+    double Bz  = 0.5*(BzL+BzR);
+
+    // Compute Eigenvalues of Roe Matrix
+    //u2=u*u;
+    //v2=v*v;
+    //w2=w*w;
+    //uu=u2+v2+w2;
+    double a2 = gam*p/rho;
+    double Bx2 = Bx*Bx;
+    double Bt2 = By*By + Bz*Bz;
+    double BB = Bx2 + Bt2;
+    double ca2 = Bx2/rho;
+    double alf = a2+BB/rho;
+    double als = SAFESQRT(alf*alf-4.0*a2*ca2);
+    double cf2 = 0.5*(alf+als);
+    double cf = sqrt(cf2);
+    double wp = u+cf;
+    double wm = u-cf;
+
+    // Compute the Jump in Conserved Variables between L and R
+    double BxL2 = BxL*BxL;
+    double BtL2 = ByL*ByL + BzL*BzL;
+    double BBL = BxL2 + BtL2;
+    double ptL = pL + 0.5*BBL;
+    double uL2 = uL*uL;
+    double uuL = uL2 + vL*vL + wL*wL;
+    double aL2 = gam*pL/rL;
+    double caL2 = BxL2/rL;
+    double alfL = aL2+BBL/rL;
+    double alsL = SAFESQRT(alfL*alfL-4.0*aL2*caL2);
+    double cfL2 = 0.5*(alfL+alsL);
+    double cfL = sqrt(cfL2);
+    //wpL = uL+cfL;
+    double wmL = uL-cfL;
+
+    double BxR2 = BxR*BxR;
+    double BtR2 = ByR*ByR + BzR*BzR;
+    double BBR = BxR2 + BtR2;
+    double ptR = pR + 0.5*BBR;
+    double uR2 = uR*uR;
+    double uuR = uR2 + vR*vR + wR*wR;
+    double aR2 = gam*pR/rR;
+    double caR2 = BxR2/rR;
+    double alfR = aR2+BBR/rR;
+    double alsR = SAFESQRT(alfR*alfR-4.0*aR2*caR2);
+    double cfR2 = 0.5*(alfR+alsR);
+    double cfR = sqrt(cfR2);
+    double wpR = uR+cfR;
+    //wmR = uR-cfR;
+
+    double[8] dU;
+    dU[0] = rR - rL;
+    dU[1] = rR*uR - rL*uL;
+    dU[2] = rR*vR - rL*vL;
+    dU[3] = rR*wR - rL*wL;
+    dU[4] = BxR - BxL;
+    dU[5] = ByR - ByL;
+    dU[6] = BzR - BzL;
+    dU[7] = (pR - pL)/(gam-1.0) + 0.5*(rR*uuR+BBR) - 0.5*(rL*uuL+BBL);
+
+    double bl = fmin(wmL, wm);
+    double br = fmax(wpR, wp);
+    double blm = fmin(bl, 0.0);
+    double brp = fmax(br, 0.0);
+
+    double fmassL = rL*uL;
+    double fmassR = rR*uR;
+
+    double fmomxL = rL*uL2 - BxL2 + ptL;
+    double fmomxR = rR*uR2 - BxR2 + ptR;
+
+    double fmomyL = rL*uL*vL - BxL*ByL;
+    double fmomyR = rR*uR*vR - BxR*ByR;
+
+    double fmomzL = rL*uL*wL - BxL*BzL;
+    double fmomzR = rR*uR*wR - BxR*BzR;
+
+    double fBxL = 0.0;
+    double fBxR = 0.0;
+
+    double fByL = uL*ByL - vL*BxL;
+    double fByR = uR*ByR - vR*BxR;
+
+    double fBzL = uL*BzL - wL*BxL;
+    double fBzR = uR*BzR - wR*BxR;
+
+    double fenergyL = (pL/(gam-1.0)+0.5*(rL*uuL+BBL)+ptL)*uL - (uL*BxL+vL*ByL+wL*BzL)*BxL;
+    double fenergyR = (pR/(gam-1.0)+0.5*(rR*uuR+BBR)+ptR)*uR - (uR*BxR+vR*ByR+wR*BzR)*BxR;
+
+    double iden = 1.0/(brp - blm);
+    double fac1 = brp*blm;
+
+    ConservedQuantities F = IFace.F;
+
+    F.mass = (brp*fmassL   - blm*fmassR   + fac1*dU[0])*iden;
+
+    F.momentum.refx = (brp*fmomxL   - blm*fmomxR   + fac1*dU[1])*iden;
+    F.momentum.refy = (brp*fmomyL   - blm*fmomyR   + fac1*dU[2])*iden;
+    F.momentum.refz = (brp*fmomzL   - blm*fmomzR   + fac1*dU[3])*iden;
+
+    F.B.refx = (brp*fBxL     - blm*fBxR     + fac1*dU[4])*iden;
+    F.B.refy = (brp*fByL     - blm*fByR     + fac1*dU[5])*iden;
+    F.B.refz = (brp*fBzL     - blm*fBzR     + fac1*dU[6])*iden;
+
+    F.total_energy = (brp*fenergyL - blm*fenergyR + fac1*dU[7])*iden;
+
+    /*
+     * Species mass fluxes
+     */
+    for ( int isp = 0; isp < gmodel.n_species; ++isp ) {
+	if (F.mass >= 0.0) {
+	    /* Wind is blowing from the left */
+	    F.massf[isp] = F.mass * Lft.gas.massf[isp];
+	} else {
+	    /* Wind is blowing from the right */
+	    F.massf[isp] = F.mass * Rght.gas.massf[isp];
+	}
+    } /* isp loop */
+    /*
+     * Individual energies
+     */
+    // NOTE: renergies[0] is never used so skipping (DFP 10/12/09)
+    if (F.mass >= 0.0) {
+	/* Wind is blowing from the left */
+	for ( int imode = 1; imode < gmodel.n_modes; ++imode ) {
+	    F.energies[imode] = F.mass * Lft.gas.e[imode];
+	}
+	// NOTE: - the following relies on the free-electron mode being the last mode
+	//       - for single temp models F_renergies isn't used
+	//       - for multitemp modes with no free-electrons p_e is zero
+	// Add electron pressure work term onto final energy mode
+	F.energies[gmodel.n_modes-1] += F.mass * Lft.gas.p_e / Lft.gas.rho;
+    } else {
+	/* Wind is blowing from the right */
+	for ( int imode = 1; imode < gmodel.n_modes; ++imode ) {
+	    F.energies[imode] = F.mass * Rght.gas.e[imode];
+	}
+	// NOTE: - the following relies on the free-electron mode being the last mode
+	//       - for single temp models F_renergies isn't used
+	//       - for multitemp modes with no free-electrons p_e is zero
+	// Add electron pressure work term onto final energy mode
+	F.energies[gmodel.n_modes-1] += F.mass * Rght.gas.p_e / Rght.gas.rho;
+    }
+} // end hlle()

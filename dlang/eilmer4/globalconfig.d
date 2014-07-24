@@ -121,6 +121,9 @@ final class GlobalConfig {
     static double shear_tolerance = 0.20;
 
     // Reference free-stream Mach number, for use in the ausm_plus_up flux calculator.
+    // Choose a value for M_inf that is good for low Mach numbers.
+    // To be strictly correct, we should set this at run time
+    // if an M_inf value is easily defined.
     static double M_inf = 0.01;
 
     // Turning on the reactions activates the chemical update function calls.
@@ -236,4 +239,4 @@ final class GlobalConfig {
     static double filter_next_time;
     static double filter_mu;
     static int filter_npass;
-}
+} // end class GlobalConfig
