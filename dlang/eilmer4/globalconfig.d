@@ -111,6 +111,15 @@ final class GlobalConfig {
     // viscous effects are important.
     static double compression_tolerance = -0.30;
 
+    // Default flow-data reconstruction includes interpolation of density 
+    // and internal energy.  Other options for the thermodunamic properties
+    // to be interpolated are pressure+temperature, density+temperature and
+    // density+pressure.
+    static int thermo_interpolator = interp_rhoe;
+    static bool apply_limiter = true;
+    static bool extrema_clipping = true;
+    static bool interpolate_in_local_frame = true;
+
     // Default flux calculator is the adaptive mix of ausmdv and efm.
     static int flux_calculator = flux_adaptive;
 

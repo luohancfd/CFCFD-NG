@@ -57,6 +57,16 @@ enum
     small_tke = 0.1,
     small_omega = 1.0;
 
+// Symbolic names for the types of flow-data reconstruction.
+enum
+    interp_pt = 0,
+    interp_rhoe = 1,
+    interp_rhop = 2,
+    interp_rhot = 3;
+
+string[] thermo_interpolator_name = ["pT", "rhoe", "rhop", "rhoT"];
+uint[string] thermo_interpolator_index;
+
 // Symbolic names for the flavours of our flux_calculators.
 enum
     flux_ausmdv = 0, // Wada and Liou's flux calculator AIAA Paper 94-0083
@@ -84,4 +94,8 @@ void init_fvcore()
 		      "ausm_plus_up":flux_ausm_plus_up,
 		      "adaptive":flux_adaptive,
 		      "hlle":flux_hlle];
+    thermo_interpolator_index = ["pT":interp_pt, "pt": interp_pt,
+				 "rhoe":interp_rhoe,
+				 "rhop":interp_rhop,
+				 "rhoT":interp_rhot, "rhot":interp_rhot];
 }
