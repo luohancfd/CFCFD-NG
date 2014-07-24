@@ -62,7 +62,6 @@ void main()
     writeln("sample=", sample);
 
     writeln("------------------------");
-    init_fluxcalc();
 
     writeln("done.");
 }

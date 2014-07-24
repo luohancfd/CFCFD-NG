@@ -57,6 +57,17 @@ enum
     small_tke = 0.1,
     small_omega = 1.0;
 
+// Symbolic names for the flavours of our flux_calculators.
+enum
+    flux_ausmdv = 0, // Wada and Liou's flux calculator AIAA Paper 94-0083
+    flux_efm = 1, // Mike Macrossan's EFM flux calculation
+    flux_ausm_plus_up = 2, // Liou's 2006 all-speed flux calculator
+    flux_adaptive = 3, // EFM near shocks, AUSMDV otherwise
+    flux_hlle = 4; // MHD HLLE approximate Riemann solver
+
+string[] fluxcalc_name = [ "ausmdv", "efm", "ausm_plus_up", "adaptive", "hlle" ];
+uint[string] fluxcalc_index; // initialized with a call to init_fluxcalc()
+
 
 void init_fvcore()
 {
@@ -68,4 +79,9 @@ void init_fvcore()
 				      "classic_rk3":classic_rk3_update,
 				      "tvd_rk3":tvd_rk3_update,
 				      "denman_rk3":denman_rk3_update];
+    fluxcalc_index = ["ausmdv":flux_ausmdv,
+		      "efm":flux_efm, 
+		      "ausm_plus_up":flux_ausm_plus_up,
+		      "adaptive":flux_adaptive,
+		      "hlle":flux_hlle];
 }

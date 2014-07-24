@@ -6,6 +6,7 @@ module globalconfig;
 import std.conv;
 import geom;
 import gasmodel;
+import fvcore;
 
 enum
     tm_none = 0,
@@ -111,7 +112,7 @@ final class GlobalConfig {
     static double compression_tolerance = -0.30;
 
     // Default flux calculator is the adaptive mix of ausmdv and efm.
-    static int flux_calculator; // to be set later, possible in init_fluxcalc()
+    static int flux_calculator = flux_adaptive;
 
     // Set the tolerance to shear when applying the adaptive flux calculator.
     // We don't want EFM to be applied in situations of significant shear.

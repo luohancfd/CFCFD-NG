@@ -19,27 +19,6 @@ import fvcore;
 import fvinterface;
 import globalconfig;
 
-// Symbolic names for the flavours of our calculators.
-enum
-    flux_ausmdv = 0, // Wada and Liou's flux calculator AIAA Paper 94-0083
-    flux_efm = 1, // Mike Macrossan's EFM flux calculation
-    flux_ausm_plus_up = 2, // Liou's 2006 all-speed flux calculator
-    flux_adaptive = 3, // EFM near shocks, AUSMDV otherwise
-    flux_hlle = 4; // MHD HLLE approximate Riemann solver
-
-string[] fluxcalc_name = [ "ausmdv", "efm", "ausm_plus_up", "adaptive", "hlle" ];
-uint[string] fluxcalc_index; // initialized with a call to init_fluxcalc()
-
-
-void init_fluxcalc()
-{
-    GlobalConfig.flux_calculator = flux_adaptive;
-    fluxcalc_index = ["ausmdv":flux_ausmdv,
-		      "efm":flux_efm, 
-		      "ausm_plus_up":flux_ausm_plus_up,
-		      "adaptive":flux_adaptive,
-		      "hlle":flux_hlle];
-}
 
 void compute_interface_flux(ref FlowState Lft, ref FlowState Rght,
 			    ref FVInterface IFace, double omegaz=0.0)
@@ -131,13 +110,79 @@ void compute_interface_flux(ref FlowState Lft, ref FlowState Rght,
     
 }
 
-void set_flux_vector_in_local_frame(ref ConservedQuantities F, in FlowState fs)
+void set_flux_vector_in_local_frame(ref ConservedQuantities F, ref FlowState fs)
 {
+    double rho = fs.gas.rho;
+    double un = fs.vel.x;
+    double vt1 = fs.vel.y;
+    double vt2 = fs.vel.z;
+    double p = fs.gas.p;
+    double e = 0.0; foreach(elem; fs.gas.e) e += elem;
+    double ke = 0.5 * (un*un + vt1*vt1 + vt2*vt2); // Kinetic energy per unit volume.
+    
+    // Mass flux (mass / unit time / unit area)
+    F.mass = rho * un; // The mass flux is relative to the moving interface.
+    // Flux of normal momentum
+    F.momentum.refx = F.mass * un + p;
+    // Flux of tangential momentum
+    F.momentum.refy = F.mass * vt1;
+    F.momentum.refz = F.mass * vt2;
+    // Flux of Total Energy
+    F.total_energy = F.mass * (e + ke) + p * un;
+    F.tke = F.mass * fs.tke;  // turbulence kinetic energy
+    F.omega = F.mass * fs.omega;  // pseudo vorticity
+    // Species mass flux
+    for ( size_t isp = 0; isp < F.massf.length; ++isp ) {
+	F.massf[isp] = F.mass * fs.gas.massf[isp];
+    }
+    // Individual energies.
+    // NOTE: renergies[0] is never used so skipping (DFP 10/12/09)
+    for ( size_t imode = 1; imode < F.energies.length; ++imode ) {
+	F.energies[imode] = F.mass * fs.gas.e[imode];
+    }
 }
 
-void set_flux_vector_in_global_frame(ref FVInterface IFace, in FlowState fs, 
+void set_flux_vector_in_global_frame(ref FVInterface IFace, ref FlowState fs, 
 				     double omegaz=0.0)
 {
+    ConservedQuantities F = IFace.F;
+    // Record velocity to restore fs at end.
+    double vx = fs.vel.x; double vy = fs.vel.y; double vz = fs.vel.z; 
+    // Transform to interface frame of reference.
+    fs.vel -= IFace.vel; // Beware: fs.vel is changed here and restored below.
+    IFace.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
+    fs.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
+    // also transform the magnetic field
+    if ( GlobalConfig.MHD ) {
+	fs.B.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
+    }
+    set_flux_vector_in_local_frame(IFace.F, fs);
+    if ( omegaz != 0.0 ) {
+	// Rotating frame.
+	double x = IFace.pos.x;
+	double y = IFace.pos.y;
+	double rsq = x*x + y*y;
+	// The conserved quantity is rothalpy,
+	// so we need to take -(u**2)/2 off the total energy flux.
+	// Note that rotating frame velocity u = omegaz * r.
+	F.total_energy -= F.mass * 0.5*omegaz*omegaz*rsq;
+    }
+
+    // Transform fluxes back from interface frame of reference to local frame of reference.
+    /* Flux of Total Energy */
+    F.total_energy += 0.5 * F.mass * pow(abs(IFace.vel),2) + dot(F.momentum, IFace.vel);
+    /* Flux of momentum */
+    F.momentum += F.mass * IFace.vel;
+
+    // Rotate momentum fluxes back to the global frame of reference.
+    F.momentum.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
+    // also transform the interface velocities
+    IFace.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);	  
+    // also transform the magnetic field
+    if ( GlobalConfig.MHD ) {
+	F.B.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
+    }
+    fs.vel.refx = vx; fs.vel.refy = vy; fs.vel.refz = vz; // restore fs.vel
 }
 
 void ausmdv(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
