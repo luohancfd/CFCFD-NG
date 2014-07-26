@@ -18,7 +18,7 @@ class ExtrapolateOutBC: BoundaryCondition {
 public:
     int x_order = 0; // default to lowest order
 
-    this(ref SBlock blk, int which_boundary, int x_order) 
+    this(ref SBlock blk, int which_boundary, int x_order=0) 
     {
 	type_code = BCCode.extrapolate_out;
 	is_wall = false;

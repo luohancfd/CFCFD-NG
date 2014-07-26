@@ -10,6 +10,8 @@ BC_FILES := bc.d \
 	bc_full_face_exchange.d \
 	bc_mapped_cell_exchange.d \
 	bc_extrapolate_out.d \
+	bc_fixed_p_out.d \
+	bc_supersonic_in.d \
 	bc_menter_correction.d
 
 GAS_DIR := ../gas
