@@ -15,9 +15,44 @@ import sblock;
 enum BCCode 
 { 
     slip_wall,
+    adiabatic_wall,
+    fixed_t_wall,
     full_face_exchange,
-    mapped_cell_exchange
+    mapped_cell,
+    supersonic_in,
+    subsonic_in,
+    static_profile_in,
+    fixed_p_out,
+    extrapolate_out
 }
+
+BCCode type_code_from_name(string name)
+{
+    switch ( name ) {
+    case "slip_wall", "slip-wall", "SlipWall":
+	return BCCode.slip_wall;
+    case "adiabatic", "adiabatic_wall", "adiabatic-wall", "AdiabaticWall":
+	return BCCode.adiabatic_wall;
+    case "adjacent", "Adjacent", "full_face_exchange", "full-face-exchange",
+	"FullFaceExchange":
+	return BCCode.full_face_exchange;
+    case "mapped_cell", "mapped-cell", "MappedCell":
+	return BCCode.mapped_cell;
+    case "supersonic_in", "supersonic-in", "sup_in", "sup-in", "SupersonicIn":
+	return BCCode.supersonic_in;
+    case "subsonic_in", "subsonic-in", "sub_in", "sub-in", "SubsonicIn":
+	return BCCode.subsonic_in;
+    case "static_profile_in", "static-profile-in", "static-profile", 
+	"StaticProfileIn":
+	return BCCode.static_profile_in;
+    case "fixed_p_out", "fixed-p-out", "FixedPOut":
+	return BCCode.fixed_p_out;
+    case "extrapolate_out", "extrapolate-out", "ExtrapolateOut":
+	return BCCode.extrapolate_out;
+    default: return BCCode.slip_wall;
+    } // end switch
+} // end type_code_from_name()
+
 
 void reflect_normal_velocity(ref FVCell cell, in FVInterface IFace)
 // Reflects normal velocity with respect to the cell interface.
@@ -53,6 +88,7 @@ public:
     bool ghost_cell_data_available = true;
     bool sets_conv_flux_directly = false;
     bool sets_visc_flux_directly = false;
+    double emissivity = 0.0;
 
     void apply_convective(double t)
     {

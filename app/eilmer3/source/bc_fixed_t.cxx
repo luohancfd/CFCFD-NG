@@ -72,6 +72,7 @@ int FixedTBC::apply_viscous(double t)
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
 		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
+		// [TODO] should we re-evaluate the thermo and transport coeffs?
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[NORTH]->wc_bc != NON_CATALYTIC) {

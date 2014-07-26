@@ -19,7 +19,9 @@ public:
 
     this()
     {
-	type_code = BCCode.mapped_cell_exchange;
+	type_code = BCCode.mapped_cell;
+	this.which_boundary = which_boundary;
+	blk.bc[which_boundary] = this;
     }
 
     override void apply_convective(double t)
