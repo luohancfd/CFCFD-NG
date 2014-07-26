@@ -23,8 +23,11 @@ import fvcore;
 import fvvertex;
 import fvinterface;
 import fvcell;
-import bc;
 import block;
+import bc;
+import bc_slip_wall;
+import bc_full_face_exchange;
+import bc_mapped_cell_exchange;
 
 class SBlock: Block {
 public:
@@ -135,7 +138,7 @@ public:
     ref FVInterface get_sifj(size_t i, size_t j, size_t k=0) { return _sifj[to_global_index(i,j,k)]; }
     ref FVInterface get_sifk(size_t i, size_t j, size_t k=0) { return _sifk[to_global_index(i,j,k)]; }
 
-    void assemble_arrays()
+    override void assemble_arrays()
     // We shouldn't be calling this until the essential bits of the GlobalConfig
     // have been set up.
     {
@@ -184,7 +187,7 @@ public:
 	}
     } // end of assemble_arrays()
 
-    void bind_faces_and_vertices_to_cells()
+    override void bind_faces_and_vertices_to_cells()
     // There is a fixed order of faces and vertices for each cell.
     // Refer to fvcore.d
     {
@@ -222,7 +225,7 @@ public:
 	} // for k
     } // end bind_faces_and_vertices_to_cells()
 
-    void identify_reaction_zones(int gtl)
+    override void identify_reaction_zones(int gtl)
     // Set the reactions-allowed flag for cells in this block.
     {
 	size_t total_cells_in_reaction_zones = 0;
@@ -252,7 +255,7 @@ public:
 	}
     } // end identify_reaction_zones()
 
-    void identify_turbulent_zones(int gtl)
+    override void identify_turbulent_zones(int gtl)
     // Set the in-turbulent-zone flag for cells in this block.
     {
 	size_t total_cells_in_turbulent_zones = 0;
@@ -283,7 +286,7 @@ public:
 	}
     } // end identify_turbulent_zones()
 
-    void clear_fluxes_of_conserved_quantities()
+    override void clear_fluxes_of_conserved_quantities()
     {
 	for ( size_t k = kmin; k <= kmax; ++k ) {
 	    for (size_t j = jmin; j <= jmax; ++j) {
@@ -310,7 +313,7 @@ public:
 	} // end if G.dimensions == 3
     } // end clear_fluxes_of_conserved_quantities()
 
-    int count_invalid_cells(int gtl)
+    override int count_invalid_cells(int gtl)
     // Returns the number of cells that contain invalid data.
     //
     // This data can be identified by the density of internal energy 
@@ -360,7 +363,7 @@ public:
 	return number_of_invalid_cells;
     } // end count_invalid_cells()
 
-    void init_residuals()
+    override void init_residuals()
     // Initialization of data for later computing residuals.
     {
 	mass_residual = 0.0;
@@ -373,7 +376,7 @@ public:
 	}
     } // end init_residuals()
 
-    void compute_residuals(int gtl)
+    override void compute_residuals(int gtl)
     // Compute the residuals using previously stored data.
     //
     // The largest residual of density for all cells was the traditional way
@@ -414,7 +417,7 @@ public:
 	} // for cell
     } // end compute_residuals()
 
-    void determine_time_step_size()
+    override void determine_time_step_size()
     // Compute the local time step limit for all cells in the block.
     // The overall time step is limited by the worst-case cell.
     {
@@ -462,7 +465,7 @@ public:
 	}
     } // end determine_time_step_size()
 
-    void detect_shock_points()
+    override void detect_shock_points()
     // Detects shocks by looking for compression between adjacent cells.
     //
     // The velocity component normal to the cell interfaces
@@ -556,7 +559,7 @@ public:
 	} // for k
     } // end detect_shock_points()
 
-    void compute_primary_cell_geometric_data(int gtl)
+    override void compute_primary_cell_geometric_data(int gtl)
     // Compute cell and interface geometric properties.
     {
 	size_t i, j, k;
@@ -761,7 +764,7 @@ public:
 	}
     } // end compute_primary_cell_geometric_data()
 
-    void compute_distance_to_nearest_wall_for_all_cells(int gtl)
+    override void compute_distance_to_nearest_wall_for_all_cells(int gtl)
     // Used for the turbulence modelling.
     {
 	FVCell[6] cell_at_wall;
@@ -826,8 +829,8 @@ public:
 		
 	    // Step 3: find the closest real wall.
 	    for ( size_t iface = 0; iface < num_faces; ++iface ) {
-		if ( bc[iface].is_wall() && 
-		     bc[iface].type_code != SLIP_WALL &&
+		if ( bc[iface].is_wall && 
+		     bc[iface].type_code == BCCode.slip_wall &&
 		     dist[iface] < cell.distance_to_nearest_wall ) {
 		    cell.distance_to_nearest_wall = dist[iface];
 		    cell.half_cell_width_at_wall = half_width[iface];
@@ -837,7 +840,7 @@ public:
 	} // end foreach cell
     } // end compute_distance_to_nearest_wall_for_all_cells()
 
-    void compute_secondary_cell_geometric_data(int gtl)
+    override void compute_secondary_cell_geometric_data(int gtl)
     // Compute secondary-cell and interface geometric properties.
     // Will be used for computing gradients for viscous terms.
     //
@@ -1731,8 +1734,8 @@ public:
 	}
     } // end calc_ghost_cell_geom_2D()
 
-    // to be ported from block_io.cxx
-    void read_grid(string filename, size_t gtl=0)
+
+    override void read_grid(string filename, size_t gtl=0)
     // Read the grid vertices from a gzip file.
     {
 	size_t nivtx, njvtx, nkvtx;
@@ -1782,7 +1785,7 @@ public:
 	}
     } // end read_grid()
 
-    void write_grid(string filename, double sim_time, size_t gtl=0)
+    override void write_grid(string filename, double sim_time, size_t gtl=0)
     {
 	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
 	    writeln("write_grid(): Start block ", id);
@@ -1812,7 +1815,7 @@ public:
 	outfile.finish();
     } // end write_grid()
 
-    double read_solution(string filename)
+    override double read_solution(string filename)
     // Note that the position data is read into grid-time-level 0
     // by scan_values_from_string(). 
     {
@@ -1847,7 +1850,7 @@ public:
 
     // Returns sim_time from file.
 
-    void write_solution(string filename, double sim_time)
+    override void write_solution(string filename, double sim_time)
     // Write the flow solution (i.e. the primary variables at the cell centers)
     // for a single block.
     // This is almost Tecplot POINT format.
@@ -1878,16 +1881,40 @@ public:
 	outfile.finish();
     }
 
-    void write_history(string filename, double sim_time, bool write_header=false)
+    override void write_history(string filename, double sim_time, bool write_header=false)
     {
 	throw new Error("[TODO] Not implemented yet.");
     }
 
     // to be ported from invs.cxx
-    void inviscid_flux()
+    override void inviscid_flux()
     {
 	throw new Error("[TODO] Not implemented yet.");
     }
+
+    override void apply_convective_bc(double t)
+    {
+	bc[north].apply_convective(t);
+	bc[east].apply_convective(t);
+	bc[south].apply_convective(t);
+	bc[west].apply_convective(t);
+	if ( GlobalConfig.dimensions == 3 ) {
+	    bc[top].apply_convective(t);
+	    bc[bottom].apply_convective(t);
+	}
+    } // end apply_convective_bc()
+
+    override void apply_viscous_bc(double t)
+    {
+	bc[north].apply_viscous(t);
+	bc[east].apply_viscous(t);
+	bc[south].apply_viscous(t);
+	bc[west].apply_viscous(t);
+	if ( GlobalConfig.dimensions == 3 ) {
+	    bc[top].apply_viscous(t);
+	    bc[bottom].apply_viscous(t);
+	}
+    } // end apply_convective_bc
 
 } // end class SBlock
 

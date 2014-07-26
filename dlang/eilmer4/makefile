@@ -3,8 +3,15 @@
 
 DEMO_PROGRAMS := globalconfig_demo flowstate_demo fv_demo block_demo
 
+BC_FILES := bc.d \
+	bc_slip_wall.d \
+	bc_full_face_exchange.d \
+	bc_mapped_cell_exchange.d
+
 GAS_DIR := ../gas
-GAS_MODEL_FILES := ${GAS_DIR}/gasmodel.d ${GAS_DIR}/gasmodelutil.d ${GAS_DIR}/idealgas.d
+GAS_MODEL_FILES := ${GAS_DIR}/gasmodel.d \
+	${GAS_DIR}/gasmodelutil.d \
+	${GAS_DIR}/idealgas.d
 GEOM_DIR := ../geom
 GEOM_FILES := ${GEOM_DIR}/geom.d
 GZIP_DIR := ../extern/gzip
@@ -32,26 +39,26 @@ flowstate_demo: flowstate_demo.d flowstate.d \
 		${GEOM_FILES} ${GAS_MODEL_FILES} 
 
 fv_demo: fv_demo.d fvcore.d fvcell.d fvvertex.d fvinterface.d onedinterp.d fluxcalc.d \
-	conservedquantities.d flowstate.d globalconfig.d globaldata.d block.d \
-	${GEOM_FILES} ${GAS_MODEL_FILES}
-	dmd ${DFLAGS} -I${GAS_DIR} -I${GEOM_DIR} \
+	conservedquantities.d flowstate.d globalconfig.d globaldata.d \
+	block.d sblock.d ublock.d \
+	${BC_FILES} ${GEOM_FILES} ${GAS_MODEL_FILES} ${GZIP_FILES}
+	dmd ${DFLAGS} -I${GAS_DIR} -I${GEOM_DIR} -I${GZIP_DIR} \
 		fv_demo.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		conservedquantities.d flowstate.d onedinterp.d fluxcalc.d \
-		globalconfig.d globaldata.d block.d \
-		${GEOM_FILES} ${GAS_MODEL_FILES} 
+		globalconfig.d globaldata.d block.d sblock.d ublock.d \
+		${BC_FILES} ${GEOM_FILES} ${GAS_MODEL_FILES} ${GZIP_FILES} 
 
 block_demo: block_demo.d \
 	block.d sblock.d ublock.d \
-	bc.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d \
-	conservedquantities.d flowstate.d globalconfig.d globaldata.d block.d \
-	${GEOM_FILES} ${GAS_MODEL_FILES} ${GZIP_FILES}
+	conservedquantities.d flowstate.d globalconfig.d globaldata.d \
+	block.d sblock.d ublock.d \
+	${BC_FILES} ${GEOM_FILES} ${GAS_MODEL_FILES} ${GZIP_FILES}
 	dmd ${DFLAGS} -I${GEOM_DIR} -I${GAS_DIR} -I${GZIP_DIR} \
 		block_demo.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		conservedquantities.d flowstate.d \
 		globalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
-		bc.d \
-		${GEOM_FILES} ${GAS_MODEL_FILES} ${GZIP_FILES}
+		${BC_FILES} ${GEOM_FILES} ${GAS_MODEL_FILES} ${GZIP_FILES}
