@@ -93,7 +93,7 @@ public:
     void copy_values_from(in FVCell other, int type_of_copy)
     {
 	switch ( type_of_copy ) {
-	case copy_flow_data:
+	case CopyDataOption.flow:
 	    fs.copy_values_from(other.fs);
 	    Q.copy_values_from(other.Q);
 	    foreach(i; 0 .. n_time_levels) {
@@ -101,7 +101,7 @@ public:
 		dUdt[i].copy_values_from(other.dUdt[i]);
 	    }
 	    break;
-	case copy_grid_data:
+	case CopyDataOption.grid:
 	    foreach(i; 0 .. n_time_levels) {
 		pos[i] = other.pos[i];
 		volume[i] = other.volume[i];
@@ -112,13 +112,13 @@ public:
 	    kLength = other.kLength;
 	    L_min = other.L_min;
 	    break;
-	case copy_cell_lengths_only:
+	case CopyDataOption.cell_lengths_only:
 	    iLength = other.iLength;
 	    jLength = other.jLength;
 	    kLength = other.kLength;
 	    L_min = other.L_min;
 	    break;
-	case copy_all_data: 
+	case CopyDataOption.all: 
 	default:
 	    // [TODO] really need to think about what needs to be copied...
 	    id = other.id;
@@ -649,15 +649,13 @@ public:
 	// we use this function as an Euler update even when the main
 	// gasdynamic_update_scheme is of higher order.
 	if ( !force_euler ) {
-	    switch ( gasdynamic_update_scheme ) {
-	    case euler_update:
-	    case pc_update: gamma_1 = 1.0; break;
-	    case midpoint_update: gamma_1 = 0.5; break;
-	    case classic_rk3_update: gamma_1 = 0.5; break;
-	    case tvd_rk3_update: gamma_1 = 1.0; break;
-	    case denman_rk3_update: gamma_1 = 8.0/15.0; break;
-	    default:
-		throw new Error("FV_Cell.stage_1_update_for_flow_on_fixed_grid(): invalid update scheme.");
+	    final switch ( gasdynamic_update_scheme ) {
+	    case GasdynamicUpdate.euler:
+	    case GasdynamicUpdate.pc: gamma_1 = 1.0; break;
+	    case GasdynamicUpdate.midpoint: gamma_1 = 0.5; break;
+	    case GasdynamicUpdate.classic_rk3: gamma_1 = 0.5; break;
+	    case GasdynamicUpdate.tvd_rk3: gamma_1 = 1.0; break;
+	    case GasdynamicUpdate.denman_rk3: gamma_1 = 8.0/15.0; break;
 	    }
 	}
 	U1.mass = U0.mass + dt * gamma_1 * dUdt0.mass;
@@ -708,18 +706,18 @@ public:
 	ConservedQuantities dUdt0 = dUdt[0];
 	ConservedQuantities dUdt1 = dUdt[1];
 	ConservedQuantities U_old = U[0];
-	if ( gasdynamic_update_scheme == denman_rk3_update ) U_old = U[1];
+	if ( gasdynamic_update_scheme == GasdynamicUpdate.denman_rk3 ) U_old = U[1];
 	ConservedQuantities U2 = U[2];
 	double gamma_1 = 0.5; // Presume predictor-corrector.
 	double gamma_2 = 0.5;
-	switch ( gasdynamic_update_scheme ) {
-	case pc_update: gamma_1 = 0.5, gamma_2 = 0.5; break;
-	case midpoint_update: gamma_1 = 0.0; gamma_2 = 1.0; break;
-	case classic_rk3_update: gamma_1 = -1.0; gamma_2 = 2.0; break;
-	case tvd_rk3_update: gamma_1 = 0.25; gamma_2 = 0.25; break;
-	case denman_rk3_update: gamma_1 = -17.0/60.0; gamma_2 = 5.0/12.0; break;
-	default:
-	    throw new Error("FV_Cell.stage_2_update_for_flow_on_fixed_grid(): invalid update scheme.");
+	final switch ( gasdynamic_update_scheme ) {
+	case GasdynamicUpdate.euler:
+	    throw new Error("Euler update has no second stage.");
+	case GasdynamicUpdate.pc: gamma_1 = 0.5, gamma_2 = 0.5; break;
+	case GasdynamicUpdate.midpoint: gamma_1 = 0.0; gamma_2 = 1.0; break;
+	case GasdynamicUpdate.classic_rk3: gamma_1 = -1.0; gamma_2 = 2.0; break;
+	case GasdynamicUpdate.tvd_rk3: gamma_1 = 0.25; gamma_2 = 0.25; break;
+	case GasdynamicUpdate.denman_rk3: gamma_1 = -17.0/60.0; gamma_2 = 5.0/12.0; break;
 	}
 	U2.mass = U_old.mass + dt * (gamma_1 * dUdt0.mass + gamma_2 * dUdt1.mass);
 	U2.momentum.refx = U_old.momentum.x + dt * (gamma_1 * dUdt0.momentum.x + gamma_2 * dUdt1.momentum.x);
@@ -759,18 +757,20 @@ public:
 	ConservedQuantities dUdt1 = dUdt[1];
 	ConservedQuantities dUdt2 = dUdt[2];
 	ConservedQuantities U_old = U[0];
-	if ( gasdynamic_update_scheme == denman_rk3_update ) U_old = U[2];
+	if ( gasdynamic_update_scheme == GasdynamicUpdate.denman_rk3 ) U_old = U[2];
 	ConservedQuantities U3 = U[3];
 	double gamma_1 = 1.0/6.0; // presume TVD_RK3 scheme.
 	double gamma_2 = 1.0/6.0;
 	double gamma_3 = 4.0/6.0;
-	switch ( gasdynamic_update_scheme ) {
-	case classic_rk3_update: gamma_1 = 1.0/6.0; gamma_2 = 4.0/6.0; gamma_3 = 1.0/6.0; break;
-	case tvd_rk3_update: gamma_1 = 1.0/6.0; gamma_2 = 1.0/6.0; gamma_3 = 4.0/6.0; break;
-	    // FIX-ME: Really don't think that we have Andrew Denman's scheme ported correctly.
-	case denman_rk3_update: gamma_1 = 0.0; gamma_2 = -5.0/12.0; gamma_3 = 3.0/4.0; break;
-	default:
-	    throw new Error("FV_Cell::stage_3_update_for_flow_on_fixed_grid(): invalid update scheme.");
+	final switch ( gasdynamic_update_scheme ) {
+	case GasdynamicUpdate.euler:
+	case GasdynamicUpdate.pc:
+	case GasdynamicUpdate.midpoint:
+	    throw new Error("Euler PC and midpoint updates have no second stage.");
+	case GasdynamicUpdate.classic_rk3: gamma_1 = 1.0/6.0; gamma_2 = 4.0/6.0; gamma_3 = 1.0/6.0; break;
+	case GasdynamicUpdate.tvd_rk3: gamma_1 = 1.0/6.0; gamma_2 = 1.0/6.0; gamma_3 = 4.0/6.0; break;
+	    // FIX-ME: Check that we have Andrew Denman's scheme ported correctly.
+	case GasdynamicUpdate.denman_rk3: gamma_1 = 0.0; gamma_2 = -5.0/12.0; gamma_3 = 3.0/4.0; break;
 	}
 	U3.mass = U_old.mass + dt * (gamma_1*dUdt0.mass + gamma_2*dUdt1.mass + gamma_3*dUdt2.mass);
 	U3.momentum.refx = U_old.momentum.x +

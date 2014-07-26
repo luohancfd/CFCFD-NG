@@ -115,13 +115,13 @@ final class GlobalConfig {
     // and internal energy.  Other options for the thermodunamic properties
     // to be interpolated are pressure+temperature, density+temperature and
     // density+pressure.
-    static int thermo_interpolator = interp_rhoe;
+    static InterpolateOption thermo_interpolator = InterpolateOption.rhoe;
     static bool apply_limiter = true;
     static bool extrema_clipping = true;
     static bool interpolate_in_local_frame = true;
 
     // Default flux calculator is the adaptive mix of ausmdv and efm.
-    static int flux_calculator = flux_adaptive;
+    static FluxCalculator flux_calculator = FluxCalculator.adaptive;
 
     // Set the tolerance to shear when applying the adaptive flux calculator.
     // We don't want EFM to be applied in situations of significant shear.

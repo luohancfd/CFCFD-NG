@@ -27,15 +27,15 @@ clean:
 	- rm ${DEMO_PROGRAMS}
 	- rm test-grid.txt.gz test-flow.txt.gz
 
-globalconfig_demo: globalconfig_demo.d globalconfig.d ${GEOM_FILES}
+globalconfig_demo: globalconfig_demo.d globalconfig.d fvcore.d ${GEOM_FILES}
 	dmd ${DFLAGS} -I${GEOM_DIR} -I${GAS_DIR} \
-		globalconfig_demo.d globalconfig.d \
+		globalconfig_demo.d globalconfig.d fvcore.d \
 		${GEOM_FILES} ${GAS_MODEL_FILES} 
 
-flowstate_demo: flowstate_demo.d flowstate.d \
+flowstate_demo: flowstate_demo.d flowstate.d fvcore.d \
 	${GEOM_FILES} ${GAS_MODEL_FILES}
 	dmd -unittest -g -I${GAS_DIR} -I${GEOM_DIR} \
-		flowstate_demo.d flowstate.d \
+		flowstate_demo.d fvcore.d flowstate.d \
 		${GEOM_FILES} ${GAS_MODEL_FILES} 
 
 fv_demo: fv_demo.d fvcore.d fvcell.d fvvertex.d fvinterface.d onedinterp.d fluxcalc.d \

@@ -213,8 +213,8 @@ void one_d_interp_both(in FVInterface IFace,
 	// and fill in the rest based on an EOS call. 
 	// If an EOS call fails, fall back to just copying cell-centre data.
 	// This does presume that the cell-centre data is valid. 
-	switch ( GlobalConfig.thermo_interpolator ) {
-	case interp_pt: 
+	final switch ( GlobalConfig.thermo_interpolator ) {
+	case InterpolateOption.pt: 
 	    one_d_interp_both_scalar(gL1.p, gL0.p, gR0.p, gR1.p, Lft.gas.p, Rght.gas.p);
 	    for ( size_t i = 0; i < nmodes; ++i ) {
 		one_d_interp_both_scalar(gL1.T[i], gL0.T[i], gR0.T[i], gR1.T[i], Lft.gas.T[i], Rght.gas.T[i]);
@@ -230,7 +230,7 @@ void one_d_interp_both(in FVInterface IFace,
 		Rght.copy_values_from(cR0.fs);
 	    }
 	    break;
-	case interp_rhoe:
+	case InterpolateOption.rhoe:
 	    one_d_interp_both_scalar(gL1.rho, gL0.rho, gR0.rho, gR1.rho, Lft.gas.rho, Rght.gas.rho);
 	    for ( size_t i = 0; i < nmodes; ++i ) {
 		one_d_interp_both_scalar(gL1.e[i], gL0.e[i], gR0.e[i], gR1.e[i], Lft.gas.e[i], Rght.gas.e[i]);
@@ -246,7 +246,7 @@ void one_d_interp_both(in FVInterface IFace,
 		Rght.copy_values_from(cR0.fs);
 	    }
 	    break;
-	case interp_rhop:
+	case InterpolateOption.rhop:
 	    one_d_interp_both_scalar(gL1.rho, gL0.rho, gR0.rho, gR1.rho, Lft.gas.rho, Rght.gas.rho);
 	    one_d_interp_both_scalar(gL1.p, gL0.p, gR0.p, gR1.p, Lft.gas.p, Rght.gas.p);
 	    try {
@@ -260,7 +260,7 @@ void one_d_interp_both(in FVInterface IFace,
 		Rght.copy_values_from(cR0.fs);
 	    }
 	    break;
-	case interp_rhot: 
+	case InterpolateOption.rhot: 
 	    one_d_interp_both_scalar(gL1.rho, gL0.rho, gR0.rho, gR1.rho, Lft.gas.rho, Rght.gas.rho);
 	    for ( size_t i = 0; i < nmodes; ++i ) {
 		one_d_interp_both_scalar(gL1.T[i], gL0.T[i], gR0.T[i], gR1.T[i], Lft.gas.T[i], Rght.gas.T[i]);
@@ -276,9 +276,7 @@ void one_d_interp_both(in FVInterface IFace,
 		Rght.copy_values_from(cR0.fs);
 	    }
 	    break;
-	default: 
-	    throw new Error("Invalid thermo interpolator.");
-	}
+	} // end switch thermo_interpolator
 	if ( GlobalConfig.interpolate_in_local_frame ) {
 	    // Undo the transformation made earlier. PJ 21-feb-2012
 	    Lft.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
@@ -345,8 +343,8 @@ void one_d_interp_left(in FVInterface IFace,
 	// and fill in the rest based on an EOS call. 
 	// If an EOS call fails, fall back to just copying cell-centre data.
 	// This does presume that the cell-centre data is valid. 
-	switch ( GlobalConfig.thermo_interpolator ) {
-	case interp_pt: 
+	final switch ( GlobalConfig.thermo_interpolator ) {
+	case InterpolateOption.pt: 
 	    one_d_interp_left_scalar(gL1.p, gL0.p, gR0.p, Lft.gas.p);
 	    for ( size_t i = 0; i < nmodes; ++i ) {
 		one_d_interp_left_scalar(gL1.T[i], gL0.T[i], gR0.T[i], Lft.gas.T[i]);
@@ -357,7 +355,7 @@ void one_d_interp_left(in FVInterface IFace,
 		Lft.copy_values_from(cL0.fs);
 	    }
 	    break;
-	case interp_rhoe:
+	case InterpolateOption.rhoe:
 	    one_d_interp_left_scalar(gL1.rho, gL0.rho, gR0.rho, Lft.gas.rho);
 	    for ( size_t i = 0; i < nmodes; ++i ) {
 		one_d_interp_left_scalar(gL1.e[i], gL0.e[i], gR0.e[i], Lft.gas.e[i]);
@@ -368,7 +366,7 @@ void one_d_interp_left(in FVInterface IFace,
 		Lft.copy_values_from(cL0.fs);
 	    }
 	    break;
-	case interp_rhop:
+	case InterpolateOption.rhop:
 	    one_d_interp_left_scalar(gL1.rho, gL0.rho, gR0.rho, Lft.gas.rho);
 	    one_d_interp_left_scalar(gL1.p, gL0.p, gR0.p, Lft.gas.p);
 	    try {
@@ -377,7 +375,7 @@ void one_d_interp_left(in FVInterface IFace,
 		Lft.copy_values_from(cL0.fs);
 	    }
 	    break;
-	case interp_rhot: 
+	case InterpolateOption.rhot: 
 	    one_d_interp_left_scalar(gL1.rho, gL0.rho, gR0.rho, Lft.gas.rho);
 	    for ( size_t i = 0; i < nmodes; ++i ) {
 		one_d_interp_left_scalar(gL1.T[i], gL0.T[i], gR0.T[i], Lft.gas.T[i]);
@@ -388,9 +386,7 @@ void one_d_interp_left(in FVInterface IFace,
 		Lft.copy_values_from(cL0.fs);
 	    }
 	    break;
-	default: 
-	    throw new Error("Invalid thermo interpolator.");
-	}
+	} // end switch thermo_interpolator
 	if ( GlobalConfig.interpolate_in_local_frame ) {
 	    // Undo the transformation made earlier.
 	    Lft.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
@@ -459,8 +455,8 @@ void one_d_interp_right(in FVInterface IFace,
 	// and fill in the rest based on an EOS call. 
 	// If an EOS call fails, fall back to just copying cell-centre data.
 	// This does presume that the cell-centre data is valid. 
-	switch ( GlobalConfig.thermo_interpolator ) {
-	case interp_pt: 
+	final switch ( GlobalConfig.thermo_interpolator ) {
+	case InterpolateOption.pt: 
 	    one_d_interp_right_scalar(gL0.p, gR0.p, gR1.p, Rght.gas.p);
 	    for ( size_t i = 0; i < nmodes; ++i ) {
 		one_d_interp_right_scalar(gL0.T[i], gR0.T[i], gR1.T[i], Rght.gas.T[i]);
@@ -471,7 +467,7 @@ void one_d_interp_right(in FVInterface IFace,
 		Rght.copy_values_from(cR0.fs);
 	    }
 	    break;
-	case interp_rhoe:
+	case InterpolateOption.rhoe:
 	    one_d_interp_right_scalar(gL0.rho, gR0.rho, gR1.rho, Rght.gas.rho);
 	    for ( size_t i = 0; i < nmodes; ++i ) {
 		one_d_interp_right_scalar(gL0.e[i], gR0.e[i], gR1.e[i], Rght.gas.e[i]);
@@ -482,7 +478,7 @@ void one_d_interp_right(in FVInterface IFace,
 		Rght.copy_values_from(cR0.fs);
 	    }
 	    break;
-	case interp_rhop:
+	case InterpolateOption.rhop:
 	    one_d_interp_right_scalar(gL0.rho, gR0.rho, gR1.rho, Rght.gas.rho);
 	    one_d_interp_right_scalar(gL0.p, gR0.p, gR1.p, Rght.gas.p);
 	    try {
@@ -491,7 +487,7 @@ void one_d_interp_right(in FVInterface IFace,
 		Rght.copy_values_from(cR0.fs);
 	    }
 	    break;
-	case interp_rhot: 
+	case InterpolateOption.rhot: 
 	    one_d_interp_right_scalar(gL0.rho, gR0.rho, gR1.rho, Rght.gas.rho);
 	    for ( size_t i = 0; i < nmodes; ++i ) {
 		one_d_interp_right_scalar(gL0.T[i], gR0.T[i], gR1.T[i], Rght.gas.T[i]);
@@ -502,9 +498,7 @@ void one_d_interp_right(in FVInterface IFace,
 		Rght.copy_values_from(cR0.fs);
 	    }
 	    break;
-	default: 
-	    throw new Error("Invalid thermo interpolator.");
-	}
+	} // end switch thermo_interpolator
 	if ( GlobalConfig.interpolate_in_local_frame ) {
 	    // Undo the transformation made earlier.
 	    Rght.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);

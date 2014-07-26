@@ -51,25 +51,22 @@ void compute_interface_flux(ref FlowState Lft, ref FlowState Rght,
     }
 
     // Compute the fluxes in the local frame of the interface.
-    switch ( GlobalConfig.flux_calculator ) {
-    case flux_efm:
+    final switch ( GlobalConfig.flux_calculator ) {
+    case FluxCalculator.efm:
         efmflx(Lft, Rght, IFace);
 	break;
-    case flux_ausmdv:
+    case FluxCalculator.ausmdv:
         ausmdv(Lft, Rght, IFace);
 	break;
-    case flux_adaptive:
+    case FluxCalculator.adaptive:
         adaptive_flux(Lft, Rght, IFace);
 	break;
-    case flux_ausm_plus_up:
+    case FluxCalculator.ausm_plus_up:
         ausm_plus_up(Lft, Rght, IFace);
 	break;
-    case flux_hlle:
+    case FluxCalculator.hlle:
         hlle(Lft, Rght, IFace);
 	break;
-    default:
-        throw new Error(text("Invalid flux calculator, flux_claculator=.",
-			     GlobalConfig.flux_calculator));
     } // end switch
 
     ConservedQuantities F = IFace.F;

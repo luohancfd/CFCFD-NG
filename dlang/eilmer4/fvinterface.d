@@ -60,11 +60,11 @@ public:
     void copy_values_from(in FVInterface other, uint type_of_copy)
     {
 	switch ( type_of_copy ) {
-	case copy_flow_data:
+	case CopyDataOption.flow:
 	    fs.copy_values_from(other.fs);
 	    F.copy_values_from(other.F);
 	    break;
-	case copy_grid_data:
+	case CopyDataOption.grid:
 	    pos = other.pos;
 	    vel = other.vel;
 	    Ybar = other.Ybar;
@@ -74,7 +74,7 @@ public:
 	    t1 = other.t1;
 	    t2 = other.t2;
 	    break;
-	case copy_all_data: 
+	case CopyDataOption.all: 
 	default:
 	    id = other.id;
 	    pos = other.pos;

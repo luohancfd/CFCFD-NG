@@ -429,7 +429,7 @@ public:
 	// The following limits allow the simulation of the sod shock tube
 	// to get just a little wobbly around the shock.
 	// Lower values of cfl should be used for a smooth solution.
-	switch ( number_of_stages_for_update_scheme[gasdynamic_update_scheme] ) {
+	switch ( number_of_stages_for_update_scheme(gasdynamic_update_scheme) ) {
 	case 1: cfl_allow = 0.9; break;
 	case 2: cfl_allow = 1.2; break;
 	case 3: cfl_allow = 1.6; break;
@@ -652,34 +652,35 @@ public:
 	// boundary conditions.  Note that the symmetry is not consistent with the 
 	// linear extrapolation used for the positions and volumes in the next section.
 	// [TODO] -- think about this carefully.
+	auto option = CopyDataOption.cell_lengths_only;
 	for ( j = jmin; j <= jmax; ++j ) {
 	    for ( k = kmin; k <= kmax; ++k ) {
 		i = imin;
-		get_cell(i-1,j,k).copy_values_from(get_cell(i,j,k), copy_cell_lengths_only);
-		get_cell(i-2,j,k).copy_values_from(get_cell(i+1,j,k), copy_cell_lengths_only);
+		get_cell(i-1,j,k).copy_values_from(get_cell(i,j,k), option);
+		get_cell(i-2,j,k).copy_values_from(get_cell(i+1,j,k), option);
 		i = imax;
-		get_cell(i+1,j,k).copy_values_from(get_cell(i,j,k), copy_cell_lengths_only);
-		get_cell(i+2,j,k).copy_values_from(get_cell(i-1,j,k), copy_cell_lengths_only);
+		get_cell(i+1,j,k).copy_values_from(get_cell(i,j,k), option);
+		get_cell(i+2,j,k).copy_values_from(get_cell(i-1,j,k), option);
 	    }
 	}
 	for ( i = imin; i <= imax; ++i ) {
 	    for ( k = kmin; k <= kmax; ++k ) {
 		j = jmin;
-		get_cell(i,j-1,k).copy_values_from(get_cell(i,j,k), copy_cell_lengths_only);
-		get_cell(i,j-2,k).copy_values_from(get_cell(i,j+1,k), copy_cell_lengths_only);
+		get_cell(i,j-1,k).copy_values_from(get_cell(i,j,k), option);
+		get_cell(i,j-2,k).copy_values_from(get_cell(i,j+1,k), option);
 		j = jmax;
-		get_cell(i,j+1,k).copy_values_from(get_cell(i,j,k), copy_cell_lengths_only);
-		get_cell(i,j+2,k).copy_values_from(get_cell(i,j-1,k), copy_cell_lengths_only);
+		get_cell(i,j+1,k).copy_values_from(get_cell(i,j,k), option);
+		get_cell(i,j+2,k).copy_values_from(get_cell(i,j-1,k), option);
 	    }
 	}
 	for ( i = imin; i <= imax; ++i ) {
 	    for ( j = jmin; j <= jmax; ++j ) {
 		k = kmin;
-		get_cell(i,j,k-1).copy_values_from(get_cell(i,j,k), copy_cell_lengths_only);
-		get_cell(i,j,k-2).copy_values_from(get_cell(i,j,k+1), copy_cell_lengths_only);
+		get_cell(i,j,k-1).copy_values_from(get_cell(i,j,k), option);
+		get_cell(i,j,k-2).copy_values_from(get_cell(i,j,k+1), option);
 		k = kmax;
-		get_cell(i,j,k+1).copy_values_from(get_cell(i,j,k), copy_cell_lengths_only);
-		get_cell(i,j,k+2).copy_values_from(get_cell(i,j,k-1), copy_cell_lengths_only);
+		get_cell(i,j,k+1).copy_values_from(get_cell(i,j,k), option);
+		get_cell(i,j,k+2).copy_values_from(get_cell(i,j,k-1), option);
 	    }
 	}
 	/* Extrapolate (with first-order) cell positions and volumes to ghost cells. */

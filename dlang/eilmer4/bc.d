@@ -62,8 +62,9 @@ public:
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
 	FVInterface IFace;
+	auto opt = CopyDataOption.flow;
 
-	switch ( which_boundary ) {
+	final switch ( which_boundary ) {
 	case north:
 	    j = blk.jmax;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
@@ -72,7 +73,7 @@ public:
 		    src_cell = blk.get_cell(i,j,k);
 		    IFace = src_cell.iface[north];
 		    dest_cell = blk.get_cell(i,j+1,k);
-		    dest_cell.copy_values_from(src_cell, copy_flow_data);
+		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -80,7 +81,7 @@ public:
 		    // ghost cell 2.
 		    src_cell = blk.get_cell(i,j-1,k);
 		    dest_cell = blk.get_cell(i,j+2,k);
-		    dest_cell.copy_values_from(src_cell, copy_flow_data);
+		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -96,7 +97,7 @@ public:
 		    src_cell = blk.get_cell(i,j,k);
 		    IFace = src_cell.iface[east];
 		    dest_cell = blk.get_cell(i+1,j,k);
-		    dest_cell.copy_values_from(src_cell, copy_flow_data);
+		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -104,7 +105,7 @@ public:
 		    // ghost cell 2.
 		    src_cell = blk.get_cell(i-1,j,k);
 		    dest_cell = blk.get_cell(i+2,j,k);
-		    dest_cell.copy_values_from(src_cell, copy_flow_data);
+		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -120,7 +121,7 @@ public:
 		    src_cell = blk.get_cell(i,j,k);
 		    IFace = src_cell.iface[south];
 		    dest_cell = blk.get_cell(i,j-1,k);
-		    dest_cell.copy_values_from(src_cell, copy_flow_data);
+		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -128,7 +129,7 @@ public:
 		    // ghost cell 2.
 		    src_cell = blk.get_cell(i,j+1,k);
 		    dest_cell = blk.get_cell(i,j-2,k);
-		    dest_cell.copy_values_from(src_cell, copy_flow_data);
+		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -144,7 +145,7 @@ public:
 		    src_cell = blk.get_cell(i,j,k);
 		    IFace = src_cell.iface[west];
 		    dest_cell = blk.get_cell(i-1,j,k);
-		    dest_cell.copy_values_from(src_cell, copy_flow_data);
+		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -152,7 +153,7 @@ public:
 		    // ghost cell 2.
 		    src_cell = blk.get_cell(i+1,j,k);
 		    dest_cell = blk.get_cell(i-2,j,k);
-		    dest_cell.copy_values_from(src_cell, copy_flow_data);
+		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -168,7 +169,7 @@ public:
 		    src_cell = blk.get_cell(i,j,k);
 		    IFace = src_cell.iface[top];
 		    dest_cell = blk.get_cell(i,j,k+1);
-		    dest_cell.copy_values_from(src_cell, copy_flow_data);
+		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -176,7 +177,7 @@ public:
 		    // ghost cell 2.
 		    src_cell = blk.get_cell(i,j,k-1);
 		    dest_cell = blk.get_cell(i,j,k+2);
-		    dest_cell.copy_values_from(src_cell, copy_flow_data);
+		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -192,7 +193,7 @@ public:
 		    src_cell = blk.get_cell(i,j,k);
 		    IFace = src_cell.iface[bottom];
 		    dest_cell = blk.get_cell(i,j,k-1);
-		    dest_cell.copy_values_from(src_cell, copy_flow_data);
+		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -200,7 +201,7 @@ public:
 		    // ghost cell 2.
 		    src_cell = blk.get_cell(i,j,k+1);
 		    dest_cell = blk.get_cell(i,j,k-2);
-		    dest_cell.copy_values_from(src_cell, copy_flow_data);
+		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -208,10 +209,8 @@ public:
 		} // end j loop
 	    } // for i
 	    break;
-	default:
-	    throw new Error(text("Invalid boundary selection: which_boundary=", which_boundary));
-	}
-    } // end apply_convective
+	} // end switch which_boundary
+    } // end apply_convective()
 
     void apply_viscous(double t) {}  // does nothing
 
