@@ -1295,6 +1295,372 @@ def write_VTK_XML_files(rootName, tindx, nblock, grid, flow, t, binary_format):
     return
 
 #---------------------------------------------------------------------------------
+# OpenFoam-related functions
+
+def write_general_OpenFoam_header(fp):
+
+    fp.write("/*--------------------------------*- C++ -*----------------------------------*\\\n")
+    fp.write("| =========                |                                                 |\n")
+    fp.write("| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |\n")
+    fp.write("|  \\    /   O peration     | Version:  2.2.2                                 |\n")
+    fp.write("|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |\n")
+    fp.write("|    \\/     M anipulation  |                                                 |\n")
+    fp.write("\*---------------------------------------------------------------------------*/\n")
+    fp.write("FoamFile\n")
+    fp.write("{\n")
+    fp.write("    version     2.0;\n")
+    fp.write("    format      ascii;\n")
+
+    return
+
+def write_general_OpenFoam_bottom(fp):
+    
+    fp.write(")\n")
+    fp.write("\n")
+    fp.write("// ************************************************************************* //")
+
+    return
+
+def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, grid, flow):
+    """
+    Write the OpenFoam format data from a single block 
+    as an unstructured grid of finite-volume cells.
+    Since OpenFoam only accept 3D grid, this tool
+    only works for 3D grid from Eilmer
+    
+    :param fp0: reference to the file object: points
+    :param fp1: reference to the file object: faces
+    :param fp2: reference to the file object: owner
+    :param fp3: reference to the file object: neighbour
+    :param fp4: reference to the file object: boundary
+    :param grid: single-block grid of vertices
+    :param flow: single-block of cell-centre flow data
+    """
+    nio = grid.ni; njo = grid.nj; nko = grid.nk
+    nif = flow.ni; njf = flow.nj; nkf = flow.nk
+    SumOfPoints = nio * njo * nko
+    SumOfCells = nif * njf * nkf
+    
+    # cells
+    cells_number = 0
+    cells_id = {}
+    for k in range(nko-1):
+        for j in range(njo-1):
+            for i in range(nio-1):
+                cells_id[(i,j,k)] = cells_number
+                cells_number += 1
+    # points
+    vtxs_number = 0
+    vtxs_id = {}
+    for k in range(nko):
+        for j in range(njo):
+            for i in range(nio):
+                vtxs_id[(i,j,k)] = vtxs_number
+                x,y,z = uflowz(grid.x[i,j,k]), uflowz(grid.y[i,j,k]), uflowz(grid.z[i,j,k])
+                vtxs_number += 1
+    # faces
+    face_number = 0
+    # serching internal faces at k-direction
+    for k in range(1,nko-1):
+        for j in range(njo-1):
+            for i in range(nio-1):
+                face_number += 1
+    # serching internal faces at j-direction
+    for j in range(1,njo-1):
+        for k in range(nko-1):
+            for i in range(nio-1):
+                face_number += 1
+    # serching internal faces at i-direction
+    for i in range(1,nio-1):
+        for k in range(nko-1):
+            for j in range(njo-1):
+                face_number += 1
+
+    SumOfInternalFaces = face_number
+    # serching boundary faces at NORTH faces
+    NF_start = face_number
+    j = -1
+    for i in range(nio-1):
+        for k in range(nko-1):
+             face_number += 1
+    NF_end = face_number
+    SumOfNF = NF_end - NF_start
+    # serching boundary faces at WEST faces
+    WF_start = face_number
+    i = 0
+    for k in range(nko-1):
+        for j in range(njo-1):
+             face_number += 1
+    WF_end = face_number
+    SumOfWF = WF_end - WF_start
+    # serching boundary faces at EAST faces
+    EF_start = face_number
+    i = -1
+    for k in range(nko-1):
+        for j in range(njo-1):
+             face_number += 1
+    EF_end = face_number
+    SumOfEF = EF_end - EF_start   
+    # serching boundary faces at SOUTH faces
+    SF_start = face_number
+    j = 0
+    for i in range(nio-1):
+        for k in range(nko-1):
+             face_number += 1
+    SF_end = face_number
+    SumOfSF = SF_end - SF_start
+    # serching boundary faces at BOTTOM faces
+    BF_start = face_number
+    k = 0
+    for i in range(nio-1):
+        for j in range(njo-1):
+             face_number += 1
+    BF_end = face_number
+    SumOfBF = BF_end - BF_start
+    # serching boundary faces at TOP faces
+    TF_start = face_number
+    k = -1
+    for i in range(nio-1):
+        for j in range(njo-1):
+             face_number += 1
+    TF_end = face_number
+    SumOfTF = TF_end - TF_start
+    SumOfFaces = face_number 
+
+
+###################################################################################
+# writing files now.
+    # points
+    fp0.write("    class       vectorField;\n")
+    fp0.write("    location    \"constant/polyMesh\";\n")
+    fp0.write("    object      points;\n")
+    fp0.write("}\n")
+    fp0.write("// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n")
+    fp0.write("\n")
+    fp0.write("\n")
+    fp0.write("%d\n" % (SumOfPoints))
+    fp0.write("(\n")
+    for k in range(nko):
+        for j in range(njo):
+            for i in range(nio):
+                x,y,z = uflowz(grid.x[i,j,k]), uflowz(grid.y[i,j,k]), uflowz(grid.z[i,j,k])
+                fp0.write("(%e %e %e)\n" % (x,y,z))
+    # faces, owner and neighbour
+    # faces header
+    fp1.write("    class       faceList;\n")
+    fp1.write("    location    \"constant/polyMesh\";\n")
+    fp1.write("    object      faces;\n")
+    fp1.write("}\n")
+    fp1.write("// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n")
+    fp1.write("\n")
+    fp1.write("\n")
+    fp1.write("%d\n" % (SumOfFaces))
+    fp1.write("(\n")
+    # owner header
+    fp2.write("    class       labelList;\n")
+    fp2.write("    note        \"nPoints: %d nCells: %d nFaces: %d nInternalFaces: %d\";\n" %
+              (SumOfPoints, SumOfCells, SumOfFaces, SumOfInternalFaces))
+    fp2.write("    location    \"constant/polyMesh\";\n")
+    fp2.write("    object      owner;\n")
+    fp2.write("}\n")
+    fp2.write("// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n")
+    fp2.write("\n")
+    fp2.write("\n")
+    fp2.write("%d\n" % (SumOfFaces))
+    fp2.write("(\n")
+    # neighbour header
+    fp3.write("    class       labelList;\n")
+    fp3.write("    note        \"nPoints: %d nCells: %d nFaces: %d nInternalFaces: %d\";\n" %
+              (SumOfPoints, SumOfCells, SumOfFaces, SumOfInternalFaces))
+    fp3.write("    location    \"constant/polyMesh\";\n")
+    fp3.write("    object      neighbour;\n")
+    fp3.write("}\n")
+    fp3.write("// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n")
+    fp3.write("\n")
+    fp3.write("\n")
+    fp3.write("%d\n" % (SumOfInternalFaces))
+    fp3.write("(\n")
+    
+    # serching internal faces at i-direction
+    for i in range(1,nio-1):
+        for j in range(njo-1):
+            for k in range(nko-1):
+                fp1.write("4(%d %d %d %d)\n" % (vtxs_id[(i,j,k)],vtxs_id[(i,j+1,k)],vtxs_id[(i,j+1,k+1)],vtxs_id[(i,j,k+1)]))
+                owner_id = cells_id[(i-1,j,k)]
+                neighbour_id = cells_id[(i,j,k)]
+                fp2.write("%d\n" % (owner_id))
+                fp3.write("%d\n" % (neighbour_id))
+    # serching internal faces at j-direction
+    for j in range(1,njo-1):
+        for i in range(nio-1):
+            for k in range(nko-1):
+                fp1.write("4(%d %d %d %d)\n" % (vtxs_id[(i,j,k)],vtxs_id[(i,j,k+1)],vtxs_id[(i+1,j,k+1)],vtxs_id[(i+1,j,k)]))
+                owner_id = cells_id[(i,j-1,k)]
+                neighbour_id = cells_id[(i,j,k)]
+                fp2.write("%d\n" % (owner_id))
+                fp3.write("%d\n" % (neighbour_id))
+    # serching internal faces at k-direction
+    for k in range(1,nko-1):
+        for i in range(nio-1):
+            for j in range(njo-1):
+                fp1.write("4(%d %d %d %d)\n" % (vtxs_id[(i,j,k)],vtxs_id[(i+1,j,k)],vtxs_id[(i+1,j+1,k)],vtxs_id[(i,j+1,k)]))
+                owner_id = cells_id[(i,j,k-1)]
+                neighbour_id = cells_id[(i,j,k)]
+                fp2.write("%d\n" % (owner_id))
+                fp3.write("%d\n" % (neighbour_id))
+
+    # serching boundary faces at NORTH
+    j = njo-1
+    for i in range(nio-1):
+        for k in range(nko-1):
+            fp1.write("4(%d %d %d %d)\n" % (vtxs_id[(i,j,k)],vtxs_id[(i,j,k+1)],vtxs_id[(i+1,j,k+1)],vtxs_id[(i+1,j,k)]))
+            owner_id = cells_id[(i,j-1,k)]
+            fp2.write("%d\n" % (owner_id))
+    # serching boundary faces at WEST faces
+    i = 0
+    for k in range(nko-1):
+        for j in range(njo-1):
+            fp1.write("4(%d %d %d %d)\n" % (vtxs_id[(i,j,k)],vtxs_id[(i,j,k+1)],vtxs_id[(i,j+1,k+1)],vtxs_id[(i,j+1,k)]))
+            owner_id = cells_id[(i,j,k)]
+            fp2.write("%d\n" % (owner_id))
+    # serching boundary faces at EAST faces
+    i = nio-1
+    for k in range(nko-1):
+        for j in range(njo-1):
+            fp1.write("4(%d %d %d %d)\n" % (vtxs_id[(i,j,k)],vtxs_id[(i,j+1,k)],vtxs_id[(i,j+1,k+1)],vtxs_id[(i,j,k+1)]))
+            owner_id = cells_id[(i-1,j,k)]
+            fp2.write("%d\n" % (owner_id))
+    # serching boundary faces at SOUTH faces
+    j = 0
+    for i in range(nio-1):
+        for k in range(nko-1):
+            fp1.write("4(%d %d %d %d)\n" % (vtxs_id[(i,j,k)],vtxs_id[(i+1,j,k)],vtxs_id[(i+1,j,k+1)],vtxs_id[(i,j,k+1)]))
+            owner_id = cells_id[(i,j,k)]
+            fp2.write("%d\n" % (owner_id))
+    # serching boundary faces at BOTTOM faces
+    k = 0
+    for i in range(nio-1):
+        for j in range(njo-1):
+            fp1.write("4(%d %d %d %d)\n" % (vtxs_id[(i,j,k)],vtxs_id[(i,j+1,k)],vtxs_id[(i+1,j+1,k)],vtxs_id[(i+1,j,k)]))
+            owner_id = cells_id[(i,j,k)]
+            fp2.write("%d\n" % (owner_id))
+    # serching boundary faces at TOP faces
+    k = nko-1
+    for i in range(nio-1):
+        for j in range(njo-1):
+            fp1.write("4(%d %d %d %d)\n" % (vtxs_id[(i,j,k)],vtxs_id[(i+1,j,k)],vtxs_id[(i+1,j+1,k)],vtxs_id[(i,j+1,k)]))
+            owner_id = cells_id[(i,j,k-1)]
+            fp2.write("%d\n" % (owner_id))
+
+    
+    # boundary
+    fp4.write("    class       polyBoundaryMesh;\n")
+    fp4.write("    location    \"constant/polyMesh\";\n")
+    fp4.write("    object      boundary;\n")
+    fp4.write("}\n")
+    fp4.write("// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n")
+    fp4.write("\n")
+    fp4.write("\n")
+    fp4.write("6\n")
+    fp4.write("(\n")
+    # North boundary
+    fp4.write("    north\n")
+    fp4.write("    {\n")
+    fp4.write("        type            wall;\n")
+    fp4.write("        nFaces          %d;\n" % (SumOfNF))
+    fp4.write("        startFace       %d;\n" % (NF_start))
+    fp4.write("    }\n")
+    # West boundary
+    fp4.write("    west\n")
+    fp4.write("    {\n")
+    fp4.write("        type            wall;\n")
+    fp4.write("        nFaces          %d;\n" % (SumOfWF))
+    fp4.write("        startFace       %d;\n" % (WF_start))
+    fp4.write("    }\n")
+    # East boundary
+    fp4.write("    east\n")
+    fp4.write("    {\n")
+    fp4.write("        type            wall;\n")
+    fp4.write("        nFaces          %d;\n" % (SumOfEF))
+    fp4.write("        startFace       %d;\n" % (EF_start))
+    fp4.write("    }\n")
+    # South boundary
+    fp4.write("    south\n")
+    fp4.write("    {\n")
+    fp4.write("        type            wall;\n")
+    fp4.write("        nFaces          %d;\n" % (SumOfSF))
+    fp4.write("        startFace       %d;\n" % (SF_start))
+    fp4.write("    }\n")
+    # Bottom boundary
+    fp4.write("    bottom\n")
+    fp4.write("    {\n")
+    fp4.write("        type            wall;\n")
+    fp4.write("        nFaces          %d;\n" % (SumOfBF))
+    fp4.write("        startFace       %d;\n" % (BF_start))
+    fp4.write("    }\n")
+    # Top boundary
+    fp4.write("    top\n")
+    fp4.write("    {\n")
+    fp4.write("        type            wall;\n")
+    fp4.write("        nFaces          %d;\n" % (SumOfTF))
+    fp4.write("        startFace       %d;\n" % (TF_start))
+    fp4.write("    }\n")
+
+    return
+
+def write_OpenFoam_files(rootName, nblock, grid, flow):
+    """
+    Writes the grid files for OpenFoam.
+
+    :param rootName: specific file names are built by adding bits to this name
+    :param nblock: integer
+    :param grid: list of StructuredGrid objects
+    :param flow: list of StructuredGridFlow objects
+    """
+    plotPath = "foam"
+    if not os.access(plotPath, os.F_OK):
+        os.makedirs(plotPath)
+    for jb in range(nblock):
+        # points
+        fileName0 = "points"
+        fileName0 = os.path.join(plotPath, fileName0)
+        OFFile0 = open(fileName0, "wb")
+        fileName1 = "faces"
+        fileName1 = os.path.join(plotPath, fileName1)
+        OFFile1 = open(fileName1, "wb")
+        fileName2 = "owner"
+        fileName2 = os.path.join(plotPath, fileName2)
+        OFFile2 = open(fileName2, "wb") 
+        fileName3 = "neighbour"
+        fileName3 = os.path.join(plotPath, fileName3)
+        OFFile3 = open(fileName3, "wb")
+        fileName4 = "boundary"
+        fileName4 = os.path.join(plotPath, fileName4)
+        OFFile4 = open(fileName4, "wb")
+
+        write_general_OpenFoam_header(OFFile0)
+        write_general_OpenFoam_header(OFFile1)
+        write_general_OpenFoam_header(OFFile2)
+        write_general_OpenFoam_header(OFFile3)
+        write_general_OpenFoam_header(OFFile4)
+
+        write_OpenFoam_unstructured_file(OFFile0, OFFile1, OFFile2, OFFile3, OFFile4, grid[jb], flow[jb])
+
+        write_general_OpenFoam_bottom(OFFile0)
+        write_general_OpenFoam_bottom(OFFile1)
+        write_general_OpenFoam_bottom(OFFile2)
+        write_general_OpenFoam_bottom(OFFile3)
+        write_general_OpenFoam_bottom(OFFile4)
+
+        OFFile0.close()
+        OFFile1.close()
+        OFFile2.close()
+        OFFile3.close()
+        OFFile4.close()
+
+    return
+
+#---------------------------------------------------------------------------------
 # Tecplot-related functions
 
 def write_Tecplot_file(rootName, tindx, nblock, grid, flow, t):

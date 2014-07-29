@@ -27,7 +27,7 @@ Summary of options::
 |           [--add-transport-coeffs --gmodel-file="gas-model.lua"]
 |           [--add-user-computed-vars="user-script.py"]
 | 
-|           [--vtk-xml] [--binary-format] [--tecplot] [--plot3d]
+|           [--vtk-xml] [--binary-format] [--tecplot] [--plot3d] [--OpenFoam]
 | 
 |           [--output-file=<profile-data-file>]
 |           [--slice-list="blk-range,i-range,j-range,k-range;..."]
@@ -153,7 +153,7 @@ longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "binary-f
                "add-user-computed-vars=",
                "add-total-enthalpy", "add-mach", "heat-flux-list=", "vertex-velocity-list=", 
                "plot3d", "omegaz=", "tangent-slab-list=", "prepare-fstc-restart", "moving-grid",
-               "add-transport-coeffs", "verbosity=", "bc-surface-list="]
+               "add-transport-coeffs", "verbosity=", "bc-surface-list=", "OpenFoam"]
 
 def printUsage():
     print ""
@@ -168,7 +168,7 @@ def printUsage():
     print "          [--add-transport-coeffs --gmodel-file=\"gas-model.lua\"]"
     print "          [--add-user-computed-vars=\"user-script.py\"]"
     print ""
-    print "          [--vtk-xml] [--binary-format] [--tecplot] [--plot3d]"
+    print "          [--vtk-xml] [--binary-format] [--tecplot] [--plot3d] [--OpenFoam]"
     print ""
     print "          [--output-file=<profile-data-file>]"
     print "          [--slice-list=\"blk-range,i-range,j-range,k-range;...\"]"
@@ -1386,6 +1386,13 @@ if __name__ == '__main__':
             add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx],
                                 uoDict.has_key("--binary-format"))
+        #
+        if uoDict.has_key("--OpenFoam"):
+            if verbosity_level > 0:
+                print "writing OpenFoam grid"
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid)
+            add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
+            write_OpenFoam_files(rootName, nblock, grid, flow)
         #
         if uoDict.has_key("--tecplot"):
             if verbosity_level > 0:
