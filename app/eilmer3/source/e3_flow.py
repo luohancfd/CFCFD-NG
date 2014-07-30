@@ -1338,6 +1338,10 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, grid, flow):
     """
     nio = grid.ni; njo = grid.nj; nko = grid.nk
     nif = flow.ni; njf = flow.nj; nkf = flow.nk
+    two_D = (nko == 1)
+    if two_D:
+        nko = 2
+        z_set = [0, 0.001]
     SumOfPoints = nio * njo * nko
     SumOfCells = nif * njf * nkf
     
@@ -1356,15 +1360,15 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, grid, flow):
         for j in range(njo):
             for i in range(nio):
                 vtxs_id[(i,j,k)] = vtxs_number
-                x,y,z = uflowz(grid.x[i,j,k]), uflowz(grid.y[i,j,k]), uflowz(grid.z[i,j,k])
                 vtxs_number += 1
     # faces
     face_number = 0
     # serching internal faces at k-direction
-    for k in range(1,nko-1):
-        for j in range(njo-1):
-            for i in range(nio-1):
-                face_number += 1
+    if two_D == False:
+        for k in range(1,nko-1):
+            for j in range(njo-1):
+                for i in range(nio-1):
+                    face_number += 1
     # serching internal faces at j-direction
     for j in range(1,njo-1):
         for k in range(nko-1):
@@ -1379,7 +1383,6 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, grid, flow):
     SumOfInternalFaces = face_number
     # serching boundary faces at NORTH faces
     NF_start = face_number
-    j = -1
     for i in range(nio-1):
         for k in range(nko-1):
              face_number += 1
@@ -1387,7 +1390,6 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, grid, flow):
     SumOfNF = NF_end - NF_start
     # serching boundary faces at WEST faces
     WF_start = face_number
-    i = 0
     for k in range(nko-1):
         for j in range(njo-1):
              face_number += 1
@@ -1395,7 +1397,6 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, grid, flow):
     SumOfWF = WF_end - WF_start
     # serching boundary faces at EAST faces
     EF_start = face_number
-    i = -1
     for k in range(nko-1):
         for j in range(njo-1):
              face_number += 1
@@ -1403,7 +1404,6 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, grid, flow):
     SumOfEF = EF_end - EF_start   
     # serching boundary faces at SOUTH faces
     SF_start = face_number
-    j = 0
     for i in range(nio-1):
         for k in range(nko-1):
              face_number += 1
@@ -1411,7 +1411,6 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, grid, flow):
     SumOfSF = SF_end - SF_start
     # serching boundary faces at BOTTOM faces
     BF_start = face_number
-    k = 0
     for i in range(nio-1):
         for j in range(njo-1):
              face_number += 1
@@ -1419,7 +1418,6 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, grid, flow):
     SumOfBF = BF_end - BF_start
     # serching boundary faces at TOP faces
     TF_start = face_number
-    k = -1
     for i in range(nio-1):
         for j in range(njo-1):
              face_number += 1
@@ -1443,7 +1441,12 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, grid, flow):
     for k in range(nko):
         for j in range(njo):
             for i in range(nio):
-                x,y,z = uflowz(grid.x[i,j,k]), uflowz(grid.y[i,j,k]), uflowz(grid.z[i,j,k])
+                if two_D:
+                    x,y,z = uflowz(grid.x[i,j,0]), uflowz(grid.y[i,j,0]), uflowz(grid.z[i,j,0])
+                    if k == 1:
+                        z = z_set[1]
+                else:
+                    x,y,z = uflowz(grid.x[i,j,k]), uflowz(grid.y[i,j,k]), uflowz(grid.z[i,j,k])
                 fp0.write("(%e %e %e)\n" % (x,y,z))
     # faces, owner and neighbour
     # faces header
@@ -1500,14 +1503,15 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, grid, flow):
                 fp2.write("%d\n" % (owner_id))
                 fp3.write("%d\n" % (neighbour_id))
     # serching internal faces at k-direction
-    for k in range(1,nko-1):
-        for i in range(nio-1):
-            for j in range(njo-1):
-                fp1.write("4(%d %d %d %d)\n" % (vtxs_id[(i,j,k)],vtxs_id[(i+1,j,k)],vtxs_id[(i+1,j+1,k)],vtxs_id[(i,j+1,k)]))
-                owner_id = cells_id[(i,j,k-1)]
-                neighbour_id = cells_id[(i,j,k)]
-                fp2.write("%d\n" % (owner_id))
-                fp3.write("%d\n" % (neighbour_id))
+    if two_D == False:
+        for k in range(1,nko-1):
+            for i in range(nio-1):
+                for j in range(njo-1):
+                    fp1.write("4(%d %d %d %d)\n" % (vtxs_id[(i,j,k)],vtxs_id[(i+1,j,k)],vtxs_id[(i+1,j+1,k)],vtxs_id[(i,j+1,k)]))
+                    owner_id = cells_id[(i,j,k-1)]
+                    neighbour_id = cells_id[(i,j,k)]
+                    fp2.write("%d\n" % (owner_id))
+                    fp3.write("%d\n" % (neighbour_id))
 
     # serching boundary faces at NORTH
     j = njo-1
