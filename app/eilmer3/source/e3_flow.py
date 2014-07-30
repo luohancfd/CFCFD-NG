@@ -1621,21 +1621,25 @@ def write_OpenFoam_files(rootName, nblock, grid, flow):
     if not os.access(plotPath, os.F_OK):
         os.makedirs(plotPath)
     for jb in range(nblock):
-        # points
+
+        subplotPath = plotPath+("/b%04d" % (jb))
+        if not os.access(subplotPath, os.F_OK):
+            os.makedirs(subplotPath)
+
         fileName0 = "points"
-        fileName0 = os.path.join(plotPath, fileName0)
+        fileName0 = os.path.join(subplotPath, fileName0)
         OFFile0 = open(fileName0, "wb")
         fileName1 = "faces"
-        fileName1 = os.path.join(plotPath, fileName1)
+        fileName1 = os.path.join(subplotPath, fileName1)
         OFFile1 = open(fileName1, "wb")
         fileName2 = "owner"
-        fileName2 = os.path.join(plotPath, fileName2)
+        fileName2 = os.path.join(subplotPath, fileName2)
         OFFile2 = open(fileName2, "wb") 
         fileName3 = "neighbour"
-        fileName3 = os.path.join(plotPath, fileName3)
+        fileName3 = os.path.join(subplotPath, fileName3)
         OFFile3 = open(fileName3, "wb")
         fileName4 = "boundary"
-        fileName4 = os.path.join(plotPath, fileName4)
+        fileName4 = os.path.join(subplotPath, fileName4)
         OFFile4 = open(fileName4, "wb")
 
         write_general_OpenFoam_header(OFFile0)
