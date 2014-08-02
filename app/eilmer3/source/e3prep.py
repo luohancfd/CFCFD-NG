@@ -43,7 +43,7 @@ Command line::
 
 Options::
 
-| e3prep.py [--help] [--job=<jobFileName>] [--clean-start]
+| e3prep.py [--help] [--job=<jobFileName>] [--json] [--clean-start]
 |           [--do-svg] [--do-vrml] [--zip-files|--no-zip-files]
 |           [--show-names] [--split-input-file] [--verbosity=<int>]
 
@@ -96,6 +96,7 @@ Globally-defined objects
    02-Mar-2008 Elmer3 port started
    17-Mar-2008 Block3D merged.
    24-Feb-2009 changed to using folders for the grid and flow files.
+   03-Aug-2014 Added option to write JSON files for Eilmer4
 """
 
 # ----------------------------------------------------------------------
@@ -110,6 +111,7 @@ import copy
 import math
 import traceback
 import subprocess
+import json
 
 from libprep3 import *
 from e3_defs import *
@@ -121,14 +123,16 @@ from e3_render import *
 sketch = SketchEnvironment()
 
 verbosity_level = 0
+config_file_format = "INI"
+def my_json_bool(bvalue): return "true" if bvalue else "false" 
 
 shortOptions = ""
-longOptions = ["help", "job=", "clean-start", "do-svg", "do-vrml", 
+longOptions = ["help", "job=", "json", "clean-start", "do-svg", "do-vrml", 
                "zip-files", "no-zip-files", "show-names", "verbosity="]
 
 def printUsage():
     print ""
-    print "Usage: e3prep.py [--help] [--job=<jobFileName>] [--clean-start]"
+    print "Usage: e3prep.py [--help] [--job=<jobFileName>] [--json] [--clean-start]"
     print "       [--do-svg] [--do-vrml] [--zip-files|--no-zip-files]"
     print "       [--show-names] [--split-input-file] [--verbosity=<int>]"
     return
@@ -598,7 +602,7 @@ class GlobalData(object):
             self.separate_update_for_viscous_flag = 1
         return
 
-    def write_to_control_file(self, fp):
+    def write_to_control_ini_file(self, fp):
         """
         Writes the time-stepping control data to the specified file in .ini format.
 
@@ -633,6 +637,43 @@ class GlobalData(object):
         fp.write("halt_now = 0\n"); # presumably, we want the simulation to proceed
         fp.write("halt_on_large_flow_change = %s\n" % self.halt_on_large_flow_change)
         fp.write("tolerance_in_T = %g\n" % self.tolerance_in_T)
+        return
+
+    def write_to_control_json_file(self, fp):
+        """
+        Writes the time-stepping control data to the specified file in JSON format.
+
+        Since the main simulation loop checks this file every time step,
+        it is possible to change these parameters as the simulation runs.
+        One common use is to terminate the simulation cleanly by changing
+        halt_now from 0 to 1.
+        """
+        fp.write('{\n')
+        fp.write('"x_order": %d,\n' % self.x_order)
+        fp.write('"gasdynamic_update_scheme": "%s",\n' % self.gasdynamic_update_scheme)
+        fp.write('"implicit_flag": %d,\n' % self.implicit_flag)
+        fp.write('"separate_update_for_viscous_flag": %d,\n' %
+                 self.separate_update_for_viscous_flag)
+        fp.write('"dt": %e,\n' % self.dt)
+        fp.write('"dt_max": %e,\n' % self.dt_max)
+        fp.write('"fixed_time_step": %s,\n' % my_json_bool(self.fixed_time_step))
+        fp.write('"dt_reduction_factor": %e,\n' % self.dt_reduction_factor)
+        fp.write('"cfl": %e,\n' % self.cfl)
+        fp.write('"stringent_cfl": %d,\n' % self.stringent_cfl)
+        fp.write('"print_count": %d,\n' % self.print_count)
+        fp.write('"cfl_count": %d,\n' % self.cfl_count)
+        fp.write('"dt_shock": %e,\n' % self.dt_shock)
+        fp.write('"dt_plot": %e,\n' % self.dt_plot)
+        fp.write('"write_at_step": %d,\n' % self.write_at_step)
+        fp.write('"dt_history": %e,\n' % self.dt_history)
+        fp.write('"max_time": %e,\n' % self.max_time)
+        fp.write('"max_step": %d,\n' % self.max_step)
+        fp.write('"radiation_update_frequency": %d,\n' % self.radiation_update_frequency)
+        fp.write('"wall_update_count": %d,\n' % self.wall_update_count)
+        fp.write('"halt_now": 0,\n'); # presumably, we want the simulation to proceed
+        fp.write('"halt_on_large_flow_change": %s,\n' % my_json_bool(self.halt_on_large_flow_change))
+        fp.write('"tolerance_in_T": %g\n' % self.tolerance_in_T) # no comma on last one
+        fp.write('}\n')
         return
 
     def write_to_ini_file(self, fp):
@@ -1293,11 +1334,14 @@ def write_parameter_file(rootName):
 
 
 def write_control_file(rootName):
-    global verbosity_level
+    global verbosity_level, config_file_format
     if verbosity_level >= 1:
-        print "Begin write control file (INI format)."
+        print("Begin write control file in %s format." % config_file_format)
     fp = open(rootName+".control", "w")
-    gdata.write_to_control_file(fp)
+    if config_file_format == "JSON":
+        gdata.write_to_control_json_file(fp)
+    else:
+        gdata.write_to_control_ini_file(fp)
     fp.close()
     return
 
@@ -1309,7 +1353,7 @@ def write_mapped_cell_boundary_files(rootName, blockList):
     else:
         faceList = faceList2D
     if verbosity_level >= 1:
-        print "Begin write mapped-cell boundary file(s)."
+        print("Begin write mapped-cell boundary file(s).")
     for blk in blockList:
         for iface in faceList:
             bc = blk.bc_list[iface]
@@ -1535,7 +1579,7 @@ def main(uoDict):
     It may be handy to be able to embed most of the functions in 
     this file into a custom preprocessing script.
     """
-    global verbosity_level
+    global verbosity_level, config_file_format
     jobName = uoDict.get("--job", "test")
     rootName, ext = os.path.splitext(jobName)
     sketch.root_file_name = rootName
@@ -1545,6 +1589,8 @@ def main(uoDict):
         jobFileName = rootName + ".py"
     if verbosity_level >= 1:
         print "Job file: %s" % jobFileName
+    if uoDict.has_key("--json") or uoDict.has_key("--JSON"):
+        config_file_format = "JSON"
     zipFiles = 1  # Default: use zip file format for grid and flow data files.
     if uoDict.has_key("--zip-files"): zipFiles = 1
     if uoDict.has_key("--no-zip-files"): zipFiles = 0
