@@ -699,7 +699,7 @@ class GlobalData(object):
         fp.write("reaction_update = %s\n" % self.reaction_update)
         fp.write("reacting_flag = %d\n" % self.reacting_flag)
         fp.write("T_frozen = %g\n" % self.T_frozen)
-        fp.write("reaction_time_start = %e\n"% self.reaction_time_start)
+        fp.write("reaction_time_start = %e\n" % self.reaction_time_start)
         fp.write("energy_exchange_flag = %d\n" % self.energy_exchange_flag)
         fp.write("energy_exchange_update = %s\n" % self.energy_exchange_update)
         fp.write("T_frozen_energy = %g\n" % self.T_frozen_energy)
@@ -736,13 +736,13 @@ class GlobalData(object):
         fp.write("transient_mu_t_factor = %e\n" % self.transient_mu_t_factor)
         fp.write("separate_update_for_k_omega_source = %s\n" % 
                  self.separate_update_for_k_omega_source)
-        fp.write("heat_time_start = %e\n"% self.heat_time_start)
-        fp.write("heat_time_stop = %e\n"% self.heat_time_stop)
-        fp.write("heat_factor_increment = %e\n"% self.heat_factor_increment)
-        fp.write("ignition_time_start = %e\n"% self.ignition_time_start)
-        fp.write("ignition_time_stop = %e\n"% self.ignition_time_stop)
+        fp.write("heat_time_start = %e\n" % self.heat_time_start)
+        fp.write("heat_time_stop = %e\n" % self.heat_time_stop)
+        fp.write("heat_factor_increment = %e\n" % self.heat_factor_increment)
+        fp.write("ignition_time_start = %e\n" % self.ignition_time_start)
+        fp.write("ignition_time_stop = %e\n" % self.ignition_time_stop)
         fp.write("flux_calc = %s\n" % self.flux_calc) # changed to string 2013-04-01
-        fp.write("compression_tolerance = %e\n"% self.compression_tolerance)
+        fp.write("compression_tolerance = %e\n" % self.compression_tolerance)
         fp.write("shear_tolerance = %e\n"% self.shear_tolerance)
         fp.write("M_inf = %e\n" % self.M_inf)
         fp.write("interpolation_type = %s\n" % self.interpolation_type)
@@ -772,6 +772,97 @@ class GlobalData(object):
             fp.write(tstr_z + "\n")
             fp.write(tstr_w + "\n")
         #    
+        return
+
+    def write_to_json_file(self, fp):
+        """
+        Writes the configuration data to the specified file in JSON format.
+        """
+        fp.write('"title": "%s",\n' % self.title)
+        fp.write('"dimensions": %d,\n' % self.dimensions)
+        fp.write('"case_id": %d,\n' % self.case_id)
+        fp.write('"udf_file": "%s",\n' % self.udf_file)
+        fp.write('"udf_source_vector_flag": %d,\n' % self.udf_source_vector_flag)
+        fp.write('"gas_model_file": "%s",\n' % self.gas_model_file)
+        fp.write('"reaction_update" "%s",\n' % self.reaction_update)
+        fp.write('"reacting_flag": %s,\n' % my_json_bool(self.reacting_flag))
+        fp.write('"T_frozen": %g,\n' % self.T_frozen)
+        fp.write('"reaction_time_start": %e,\n' % self.reaction_time_start)
+        fp.write('"energy_exchange_flag": %d,\n' % self.energy_exchange_flag)
+        fp.write('"energy_exchange_update": "%s",\n' % self.energy_exchange_update)
+        fp.write('"T_frozen_energy": %g,\n' % self.T_frozen_energy)
+        fp.write('"radiation_input_file": "%s",\n' % self.radiation_input_file)
+        fp.write('"radiation_flag" %s,\n' % my_json_bool(self.radiation_flag))
+        fp.write('"radiation_scaling": %s,\n' % my_json_bool(self.radiation_scaling))
+        fp.write('"axisymmetric_flag": %s,\n' % my_json_bool(self.axisymmetric_flag))
+        fp.write('"mhd_flag": %s,\n' % my_json_bool(self.mhd_flag))
+        fp.write('"BGK_flag": %s,\n' % my_json_bool(self.BGK_flag))
+        fp.write('"viscous_flag": %s,\n' % my_json_bool(self.viscous_flag))
+        fp.write('"viscous_delay": %e,\n' % self.viscous_delay)
+        fp.write('"viscous_factor_increment": %e,\n' % self.viscous_factor_increment)
+        fp.write('"diffusion_flag": %s,\n' % my_json_bool(self.diffusion_flag))
+        fp.write('"diffusion_model": "%s",\n' % self.diffusion_model)
+        fp.write('"diffusion_delay": %e,\n' % self.diffusion_delay)
+        fp.write('"diffusion_factor_increment": %e,\n' % self.diffusion_factor_increment)
+        fp.write('"diffusion_lewis_number": %g,\n' % self.diffusion_lewis_number)
+        fp.write('"diffusion_schmidt_number": %g,\n' % self.diffusion_schmidt_number)
+        fp.write('"shock_fitting_flag": %s,\n' % my_json_bool(self.shock_fitting_flag))
+        fp.write('"shock_fitting_decay_flag": %s,\n' %
+                 my_json_bool(self.shock_fitting_decay_flag))
+        fp.write('"shock_fitting_speed_factor": %e,\n' % self.shock_fitting_speed_factor)
+        fp.write('"moving_grid_flag": %s,\n' % my_json_bool(self.moving_grid_flag))
+        fp.write('"write_vertex_velocities_flag": %s,\n' % 
+                 my_json_bool(self.write_vertex_velocities_flag))
+        fp.write('"filter_flag": %s,\n' % my_json_bool(self.filter_flag))
+        fp.write('"filter_tstart": %e,\n' % self.filter_tstart)
+        fp.write('"filter_tend": %e,\n' % self.filter_tend)
+        fp.write('"filter_dt": %e,\n' % self.filter_dt)
+        fp.write('"filter_mu": %e,\n' % self.filter_mu)
+        fp.write('"filter_npass": %d,\n' % self.filter_npass)
+        fp.write('"turbulence_model": "%s",\n' % self.turbulence_model.lower())
+        fp.write('"turbulence_prandtl_number": %g,\n' % self.turbulence_prandtl_number)
+        fp.write('"turbulence_schmidt_number": %g,\n' % self.turbulence_schmidt_number)
+        fp.write('"max_mu_t_factor": %e,\n' % self.max_mu_t_factor)
+        fp.write('"transient_mu_t_factor": %e,\n' % self.transient_mu_t_factor)
+        fp.write('"separate_update_for_k_omega_source": %s,\n' % 
+                 my_json_bool(self.separate_update_for_k_omega_source))
+        fp.write('"heat_time_start": %e,\n' % self.heat_time_start)
+        fp.write('"heat_time_stop": %e,\n' % self.heat_time_stop)
+        fp.write('"heat_factor_increment": %e,\n' % self.heat_factor_increment)
+        fp.write('"ignition_time_start": %e,\n' % self.ignition_time_start)
+        fp.write('"ignition_time_stop": %e,\n' % self.ignition_time_stop)
+        fp.write('"flux_calc": "%s",\n' % self.flux_calc)
+        fp.write('"compression_tolerance": %e,\n' % self.compression_tolerance)
+        fp.write('"shear_tolerance": %e,\n' % self.shear_tolerance)
+        fp.write('"M_inf": %e,\n' % self.M_inf)
+        fp.write('"interpolation_type": "%s",\n' % self.interpolation_type)
+        fp.write('"interpolate_in_local_frame": %s,\n' % 
+                 my_json_bool(self.interpolate_in_local_frame))
+        fp.write('"apply_limiter_flag": %s,\n' % my_json_bool(self.apply_limiter_flag))
+        fp.write('"extrema_clipping_flag": %s,\n' % my_json_bool(self.extrema_clipping_flag))
+        fp.write('"max_invalid_cells" %d,\n' % self.max_invalid_cells)
+        fp.write('"control_count": %d,\n' % self.control_count)
+        fp.write('"velocity_buckets": %d,\n' % self.velocity_buckets)
+        fp.write('"electric_field_work_flag": %s,\n' %
+                 my_json_bool(self.electric_field_work_flag))
+        fp.write('"conjugate_ht_flag": %s,\n' % my_json_bool(self.conjugate_ht_flag))
+        fp.write('"conjugate_ht_file": "%s",\n' % self.conjugate_ht_file)
+        #
+        if self.velocity_buckets > 0:
+            tstr_x = '"vcoords_x": ['
+            tstr_y = '"vcoords_y": ['
+            tstr_z = '"vcoords_z": ['
+            tstr_w = '"vweights": ['
+            for i, xyz in enumerate(self.vcoords):
+                tstr_x += (' %e' % xyz[0]) + (',' if i < (self.vcoords-1) else '')
+                tstr_y += (' %e' % xyz[1]) + (',' if i < (self.vcoords-1) else '')
+                tstr_z += (' %e' % xyz[2]) + (',' if i < (self.vcoords-1) else '')
+                tstr_w += (' %e' % self.vweights[i]) + (',' if i < (self.vcoords-1) else '')
+            fp.write(tstr_x + '],\n')
+            fp.write(tstr_y + '],\n')
+            fp.write(tstr_z + '],\n')
+            fp.write(tstr_w + '],\n')
+        #
         return
 
 # We will create just one GlobalData object that the user can alter.
@@ -1311,31 +1402,43 @@ def write_times_file(rootName):
 def write_parameter_file(rootName):
     global verbosity_level
     if verbosity_level >= 1:
-        print "Begin write configuration file (INI format)."
+        print("Begin write configuration file in %s format." % config_file_format)
     fp = open(rootName+".config", "w")
-    gdata.write_to_ini_file(fp)
-    fp.write("npiston = %d\n" %len(SimplePiston.pistonList) )
-    fp.write("nflow = %d\n" % len(FlowCondition.flowList) )
-    fp.write("nheatzone = %d\n" % len(HeatZone.zoneList))
-    fp.write("nignitionzone = %d\n" % len(IgnitionZone.zoneList))
-    fp.write("nreactionzone = %d\n" % len(ReactionZone.zoneList))
-    fp.write("nturbulencezone = %d\n" % len(TurbulenceZone.zoneList))
-    fp.write("nblock = %d\n" % len(Block.blockList) )
-    for piston in SimplePiston.pistonList:
-        piston.write_to_ini_file(fp)
-    for flow in FlowCondition.flowList:
-        flow.write_to_ini_file(fp)
-    for zone in HeatZone.zoneList:
-        zone.write_to_ini_file(fp)
-    for zone in IgnitionZone.zoneList:
-        zone.write_to_ini_file(fp)
-    for zone in ReactionZone.zoneList:
-        zone.write_to_ini_file(fp)
-    for zone in TurbulenceZone.zoneList:
-        zone.write_to_ini_file(fp)
-    for block in Block.blockList:
-        block.write_to_ini_file(fp, gdata.dimensions)
-    fp.write("\n# end file\n")
+    if config_file_format == "JSON":
+        fp.write('{\n') # start of top-level dictionary for JSON file
+        gdata.write_to_json_file(fp)
+        fp.write('"npiston": %d,\n' %len(SimplePiston.pistonList) )
+        fp.write('"nflow": %d,\n' % len(FlowCondition.flowList) )
+        fp.write('"nheatzone": %d,\n' % len(HeatZone.zoneList))
+        fp.write('"nignitionzone": %d,\n' % len(IgnitionZone.zoneList))
+        fp.write('"nreactionzone": %d,\n' % len(ReactionZone.zoneList))
+        fp.write('"nturbulencezone": %d,\n' % len(TurbulenceZone.zoneList))
+        fp.write('"nblock": %d,\n' % len(Block.blockList) )
+        # TODO for piston in SimplePiston.pistonList: piston.write_to_json_file(fp)
+        # TODO for flow in FlowCondition.flowList: flow.write_to_json_file(fp)
+        # TODO for zone in HeatZone.zoneList: zone.write_to_json_file(fp)
+        # TODO for zone in IgnitionZone.zoneList: zone.write_to_json_file(fp)
+        # TODO for zone in ReactionZone.zoneList: zone.write_to_json_file(fp)
+        # TODO for zone in TurbulenceZone.zoneList: zone.write_to_json_file(fp)
+        # TODO for block in Block.blockList: block.write_to_json_file(fp, gdata.dimensions)
+        fp.write('}\n') # end of top-level dictionary for JSON file
+    else:
+        gdata.write_to_ini_file(fp)
+        fp.write("npiston = %d\n" %len(SimplePiston.pistonList) )
+        fp.write("nflow = %d\n" % len(FlowCondition.flowList) )
+        fp.write("nheatzone = %d\n" % len(HeatZone.zoneList))
+        fp.write("nignitionzone = %d\n" % len(IgnitionZone.zoneList))
+        fp.write("nreactionzone = %d\n" % len(ReactionZone.zoneList))
+        fp.write("nturbulencezone = %d\n" % len(TurbulenceZone.zoneList))
+        fp.write("nblock = %d\n" % len(Block.blockList) )
+        for piston in SimplePiston.pistonList: piston.write_to_ini_file(fp)
+        for flow in FlowCondition.flowList: flow.write_to_ini_file(fp)
+        for zone in HeatZone.zoneList: zone.write_to_ini_file(fp)
+        for zone in IgnitionZone.zoneList: zone.write_to_ini_file(fp)
+        for zone in ReactionZone.zoneList: zone.write_to_ini_file(fp)
+        for zone in TurbulenceZone.zoneList: zone.write_to_ini_file(fp)
+        for block in Block.blockList: block.write_to_ini_file(fp, gdata.dimensions)
+        fp.write("\n# end file\n")
     fp.close()
     if verbosity_level >= 1:
         print "End write config file."
