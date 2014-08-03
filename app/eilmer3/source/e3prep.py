@@ -274,8 +274,7 @@ class GlobalData(object):
     * title: (string) A piece of text that will be propagated through the
       solution files and subsequently generated plots.
     * case_id: (int) An identifier for special cases in which pieces of
-      specialised code have been embedded into the main simulation
-      program.
+      specialised code have been embedded into the main simulation program.
       If you don't have such code to activate, the default value of 0 is fine.
     * gas_model_file: (string) The input file required for configuring the gas model
     * axisymmetric_flag: (0/1) A value of 0 sets two-dimensional, planar flow.
@@ -302,9 +301,12 @@ class GlobalData(object):
       active (if L{diffusion_flag} was set to 1). 
     * diffusion_factor_increment: (float) Increment for the diffusion_factor
       after diffusion_delay has passed.
-    * diffusion_lewis_number: (float) Lewis number used in the constant Lewis number diffusion model, default 1.0
-    * diffusion_schmidt_number: (float) Schmidt number used in the constant Schmidt number diffusion model, default 0.7
-    * turbulence_model: (string) "none" (default), "baldwin-lomax", "k-omega", "spalart-allmaras"
+    * diffusion_lewis_number: (float) Lewis number used in the constant Lewis number
+      diffusion model, default 1.0
+    * diffusion_schmidt_number: (float) Schmidt number used in the constant
+      Schmidt number diffusion model, default 0.7
+    * turbulence_model: (string) "none" (default), "baldwin-lomax", "k-omega",
+      "spalart-allmaras"
     * turbulence_prandtl_number: (float) default 0.89
     * turbulence_schmidt_number: (float) default 0.75
     * max_mu_t_factor: (float) Limiting factor for the turbulence viscosity
@@ -322,8 +324,10 @@ class GlobalData(object):
     * heat_time_stop: (float) final time for heating zones to be adding heat
     * heat_factor_increment: (float) the fraction of full heat load that will be
       added with each time step from t=heat_time_start
-    * ignition_time_start: (float) start time for using an effective ignition temperature for chemistry updates
-    * ignition_time_stop: (float) final time for using an effective ignition temperature for chemistry updates
+    * ignition_time_start: (float) start time for using an effective ignition
+      temperature for chemistry updates
+    * ignition_time_stop: (float) final time for using an effective ignition
+      temperature for chemistry updates
     * reacting_flag: (0/1) A value of 1 will make Rowan Gollan's finite-rate
       chemistry active if the appropriate gas_name (e.g. 'perf_gas_mix')
       has been specified.
@@ -357,8 +361,9 @@ class GlobalData(object):
       calculator.  default 0.01
     * interpolation_type: (string) Choose the set of thermo variables to use in interpolation.
       options: "rhoe", "rhop", "rhoT", "pT", default "rhoe"
-    * interpolate_in_local_frame: (bool) Set True to have reconstruction done in the interface-local
-      coordinate frame, use global coordinate frame otherwise.  Default is True.
+    * interpolate_in_local_frame: (bool) Set True to have reconstruction done
+      in the interface-local coordinate frame, use global coordinate frame otherwise.
+      Default is True.
     * apply_limiter_flag : (0/1) Set to 1 to have reconstruction limiter enabled (default)
       Set to 0 for no limiting
     * extrema_clipping_flag : (0/1) Set to 1 to allow clipping of extreme values in the 1D
@@ -389,21 +394,23 @@ class GlobalData(object):
       this number of steps.
     * halt_on_large_flow_change: (bool) If True, we want the simulation to halt if
       the flow changes significantly at any of the MonitorLocations (or mcells)
-    * tolerance_in_T: (float) allowable change in Temperature before simulation will be halted. 
+    * tolerance_in_T: (float) allowable change in Temperature before the simulation
+      will be halted. 
     * shock_fitting_flag: (0/1) Set to 1 to activate adaptation of the grid to the shock.
       Set to 0 (the default) for no shock adaptation.
       Note that shock-fitting implies a moving grid so moving_grid_flag will also be set.
-    * shock_fitting_speed_factor: (float) The calcuated boundary interface velocity is multiplied
-      by this number. It may need to be reduced below the default of 1.0 for stability on fine grids.
-    * shock_fitting_decay_flag: (0/1) Set to 1 to cause the shock fitting speed factor to decay
-      exponentially from the given value to 0 over the length of the simulation.
+    * shock_fitting_speed_factor: (float) The calcuated boundary interface velocity
+      is multiplied by this number. It may need to be reduced below the default of 1.0
+      for stability on fine grids.
+    * shock_fitting_decay_flag: (0/1) Set to 1 to cause the shock fitting speed factor
+      to decay exponentially from the given value to 0 over the length of the simulation.
       Set to 0 (the default) for no decay.
     * moving_grid_flag: (0/1) Set to 1 to activate functions that allow the grid to move.
       Set to 0 (the default) for a static grid.
     * write_vertex_velocities_flag: (0/1) Set to 1 to write the vertex velocities to file.
       Set to 0 (the default) for no files.
-    * filter_flag: (0/1) Set to 1 to periodically apply a flux corrected transport filter consisting of a
-      diffusion and an anti-diffusion step.
+    * filter_flag: (0/1) Set to 1 to periodically apply a flux corrected transport filter
+      consisting of a diffusion and an anti-diffusion step.
       Set to 0 (the default) for no filtering
     * filter_tstart: (float) Time at which to start filtering.
     * filter_tstop: (float) Time at which to stop filtering.
@@ -413,21 +420,23 @@ class GlobalData(object):
     * filter_npass: (int) Number of passes of the filter to apply at each interval.
     * dt_shock: (float) Period (in seconds) between running the shock adaptation algorithm.
     * dt_plot: (float) Period (in seconds) between writing all of the flow field data to the
-      solution files.  Multiple instances, each with a specific time stamp/index, can be written 
-      for one simulation so be careful not to write too many and fill up your disk.
-      The .times files records the instances written so you can look up the content of that file
-      to see the map between time index and actual simulation time.
+      solution files.  Multiple instances, each with a specific time stamp/index,
+      can be written for one simulation so be careful not to write too many
+      and fill up your disk.
+      The .times files records the instances written so you can look up the content
+      of that file to see the map between time index and actual simulation time.
     * dt_history: (float) Period (in seconds) between writing the data for the
       selected cells to the history files.
     * write_at_step: (int) Update step at which flow field data will be written.
       To distinguish this data set from the regularly written with dt_plot, the index tag
       for this solution is "xxxx".  Leave as the default value 0 to not write such a solution. 
-    * conjugate_ht_flag: (0/1) A flag indicating if the conjugate heat transfer at NORTH wall is active
-    * conjugate_ht_file: (string) A (file) name for the configuration of the wall conduction model
-      if the conjugate heat transfer model is active.
+    * conjugate_ht_flag: (0/1) A flag indicating if the conjugate heat transfer
+      at NORTH wall is active
+    * conjugate_ht_file: (string) A (file) name for the configuration of the wall conduction
+      model if the conjugate heat transfer model is active.
     * wall_update_count: (int) Number of steps to wait before recomputing heat transfer in the
-      wall conduction model. Values greater than 1 give a loosely-coupled approach to the flow solver/
-      wall solver update.
+      wall conduction model. Values greater than 1 give a loosely-coupled approach
+      to the flow solver/ wall solver update.
     """
     count = 0
 
