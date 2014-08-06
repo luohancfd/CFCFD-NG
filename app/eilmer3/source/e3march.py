@@ -24,6 +24,7 @@ Options::
 |            [--max-dt=<dt>]
 |            [--polish-time=<time,dt>]
 |            [--verbosity=<int>]
+|            [--max-wall-clock=<seconds>]
 
 .. Authors: Peter Jacobs, Wilson Chan, Luke Doherty, Rainer Kirchhartz,
             Chris James and Rowan Gollan.
@@ -48,6 +49,7 @@ import traceback
 from ConfigParser import SafeConfigParser
 if sys.version_info < (2, 7):
     from OrderedDict import *
+import time
 E3BIN = os.path.expandvars("$HOME/e3bin")
 sys.path.append(E3BIN)
 from libprep3 import *
@@ -61,7 +63,8 @@ longOptions = ["help", "job=",
                "nbj=", "nbk=", 
                "max-dt=",
                "polish-time=",
-               "verbosity="]
+               "verbosity=",
+               "max-wall-clock="]
 
 def printUsage():
     print ""
@@ -72,6 +75,7 @@ def printUsage():
     print "       [--max-dt=<dt>]"
     print "       [--polish-time=<time,dt]"
     print "       [--verbosity=<level>]"
+    print "       [--max-wall-clock=<seconds>]"
     return
 
 #----------------------------------------------------------------------
@@ -125,6 +129,7 @@ def run_in_block_marching_mode(cfgDict):
     """
     global verbosity_level
     if verbosity_level > 0: print "Set a few overall parameters"
+    startWallClockSeconds = time.time()
     jobName = cfgDict['jobName']
     blksPerSlice = cfgDict['nbj'] * cfgDict['nbk']
     max_time = cfgDict['max_time']
@@ -149,7 +154,7 @@ def run_in_block_marching_mode(cfgDict):
         print "    numberOfBlks=", numberOfBlks
         print "    blksPerSlice=", blksPerSlice
         raise RuntimeError("Invalid data.")
-    # Compute the maximum run time for each Eilmer3 run.
+    # Compute the maximum run time (in the simulation universe) for each Eilmer3 run.
     maxRunTime = max_time / numberOfEilmer3Runs
     #
     if restartFromRun == 0:
@@ -292,6 +297,15 @@ def run_in_block_marching_mode(cfgDict):
                 run_command(['cp', src, dest])
         # Throw away the local grid files.
         run_command(['rm'] + glob('grid/t0000/*'))
+        #
+        elapsedWallClockSeconds = time.time() - startWallClockSeconds
+        print("Elapsed wall-clock seconds = %.1f" % elapsedWallClockSeconds)
+        if ( cfgDict['max_wall_clock_seconds'] > 0 and
+             elapsedWallClockSeconds > cfgDict['max_wall_clock_seconds'] ):
+            print("Stopping part-way because we have exceeded wall-clock time limit")
+            print("    finished run = %d" % run)
+            print("    elapsedWallClockSeconds = %.1f" % elapsedWallClockSeconds)
+            break
         #------------ end of run loop ----------------------------------
     #   
     # Clean up the temporary folders and files and bring the master files back to the
@@ -534,6 +548,7 @@ def main(uoDict):
     cfgDict['nbj'] = int(uoDict.get("--nbj", "1"))
     cfgDict['nbk'] = int(uoDict.get("--nbk", "1"))
     cfgDict['max_dt'] = uoDict.get("--max-dt", None) # either a string or None
+    cfgDict['max_wall_clock_seconds'] = int(uoDict.get('--max-wall-clock', '-1'))
     # Get some parameters from the files previously written by e3prep.py
     cfgDict['gmodelFile'] = get_value_from_ini_file(jobName+'.config', 'gas_model_file')
     cfgDict['max_time'] = float(get_value_from_ini_file(jobName+'.control', 'max_time'))
