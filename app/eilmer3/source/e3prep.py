@@ -849,6 +849,7 @@ class GlobalData(object):
         fp.write('"conjugate_ht_file": "%s",\n' % self.conjugate_ht_file)
         #
         if self.velocity_buckets > 0:
+            # TODO: it's probably cleaner to use json.dumps for writing the arrays.
             tstr_x = '"vcoords_x": ['
             tstr_y = '"vcoords_y": ['
             tstr_z = '"vcoords_z": ['
@@ -936,6 +937,22 @@ class HeatZone(object):
         fp.write("z1 = %e\n" % self.point1.z)
         return
 
+    def write_to_json_file(self, fp):
+        """
+        Writes the HeatZone information to the specified file-object in JSON format.
+        """
+        fp.write('\n"heat_zone_%d": {\n' % self.zoneId)
+        fp.write('    "label": "%s",\n' % self.label)
+        fp.write('    "qdot": %e,\n' % self.qdot)
+        fp.write('    "x0": %e,\n' % self.point0.x)
+        fp.write('    "y0": %e,\n' % self.point0.y)
+        fp.write('    "z0": %e,\n' % self.point0.z)
+        fp.write('    "x1": %e,\n' % self.point1.x)
+        fp.write('    "y1": %e,\n' % self.point1.y)
+        fp.write('    "z1": %e\n' % self.point1.z)
+        fp.write('},\n')
+        return
+
 #----------------------------------------------------------------------------
 
 class IgnitionZone(object):
@@ -988,6 +1005,22 @@ class IgnitionZone(object):
         fp.write("z1 = %e\n" % self.point1.z)
         return
 
+    def write_to_json_file(self, fp):
+        """
+        Writes the IgnitionZone information to the specified file-object in JSON format.
+        """
+        fp.write('\n"ignition_zone_%d": {\n' % self.zoneId)
+        fp.write('    "label": "%s",\n' % self.label)
+        fp.write('    "Tig": %e,\n' % self.Tig)
+        fp.write('    "x0": %e,\n' % self.point0.x)
+        fp.write('    "y0": %e,\n' % self.point0.y)
+        fp.write('    "z0": %e,\n' % self.point0.z)
+        fp.write('    "x1": %e,\n' % self.point1.x)
+        fp.write('    "y1": %e,\n' % self.point1.y)
+        fp.write('    "z1": %e\n' % self.point1.z)
+        fp.write('},\n')
+        return
+
 #----------------------------------------------------------------------------
 
 class ReactionZone(object):
@@ -1034,6 +1067,21 @@ class ReactionZone(object):
         fp.write("x1 = %e\n" % self.point1.x)
         fp.write("y1 = %e\n" % self.point1.y)
         fp.write("z1 = %e\n" % self.point1.z)
+        return
+
+    def write_to_json_file(self, fp):
+        """
+        Writes the ReactionZone information to the specified file-object in JSON format.
+        """
+        fp.write('\n"reaction_zone_%d": {\n' % self.zoneId)
+        fp.write('    "label": "%s",\n' % self.label)
+        fp.write('    "x0": %e,\n' % self.point0.x)
+        fp.write('    "y0": %e,\n' % self.point0.y)
+        fp.write('    "z0": %e,\n' % self.point0.z)
+        fp.write('    "x1": %e,\n' % self.point1.x)
+        fp.write('    "y1": %e,\n' % self.point1.y)
+        fp.write('    "z1": %e\n' % self.point1.z)
+        fp.write('},\n')
         return
         
 
@@ -1083,6 +1131,21 @@ class TurbulenceZone(object):
         fp.write("x1 = %e\n" % self.point1.x)
         fp.write("y1 = %e\n" % self.point1.y)
         fp.write("z1 = %e\n" % self.point1.z)
+        return
+
+    def write_to_json_file(self, fp):
+        """
+        Writes the TurbulenceZone information to the specified file-object in JSON format.
+        """
+        fp.write('\n"turbulence_zone_%d": {\n' % self.zoneId)
+        fp.write('    "label": "%s",\n' % self.label)
+        fp.write('    "x0": %e,\n' % self.point0.x)
+        fp.write('    "y0": %e,\n' % self.point0.y)
+        fp.write('    "z0": %e,\n' % self.point0.z)
+        fp.write('    "x1": %e,\n' % self.point1.x)
+        fp.write('    "y1": %e,\n' % self.point1.y)
+        fp.write('    "z1": %e\n' % self.point1.z)
+        fp.write('},\n')
         return
         
 #----------------------------------------------------------------------------
@@ -1159,6 +1222,23 @@ class SimplePiston(object):
         fp.write("f = %e\n" % self.f)
         fp.write("const_v_flag = %s\n" % self.const_v_flag)
         fp.write("postv_v_flag = %s\n" % self.postv_v_flag)
+        return
+
+    def write_to_json_file(self, fp):
+        """
+        Writes the piston config information to the specified file-object in JSON format.
+        """
+        fp.write('\n"piston_%d": {\n' % self.pistonId)
+        fp.write('    "label": "%s",\n' % self.label)
+        fp.write('    "D": %e,\n' % self.d)
+        fp.write('    "L": %e,\n' % self.L)
+        fp.write('    "m": %e,\n' % self.m)
+        fp.write('    "x0": %e,\n' % self.x0)
+        fp.write('    "v0": %e,\n' % self.v0)
+        fp.write('    "f": %e,\n' % self.f)
+        fp.write('    "const_v_flag": %s,\n' % my_json_bool(self.const_v_flag))
+        fp.write('    "postv_v_flag": %s\n' % my_json_bool(self.postv_v_flag))
+        fp.write('},\n')
         return
 
 #----------------------------------------------------------------------------
@@ -1414,14 +1494,14 @@ def write_parameter_file(rootName):
         fp.write('"nreactionzone": %d,\n' % len(ReactionZone.zoneList))
         fp.write('"nturbulencezone": %d,\n' % len(TurbulenceZone.zoneList))
         fp.write('"nblock": %d,\n' % len(Block.blockList) )
-        # TODO for piston in SimplePiston.pistonList: piston.write_to_json_file(fp)
-        # TODO for flow in FlowCondition.flowList: flow.write_to_json_file(fp)
-        # TODO for zone in HeatZone.zoneList: zone.write_to_json_file(fp)
-        # TODO for zone in IgnitionZone.zoneList: zone.write_to_json_file(fp)
-        # TODO for zone in ReactionZone.zoneList: zone.write_to_json_file(fp)
-        # TODO for zone in TurbulenceZone.zoneList: zone.write_to_json_file(fp)
+        for piston in SimplePiston.pistonList: piston.write_to_json_file(fp)
+        for flow in FlowCondition.flowList: flow.write_to_json_file(fp)
+        for zone in HeatZone.zoneList: zone.write_to_json_file(fp)
+        for zone in IgnitionZone.zoneList: zone.write_to_json_file(fp)
+        for zone in ReactionZone.zoneList: zone.write_to_json_file(fp)
+        for zone in TurbulenceZone.zoneList: zone.write_to_json_file(fp)
         # TODO for block in Block.blockList: block.write_to_json_file(fp, gdata.dimensions)
-        fp.write('}\n') # end of top-level dictionary for JSON file
+        fp.write('"dummy_entry": 0\n}\n') # end of top-level dictionary for JSON file
     else:
         gdata.write_to_ini_file(fp)
         fp.write("npiston = %d\n" %len(SimplePiston.pistonList) )
