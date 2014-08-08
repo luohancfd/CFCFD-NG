@@ -1300,6 +1300,15 @@ int integrate_in_time(double target_time)
 		G.heat_factor = 0.0;
 	    }
 	}
+
+	if ( G.ignition_time_stop > 0.0 ) {
+            if ( G.sim_time >= G.ignition_time_start && G.sim_time < G.ignition_time_stop ) {
+	        G.ignition_zone_active = true;
+            } else {
+	        G.ignition_zone_active = false;
+            }
+        }
+
 	// 0.a. call out to user-defined function
 	if ( G.udf_file.length() > 0 ) {
 	    call_udf( G.sim_time, G.step, "at_timestep_start" );
