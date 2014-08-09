@@ -1500,8 +1500,9 @@ def write_parameter_file(rootName):
         for zone in IgnitionZone.zoneList: zone.write_to_json_file(fp)
         for zone in ReactionZone.zoneList: zone.write_to_json_file(fp)
         for zone in TurbulenceZone.zoneList: zone.write_to_json_file(fp)
-        # TODO for block in Block.blockList: block.write_to_json_file(fp, gdata.dimensions)
-        fp.write('"dummy_entry": 0\n}\n') # end of top-level dictionary for JSON file
+        for block in Block.blockList: block.write_to_json_file(fp, gdata.dimensions)
+        fp.write('"final_dummy_entry": 0\n')
+        fp.write('}\n') # end of top-level dictionary for JSON file
     else:
         gdata.write_to_ini_file(fp)
         fp.write("npiston = %d\n" %len(SimplePiston.pistonList) )
