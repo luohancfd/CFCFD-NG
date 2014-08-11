@@ -146,7 +146,7 @@ void RayTracingCell::read_precomputed_parade_spectra( size_t ib, size_t ic )
     ostringstream path;
     path << "block-" << ib << "/par_res_" << ic << ".txt";
     cout << path << endl;
-    ifstream specfile( path.str() );
+    ifstream specfile( path.str().c_str() );
     if ( !specfile.is_open() ) {
         cout << "RayTracingCell::read_precomputed_parade_spectra()" << endl
              << "Could not open parade spectra file '" << path.str() << "'." << endl
