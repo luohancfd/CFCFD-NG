@@ -1327,7 +1327,7 @@ def write_general_OpenFoam_bottom(fp):
     fp.write("// ************************************************************************* //\n")
     return
 
-def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, grid, flow):
+def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, jb, grid, flow):
     """
     Write the OpenFoam format data from a single block 
     as an unstructured grid of finite-volume cells.
@@ -1571,42 +1571,42 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, grid, flow):
     fp4.write("6\n")
     fp4.write("(\n")
     # North boundary
-    fp4.write("    north\n")
+    fp4.write("    n%04d\n" % (jb))
     fp4.write("    {\n")
     fp4.write("        type            wall;\n")
     fp4.write("        nFaces          %d;\n" % (SumOfNF))
     fp4.write("        startFace       %d;\n" % (NF_start))
     fp4.write("    }\n")
     # West boundary
-    fp4.write("    west\n")
+    fp4.write("    w%04d\n" % (jb))
     fp4.write("    {\n")
     fp4.write("        type            wall;\n")
     fp4.write("        nFaces          %d;\n" % (SumOfWF))
     fp4.write("        startFace       %d;\n" % (WF_start))
     fp4.write("    }\n")
     # East boundary
-    fp4.write("    east\n")
+    fp4.write("    e%04d\n" % (jb))
     fp4.write("    {\n")
     fp4.write("        type            wall;\n")
     fp4.write("        nFaces          %d;\n" % (SumOfEF))
     fp4.write("        startFace       %d;\n" % (EF_start))
     fp4.write("    }\n")
     # South boundary
-    fp4.write("    south\n")
+    fp4.write("    s%04d\n" % (jb))
     fp4.write("    {\n")
     fp4.write("        type            wall;\n")
     fp4.write("        nFaces          %d;\n" % (SumOfSF))
     fp4.write("        startFace       %d;\n" % (SF_start))
     fp4.write("    }\n")
     # Bottom boundary
-    fp4.write("    bottom\n")
+    fp4.write("    b%04d\n" % (jb))
     fp4.write("    {\n")
     fp4.write("        type            wall;\n")
     fp4.write("        nFaces          %d;\n" % (SumOfBF))
     fp4.write("        startFace       %d;\n" % (BF_start))
     fp4.write("    }\n")
     # Top boundary
-    fp4.write("    top\n")
+    fp4.write("    t%04d\n" % (jb))
     fp4.write("    {\n")
     fp4.write("        type            wall;\n")
     fp4.write("        nFaces          %d;\n" % (SumOfTF))
@@ -1653,7 +1653,7 @@ def write_OpenFoam_files(rootName, nblock, grid, flow):
         write_general_OpenFoam_header(OFFile3)
         write_general_OpenFoam_header(OFFile4)
         #
-        write_OpenFoam_unstructured_file(OFFile0, OFFile1, OFFile2, OFFile3, OFFile4, grid[jb], flow[jb])
+        write_OpenFoam_unstructured_file(OFFile0, OFFile1, OFFile2, OFFile3, OFFile4, jb, grid[jb], flow[jb])
         #
         write_general_OpenFoam_bottom(OFFile0)
         write_general_OpenFoam_bottom(OFFile1)
