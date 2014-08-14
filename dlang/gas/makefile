@@ -9,8 +9,10 @@ clean:
 	- rm *.o
 	- rm ${DEMO_PROGRAMS}
 
-gasmodel_demo: gasmodel_demo.d gasmodel.d idealgas.d gasmodelutil.d
-	dmd -unittest -g gasmodel_demo.d gasmodel.d gasmodelutil.d idealgas.d
+gasmodel_demo: gasmodel_demo.d gasmodel.d idealgas.d gasmodelutil.d \
+	thermo/thermalEOS.d thermo/perfectgasEOS.d
+	dmd -unittest -g gasmodel_demo.d gasmodel.d gasmodelutil.d idealgas.d thermo/thermalEOS.d thermo/perfectgasEOS.d
 
-idealgas_demo: idealgas_demo.d gasmodel.d idealgas.d
-	dmd -unittest -g idealgas_demo.d gasmodel.d idealgas.d
+idealgas_demo: idealgas_demo.d gasmodel.d idealgas.d \
+	thermo/thermalEOS.d thermo/perfectgasEOS.d
+	dmd -unittest -g idealgas_demo.d gasmodel.d idealgas.d thermo/thermalEOS.d thermo/perfectgasEOS.d

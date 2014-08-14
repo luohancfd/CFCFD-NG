@@ -8,6 +8,7 @@
 
 module idealgas;
 import gasmodel;
+import perfectgasEOS;
 import std.math;
 import std.stdio;
 import std.file;
@@ -68,14 +69,14 @@ public:
     override void update_thermo_from_pT(ref GasState Q) const 
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
-	Q.rho = Q.p / (Q.T[0] * _Rgas);
+	Q.rho = density(Q.p, Q.T[0], _Rgas);
 	Q.e[0] = Q.T[0] * _Cv;
     }
     override void update_thermo_from_rhoe(ref GasState Q) const
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	Q.T[0] = Q.e[0] / _Cv;
-	Q.p = Q.rho * _Rgas * Q.T[0];
+	Q.p = pressure(Q.rho, Q.T[0], _Rgas);
     }
     override void update_thermo_from_rhoT(ref GasState Q) const
     {
