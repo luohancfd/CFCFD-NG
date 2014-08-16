@@ -66,6 +66,9 @@ class SketchEnvironment(object):
 
         # Text is usually desired so will be turned on by default
         self.withText = True
+
+        # Default behaviour (for legacy) is to print BC types
+        self.face_labels = "bc_type"
         return
 
     def do_labels(self, label_state=True):
@@ -76,6 +79,13 @@ class SketchEnvironment(object):
         """
         assert type(label_state) == bool
         self.withText = label_state
+        return
+
+    def prefer_bc_labels_on_faces(self):
+        """
+        Set the words printed of faces to be the user-given bc_labels.
+        """
+        self.face_labels = "bc_label"
         return
 
     def xaxis(self, xmin=None, xmax=None, xtic=None, xaxis_offset=None):
@@ -377,7 +387,12 @@ class SketchEnvironment(object):
             print "render_face(): Unknown face type."
         x_mid, y_mid = self.transform(0.5*(p1.x+p2.x), 0.5*(p1.y+p2.y))
         theta = rad_to_degrees(math.atan2((p2.y-p1.y), (p2.x-p1.x)))
+        # As a default, set the label to the type of bc
         bc_label = bcName[block_object.bc_list[which_face].type_of_BC]
+        # Now, if bc_label printing is requested AND we have a label,
+        # then use that
+        if self.face_labels == "bc_label" and block_object.bc_list[which_face].label != '':
+            bc_label =  block_object.bc_list[which_face].label
         if block_object.bc_list[which_face].type_of_BC == ADJACENT:
             bc_label = None
         if bc_label and self.withText:
@@ -494,7 +509,12 @@ class SketchEnvironment(object):
             print "svg_render_face(): Unknown face type."
         x_mid, y_mid = self.transform(0.5*(p1.x+p2.x), 0.5*(p1.y+p2.y))
         theta = rad_to_degrees(math.atan2((p2.y-p1.y), (p2.x-p1.x)))
+        # As a default, set the label to the type of bc
         bc_label = bcName[block_object.bc_list[which_face].type_of_BC]
+        # Now, if bc_label printing is requested AND we have a label,
+        # then use that
+        if self.face_labels == "bc_label" and block_object.bc_list[which_face].label != '':
+            bc_label =  block_object.bc_list[which_face].label
         if block_object.bc_list[which_face].type_of_BC == ADJACENT:
             bc_label = None
         if bc_label and self.withText:
