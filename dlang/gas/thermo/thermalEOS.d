@@ -23,7 +23,7 @@
 import gasmodel;
 
 /++
-  ThermalEOS defines the servies provided by a thermal equation
+  ThermalEOS defines the services provided by a thermal equation
   of state model.
 
   All thermal equations of state define a relationship between
