@@ -1,5 +1,5 @@
 /**
- * sutherland_viscosity.d
+ * sutherland_visc.d
  * Implements the Sutherland "law" for
  * viscosity.
  *
@@ -62,7 +62,7 @@ private:
     double _mu_ref;
     double _S;
 }
-
+ 
 unittest {
     double T = 300.0;
     double T_ref = 273.0; 

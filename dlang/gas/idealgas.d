@@ -9,6 +9,9 @@
 module idealgas;
 import gasmodel;
 import perfectgasEOS;
+import calperfectgasEOS;
+import sutherland_visc;
+import sutherland_therm_cond;
 import std.math;
 import std.stdio;
 import std.file;
@@ -70,12 +73,12 @@ public:
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	Q.rho = density(Q.p, Q.T[0], _Rgas);
-	Q.e[0] = Q.T[0] * _Cv;
+	Q.e[0] = energy(Q.T[0], _Cv, 0.0);
     }
     override void update_thermo_from_rhoe(ref GasState Q) const
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
-	Q.T[0] = Q.e[0] / _Cv;
+	Q.T[0] = calperfectgasEOS.temperature(Q.e[0], _Cv, 0.0);
 	Q.p = pressure(Q.rho, Q.T[0], _Rgas);
     }
     override void update_thermo_from_rhoT(ref GasState Q) const
@@ -100,9 +103,10 @@ public:
     }
     override void update_trans_coeffs(ref GasState Q) const
     {
+	assert(Q.T.length == 1, "incorrect number of modes");
 	assert(Q.k.length == 1, "incorrect number of modes");
-	Q.mu = _mu_ref * sutherland(Q.T[0], _T_ref, _S_mu);
-	Q.k[0] = _k_ref * sutherland(Q.T[0], _T_ref, _S_k);
+	Q.mu = sutherland_viscosity(Q.T[0], _T_ref, _mu_ref, _S_mu);
+	Q.k[0] = sutherland_thermal_conductivity(Q.T[0], _T_ref, _k_ref, _S_k);
     }
     /*
     override void eval_diffusion_coefficients(ref GasState Q) {
@@ -151,22 +155,6 @@ private:
     double _S_mu = 111.0; // degrees K
     double _k_ref = 0.0241; // W/(m.K) 
     double _S_k = 194.0; // degrees K
-
-    /**
-     * Sutherland's expression relating the quantity, at temperature T,
-     * to the value at the reference temperature.
-     *
-     * Params:
-     *     T: temperature in degrees K
-     *     T_ref: reference temperature (degrees K)
-     *     S: Sutherland constant (degrees K)
-     * Returns:
-     *     ratio of property at temperature T to reference value.
-     */
-    double sutherland(double T, double T_ref, double s) const
-    {
-	return sqrt(T/T_ref)*(T/T_ref)*(T_ref + s)/(T + s);
-    }
 
 } // end class Ideal_gas
 

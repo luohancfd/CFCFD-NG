@@ -23,7 +23,7 @@ import therm_cond;
    Returns:
      The thermal conductivity in W/(m.K)
 +/
-pure double sutherland_therm_cond(double T, double T_ref, double k_ref, double S)
+pure double sutherland_thermal_conductivity(double T, double T_ref, double k_ref, double S)
 in {
     assert(T > 0.0);
     assert(T_ref > 0.0);
@@ -55,7 +55,7 @@ public:
     override void update_thermal_conductivity(ref GasState Q) const {
 	assert(Q.T.length == 1);
 	assert(Q.k.length == 1);
-	Q.k[0] = sutherland_therm_cond(Q.T[0], _T_ref, _k_ref, _S);
+	Q.k[0] = sutherland_thermal_conductivity(Q.T[0], _T_ref, _k_ref, _S);
     }
 
 private:
@@ -69,7 +69,7 @@ unittest {
     double T_ref = 273.0; 
     double k_ref = 0.0241;
     double S = 194.0;
-    assert(approxEqual(sutherland_therm_cond(T, T_ref, k_ref, S), 0.0262449));
+    assert(approxEqual(sutherland_thermal_conductivity(T, T_ref, k_ref, S), 0.0262449));
 
     auto tcm = new SutherlandThermalConductivity(T_ref, k_ref, S);
     auto gd = new GasState();
