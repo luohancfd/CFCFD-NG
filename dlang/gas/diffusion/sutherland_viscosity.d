@@ -53,7 +53,7 @@ public:
       up-to-date in GasState Q.
     +/
     override void update_viscosity(ref GasState Q) const {
-	assert(Q.T.length >= 1);
+	assert(Q.T.length == 1);
 	Q.mu = sutherland_viscosity(Q.T[0], _T_ref, _mu_ref, _S);
     }
 
