@@ -44,7 +44,10 @@ Compiling eilmer
 
 Get a fresh copy of the repository::
 
-  > hg clone https://cfcfdlocal@triton.pselab.uq.edu.au/cfcfd3-hg/cfcfd3-hg cfcfd3
+  > hg clone https://source.eait.uq.edu.au/hg/cfcfd3 cfcfd3
+
+Username: cfcfd-user@svn.itee.uq.edu.au
+Password: hyper-socks
 
 Copy the ``cea2`` source directory to ``cfcfd3/app/extern/``.
 
@@ -72,7 +75,7 @@ For example, my ``/short`` directory is::
   
 The actual job submission would look something like::
 
-  > cd /short/fb5/deg564
+  > cd /short/fb5/rog564
   > cd sim_dir
   --- prepare submit script ---
   > qsub submit-script
