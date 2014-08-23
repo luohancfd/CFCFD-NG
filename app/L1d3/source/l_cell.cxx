@@ -224,7 +224,7 @@ int LCell::scan_iface_values_from_string(char *bufptr)
 {
     // Look for a new-line character and truncate the string there.
     char *cptr = strchr(bufptr, '\n');
-    if ( cptr != NULL ) cptr = '\0';
+    if ( cptr != NULL ) *cptr = '\0';
     // Now, we should have a string with only numbers separated by spaces.
     x = atof(strtok( bufptr, " " )); // tokenize on space characters
     area = atof(strtok( NULL, " " ));
@@ -273,7 +273,7 @@ int LCell::scan_cell_values_from_string(char *bufptr)
 {
     // Look for a new-line character and truncate the string there.
     char *cptr = strchr(bufptr, '\n');
-    if ( cptr != NULL ) cptr = '\0';
+    if ( cptr != NULL ) *cptr = '\0';
     // Now, we should have a string with only numbers separated by spaces.
     xmid = atof(strtok( bufptr, " " )); // tokenize on space characters
     volume = atof(strtok( NULL, " " ));

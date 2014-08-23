@@ -145,7 +145,7 @@ void RayTracingCell::read_precomputed_parade_spectra( size_t ib, size_t ic )
     // 3. Pick up the solution and insert it into CoeffSpectra
     ostringstream path;
     path << "block-" << ib << "/par_res_" << ic << ".txt";
-    cout << path << endl;
+    cout << path.str() << endl;
     ifstream specfile( path.str().c_str() );
     if ( !specfile.is_open() ) {
         cout << "RayTracingCell::read_precomputed_parade_spectra()" << endl
