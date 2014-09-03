@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Function to automatically convert e3prep output to OpenFoam mesh.
 script performes the following tasks:
@@ -14,7 +15,7 @@ script performes the following tasks:
     - Anything else will retain name and be set as "patch"
 
 
-Author: ingo jahn 02/09/2014
+Author: ingo jahn 04/09/2014
 """
 
 import os as os
