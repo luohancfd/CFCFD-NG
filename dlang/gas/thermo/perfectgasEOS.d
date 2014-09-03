@@ -145,8 +145,8 @@ unittest {
     assert(approxEqual(temperature(1.2, 103356.0, R), 300.0));
 
     auto pg = new PerfectGasEOS(R);
-    auto gd = new GasState();
-    gd.T ~= 300.0;
+    auto gd = GasState(1, 1);
+    gd.T[0] = 300.0;
     gd.rho = 1.2;
     pg.update_pressure(gd);
     assert(approxEqual(gd.p, 103356.0));

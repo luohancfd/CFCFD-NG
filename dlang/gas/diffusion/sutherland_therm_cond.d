@@ -72,9 +72,9 @@ unittest {
     assert(approxEqual(sutherland_thermal_conductivity(T, T_ref, k_ref, S), 0.0262449));
 
     auto tcm = new SutherlandThermalConductivity(T_ref, k_ref, S);
-    auto gd = new GasState();
-    gd.T ~= 300.0;
-    gd.k ~= 0.0;
+    auto gd = GasState(1, 1);
+    gd.T[0] = 300.0;
+    gd.k[0] = 0.0;
     tcm.update_thermal_conductivity(gd);
     assert(approxEqual(gd.k[0], 0.0262449));
 }

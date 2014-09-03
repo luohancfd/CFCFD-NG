@@ -92,9 +92,9 @@ unittest {
     assert(approxEqual(temperature(358500.0, Cv, e0), 500.0));
 
     auto cpg = new CaloricallyPerfectGasEOS(Cv, e0);
-    auto gd = new GasState();
-    gd.T ~= 500.0;
-    gd.e ~= 0.0;
+    auto gd = GasState(1, 1);
+    gd.T[0] = 500.0;
+    gd.e[0] = 0.0;
     cpg.update_energy(gd);
     assert(approxEqual(gd.e[0], 358500.0));
     gd.e[0] = 358500.0;

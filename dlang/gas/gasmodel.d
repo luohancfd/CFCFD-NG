@@ -52,7 +52,7 @@ protected:
 }
 
 
-class GasState {
+struct GasState {
 public:
     /// Thermodynamic properties.
     double rho;  /// density, kg/m**3
@@ -69,6 +69,14 @@ public:
     /// Composition
     double[] massf;  /// species mass fractions
     double quality;  /// vapour quality
+
+    this(uint n_species, uint n_modes)
+    {
+	massf.length = n_species;
+	e.length = n_modes;
+	T.length = n_modes;
+	k.length = n_modes;
+    }
 
     this(in GasModel gm, in double p_init, in double[] T_init, 
 	 in double[] massf_init=[1.0,], in double quality_init=1.0,
@@ -113,8 +121,6 @@ public:
 	this(gm, p_init, Tlocal, massf_init, quality_init, sigma_init);
     }
 
-    this() {} // makes no sense to define the data in the absence of a model
-
     this(in GasState other) 
     {
 	rho = other.rho;
@@ -129,6 +135,15 @@ public:
 	sigma = other.sigma;
 	massf = other.massf.dup;
 	quality = other.quality;
+    }
+
+    // Postblit constructor
+    this(this)
+    {
+	massf = massf.dup;
+	e = e.dup;
+	T = T.dup;
+	k = k.dup;
     }
 
     void copy_values_from(in GasState other) 
@@ -223,7 +238,7 @@ public:
 	return is_data_valid;
     } // end check_values()
 
-    override string toString() const
+    string toString() const
     {
 	char[] repr;
 	repr ~= "GasState(";

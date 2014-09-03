@@ -43,7 +43,7 @@ GasModel init_gas_model(in char[] file_name="gas-model.json") {
 unittest {
     import std.math;
     auto gm = init_gas_model("sample-data/ideal-air-gas-model.json");
-    auto gd = new GasState(gm, 100.0e3, 300.0);
+    auto gd = GasState(gm, 100.0e3, 300.0);
     assert(approxEqual(gm.R(gd), 287.086), "gas constant");
     assert(gm.n_modes == 1, "number of energy modes");
     assert(gm.n_species == 1, "number of species");
