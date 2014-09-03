@@ -32,7 +32,7 @@ public:
 	 in double mu_t_init=0.0, in double k_t_init=0.0,
 	 in int S_init=0)
     {
-	gas = new GasState(gm, p_init, T_init, massf_init, quality_init);
+	gas = GasState(gm, p_init, T_init, massf_init, quality_init);
 	vel = vel_init;
 	B = B_init;
 	tke = tke_init;
@@ -46,8 +46,7 @@ public:
 
     this(in FlowState other, in GasModel gm)
     {
-	gas = new GasState(gm, other.gas.p, other.gas.T, other.gas.massf,
-			   other.gas.quality); 
+	gas = GasState(gm, other.gas.p, other.gas.T, other.gas.massf, other.gas.quality); 
 	vel = other.vel;
 	B = other.B;
 	tke = other.tke;
@@ -75,9 +74,12 @@ public:
 	size_t n = others.length;
 	if (n == 0) throw new Error("Need to average from a nonempty array.");
 	GasState[] gasList;
-	// We need to be honest and not to fiddle with the other gas states.
+	// Note that, because we cast away their "const"ness,
+	// we need to be honest and not to fiddle with the other gas states.
 	foreach(other; others) {
-	    if ( this is other ) throw new Error("Must not include destination in source list.");
+	    if ( this is other ) {
+		throw new Error("Must not include destination in source list.");
+	    }
 	    gasList ~= cast(GasState)other.gas;
 	}
 	gas.copy_average_values_from(gasList, gm);
@@ -88,7 +90,7 @@ public:
 	omega = 0.0;
 	mu_t = 0.0;
 	k_t = 0.0;
-	S = 0; // remember that shock detector is an integer flag
+	S = 0; // Remember that shock detector is an integer flag.
 	foreach(other; others) {
 	    vel += other.vel;
 	    B += other.B;

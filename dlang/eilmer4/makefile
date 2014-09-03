@@ -15,11 +15,22 @@ BC_FILES := bc.d \
 	bc_menter_correction.d
 
 GAS_DIR := ../gas
+# The following is copied from $GAS_DIR/makefile
 GAS_MODEL_FILES := ${GAS_DIR}/gasmodel.d \
+	${GAS_DIR}/idealgas.d \
 	${GAS_DIR}/gasmodelutil.d \
-	${GAS_DIR}/idealgas.d
+	${GAS_DIR}/thermo/thermalEOS.d \
+	${GAS_DIR}/thermo/perfectgasEOS.d \
+	${GAS_DIR}/thermo/caloricEOS.d \
+	${GAS_DIR}/thermo/calperfectgasEOS.d \
+	${GAS_DIR}/diffusion/viscosity.d \
+	${GAS_DIR}/diffusion/sutherland_visc.d \
+	${GAS_DIR}/diffusion/therm_cond.d \
+	${GAS_DIR}/diffusion/sutherland_therm_cond.d
+
 GEOM_DIR := ../geom
 GEOM_FILES := ${GEOM_DIR}/geom.d
+
 GZIP_DIR := ../extern/gzip
 GZIP_FILES := ${GZIP_DIR}/gzip.d
 
