@@ -57,6 +57,7 @@ private:
 
 unittest {
     import std.math;
+    import std.stdio;
     double[] R = [297.0, 260.0]; // N2, O2
     auto pg = new PerfectGasMixEOS(R);
     auto gd = GasState(2, 1);
@@ -65,7 +66,7 @@ unittest {
     gd.massf[0] = 0.78;
     gd.massf[1] = 0.22;
     pg.update_pressure(gd);
-    assert(approxEqual(gd.p, 1103989.6));
+    assert(approxEqual(gd.p, 103989.6));
     gd.p = 103989.6;
     gd.rho = 0.0;
     pg.update_density(gd);
