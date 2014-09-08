@@ -9,5 +9,6 @@
 import gasmodel;
 
 interface ThermalConductivity {
-    void update_thermal_conductivity(ref GasState Q) const;
+    ThermalConductivity dup() const;
+    void update_thermal_conductivity(ref GasState Q);
 }

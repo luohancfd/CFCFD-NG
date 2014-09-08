@@ -38,21 +38,28 @@ body{
 }
 
 /++
-  SutherlandThermalConductivity is a thermal conductivity model.
+  SutherlandThermCond is a thermal conductivity model.
 +/
-class SutherlandThermalConductivity : ThermalConductivity {
+class SutherlandThermCond : ThermalConductivity {
 public:
+    this(in SutherlandThermCond src) {
+	_T_ref = src._T_ref;
+	_k_ref = src._k_ref;
+	_S = src._S;
+    }
     this(double T_ref, double k_ref, double S) {
 	_T_ref = T_ref;
 	_k_ref = k_ref;
 	_S = S;
     }
-
+    override SutherlandThermCond dup() const {
+	return new SutherlandThermCond(this);
+    }
     /++
       Compute the thermal conductivity assuming that temperature is
       up-to-date in GasState Q.
     +/
-    override void update_thermal_conductivity(ref GasState Q) const {
+    override void update_thermal_conductivity(ref GasState Q) {
 	assert(Q.T.length == 1);
 	assert(Q.k.length == 1);
 	Q.k[0] = sutherland_thermal_conductivity(Q.T[0], _T_ref, _k_ref, _S);
@@ -71,11 +78,10 @@ unittest {
     double S = 194.0;
     assert(approxEqual(sutherland_thermal_conductivity(T, T_ref, k_ref, S), 0.0262449));
 
-    auto tcm = new SutherlandThermalConductivity(T_ref, k_ref, S);
+    auto tcm = new SutherlandThermCond(T_ref, k_ref, S);
     auto gd = GasState(1, 1);
     gd.T[0] = 300.0;
     gd.k[0] = 0.0;
     tcm.update_thermal_conductivity(gd);
     assert(approxEqual(gd.k[0], 0.0262449));
-    //    assert(approxEqual(gd.k[0], 0.249));
 }

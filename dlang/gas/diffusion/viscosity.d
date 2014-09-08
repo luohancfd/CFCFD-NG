@@ -10,8 +10,5 @@ import gasmodel;
 
 interface Viscosity {
     Viscosity dup() const;
-    double eval(in GasState Q);
-    final void update_viscosity(ref GasState Q) {
-	Q.mu = eval(Q);
-    }
+    void update_viscosity(ref GasState Q);
 }
