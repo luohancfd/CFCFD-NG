@@ -77,4 +77,5 @@ unittest {
     gd.k[0] = 0.0;
     tcm.update_thermal_conductivity(gd);
     assert(approxEqual(gd.k[0], 0.0262449));
+    //    assert(approxEqual(gd.k[0], 0.249));
 }

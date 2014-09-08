@@ -42,19 +42,25 @@ body{
 +/
 class SutherlandViscosity : Viscosity {
 public:
+    this(in SutherlandViscosity src) {
+	_T_ref = src._T_ref;
+	_mu_ref = src._mu_ref;
+	_S = src._S;
+    }
     this(double T_ref, double mu_ref, double S) {
 	_T_ref = T_ref;
 	_mu_ref = mu_ref;
 	_S = S;
     }
-
+    override SutherlandViscosity dup() const {
+	return new SutherlandViscosity(this);
+    }
     /++
       Compute the viscosity assuming that temperature is
       up-to-date in GasState Q.
     +/
-    override void update_viscosity(ref GasState Q) const {
-	assert(Q.T.length == 1);
-	Q.mu = sutherland_viscosity(Q.T[0], _T_ref, _mu_ref, _S);
+    override double eval(in GasState Q) {
+	return sutherland_viscosity(Q.T[0], _T_ref, _mu_ref, _S);
     }
 
 private:

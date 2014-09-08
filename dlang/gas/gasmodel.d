@@ -12,8 +12,11 @@ module gasmodel;
 import std.conv;
 import std.math;
 import std.stdio;
+import std.range;
+import std.algorithm;
 
 immutable double R_universal = 8.314; // J/mole.K
+immutable double SMALL_MOLE_FRACTION = 1.0e-15;
 
 class GasModel {
 public:
@@ -287,3 +290,38 @@ void scale_mass_fractions(ref double[] massf, double tolerance=0.0)
     }
 } // end scale_mass_fractions()
 
+pure double mass_average(in GasState Q, in double[] phi)
+{
+    assert(Q.massf.length == phi.length);
+    return reduce!((acc, e) =>  acc + e[0]*e[1])(0.0, zip(Q.massf, phi));
+}
+
+double mixture_molecular_weight(in double[] massf, in double[] MW)
+{
+    assert(massf.length == MW.length);
+    double M_inv = reduce!((acc, e) => acc + e[0]/e[1])(0.0, zip(massf, MW));
+    return 1.0/M_inv;
+}
+
+void massf2molef(in double[] massf, in double[] MW, double[] molef)
+{
+    assert(massf.length == MW.length);
+    assert(massf.length == molef.length);
+    double MW_mix = mixture_molecular_weight(massf, MW);
+    for ( auto isp = 0; isp < massf.length; ++isp ) {
+	molef[isp] = massf[isp]*MW_mix/MW[isp];
+    }
+}
+
+unittest {
+    auto gd = GasState(2, 1);
+    gd.massf[0] = 0.8;
+    gd.massf[1] = 0.2;
+    double[] phi = [9.0, 16.0];
+    assert(approxEqual(10.4, mass_average(gd, phi)));
+    double[] MW = [28.0e-3, 32.0e-3];
+    assert(approxEqual(0.0287179, mixture_molecular_weight(gd.massf, MW)));
+    double[] molef = [0.0, 0.0];
+    massf2molef(gd.massf, MW, molef);
+    assert(approxEqual([0.8205128, 0.1794872], molef));
+}
