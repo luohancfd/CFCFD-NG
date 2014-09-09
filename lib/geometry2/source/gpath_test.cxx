@@ -11,6 +11,7 @@
 #include <math.h>
 #include "geom.hh"
 #include "gpath.hh"
+#include "gpath_utils.hh"
 using namespace std;
 
 // We want a vector container (from the standard library) 
@@ -198,5 +199,16 @@ int main()
     }
 
     cout << "Done." << endl;
+
+    cout << "\nTesting dist_point_projection routine." << endl;
+    Line l = Line(Vector3(0.0, 0.0), Vector3(1.0, 1.0));
+    p = Vector3(1.0, 0.0);
+    double t_found;
+    Vector3 C_found;
+    double dist = dist_point_projection(p, l, t_found, C_found);
+    cout << "Test point is: " << p << endl;
+    cout << "Closest distance to path is: " << dist << endl;
+    cout << "Parameter and point on path is: " << t_found << " " << C_found << endl;
+
     return 0;
 }

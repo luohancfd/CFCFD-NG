@@ -900,3 +900,134 @@ int intersect_3D_lines(const Vector3 &P0, const Vector3 &T0,
 
     return status;
 }
+
+double dist_point_projection(const Vector3 &P, const Path &path,
+			     double &t_found, Vector3 &C_found,
+			     double eps1, double eps2)
+{
+/**  Adaptation of algorithm in Piegl and Tiller (1997)
+ *   for projection of point to a NURBS curve. Here it has
+ *   been generalised for any path. See Section 6.1.
+ *  
+ *   Refernce:
+ *   Piegl and Tiller (1997)
+ *   The NURBDS Book, 2nd edition
+ *   Springer-Verlag, Berlin
+ **/
+
+    const int SAMPLE_NO = 20;
+    const int MAX_ITERATIONS = 100;
+
+    // 0. Sample some points to find a good starting u
+    double t_min = 0.0;
+    Vector3 P_min = path.eval(t_min);
+
+    for ( int i = 1; i < SAMPLE_NO; ++i ) {
+	double t_test = i / (SAMPLE_NO - 1.0);
+	Vector3 P_test = path.eval(t_test);
+
+	if ( vabs(P_test - P) < vabs(P_min - P) ) {
+	    t_min = t_test;
+	    P_min = P_test;
+	}
+    }
+
+    // 1. Begin iterating starting with t_min
+    double t0 = t_min;
+    double t1;
+    int iter;
+
+    bool criterion1 = false;
+    bool criterion2 = false;
+    bool criterion4 = false;
+	
+    Vector3 C0; // value at t0
+    Vector3 C1; // first deriv
+    Vector3 tmp; // tmp for 2nd deriv calc
+    Vector3 C2; // second deriv
+    Vector3 PC0; // C0 - P
+    double dot_C1_PC0;
+    double dot_C2_PC0;
+    double abs_PC0;
+    double abs_C1;
+    double cos_T;
+    double dt = 0.001*eps1;
+
+    for ( iter = 0; iter < MAX_ITERATIONS; ++iter ) {
+
+	C0 = path.eval(t0);
+	C1 = path.dpdt(t0);
+	if ( t0 + dt <= 1.0 ) {
+	    tmp = path.dpdt(t0 + dt);
+	} else {
+	    tmp = path.dpdt(t0 - dt);
+	}
+	C2 = 0.5*(C1 + tmp);
+	PC0 = C0 - P;
+	dot_C1_PC0 = dot(C1, PC0);
+	dot_C2_PC0 = dot(C2, PC0);
+	abs_PC0 = vabs(PC0);
+	abs_C1 = vabs(C1);
+
+	t1 = t0 - dot_C1_PC0 / ( dot_C2_PC0 + abs_C1*abs_C1);
+	
+	// Test criterion 1.
+	if ( abs_PC0 <= eps1 )
+	    criterion1 = true;
+
+	// Test criterion 2
+	cos_T = fabs(dot_C1_PC0) / (abs_C1 * abs_PC0);
+	if ( cos_T <= eps2 )
+	    criterion2 = true;
+
+	if ( criterion1 && criterion2 ) {
+	    t_found = t0; C_found = C0;
+	    return abs_PC0;
+	}
+	// else go on..
+
+	// Test criterion 3.
+	// ASSUMPTION: Our curves are NOT closed.
+	// Need to fix this if that assumption changes.
+	//
+	// ASSUMPTION: Our curve extends from t-0.0 --> t=1.0
+	//
+
+	if ( t1 < 0.0 )
+	    t1 = 0.0;
+
+	if ( t1 > 1.0 )
+	    t1 = 1.0;
+
+	if ( vabs((t1 - t0)*C1) <= eps1 )
+	    criterion4 = true;
+
+	if ( criterion1 || criterion2 || criterion4 ) {
+	    t_found = t0; C_found = C0;
+	    return abs_PC0;
+	}
+
+	t0 = t1;
+	criterion1 = false;
+	criterion2 = false;
+	criterion4 = false;
+    }
+
+    // If we get out here, we did not converge.
+    // Eventually, handle gracefully.
+    // For the moment.. just crash.
+
+    cout << "dist_point_projection():\n";
+    cout << "Iterations did not converge.\n";
+    cout << "Bailing out!\n";
+    exit(1);
+}
+
+Vector3 project_point_on_path(const Vector3 &P, const Path &path,
+			      double eps1, double eps2)
+{
+    double t_found;
+    Vector3 C_found;
+    dist_point_projection(P, path, t_found, C_found, eps1, eps2);
+    return C_found;
+}

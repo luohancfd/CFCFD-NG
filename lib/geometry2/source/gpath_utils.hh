@@ -82,6 +82,10 @@ int intersect_3D_lines(const Vector3 &P0, const Vector3 &T0,
 		       const Vector3 &P2, const Vector3 &T2,
 		       double &alf1, double &alf2,
 		       Vector3 &P1);
-
+double dist_point_projection(const Vector3 &P, const Path &path,
+			     double &t_found, Vector3 &C_found,
+			     double eps1=1.0e-6, double eps2=1.0e-8);
+Vector3 project_point_on_path(const Vector3 &P, const Path &path,
+			      double eps1=1.0e-6, double eps2=1.0e-8);
 #endif
 

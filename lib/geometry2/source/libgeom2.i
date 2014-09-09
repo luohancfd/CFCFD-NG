@@ -36,6 +36,7 @@
 #include "geom.hh"
 #include "../../nm/source/fobject.hh"
 #include "gpath.hh"
+#include "gpath_utils.hh"
 #include "pypath.hh"
 #include "surface.hh"
 #include "volume.hh"
@@ -257,6 +258,7 @@ class Node(Vector3):
 %rename(ostream_print_Path) operator<<( ostream &os, const Path &v );
 %ignore XPoly::operator=;
 %include "gpath.hh"
+%include "gpath_utils.hh"
 %include "pypath.hh"
 
 %extend Path {
