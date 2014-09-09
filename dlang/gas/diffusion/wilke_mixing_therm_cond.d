@@ -1,9 +1,18 @@
 /**
- * wilke_mixing.d
- * Implements the Gordon and McBride variant
- * of Wilke's mixing rule to compute the
- * viscosity and thermal conductivity of
- * a mixture of gases.
+ * wilke_mixing_therm_cond.d
+ * Implements Wilke's mixing rule to compute the
+ * thermal conductivity of a mixture of gases.
+ * The notation follows that used by White (2006).
+ *
+ * References:
+ * Wilke, C.R. (1950)
+ * A Viscosity Equation for Gas Mixtures.
+ * Journal of Chemical Physics, 18:pp. 517--519
+ *
+ * White, F.M. (2006)
+ * Viscous Fluid Flow, Third Edition
+ * NcGraw Hill, New York
+ * (see page 34)
  *
  * Author: Rowan G. and Peter J.
  * Version: 2014-09-08 -- initial cut
@@ -23,8 +32,8 @@ public:
 	_MW = MW.dup;
 	_x.length = _MW.length;
 	_k.length = _MW.length;
-	_psi.length = _MW.length;
-	foreach (ref p; _psi) {
+	_phi.length = _MW.length;
+	foreach (ref p; _phi) {
 	    p.length = _MW.length;
 	}
     }
@@ -35,9 +44,9 @@ public:
 	_MW = src._MW.dup;
 	_x = src._x.dup;
 	_k = src._k.dup;
-	_psi.length = src._psi.length;
-	foreach (i; 0 .. src._psi.length) {
-	    _psi[i] = src._psi[i].dup;
+	_phi.length = src._phi.length;
+	foreach (i; 0 .. src._phi.length) {
+	    _phi[i] = src._phi[i].dup;
 	}
     }
     override WilkeMixingThermCond dup() const {
@@ -56,8 +65,8 @@ public:
 	for ( auto i = 0; i < Q.massf.length; ++i ) {
 	    for ( auto j = 0; j < Q.massf.length; ++j ) {
 		double numer = pow((1.0 + sqrt(_k[i]/_k[j])*pow(_MW[j]/_MW[i], 0.25)), 2.0);
-		double denom = (4.0/sqrt(2.0))*sqrt(1.0 + (_MW[i]/_MW[j]));
-		_psi[i][j] = numer/denom;
+		double denom = sqrt(8.0 + 8.0*_MW[i]/_MW[j]);
+		_phi[i][j] = numer/denom;
 	    }
 	}
 	// 4. Apply mixing formula
@@ -68,9 +77,9 @@ public:
 	    sum = 0.0;
 	    for ( auto j = 0; j < Q.massf.length; ++j ) {
 		if ( _x[j] < SMALL_MOLE_FRACTION ) continue;
-		sum += _x[j]*_psi[i][j];
+		sum += _x[j]*_phi[i][j];
 	    }
-	    k += _k[i]/(1.0 + (1.0/_x[i])*sum);
+	    k += _k[i]*_x[i]/sum;
 	}
 	Q.k[0] = k;
     }
@@ -81,7 +90,7 @@ private:
     // Working array space
     double[] _x;
     double[] _k;
-    double[][] _psi;
+    double[][] _phi;
 }
 
 unittest {
@@ -98,5 +107,5 @@ unittest {
     gd.massf[0] = 0.8;
     gd.massf[1] = 0.2;
     tcm.update_thermal_conductivity(gd);
-    assert(approxEqual(0.0159736, gd.k[0]));
+    assert(approxEqual(0.0263063, gd.k[0]));
 }

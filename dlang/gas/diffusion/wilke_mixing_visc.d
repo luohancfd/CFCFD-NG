@@ -1,9 +1,18 @@
 /**
- * wilke_mixing.d
- * Implements the Gordon and McBride variant
- * of Wilke's mixing rule to compute the
- * viscosity and thermal conductivity of
- * a mixture of gases.
+ * wilke_mixing_visc.d
+ * Implements Wilke's mixing rule to compute the
+ * viscosity a mixture of gases. The notation follows
+ * that used by White (2006).
+ *
+ * References:
+ * Wilke, C.R. (1950)
+ * A Viscosity Equation for Gas Mixtures.
+ * Journal of Chemical Physics, 18:pp. 517--519
+ *
+ * White, F.M. (2006)
+ * Viscous Fluid Flow, Third Edition
+ * NcGraw Hill, New York
+ * (see page 34)
  *
  * Author: Rowan G. and Peter J.
  * Version: 2014-09-08 -- initial cut
@@ -56,7 +65,7 @@ public:
 	for ( auto i = 0; i < Q.massf.length; ++i ) {
 	    for ( auto j = 0; j < Q.massf.length; ++j ) {
 		double numer = pow((1.0 + sqrt(_mu[i]/_mu[j])*pow(_MW[j]/_MW[i], 0.25)), 2.0);
-		double denom = (4.0/sqrt(2.0))*sqrt(1.0 + (_MW[i]/_MW[j]));
+		double denom = sqrt(8.0 + 8.0*_MW[i]/_MW[j]);
 		_phi[i][j] = numer/denom;
 	    }
 	}
@@ -70,7 +79,7 @@ public:
 		if ( _x[j] < SMALL_MOLE_FRACTION ) continue;
 		sum += _x[j]*_phi[i][j];
 	    }
-	    mu += _mu[i]/(1.0 + (1.0/_x[i])*sum);
+	    mu += _mu[i]*_x[i]/sum;
 	}
 	Q.mu = mu;
     }
