@@ -35,7 +35,7 @@ private:
     int eval_conv_flux_udf(double t, size_t i, size_t j, size_t k, FV_Interface *IFace);
     int eval_ghost_cell_udf(double t, size_t i, size_t j, size_t k, FV_Interface *IFace);
     CFlowCondition *unpack_flow_table(void);
-    int eval_iface_udf(double t, size_t i, size_t j, size_t k, FV_Interface *IFace, const FV_Cell *cell);
+    int eval_iface_udf(double t, size_t i, size_t j, size_t k, FV_Interface *IFace, FV_Cell *cell);
     int eval_visc_flux_udf(double t, size_t i, size_t j, size_t k, FV_Interface *IFace);
     void handle_lua_error(lua_State *L, const char *fmt, ...);
 };

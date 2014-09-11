@@ -612,7 +612,7 @@ CFlowCondition * UserDefinedBC::unpack_flow_table(void)
 } // end unpack_flow_table()
 
 int UserDefinedBC::eval_iface_udf(double t, size_t i, size_t j, size_t k, 
-				  FV_Interface *IFace, const FV_Cell *cell)
+				  FV_Interface *IFace, FV_Cell *cell)
 {
     double x = IFace->pos.x; 
     double y = IFace->pos.y;
@@ -700,8 +700,13 @@ int UserDefinedBC::eval_iface_udf(double t, size_t i, size_t j, size_t k,
 	lua_getfield(L, -1, "u"); fs.vel.x = lua_tonumber(L, -1); lua_pop(L, 1);
 	lua_getfield(L, -1, "v"); fs.vel.y = lua_tonumber(L, -1); lua_pop(L, 1);
 	lua_getfield(L, -1, "w"); fs.vel.z = lua_tonumber(L, -1); lua_pop(L, 1);
-	lua_getfield(L, -1, "tke"); fs.tke = lua_tonumber(L, -1); lua_pop(L, 1);
-	lua_getfield(L, -1, "omega"); fs.omega = lua_tonumber(L, -1); lua_pop(L, 1);
+        if ( is_wall_flag ) {
+            fs.tke = 0.0;
+	    fs.omega = ideal_omega_at_wall(cell);
+        } else {       
+	    lua_getfield(L, -1, "tke"); fs.tke = lua_tonumber(L, -1); lua_pop(L, 1);
+	    lua_getfield(L, -1, "omega"); fs.omega = lua_tonumber(L, -1); lua_pop(L, 1);
+        }
     }
 
     lua_settop(L, 0); // clear the stack
