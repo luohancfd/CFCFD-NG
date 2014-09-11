@@ -101,6 +101,7 @@ MOVING_WALL = object()
 MASS_FLUX_OUT = object()
 MAPPED_CELL = object()
 INLET_OUTLET = object()
+NONUNIFORM_T = object()
 
 #
 # When we ust the set_BC method for a Block object, we will want to look up
@@ -139,7 +140,8 @@ bcSymbolFromName = {
     "MOVING_WALL": MOVING_WALL,
     "MASS_FLUX_OUT": MASS_FLUX_OUT,
     "MAPPED_CELL": MAPPED_CELL,
-    "INLET_OUTLET": INLET_OUTLET
+    "INLET_OUTLET": INLET_OUTLET,
+    "NONUNIFORM_T": NONUNIFORM_T
 }
 bcName = {
     ADJACENT: "ADJACENT",
@@ -169,7 +171,8 @@ bcName = {
     MOVING_WALL: "MOVING_WALL",
     MASS_FLUX_OUT: "MASS_FLUX_OUT",
     MAPPED_CELL: "MAPPED_CELL",
-    INLET_OUTLET: "INLET_OUTLET"
+    INLET_OUTLET: "INLET_OUTLET",
+    NONUNIFORM_T: "NONUNIFORM_T"
     }
 
 class BoundaryCondition(object):
@@ -184,7 +187,8 @@ class BoundaryCondition(object):
                 'reorient_vector_quantities', 'Rmatrix', \
                 'mass_flux', 'p_init', 'relax_factor', \
                 'direction_type', 'direction_vector', 'direction_alpha', 'direction_beta', \
-                'ghost_cell_trans_fn', 'I_turb', 'u_turb_lam','label'
+                'ghost_cell_trans_fn', 'I_turb', 'u_turb_lam', 'T_non', 'starting_blk', \
+                'no_blk', 'label'
     def __init__(self,
                  type_of_BC=SLIP_WALL,
                  Twall=300.0,
@@ -225,6 +229,9 @@ class BoundaryCondition(object):
                  ghost_cell_trans_fn=lambda x, y, z: (x, y, z),
                  I_turb=0.0,
                  u_turb_lam=1.0,
+                 T_non = [300.0,300.0,300.0],
+                 starting_blk=0,
+                 no_blk=[1.0,1.0,1.0],
                  label=""):
         """
         Construct a generic boundary condition object.
@@ -356,6 +363,10 @@ class BoundaryCondition(object):
         self.ghost_cell_trans_fn = ghost_cell_trans_fn
         self.I_turb = I_turb
         self.u_turb_lam = u_turb_lam
+        assert (type(T_non) is list)
+        self.T_non = T_non
+        self.starting_blk = starting_blk
+        self.no_blk = no_blk
         self.label = label
             
         return
@@ -402,7 +413,13 @@ class BoundaryCondition(object):
         str_rep += ", I_turb=%g" % self.I_turb
         str_rep += ", u_turb_lam=%g" % self.u_turb_lam
         str_rep += ", label=\"%s\")" % self.label
+        str_rep += ", T_non=["
+        for elem in T_non: str_rep += "%g, " % elem
+        str_rep += "]"
+        str_rep += ", starting_blk=%d" % self.starting_blk
+        str_rep += ", no_blk=[%g, %g, %g]" % (self.no_blk[0], self.no_blk[1], self.no_blk[2])        
         return str_rep
+        
     def __copy__(self):
         return BoundaryCondition(type_of_BC=self.type_of_BC,
                                  Twall=self.Twall,
@@ -443,6 +460,9 @@ class BoundaryCondition(object):
                                  ghost_cell_trans_fn=self.ghost_cell_trans_fn,
                                  I_turb=self.I_turb,
                                  u_turb_lam=self.u_turb_lam,
+                                 T_non=copy.copy(self.T_non),
+                                 starting_blk=self.starting_blk,
+                                 no_blk=copy.copy(self.no_blk),   
                                  label=self.label)
     
 class AdjacentBC(BoundaryCondition):
@@ -1279,6 +1299,72 @@ class InletOutletBC(BoundaryCondition):
         return InletOutletBC(Pout=self.Pout, I_turb=self.I_turb, u_turb_lam=self.u_turb_lam,
                            Tout=self.Tout, use_Tout=self.use_Tout,
                            x_order=self.x_order, label=self.label)
+
+class NonuniformTBC(BoundaryCondition):
+    """
+    A solid boundary with no-slip and a user specified nonuniform temperature.
+
+    Like the AdiabaticBC, this is completey effective only when viscous
+    effects are active.  Else, it is just like another solid (slip) wall.
+    """
+    def __init__(self, T_non, starting_blk, no_blk, r_omega=None, centre=None, v_trans=None, emissivity=1.0, label=""):
+        """
+        Construct a no-slip, fixed-temperature, solid-wall boundary.
+
+        :param T_non: nonuniform wall temperature (in degrees K) 
+        :param starting_blk: starting block id for this boundary
+        :param no_blk: number of block for this boundary
+        :param emissivity: surface radiative emissivity (between 0 and 1) 
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
+
+        import numpy
+        if r_omega is None:
+            my_r_omega = [0.0, 0.0, 0.0]
+        elif type(r_omega) is list and len(r_omega) >= 3:
+            my_r_omega = [r_omega[0], r_omega[1], r_omega[2]]
+        elif type(r_omega) is numpy.ndarray and r_omega.shape == (3,):
+            my_r_omega = [r_omega[0], r_omega[1], r_omega[2]]
+        elif type(r_omega) is Vector:
+            my_r_omega = [r_omega.x, r_omega.y, r_omega.z]
+        else:
+            raise RuntimeError("Invalid input for r_omega: " + str(r_omega))
+        if centre is None:
+            my_centre = [0.0, 0.0, 0.0]
+        elif type(centre) is list and len(centre) >= 3:
+            my_centre = [centre[0], centre[1], centre[2]]
+        elif type(centre) is numpy.ndarray and centre.shape == (3,):
+            my_centre = [centre[0], centre[1], centre[2]]
+        elif type(centre) is Vector:
+            my_centre = [centre.x, centre.y, centre.z]
+        else:
+            raise RuntimeError("Invalid input for centre: " + str(centre))
+        if v_trans is None:
+            my_v_trans = [0.0, 0.0, 0.0]
+        elif type(v_trans) is list and len(v_trans) >= 3:
+            my_v_trans = [v_trans[0], v_trans[1], v_trans[2]]
+        elif type(v_trans) is numpy.ndarray and v_trans.shape == (3,):
+            my_v_trans = [v_trans[0], v_trans[1], v_trans[2]]
+        elif type(v_trans) is Vector:
+            my_v_trans = [v_trans.x, v_trans.y, v_trans.z]
+        else:
+            raise RuntimeError("Invalid input for v_trans: " + str(v_trans))
+
+        BoundaryCondition.__init__(self, type_of_BC=NONUNIFORM_T, T_non=T_non, 
+                                   starting_blk=starting_blk, no_blk=no_blk,
+                                   r_omega=my_r_omega, centre=my_centre, v_trans=my_v_trans,
+                                   is_wall=1, emissivity=emissivity, label=label)
+        return
+    def __str__(self):
+        return "NonuniformTBC(T_non=%g, starting_blk=%d, no_blk=%g, " \
+            "r_omega=[%g,%g,%g], centre=[%g,%g,%g], " \
+            "v_trans=[%g,%g,%g],label=\"%s\")" % \
+            (self.T_non, self.starting_blk, self.no_blk, self.r_omega, self.centre, self.vtrans, self.label)
+    def __copy__(self):
+        return NonuniformTBC(T_non=self.T_non, starting_blk=self.starting_blk, no_blk=self.no_blk, 
+                             r_omega=self.r_omega, centre=self.centre, v_trans=self.v_trans,
+                             emissivity=self.emissivity, label=self.label)
 
 
 #####################################################################################
