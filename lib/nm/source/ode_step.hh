@@ -506,6 +506,7 @@ private:
     std::vector<double> L_p_;
     std::vector<double> a0_;
     std::vector<double> y_p_;
+    std::vector<double> y_p1_;
     std::vector<double> y_c_;
     std::vector<double> p_p_;
     std::vector<double> p_bar_;

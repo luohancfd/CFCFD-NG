@@ -855,6 +855,7 @@ QssStep::QssStep( const string name, int ndim, int max_correctors,
     L_p_.resize(ndim);
     a0_.resize(ndim);
     y_p_.resize(ndim);
+    y_p1_.resize(ndim);
     y_c_.resize(ndim);
     p_p_.resize(ndim);
     p_bar_.resize(ndim);
@@ -878,6 +879,7 @@ QssStep::QssStep( const QssStep &q )
     L_p_.resize(ndim_);
     a0_.resize(ndim_);
     y_p_.resize(ndim_);
+    y_p1_.resize(ndim_);
     y_c_.resize(ndim_);
     p_p_.resize(ndim_);
     p_bar_.resize(ndim_);
@@ -929,6 +931,8 @@ bool QssStep::advance( OdeSystem &ode, const vector<double> &yin,
 
     for (int i = 0; i < ndim_; ++i) {
 	y_p_[i] = yin[i] + ( ((*h) * (q0_[i] - L0_[i])) / (1.0 + a0_[i] * (*h) * p0_[i]));
+	// Save initial predictor for use in error criterion
+	y_p1_[i] = y_p_[i];
     }
 
     // --- Corrector step(s) --- //
@@ -945,11 +949,11 @@ bool QssStep::advance( OdeSystem &ode, const vector<double> &yin,
 
 	}
 
-	bool converged = test_converged( y_c_, y_p_);
+	bool converged = test_converged( y_c_, y_p1_);
 
 	if (converged) {
 	    copy_vector(y_c_, yout);
-	    *h = step_suggest( *h, y_c_, y_p_ );
+	    *h = step_suggest( *h, y_c_, y_p1_ );
 	    
 	    return true;
 	}
@@ -958,7 +962,7 @@ bool QssStep::advance( OdeSystem &ode, const vector<double> &yin,
 
     }
     
-    *h = step_suggest( *h, y_c_, y_p_ );
+    *h = step_suggest( *h, y_c_, y_p1_ );
     
     return false;
 
