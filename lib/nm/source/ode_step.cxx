@@ -831,10 +831,10 @@ DP853Step::advance(OdeSystem &ode, const vector<double> &yin,
 /// \version 21-Feb-2006
 ///
 QssStep::QssStep( const string name, int ndim, int max_correctors,
-		  double qss_eps1, double c )
+		  double qss_eps1, double c, double delta )
 
     : OdeStep( name, ndim ), max_correctors_( max_correctors ),
-      qss_eps1_( qss_eps1 ), c_( c )
+      qss_eps1_( qss_eps1 ), c_( c ), delta_( delta )
 {
     if( (qss_eps1_ <= 0.0) || (c_ < 1.0) ) {
 	cout << "QssStep::QssStep() WARNING: one of the tolerance input parameters was invalid.\n";
@@ -871,7 +871,7 @@ QssStep::QssStep( const string name, int ndim, int max_correctors,
 ///
 QssStep::QssStep( const QssStep &q )
     : OdeStep( q.name_, q.ndim_ ), max_correctors_( q.max_correctors_ ),
-      qss_eps1_( q.qss_eps1_ ), c_( q.c_ ), qss_eps2_( q.qss_eps2_ )
+      qss_eps1_( q.qss_eps1_ ), c_( q.c_ ), qss_eps2_( q.qss_eps2_ ), delta_(q.delta_)
 {
     p0_.resize(ndim_);
     q0_.resize(ndim_);
@@ -946,20 +946,16 @@ bool QssStep::advance( OdeSystem &ode, const vector<double> &yin,
 	/* Actual corrector */
 	for( int i = 0; i < ndim_; ++i) {
 	    y_c_[i] = yin[i] + (( (*h) * ( q_til_[i] - p_bar_[i] * yin[i] ) ) / ( 1.0 + a_bar_[i] * (*h) * p_bar_[i] ));
-
 	}
 
-	bool converged = test_converged( y_c_, y_p1_);
+	bool converged = test_converged(y_c_, y_p1_);
 
 	if (converged) {
 	    copy_vector(y_c_, yout);
 	    *h = step_suggest( *h, y_c_, y_p1_ );
-	    
 	    return true;
 	}
-	
 	copy_vector(y_c_, y_p_);
-
     }
     
     *h = step_suggest( *h, y_c_, y_p1_ );
@@ -1017,8 +1013,10 @@ bool QssStep::test_converged( const vector<double> &y_c, const vector<double> &y
 	if( y_c[i] < ZERO_EPS )
 	    continue;
 	test = fabs(y_c[i] - y_p[i]);
-	if( test > (qss_eps1_ * y_c[i]) )
+	// +delta from Qureshi and Prosser (2007)
+	if( test > (qss_eps1_ * y_c[i] + delta_) ) {
 	    ++flag;
+	}
     }
     if( flag == 0 )
 	return true;
