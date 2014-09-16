@@ -85,7 +85,7 @@ def locate_shock_front(stageName, nbi, nbj):
         blockData.append([])
         for jb in range(nbj):
             blkindx = ib*nbj + jb
-            fileName = 'flow/t9999/%s.flow.b%04d.t9999.gz' \
+            fileName = 'flow/t0001/%s.flow.b%04d.t0001.gz' \
                 % (stageName, blkindx)
             fp = gzip.open(fileName, "r")
             blk = StructuredGridFlow()

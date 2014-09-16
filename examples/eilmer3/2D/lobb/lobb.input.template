@@ -30,7 +30,7 @@ if $stage == 0:
     initial = FlowCondition(p=$p_inf/3.0, T=$T_inf, massf=f_inf)
 else:
     # We start with the previous solution.
-    initial = ExistingSolution("$jobName" + str($stage-1), '.', $np, 9999)
+    initial = ExistingSolution("$jobName" + str($stage-1), '.', $np, 1)
 
 
 # Build the geometry from the bottom-up, starting with nodes...
