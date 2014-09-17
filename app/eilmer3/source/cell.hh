@@ -79,6 +79,8 @@ public:
     double omega;        ///< \brief turbulence frequency or pseudo vorticity
     double mu_t;         ///< \brief turbulence viscosity
     double k_t;          ///< \brief turbulence conductivity
+    double psi;          ///< \brief magnetic field divergence cleaning parameter
+    double divB;         ///< \brief measure of magnetic field divergence
     std::vector<double> G; ///< \brief velocity dist. partial densities, kg/m**3
     std::vector<double> H; ///> \brief velocity dist. partial densities, (kg*s**2)/(m**5)
     //
@@ -112,6 +114,8 @@ public:
     std::vector<double> energies; ///< \brief modal energies (mode 0 is usually transrotational)
     double tke;                   ///< \brief turbulent kinetic energy
     double omega;                 ///< \brief omega from k-omega turbulence model
+    double psi;                   ///< \brief magnetic field divergence cleaning parameter
+    double divB;         ///< \brief measure of magnetic field divergence
     std::vector<double> G; ///< \brief velocity dist. partial densities, kg/m**3
     std::vector<double> H; ///> \brief velocity dist. partial densities, (kg*s**2)/(m**5)
     //
@@ -262,6 +266,7 @@ public:
     int stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega);
     int stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega);
     int stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega);
+    double get_divergence_damping();
     int chemical_increment(double dt, double T_frozen);
     int thermal_increment(double dt, double T_frozen_energy);
     double signal_frequency(size_t dimensions, bool with_k_omega);

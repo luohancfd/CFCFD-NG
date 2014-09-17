@@ -32,6 +32,7 @@
 /** \brief Compute the fluxes across an interface. */
 int hlle(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 {
+    global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     int nsp = gmodel->get_number_of_species();
     int nmodes = gmodel->get_number_of_modes();
@@ -40,7 +41,7 @@ int hlle(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
      * Unpack the flow-state vectors for either side of the interface.
      * Store in work vectors, those quantities that will be neede later.
      */
-     double rL, pL, uL, vL, wL, BxL, ByL, BzL;
+    double rL, pL, uL, vL, wL, BxL, ByL, BzL, psiL;
 
     rL = Lft.gas->rho;
     pL = Lft.gas->p;
@@ -50,8 +51,9 @@ int hlle(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     BxL = Lft.B.x;
     ByL = Lft.B.y;
     BzL = Lft.B.z;
+    psiL = Lft.psi;
 
-    double rR, pR, uR, vR, wR, BxR, ByR, BzR;
+    double rR, pR, uR, vR, wR, BxR, ByR, BzR, psiR;
 
     rR = Rght.gas->rho;
     pR = Rght.gas->p;
@@ -61,6 +63,7 @@ int hlle(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     BxR = Rght.B.x;
     ByR = Rght.B.y;
     BzR = Rght.B.z;
+    psiR = Rght.psi;
 
     // Derive the gas "constants" from the local conditions.
 
@@ -95,7 +98,7 @@ int hlle(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     u   = 0.5*(uL+uR);
     //v   = 0.5*(vL+vR);
     //w   = 0.5*(wL+wR);
-    Bx  = 0.5*(BxL+BxR);
+    Bx  = BxL + 0.5*(BxR-BxL) - 0.5*(psiR-psiL)/G.c_h; //0.5*(BxL+BxR);
     By  = 0.5*(ByL+ByR);
     Bz  = 0.5*(BzL+BzR);
 

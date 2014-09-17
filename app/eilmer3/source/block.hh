@@ -44,6 +44,10 @@ public:
     double dt_allow;            // Allowable time step
     double cfl_min, cfl_max;    // estimates of CFL number
 
+    double L_min;  // minimum sized cell in the block
+    Vector3 bounding_box_min; // minimum point of bounding box
+    Vector3 bounding_box_max; // maximum point of bounding box
+
     double mass_residual, energy_residual; // monitor these for steady state
     Vector3 mass_residual_loc, energy_residual_loc; // locations of worst case
 
@@ -152,6 +156,7 @@ public:
     int secondary_areas_2D(size_t gtl);
     int calc_faces_2D(size_t gtl);
     int calc_ghost_cell_geom_2D(size_t gtl);
+    int calc_bounding_box(size_t gtl);
  
     // in block_moving_grid.cxx
     int predict_vertex_positions(size_t dimensions, double dt);

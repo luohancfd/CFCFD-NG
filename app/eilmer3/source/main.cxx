@@ -509,6 +509,7 @@ int prepare_to_integrate(size_t start_tindx)
     bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     vector<double> nvxs;
     vector<double> nvys;
+    bool first = true;
     for ( Block *bdp : G.my_blocks ) {
 	bdp->compute_primary_cell_geometric_data(G.dimensions, 0);
 	bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions, 0);
@@ -534,12 +535,51 @@ int prepare_to_integrate(size_t start_tindx)
 		}
 	    }
 	}
+	// update the 'global' data
+	if (first) {
+	    G.L_min = bdp->L_min;
+	    G.bounding_box_min = bdp->bounding_box_min;
+	    G.bounding_box_max = bdp->bounding_box_max;
+	    first = false;
+	} else {
+	    if (bdp->L_min < G.L_min) G.L_min = bdp->L_min;
+
+	    if (bdp->bounding_box_max.x > G.bounding_box_max.x) G.bounding_box_max.x = bdp->bounding_box_max.x;
+	    if (bdp->bounding_box_max.y > G.bounding_box_max.y) G.bounding_box_max.y = bdp->bounding_box_max.y;
+	    if (bdp->bounding_box_max.z > G.bounding_box_max.z) G.bounding_box_max.z = bdp->bounding_box_max.z;
+
+	    if (bdp->bounding_box_min.x < G.bounding_box_min.x) G.bounding_box_min.x = bdp->bounding_box_min.x;
+	    if (bdp->bounding_box_min.y < G.bounding_box_min.y) G.bounding_box_min.y = bdp->bounding_box_min.y;
+	    if (bdp->bounding_box_min.z < G.bounding_box_min.z) G.bounding_box_min.z = bdp->bounding_box_min.z;
+	}
+	
     } // end for *bdp
     
 #   ifdef _MPI
     // Ensure that all blocks have computed geometry before continuing
     MPI_Barrier(MPI_COMM_WORLD);
+
+    // update the true global minimum cell size
+    MPI_Allreduce(MPI_IN_PLACE, &(G.L_min), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+
+    // update the global bounding box
+    MPI_Allreduce(MPI_IN_PLACE, &(G.bounding_box_min.x), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, &(G.bounding_box_min.y), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, &(G.bounding_box_min.z), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, &(G.bounding_box_max.x), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, &(G.bounding_box_max.y), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, &(G.bounding_box_max.z), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 #   endif
+
+    if (G.MHD) {
+		Vector3 L_xyz = 0.5*(G.bounding_box_max - G.bounding_box_min);
+		if (L_xyz.z > 0.0) {
+	    	G.c_rel = 3.141592653589793 * sqrt(1/(L_xyz.x*L_xyz.x) + 1/(L_xyz.y*L_xyz.y) + 1/(L_xyz.z*L_xyz.z));
+		} else {
+	    	G.c_rel = 3.141592653589793 * sqrt(1/(L_xyz.x*L_xyz.x) + 1/(L_xyz.y*L_xyz.y));
+		}
+    }
+
     if ( G.conjugate_ht_active ) {
 	vector<double> wall_xs, wall_ys;
 #       ifdef _MPI
@@ -1403,6 +1443,11 @@ int integrate_in_time(double target_time)
 	    status_flag = FAILURE;
             break;
         }
+
+	if (G.MHD) {
+	    // update the divergence cleaning speed
+	    G.c_h = G.cfl_max * G.L_min  / G.dt_global;
+	}
 
         // 2. Attempt a time step.
 	// 2aa. Compute wall conduction if conjugate heat transfer available

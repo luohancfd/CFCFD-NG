@@ -206,6 +206,8 @@ struct global_data
     double cfl_tiny;        /* smallest cfl so far        */
     double time_tiny;       /* time at which it occurred  */
 
+    double L_min;           /* minimum cell size */
+
     double energy_residual; /* to be monitored for steady state */
     double mass_residual;
     Vector3 energy_residual_loc, mass_residual_loc; /* location of largest value */
@@ -259,7 +261,11 @@ struct global_data
     bool electric_field_work;
 
     // For Daryl Bond and Vince Wheatley's MHD additions.
-    bool MHD;
+    bool MHD;      // flag indicating MHD effects are to be calculated
+    double c_h;    // advection velocity for divergence cleaning
+    double c_rel;  // measure of the domain size
+    Vector3 bounding_box_min; // minimum point of bounding box
+    Vector3 bounding_box_max; // maximum point of bounding box
 
     // A flag for turning on the BGK non-equilibrium gas solver:
     //   BGK == 0: OFF

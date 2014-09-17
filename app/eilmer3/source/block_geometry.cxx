@@ -29,16 +29,19 @@ int Block::compute_primary_cell_geometric_data(size_t dimensions, size_t gtl)
     FV_Interface *iface;
     Vector3 *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7;
     Vector3 ds;
+    bool first;
 
     if ( dimensions == 2 ) {
 	calc_volumes_2D(gtl);
 	calc_faces_2D(gtl);
 	calc_ghost_cell_geom_2D(gtl);
+	calc_bounding_box(gtl);
 	return SUCCESS;
     }
 
     // Cell properties of volume and position.
     // Estimates of cross-cell distances for use in high-order reconstruction.
+    first = true;
     for ( i = imin; i <= imax; ++i ) {
 	for ( j = jmin; j <= jmax; ++j ) {
 	    for ( k = kmin; k <= kmax; ++k ) {
@@ -57,9 +60,17 @@ int Block::compute_primary_cell_geometric_data(size_t dimensions, size_t gtl)
 		cell->L_min = cell->iLength;
 		if ( cell->jLength < cell->L_min ) cell->L_min = cell->jLength;
 		if ( cell->kLength < cell->L_min ) cell->L_min = cell->kLength;
+		if (first) {
+		    L_min = cell->L_min;
+		    first = false;
+		} else {
+		    if (cell->L_min < L_min) L_min = cell->L_min;
+		}
 	    }
 	}
     }
+
+    calc_bounding_box(gtl);
 
     // work on ifi face as a WEST face
     // t1 in the j-ordinate direction
@@ -772,7 +783,9 @@ int Block::calc_volumes_2D(size_t gtl)
     // |  c  |     |  c  |
     // |     |     |     |
     // D-----A     0-----1
-    
+
+    bool first = true;
+
     max_vol = 0.0;
     min_vol = 1.0e6;    /* arbitrarily large */
     max_aspect = 0.0;
@@ -838,6 +851,14 @@ int Block::calc_volumes_2D(size_t gtl)
             if (lengthE < length_min) length_min = lengthE;
             if (length_cross < length_min) length_min = length_cross;
             cell->L_min = length_min;
+
+	    if (first) {
+		L_min = cell->L_min;
+		first = false;
+	    } else {
+		if (cell->L_min < L_min) L_min = cell->L_min;
+	    }
+
             aspect_ratio = length_max / length_min;
             if (aspect_ratio > max_aspect) max_aspect = aspect_ratio;
 
@@ -1252,3 +1273,24 @@ int Block::calc_ghost_cell_geom_2D(size_t gtl)
     }
     return SUCCESS;
 } // end Block::calc_ghost_cell_geom_2D()
+
+
+/// \brief Calculate the bounding box limits.
+///
+/// Not really calculating, just looking through the vertices
+/// to find the limits in cartesian space
+
+int Block::calc_bounding_box(size_t gtl)
+{
+    for (FV_Vertex *vtx : vtx_) {
+	if (vtx->pos[gtl].x > bounding_box_max.x) bounding_box_max.x = vtx->pos[gtl].x;
+	if (vtx->pos[gtl].y > bounding_box_max.y) bounding_box_max.y = vtx->pos[gtl].y;
+	if (vtx->pos[gtl].z > bounding_box_max.z) bounding_box_max.z = vtx->pos[gtl].z;
+
+	if (vtx->pos[gtl].x < bounding_box_min.x) bounding_box_min.x = vtx->pos[gtl].x;
+	if (vtx->pos[gtl].y < bounding_box_min.y) bounding_box_min.y = vtx->pos[gtl].y;
+	if (vtx->pos[gtl].z < bounding_box_min.z) bounding_box_min.z = vtx->pos[gtl].z;
+    }
+    
+    return SUCCESS;
+} // end Block::calc_bounding_box()

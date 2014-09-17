@@ -26,10 +26,11 @@ CFlowCondition::CFlowCondition( Gas_model *gmodel,
 				double tke, double omega,
 				double mu_t, double k_t,
 				int S,
-				double Bx, double By, double Bz )
+				double Bx, double By, double Bz,
+				double psi, double divB)
     : gas(new Gas_data(gmodel)), 
-      u(u), v(v), w(w), Bx(Bx), By(By), Bz(Bz), label(label),
-      tke(tke), omega(omega), mu_t(mu_t), k_t(k_t), S(S)
+      u(u), v(v), w(w), Bx(Bx), By(By), Bz(Bz), psi(psi), divB(divB),
+      label(label), tke(tke), omega(omega), mu_t(mu_t), k_t(k_t), S(S)
 {
     gas->p = p;
     size_t nmodes = gmodel->get_number_of_modes();
@@ -56,7 +57,7 @@ CFlowCondition::CFlowCondition( Gas_model *gmodel,
 
 CFlowCondition::CFlowCondition( const CFlowCondition &cfc ) 
     : u(cfc.u), v(cfc.v), w(cfc.w), Bx(cfc.Bx), By(cfc.By), Bz(cfc.Bz),
-      label(cfc.label), tke(cfc.tke), omega(cfc.omega),
+      psi(cfc.psi), divB(cfc.divB), label(cfc.label), tke(cfc.tke), omega(cfc.omega),
       mu_t(cfc.mu_t), k_t(cfc.k_t), S(cfc.S)
 {
     Gas_model *gmodel = get_gas_model_ptr();
@@ -69,8 +70,8 @@ CFlowCondition::CFlowCondition( const CFlowCondition &cfc )
 }
 
 CFlowCondition::CFlowCondition()
-    : u(0.0), v(0.0), w(0.0), Bx(0.0), By(0.0), Bz(0.0), label(""),
-      tke(0.0), omega(1.0), mu_t(0.0), k_t(0.0), S(0)
+    : u(0.0), v(0.0), w(0.0), Bx(0.0), By(0.0), Bz(0.0), psi(0.0), divB(0.0),
+      label(""),tke(0.0), omega(1.0), mu_t(0.0), k_t(0.0), S(0)
 {
     Gas_model *gmodel = get_gas_model_ptr();
     gas = new Gas_data(gmodel);
@@ -90,6 +91,7 @@ CFlowCondition & CFlowCondition::operator=(const CFlowCondition & cfc)
 	gas = new Gas_data(*cfc.gas);
 	u = cfc.u; v = cfc.v; w = cfc.w;
 	Bx = cfc.Bx; By = cfc.By; Bz = cfc.Bz;
+	psi=cfc.psi, divB=cfc.divB,
 	label = cfc.label; 
 	tke = cfc.tke; omega = cfc.omega;
         mu_t = cfc.mu_t; k_t = cfc.k_t; S = cfc.S;
@@ -123,7 +125,7 @@ string CFlowCondition::str() const
     ost << ", mu_t=" << mu_t << ", k_t=" << k_t
 	<< ", tke=" << tke << ", omega=" << omega;
     ost << ", S=" << S;
-    ost << ", Bx=" << Bx << ", By=" << By << ", Bz=" << Bz;
+    ost << ", Bx=" << Bx << ", By=" << By << ", Bz=" << Bz << ", psi=" << psi << ", divB=" << divB;
     ost << " )";
     return ost.str();
 }
@@ -154,6 +156,8 @@ string CFlowCondition::write_to_ini_str( int indx ) const
     ost << "Bx = " << Bx << endl;
     ost << "By = " << By << endl;
     ost << "Bz = " << Bz << endl;
+    ost << "psi = " << psi << endl;
+    ost << "divB = " << divB << endl;
     ost << "tke = " << tke << endl;
     ost << "omega = " << omega << endl;
     ost << "mu_t = " << mu_t << endl;
@@ -190,6 +194,8 @@ string CFlowCondition::write_to_json_str( int indx ) const
     ost << "    \"Bx\": " << Bx << "," << endl;
     ost << "    \"By\": " << By << "," << endl;
     ost << "    \"Bz\": " << Bz << "," << endl;
+    ost << "    \"psi\": " << psi << "," << endl;
+    ost << "    \"divB\": " << divB << "," << endl;
     ost << "    \"tke\": " << tke << "," << endl;
     ost << "    \"omega\": " << omega << "," << endl;
     ost << "    \"mu_t\": " << mu_t << "," << endl;

@@ -53,7 +53,7 @@ class FlowCondition(object):
     __slots__ = 'gmodel', 'flow', 'indx'
     
     def __init__(self, p = 100.0e3, u = 0.0, v = 0.0, w = 0.0,
-                 Bx=0.0, By=0.0, Bz=0.0, T = [300.0,],
+                 Bx=0.0, By=0.0, Bz=0.0, psi=0.0, divB=0.0, T = [300.0,],
                  massf = None, label="", tke = 0.0, omega = 1.0,
 		 mu_t = 0.0, k_t = 0.0, S = 0, add_to_list=1):
         """
@@ -66,6 +66,8 @@ class FlowCondition(object):
         :param Bx: x-component of magnetic field, Tesla
         :param By: y-component of magnetic field, Tesla
         :param Bz: z-component of magnetic field, Tesla
+        :param psi: divergence cleaning parameter
+        :param divB: divergence of B
         :param T: list of temperatures (T[0] is static temperature), degrees K
             The length of the list of temperatures must match the number
             of individual energies in the gas model.
@@ -133,7 +135,7 @@ class FlowCondition(object):
             print "   type(T)=", type(T)
             raise ValueError, "Bad value supplied for T"
         self.flow = CFlowCondition(self.gmodel, p, u, v, w, Tlist, massf, label, 
-				   tke, omega, mu_t, k_t, S, Bx, By, Bz)
+				   tke, omega, mu_t, k_t, S, Bx, By, Bz, psi, divB)
         if add_to_list:
             # Indexed FlowCondition objects are later written 
             # to the job.config file.
@@ -166,6 +168,8 @@ class FlowCondition(object):
                                 Bx = self.flow.Bx,
                                 By = self.flow.By,
                                 Bz = self.flow.Bz,
+                                psi = self.flow.psi,
+                                divB = self.flow.divB,
                                 T = Tlist,
                                 massf = massf,
                                 label= self.flow.label,
@@ -184,7 +188,8 @@ class FlowCondition(object):
         str = "FlowCondition("
         str += "p=%g" % (self.flow.gas.p,)
         str += ", u=%g, v=%g, w=%g" % (self.flow.u, self.flow.v, self.flow.w)
-        str += ", Bx=%g, By=%g, Bz=%g" % (self.flow.Bx, self.flow.By, self.flow.Bz)
+        str += ", Bx=%g, By=%g, Bz=%g," % (self.flow.Bx, self.flow.By, self.flow.Bz)
+        str += ", psi=%g, divB=%g," % (self.flow.psi, self.flow.divB)
         nsp = self.gmodel.get_number_of_species()
         str += ", massf=["
         for isp in range(nsp): str += "%g," % self.flow.gas.massf[isp]
@@ -227,6 +232,7 @@ class FlowCondition(object):
         nmodes = self.gmodel.get_number_of_modes()
         flow_props = {'vel.x':self.flow.u, 'vel.y':self.flow.v, 'vel.z':self.flow.w,
                       'B.x':self.flow.Bx, 'B.y':self.flow.By, 'B.z':self.flow.Bz,
+                      'psi':self.flow.psi, 'divB':self.flow.divB,
                       'tke':self.flow.tke, 'omega':self.flow.omega,
                       'mu_t':self.flow.mu_t, 'k_t':self.flow.k_t, 'S':self.flow.S}
         flow_props['rho'] = self.flow.gas.rho 
@@ -262,7 +268,7 @@ def variable_list_for_cell(gdata):
     nmodes = gmodel.get_number_of_modes();
     var_names = ["pos.x", "pos.y", "pos.z", "volume", "rho", "vel.x", "vel.y", "vel.z",]
     if gdata.mhd_flag == 1:
-        var_names += ["B.x", "B.y", "B.z"]
+        var_names += ["B.x", "B.y", "B.z", "psi", "divB"]
     var_names += ["p", "a", "mu"]
     for imode in range(nmodes):
         var_names += [("k[%d]" % imode),]
@@ -323,7 +329,7 @@ def write_cell_data(fp, data, gdata):
     fp.write(" %20.12e %20.12e %20.12e %20.12e" %
              (data['rho'], data['vel.x'], data['vel.y'], data['vel.z']))
     if gdata.mhd_flag == 1:
-        fp.write(" %20.12e %20.12e %20.12e" % (data['B.x'], data['B.y'], data['B.z']))
+        fp.write(" %20.12e %20.12e %20.12e %20.12e %20.12e" % (data['B.x'], data['B.y'], data['B.z'], data['psi'], data['divB']))
     fp.write(" %20.12e %20.12e %20.12e" % (data['p'], data['a'], data['mu'],))
     for imode in range(nmodes):
         try:

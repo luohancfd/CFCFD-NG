@@ -117,6 +117,17 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
         throw std::runtime_error("Invalid flux calculator.");
     } // end switch
 
+    // perform divergence cleaning of the magnetic field
+    // implemented by modifying the flux of B according to the method of Dedner et al.
+    if ( G.MHD ) {
+
+	F.divB = Lft.B.x +  0.5 * (Rght.B.x - Lft.B.x) - 0.5 * (Rght.psi - Lft.psi) / G.c_h;
+
+	F.B.x += Lft.psi +  0.5 * (Rght.psi - Lft.psi) - 0.5 * G.c_h * (Rght.B.x - Lft.B.x);
+	F.psi  = G.c_h * G.c_h * F.divB;
+	
+    }
+
     if ( omegaz != 0.0 ) {
 	// Rotating frame.
 	double x = IFace.pos.x;

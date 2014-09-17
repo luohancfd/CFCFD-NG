@@ -19,7 +19,7 @@ class CFlowCondition {
 public:
     Gas_data *gas;
     double u, v, w;
-    double Bx, By, Bz;
+    double Bx, By, Bz, psi, divB;
     std::string label;
     double tke, omega;
     double mu_t, k_t;
@@ -35,7 +35,8 @@ public:
 		    double tke=0.0, double omega=1.0,
 		    double mu_t=0.0, double k_t=0.0,
 		    int S=0,
-		    double Bx=0.0, double By=0.0, double Bz=0.0 );
+		    double Bx=0.0, double By=0.0, double Bz=0.0,
+		    double psi=0.0, double divB=0.0);
     CFlowCondition( const CFlowCondition &cfc );
     CFlowCondition();
     CFlowCondition & operator=(const CFlowCondition &cfc);
