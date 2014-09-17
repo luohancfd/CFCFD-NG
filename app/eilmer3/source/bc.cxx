@@ -55,6 +55,7 @@ extern "C" {
 #include "bc_moving_wall.hh"
 #include "bc_mass_flux_out.hh"
 #include "bc_inlet_outlet.hh"
+#include "bc_nonuniform_t.hh"
 #include "kernel.hh"
 #include "diffusion.hh"
 
@@ -94,6 +95,7 @@ std::string get_bc_name(bc_t bc)
     case MASS_FLUX_OUT: return "mass_flux_out";
     case MAPPED_CELL: return "mapped_cell";
     case INLET_OUTLET: return "inlet_outlet";
+    case NONUNIFORM_T: return "nonuniform_t";
     default: return "none";
     }
 } // end get_bc_name()
@@ -1104,6 +1106,43 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     std::vector<double> direction_vector(3, 0.0);
     double direction_alpha = 0.0;
     double direction_beta = 0.0;
+    Block & bd = *bdp;
+    // Determine size of nonuniform wall temperature vectors
+    // copied from heat flux related function
+    size_t dim = 1;
+    switch ( which_boundary ) {
+    case NORTH:
+	// j = constant at jmax
+	dim = bd.nni * bd.nnk;
+	break;
+    case EAST:
+	// i = constant at imax
+	dim = bd.nnj * bd.nnk;
+	break;
+    case SOUTH:
+	// j = constant at jmin
+	dim = bd.nni * bd.nnk;
+	break;
+    case WEST:
+	// i = constant at imin
+	dim = bd.nnj * bd.nnk;
+	break;
+    case TOP:
+	// k = constant at kmax
+	dim = bd.nni * bd.nnj;
+	break;
+    case BOTTOM:
+	// k = constant at kmin
+	dim = bd.nni * bd.nnj;
+	break;
+    default:
+	printf( "Error: which_boundary %d was not understood\n", 
+		which_boundary );
+	exit(NOT_IMPLEMENTED_ERROR);
+    }
+    std::vector<double> T_non; T_non.resize(dim, 300.0);
+    int starting_blk = starting_blk;
+    std::vector<double> no_blk; no_blk.resize(3, 1.0);    
     char mycstr[132];
 
     switch ( type_of_BC ) {
@@ -1272,6 +1311,16 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	dict.parse_boolean(section, "use_Tout", use_Tout, false);
 	dict.parse_int(section, "x_order", x_order, 0);
 	newBC = new InletOutletBC(bdp, which_boundary, Pout, I_turb, u_turb_lam, Tout, use_Tout, x_order);
+	break;
+    case NONUNIFORM_T:
+	dict.parse_vector_of_doubles(section, "T_non", T_non, T_non);
+	dict.parse_int(section, "starting_blk", starting_blk, 0);
+        dict.parse_vector_of_doubles(section, "no_blk", no_blk, no_blk);
+        dict.parse_vector_of_doubles(section, "r_omega", r_omega, r_omega);
+        dict.parse_vector_of_doubles(section, "centre", centre, centre);
+        dict.parse_vector_of_doubles(section, "v_trans", v_trans, v_trans);
+	dict.parse_double(section, "emissivity", emissivity, 1.0);
+	newBC = new NonuniformTBC(bdp, which_boundary, T_non, starting_blk, no_blk, r_omega, centre, v_trans, emissivity);
 	break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 

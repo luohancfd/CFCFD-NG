@@ -550,6 +550,7 @@ class Block(object):
                direction_alpha=0.0, direction_beta=0.0,
                ghost_cell_trans_fn=lambda x, y, z: (x, y, z),
                I_turb=0.0, u_turb_lam=1.0,
+               T_non=None, starting_blk=0, no_blk=[1.0,1.0,1.0],
                label=''):
         """
         Sets a boundary condition on a particular face of the block.
@@ -681,6 +682,8 @@ class Block(object):
                                  reorient_vector_quantities, Rmatrix, label=label)
         if type_of_BC == INLET_OUTLET:
             newbc = InletOutletBC(Pout, I_turb, u_turb_lam, Tout, use_Tout, x_order, label=label)
+        if type_of_BC == NONUNIFORM_T:
+            newbc = NonuniformTBC(T_non, starting_blk, no_blk, r_omega, centre, v_trans, label=label)
         #
         try:
             self.bc_list[iface] = newbc
@@ -833,6 +836,12 @@ class Block(object):
             fp.write("t_f = %e\n" % bc.t_f)
             fp.write("I_turb = %e\n" % bc.I_turb)
             fp.write("u_turb_lam = %e\n" % bc.u_turb_lam)
+            fp.write("T_non = ")
+            for i in range(len(bc.T_non)):
+                fp.write("%e " % (bc.T_non[i]))
+            fp.write("\n")
+            fp.write("starting_blk = %d\n" % bc.starting_blk)
+            fp.write("no_blk = %e %e %e\n" % (bc.no_blk[0], bc.no_blk[1], bc.no_blk[2]))
         return
 
     def write_to_json_file(self, fp, dimensions):
@@ -955,6 +964,13 @@ class Block(object):
             fp.write('        "t_f": %e,\n' % bc.t_f)
             fp.write('        "I_turb": %e,\n' % bc.I_turb)
             fp.write('        "u_turb_lam": %e\n' % bc.u_turb_lam)
+            fp.write('       "T_non": [')
+            for i in range(len(bc.T_non)):
+                fp.write(('%e, ') % (bc.T_non[i]))
+            fp.write('],\n')
+            fp.write('        "starting_blk": %d\n' % bc.starting_blk)
+            fp.write('        "no_blk": [%e, %e, %e],\n' % 
+                     (bc.no_blk[0], bc.no_blk[1], bc.no_blk[2]))
             fp.write('    },\n') # end of bc description
         fp.write('    "end_of_faces_for_block": %d\n' % self.blkId) # dummy entry
         fp.write('},\n') # end of block description, assume more JSON elements follow
