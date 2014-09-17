@@ -666,27 +666,23 @@ def test_section_setup(cfg, states, V, M):
     """Function to setup what is the test section state. It will also do the
     steady expansion through the nozzle if it detects that it needs to."""
                       
-    if cfg['tunnel_mode'] == 'expansion-tube' and cfg['nozzle']:    
-        if PRINT_STATUS: print "Starting steady expansion through the nozzle."
-        (V['s8'], states['s8']) = steady_flow_with_area_change(states['s7'], V['s7'], cfg['area_ratio'])
-        M['s8']= V['s8']/states['s8'].a
+    if cfg['tunnel_mode'] == 'expansion-tube' and cfg['nozzle']:
         cfg['nozzle_entry_state'] = 's7'
+        cfg, states, V, M == nozzle_expansion(cfg, states, V, M)
         cfg['test_section_state'] = 's8'
     elif cfg['tunnel_mode'] == 'expansion-tube' and not cfg['nozzle']:
         cfg['test_section_state'] = 's7' 
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' and cfg['nozzle']:
         if PRINT_STATUS: print "Starting steady expansion through the nozzle."
-        (V['s8'], states['s8']) = steady_flow_with_area_change(states['s2'], V['s2'], cfg['area_ratio'])
-        M['s8']= V['s8']/states['s8'].a
         cfg['nozzle_entry_state'] = 's2'
+        cfg, states, V, M == nozzle_expansion(cfg, states, V, M)
         cfg['test_section_state'] = 's8'
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' and not cfg['nozzle']:            
         cfg['test_section_state'] = 's2'
     elif cfg['tunnel_mode'] == 'reflected-shock-tunnel' and cfg['nozzle']:
         if PRINT_STATUS: print "Starting steady expansion through the nozzle."
-        (V['s8'], states['s8']) = steady_flow_with_area_change(states['s5'], V['s5'], cfg['area_ratio'])
-        M['s8']= V['s8']/states['s8'].a
         cfg['nozzle_entry_state'] = 's5'
+        cfg, states, V, M == nozzle_expansion(cfg, states, V, M)
         cfg['test_section_state'] = 's8'
     elif cfg['tunnel_mode'] == 'reflected-shock-tunnel' and not cfg['nozzle']:            
         cfg['test_section_state'] = 's5'        
@@ -698,15 +694,27 @@ def test_section_setup(cfg, states, V, M):
 #----------------------------------------------------------------------------
 
 def nozzle_expansion(cfg, states, V, M):
-    """Function that does just the nozzle steady expansion.
+    """Function that just does the nozzle steady expansion.
     
     I built it to be used with the changing area ratio code.
     
     """
 
     if PRINT_STATUS: print "Starting steady expansion through the nozzle."
-    (V['s8'], states['s8']) = steady_flow_with_area_change(states['s7'], V['s7'], cfg['area_ratio'])
-    M['s8']= V['s8']/states['s8'].a 
+    try:
+        (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']],cfg['area_ratio'])
+        M['s8']= V['s8']/states['s8'].a
+    except Exception as e:
+        print "Nozzle expansion failed. Going to try again with no ions."
+        try:
+            states['s7'].with_ions = False
+            (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']], cfg['area_ratio'])
+            M['s8']= V['s8']/states['s8'].a
+            states['s8'].with_ions = True
+            print "Nozzle expansion sucessful with ions turned off."
+        except Exception as e:
+            print "Error {0}".format(str(e))
+            raise Exception, "pitot.nozzle_expansion(): Run of pitot failed in the nozzle expansion calculation."
     
     return cfg, states, V, M     
     

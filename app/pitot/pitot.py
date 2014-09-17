@@ -178,6 +178,10 @@ available to me as part of cfpylib inside the cfcfd code collection.
     16-Jun-2014:
         Added some more random driver conditions. Other stuff from Dave's PhD.
         Stuff from the first secondary driver paper.
+    17-Sep-2014:
+        Started working on an air contamination analysis tool so that I can
+        better analyse my own data, and estimate how bad contamination is for
+        my experiments.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -205,7 +209,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "15-Jul-2014"
+VERSION_STRING = "17-Sep-2014"
 
 DEBUG_PITOT = False
 
