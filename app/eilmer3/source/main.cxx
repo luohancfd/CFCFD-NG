@@ -571,12 +571,12 @@ int prepare_to_integrate(size_t start_tindx)
     MPI_Allreduce(MPI_IN_PLACE, &(G.bounding_box_max.z), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 #   endif
 
-    if (G.MHD) {
+    if (G.MHD && (G.divB_damping_length <= 0.0)) {
 		Vector3 L_xyz = 0.5*(G.bounding_box_max - G.bounding_box_min);
 		if (L_xyz.z > 0.0) {
-	    	G.c_rel = 3.141592653589793 * sqrt(1/(L_xyz.x*L_xyz.x) + 1/(L_xyz.y*L_xyz.y) + 1/(L_xyz.z*L_xyz.z));
+		    G.divB_damping_length = 1.0 / (3.141592653589793 * sqrt(1/(L_xyz.x*L_xyz.x) + 1/(L_xyz.y*L_xyz.y) + 1/(L_xyz.z*L_xyz.z)));
 		} else {
-	    	G.c_rel = 3.141592653589793 * sqrt(1/(L_xyz.x*L_xyz.x) + 1/(L_xyz.y*L_xyz.y));
+		    G.divB_damping_length = 1.0 / (3.141592653589793 * sqrt(1/(L_xyz.x*L_xyz.x) + 1/(L_xyz.y*L_xyz.y)));
 		}
     }
 
@@ -1446,7 +1446,7 @@ int integrate_in_time(double target_time)
 
 	if (G.MHD) {
 	    // update the divergence cleaning speed
-	    G.c_h = G.cfl_max * G.L_min  / G.dt_global;
+	    update_MHD_c_h();
 	}
 
         // 2. Attempt a time step.

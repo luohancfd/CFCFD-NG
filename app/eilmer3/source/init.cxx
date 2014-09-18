@@ -298,6 +298,14 @@ int read_config_parameters(const string filename, bool master)
     G.MHD = false;
     G.BGK = 0;
 
+    // MHD divergence cleaning
+    G.div_clean = true;
+    G.c_h = 1.0;
+    G.divB_damping_length = 0.0; // default to zero, calc using domain bounds (main.cxx)
+    G.bounding_box_min = 0.0;
+    G.bounding_box_max = 1.0;
+    
+
     // Most configuration comes from the previously-generated INI file.
     ConfigParser dict = ConfigParser(filename);
     int i_value;
@@ -353,6 +361,8 @@ int read_config_parameters(const string filename, bool master)
     }
 
     dict.parse_boolean("global_data", "mhd_flag", G.MHD, false);
+    dict.parse_boolean("global_data", "div_clean_flag", G.div_clean, true);
+    dict.parse_double("global_data", "divB_damping_length", G.divB_damping_length, 0.0);
 
     dict.parse_int("global_data", "BGK_flag", G.BGK, 0);
     if ( G.BGK > 0) {

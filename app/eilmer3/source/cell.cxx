@@ -174,7 +174,7 @@ int FlowState::copy_values_from(const CFlowCondition &src)
     vel.x = src.u; vel.y = src.v; vel.z = src.w;
     if ( G.MHD ) {
 	B.x = src.Bx; B.y = src.By; B.z = src.Bz; 
-	psi = 0.0; divB = 0.0;
+	psi = src.psi; divB = src.divB;
     }
     S = src.S;
     tke = src.tke;
@@ -798,7 +798,7 @@ int FV_Cell::copy_values_from(const CFlowCondition &src)
     fs->vel.x = src.u; fs->vel.y = src.v; fs->vel.z = src.w;
     if ( G.MHD ) {
 	fs->B.x = src.Bx; fs->B.y = src.By; fs->B.z = src.Bz;
-	fs->psi = 0.0; fs->divB = 0.0;
+	fs->psi = src.psi; fs->divB = src.divB;
     }
     fs->S = src.S;
     fs->mu_t = src.mu_t;
@@ -1417,9 +1417,8 @@ int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions, bool wi
 	// Time-derivative for Z-Magnetic Field/unit volume.
 	integral = -IFe->F->B.z * IFe->area[gtl] - IFn->F->B.z * IFn->area[gtl]
 	    + IFw->F->B.z * IFw->area[gtl] + IFs->F->B.z * IFs->area[gtl];
-	if ( dimensions == 3 ) {
+	if ( dimensions == 3 )
 	    integral += IFb->F->B.z * IFb->area[gtl] - IFt->F->B.z * IFt->area[gtl];
-	}
 	dUdt[ftl]->B.z = vol_inv * integral + Q->B.z;
 
 	// Time-derivative for psi/unit volume.
@@ -1427,7 +1426,6 @@ int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions, bool wi
 	    + IFw->F->psi * IFw->area[gtl] + IFs->F->psi * IFs->area[gtl];
 	if ( dimensions == 3 )
 	    integral += IFb->F->psi * IFb->area[gtl] - IFt->F->psi * IFt->area[gtl];
-
 	dUdt[ftl]->psi = vol_inv * integral + Q->psi;
 
 	// divergence of B - this is not really a time derivative but it makes sense to
@@ -1436,7 +1434,6 @@ int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions, bool wi
 	    + IFw->F->divB * IFw->area[gtl] + IFs->F->divB * IFs->area[gtl];
 	if ( dimensions == 3 )
 	    integral += IFb->F->divB * IFb->area[gtl] - IFt->F->divB * IFt->area[gtl];
-
 	U[ftl]->divB = vol_inv * integral;
 
     } else {
@@ -1539,7 +1536,7 @@ int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, 
 	U1.B.z = U0.B.z + dt * gamma_1 * dUdt0.B.z;
 	// divergence cleaning
 	U1.psi = U0.psi + dt * gamma_1 * dUdt0.psi;
-	U1.psi *= get_divergence_damping();
+	U1.psi *= get_divergence_damping(dt*gamma_1);
     }
     U1.total_energy = U0.total_energy + dt * gamma_1 * dUdt0.total_energy;
     if ( with_k_omega ) {
@@ -1603,7 +1600,7 @@ int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
 	U2.B.z = U_old->B.z + dt * (gamma_1 * dUdt0.B.z + gamma_2 * dUdt1.B.z);
 	// divergence cleaning
 	U2.psi = U_old->psi  + dt * (gamma_1 * dUdt0.psi + gamma_2 * dUdt1.psi);
-	U2.psi *= get_divergence_damping();
+	U2.psi *= get_divergence_damping(dt);
     }
     U2.total_energy = U_old->total_energy + 
 	dt * (gamma_1 * dUdt0.total_energy + gamma_2 * dUdt1.total_energy);
@@ -1664,7 +1661,7 @@ int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
 	U3.B.z = U_old->B.z + dt * (gamma_1*dUdt0.B.z + gamma_2*dUdt1.B.z + gamma_3*dUdt2.B.z);
 	// divergence cleaning
 	U3.psi = U_old->psi  + dt * (gamma_1*dUdt0.psi + gamma_2*dUdt1.psi + gamma_3*dUdt2.psi);
-	U3.psi *= get_divergence_damping();
+	U3.psi *= get_divergence_damping(dt);
     }
     U3.total_energy = U_old->total_energy + 
 	dt * (gamma_1*dUdt0.total_energy + gamma_2*dUdt1.total_energy + gamma_3*dUdt2.total_energy);
@@ -1712,7 +1709,7 @@ int FV_Cell::stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega
 	U1.B.z = vr * (U0.B.z + dt * gamma_1 * dUdt0.B.z);
 	// divergence cleaning
 	U1.psi = vr * (U0.psi + dt * gamma_1 * dUdt0.psi);
-	U1.psi  *= get_divergence_damping();
+	U1.psi  *= get_divergence_damping(dt*gamma_1);
     }
     U1.total_energy = vr * (U0.total_energy + dt * gamma_1 * dUdt0.total_energy);
     if ( with_k_omega ) {
@@ -1764,7 +1761,7 @@ int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega
 	U2.B.z = vol_inv * (v_old * U0.B.z + dt * (gamma_1 * dUdt0.B.z + gamma_2 * dUdt1.B.z));
 	// divergence cleaning
 	U2.psi = vol_inv * (v_old * U0.psi + dt * (gamma_1 * dUdt0.psi + gamma_2 * dUdt1.psi));
-	U2.psi *= get_divergence_damping();
+	U2.psi *= get_divergence_damping(dt);
     }
     U2.total_energy = vol_inv * (v_old * U0.total_energy + 
 				 dt * (gamma_1 * dUdt0.total_energy + gamma_2 * dUdt1.total_energy));
@@ -1791,16 +1788,14 @@ int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega
 } // end of stage_2_update_for_flow_on_moving_grid()
 
 /// \brief calculate the damping coefficient for divergence cleaning
-double FV_Cell::get_divergence_damping()
+double FV_Cell::get_divergence_damping(double dt)
 {
     global_data &G = *get_global_data_ptr();
 
-    double c_p2 = G.c_h / G.c_rel;
+    double c_p2 = 0.18 * G.divB_damping_length * G.c_h;
     double c_h2 = G.c_h * G.c_h;
 
-    double c_damp = exp(-(c_h2 / c_p2) * G.dt_global);
-
-    return c_damp;
+    return exp( - (c_h2 / c_p2) * dt );
 }
 
 

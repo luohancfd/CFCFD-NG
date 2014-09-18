@@ -266,7 +266,7 @@ public:
     int stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega);
     int stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega);
     int stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega);
-    double get_divergence_damping();
+    double get_divergence_damping(double dt);
     int chemical_increment(double dt, double T_frozen);
     int thermal_increment(double dt, double T_frozen_energy);
     double signal_frequency(size_t dimensions, bool with_k_omega);

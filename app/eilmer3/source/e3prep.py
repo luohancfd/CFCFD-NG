@@ -447,7 +447,7 @@ class GlobalData(object):
                 'axisymmetric_flag', \
                 'radiation_input_file', 'radiation_update_frequency', 'radiation_flag', \
                 'implicit_flag', 'control_count', \
-                'radiation_update_frequency', 'mhd_flag',\
+                'radiation_update_frequency', 'mhd_flag', 'divB_damping_length', 'div_clean_flag',\
                 'BGK_flag', 'velocity_buckets', 'vcoords', 'vweights',\
                 'viscous_flag', 'viscous_delay', 'viscous_factor_increment',\
                 'separate_update_for_viscous_flag',\
@@ -507,6 +507,8 @@ class GlobalData(object):
         self.axisymmetric_flag = 0
         self.implicit_flag = 0
         self.mhd_flag = 0
+        self.div_clean_flag = 0
+        self.divB_damping_length = 0.0
         self.BGK_flag = 0
         self.velocity_buckets = 0
         self.vcoords = []
@@ -708,6 +710,8 @@ class GlobalData(object):
         fp.write("radiation_scaling = %s\n" % self.radiation_scaling)
         fp.write("axisymmetric_flag = %d\n" % self.axisymmetric_flag)
         fp.write("mhd_flag = %d\n" % self.mhd_flag)
+        fp.write("div_clean_flag = %d\n" % self.div_clean_flag)
+        fp.write("divB_damping_length = %e\n" % self.divB_damping_length)
         fp.write("BGK_flag = %d\n" % self.BGK_flag)
         fp.write("viscous_flag = %d\n" % self.viscous_flag)
         fp.write("viscous_delay = %e\n" % self.viscous_delay)

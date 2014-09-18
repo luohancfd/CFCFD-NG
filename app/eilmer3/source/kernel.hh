@@ -262,8 +262,9 @@ struct global_data
 
     // For Daryl Bond and Vince Wheatley's MHD additions.
     bool MHD;      // flag indicating MHD effects are to be calculated
+    bool div_clean;  // flag indicating whether divergence cleaning should be run
     double c_h;    // advection velocity for divergence cleaning
-    double c_rel;  // measure of the domain size
+    double divB_damping_length;  // measure of the domain size
     Vector3 bounding_box_min; // minimum point of bounding box
     Vector3 bounding_box_max; // maximum point of bounding box
 
@@ -336,6 +337,8 @@ Vector3 get_vcoord(int i);
 std::vector<Vector3> *get_vcoords_ptr(void);
 double get_vweight(int i);
 std::vector<double> *get_vweights_ptr(void);
+
+void update_MHD_c_h(void);
 
 std::string get_name_of_turbulence_model(turbulence_model_t my_model);
 #endif

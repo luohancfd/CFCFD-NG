@@ -201,6 +201,11 @@ std::vector<double> *get_vweights_ptr(void)
     return &vweights;
 }
 
+void update_MHD_c_h(void)
+{
+    gd.c_h = 0.3 * gd.cfl_max * gd.L_min  / gd.dt_global;
+}
+
 //---------------------------------------------------------------------
 
 std::string get_name_of_turbulence_model(turbulence_model_t my_model)
