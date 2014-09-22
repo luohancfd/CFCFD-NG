@@ -11,7 +11,7 @@ The first one is good to cite if you are using the Eilmer3 code for your own res
 
 #. Gollan RJ, Jacobs PA. Verification of a hypersonic flow solver. 18th Australasian Fluid Mechanics Conference, Launceston, Tasmania. 2012
 
-#. Chan WYK, Jacobs PA, Mee DJ. Suitability of the k-omega turbulence model for scramjet flowfield simulations. International Journal for Numerical Methods in Fluids 2011; DOI: 10.1002/fld.2699
+#. Chan WYK, Jacobs PA, Mee DJ. Suitability of the k-omega turbulence model for scramjet flowfield simulations. International Journal for Numerical Methods in Fluids 2011, Vol 70, Issue 4, pages 493-514; DOI: 10.1002/fld.2699
 
 #. Goozee RJ, Jacobs PA. Parallelism for simulations of an entire shock tunnel facility. Computational Fluid Dynamics 2002. 
 
