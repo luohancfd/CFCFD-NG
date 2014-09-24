@@ -29,6 +29,13 @@ N2.d = {
 --       ref = "Table 1-2, White (2006)"
 --    }
 -- }
+-- N2.viscosity = {
+--    model = "Blottner",
+--    parameters = { 
+--       A_mu = 0.026814, B_mu = 0.317784, C_mu = -11.31555,
+--       ref = "Table 4, ESA Radiation Test Case 8 (2014)"
+--    }
+-- }
 N2.viscosity = {
   model = "CEA",
   parameters = {

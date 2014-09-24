@@ -16,6 +16,13 @@ N.gamma = {
    description = '(ideal) ratio of specific heats at room temperature',
    reference = 'monatomic gas'
 }
+-- N.viscosity = {
+--    model = "Blottner",
+--    parameters = { 
+--       A_mu = 0.011557, B_mu = 0.603168, C_mu = -12.43275,
+--       ref = "Table 4, ESA Radiation Test Case 8 (2014)"
+--    }
+-- }
 N.viscosity = {
    model = "CEA",
    parameters = {

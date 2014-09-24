@@ -41,7 +41,13 @@ C.CEA_coeffs = {
 
   ref="from CEA2::thermo.inp"
 }
-
+-- C.viscosity = {
+--    model = "Blottner",
+--    parameters = { 
+--       A_mu = -0.007140, B_mu = 0.768602, C_mu = -12.956246,
+--       ref = "Table 4, ESA Radiation Test Case 8 (2014)"
+--    }
+-- }
 C.viscosity = {
    model = "CEA",
    parameters = {

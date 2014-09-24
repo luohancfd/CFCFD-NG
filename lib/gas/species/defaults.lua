@@ -46,6 +46,7 @@ default.viscosity = {
       ref = "Table 1-2, White (2006)"
    }
 }
+
 default.thermal_conductivity = { 
    model = "Sutherland",
    parameters = {
@@ -53,6 +54,14 @@ default.thermal_conductivity = {
       ref = "Table 1-3, White (2006)"
    }
 }
+-- when Blottner viscosity is required, use defaults for N2.
+-- default.viscosity = {
+--    model = "Blottner",
+--    parameters = { 
+--       A_mu = 0.026814, B_mu = 0.317784, C_mu = -11.31555,
+--       ref = "Table 4, ESA Radiation Test Case 8 (2014)"
+--    }
+-- }
 -- these properties vary widely between species, using the default is probably not a good idea
 -- these values result in effectively an ideal gas
 default.T_c = {

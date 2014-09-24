@@ -38,6 +38,14 @@ C3.CEA_coeffs = {
    ref='Gurvich (1991) from cea2::thermo.inp'
 }
 
+-- C3.viscosity = {
+--    model = "Blottner",
+--    parameters = { 
+--       A_mu = -0.01470, B_mu = 0.88110, C_mu = -13.5051,
+--       ref = "Blottner (1971)"
+--    }
+-- }
+
 C3.T_c = {
    value = 0.0,
    units = 'K',

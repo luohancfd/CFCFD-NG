@@ -41,6 +41,13 @@ CN.CEA_coeffs = {
 
   ref="from CEA2::thermo.inp"
 }
+-- CN.viscosity = {
+--    model = "Blottner",
+--    parameters = { 
+--       A_mu = -0.0250, B_mu = 0.6810, C_mu = -12.4327,
+--       ref = "Blottner (1971)"
+--    }
+-- }
 CN.viscosity = {
   model = "CEA",
   parameters = {

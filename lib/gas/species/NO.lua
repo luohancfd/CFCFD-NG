@@ -16,6 +16,13 @@ NO.gamma = {
    description = 'ratio of specific heats at room temperature (= Cp/(Cp - R))',
    reference = 'using Cp evaluated from CEA2 coefficients at T=300.0 K'
 }
+-- NO.viscosity = {
+--    model = "Blottner",
+--    parameters = { 
+--       A_mu = 0.043638, B_mu = -0.33551, C_mu = -9.576743,
+--       ref = "Table 4, ESA Radiation Test Case 8 (2014)"
+--    }
+-- }
 NO.viscosity = {
    model = "CEA",
    parameters = {

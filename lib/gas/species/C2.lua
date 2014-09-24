@@ -41,6 +41,13 @@ C2.CEA_coeffs = {
 
   ref="from CEA2::thermo.inp"
 }
+--C2.viscosity = {
+--    model = "Blottner",
+--    parameters = { 
+--       A_mu = -0.0031, B_mu = 0.6920, C_mu = -12.6127,
+--       ref = "Blottner (1971)"
+--    }
+-- }
 
 -- Nonequilibrium data
 

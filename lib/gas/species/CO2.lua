@@ -54,6 +54,13 @@ CO2.CEA_coeffs = {
    },
    ref='Gurvich (1991) from cea2::thermo.inp'
 }
+-- CO2.viscosity = {
+--    model = "Blottner",
+--    parameters = { 
+--       A_mu = -0.026654, B_mu = 1.107305, C_mu = -14.291274,
+--       ref = "Table 4, ESA Radiation Test Case 8 (2014)"
+--    }
+-- }
 CO2.viscosity = {
    model = "CEA",
    parameters = {

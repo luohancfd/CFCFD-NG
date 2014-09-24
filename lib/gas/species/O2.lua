@@ -31,6 +31,13 @@ O2.d = {
 --       ref = "Table 1-2, White (2006)"
 --    }
 -- }
+-- O2.viscosity = {
+--    model = "Blottner",
+--    parameters = { 
+--       A_mu = 0.044929, B_mu = -0.0826158, C_mu = -9.2019475,
+--       ref = "Table 4, ESA Radiation Test Case 8 (2014)"
+--    }
+-- }
 O2.viscosity = {
   model = "CEA",
   parameters = {
