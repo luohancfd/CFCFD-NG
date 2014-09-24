@@ -16,13 +16,13 @@ CO.gamma = {
    description = 'ratio of specific heats at 300.0K',
    reference = 'evaluated using Cp/R from Chemkin-II coefficients'
 }
-CO.viscosity = {
-    model = "Blottner",
-    parameters = { 
-       A_mu = -0.014044, B_mu = 0.887198, C_mu = -13.269815,
-       ref = "Table 4, ESA Radiation Test Case 8 (2014)"
-    }
-}
+-- CO.viscosity = {
+--    model = "Blottner",
+--    parameters = { 
+--       A_mu = -0.014044, B_mu = 0.887198, C_mu = -13.269815,
+--       ref = "Table 4, ESA Radiation Test Case 8 (2014)"
+--    }
+-- }
 -- CO.CEA_coeffs = {
 --    { T_low  = 200.0,
 --      T_high = 1000.0,
