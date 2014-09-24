@@ -328,9 +328,9 @@ create_parade_control_files( Gas_data &Q )
 #   if USE_FLO_INPUT_FILES
     // Flowfield style: gas data in the .flow files
     // firstly the con file
-    ofstream pcfile( "parade.con" );
-    pcfile << control_template_file_buffer.str();
-    pcfile.close();
+    // ofstream pcfile( "parade.con" );  // commented out these 3 lines Sept 2014.
+    // pcfile << control_template_file_buffer.str();
+    // pcfile.close();
     // Grid file
     // FIXME: this should be done as a initialisation step
     ofstream gfile( "grid.flo" );

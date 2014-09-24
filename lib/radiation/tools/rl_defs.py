@@ -1,5 +1,6 @@
 import os
 import sys
+from math import *
 
 def add_commas( string ):
     tks = string.split()

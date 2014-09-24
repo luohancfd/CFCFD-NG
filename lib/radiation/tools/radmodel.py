@@ -47,6 +47,7 @@ class GlobalRadData(object):
         self.binning = "none"
         self.N_bins = 0
         self.exact_formulation = False
+	self.parade_population = "none"
 
         return
     
@@ -136,9 +137,15 @@ class GlobalRadData(object):
         if self.spectral_model=="photaura":
             available_radiators = rl.available_radiators
         elif self.spectral_model=="parade":
-            available_radiators = prl.available_radiators
+		if self.parade_population== "Boltzmann":
+			available_radiators = prl.available_radiators_boltzmann
+		elif self.parade_population== "QSS":
+			available_radiators = prl.available_radiators_qss
+		else:
+			print "PARADE population type %s not understood." % self.parade_population
+			sys.exit()
         else:
-            print "Spectral model: %s not understood" % self.spectral_model
+            print "Spectral model: %s not understood." % self.spectral_model
             sys.exit()
         for arad in available_radiators.keys():
             if rrad==arad: 
@@ -161,7 +168,7 @@ class GlobalRadData(object):
             if rad.type=="triatomic_radiator" and rad.band_model=="SNB":
                 snb = True
             ofile = open(path+"/parade.con","w")
-            ofile.write("c       This PARADE 3.1 control template file was automatically created\n")
+            ofile.write("c       This PARADE 3.2 control template file was automatically created\n")
             ofile.write("c       by radmodel.py at %s\n" % datetime.now() )    
             ofile.write("c       1. Spectrum control data:\n")
             ofile.write("c\n")
