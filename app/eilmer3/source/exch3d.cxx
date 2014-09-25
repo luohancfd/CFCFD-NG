@@ -2736,7 +2736,7 @@ int copy_from_receive_buffer_to_top(Block *bp, int type_of_copy,
 		j_dest = j + bp->jmin;
 		if ( orientation == 0 ) {
 		    nni_src = bp->nni; nnk_src = bp->nnj;
-		    i_src = i; k_src = j; // PJ 2014-09-24, fix for Wilson.
+		    i_src = i; k_src = j;
 		} else if ( orientation == 1 ) {
 		    nni_src = bp->nnj; nnk_src = bp->nni;
 		    i_src = j; k_src = nnk_src - i - 1;
