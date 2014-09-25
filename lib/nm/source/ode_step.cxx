@@ -831,24 +831,11 @@ DP853Step::advance(OdeSystem &ode, const vector<double> &yin,
 /// \version 21-Feb-2006
 ///
 QssStep::QssStep( const string name, int ndim, int max_correctors,
-		  double qss_eps1, double c, double delta )
+		  double qss_eps1, double delta )
 
     : OdeStep( name, ndim ), max_correctors_( max_correctors ),
-      qss_eps1_( qss_eps1 ), c_( c ), delta_( delta )
+      qss_eps1_( qss_eps1 ), delta_( delta )
 {
-    if( (qss_eps1_ <= 0.0) || (c_ < 1.0) ) {
-	cout << "QssStep::QssStep() WARNING: one of the tolerance input parameters was invalid.\n";
-	cout << "                   qss_eps1_= " << qss_eps1_ << " c_= " << c_ << endl;
-	cout << "                   The values have been set to\n";
-	cout << "                   qss_eps1_ = 1.1e-5, c_ = 1.1 --> qss_eps2_ = 1.0e-5\n";
-	qss_eps1_ = 1.1e-5;
-	c_ = 1.1;
-	qss_eps2_ = 1.0e-5;
-
-    }
-    else
-	qss_eps2_ = qss_eps1_ / c_;
-
     p0_.resize(ndim);
     q0_.resize(ndim);
     L0_.resize(ndim);
@@ -871,7 +858,7 @@ QssStep::QssStep( const string name, int ndim, int max_correctors,
 ///
 QssStep::QssStep( const QssStep &q )
     : OdeStep( q.name_, q.ndim_ ), max_correctors_( q.max_correctors_ ),
-      qss_eps1_( q.qss_eps1_ ), c_( q.c_ ), qss_eps2_( q.qss_eps2_ ), delta_(q.delta_)
+      qss_eps1_( q.qss_eps1_ ), delta_(q.delta_)
 {
     p0_.resize(ndim_);
     q0_.resize(ndim_);
@@ -958,8 +945,10 @@ bool QssStep::advance( OdeSystem &ode, const vector<double> &yin,
 	copy_vector(y_c_, y_p_);
     }
     
-    *h = step_suggest( *h, y_c_, y_p1_ );
-    
+    double h_new = step_suggest( *h, y_c_, y_p1_ );
+    // On a failed step, drop h by at least an order of magnitude
+    if ( (h_new / *h) > 0.1 )
+	*h = 0.1*(*h);
     return false;
 
 }
@@ -1010,11 +999,15 @@ bool QssStep::test_converged( const vector<double> &y_c, const vector<double> &y
     int flag = 0;
     double test = 0.0;
     for( int i = 0; i < ndim_; ++i ) {
+	//	cout << "i= " << i << endl;
 	if( y_c[i] < ZERO_EPS )
 	    continue;
 	test = fabs(y_c[i] - y_p[i]);
+	//	cout << "test= " << test << endl;
+	//	cout << "val= " << qss_eps1_ * (y_c[i] + delta_) << endl;
 	// +delta from Qureshi and Prosser (2007)
-	if( test > (qss_eps1_ * y_c[i] + delta_) ) {
+	if( test >= (qss_eps1_ * (y_c[i] + delta_)) ) {
+	    //	    cout << "NEW: failed.\n";
 	    ++flag;
 	}
     }
@@ -1035,23 +1028,20 @@ double QssStep::step_suggest( double h, const vector<double> &y_c,
     for( int i = 0; i < ndim_; ++i ) {
 	if( y_c[i] < ZERO_EPS )
 	    continue;
-	test = fabs( y_c[i] - y_p[i]) / (qss_eps2_ * y_c[i]);
-	if( test > sigma )
+	test = fabs( y_c[i] - y_p[i]) / (qss_eps1_ * (y_c[i] + delta_));
+	if( test > sigma ) {
 	    sigma = test;
+	}
     }
-    
+
     if( sigma <= 0.0 )
 	h_new = h;
     else {
-	// Estimate the sqrt of sigma using three Newton iterations
-	// as Mott suggests.
-	double x0 = sigma;
-	double x1 = 0.0;
-	for( int j = 0; j < 3; ++j) {
-	    x1 = x0 - (x0*x0 - sigma)/(2*x0);
-	    x0 = x1;
-	}
-	h_new = h * ( (1.0 / x1) + 0.005 );
+	double x = sigma;
+	x = x - 0.5*(x*x - sigma)/x;
+	x = x - 0.5*(x*x - sigma)/x;
+	x = x - 0.5*(x*x - sigma)/x;
+	h_new = h * ( (1.0 / x) + 0.005 );
     }
 
     return h_new;

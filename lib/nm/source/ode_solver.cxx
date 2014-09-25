@@ -46,7 +46,7 @@ OdeSolver::OdeSolver( const string name, int ndim, const string step_name,
 	step_ = new EulerStep("euler", ndim);
     }
     else if( step_name == "qss" ) {
-	step_ = new QssStep("qss", ndim, 10, 1.0e-5, 3.0 );
+	step_ = new QssStep("qss", ndim, 10, 1.0e-3, 1.0e-10 );
     }
     else if( step_name == "rkf" ) {
 	step_ = new RKFStep( "rkf", ndim, 1.0e-9);
@@ -126,7 +126,7 @@ void OdeSolver::set_constants(const string name, int ndim, const string step_nam
 	step_ = new EulerStep("euler", ndim);
     }
     else if( step_name == "qss" ) {
-	step_ = new QssStep("qss", ndim, 10, err_tol, 3.0 );
+	step_ = new QssStep("qss", ndim, 10, err_tol );
     }
     else if( step_name == "rkf" ) {
 	step_ = new RKFStep( "rkf", ndim, err_tol);
@@ -228,19 +228,19 @@ bool OdeSolver::solve_over_interval( OdeSystem &ode, double x0, double xf, doubl
 
     while( *h < 0.5*(xf - xcurr)) {
 	int step_attempt = 0;
-	//cout << "h= " << *h << endl;
+	//	cout << "h= " << *h << " xcurr= " << xcurr << endl;
 	for( ; step_attempt < max_step_attempts_; ++step_attempt ) {
 	    
-	    //cout << "step_attempt= " << step_attempt << endl;
+	    //	    cout << "step_attempt= " << step_attempt << endl;
 	    h_last = *h;
 	    
 	    if( step_->advance( ode, y_work_, yout, h ) ) { // step is successful
 		steps++;
-		//cout << "Step successful.\n";
+		//		cout << "Step successful.\n";
 		if( ode.apply_system_test() && !ode.passes_system_test( yout ) ) {
-		    //cout << "BUT DID NOT PASS SYSTEM TEST.\n";
+		    //		    cout << "BUT DID NOT PASS SYSTEM TEST.\n";
 		    system_failures++;
-		    //cout << "system_failures= " << system_failures << endl;
+		    //		    cout << "system_failures= " << system_failures << endl;
 		    if ( system_failures == max_system_failures )
 			return false;
 		    // tolerance on step not sufficient
@@ -249,7 +249,7 @@ bool OdeSolver::solve_over_interval( OdeSystem &ode, double x0, double xf, doubl
 		    // so we only want to attempt a finite number of reductions
 		    // --step_attempt;
 		    // --steps;
-		    //cout << "Now h= " << *h << endl;
+		    //		    cout << "Now h= " << *h << endl;
 		    continue;
 		}
 		// this is what was replaced... just in case.
@@ -281,8 +281,9 @@ bool OdeSolver::solve_over_interval( OdeSystem &ode, double x0, double xf, doubl
 		break;
 	    }
 	    else { // The step failed.
-		//cout << "STEP FAILED.\n";
+		//		cout << "STEP FAILED. with h= " << *h << "\n";
 		// So we select a new timestep and start again...
+		//		cout << "h_last= " << h_last << endl;
 		if( *h >= h_last ) {
 		    // For some reason the suggested timestep is the same or larger.
 		    *h = h_last * decrease_factor_;
@@ -300,10 +301,10 @@ bool OdeSolver::solve_over_interval( OdeSystem &ode, double x0, double xf, doubl
 		    // The reduced step is going to be too small
 		    *h = hdiff * MIN_H_FRACTION;
 		}
-		//cout << "So next step h= " << *h << endl;
+		// cout << "So next step h= " << *h << endl;
 	    }
 	}
-
+	//	cout << "step_attempt no: " << step_attempt << endl;
 	if( step_attempt >= max_step_attempts_ ) {
 #           if ODE_WARNINGS >= 2	    
 	    cout << "The ODE solver failed trying to take a single step\n"
@@ -338,9 +339,9 @@ bool OdeSolver::solve_over_interval( OdeSystem &ode, double x0, double xf, doubl
 	if( i == no_steps ) {
 	    // Steps ok, do system check...
 	    if( ode.apply_system_test() && !ode.passes_system_test( yout ) ) {
-		//cout << "OdeSolver::solve_over_interval():" << endl
-		//     << "    system check failed at the end of the interval." << endl
-		//     << "    Maybe we should be exiting to the operating system." << endl;
+		//		cout << "OdeSolver::solve_over_interval():" << endl
+		//   << "    system check failed at the end of the interval." << endl
+		//   << "    Maybe we should be exiting to the operating system." << endl;
 		return false;
 		// exit(1);
 	    }
