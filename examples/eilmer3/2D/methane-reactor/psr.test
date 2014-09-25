@@ -38,8 +38,8 @@ test combustion-products {Combustion should have produced water by the end of th
     set rho_ref 0.1683763
     set p_ref 1.656104e5
     set T_ref 3022.78
-    set massf_O_ref 9.51093e-3
-    set massf_H2O_ref 8.39097e-2
+    set massf_O_ref 9.6126e-3
+    set massf_H2O_ref 8.4002e-2
     # Probe the solution near the end of the duct
     # and pull a few values from the line of data
     # that is produced by e3post.
@@ -62,12 +62,14 @@ test combustion-products {Combustion should have produced water by the end of th
 	set massf_H2O [lindex $items 22]
 	# puts "rho=$rho p=$p T=$T massf O=$massf_O H2O=$massf_H2O"
     }
-    # The differences with respect to the reference values should be small. 
+    # The differences with respect to the reference values should be small.
+    # The mass fractions will have quite small values so their relative test
+    # is a little more lax. 
     list [expr abs($rho - $rho_ref)/$rho_ref < 1.0e-3] \
     	 [expr abs($p - $p_ref)/$p_ref < 1.0e-3] \
     	 [expr abs($T - $T_ref)/$T_ref < 1.0e-3] \
-    	 [expr abs($massf_O - $massf_O_ref)/$massf_O_ref < 1.0e-3] \
-    	 [expr abs($massf_H2O - $massf_H2O_ref)/$massf_H2O_ref < 1.0e-3]
+    	 [expr abs($massf_O - $massf_O_ref)/$massf_O_ref < 1.0e-2] \
+    	 [expr abs($massf_H2O - $massf_H2O_ref)/$massf_H2O_ref < 1.0e-2]
 } -result {1 1 1 1 1}
 
 cleanupTests
