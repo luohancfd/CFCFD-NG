@@ -30,11 +30,12 @@ private:
     std::vector<double> x_;
     std::vector<double> mu_;
     matrix phi_;
-    double A_;
-    double B_;
-    double F_;
+    matrix A_;
+    matrix B_;
+    matrix F_;
+    double Pr_;
 
-    int s_eval_transport_coefficients(Gas_data &Q, double A_, double B_, double F_);
+    int s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel=0);
 };
 
 #endif

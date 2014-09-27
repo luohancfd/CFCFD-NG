@@ -59,7 +59,9 @@ TEST_EXECUTABLES := user-defined-gas-model-test.x \
 	generalised-Arrhenius-test.x \
 	reaction-update-test.x \
 	noneq-test.py \
-	noneq-test.x
+	noneq-test.x \
+	cpu-chem-test \
+	gpu-chem-test
 #	gas-module-test.lua \
 # 	perfect-gas-EOS-test.x \
 # 	noble-abel-gas-EOS-test.x \
@@ -250,7 +252,9 @@ MODELS_OBJECTS := CEA-Cp-functor.o \
 	collision-integral.o \
 	GuptaYos-mixing-rule.o \
 	GuptaYos-dcm.o \
-	binary-interaction.o
+	binary-interaction.o \
+	Armaly-Sutton-mixing-rule.o \
+	Blottner-viscosity.o
 
 KINETICS_OBJECTS := chemical-kinetic-ODE-update.o \
 	chemical-kinetic-system.o \
@@ -566,7 +570,7 @@ coupled-diatom-LUT.o : $(MODELS)/coupled-diatom-LUT.cxx $(MODELS)/coupled-diatom
 no-transport-coefficients.o : $(MODELS)/no-transport-coefficients.cxx \
 	$(MODELS)/no-transport-coefficients.hh $(MODELS)/gas_data.hh \
 	$(MODELS)/transport-coefficients-model.hh
-	$(CXXCOMPILE) $(CXXFLAG) $(MODELS)/no-transport-coefficients.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(MODELS)/no-transport-coefficients.cxx -I$(LUA_INCLUDE_DIR)
 
 chemical-equilibrium-system.o : $(MODELS)/chemical-equilibrium-system.cxx \
 	$(MODELS)/chemical-equilibrium-system.hh $(MODELS)/chemical-species.hh \
@@ -604,6 +608,14 @@ GuptaYos-dcm.o : $(MODELS)/GuptaYos-dcm.cxx $(MODELS)/GuptaYos-dcm.hh \
 binary-interaction.o : $(MODELS)/binary-interaction.cxx $(MODELS)/binary-interaction.hh \
         $(UTIL_SRC)/lua_service.hh $(LUA_INCLUDE_DIR)
 	$(CXXCOMPILE) $(CXXFLAG) $(MODELS)/binary-interaction.cxx -I$(LUA_INCLUDE_DIR)
+
+Armaly-Sutton-mixing-rule.o : $(MODELS)/Armaly-Sutton-mixing-rule.cxx $(MODELS)/Armaly-Sutton-mixing-rule.hh \
+        $(MODELS)/binary-interaction.hh $(UTIL_SRC)/lua_service.hh $(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(MODELS)/Armaly-Sutton-mixing-rule.cxx -I$(LUA_INCLUDE_DIR)
+
+Blottner-viscosity.o : $(MODELS)/Blottner-viscosity.cxx $(MODELS)/Blottner-viscosity.hh \
+	$(MODELS)/viscosity-model.hh $(MODELS)/gas_data.hh $(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(MODELS)/Blottner-viscosity.cxx -I$(LUA_INCLUDE_DIR)
 
 #
 # kinetics objects
@@ -772,6 +784,15 @@ generalised-Arrhenius-test.x : $(KINETICS)/generalised-Arrhenius-test.cxx $(LIBG
 reaction-update-test.x : $(KINETICS)/reaction-update-test.cxx $(LIBGAS) $(LIBLUA)
 	$(CXXLINK) $(LFLAG) -o reaction-update-test.x $(KINETICS)/reaction-update-test.cxx \
 	$(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) -I$(LUA_INCLUDE_DIR)
+
+cpu-chem-test : $(KINETICS)/cpu-chem-test.cxx $(LIBGAS) $(LIBLUA)
+	$(CXXLINK) $(LFLAG) -o cpu-chem-test $(KINETICS)/cpu-chem-test.cxx \
+	$(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) -I$(LUA_INCLUDE_DIR)
+
+gpu-chem-test : $(KINETICS)/gpu-chem-test.cxx $(LIBGAS) $(LIBLUA)
+	$(CXXLINK) $(LFLAG) -o gpu-chem-test $(KINETICS)/gpu-chem-test.cxx \
+	$(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) -I$(LUA_INCLUDE_DIR) 
+
 
 minimal-implementation-gas-model-test.x : $(MODELS)/minimal-implementation-gas-model.hh $(MODELS)/minimal-implementation-gas-model.cxx \
 	$(MODELS)/gas_data.hh $(MODELS)/gas-model.hh gas-model.o

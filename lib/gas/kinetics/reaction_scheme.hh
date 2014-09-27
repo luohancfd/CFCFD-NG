@@ -14,7 +14,7 @@
 #include "../../nm/source/no_fuss_linear_algebra.hh"
 #include "../../nm/source/ode_system.hh"
 #include "../../nm/source/ode_solver.hh"
-#include "../models/gas.hh"
+#include "../models/gas_data.hh"
 #include "../models/thermally_perfect_gas_mix.hh"
 #include "reaction.hh"
 #include "reacting_species.hh"

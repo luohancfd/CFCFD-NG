@@ -393,7 +393,7 @@ s_eval_thermo_state_rhoe(Gas_data &Q)
 
 int
 LUT_plus_composite::
-s_eval_transport_coefficients(Gas_data &Q)
+s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel)
 {
     int result_flag;
     int nsp = get_number_of_species();
@@ -403,7 +403,7 @@ s_eval_transport_coefficients(Gas_data &Q)
     Q_LUT_->rho = Q.rho;
     Q_LUT_->e[0] = Q.e[0];
 
-    result_flag = LUT_->eval_transport_coefficients(*Q_LUT_);
+    result_flag = LUT_->eval_transport_coefficients(*Q_LUT_, gmodel);
     if (result_flag != SUCCESS ) {
 	cout << "LUT_plus_composite::s_eval_transport_coeffcients()\n";
 	cout << "    There is a problem evaluating the transport\n";
@@ -435,7 +435,7 @@ s_eval_transport_coefficients(Gas_data &Q)
 	return MASS_FRACTION_ERROR;
     }
 
-    result_flag = CGM_->eval_transport_coefficients(*Q_CGM_);
+    result_flag = CGM_->eval_transport_coefficients(*Q_CGM_, gmodel);
     if (result_flag != SUCCESS ) {
 	cout << "LUT_plus_composite::s_eval_transport_coeffcients()\n";
 	cout << "    There is a problem evaluating the transport\n";

@@ -366,7 +366,8 @@ int luafn_eval_transport_coefficients(lua_State *L)
     Gas_data Q(gmodel);
     // Expect a gas_data as lua table at top of stack.
     get_table_as_gas_data(L, Q);
-    int flag = apply_gas_method(&Gas_model::eval_transport_coefficients, Q);
+
+    int flag = gmodel->eval_transport_coefficients(Q, gmodel);
     if ( flag != SUCCESS ) {
 	cout << "luafn_eval_transport_coefficients(): " << endl;
 	cout << "There was a problem calling eval_transport_coefficients()." << endl;

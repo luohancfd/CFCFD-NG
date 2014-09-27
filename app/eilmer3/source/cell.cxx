@@ -996,7 +996,7 @@ int FV_Cell::replace_flow_data_with_average(std::vector<FV_Cell *> src)
     // If it is common, we have debugging to do...
     Gas_model *gmodel = get_gas_model_ptr();
     gmodel->eval_thermo_state_pT(*(fs->gas));
-    if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas));
+    if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas), gmodel);
     if ( G.diffusion ) gmodel->eval_diffusion_coefficients(*(fs->gas));
 
     return SUCCESS;
@@ -1287,7 +1287,7 @@ int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k
     // check the species mass fractions.
     // Update the viscous transport coefficients.
     gmodel->eval_thermo_state_rhoe(*(fs->gas));
-    if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas));
+    if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas), gmodel);
     if ( G.diffusion ) gmodel->eval_diffusion_coefficients(*(fs->gas));
 
     return SUCCESS;
@@ -1850,7 +1850,7 @@ int FV_Cell::chemical_increment(double dt, double T_frozen)
 
     // If we are doing a viscous sim, we'll need to ensure
     // viscous properties are up-to-date
-    if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas));
+    if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas), gmodel);
     if ( G.diffusion ) gmodel->eval_diffusion_coefficients(*(fs->gas));
     // ...but we have to manually update the conservation quantities
     // for the gas-dynamics time integration.
@@ -1885,7 +1885,7 @@ int FV_Cell::thermal_increment(double dt, double T_frozen_energy)
 
     // If we are doing a viscous sim, we'll need to ensure
     // viscous properties are up-to-date
-    if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas));
+    if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas), gmodel);
     if ( G.diffusion ) gmodel->eval_diffusion_coefficients(*(fs->gas));
     // ...but we have to manually update the conservation quantities
     // for the gas-dynamics time integration.

@@ -39,7 +39,15 @@ Armaly_Sutton_mixing_rule(lua_State *L)
     mu_.resize(nsp, 0.0);
 
     phi_.resize(nsp);
-    for( int i = 0; i < nsp; ++i ) phi_[i].resize(nsp, 0.0);
+    A_.resize(nsp);
+    B_.resize(nsp);
+    F_.resize(nsp);
+    for( int i = 0; i < nsp; ++i ) {
+	phi_[i].resize(nsp, 0.0);
+	A_[i].resize(nsp, 0.0);
+	B_[i].resize(nsp, 0.0);
+	F_[i].resize(nsp, 0.0);
+    }
 
     for ( int isp = 0; isp < nsp; ++isp ) {
 	lua_rawgeti(L, -1, isp+1); // A Lua list is offset one from the C++ vector index
@@ -128,6 +136,47 @@ Armaly_Sutton_mixing_rule(lua_State *L)
 	ost << "This must be a value between 0 and 1.\n";
 	input_error(ost);
     }
+    lua_pop(L, 1); // Pops "ignore_mole_fraction" off stack.
+
+    // Now populate A_, B_ and F_.
+    lua_getglobal(L, "ArmalySutton_params");
+    lua_getfield(L, -1, "A");
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	lua_rawgeti(L, -1, isp+1);
+	for ( int jsp = 0; jsp < nsp; ++jsp ) {
+	    lua_rawgeti(L, -1, jsp+1);
+	    A_[isp][jsp] = luaL_checknumber(L, -1);
+	    lua_pop(L, 1);
+	}
+	lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "B");
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	lua_rawgeti(L, -1, isp+1);
+	for ( int jsp = 0; jsp < nsp; ++jsp ) {
+	    lua_rawgeti(L, -1, jsp+1);
+	    B_[isp][jsp] = luaL_checknumber(L, -1);
+	    lua_pop(L, 1);
+	}
+	lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "F");
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	lua_rawgeti(L, -1, isp+1);
+	for ( int jsp = 0; jsp < nsp; ++jsp ) {
+	    lua_rawgeti(L, -1, jsp+1);
+	    F_[isp][jsp] = luaL_checknumber(L, -1);
+	    lua_pop(L, 1);
+	}
+	lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+
+    lua_getfield(L, -1, "Pr");
+    Pr_ = luaL_checknumber(L, -1);
+    lua_pop(L, 1);
     
 }
 
@@ -141,7 +190,7 @@ Armaly_Sutton_mixing_rule::
 
 int
 Armaly_Sutton_mixing_rule::
-s_eval_transport_coefficients(Gas_data &Q, double A_, double B_, double F_)
+s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel)
 {
     // Reference:
     // Palmer and Wright (2003)
@@ -149,8 +198,8 @@ s_eval_transport_coefficients(Gas_data &Q, double A_, double B_, double F_)
     // Journal of Thermophysics and Heat Transfer, 17:2, pp.232-239
     // Implementation of equations (29) and (35).
 
-    // Rowan! I didn't know where to put the A, B and F values, so I'll leave
-    // them here and hopefully you can find a way to include them.
+
+    // Presently, we read in A, B and F values.
     // A_ik = 1.25 for all interactions except an atom with its own ion
     //      = 1.1 for an atom with its own ion, except air species!
     //      = 0.21 for N-N+ and O-O+ interactions
@@ -175,7 +224,7 @@ s_eval_transport_coefficients(Gas_data &Q, double A_, double B_, double F_)
 	// Calculate interaction potentials
 	for( size_t i = 0; i < Q.massf.size(); ++i ) {
 	    for ( size_t j = 0; j < Q.massf.size(); ++j ) {
-		double numer = ( 5.0/(3.0*A_[i][j]) + M_[j]/M[i] ) * pow(( F_[i][j] + B_[i][j]*sqrt(mu_[i]/mu_[j])*pow(M_[j]/M_[i], 0.25) ), 2.0);
+		double numer = ( 5.0/(3.0*A_[i][j]) + M_[j]/M_[i] ) * pow(( F_[i][j] + B_[i][j]*sqrt(mu_[i]/mu_[j])*pow(M_[j]/M_[i], 0.25) ), 2.0);
 		double denom = ( (1.0 + M_[j]/M_[i]) * sqrt(8.0*(1.0 + M_[j]/M_[i])) );
 		phi_[i][j] = numer/denom;
 	    }
@@ -195,6 +244,11 @@ s_eval_transport_coefficients(Gas_data &Q, double A_, double B_, double F_)
 	    Q.mu += mu_[i]/(1.0 + (1.0/x_[i])*sum_a);
 	}
     }
+
+    double Cp = gmodel->Cp(Q);
+    // ELISE: Check this expression please.
+    Q.k[0] = Q.mu*Cp/Pr_;
+
     return SUCCESS;
 }
 

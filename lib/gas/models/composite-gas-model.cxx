@@ -39,6 +39,7 @@ extern "C" {
 #include "no-transport-coefficients.hh"
 #include "GuptaYos-mixing-rule.hh"
 #include "GuptaYos-dcm.hh"
+#include "Armaly-Sutton-mixing-rule.hh"
 
 using namespace std;
 
@@ -137,6 +138,9 @@ Composite_gas_model(string cfile)
     }
     else if ( TCM == "GuptaYos" ) {
 	TCM_ = (Transport_coefficients_model*) new GuptaYos_mixing_rule(L);
+    }
+    else if ( TCM == "ArmalySutton") {
+	TCM_ = (Transport_coefficients_model*) new Armaly_Sutton_mixing_rule(L);
     }
     else if ( TCM == "None" ) {
     	TCM_ = (Transport_coefficients_model*) new No_transport_coefficients();
@@ -309,9 +313,9 @@ s_eval_sound_speed(Gas_data &Q)
 
 int
 Composite_gas_model::
-s_eval_transport_coefficients(Gas_data &Q)
+s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel)
 {
-    return TCM_->eval_transport_coefficients(Q);
+    return TCM_->eval_transport_coefficients(Q, gmodel);
 }
 
 int

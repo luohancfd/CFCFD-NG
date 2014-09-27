@@ -36,7 +36,7 @@ private:
     std::vector<double> x_;
     std::vector<Chemical_species*> species_;
 
-    int s_eval_transport_coefficients(Gas_data &Q);
+    int s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel=0);
 };
 
 GuptaYos_mixing_rule * create_GuptaYos_mixing_rule_from_file( std::string lua_file );

@@ -171,7 +171,7 @@ Wilke_mixing_rule::
 
 int
 Wilke_mixing_rule::
-s_eval_transport_coefficients(Gas_data &Q)
+s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel)
 {
     // Reference:
     // Wilke, C.R. (1950)

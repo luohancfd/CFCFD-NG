@@ -34,7 +34,7 @@ private:
     matrix phi_;
     matrix psi_;
 
-    int s_eval_transport_coefficients(Gas_data &Q);
+    int s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel=0);
 };
 
 #endif

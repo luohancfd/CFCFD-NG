@@ -8,7 +8,7 @@ using namespace std;
 
 int
 No_transport_coefficients::
-s_eval_transport_coefficients(Gas_data &Q)
+s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel)
 {
     // 1. Viscosity coefficient
     Q.mu = 0.0;

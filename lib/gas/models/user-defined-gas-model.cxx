@@ -194,7 +194,7 @@ s_eval_thermo_state_rhop(Gas_data &Q)
 
 int
 UD_gas_model::
-s_eval_transport_coefficients(Gas_data &Q)
+s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel)
 {
     return call_user_function(L_, "eval_transport_coefficients", Q);
 }

@@ -274,7 +274,7 @@ s_eval_thermo_state_rhoe(Gas_data &Q)
 
 int
 Look_up_table::
-s_eval_transport_coefficients(Gas_data &Q)
+s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel)
 {
     double efrac, lrfrac;
     double mu_eff, k_eff;

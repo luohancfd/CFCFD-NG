@@ -377,7 +377,7 @@ int Block::propagate_data_west_to_east(size_t dimensions)
 		dest->copy_values_from(*src, COPY_FLOW_STATE, 0);
 		Gas_data *gas = dest->fs->gas;
 		if ( gm->eval_thermo_state_pT(*gas) != SUCCESS ||
-		     gm->eval_transport_coefficients(*gas) != SUCCESS ) {
+		     gm->eval_transport_coefficients(*gas, gm) != SUCCESS ) {
 		    printf( "propagate_data_west_to_east(): Duff call to thermo model.\n" );
 		    printf( "   i=%d, j=%d, k=%d\n", static_cast<int>(i),
 			    static_cast<int>(j), static_cast<int>(k) );

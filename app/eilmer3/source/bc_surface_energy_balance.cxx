@@ -342,7 +342,7 @@ update_interface_properties(FV_Interface * IFace)
     gm->eval_thermo_state_rhoT(*(IFace->fs->gas));
     
     // 2. Transport coefficients
-    gm->eval_transport_coefficients(*(IFace->fs->gas));
+    gm->eval_transport_coefficients(*(IFace->fs->gas), gm);
     
     // 3. Diffusion coefficients
     gm->eval_diffusion_coefficients(*(IFace->fs->gas));

@@ -13,7 +13,7 @@ public:
     ~No_transport_coefficients() {}
 
 private:
-    int s_eval_transport_coefficients(Gas_data &Q);
+    int s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel);
 };
 
 #endif

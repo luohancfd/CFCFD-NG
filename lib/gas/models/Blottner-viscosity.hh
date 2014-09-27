@@ -26,6 +26,4 @@ private:
     double s_eval_viscosity(const Gas_data &Q);
 };
 
-double S_viscosity(double T, double A_mu, double B_mu, double C_mu);
-
 #endif

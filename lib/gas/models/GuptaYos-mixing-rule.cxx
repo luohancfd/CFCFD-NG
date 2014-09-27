@@ -198,7 +198,7 @@ get_collision_integral_ptr( int isp, int jsp )
 
 int
 GuptaYos_mixing_rule::
-s_eval_transport_coefficients(Gas_data &Q)
+s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel)
 {    
     // 0. Set all transport parameters to zero
     Q.mu = 0.0;

@@ -42,7 +42,7 @@ private:
     int s_eval_thermo_state_rhoT(Gas_data &Q);
     int s_eval_thermo_state_rhop(Gas_data &Q);
     int s_eval_sound_speed(Gas_data &Q);
-    int s_eval_transport_coefficients(Gas_data &Q);
+    int s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel);
     int s_eval_diffusion_coefficients(Gas_data &Q);
     double s_dTdp_const_rho(const Gas_data &Q, int &status);
     double s_dTdrho_const_p(const Gas_data &Q, int &status);

@@ -641,7 +641,7 @@ class StructuredGridFlow(object):
                         for imode in range(nmodes):
                             Q.T[imode] = self.data['T[%d]' % imode][i,j,k]
                         self.gmodel.eval_thermo_state_rhoT(Q)
-                        self.gmodel.eval_transport_coefficients(Q)
+                        self.gmodel.eval_transport_coefficients(Q, self.gmodel)
                         self.data['sigma'][i,j,k] = Q.sigma
                         self.data['mu'][i,j,k] = Q.mu
                         for imode in range(nmodes):
