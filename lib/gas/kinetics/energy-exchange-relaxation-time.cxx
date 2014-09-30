@@ -678,7 +678,7 @@ double xi_correction(Diatomic_species &p, Diatomic_species &n)
     double mu_star, tmp_a, tmp_b, xi;
 
     mu_star = p.get_mu_B() / sqrt( p.get_eps0() * pow(p.get_r0(), 3.0));
-    tmp_a = (n.get_alpha() * mu_star) / ( 4.0 * pow(n.get_r0(), 3.0));
+    tmp_a = (n.get_alpha() * mu_star*mu_star) / ( 4.0 * pow(n.get_r0(), 3.0));
     tmp_b = sqrt(p.get_eps0() / n.get_eps0());
 
     xi = 1.0 + tmp_a * tmp_b;
@@ -1044,14 +1044,14 @@ VT_SSH(lua_State *L, int ip, int iq, int itrans)
 	    eps_ = potential_well_A(*p, *q);
 	}
 	else {
-	    r_ = collider_distance_B(*q, *p);
-	    eps_ = collider_distance_B(*q, *p);
+	    r_ = collider_distance_B(*p, *q);
+	    eps_ = potential_well_B(*p, *q);
 	}
     }
     else {
 	if ( q->get_polar_flag() ) {
-	    r_ = collider_distance_B(*p, *q);
-	    eps_ = collider_distance_B(*p, *q);
+	    r_ = collider_distance_B(*q, *p);
+	    eps_ = potential_well_B(*q, *p);
 	}
 	else {
 	    r_ = collider_distance_A(*p, *q);
@@ -1164,14 +1164,14 @@ VV_SSH(lua_State *L, int ip, int iq, int itrans)
 	    eps_ = potential_well_A(*p, *q);
 	}
 	else {
-	    r_ = collider_distance_B(*q, *p);
-	    eps_ = potential_well_B(*q, *p);
+	    r_ = collider_distance_B(*p, *q);
+	    eps_ = potential_well_B(*p, *q);
 	}
     }
     else {
 	if ( q->get_polar_flag() ) {
-	    r_ = collider_distance_B(*p, *q);
-	    eps_ = potential_well_B(*p, *q);
+	    r_ = collider_distance_B(*q, *p);
+	    eps_ = potential_well_B(*q, *p);
 	}
 	else {
 	    r_ = collider_distance_A(*p, *q);
