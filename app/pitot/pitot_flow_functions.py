@@ -387,13 +387,14 @@ def shock_tube_calculation(cfg, states, V, M):
                                     cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
                                     tol=1.0e-3,limits=[cfg['Vs1_lower'], cfg['Vs1_upper']])
             elif cfg['tunnel_mode'] == 'nr-shock-tunnel': #start with a higher speed guess in nr-shock-tunnel mode
-                if cfg['secondary']:
-                    cfg['Vs1_guess_1'] = cfg['Vsd']+5000.0; cfg['Vs1_guess_2'] = cfg['Vsd']+6000.0
-                else:
-                    if cfg['p1'] > 1000.0:
-                        cfg['Vs1_guess_1'] = 6000.0; cfg['Vs1_guess_2'] = 8000.0
+                if 'Vs1_guess_1' not in cfg and 'Vs1_guess_2' not in cfg:
+                    if cfg['secondary']:
+                        cfg['Vs1_guess_1'] = cfg['Vsd']+5000.0; cfg['Vs1_guess_2'] = cfg['Vsd']+6000.0
                     else:
-                        cfg['Vs1_guess_1'] = 10000.0; cfg['Vs1_guess_2'] = 12000.0
+                        if cfg['p1'] > 1000.0:
+                            cfg['Vs1_guess_1'] = 6000.0; cfg['Vs1_guess_2'] = 8000.0
+                        else:
+                            cfg['Vs1_guess_1'] = 10000.0; cfg['Vs1_guess_2'] = 12000.0
                 cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, cfg['Vs1_guess_1'], cfg['Vs1_guess_2'], tol=1.0e-3,limits=[1000.0,1000000.0])
             elif cfg['tunnel_mode'] == 'reflected-shock-tunnel': #start with a much lower speed guess in nr-shock-tunnel mode
                 if cfg['secondary']:
@@ -478,12 +479,14 @@ def shock_tube_calculation(cfg, states, V, M):
     if PRINT_STATUS: 
         print "state 2: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s2'].p, states['s2'].T) 
         print "state 3: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s3'].p, states['s3'].T) 
+        if cfg['solver'] == 'eq':
+            print 'species in state2 at equilibrium:'               
+            print '{0}'.format(states['s2'].species)
         
     if cfg['state2_no_ions']:
         # Turn with ions back on so it will be on for other states based on s7
         # if we turned it off to make the unsteady expansion work
         states['s2'].with_ions = True 
-    
     
     #get mach numbers for the txt_output
     cfg['Ms1'] = cfg['Vs1']/states['s1'].a
@@ -626,7 +629,10 @@ def acceleration_tube_calculation(cfg, states, V, M):
     
     if PRINT_STATUS: 
         print "state 6: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s6'].p, states['s6'].T) 
-        print "state 7: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s7'].p, states['s7'].T) 
+        print "state 7: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s7'].p, states['s7'].T)
+        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+            print 'species in state7 at equilibrium:'               
+            print '{0}'.format(states['s7'].species)
     
     if PRINT_STATUS: print '-'*60
     
@@ -715,6 +721,10 @@ def nozzle_expansion(cfg, states, V, M):
         except Exception as e:
             print "Error {0}".format(str(e))
             raise Exception, "pitot.nozzle_expansion(): Run of pitot failed in the nozzle expansion calculation."
+            
+    if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+        print 'species in state8 at equilibrium:'               
+        print '{0}'.format(states['s8'].species)
     
     return cfg, states, V, M     
     
@@ -727,22 +737,60 @@ def shock_over_model_calculation(cfg, states, V, M):
     
     """
     
-    if PRINT_STATUS: print "Starting frozen normal shock calculation over the test model."  
-    states['s10f'] = states[cfg['test_section_state']].clone()
-    (V10, V['s10f']) = shock_ideal(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10f'])
-    M['s10f']= V['s10f']/states['s10f'].a
-
-    if PRINT_STATUS: print "Starting equilibrium normal shock calculation over the test model."  
-    if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq': 
-        states['s10e'] = states[cfg['test_section_state']].clone()
-        (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10e'])
-        M['s10e']= V['s10e']/states['s10e'].a
-    elif cfg['solver'] == 'pg': #we need to make a cea2 gas object to do this equilibrium calculaiton if every other gas object is pg
-        states[cfg['test_section_state']+'eq'] = make_test_gas(cfg['test_gas'])[0]
-        states[cfg['test_section_state']+'eq'].set_pT(states[cfg['test_section_state']].p,states[cfg['test_section_state']].T)
-        states['s10e'] = states[cfg['test_section_state']+'eq'].clone()
-        (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']+'eq'], V[cfg['test_section_state']], states['s10e'])
-        M['s10e']= V['s10e']/states['s10e'].a
+    try:
+        if PRINT_STATUS: print "Starting frozen normal shock calculation over the test model."  
+        states['s10f'] = states[cfg['test_section_state']].clone()
+        (V10, V['s10f']) = shock_ideal(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10f'])
+        M['s10f']= V['s10f']/states['s10f'].a
+    except Exception as e:
+        print "Error {0}".format(str(e))
+        print "Frozen normal shock calculation over the test model failed."
+        print "Result will not be printed."
+        if 's10f' in states.keys():
+            del states['s10f']
+        
+    try:
+        if PRINT_STATUS: print "Starting equilibrium normal shock calculation over the test model."  
+        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq': 
+            states['s10e'] = states[cfg['test_section_state']].clone()
+            (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10e'])
+            M['s10e']= V['s10e']/states['s10e'].a
+            if abs((states['s10e'].p - states[cfg['test_section_state']].p) / states['s10e'].p) < 0.10:
+                print "For some reason p10e and p{0} are too similar. Shock must have not occured properly.".format(cfg['test_section_state'][1])
+                print "p{0} = {1} Pa, p10e = {2} Pa."\
+                .format(cfg['test_section_state'][1], states[cfg['test_section_state']].p, states['s10e'].p)
+                raise Exception, "pitot_flow_functions.shock_over_model_calculation() Eq shock over model calculation failed."
+        elif cfg['solver'] == 'pg': #we need to make a cea2 gas object to do this equilibrium calculaiton if every other gas object is pg
+            states[cfg['test_section_state']+'eq'] = make_test_gas(cfg['test_gas'])[0]
+            states[cfg['test_section_state']+'eq'].set_pT(states[cfg['test_section_state']].p,states[cfg['test_section_state']].T)
+            states['s10e'] = states[cfg['test_section_state']+'eq'].clone()
+            (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']+'eq'], V[cfg['test_section_state']], states['s10e'])
+            M['s10e']= V['s10e']/states['s10e'].a
+    except Exception as e:
+        print "Error {0}".format(str(e))
+        print "Equilibrium normal shock calculation over the test model failed."
+        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq' and cfg['gas_guess']: 
+            print "Will try again with a high temperature gas guess."
+            try:
+                states['s10e'] = states[cfg['test_section_state']].clone()
+                (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']], 
+                                                V[cfg['test_section_state']], 
+                                                states['s10e'], cfg['gas_guess'])
+                M['s10e']= V['s10e']/states['s10e'].a
+                if abs((states['s10e'].p - states[cfg['test_section_state']].p) / states['s10e'].p) < 0.10:
+                    print "For some reason p10e and p{0} are too similar. Shock must have not occured properly.".format(cfg['test_section_state'][1])
+                    print "p{0} = {1} Pa, p10e = {2} Pa."\
+                    .format(cfg['test_section_state'][1], states[cfg['test_section_state']].p, states['s10e'].p)
+                    raise Exception, "pitot_flow_functions.shock_over_model_calculation() Eq shock over model calculation failed."
+            except Exception as e:
+                print "Error {0}".format(str(e))
+                print "Result will not be printed."
+                if 's10e' in states.keys():
+                    del states['s10e']
+        else:
+            print "Result will not be printed."
+            if 's10e' in states.keys():
+                del states['s10e']
         
     if PRINT_STATUS: print '-'*60
         

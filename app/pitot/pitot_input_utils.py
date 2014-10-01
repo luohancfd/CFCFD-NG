@@ -116,7 +116,7 @@ def make_test_gas(gasName, outputUnits='moles'):
                    outputUnits=outputUnits), None
     elif gasName.lower() == 'ar':
         return Gas(reactants={'Ar':1.0}, inputUnits='moles', with_ions=True,
-                   outputUnits=outputUnits), None                     
+                   outputUnits=outputUnits), {'gam':1.2,'R':271.0}                     
     else:
         raise Exception, 'make_test_gas(): unknown gasName: %s' % gasName 
    

@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "14-Jul-2014"
+VERSION_STRING = "1-Oct-2014"
 
 
 import sys
@@ -65,9 +65,12 @@ def check_new_inputs(cfg):
         print "You have not specified a 'p1_list'. Bailing out."
         cfg['bad_input'] = True
         
-    if 'p5_list' not in cfg:
+    if cfg['tunnel_mode'] == 'expansion-tube' and 'p5_list' not in cfg:
         print "You have not specified a 'p5_list'. Bailing out."
         cfg['bad_input'] = True
+        
+    if 'store_electron_concentration' not in cfg:
+        cfg['store_electron_concentration'] = False
         
     if cfg['bad_input']: #bail out here if you end up having issues with your input
         print "Config failed check. Bailing out now."
@@ -83,18 +86,31 @@ def calculate_number_of_test_runs(cfg):
     """Function that uses a simple function to calculate the amount of test
        runs that the program has to perform.
     """
-    if True in cfg['secondary_list']:
-        total_with_sd = len(cfg['driver_condition_list'])*\
-        len(cfg['psd1_list'])*len(cfg['p1_list'])*len(cfg['p5_list'])
-        total = total_with_sd
-    
-    if False in cfg['secondary_list']:
-        total_without_sd = len(cfg['driver_condition_list'])*len(cfg['p1_list'])\
-        *len(cfg['p5_list'])
-        total = total_without_sd
+    if cfg['tunnel_mode'] == 'expansion-tube':
+        if True in cfg['secondary_list']:
+            total_with_sd = len(cfg['driver_condition_list'])*\
+            len(cfg['psd1_list'])*len(cfg['p1_list'])*len(cfg['p5_list'])
+            total = total_with_sd
         
-    if len(cfg['secondary_list']) == 2:
-        total = total_with_sd + total_without_sd
+        if False in cfg['secondary_list']:
+            total_without_sd = len(cfg['driver_condition_list'])*len(cfg['p1_list'])\
+            *len(cfg['p5_list'])
+            total = total_without_sd
+            
+        if len(cfg['secondary_list']) == 2:
+            total = total_with_sd + total_without_sd
+    elif cfg['tunnel_mode'] == 'nr-shock-tunnel':
+        if True in cfg['secondary_list']:
+            total_with_sd = len(cfg['driver_condition_list'])*\
+            len(cfg['psd1_list'])*len(cfg['p1_list'])
+            total = total_with_sd
+        
+        if False in cfg['secondary_list']:
+            total_without_sd = len(cfg['driver_condition_list'])*len(cfg['p1_list'])
+            total = total_without_sd
+            
+        if len(cfg['secondary_list']) == 2:
+            total = total_with_sd + total_without_sd
     
     return total
     
@@ -112,28 +128,17 @@ def condition_builder_test_run(cfg, condition_builder_output, results):
     print "Running test {0} of {1}.".format(cfg['test_number'], cfg['number_of_test_runs'])
     try:
         cfg, states, V, M = run_pitot(cfg = cfg)
-    except Exception:
-        cfg['state7_no_ions'] = True
-        # need to remove Vs values from the dictionary or it will bail out
-        # on the next run            
-        if cfg['secondary']: cfg.pop('Vsd') 
-        cfg.pop('Vs1'); cfg.pop('Vs2')        
-        print "Original test failed, trying again with 'state7_no_ions' turned on."
-        try:
-            cfg, states, V, M = run_pitot(cfg = cfg)
-        except Exception:
-            # need to remove Vs values from the dictionary or it will bail out
-            # on the next run            
-            print "Test {0} failed. Result will not be printed to csv output.".format(cfg['test_number'])
-            condition_status = False
+    except Exception:          
+        print "Test {0} failed. Result will not be printed to csv output.".format(cfg['test_number'])
+        condition_status = False
     if cfg['secondary'] and cfg['Vsd'] > cfg['Vs1']:
         print "Vsd is faster than Vs1, condition cannot be simulated by Pitot properly."
         print "Test {0} is considered failed, and result will not be printed to csv output.".format(cfg['test_number'])
         condition_status = False
     if condition_status:
-        string_output = output_builder (cfg, states, V, M)
-        condition_builder_output.write(string_output + '\n')
         results = add_new_result_to_results_dict(cfg, states, V, M, results)
+        string_output = output_builder (cfg, states, V, M, results)
+        condition_builder_output.write(string_output + '\n')
         # need to remove Vs values from the dictionary or it will bail out
         # on the next run
         cfg.pop('Vsd'); cfg.pop('Vs1'); cfg.pop('Vs2')
@@ -145,7 +150,7 @@ def condition_builder_test_run(cfg, condition_builder_output, results):
             
     return condition_status, results
     
-def output_builder(cfg, states, V, M):
+def output_builder(cfg, states, V, M, results):
     """Function that takes the four dictionaries from the completed
        Pitot run and builds a string output that can be added to the
        csv output file.
@@ -163,7 +168,14 @@ def output_builder(cfg, states, V, M):
     elif cfg['driver_gas'] == 'He:0.80,Ar:0.20':
         driver_gas = 'He:0.8 Ar:0.2'
     
-    # Now make the basic string   
+    # Now make the basic string
+    
+    # something to add a line if the stagnation enthalpy did not calculate
+    # properly in the last run
+    # (it will be set to None)
+    
+    if cfg['stagnation_enthalpy'] == None:
+        cfg['stagnation_enthalpy'] = 0.0
     
     basic = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18}"\
             .format(cfg['test_number'], driver_gas, cfg['psd1'], 
@@ -188,18 +200,33 @@ def output_builder(cfg, states, V, M):
                                    states['s10f'].rho, V['s10f'],
                                    states['s10e'].p, states['s10e'].T, 
                                    states['s10e'].rho, V['s10e'])
+    
+    if cfg['store_electron_concentration']:
+        # I decided to start just pulling these from the results dict lists 
+        # instead of refinding them, that seems lazy 
+        store_electron_concentration = ",{0},{1},{2},{3}"\
+                                       .format(results['s2ec'][-1],
+                                               results['s7ec'][-1],
+                                               results['s8ec'][-1],
+                                               results['s10ec'][-1])        
                                    
     # now put it all together
     
     if cfg['nozzle']:
         basic = basic + nozzle
     
-    if cfg['conehead'] and not cfg['shock_over_model']:
+    if cfg['conehead'] and not cfg['shock_over_model'] and not cfg['store_electron_concentration']:
         string_output = basic + conehead
-    elif cfg['shock_over_model'] and not cfg['conehead']:
+    elif cfg['shock_over_model'] and not cfg['conehead'] and not cfg['store_electron_concentration']:
         string_output = basic + shock_over_model
-    elif cfg['shock_over_model'] and cfg['conehead']:
-        string_output = basic + conehead + shock_over_model        
+    elif cfg['shock_over_model'] and cfg['conehead'] and not cfg['store_electron_concentration']:
+        string_output = basic + conehead + shock_over_model   
+    elif cfg['conehead'] and not cfg['shock_over_model'] and cfg['store_electron_concentration']:
+        string_output = basic + conehead + store_electron_concentration
+    elif cfg['shock_over_model'] and not cfg['conehead'] and cfg['store_electron_concentration']:
+        string_output = basic + shock_over_model + store_electron_concentration
+    elif cfg['shock_over_model'] and cfg['conehead'] and cfg['store_electron_concentration']:
+        string_output = basic + conehead + shock_over_model + store_electron_concentration
     else:
         string_output = basic
     
@@ -213,6 +240,9 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     if not cfg['secondary']: #need to fill psd and Vsd with string values
         cfg['psd1'] = 'Not used'
         cfg['Vsd'] = 'N/A'
+    if cfg['tunnel_mode'] == 'nr-shock-tunnel':
+        cfg['p5'] = 'Not used'
+        cfg['Vs2'] = 'N/A'
     
     results['test number'].append(cfg['test_number'])
     results['driver condition'].append(cfg['driver_gas'])
@@ -258,6 +288,34 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
         results['rho10e'].append(states['s10e'].rho)
         results['V10e'].append(V['s10e'])
         
+    if cfg['store_electron_concentration']:
+        if 'e-' in states['s2'].species.keys():
+            results['s2ec'].append(states['s2'].species['e-'])
+        else:
+            results['s2ec'].append(0.0)
+            
+        if cfg['tunnel_mode'] == 'expansion-tube':
+            if 'e-' in states['s7'].species.keys():
+                results['s7ec'].append(states['s7'].species['e-'])
+            else:
+                results['s7ec'].append(0.0)   
+        else:
+            results['s7ec'].append('N/A')
+            
+        if cfg['nozzle']:
+            if 'e-' in states['s8'].species.keys():
+                results['s8ec'].append(states['s8'].species['e-'])
+            else:
+                results['s8ec'].append(0.0) 
+        if cfg['shock_over_model']:
+            if 's10e' in states.keys():
+                if 'e-' in states['s8'].species.keys():
+                    results['s10ec'].append(states['s10e'].species['e-'])
+                else:
+                    results['s10ec'].append(0.0)
+            else:
+                results['s10ec'].append('did not solve')
+                     
     return results
     
 def condition_builder_summary_builder(cfg, results, condition_builder_summary_file):
@@ -317,7 +375,10 @@ def condition_builder_summary_builder(cfg, results, condition_builder_summary_fi
                     .format(variable, min_value, max_value)
                 elif variable[0] == 'H':
                     summary_line = "Variable {0} varies from {1:.7f} - {2:.7f} MJ/kg."\
-                    .format(variable, min_value, max_value)                    
+                    .format(variable, min_value, max_value)
+                elif variable[-2:] == 'ec':
+                    summary_line = "Variable {0} varies from {1:.7f} - {2:.7f} (mole fraction)."\
+                    .format(variable, min_value, max_value)
                 else:
                     summary_line = "Variable {0} varies from {1:.1f} - {2:.1f}."\
                     .format(variable, min_value, max_value)
@@ -397,12 +458,21 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
         basic = basic + nozzle
     conehead = ",p10c,T10c,rho10c,V10c"
     shock_over_model = ",p10f,T10f,rho10f,V10f,p10e,T10e,rho10f,V10e"
-    if cfg['conehead'] and not cfg['shock_over_model']:
+    store_electron_concentration = ",s2ec, s7ec, s8ec, s10ec"
+    if cfg['conehead'] and not cfg['shock_over_model'] and not cfg['store_electron_concentration']:
         intro_line_2 = basic + conehead
-    elif cfg['shock_over_model'] and not cfg['conehead']:
+    elif cfg['shock_over_model'] and not cfg['conehead'] and not cfg['store_electron_concentration']:
         intro_line_2 = basic + shock_over_model
-    elif cfg['shock_over_model'] and cfg['conehead']:
-        intro_line_2 = basic + conehead + shock_over_model        
+    elif cfg['shock_over_model'] and cfg['conehead'] and not cfg['store_electron_concentration']:
+        intro_line_2 = basic + conehead + shock_over_model   
+    if cfg['conehead'] and not cfg['shock_over_model'] and cfg['store_electron_concentration']:
+        intro_line_2 = basic + conehead + store_electron_concentration
+    elif cfg['shock_over_model'] and not cfg['conehead'] and cfg['store_electron_concentration']:
+        intro_line_2 = basic + shock_over_model + store_electron_concentration
+    elif cfg['shock_over_model'] and cfg['conehead'] and cfg['store_electron_concentration']:
+        intro_line_2 = basic + conehead + shock_over_model + store_electron_concentration
+    elif cfg['store_electron_concentration'] and not cfg['shock_over_model'] and not cfg['conehead']:
+        intro_line_2 = basic + store_electron_concentration
     else:
         intro_line_2 = basic
     condition_builder_output.write(intro_line_2 + '\n')
@@ -418,12 +488,21 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
         basic_list = basic_list + nozzle_list
     conehead_list = ['p10c','T10c','rho10c','V10c']
     shock_over_model_list = ['p10f','T10f','rho10f','V10f','p10e','T10e','rho10e','V10e']
-    if cfg['conehead'] and not cfg['shock_over_model']:
+    store_electron_concentration_list = ['s2ec','s7ec','s8ec','s10ec']
+    if cfg['conehead'] and not cfg['shock_over_model'] and not cfg['store_electron_concentration']:
         full_list = basic_list + conehead_list
-    elif cfg['shock_over_model'] and not cfg['conehead']:
+    elif cfg['shock_over_model'] and not cfg['conehead'] and not cfg['store_electron_concentration']:
         full_list = basic_list + shock_over_model_list
-    elif cfg['shock_over_model'] and cfg['conehead']:
-        full_list = basic_list + conehead_list + shock_over_model_list        
+    elif cfg['shock_over_model'] and cfg['conehead'] and not cfg['store_electron_concentration']:
+        full_list = basic_list + conehead_list + shock_over_model_list
+    elif cfg['conehead'] and not cfg['shock_over_model'] and cfg['store_electron_concentration']:
+        full_list = basic_list + conehead_list + store_electron_concentration_list
+    elif cfg['shock_over_model'] and not cfg['conehead'] and cfg['store_electron_concentration']:
+        full_list = basic_list + shock_over_model_list + store_electron_concentration_list
+    elif cfg['shock_over_model'] and cfg['conehead'] and cfg['store_electron_concentration']:
+        full_list = basic_list + conehead_list + shock_over_model_list + store_electron_concentration_list 
+    elif cfg['store_electron_concentration'] and not cfg['conehead'] and not cfg['shock_over_model']:
+        full_list = basic_list + store_electron_concentration_list 
     else:
         full_list = basic_list
     
@@ -435,15 +514,36 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     
     have_checked_time = False
     
-    #now start up the for loops and get running    
-    
-    for driver_condition in cfg['driver_condition_list']:
-        cfg['driver_gas'] = driver_condition
-        for secondary_value in cfg['secondary_list']:
-            cfg['secondary'] = secondary_value
-            if cfg['secondary']:
-                for psd1 in cfg['psd1_list']:
-                    cfg['psd1'] = psd1
+    #now start up the for loops and get running
+
+    if cfg['tunnel_mode'] == 'expansion-tube':   
+        for driver_condition in cfg['driver_condition_list']:
+            cfg['driver_gas'] = driver_condition
+            for secondary_value in cfg['secondary_list']:
+                cfg['secondary'] = secondary_value
+                if cfg['secondary']:
+                    for psd1 in cfg['psd1_list']:
+                        cfg['psd1'] = psd1
+                        for p1 in cfg['p1_list']:
+                            cfg['p1'] = p1
+                            for p5 in cfg['p5_list']:
+                                cfg['p5'] = p5
+                                counter += 1
+                                cfg['test_number'] = counter
+                                if not have_checked_time:
+                                    start_time = time.time()
+                                run_status, results = condition_builder_test_run(cfg, condition_builder_output, results) 
+                                if run_status:
+                                    good_counter += 1
+                                    if not have_checked_time:
+                                        test_time = time.time() - start_time
+                                        print '-'*60
+                                        print "Time to complete first test was {0:.2f} seconds."\
+                                        .format(test_time)
+                                        print "If every test takes this long. It will take roughly {0:.2f} hours to perform all {1} tests."\
+                                        .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
+                                        have_checked_time = True
+                else:
                     for p1 in cfg['p1_list']:
                         cfg['p1'] = p1
                         for p5 in cfg['p5_list']:
@@ -463,11 +563,35 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
                                     print "If every test takes this long. It will take roughly {0:.2f} hours to perform all {1} tests."\
                                     .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
                                     have_checked_time = True
-            else:
-                for p1 in cfg['p1_list']:
-                    cfg['p1'] = p1
-                    for p5 in cfg['p5_list']:
-                        cfg['p5'] = p5
+
+    elif cfg['tunnel_mode'] == 'nr-shock-tunnel':   
+        for driver_condition in cfg['driver_condition_list']:
+            cfg['driver_gas'] = driver_condition
+            for secondary_value in cfg['secondary_list']:
+                cfg['secondary'] = secondary_value
+                if cfg['secondary']:
+                    for psd1 in cfg['psd1_list']:
+                        cfg['psd1'] = psd1
+                        for p1 in cfg['p1_list']:
+                            cfg['p1'] = p1
+                            counter += 1
+                            cfg['test_number'] = counter
+                            if not have_checked_time:
+                                start_time = time.time()
+                            run_status, results = condition_builder_test_run(cfg, condition_builder_output, results) 
+                            if run_status:
+                                good_counter += 1
+                                if not have_checked_time:
+                                    test_time = time.time() - start_time
+                                    print '-'*60
+                                    print "Time to complete first test was {0:.2f} seconds."\
+                                    .format(test_time)
+                                    print "If every test takes this long. It will take roughly {0:.2f} hours to perform all {1} tests."\
+                                    .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
+                                    have_checked_time = True
+                else:
+                    for p1 in cfg['p1_list']:
+                        cfg['p1'] = p1
                         counter += 1
                         cfg['test_number'] = counter
                         if not have_checked_time:
@@ -482,7 +606,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
                                 .format(test_time)
                                 print "If every test takes this long. It will take roughly {0:.2f} hours to perform all {1} tests."\
                                 .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
-                                have_checked_time = True
+                                have_checked_time = True       
                         
     condition_builder_output.close()
     

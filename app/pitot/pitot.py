@@ -209,7 +209,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "17-Sep-2014"
+VERSION_STRING = "1-Oct-2014"
 
 DEBUG_PITOT = False
 
