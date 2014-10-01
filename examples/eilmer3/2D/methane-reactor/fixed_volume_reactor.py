@@ -55,9 +55,11 @@ all_times = arange(0.0, t_end, dt)
 write_header()
 write_data(all_times[0])
 
+
 print "# Now, integrate in time."
 for t in all_times[1:]:
     dt_chem = r.update_state_py(Q, dt, dt_chem, gmodel)
+    gmodel.eval_thermo_state_rhoe(Q)
     write_data(t)
 
 print "# Done."
