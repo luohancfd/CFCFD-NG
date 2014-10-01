@@ -262,7 +262,10 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     results['rho7'].append(states['s7'].rho)
     results['V7'].append(V['s7'])
     results['M7'].append(M['s7'])
-    results['Ht'].append(cfg['stagnation_enthalpy']/10**6)
+    if cfg['stagnation_enthalpy']:
+        results['Ht'].append(cfg['stagnation_enthalpy']/10**6)
+    else:
+        results['Ht'].append('did not solve')
     
     if cfg['nozzle']:
         results['arearatio'].append(cfg['area_ratio'])
