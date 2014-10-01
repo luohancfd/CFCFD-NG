@@ -145,7 +145,8 @@ if __name__ == '__main__':
         fp_out.write(" %d:mach" % var_count)
     if add_molef:
         for isp in range(nsp):
-            varName = "molef[%d]" % isp
+            specname = gmodel.species_name(isp).replace(' ', '-')
+            varName = "molef[%d]-%s" % (isp, specname)
             var_count += 1
             fp_out.write(" %d:%s" % (var_count, varName))
     fp_out.write("\n")
@@ -219,7 +220,10 @@ if __name__ == '__main__':
             if add_molef:
                 # Accumulate the mass fractions and then compute the mole fractions
                 # in the context of the gas model.
-                massf = [float(data['massf[%d]' % isp]) for isp in range(nsp)]
+                massf = []
+                for isp in range(nsp):
+                    specname = gmodel.species_name(isp).replace(' ', '-')
+                    massf.append(float(data["massf[%d]-%s" % (isp, specname)]))
                 molef = gmodel.to_molef(massf)
                 for isp in range(nsp):
                     fp_out.write(" %e" % molef[isp])
