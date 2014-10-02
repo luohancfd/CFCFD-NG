@@ -312,7 +312,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
                 results['s8ec'].append(0.0) 
         if cfg['shock_over_model']:
             if 's10e' in states.keys():
-                if 'e-' in states['s8'].species.keys():
+                if 'e-' in states['s10e'].species.keys():
                     results['s10ec'].append(states['s10e'].species['e-'])
                 else:
                     results['s10ec'].append(0.0)
