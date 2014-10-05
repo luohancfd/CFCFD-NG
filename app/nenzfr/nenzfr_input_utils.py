@@ -3,7 +3,64 @@ nenzfr_input_utils.py -- Functions to check the nenzfr input dictionary that
     is pulled in from the config file and add default vales where required.
 
 .. Author: Chris James
+
+   Modified: Luke Doherty 03-Oct-2014
+             Added checks/defaults for 'reactionSchemeFile',
+             'energySchemeFile' and nitrogen gas name (can be
+             either 'n2', 'N2', 'nitrogen'). 
 """
+import os
+
+#---------------------------------------
+# Utility Functions
+
+def check_reaction_scheme(cfg):
+    """Takes the config dictionary and checks that the reaction scheme file
+    is in the current directory. If not, and if we recognise the gas-name, we
+    will copy the relevant scheme from the repository.
+
+    """
+    if not os.path.exists(cfg['reactionSchemeFile']):
+        # Set directory path to where reaction-scheme files are stored
+        basePath = '$HOME/cfcfd3/lib/gas/reaction-schemes/'
+        
+        # If the reaction-scheme file is one that we know, we copy it from the repository
+        # while also checking that some of the 'hard-coded' settings are correct. If it 
+        # is not one that we know, we simply copy it without modification.
+        if cfg['reactionSchemeFile'] in ['nitrogen-5sp-6r.lua']:
+            fp = open(os.path.expandvars(basePath+'nitrogen/nitrogen-5sp-6r.lua'),'r')
+            fout = open('./nitrogen-5sp-6r.lua','w')
+            for line in fp.readlines():
+                items = line.strip().split()
+                if (len(items)>0 and items[0] == 'WITH_IONIZATION' and items[-1] is not 'false'):
+                    fout.write('WITH_IONIZATION = false\n')
+                else:
+                    fout.write('%s' % line)
+            fout.close()
+
+        elif cfg['reactionSchemeFile'] in ['gupta_etal_air_reactions.lua']:
+            fp = open(os.path.expandvars(basePath+'air/gupta_etal_air_reactions.lua'),'r')
+            fout = open('./gupta_etal_air_reactions.lua','w')
+            for line in fp.readlines():
+                items = line.strip().split()
+                if (len(items)>0 and items[0] == 'NO_SPECIES' and items[-1] is not 5):
+                    fout.write('NO_SPECIES = 5\n')
+                else:
+                    fout.write('%s' % line)
+            fout.close()
+        
+        else: 
+            # gasName:folderName
+            folderNames = {'air5species': 'air', 'n2': 'nitrogen', cfg['gasName']:cfg['gasName']}
+            fp = open(os.path.expandvars(basePath+folderNames[cfg['gasName']]+'/'+cfg['reactionSchemeFile']))
+            fout = open('./'+cfg['reactionSchemeFile'],'w')
+            for line in fp.readlines():
+                fout.write('%s' % line)
+            fout.close()
+    return
+
+#------------------------------------------------
+# Main function 
 
 def input_checker(cfg):
     """Takes the config dictionary and checks that everything is there. Will 
@@ -91,15 +148,52 @@ def input_checker(cfg):
         print "No gas model chosen. Setting it to default value of '{0}'."\
         .format(cfg['gasName'])
 
+    if cfg['gasName'] in ['n2','N2','nitrogen']:
+        cfg['gasName'] = 'n2'
+
     if 'chemModel' not in cfg:
         cfg['chemModel'] = 'neq'
         print "No chemistry model chosen. Setting it to default value of '{0}'."\
         .format(cfg['chemModel'])
-        
+    
+    if 'reactionSchemeFile' not in cfg:
+        if cfg['chemModel'] in ['neq','tc-neq']:
+            if cfg['gasName'] in ['air']:
+                # I have deprecated this combination
+                print ("The combination of gasName='air' and chemModel='neq' ('tc-neq')\n"
+                      "    is not supported due to a lack of suitable reaction scheme.")
+                cfg['reactionSchemeFile'] = 'Invalid-inputs'
+                cfg['bad_input'] = True
+            elif cfg['gasName'] in ['air5species']:
+                cfg['reactionSchemeFile'] = 'gupta_etal_air_reactions.lua'
+                # check that the file is present in working directory
+                check_reaction_scheme(cfg)
+            elif cfg['gasName'] in ['n2']:
+                cfg['reactionSchemeFile'] = 'nitrogen-5sp-6r.lua'
+                # check that the file is present in the working directory
+                check_reaction_scheme(cfg)
+            else:
+                print ("The specified gasName is not one of the defaults, you MUST "
+                      "therefore define a 'reactionSchemeFile'")
+                cfg['bad_input'] = True
+        else:
+            cfg['reactionSchemeFile'] = 'Not-needed'
+        print "No reaction scheme specified. Setting it to '{0}'."\
+        .format(cfg['reactionSchemeFile'])
+    
+    if 'thermalSchemeFile' not in cfg:
+        if cfg['chemModel'] in ['tc-neq']:
+            print ("No energy-exchange scheme file specified.\n"
+                  "    The default energy-schemes have yet to be defined.\n"
+                  "    This is coming...")
+            cfg['bad_input'] = True
+        else:
+            cfg['thermalSchemeFile'] = 'Not-needed'
+            
     if cfg['facility'] == 'reflected-shock-tunnel' and 'areaRatio' not in cfg:
         cfg['areaRatio'] = 1581.165
         print "No area ratio selected for estcj calculation."
-        print "Setting area ratio to default value of {0}".format(cfg['areaRatio'])
+        print "    Setting area ratio to default value of {0}".format(cfg['areaRatio'])
         
     if 'jobName' not in cfg:
         cfg['jobName'] = 'nozzle'
@@ -114,22 +208,22 @@ def input_checker(cfg):
     if 'exitSliceFileName' not in cfg:
         cfg['exitSliceFileName'] = 'nozzle-exit.data'
         print "No filename specified for file that holds nozzle-exit data."
-        print "Setting it to default value of '{0}'.".format(cfg['exitSliceFileName'])
+        print "    Setting it to default value of '{0}'.".format(cfg['exitSliceFileName'])
         
     if 'justStats' not in cfg:
         cfg['justStats'] = False
         print "Switch to skip detailed calculations not specified."
-        print "Setting it to default value of justStats = {0}".format(cfg['justStats'])
+        print "    Setting it to default value of justStats = {0}".format(cfg['justStats'])
 
     if 'noStats' not in cfg:
         cfg['noStats'] = False
         print "Switch to skip flow statistic calculations not specified."
-        print "Setting it to default value of noStats = {0}".format(cfg['noStats'])
+        print "    Setting it to default value of noStats = {0}".format(cfg['noStats'])
     
     if 'blockMarching' not in cfg:
         cfg['blockMarching'] = True
         print "Switch to use or not use Block Marching mode not specified."
-        print "Setting it to default value of blockMarching = {0}".format(cfg['blockMarching'])
+        print "    Setting it to default value of blockMarching = {0}".format(cfg['blockMarching'])
         
     #these default values below are based on Luke's Mach 10 calculations.
     
@@ -146,7 +240,7 @@ def input_checker(cfg):
     if 'nbi' not in cfg:
         cfg['nbi'] = 180
         print "Number of axial blocks for the divergence section (nozzle_blk) not set"
-        print "Setting it to default value of {0}.".format(cfg['nbi']) 
+        print "    Setting it to default value of {0}.".format(cfg['nbi']) 
         
     if 'nbj' not in cfg:
         cfg['nbj'] = 1
@@ -166,12 +260,12 @@ def input_checker(cfg):
     if 'max_time' not in cfg:
         cfg['max_time'] = 6.0e-3
         print "Overall simulation time for nozzle flow not set."
-        print "Setting it to default value of {0}.".format(cfg['max_time'])
+        print "    Setting it to default value of {0}.".format(cfg['max_time'])
 
     if 'max_step' not in cfg:
         cfg['max_step'] = 800000
         print "Maximum simulation steps allowed not set."
-        print "Setting to to default value of {0}.".format(cfg['max_step'])
+        print "    Setting to to default value of {0}.".format(cfg['max_step'])
         
     if 'Tw' not in cfg:
         cfg['Tw'] = 300.0
@@ -181,23 +275,23 @@ def input_checker(cfg):
     if 'BLTrans' not in cfg:
         cfg['BLTrans'] = "x_c[-1]*1.1"
         print "Transition location for the boundary layer (used to define the"
-        print "turbulent portion of the nozzle) not set."
-        print "Setting to to default value of > nozzle length (ie. laminar nozzle)."
+        print "    turbulent portion of the nozzle) not set."
+        print "    Setting to to default value of > nozzle length (ie. laminar nozzle)."
         
     if 'TurbVisRatio' not in cfg:
         cfg['TurbVisRatio'] = 100.0
         print "Turbulent to Laminar Viscoscity ratio not set."
-        print "Setting it to default value of {0}.".format(cfg['TurbVisRatio'])
+        print "    Setting it to default value of {0}.".format(cfg['TurbVisRatio'])
         
     if 'TurbInten' not in cfg:
         cfg['TurbInten'] = 0.05
         print "Turbulence intensity at the throat not set."
-        print "Setting it to default value of {0}.".format(cfg['TurbInten'])
+        print "    Setting it to default value of {0}.".format(cfg['TurbInten'])
         
     if 'coreRfraction' not in cfg:
         cfg['coreRfraction'] = 2.0/3.0
         print "Radius of core flow as a fraction of the nozzle exit radius not set."
-        print "Setting it to default value of {0}.".format(cfg['coreRfraction'])
+        print "    Setting it to default value of {0}.".format(cfg['coreRfraction'])
     
     print "Done checking nenzfr inputs."
         

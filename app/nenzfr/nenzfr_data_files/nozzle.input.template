@@ -41,6 +41,12 @@
 #   as the original reflected shock tunnel mode.
 # - also modified to accomodate the oxford gun tunnel used by Matt McGilvray
 #
+# Luke Doherty, October-2014
+# - simplified the code setting the gas model, reaction scheme. Deprecated 
+#   the combination of gasModel=air and chemModel=neq. Added the ability to 
+#   accept a user-defined reaction scheme and started adding the capability 
+#   of using multi-temperature gas models i.e thermal-nonequilibrium.
+#
 #---------------------------------------------------------------------
 import string, fileinput
 from estcj import reflected_shock_tube_calculation as rstc
@@ -57,12 +63,13 @@ import os
 
 #---------------------------------------------------------------------
 # Utility functions
-def round_list(list, precision):
-    for k in range(len(list)):
-        list[k] = round(list[k], precision)
-    return list
+#def round_list(list, precision):
+#    #for k in range(len(list)):
+#    #    list[k] = round(list[k], precision)
+#    list = [round(k,precision) for k in list]
+#    return list
 
-def massFraction_check(species):
+def massFractionCheck(species):
     # The mass fractions we get from CEA do not always sum to one within
     # the tolerance expected by Eilmer3. When this is the case, and the 
     # difference from one is not too great, we scale the mass fractions
@@ -76,7 +83,7 @@ def massFraction_check(species):
         pass_flag = 1
     elif 1.0e-6 < massf_error <= 1.0e-4:
         totalMass = sum(species.values())
-        for var in species.keys():
+        for var in species:
             species[var] = species[var]/totalMass
         pass_flag = 1
     else:
@@ -118,23 +125,17 @@ print "Flow velocity at nozzle throat = {0} m/s.".format(throat_V)
 print "Flow condition at nozzle throat:"
 throat.write_state(sys.stdout)  
 
-# Estimate turbulence quantities for free stream by specifying 
-# the intensity as 0.05 and estimating the turbulence viscosity 
-# as 100 times the laminar viscosity. Note that for fully laminar 
-# nozzles these values are adjusted later once the grid has been
-# defined.
+# Estimate turbulence quantities for the inflow. Note that for 
+# fully laminar nozzles these values are adjusted later once 
+# the grid has been defined.
 throat_tke = 1.5 * (throat_V * $TurbInten)**2
 throat_mu_t = $TurbVisRatio * throat.mu
 throat_omega = throat.rho * throat_tke / throat_mu_t
 print "Inflow turbulence: tke=", throat_tke, "omega=", throat_omega
 print "These will be adjusted later if nozzle flow is fully laminar."
 
-gastype = $gasName
-if gastype in ['n2', 'N2']:
-    gastype = upper(gastype)
 if DEBUG_flag:
-    print "Test gas is "+gastype
-
+    print "Test gas is "+$gasName
 
 # Define the temperature and pressure of the intial gas sitting 
 # in the nozzle/dump tank. The values used here don't actually
@@ -145,202 +146,54 @@ initial = {};
 initial['p'] = 106.4;
 initial['T'] = 300.0;
 
-if gastype in ['air', 'Air']:
-    #
-    # Test gas is Air (CEA species)
-    #
+# Determine the composition of the gas initially in the nozzle
+# and dump tank
+initialGas = make_gas_from_name($gasName)
+initialGas.set_pT(p=initial['p'],T=initial['T'])
 
-    # Equilibrium...
-    if $chemModel in ['eq']:
-        print 60*'-'
-        print "Nozzle expansion uses Equilibrium Air (CEA LUT)"
-        print 60*'-'
+# Check that species mass fractions at 'throat' sum to one to within the
+# tolerance required by eilmer
+throat.species = massFractionCheck(throat.species)
+print "Flow species at nozzle throat:"
+print ("Note that if required, the equilibrium massf "
+      "values have been scaled by their summation")
+print throat.species
 
-        select_gas_model(fname="cea-lut-air.lua.gz")
-        throat_massf = [1.,]
-        initial_massf = [1.,]
-    
-    # Non-equilibrium or Frozen...
-    elif $chemModel in ['neq','frz','frz1']:  
-        # Change to an air5species model for the nozzle expansion.
-        gasState = make_gas_from_name('air5species')
-        gasState.set_pT(p=throat.p, T=throat.T)
-        select_gas_model(model='thermally perfect gas', species=gasState.onlyList)        
-
-        #
-        # The species have changed across the throat due to CEA air considering a wider
-        # range of species than the 5 we must now consider for the nozzle calculation. 
-        # Therefore assume that the pressure is constant and adjust the temperature at 
-        # the throat to conserve the mass, momentum and energy fluxes.
-        #
-        print 60*"-"
-        print "Changing from CEA air to 5-species air mixture for nozzle calculation."
-        print 60*"-"
-        print "Adjusting throat temperature to conserve mass, momentum and energy."
-        def enthalpy_error(x, p1=throat.p, h1=throat.h, a1=throat.a, state=gasState):
-            state.set_pT(p=p1, T=x)
-            return state.e + state.R*x - h1
-        new_T = secant(enthalpy_error, 0.9*throat.T, 1.1*throat.T, tol=0.002/100*throat.h)
-        if new_T in ['Fail','FAIL',]:
-            print "Failed to find throat temperature for which the 5-species mixture conserves mass, momentum and energy"
-            new_T = throat.T
-        print 'New throat temperature: ', new_T
-
-        gasState.set_pT(p=throat.p, T=new_T)
-        
-        # Some checks...
-        print 'Enthalpy CEA air: ', throat.h
-        print 'Enthalpy 5-species air: ', gasState.h
-        print 'Enthalpy error: ', gasState.h - throat.h
-        print 'Enthalpy percent error: ', (gasState.h - throat.h)/throat.h*100
-        print 'Mass flux CEA air: ', throat.rho*throat.a
-        print 'Mass flux 5-species air: ', gasState.rho*gasState.a
-        print 'Mass flux error: ', gasState.rho*gasState.a - throat.rho*throat.a
-        print 'Mass flux percent error: ', (gasState.rho*gasState.a - throat.rho*throat.a)/(throat.rho*throat.a)*100
-        print 'Momentum flux CEA air: ', throat.p + throat.rho*throat.a**2
-        print 'Momentum flux 5-species air: ', gasState.p + gasState.rho*gasState.a**2
-        print 'Momentum flux error: ', gasState.p + gasState.rho*gasState.a**2 - throat.p - throat.rho*throat.a**2
-        print 'Momentum flux percent error: ', (gasState.p + gasState.rho*gasState.a**2 - throat.p - throat.rho*throat.a**2)/\
-                                 (throat.p + throat.rho*throat.a**2)*100
-
-        if $chemModel in ['frz']:
-            print 60*"-"
-            print "Nozzle expansion uses Frozen Air (5 species)"
-            print 60*"-"
-        else:
-            print 60*"-"
-            print "Nozzle expansion uses Non-Equilibrium Air (5 species)"
-            print 60*"-"
-            set_reaction_update('gupta_etal_air_reactions.lua')
-            
-            # Check that the reaction file is present in the current working directory
-            if not os.path.exists('gupta_etal_air_reactions.lua'):
-                fp = open(os.path.expandvars('$HOME/cfcfd3/lib/gas/reaction-schemes/air/gupta_etal_air_reactions.lua'),'r')
-                fout = open('./gupta_etal_air_reactions.lua','w')
-                for line in fp.readlines():
-                    items = line.strip().split()
-                    if len(items)>0 and items[0] == 'NO_SPECIES' and items[-1] is not 5:
-                        fout.write('NO_SPECIES = 5\n')
-                    else:
-                        fout.write('%s' % line)
-                fout.close()
-        
-        print "Flow species at nozzle throat:"
-        print "Note that if required, the equilibrium massf values have been scaled by their summation"
-        gasState.species = massFraction_check(gasState.species)
-        throat_massf = gasState.get_fractions(gasState.onlyList)
-        print gasState.species
-        
-        # Define the composition for the gas initially in the nozzle/dump tank
-        gasState.set_pT(p=initial['p'], T=initial['T'])
-        initial_massf = gasState.get_fractions(gasState.onlyList)
-        print "Initial flow species:"
-        print gasState.species
-
-    # Frozen-2...    
-    elif $chemModel in ['frz2']:
-        # Use CEA species present at the throat and perform a frozen calculation. At standard
-        # conditions CEA air is assumed to be formed from those species given in the basicSpecies
-        # list (see NASA RP-1311-P2 pg. 84)
-        basicSpecies = ['N2','O2','Ar','CO2']
-        for var in basicSpecies:
-            if not sum( array(throat.species.keys())==var )==1:
-                throat.species[var] = 0.0
-        select_gas_model('thermally perfect gas', species=throat.species.keys())
-        
-        print 60*"-"
-        print "Nozzle expansion uses Frozen Air (CEA species)"
-        print 60*"-"
-        print "Flow species at nozzle throat:"
-        print "Note that if required, the equilibrium massf values have been scaled by their summation"
-        throat.species = massFraction_check(throat.species)
-        throat_massf = throat.get_fractions(throat.species.keys())
-        print throat.species
-        
-        # Define the composition for the gas initially in the nozzle/dump tank
-        gasState = make_gas_from_name('air')
-        gasState.set_pT(p=initial['p'], T=initial['T'])
-        initial_massf = gasState.get_fractions(throat.species)
-        print "Initial flow species:"
-        print gasState.species
-
-elif gastype in ['air5species', 'N2']:
-    #
-    # Test gas is either 5-species Air or 2-species Nitrogen
-    #
-
-    # Frozen or Non-equilibrium...
-    if $chemModel not in ['eq']:
-        select_gas_model(model='thermally perfect gas', species=throat.onlyList)
-        
-        if $chemModel in ['frz','frz2']:
-            print 60*"-"
-            print "Nozzle expansion uses Frozen "+gastype
-            print 60*"-"
-        else:
-            print 60*"-"
-            print "Nozzle expansion uses Non-equlibrium "+gastype
-            print 60*"-"
-            
-            if gastype in ['air5species']:
-                set_reaction_update('gupta_etal_air_reactions.lua')
-                # Check that the reaction file is present in the current directory
-                if not os.path.exists('gupta_etal_air_reactions.lua'):
-                    fp = open(os.path.expandvars('$HOME/cfcfd3/lib/gas/reaction-schemes/air/gupta_etal_air_reactions.lua'),'r')
-                    fout = open('./gupta_etal_air_reactions.lua','w')
-                    for line in fp.readlines():
-                        items = line.strip().split()
-                        if len(items)>0 and items[0] == 'NO_SPECIES' and items[-1] is not 5:
-                            fout.write('NO_SPECIES = 5\n')
-                        else:
-                            fout.write('%s' % line)
-                    fout.close()
-            else:
-                set_reaction_update('nitrogen-5sp-6r.lua')
-                # Check that the reaction file is present in the current directory
-                if not os.path.exists('nitrogen-5sp-6r.lua'):
-                    fp = open(os.path.expandvars('$HOME/cfcfd3/lib/gas/reaction-schemes/nitrogen/nitrogen-5sp-6r.lua'),'r')
-                    fout = open('./nitrogen-5sp-6r.lua','w')
-                    for line in fp.readlines():
-                        items = line.strip().split()
-                        if len(items)>0 and items[0] == 'WITH_IONIZATION' and items[-1] is not 'false':
-                            fout.write('WITH_IONIZATION = false\n')
-                        else:
-                            fout.write('%s' % line)
-                    fout.close()
-        
-        print "Flow species at nozzle throat:"
-        print "Note that if required, the equilibrium massf values have been scaled by their summation"
-        throat.species = massFraction_check(throat.species)
-        throat_massf = throat.get_fractions(throat.onlyList)
-        print throat.species
-            
-        # Define the composition for the gas initially in the nozzle/dump tank
-        gasState = make_gas_from_name(lower(gastype))
-        gasState.set_pT(p=initial['p'], T=initial['T'])
-        initial_massf = gasState.get_fractions(gasState.onlyList)
-        print "Initial flow species:"
-        print gasState.species
-      
-    # Equilibrium...
-    else:
-        print 60*"-"
-        print "Nozzle expansion uses Equilibrium "+gastype
-        print 60*"-"
-    
-        select_gas_model(fname="cea-lut-"+gastype+".lua.gz")
-        throat_massf = [1.,]
-        initial_massf = [1.,]
+# Set the gas model
+if $chemModel in ['eq']:
+    select_gas_model(fname="cea-lut-"+upper($gasName)+".lua.gz")
+    # Artificially set species dictionaries so that we can use them later
+    # with FlowCondition
+    throat.species = {'air': 1.0}
+    initialGas.species = {'air': 1.0}
+elif $chemModel in ['frz','neq']:
+    select_gas_model(model="thermally perfect gas", species=throat.species)
 else:
-    print "Unknown gas type specified"
+    select_gas_model(model="two temperature gas", species=throat.species)
 
+# Set the chemical reaction scheme
+if $chemModel in ['neq']:
+    set_reaction_update($reactionSchemeFile)
+
+# Set the thermal exchange scheme
+if $chemModel in ['tc-neq']:
+    set_energy_exchange_scheme($thermalSchemeFile)
+
+# Print some information
+message = {'eq'  : "Nozzle expansion uses equilibrium "+$gasName+" (CEA LUT)",
+           'frz' : "Nozzle expansion uses (chemically) frozen "+$gasName,
+           'neq' : "Nozzle expansion uses (chemical) non-equlibrium "+$gasName,
+           'tc-neq' : "Nozzle expansion uses "+$gasName+" in chemical and thermal non-equilibrium"}
+print 60*"-"
+print message[$chemModel]
+print 60*"-" 
 
 # Now set the inflow and intial flow conditions
 inflow=FlowCondition(p=throat.p, u=throat_V, v=0.0, T=throat.T,
-                       massf=throat_massf, tke=throat_tke,
+                       massf=throat.species, tke=throat_tke,
                        omega=throat_omega, label="inflow")
 initial=FlowCondition(p=initial['p'], u=0.0, v=0.0, T=initial['T'],
-                       massf=initial_massf, tke=0.0, omega=1.0,
+                       massf=initialGas.species, tke=0.0, omega=1.0,
                        label="initial")
 
 # When no gridFileName is given we use the provided (or default) contourFile

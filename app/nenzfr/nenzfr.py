@@ -121,6 +121,8 @@ def run_nenzfr(cfg):
     cfg['gridFileName'] = quote(cfg['gridFileName'])
     cfg['chemModel'] = quote(cfg['chemModel'])  
     cfg['gasName'] = quote(cfg['gasName'])
+    cfg['reactionSchemeFile'] = quote(cfg['reactionSchemeFile'])
+    cfg['thermalSchemeFile'] = quote(cfg['thermalSchemeFile'])
     if cfg['pitot_input_file']:
         cfg['pitot_input_file'] = quote(cfg['pitot_input_file'])
           
