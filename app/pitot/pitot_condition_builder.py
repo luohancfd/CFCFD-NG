@@ -196,10 +196,10 @@ def output_builder(cfg, states, V, M, results):
                                              states['s10c'].rho, V['s10c'])
     if cfg['shock_over_model']:
         shock_over_model = ",{0},{1},{2},{3},{4},{5},{6},{7}"\
-                           .format(states['s10f'].p, states['s10f'].T, 
-                                   states['s10f'].rho, V['s10f'],
-                                   states['s10e'].p, states['s10e'].T, 
-                                   states['s10e'].rho, V['s10e'])
+                           .format(results['p10f'][-1], results['T10f'][-1],
+                                   results['rho10f'][-1], results['V10f'][-1],
+                                   results['p10e'][-1], results['T10e'][-1],
+                                   results['rho10e'][-1], results['V10e'][-1])
     
     if cfg['store_electron_concentration']:
         # I decided to start just pulling these from the results dict lists 
@@ -282,14 +282,26 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
         results['V10c'].append(V['s10c'])
         
     if cfg['shock_over_model']:
-        results['p10f'].append(states['s10f'].p)
-        results['T10f'].append(states['s10f'].T)
-        results['rho10f'].append(states['s10f'].rho)
-        results['V10f'].append(V['s10f'])
-        results['p10e'].append(states['s10e'].p)
-        results['T10e'].append(states['s10e'].T)
-        results['rho10e'].append(states['s10e'].rho)
-        results['V10e'].append(V['s10e'])
+        if 's10f' in states.keys():
+            results['p10f'].append(states['s10f'].p)
+            results['T10f'].append(states['s10f'].T)
+            results['rho10f'].append(states['s10f'].rho)
+            results['V10f'].append(V['s10f'])
+        else:
+            results['p10f'].append('did not solve')
+            results['T10f'].append('did not solve')
+            results['rho10f'].append('did not solve')
+            results['V10f'].append('did not solve')
+        if 's10e' in states.keys():
+            results['p10e'].append(states['s10e'].p)
+            results['T10e'].append(states['s10e'].T)
+            results['rho10e'].append(states['s10e'].rho)
+            results['V10e'].append(V['s10e'])
+        else:
+            results['p10e'].append('did not solve')
+            results['T10e'].append('did not solve')
+            results['rho10e'].append('did not solve')
+            results['V10e'].append('did not solve')            
         
     if cfg['store_electron_concentration']:
         if 'e-' in states['s2'].species.keys():
