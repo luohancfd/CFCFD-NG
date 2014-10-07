@@ -122,6 +122,12 @@ def condition_builder_test_run(cfg, condition_builder_output, results):
     
     condition_status = True #This will be turned to False if the condition fails
     
+    # first we check if we should slightly modify our guesses based on the last
+    # successful run to speed up the code.
+    
+    if cfg['last_run_successful']:
+        cfg, results = guess_modifier(cfg, results)
+    
     cfg['filename'] = cfg['original_filename'] + '-test-{0}'.format(cfg['test_number'])
     
     print '-'*60
@@ -142,13 +148,54 @@ def condition_builder_test_run(cfg, condition_builder_output, results):
         # need to remove Vs values from the dictionary or it will bail out
         # on the next run
         cfg.pop('Vsd'); cfg.pop('Vs1'); cfg.pop('Vs2')
+        cfg['last_run_successful'] = True
     else:
         # need to remove Vs values from the dictionary or it will bail out
         # on the next run         
         if cfg['secondary']: cfg.pop('Vsd') 
-        cfg.pop('Vs1'); cfg.pop('Vs2') 
+        cfg.pop('Vs1'); cfg.pop('Vs2')
+        cfg['last_run_successful'] = False
+        results['unsuccessful_runs'].append(cfg['test_number'])
             
     return condition_status, results
+    
+def guess_modifier(cfg, results):
+    """Function that checks the results dictionary and sees how similar the last test
+       was to the one about to run, and will modify the starting guesses for the
+       current run to try to speed it up if they are similar.
+    """
+    
+    print "Checking if we can modify any starting guesses to speed up the program."
+    
+    # start by checking they both used the same driver condition
+    if results['driver condition'][-1] == cfg['driver_gas']:
+        if cfg['secondary']:
+            # check the fill pressures were the same
+            if results['psd1'][-1] == cfg['psd1']:
+                # then make the starting guesses basically the right answer
+                cfg['Vsd_guess_1'] = results['Vsd'][-1] - 1.0
+                cfg['Vsd_guess_2'] = results['Vsd'][-1] + 1.0
+                print "Changed guesses for Vsd secant solver."
+                print "('Vsd_guess_1' = {0} m/s and 'Vsd_guess_2' = {1} m/s)".\
+                  format(cfg['Vsd_guess_1'], cfg['Vsd_guess_2'])
+                # it's important that we do this part in here, or otherwise we may
+                # be setting new p1 guesses which are not suitable if psd1 is changing
+                if results['p1'][-1] == cfg['p1']:
+                    cfg['Vs1_guess_1'] = results['Vs1'][-1] - 1.0
+                    cfg['Vs1_guess_2'] = results['Vs1'][-1] + 1.0
+                    print "Changed guesses for Vs1 secant solver."
+                    print "('Vs1_guess_1' = {0} m/s and 'Vs1_guess_2' = {1} m/s)".\
+                  format(cfg['Vs1_guess_1'], cfg['Vs1_guess_2'])
+        else:
+            if results['p1'][-1] == cfg['p1']:
+                cfg['Vs1_guess_1'] = results['Vs1'][-1] - 1.0
+                cfg['Vs1_guess_2'] = results['Vs1'][-1] + 1.0
+                print "Changed guesses for Vs1 secant solver."
+                print "('Vs1_guess_1' = {0} m/s and 'Vs1_guess_2' = {1} m/s)".\
+                      format(cfg['Vs1_guess_1'], cfg['Vs1_guess_2'])
+                
+    return cfg, results
+    
     
 def output_builder(cfg, states, V, M, results):
     """Function that takes the four dictionaries from the completed
@@ -342,12 +389,17 @@ def condition_builder_summary_builder(cfg, results, condition_builder_summary_fi
     print '-'*60
     print "Printing summary to screen and to a text document."
     
-    summary_line_3 = "{0} tests ran. {1} ({2:.1f}%) were successful."\
+    summary_line_2 = "{0} tests ran. {1} ({2:.1f}%) were successful."\
         .format(cfg['number_of_test_runs'], len(results['test number']),
         float(len(results['test number']))/float(cfg['number_of_test_runs'])*100.0)
-    print summary_line_3
-    condition_builder_summary_file.write(summary_line_3 + '\n')        
-    
+    print summary_line_2
+    condition_builder_summary_file.write(summary_line_2 + '\n')  
+
+    if results['unsuccessful_runs']: 
+        summary_line_3 = "Unsucessful runs were run numbers {0}.".format(results['unsuccesful_runs'])
+        print summary_line_3
+        condition_builder_summary_file.write(summary_line_3 + '\n')  
+
     if len(cfg['driver_condition_list']) > 1:
         summary_line_4 = "{0} driver conditions were tested ({1})."\
         .format(len(cfg['driver_condition_list']), cfg['driver_condition_list'])
@@ -428,6 +480,9 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     # also make one to store how many runs are successful
     
     cfg['number_of_test_runs'] = calculate_number_of_test_runs(cfg)
+    
+    # we use this variable to try to speed some things up later on
+    cfg['last_run_successful'] = None
     
     import copy
     cfg['original_filename'] = copy.copy(cfg['filename'])
@@ -527,6 +582,9 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     
     results['full_list'] = full_list
     
+    #add a list where we can store unsuccesful run numbers for analysis
+    results['unsuccessful_runs'] = []
+    
     have_checked_time = False
     
     #now start up the for loops and get running
@@ -558,6 +616,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
                                         print "If every test takes this long. It will take roughly {0:.2f} hours to perform all {1} tests."\
                                         .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
                                         have_checked_time = True
+                                        
                 else:
                     for p1 in cfg['p1_list']:
                         cfg['p1'] = p1
