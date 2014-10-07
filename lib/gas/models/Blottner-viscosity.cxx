@@ -14,9 +14,9 @@ Blottner_viscosity(lua_State *L)
     : Viscosity_model()
 {
     // Assume a table with the model parameters is TOS.
-    A_mu_ = get_positive_number(L, -1, "A_mu");
-    B_mu_ = get_positive_number(L, -1, "B_mu");
-    C_mu_ = get_positive_number(L, -1, "C_mu");
+    A_mu_ = get_number(L, -1, "A_mu");
+    B_mu_ = get_number(L, -1, "B_mu");
+    C_mu_ = get_number(L, -1, "C_mu");
 }
 
 Blottner_viscosity::

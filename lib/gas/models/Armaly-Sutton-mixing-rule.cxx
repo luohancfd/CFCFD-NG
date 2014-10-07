@@ -80,8 +80,6 @@ Armaly_Sutton_mixing_rule(lua_State *L)
 
 	string vmodel = get_string(L, -1, "model");
 
-	//cout << "vmodel= " << vmodel << endl;
-	
 	if ( vmodel == "Sutherland" ) {
 	    lua_getfield(L, -1, "parameters");
 	    VM_.push_back(new Sutherland_viscosity(L));
@@ -173,11 +171,12 @@ Armaly_Sutton_mixing_rule(lua_State *L)
 	lua_pop(L, 1);
     }
     lua_pop(L, 1);
-
     lua_getfield(L, -1, "Pr");
     Pr_ = luaL_checknumber(L, -1);
     lua_pop(L, 1);
-    
+    // Pop Armaly-Sutton parameters off stack.
+    lua_pop(L, 1);
+
 }
 
 Armaly_Sutton_mixing_rule::
