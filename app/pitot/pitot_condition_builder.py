@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "1-Oct-2014"
+VERSION_STRING = "8-Oct-2014"
 
 
 import sys
@@ -396,7 +396,7 @@ def condition_builder_summary_builder(cfg, results, condition_builder_summary_fi
     condition_builder_summary_file.write(summary_line_2 + '\n')  
 
     if results['unsuccessful_runs']: 
-        summary_line_3 = "Unsucessful runs were run numbers {0}.".format(results['unsuccesful_runs'])
+        summary_line_3 = "Unsucessful runs were run numbers {0}.".format(results['unsuccessful_runs'])
         print summary_line_3
         condition_builder_summary_file.write(summary_line_3 + '\n')  
 
