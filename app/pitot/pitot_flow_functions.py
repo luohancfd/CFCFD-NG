@@ -372,43 +372,64 @@ def shock_tube_calculation(cfg, states, V, M):
                 if PRINT_STATUS: print "Starting unsteady expansion of the secondary driver gas into the shock tube."
             else:
                 if PRINT_STATUS: print "Starting unsteady expansion of the driver gas into the shock tube."
-            if cfg['tunnel_mode'] == 'expansion-tube':
-                if 'Vs1_guess_1' not in cfg and 'Vs1_guess_2' not in cfg:
-                    if cfg['p1'] > 1000.0:
-                        cfg['Vs1_guess_1'] = 4000.0; cfg['Vs1_guess_2'] = 6000.0
-                    elif cfg['p1'] < 100.0:
-                        cfg['Vs1_guess_1'] = 10000.0; cfg['Vs1_guess_2'] = 12000.0
-                    else:
-                        cfg['Vs1_guess_1'] = 6000.0; cfg['Vs1_guess_2'] = 8000.0
+            if 'Vs1_guess_1' not in cfg and 'Vs1_guess_2' not in cfg and cfg['tunnel_mode'] in ['expansion-tube', 'nr-shock-tunnel']:
+                if cfg['secondary']:
+                    cfg['Vs1_guess_1'] = cfg['Vsd'] + 2000.0; cfg['Vs1_guess_2'] = cfg['Vsd'] + 3000.0
+                if cfg['p1'] > 1000.0 and not cfg['secondary']:
+                    cfg['Vs1_guess_1'] = 4000.0; cfg['Vs1_guess_2'] = 6000.0
+                elif cfg['p1'] < 100.0 and not cfg['secondary']:
+                    cfg['Vs1_guess_1'] = 10000.0; cfg['Vs1_guess_2'] = 12000.0
                 else:
-                    print "Using custom guesses for Vs1 secant solver."
-                    print "('Vs1_guess_1' = {0} m/s and 'Vs1_guess_2' = {1} m/s)".\
-                          format(cfg['Vs1_guess_1'], cfg['Vs1_guess_2'])
-                if 'Vs1_lower' not in cfg and 'Vs1_upper' not in cfg:
-                        cfg['Vs1_lower'] = 1000.0; cfg['Vs1_upper'] = 1000000.0                
-                else:
-                    print "Using custom limits for Vs1 secant solver."
-                    print "('Vs1_lower' = {0} m/s and 'Vs1_upper' = {1} m/s)".\
-                          format(cfg['Vs1_lower'], cfg['Vs1_upper'])
-                cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
-                                    cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
-                                    tol=1.0e-5,limits=[cfg['Vs1_lower'], cfg['Vs1_upper']])
-            elif cfg['tunnel_mode'] == 'nr-shock-tunnel': #start with a higher speed guess in nr-shock-tunnel mode
-                if 'Vs1_guess_1' not in cfg and 'Vs1_guess_2' not in cfg:
-                    if cfg['secondary']:
-                        cfg['Vs1_guess_1'] = cfg['Vsd']+5000.0; cfg['Vs1_guess_2'] = cfg['Vsd']+6000.0
-                    else:
-                        if cfg['p1'] > 1000.0:
-                            cfg['Vs1_guess_1'] = 6000.0; cfg['Vs1_guess_2'] = 8000.0
-                        else:
-                            cfg['Vs1_guess_1'] = 10000.0; cfg['Vs1_guess_2'] = 12000.0
-                cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, cfg['Vs1_guess_1'], cfg['Vs1_guess_2'], tol=1.0e-5,limits=[1000.0,1000000.0])
-            elif cfg['tunnel_mode'] == 'reflected-shock-tunnel': #start with a much lower speed guess in nr-shock-tunnel mode
+                    cfg['Vs1_guess_1'] = 6000.0; cfg['Vs1_guess_2'] = 8000.0
+            elif 'Vs1_guess_1' not in cfg and 'Vs1_guess_2' not in cfg and cfg['tunnel_mode'] == 'reflected-shock-tunnel':   
+                #start with a much lower speed guess in reflected-shock-tunnel mode
                 if cfg['secondary']:
                     cfg['Vs1_guess_1'] = cfg['Vsd']+2000.0; cfg['Vs1_guess_2'] = cfg['Vsd']+3000.0
                 else: 
                     cfg['Vs1_guess_1'] = 1000.0; cfg['Vs1_guess_2'] = 2000.0
-                cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, cfg['Vs1_guess_1'], cfg['Vs1_guess_2'], tol=1.0e-5,limits=[1000.0,1000000.0])
+            else:
+                print "Using custom guesses for Vs1 secant solver."
+                print "('Vs1_guess_1' = {0} m/s and 'Vs1_guess_2' = {1} m/s)".\
+                      format(cfg['Vs1_guess_1'], cfg['Vs1_guess_2'])
+                      
+            if 'Vs1_lower' not in cfg and 'Vs1_upper' not in cfg:
+                    cfg['Vs1_lower'] = 1000.0; cfg['Vs1_upper'] = 1000000.0                
+            else:
+                print "Using custom limits for Vs1 secant solver."
+                print "('Vs1_lower' = {0} m/s and 'Vs1_upper' = {1} m/s)".\
+                      format(cfg['Vs1_lower'], cfg['Vs1_upper'])
+                      
+            cfg['shock_tube_secant_tol'] = 1.0e-5
+            cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
+                                cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
+                                cfg['shock_tube_secant_tol'],
+                                limits=[cfg['Vs1_lower'], cfg['Vs1_upper']],
+                                max_iterations=100)
+            if cfg['Vs1'] == 'FAIL':
+                print "Secant solver failed to settle on a Vs1 value after 100 iterations."
+                print "Dropping tolerance from {0} to {1} and trying again..."\
+                      .format(cfg['shock_tube_secant_tol'], cfg['shock_tube_secant_tol']*10.0)
+                cfg['shock_tube_secant_tol'] = cfg['shock_tube_secant_tol'] * 10.0
+                cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
+                            cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
+                            cfg['shock_tube_secant_tol'],
+                            limits=[cfg['Vs1_lower'], cfg['Vs1_upper']],
+                            max_iterations=100)
+                if cfg['Vs1'] == 'FAIL':
+                    print "Secant solver failed again with the lower tolerance."
+                    print "Will try with the higher tolerance and 'state2_no_ions' turned on."
+                    cfg['shock_tube_secant_tol'] = cfg['shock_tube_secant_tol'] / 10.0
+                    cfg['state2_no_ions'] = True
+                    states['s2'].with_ions = False
+                    cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
+                            cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
+                            cfg['shock_tube_secant_tol'],
+                            limits=[cfg['Vs1_lower'], cfg['Vs1_upper']],
+                            max_iterations=100)
+                    if cfg['Vs1'] == 'FAIL':
+                        print "This still isn't working. Bailing out."
+                        raise Exception, "pitot_flow_functions.shock_tube_calculation() Run of pitot has failed in the shock tube calculation."  
+
         if PRINT_STATUS: print '-' * 60
         if PRINT_STATUS: print "From secant solve: Vs1 = {0} m/s".format(cfg['Vs1'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
@@ -621,8 +642,17 @@ def acceleration_tube_calculation(cfg, states, V, M):
             cfg['Vs2_lower'] = cfg['Vs1'] + 1000.0; cfg['Vs2_upper'] = 24900.0
         if 'Vs2_guess_1' not in cfg and 'Vs2_guess_2' not in cfg:
             cfg['Vs2_guess_1'] = cfg['Vs1']+7000.0; cfg['Vs2_guess_2'] = 15100.0
+            
+        cfg['acc_tube_secant_tol'] = 1.0e-5    
         cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, \
-        cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], tol=1.0e-5,limits=[cfg['Vs2_lower'],cfg['Vs2_upper']])
+                            cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
+                            tol = cfg['acc_tube_secant_tol'],
+                            limits=[cfg['Vs2_lower'],cfg['Vs2_upper']],
+                                max_iterations = 100)
+        if cfg['Vs2'] == 'FAIL':
+            print "Acceleration tube secant solver did not converge after 100 iterations."
+            raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Run of pitot has failed in the acceleration tube calculation."                    
+                  
         if PRINT_STATUS: print '-'*60
         if PRINT_STATUS: print "From secant solve: Vs2 = {0} m/s".format(cfg['Vs2'])     
 

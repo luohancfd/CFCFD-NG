@@ -209,7 +209,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "1-Oct-2014"
+VERSION_STRING = "9-Oct-2014"
 
 DEBUG_PITOT = False
 
@@ -280,15 +280,8 @@ def run_pitot(cfg = {}, config_file = None):
             cfg['state2_no_ions'] = False
         cfg, states, V, M = shock_tube_calculation(cfg, states, V, M)
     except Exception as e:
-        print "Error {0}".format(str(e))
-        print "Shock tube calculation failed. Going to try it again with 'state2_no_ions' turned on."
-        cfg['state2_no_ions'] = True
-        print '-'*60
-        try:
-            cfg, states, V, M = shock_tube_calculation(cfg, states, V, M)
-        except Exception as e:
-            print "Error {0}".format(str(e))    
-            raise Exception, "pitot.run_pitot() Run of pitot has failed in the shock tube calculation."              
+        print "Error {0}".format(str(e))  
+        raise Exception, "pitot.run_pitot() Run of pitot has failed in the shock tube calculation."              
 
     if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
         cfg, states, V, M = rs_calculation(cfg, states, V, M)
