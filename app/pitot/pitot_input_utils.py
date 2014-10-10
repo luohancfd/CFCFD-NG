@@ -622,7 +622,7 @@ def state_builder(cfg):
             cfg['test_gas_with_ions'] = True
         states['s1'] = Gas(cfg['test_gas_composition'],inputUnits=cfg['test_gas_inputUnits'],
                         with_ions=cfg['test_gas_with_ions'])
-        states['s1'].set_pT(cfg['p1'],cfg['T0'])
+        states['s1'].set_pT(float(cfg['p1']),cfg['T0'])
         cfg['gas_guess'] = None
     else:
         if cfg['test_gas'] == 'mars' or cfg['test_gas'] == 'co2' or cfg['test_gas'] == 'venus':
@@ -632,7 +632,7 @@ def state_builder(cfg):
             states['s1'], cfg['gas_guess'] = make_test_gas(cfg['test_gas'])
             if 'p1' not in cfg: #set atmospheric state if a pressure was not specified
                 cfg['p1'] = cfg['p0']
-            states['s1'].set_pT(cfg['p1'],cfg['T0'])
+            states['s1'].set_pT(float(cfg['p1']),cfg['T0'])
         if cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq': #make perfect gas object if asked to do so, then re-set the gas state
             if cfg['solver'] == 'pg-eq': #store the eq gas object as we'll want to come back to it later...      
                 states['s1-eq'] = states['s1'].clone()        
@@ -640,7 +640,7 @@ def state_builder(cfg):
                 states['s1'].gam =  test_gas_gam; states['s1'].Mmass =  test_gas_Mmass
             states['s1']=pg.Gas(Mmass=states['s1'].Mmass,
                                 gamma=states['s1'].gam, name='s1')
-            states['s1'].set_pT(cfg['p1'],cfg['T0'])
+            states['s1'].set_pT(float(cfg['p1']),cfg['T0'])
     V['s1']=0.0
     M['s1']=0.0
         
@@ -649,11 +649,11 @@ def state_builder(cfg):
         states['s5'] = Gas({'Air':1.0,},outputUnits='moles')
         if 'p5' not in cfg: #set atmospheric state if a pressure was not specified
             cfg['p5'] = cfg['p0']
-        states['s5'].set_pT(cfg['p5'],cfg['T0'])
+        states['s5'].set_pT(float(cfg['p5']),cfg['T0'])
         if cfg['solver'] == 'pg': #make perfect gas object if asked to do so, then re-set the gas state
             states['s5']=pg.Gas(Mmass=states['s5'].Mmass,
                                 gamma=states['s5'].gam, name='s5')
-            states['s5'].set_pT(cfg['p5'],cfg['T0'])
+            states['s5'].set_pT(float(cfg['p5']),cfg['T0'])
         V['s5']=0.0
         M['s5']=0.0
         #now let's clone the states we just defined to get the states derved from these
