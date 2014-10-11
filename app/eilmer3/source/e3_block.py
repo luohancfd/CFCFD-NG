@@ -1235,6 +1235,15 @@ class Block2D(Block):
             vol = xyarea
         #
         return (centre_x, centre_y, 0.0, vol)
+
+    def check_volumes(self, gdata):
+        bad_cells = []
+        for j in range(self.nnj):
+            for i in range(self.nni):
+                x, y, z, vol = self.cell_centre_location(i, j, 0, gdata)
+                if vol <= 0.0:
+                    bad_cells.append((i, j, vol))
+        return bad_cells
     
 def connect_blocks_2D(A, faceA, B, faceB, with_udf=0, 
                       filename=None, is_wall=0,
