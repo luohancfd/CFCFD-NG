@@ -133,9 +133,9 @@ def input_checker(cfg):
     
     cfg['bad_input'] = False
     
-    if cfg['test'] not in ['fulltheory-shock','fulltheory-pressure','experiment']:
+    if cfg['test'] not in ['fulltheory-shock','fulltheory-pressure','experiment','fulltheory-pressure-ratios']:
         print "No 'test' specified. You need to specify a test type. Bailing out."
-        print "Available tests are 'fulltheory-shock', 'fulltheory-pressure', 'experiment'."
+        print "Available tests are 'fulltheory-shock', 'fulltheory-pressure', 'experiment', 'fulltheory-pressure-ratios."
         cfg['bad_input'] = True    
     
     if 'solver' not in cfg:
@@ -385,6 +385,18 @@ def input_checker(cfg):
         print "Need to supply a float value for p5."
         cfg['bad_input'] = True
         
+    if cfg['test'] == 'fulltheory-pressure-ratios' and 'p1_from' not in cfg:
+        print "Need to supply a value for 'p1_from' if you want to run in pressure ratio mode."
+        cfg['bad_input'] = True 
+        
+    if cfg['test'] == 'fulltheory-pressure-ratios' and cfg['secondary'] and 'psd1_from' not in cfg:
+        print "Need to supply a value for 'psd1_from' if you want to run in pressure ratio mode with a secondary driver."
+        cfg['bad_input'] = True 
+        
+    if cfg['test'] == 'fulltheory-pressure-ratios' and cfg['tunnel_mode'] == 'expansion-tube' and 'p5_from' not in cfg:
+        print "Need to supply a value for 'psd1_from' if you want to run in pressure ratio mode for an expansion tube."
+        cfg['bad_input'] = True                      
+        
     if cfg['bad_input']: #bail out here if you end up having issues with your input
         print "Config failed check. Bailing out now."
         print '-'*60
@@ -600,6 +612,13 @@ def state_builder(cfg):
 
     cfg['T0'] = 298.15 #atmospheric temperature (K), used for any section starting at ambient
     cfg['p0'] = 101300.0 #atmospheric pressure (Pa)
+    
+    # if we're in pressure ratio mode we run another function here
+    # that gets us the numbers for our fill pressures that can then
+    # be subbed into the original code below
+    
+    if cfg['test'] == 'fulltheory-pressure-ratios':
+        cfg, states = pressure_ratio_mode_fill_pressure_finder(cfg, states)
 
     #start with shock tube and acc tube, start with atmospheric p and T
 
@@ -688,3 +707,58 @@ def state_builder(cfg):
     if PRINT_STATUS: print '-'*60               
     
     return cfg, states, V, M
+    
+def pressure_ratio_mode_fill_pressure_finder(cfg, states):
+    """This is a function that I wrote to handle getting numbers
+    for the user specified pressure ratios used in pressure ratio mode,
+    so that the original fill pressure setting code can be used from here on in
+    the state builder functin above.
+    """
+    
+    # start with p1, as all conditions have that
+    
+    if cfg['p1_from'] == 'p4_p1':
+        if 'p4_p1' in cfg:
+            cfg['p1'] = states['s4'].p / cfg['p4_p1']
+        else:
+            print "You need to specify a value for 'p4_p1' in your cfg file. Bailing out."
+            raise Exception, "pitot_input_utils.pressure_ratio_mode_fill_pressure_finder() 'p4_p1' not specified." 
+    elif cfg['p1_from'] == 'p1':
+        if 'p1' in cfg:
+            cfg['p1'] == float(cfg['p1'])
+        else:
+            print "You need to specify a value for 'p1' in your cfg file. Bailing out."
+            raise Exception, "pitot_input_utils.pressure_ratio_mode_fill_pressure_finder() 'p1' not specified." 
+    
+    # now do secondary driver if needed
+    
+    if cfg['secondary'] and cfg['psd1_from'] == 'psd1_p1':
+        if 'psd1_p1' in cfg:
+            cfg['psd1'] = cfg['p1'] * cfg['psd1_p1']
+        else:
+            print "You need to specify a value for 'psd1_p1' in your cfg file. Bailing out."
+            raise Exception, "pitot_input_utils.pressure_ratio_mode_fill_pressure_finder() 'psd1_p1' not specified."                
+    elif cfg['secondary'] and cfg['psd1_from'] == 'psd1':
+        if 'psd1' in cfg:
+            cfg['psd1'] == float(cfg['psd1'])
+        else:
+            print "You need to specify a value for 'psd1' in your cfg file. Bailing out."
+            raise Exception, "pitot_input_utils.pressure_ratio_mode_fill_pressure_finder() 'psd1' not specified." 
+            
+    # now do the acceleration tube if needed
+    
+    if cfg['tunnel_mode'] == 'expansion-tube' and cfg['p5_from'] == 'p5_p1':
+        if 'p5_p1' in cfg:
+            cfg['p5'] = cfg['p1'] * cfg['p5_p1']
+        else:
+            print "You need to specify a value for 'p5_p1' in your cfg file. Bailing out."
+            raise Exception, "pitot_input_utils.pressure_ratio_mode_fill_pressure_finder() 'p5_p1' not specified."     
+    elif cfg['tunnel_mode'] == 'expansion-tube' and cfg['p5_from'] == 'p5':
+        if 'p5' in cfg:
+            cfg['p5'] == float(cfg['p5'])
+        else:
+            print "You need to specify a value for 'p5' in your cfg file. Bailing out."
+            raise Exception, "pitot_input_utils.pressure_ratio_mode_fill_pressure_finder() 'p5' not specified."   
+        
+    
+    return cfg, states

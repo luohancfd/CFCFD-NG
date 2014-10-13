@@ -82,7 +82,7 @@ def secondary_driver_calculation(cfg, states, V, M):
         if PRINT_STATUS: print "Now that psd1 is known, finding conditions at states sd2 and sd3."
         states['sd1'].set_pT(cfg['psd1'],cfg['T0'])
     
-    elif cfg['test'] == "fulltheory-pressure": #get Vsd for our chosen fill pressure
+    elif cfg['test'] == "fulltheory-pressure" or cfg['test'] == 'fulltheory-pressure-ratios': #get Vsd for our chosen fill pressure
         if 'Vsd_guess_1' in cfg and 'Vsd_guess_2' in cfg:
             print "Using custom guesses for Vsd secant solver."
             print "('Vsd_guess_1' = {0} m/s and 'Vsd_guess_2' = {1} m/s)".\
@@ -96,7 +96,16 @@ def secondary_driver_calculation(cfg, states, V, M):
                 cfg['Vsd_guess_1'] = 3000.0; cfg['Vsd_guess_2'] = 4000.0
         else:
             cfg['Vsd_guess_1'] = 4000.0; cfg['Vsd_guess_2'] = 5000.0
-        cfg['Vsd'] = secant(error_in_velocity_s3s_to_sd3_driver_expansion_shock_speed_iterator, cfg['Vsd_guess_1'], cfg['Vsd_guess_2'], tol=1.0e-5,limits=[500.0,15000.0])
+            
+        if 'Vsd_lower' not in cfg and 'Vsd_upper' not in cfg:
+                cfg['Vsd_lower'] = 500.0; cfg['Vsd_upper'] = 15000.0                
+        else:
+            print "Using custom limits for Vsd secant solver."
+            print "('Vsd_lower' = {0} m/s and 'Vsd_upper' = {1} m/s)".\
+                  format(cfg['Vsd_lower'], cfg['Vsd_upper'])
+        cfg['Vsd'] = secant(error_in_velocity_s3s_to_sd3_driver_expansion_shock_speed_iterator, 
+                            cfg['Vsd_guess_1'], cfg['Vsd_guess_2'], 
+                            tol=1.0e-5,limits=[cfg['Vsd_lower'], cfg['Vsd_upper']])
         if PRINT_STATUS: print "From secant solve: Vsd = {0} m/s".format(cfg['Vsd'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
         if PRINT_STATUS: print "Now that Vsd is known, finding conditions at states sd2 and sd3."
@@ -232,7 +241,7 @@ def shock_tube_calculation(cfg, states, V, M):
         try:
             if solver == 'eq' or solver == 'pg':
                 try:
-                    if Vs1 > 8500:
+                    if Vs1 > 8500 and solver == 'eq':
                         (V2, V2g) = normal_shock(state1, Vs1, state2, gas_guess)
                     else:
                         (V2, V2g) = normal_shock(state1, Vs1, state2)
@@ -359,7 +368,7 @@ def shock_tube_calculation(cfg, states, V, M):
         if PRINT_STATUS: print "Now that p1 is known, finding conditions at states 2 and 3."
         states['s1'].set_pT(cfg['p1'],cfg['T0'])
         
-    elif cfg['test'] =="fulltheory-pressure": #get Vs1 for our chosen fill pressure
+    elif cfg['test'] =="fulltheory-pressure" or cfg['test'] == 'fulltheory-pressure-ratios': #get Vs1 for our chosen fill pressure
         if cfg['state2_no_ions']:
             # Need to turn ions off for state 2 here if it is required to make 
             # shock to state 2 work
@@ -436,7 +445,7 @@ def shock_tube_calculation(cfg, states, V, M):
         if PRINT_STATUS: print "Now that Vs1 is known, finding conditions at states 2 and 3."
     # first do the normal shock
     try:
-        if cfg['Vs1'] > 8500:
+        if cfg['Vs1'] > 8500 and 'solver' in ['eq', 'pg-eq']:
             (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'], cfg['gas_guess'])
         else:
             (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'])
@@ -503,6 +512,12 @@ def shock_tube_calculation(cfg, states, V, M):
             V['s3'], states['s3'] = finite_wave_dp('cplus', V[cfg['shock_tube_expansion']], states[cfg['shock_tube_expansion']], states['s2'].p,cfg['shock_tube_expansion_steps'])
         else:
             V['s3'], states['s3'] = finite_wave_dv('cplus', V[cfg['shock_tube_expansion']], states[cfg['shock_tube_expansion']], V['s2'],cfg['shock_tube_expansion_steps'])
+            # i'm adding the same stuff as the if statement above here incase there are issues with this expansion...
+            if abs(V['s3'] - V['s2']) / V['s3'] > 0.10:
+                print "For some reason V2 and V3 are too different. Expansion must have not occured properly."
+                print "V2 = {0} Pa, V3 = {1} Pa.".format(V['s2'], V['s3'])
+                print "Going to try expanding to a pressure now instead of a velocity."
+                V['s3'], states['s3'] = finite_wave_dp('cplus', V[cfg['shock_tube_expansion']], states[cfg['shock_tube_expansion']], states['s2'].p,cfg['shock_tube_expansion_steps'])
         
     if PRINT_STATUS: 
         print "state 2: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s2'].p, states['s2'].T) 
@@ -632,7 +647,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
         if PRINT_STATUS: print "Now that p5 is known, finding conditions at state 5 and 6."
         states['s5'].set_pT(cfg['p5'],cfg['T0'])
         
-    elif cfg['test'] == 'fulltheory-pressure': #compute the shock speed for the chosen fill pressure, uses Vs1 as starting guess
+    elif cfg['test'] == 'fulltheory-pressure' or cfg['test'] == 'fulltheory-pressure-ratios': #compute the shock speed for the chosen fill pressure, uses Vs1 as starting guess
         #put two sets of limits here to try and make more stuff work
         if cfg['state7_no_ions']:
             # Need to turn ions off for state 2 here if it is required to make 

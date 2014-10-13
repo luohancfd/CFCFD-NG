@@ -182,6 +182,10 @@ available to me as part of cfpylib inside the cfcfd code collection.
         Started working on an air contamination analysis tool so that I can
         better analyse my own data, and estimate how bad contamination is for
         my experiments.
+    13-Oct-2014:
+        Added a mode where I could specify fill pressures based on pressure ratios
+        so I could easily compare it to plots in a paper by David Gildfind and myself
+        where a lot of work was discussed in terms of pressure ratios.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -209,7 +213,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "10-Oct-2014"
+VERSION_STRING = "13-Oct-2014"
 
 DEBUG_PITOT = False
 

@@ -357,7 +357,7 @@ def txt_file_output(cfg, states, V, M):
     
     #added ability to get the species in the post-shock condition
     
-    if cfg['shock_over_model']:
+    if cfg['shock_over_model'] and 's10e' in states.keys():
         species1 = 'species in the shock layer at equilibrium:'        
         print species1
         txt_output.write(species1 + '\n')
@@ -366,6 +366,11 @@ def txt_file_output(cfg, states, V, M):
         print species2
         txt_output.write(species2 + '\n')
         
+    if cfg['test'] == 'fulltheory-pressure-ratios':
+        pressure_ratio_line = "p2_p1 = {0}.".format(states['s2'].p / states['s1'].p)
+        print pressure_ratio_line
+        txt_output.write(pressure_ratio_line + '\n')
+
     if cfg['mode'] == 'cea-printout' or cfg['mode'] == 'cea-txt-printout':
                         
         cea_printout_intro = "Printing gas state printouts for certain conditions..."
