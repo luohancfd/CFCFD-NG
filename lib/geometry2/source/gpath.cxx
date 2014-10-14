@@ -992,41 +992,60 @@ knot_refinement(const vector<double> &X) const
 
 // Polyline curves consist of one or more Path segments.
 Polyline::Polyline( const vector<Path*> &segments, 
-		    string label, double t0, double t1 )
-    : Path(label, t0, t1), seg(segments), t_seg(vector<double>(segments.size()))
+		    string label, double t0, double t1, int arc_length_p )
+    : Path(label, t0, t1), seg(segments),
+      t_seg(vector<double>(segments.size())),
+      arc_length_param_flag(arc_length_p)
 {
     // Replace the original pointers with pointers to cloned objects
     // so that we don't have to worry about their persistence.
     for ( size_t i = 0; i < seg.size(); ++i ) {
 	seg[i] = segments[i]->clone();
     }
+    if ( arc_length_param_flag ) {
+	n_arc_length = 100;
+    } else {
+	n_arc_length = 0;
+    }
     reset_breakpoints();
+    set_arc_length_vector();
 }
-Polyline::Polyline( const vector<Vector3*> &points, int type_of_segments, string label )
+Polyline::Polyline( const vector<Vector3*> &points, int type_of_segments,
+		    string label, int arc_length_p )
     : Path(label, 0.0, 1.0), 
       seg(vector<Path*>(points.size()-1)), 
-      t_seg(vector<double>(points.size()-1) )
+      t_seg(vector<double>(points.size()-1) ),
+      arc_length_param_flag(arc_length_p)
 {
     // For the moment, just implement straight-line segments.
     for ( size_t i = 0; i < points.size()-1; ++i ) {
 	seg[i] = new Line(*points[i], *points[i+1]);
     }
     reset_breakpoints();
+    set_arc_length_vector();
 }
-Polyline::Polyline( int nseg, string label, double t0, double t1 )
-    : Path(label, t0, t1), seg(vector<Path*>(nseg)), t_seg(vector<double>(nseg)) {}
+Polyline::Polyline( int nseg, string label, double t0, double t1, int arc_length_p )
+    : Path(label, t0, t1), seg(vector<Path*>(nseg)),
+      t_seg(vector<double>(nseg)),
+      arc_length_param_flag(arc_length_p)
+{}
 Polyline::Polyline( const Polyline &pline ) 
-    : Path(pline.label, pline.t0, pline.t1), seg(pline.seg), t_seg(pline.t_seg)
+    : Path(pline.label, pline.t0, pline.t1), seg(pline.seg),
+      t_seg(pline.t_seg),
+      arc_length_param_flag(pline.arc_length_param_flag)
 {
     // Replace the original pointers with pointers to cloned objects
     // so that we don't have to worry about their persistence.
     for ( size_t i = 0; i < seg.size(); ++i ) {
 	seg[i] = pline.seg[i]->clone();
     }
+    n_arc_length = pline.n_arc_length;
     reset_breakpoints();
+    set_arc_length_vector();
 }
 Polyline::~Polyline()
 {
+    arc_length.resize(0);
     // Destroy the cloned objects.
     for ( size_t i = 0; i < seg.size(); ++i ) {
 	delete seg[i];
@@ -1048,13 +1067,13 @@ Polyline* Polyline::add_segment( const Path* segment, int direction )
     if ( direction == -1 ) new_segment->reverse();
     seg.push_back(new_segment);
     reset_breakpoints();
+    set_arc_length_vector();
     return this;
 }
-Vector3 Polyline::eval( double t ) const
+Vector3 Polyline::raw_eval( double t ) const
+// Evaluate B(t) without considering arc_length parameterization flag or subrange.
 {
     double t_local;
-    // First, map to the subrange of the full polyline.
-    t = t0 + t * (t1 - t0);
     size_t n = seg.size();
     if ( n == 0 ) return Vector3(0.0, 0.0, 0.0);
     if ( n == 1 ) return seg[0]->eval(t);
@@ -1073,6 +1092,15 @@ Vector3 Polyline::eval( double t ) const
     }
     return seg[i]->eval(t_local);
 }
+Vector3 Polyline::eval( double t ) const
+{
+    // First, map to the subrange of the full polyline.
+    t = t0 + t * (t1 - t0);
+    if ( arc_length_param_flag ) {
+	t = t_from_arc_length(t);
+    }
+    return raw_eval(t);
+}
 double Polyline::length() const
 {
     double L_total = 0.0;
@@ -1090,7 +1118,8 @@ string Polyline::str() const
 	if (i < seg.size()-1 ) ost << ", "; else ost << "], ";
     }
     ost << "\"" << label << "\", ";
-    ost << t0 << ", " << t1 << ")";
+    ost << t0 << ", " << t1 << ", " 
+	<< arc_length_param_flag << ")";
     return ost.str();
 }
 Polyline* Polyline::translate( const Vector3 &v )
@@ -1121,6 +1150,7 @@ Polyline* Polyline::reverse()
     double t1_old = t1;
     t0 = 1.0 - t1_old;
     t1 = 1.0 - t0_old;
+    set_arc_length_vector();
     return this;
 }
 Polyline* Polyline::mirror_image( const Vector3 &point, const Vector3 &normal ) 
@@ -1128,6 +1158,7 @@ Polyline* Polyline::mirror_image( const Vector3 &point, const Vector3 &normal )
     for ( size_t i = 0; i < seg.size(); ++i ) {
 	seg[i]->mirror_image(point, normal);
     }
+    set_arc_length_vector();
     return this;
 }
 Polyline* Polyline::rotate_about_zaxis( double dtheta ) 
@@ -1135,6 +1166,7 @@ Polyline* Polyline::rotate_about_zaxis( double dtheta )
     for ( size_t i = 0; i < seg.size(); ++i ) {
 	seg[i]->rotate_about_zaxis(dtheta);
     }
+    set_arc_length_vector();
     return this;
 }
 void Polyline::reset_breakpoints()
@@ -1150,6 +1182,42 @@ void Polyline::reset_breakpoints()
     }
     return;
 }
+void Polyline::set_arc_length_vector()
+{
+    // Compute the arc_lengths for a number of sample points 
+    // so that these can later be used to do a reverse interpolation
+    // on the evaluation parameter.
+    if ( n_arc_length == 0 ) return;
+    double dt = 1.0 / n_arc_length;
+    arc_length.resize(0);
+    double L = 0.0;
+    arc_length.push_back(L);
+    Vector3 p0 = raw_eval(0.0);
+    Vector3 p1;
+    for ( int i = 1; i <= n_arc_length; ++i ) {
+	p1 = raw_eval(dt * i);
+	L += vabs(p1 - p0);
+	arc_length.push_back(L);
+	p0 = p1;
+    }
+    return;
+}
+double Polyline::t_from_arc_length(double t) const
+{
+    // The incoming parameter value, t, is proportional to arc_length.
+    // Do a reverse look-up from the arc_length to the original t parameter
+    // of the Bezier curve.
+    double L_target = t * arc_length[n_arc_length];
+    // Starting from the right-hand end,
+    // let's try to find a point to the left of L_target.
+    // If the value is out of range, this should just result in
+    // us extrapolating one of the end segments -- that's OK.
+    int i = n_arc_length - 1;
+    double dt = 1.0 / n_arc_length;
+    while ( L_target < arc_length[i] && i > 0 ) i--;
+    double frac = (L_target - arc_length[i]) / (arc_length[i+1] - arc_length[i]);
+    return (1.0 - frac) * dt*i + frac * dt*(i+1);
+ }
 
 //------------------------------------------------------------------------------
 

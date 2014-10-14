@@ -280,22 +280,26 @@ public:
     // We have to use pointers for the Path segments because they
     // may be of varying type: Line, Arc, Bezier, etc.
     vector<double> t_seg; ///< collection of segment break-points (in parameter t)
+    int arc_length_param_flag;
     /// Construct the Polyline from a collection of Path segments.
     Polyline( const vector<Path*> &segments, 
 	      string label="",
-	      double t0=0.0, double t1=1.0);
+	      double t0=0.0, double t1=1.0, int arc_length_p=0 );
     /// Construct the Polyline as Path segments between supplied points.
     /// Note that type_of_segments is required, just give a value of 0.
     /// This odd requirement is here to avoid shadowing of the constructor for SWIG.
-    Polyline( const vector<Vector3*> &points, int type_of_segments, string label="");
+    Polyline( const vector<Vector3*> &points, int type_of_segments,
+	      string label="", int arc_length_p=0 );
     /// A constructor for when we don't yet have the segments (e.g. Spline)
-    Polyline( int nseg, string label="", double t0=0.0, double t1=1.0 );
+    Polyline( int nseg, string label="", double t0=0.0, double t1=1.0,
+	      int arc_length_p=0);
     /// Construct as a copy of another Polyline.
     Polyline( const Polyline &pline );
     virtual ~Polyline();
     virtual Polyline* clone() const;
     virtual Polyline* copy(int direction=1) const; 
     Polyline* add_segment( const Path *segment, int direction=1 );
+    Vector3 raw_eval( double t ) const;
     virtual Vector3 eval( double t ) const;
     virtual double length() const;
     virtual string str() const;
@@ -306,6 +310,11 @@ public:
     virtual Polyline* rotate_about_zaxis( double dtheta );
 protected:
     void reset_breakpoints();
+private:
+    void set_arc_length_vector();
+    double t_from_arc_length(double t) const;
+    vector<double> arc_length;
+    int n_arc_length; // Number of pieces in the arc_length vector, if used.
 };
 
 
