@@ -647,15 +647,23 @@ These include:
   $b_n$.\index{geometric element!Bezier}
   Sometimes the curve may have control points distributed such that the grid is not clustered in a good way.
   To fix this, it may be useful to specfy the Bezier curve to be parameterized by arc length.
-  You need to specify all parameters, including the final \texttt{arc\_length\_p} parameter, \textit{i.e.}
-  \texttt{Bezier}([$b_0, b_1, ..., b_n$], ``label'', 0.0, 1.0, 1).
+  You need to specify all parameters, including the final \verb!arc_length_p! parameter, \textit{i.e.}
+  \verb!Bezier!([$b_0, b_1, ..., b_n$], ``label'', 0.0, 1.0, 1).
   The 3rd and 4th parameters here specify that we want to use the full range of the Bezier curve.
+  The final value of 1 is the \verb!arc_length_p! parameter.  
+  A value of 0 recovers the original parametric distribution of the Bezier curve.
 \item \texttt{Nurbs}($CP[.]$, $w[.]$,$degree$, $U[.]$): nonuniform rational B-spline with
   control points vector $CP[.]$, weights vector $w[.]$, and knot vector $U[.]$.\index{geometric element!Nurbs}
 \item \texttt{Polyline}([$p_0, p_1, ..., p_n$]): a composite path made up of 
   the segments $p_0$, through $p_n$.\index{geometric element!Polyline}
   The individual segments are reparameterised, based on arc length, so that
   the composite curve parameter is $0 \le t < 1$.
+  Just as for the \verb!Bezier! path, short path segments mixed with large path segments may result in a grid
+  that is not clustered in a good way.
+  It may, therefore, be useful to specfy the Polyline to be fully parameterized by arc length.
+  You need to specify all parameters, including the final \verb!arc_length_p! parameter, \textit{i.e.}
+  \verb!Polyline!([$p_0, p_1, ..., p_n$], ``label'', 0.0, 1.0, 1).
+  The 3rd and 4th parameters here specify that we want to use the full range of the Polyline path.
 \item \texttt{Polyline2}(*args): a composite path constructed from path elements and/or \texttt{Vector} points.
   If there are gaps between the elements and points, 
   they will be filled with \texttt{Line} segments.\index{geometric element!Polyline2}
