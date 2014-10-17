@@ -8,7 +8,7 @@
 jobName = '$jobName'; stage = $stage; np = $np
 
 # For equilibrium chemistry, use the look-up-table.
-select_gas_model(fname='cea-lut-air.lua.gz')
+select_gas_model(fname='cea-lut-air-ions.lua.gz')
 inflow = FlowCondition(p=$p_inf, u=$u_inf, T=$T_inf)
 initial = FlowCondition(p=$p_init, T=$T_inf)
 
@@ -51,7 +51,7 @@ if stage == 0:
 else:
     # We start with the previous solution.
     rootName = jobName + str(stage-1)
-    fill_condition0 = ExistingSolution(rootName, '.', np, 9999)
+    fill_condition0 = ExistingSolution(rootName, '.', np, 5)
 blk = SuperBlock2D(psurf=flow_domain0, fill_condition=fill_condition0,
                    nni=$ni, nnj=$nj, nbi=$nbi, nbj=$nbj,
                    cf_list=cluster_functions0, bc_list=boundary_conditions0,

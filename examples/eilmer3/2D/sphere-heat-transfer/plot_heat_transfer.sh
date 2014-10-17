@@ -8,7 +8,7 @@ stages="0 1 2 3 4"
 for STAGE in ${stages} 
 do
     echo "Stage $STAGE:"
-    e3post.py --job=sphere${STAGE} --tindx=9999 --heat-flux-list="2:3,1,-1,:,0" \
+    e3post.py --job=sphere${STAGE} --tindx=5 --heat-flux-list="2:3,1,-1,:,0" \
         --output-file=sphere_heat_transfer_${STAGE}.dat
 done
 

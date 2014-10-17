@@ -51,7 +51,7 @@ def run_stage(paramDict, jobName, stage):
     prepare_input_script(paramDict, jobName, stage)
     stageName = jobName+str(stage)
     run_command("/home/peterj/e3bin/e3prep.py --job=%s --do-svg" % (stageName,))
-    run_command("mpirun -np %d /home/peterj/e3bin/e3mpi.exe --job=%s --run" 
+    run_command("mpirun -np %d /home/peterj/e3bin/e3mpi.exe --job=%s -q --run" 
                 % (np, stageName,))
     return
 
@@ -84,7 +84,7 @@ def locate_shock_front(stageName, nbi, nbj):
         blockData.append([])
         for jb in range(nbj):
             blkindx = ib*nbj + jb
-            fileName = 'flow/t9999/%s.flow.b%04d.t9999.gz' \
+            fileName = 'flow/t0005/%s.flow.b%04d.t0005.gz' \
                 % (stageName, blkindx)
             fp = gzip.open(fileName, "r")
             blockData[ib].append(StructuredGridFlow())
