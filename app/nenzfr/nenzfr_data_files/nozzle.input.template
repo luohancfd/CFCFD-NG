@@ -161,11 +161,11 @@ print throat.species
 
 # Set the gas model
 if $chemModel in ['eq']:
-    select_gas_model(fname="cea-lut-"+upper($gasName)+".lua.gz")
-    # Artificially set species dictionaries so that we can use them later
-    # with FlowCondition
-    throat.species = {'air': 1.0}
-    initialGas.species = {'air': 1.0}
+    select_gas_model(fname="cea-lut-"+$gasName+".lua.gz")
+    # Artificially set species dictionaries so that we play 
+    # nicely with FlowCondition later
+    throat.species = [1.0,]      #{'air': 1.0}
+    initialGas.species = [1.0,]  #{'air': 1.0}
 elif $chemModel in ['frz','neq']:
     select_gas_model(model="thermally perfect gas", species=throat.species)
 else:
@@ -486,7 +486,10 @@ else:
      
     identify_block_connections()
 
-    
+   
+# THE FOLLOWING TURBULENCE ZONE CODE WON'T WORK FOR AN IMPORTED GRID
+
+ 
 # Define the turbulent portion of the nozzle. We adjust 
 # BLTrans by the length of the throat region. This ensures
 # that turbulence is turned on a distance of BLTrans from 
