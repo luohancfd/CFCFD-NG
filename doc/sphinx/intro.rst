@@ -57,6 +57,7 @@ Current group members
 Daryl Bond;
 Wilson Chan;
 Zac Denman;
+Luke Doherty, University of Oxford;
 Elise Fahy;
 David Gildfind;
 Rowan J. Gollan;
