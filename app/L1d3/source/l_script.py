@@ -683,7 +683,7 @@ class GasSlug(object):
             T = [float(T),] * nmodes
         for imode in range(nmodes): self.gas.T[imode] = T[imode]
         gdata.gmodel.eval_thermo_state_pT(self.gas)
-        gdata.gmodel.eval_transport_coefficients(self.gas)
+        gdata.gmodel.eval_transport_coefficients(self.gas, gdata.gmodel)
         self.u = u
         self.label = label
         #
