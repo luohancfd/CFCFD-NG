@@ -20,8 +20,8 @@ The group also undertakes a number of purely computational projects
 in which the computer plays the part of a "numerical wind tunnel".
 Such projects have included the calibration of a reentry air-data system,
 for the HYFLEX flight vehicle,
-the optimisation of scramjet exhaust nozzle shapes, and
-the analysis of the scramjet inlet and combustor for the HyShot project.
+the optimisation of nozzle shapes, and
+the analysis of compressible flows with chemical reactions.
 These applied studies motivate more abstract modelling efforts that
 aim to improve our simulation capability by developing novel phenomenological
 flow models and numerical codes that implement those models. 
