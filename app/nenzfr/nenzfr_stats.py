@@ -338,7 +338,7 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     M = vx/gdata.a
     total_h = energyFlux/massFlux
     #
-    gmodel.eval_transport_coefficients(gdata)
+    gmodel.eval_transport_coefficients(gdata, gmodel)
     properties = {}
     properties['rho'] = rho
     properties['vel.x'] = vx
