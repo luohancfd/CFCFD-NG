@@ -104,7 +104,10 @@ def make_test_gas(gasName, outputUnits='moles'):
                    outputUnits=outputUnits), {'gam':1.2,'R':6303.2}
     elif gasName.lower() == 'gasgiant_h210he': #composition used in Chris James' undergrad thesis
         return Gas(reactants={'H2':0.9, 'He':0.10}, inputUnits='moles', with_ions=True,
-                   outputUnits=outputUnits), None    
+                   outputUnits=outputUnits), {'gam':1.2,'R':7100.0}   
+    elif gasName.lower() == 'gasgiant_h211he': 
+        return Gas(reactants={'H2':0.89, 'He':0.11}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), {'gam':1.2,'R':7000.0}                      
     elif gasName.lower() == 'gasgiant_h210ne': #composition used in Chris James' undergrad thesis
         return Gas(reactants={'H2':0.9, 'Ne':0.10}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), None
