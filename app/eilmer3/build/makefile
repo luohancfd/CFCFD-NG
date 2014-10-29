@@ -152,6 +152,7 @@ E3_OBJECTS_COMMON := kernel.o \
 	bc_mass_flux_out.o \
 	bc_inlet_outlet.o \
         bc_nonuniform_t.o \
+	bc_jump_wall.o \
 	exch2d.o \
 	exch3d.o \
 	exch_mapped_cell_shmem.o \
@@ -649,6 +650,10 @@ bc_udmf.o : $(SRC)/bc_udmf.hh $(SRC)/bc_udmf.cxx $(SRC)/block.hh $(SRC)/kernel.h
 bc_udef.o : $(SRC)/bc_udef.hh $(SRC)/bc_udef.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_udef.cxx -o bc_udef.o
+
+bc_jump_wall.o : $(SRC)/bc_jump_wall.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
+    $(NM_SRC)/zero_finders.hh
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_jump_wall.cxx -o bc_jump_wall.o
 
 bc_menter_correction.o : $(SRC)/bc_menter_correction.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_menter_correction.cxx -o bc_menter_correction.o

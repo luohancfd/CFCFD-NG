@@ -1460,6 +1460,12 @@ Available boundary condition classes include:\index{boundary conditions!list of 
       condition and a fixed wall temperature.
       As for the \verb!AdiabaticBC!, we need to set \verb!gdata.viscous_flag = 1! (see Section~\ref{sec:sim-control-parameters}, Viscous effects) 
       to make this boundary condition effective.
+    \item \verb!JumpWallBC(Twall, sigma, label='')!\index{boundary conditions!JumpWallBC} where we want viscous effects 
+      to impose a partial-slip velocity condition and temperature that approaches a specified wall temperature,
+      subject to the limitation of rarefied-gas effects.
+      This limitation is specified via the accommodation coefficient, \verb!sigma!.
+      As for the \verb!FixedTBC!, we need to set \verb!gdata.viscous_flag = 1! (see Section~\ref{sec:sim-control-parameters}, Viscous effects) 
+      to make this boundary condition effective.
     \item \verb!SubsonicInBC(stagnation_condition, mass_flux=0.0, relax_factor=0.05, !\\
       \verb!direction_type='normal', direction_vector=[1.0,0.0,0.0],!\\
       \verb!direction_alpha=0.0, direction_beta=0.0,label='')!\index{boundary conditions!SubsonicInBC} \\

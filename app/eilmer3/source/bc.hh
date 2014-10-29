@@ -56,7 +56,8 @@ enum bc_t {
     MASS_FLUX_OUT,
     MAPPED_CELL,
     INLET_OUTLET,
-    NONUNIFORM_T
+    NONUNIFORM_T,
+    JUMP_WALL
 };
 std::string get_bc_name(bc_t bc);
 
