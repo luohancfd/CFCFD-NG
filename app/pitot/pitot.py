@@ -1,13 +1,15 @@
 #! /usr/bin/env python
 """
-pitot.py: Equilibrium expansion tube simulator
+pitot.py: Equilibrium expansion tube and shock tunnel simulator
 
 This program can be used to estimate the flow conditions for a shock-processed 
-flow for an expansion tube. It is currently setup to work primarily with the 
-X2 and X3 expansion tube's at the University of QLD, but I daresay it could be
-expanded (excuse the pun) to use other facilities without too much effort.
+flow for an expansion tube or a shock tunnel. It is currently setup to work 
+primarily with the X2 and X3 expansion tube's at the University of QLD, but it
+is able to be customised for use with other facilities without too much effort.
+As long as the required facility driver properties are available.
 
-The gas is assumed to remain in thermochemical equilibrium and the flow 
+The gas is assumed to remain in either a perfect gas state or thermochemical 
+equilibrium (based on the solver the user selected) and the flow 
 processing is done in decoupled quasi-one-dimensional wave processes such as 
 shock waves and expansion fans.
 
@@ -23,29 +25,21 @@ different calculations and configurations using different command line arguments
   propagates into the shock tube from the secondary driver (instead of the usual
   expansion). I don't think this feature is working very well at the moment though.. 
  
-When run as an application, this program takes its input as
-command line arguments, performs the requested calculations and prints a table
-with all of the results to the screen. Any changes you want to make can then 
-be made to certain parameters, or you can quit the program. 
-These results are also conveniently printed to a text file.
+When run as an application, this program takes its input as a configuration file
+that provides the variables that the code requires to run. Several example
+config files can be found in the examples folder of the cfcfd repository.
+Pitot performs the requested calculations and prints a table
+with all of the results to the screen and to a text document.
 
 To see what specific inputs are required, start the program as::
 
 $ pitot.py --help
 
-Which particular input parameters you need to supply depends on the
-chosen task, however, a fully theoretical basic x2 condition can be ran by using::
+You can also run some examples straight from the code to by running:
 
-$ pitot.py --facility x2 --test fulltheory-pressure --config nozzle --driver_gas He:1.0 --test_gas air --p1 3000.0 --p5 10.0
+$ pitot.py
 
-due to the some of the default values this can be shortened down to this once 
-you get the feel of it everything:
-
-$ pitot.py --driver_gas He:1.0 --test_gas air --p1 3000.0 --p5 10.0
-    
-The full txt_output is a bit too much to include here, but you should see that the
-stagnation enthalpy leaving the nozzle is 62.87 MJ/kg, and the velocity exiting
-the nozzle (V in state 8) should be 10639.5 m/s.
+and typing in one of the cases there.
 
 A brief description of the states can be found below:
     
@@ -78,8 +72,13 @@ It comes as part of the cfcfd3 compressible-flow collection and
 depends upon functions from the cfpylib library to do the specific 
 calculations.
 
-Someday I'll make a proper makefile for this guy, but for now,
-just make sure cfpylib is in your Python $PATH.
+A makefile can be found in the cfcfd repository under app/pitot. If you run
+
+$ make install
+
+this will copy the required files for pitot and the cfpylib and gas library. You 
+will need your computer set up with the recommended programs for use of the cfcfd3
+to make pitot install correctly, including cea2.
 
 You may then call upon pitot.py as long as you have suitable
 enviroment variables set, as per the installation instructions
@@ -186,6 +185,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
         Added a mode where I could specify fill pressures based on pressure ratios
         so I could easily compare it to plots in a paper by David Gildfind and myself
         where a lot of work was discussed in terms of pressure ratios.
+    31-Oct-2014:
+        Finally updated the intro stuff here so it is correct.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -213,7 +214,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "14-Oct-2014"
+VERSION_STRING = "31-Oct-2014"
 
 DEBUG_PITOT = False
 
