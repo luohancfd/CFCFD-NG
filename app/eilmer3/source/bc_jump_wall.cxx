@@ -1,5 +1,6 @@
 // bc_jump_wall.cxx
 
+#include <math.h>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
@@ -57,7 +58,9 @@ int JumpWallBC::apply_viscous(double t)
     size_t i, j, k;
     FV_Cell *cell;
     FV_Interface *IFace;
-    size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
+    Gas_model & gm = *get_gas_model_ptr();
+    int gas_status = 0;
+    size_t nmodes = gm.get_number_of_modes();
     Block & bd = *bdp;
 
     switch ( which_boundary ) {
@@ -70,9 +73,6 @@ int JumpWallBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		// [TODO] here's where we need to evaluate the velocity and temperature
-		// at the wall. It may be good to build one service function and put
-		// our code into that, then we can just call it to do the work at 
-		// each boundary case.
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
 		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		// [TODO] maybe should we re-evaluate the thermo and transport coeffs?
@@ -111,9 +111,24 @@ int JumpWallBC::apply_viscous(double t)
 		IFace = cell->iface[SOUTH];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
-		// [TODO] here's where we need to evaluate the velocity and temperature.
-		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
+		// Evaluate the slip-velocity.
+		double cell_half_width = cell->jLength / 2.0;
+		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		double v_cell_tangent = hypot(fs.vel.y, fs.vel.z);
+		double dvdn = v_cell_tangent / cell_half_width;
+		double c_bar = sqrt(8.0 * gm.R(*(fs.gas), gas_status) * fs.gas->T[0] / M_PI);
+		double lambda_v = 2.0 * fs.gas->mu / (fs.gas->rho * c_bar);
+		double v_slip = 2.0 * lambda_v * dvdn / sigma;
+		// Now, recover the slip-velocity components.
+		fs.vel.y *= v_slip/v_cell_tangent;
+		fs.vel.z *= v_slip/v_cell_tangent;
+		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		// Evaluate effective (jump) temperature that the gas feels.
+		double dTdn = cell->fs->gas->T[0] / cell_half_width;
+		double lambda_T = 4.0 / (gm.gamma(*(fs.gas), gas_status) + 1.0) * 
+		    fs.gas->k[0] / (fs.gas->rho * c_bar * gm.Cv(*(fs.gas), gas_status));
+		double T_effective = Twall + 2.0 * lambda_T * dTdn / sigma;
+		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = T_effective;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[SOUTH]->wc_bc != NON_CATALYTIC) {
