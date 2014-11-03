@@ -1327,7 +1327,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	break;
     case JUMP_WALL:
 	dict.parse_double(section, "Twall", Twall, 300.0);
-	dict.parse_double(section, "sigma", sigma, 0.0);
+	dict.parse_double(section, "sigma", sigma, 1.0);
 	newBC = new JumpWallBC(bdp, which_boundary, Twall, sigma);
 	break;
     default:

@@ -216,7 +216,7 @@ class BoundaryCondition(object):
                  t_i=0.0,
                  t_f=0.0,
                  emissivity=1.0,
-                 sigma=0.0,
+                 sigma=1.0,
                  r_omega=None,
                  centre=None,
                  v_trans=None,

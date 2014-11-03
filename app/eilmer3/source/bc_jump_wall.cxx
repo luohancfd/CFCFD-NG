@@ -124,7 +124,7 @@ int JumpWallBC::apply_viscous(double t)
 		fs.vel.z *= v_slip/v_cell_tangent;
 		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
 		// Evaluate effective (jump) temperature that the gas feels.
-		double dTdn = cell->fs->gas->T[0] / cell_half_width;
+		double dTdn = (cell->fs->gas->T[0] - Twall) / cell_half_width;
 		double lambda_T = 4.0 / (gm.gamma(*(fs.gas), gas_status) + 1.0) * 
 		    fs.gas->k[0] / (fs.gas->rho * c_bar * gm.Cv(*(fs.gas), gas_status));
 		double T_effective = Twall + 2.0 * lambda_T * dTdn / sigma;
