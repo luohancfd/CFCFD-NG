@@ -177,6 +177,7 @@ int init_available_bcs_map()
     available_bcs.insert(name_bc_t("mapped_cell",MAPPED_CELL));
     available_bcs.insert(name_bc_t("inlet_outlet",INLET_OUTLET));
     available_bcs.insert(name_bc_t("nonuniform_t",NONUNIFORM_T));
+    available_bcs.insert(name_bc_t("jump_wall",JUMP_WALL));
     return SUCCESS;
 }
  
