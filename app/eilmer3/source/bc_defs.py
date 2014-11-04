@@ -968,7 +968,8 @@ class AdjacentPlusUDFBC(BoundaryCondition):
     """
     def __init__(self, other_block=-1, other_face=-1, orientation=0,
                  filename="udf.lua", is_wall=0, sets_conv_flux=0, sets_visc_flux=0, 
-                 reorient_vector_quantities=False, Rmatrix=None, 
+                 reorient_vector_quantities=False, 
+                 Rmatrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], 
                  label=""):
         """
         Construct a connecting boundary condition that also has some user-defined behaviour.
