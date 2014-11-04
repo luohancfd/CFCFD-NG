@@ -15,7 +15,7 @@
 //------------------------------------------------------------------------
 
 JumpWallBC::JumpWallBC(Block *bdp, int which_boundary, double Twall, double sigma)
-    : BoundaryCondition(bdp, which_boundary, FIXED_T),
+    : BoundaryCondition(bdp, which_boundary, JUMP_WALL),
       Twall(Twall), sigma(sigma)
 {
     is_wall_flag = true;
@@ -29,7 +29,7 @@ JumpWallBC::JumpWallBC(const JumpWallBC &bc)
 }
 
 JumpWallBC::JumpWallBC()
-    : BoundaryCondition(0, 0, FIXED_T),
+    : BoundaryCondition(0, 0, JUMP_WALL),
       Twall(300.0), sigma(0.0)
 {
     is_wall_flag = true;
@@ -72,10 +72,24 @@ int JumpWallBC::apply_viscous(double t)
 		IFace = cell->iface[NORTH];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
-		// [TODO] here's where we need to evaluate the velocity and temperature
-		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
-		// [TODO] maybe should we re-evaluate the thermo and transport coeffs?
+		// Evaluate the slip-velocity.
+		double cell_half_width = cell->jLength / 2.0;
+		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		double v_cell_tangent = hypot(fs.vel.y, fs.vel.z);
+		double dvdn = v_cell_tangent / cell_half_width;
+		double c_bar = sqrt(8.0 * gm.R(*(fs.gas), gas_status) * fs.gas->T[0] / M_PI);
+		double lambda_v = 2.0 * fs.gas->mu / (fs.gas->rho * c_bar);
+		double v_slip = 2.0 * lambda_v * dvdn / sigma;
+		// Now, recover the slip-velocity components.
+		fs.vel.y *= v_slip/v_cell_tangent;
+		fs.vel.z *= v_slip/v_cell_tangent;
+		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		// Evaluate effective (jump) temperature that the gas feels.
+		double dTdn = (cell->fs->gas->T[0] - Twall) / cell_half_width;
+		double lambda_T = 4.0 / (gm.gamma(*(fs.gas), gas_status) + 1.0) * 
+		    fs.gas->k[0] / (fs.gas->rho * c_bar * gm.Cv(*(fs.gas), gas_status));
+		double T_effective = Twall + 2.0 * lambda_T * dTdn / sigma;
+		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = T_effective;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[NORTH]->wc_bc != NON_CATALYTIC) {
@@ -92,9 +106,24 @@ int JumpWallBC::apply_viscous(double t)
 		IFace = cell->iface[EAST];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
-		// [TODO] here's where we need to evaluate the velocity and temperature.
-		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
+		// Evaluate the slip-velocity.
+		double cell_half_width = cell->iLength / 2.0;
+		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		double v_cell_tangent = hypot(fs.vel.y, fs.vel.z);
+		double dvdn = v_cell_tangent / cell_half_width;
+		double c_bar = sqrt(8.0 * gm.R(*(fs.gas), gas_status) * fs.gas->T[0] / M_PI);
+		double lambda_v = 2.0 * fs.gas->mu / (fs.gas->rho * c_bar);
+		double v_slip = 2.0 * lambda_v * dvdn / sigma;
+		// Now, recover the slip-velocity components.
+		fs.vel.y *= v_slip/v_cell_tangent;
+		fs.vel.z *= v_slip/v_cell_tangent;
+		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		// Evaluate effective (jump) temperature that the gas feels.
+		double dTdn = (cell->fs->gas->T[0] - Twall) / cell_half_width;
+		double lambda_T = 4.0 / (gm.gamma(*(fs.gas), gas_status) + 1.0) * 
+		    fs.gas->k[0] / (fs.gas->rho * c_bar * gm.Cv(*(fs.gas), gas_status));
+		double T_effective = Twall + 2.0 * lambda_T * dTdn / sigma;
+		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = T_effective;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[EAST]->wc_bc != NON_CATALYTIC) {
@@ -145,9 +174,24 @@ int JumpWallBC::apply_viscous(double t)
 		IFace = cell->iface[WEST];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
-		// [TODO] here's where we need to evaluate the velocity and temperature.
-		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
+		// Evaluate the slip-velocity.
+		double cell_half_width = cell->iLength / 2.0;
+		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		double v_cell_tangent = hypot(fs.vel.y, fs.vel.z);
+		double dvdn = v_cell_tangent / cell_half_width;
+		double c_bar = sqrt(8.0 * gm.R(*(fs.gas), gas_status) * fs.gas->T[0] / M_PI);
+		double lambda_v = 2.0 * fs.gas->mu / (fs.gas->rho * c_bar);
+		double v_slip = 2.0 * lambda_v * dvdn / sigma;
+		// Now, recover the slip-velocity components.
+		fs.vel.y *= v_slip/v_cell_tangent;
+		fs.vel.z *= v_slip/v_cell_tangent;
+		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		// Evaluate effective (jump) temperature that the gas feels.
+		double dTdn = (cell->fs->gas->T[0] - Twall) / cell_half_width;
+		double lambda_T = 4.0 / (gm.gamma(*(fs.gas), gas_status) + 1.0) * 
+		    fs.gas->k[0] / (fs.gas->rho * c_bar * gm.Cv(*(fs.gas), gas_status));
+		double T_effective = Twall + 2.0 * lambda_T * dTdn / sigma;
+		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = T_effective;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[WEST]->wc_bc != NON_CATALYTIC) {
@@ -164,9 +208,24 @@ int JumpWallBC::apply_viscous(double t)
 		IFace = cell->iface[TOP];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
-		// [TODO] here's where we need to evaluate the velocity and temperature.
-		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
+		// Evaluate the slip-velocity.
+		double cell_half_width = cell->kLength / 2.0;
+		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		double v_cell_tangent = hypot(fs.vel.y, fs.vel.z);
+		double dvdn = v_cell_tangent / cell_half_width;
+		double c_bar = sqrt(8.0 * gm.R(*(fs.gas), gas_status) * fs.gas->T[0] / M_PI);
+		double lambda_v = 2.0 * fs.gas->mu / (fs.gas->rho * c_bar);
+		double v_slip = 2.0 * lambda_v * dvdn / sigma;
+		// Now, recover the slip-velocity components.
+		fs.vel.y *= v_slip/v_cell_tangent;
+		fs.vel.z *= v_slip/v_cell_tangent;
+		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		// Evaluate effective (jump) temperature that the gas feels.
+		double dTdn = (cell->fs->gas->T[0] - Twall) / cell_half_width;
+		double lambda_T = 4.0 / (gm.gamma(*(fs.gas), gas_status) + 1.0) * 
+		    fs.gas->k[0] / (fs.gas->rho * c_bar * gm.Cv(*(fs.gas), gas_status));
+		double T_effective = Twall + 2.0 * lambda_T * dTdn / sigma;
+		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = T_effective;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[TOP]->wc_bc != NON_CATALYTIC) {
@@ -183,9 +242,24 @@ int JumpWallBC::apply_viscous(double t)
 		IFace = cell->iface[BOTTOM];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
-		// [TODO] here's where we need to evaluate the velocity and temperature.
-		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
+		// Evaluate the slip-velocity.
+		double cell_half_width = cell->kLength / 2.0;
+		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		double v_cell_tangent = hypot(fs.vel.y, fs.vel.z);
+		double dvdn = v_cell_tangent / cell_half_width;
+		double c_bar = sqrt(8.0 * gm.R(*(fs.gas), gas_status) * fs.gas->T[0] / M_PI);
+		double lambda_v = 2.0 * fs.gas->mu / (fs.gas->rho * c_bar);
+		double v_slip = 2.0 * lambda_v * dvdn / sigma;
+		// Now, recover the slip-velocity components.
+		fs.vel.y *= v_slip/v_cell_tangent;
+		fs.vel.z *= v_slip/v_cell_tangent;
+		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		// Evaluate effective (jump) temperature that the gas feels.
+		double dTdn = (cell->fs->gas->T[0] - Twall) / cell_half_width;
+		double lambda_T = 4.0 / (gm.gamma(*(fs.gas), gas_status) + 1.0) * 
+		    fs.gas->k[0] / (fs.gas->rho * c_bar * gm.Cv(*(fs.gas), gas_status));
+		double T_effective = Twall + 2.0 * lambda_T * dTdn / sigma;
+		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = T_effective;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[BOTTOM]->wc_bc != NON_CATALYTIC) {
