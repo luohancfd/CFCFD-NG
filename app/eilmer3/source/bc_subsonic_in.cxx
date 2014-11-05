@@ -620,7 +620,7 @@ double SubsonicInBC::subsonic_inflow_properties(const CFlowCondition &stagnation
 	inflow_state.w = 0.0;
     }
 
-    if ( G.viscous ) gmodel.eval_transport_coefficients(*(inflow_state.gas), &gmodel);
+    if ( G.viscous ) gmodel.eval_transport_coefficients(*(inflow_state.gas));
     if ( G.diffusion ) gmodel.eval_diffusion_coefficients(*(inflow_state.gas));
     return speed;
 } // end SubsonicInBC::subsonic_inflow_properties()

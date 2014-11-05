@@ -260,7 +260,7 @@ GasSlug::GasSlug(int indx, SimulationData& SD,
     // Density, Internal energy, Speed of Sound, and 
     // molecular transport coefficients. 
     gmodel->eval_thermo_state_pT(*(initial_flow_state->gas));
-    gmodel->eval_transport_coefficients(*(initial_flow_state->gas), gmodel);
+    gmodel->eval_transport_coefficients(*(initial_flow_state->gas));
     double e = accumulate(initial_flow_state->gas->e.begin(),
 			  initial_flow_state->gas->e.end(), 0.0);
     if (echo_input == 1) {
@@ -602,7 +602,7 @@ int GasSlug::chemical_increment(double dt)
 	// of state.
 	gmodel->eval_thermo_state_rhoe(*(c->gas));
 	// Ensure viscous properties are up-to-date.
-	gmodel->eval_transport_coefficients(*(c->gas), gmodel);
+	gmodel->eval_transport_coefficients(*(c->gas));
     } // end ix loop
     return SUCCESS;
 } // end chemical_increment
@@ -744,7 +744,7 @@ int GasSlug::source_vector()
 	cell->ref->rho = cell->gas->rho * cell->gas->T[0] / T_ref;
 	cell->ref->p = cell->ref->rho * gmodel->R(*(cell->ref)) * cell->ref->T[0];
 	gmodel->eval_thermo_state_pT(*(cell->ref));
-	gmodel->eval_transport_coefficients(*(cell->ref), gmodel);
+	gmodel->eval_transport_coefficients(*(cell->ref));
 	// Local Reynolds number based on diameter and reference conditions.
 	Re_D = cell->ref->rho * D * abs_u / cell->ref->mu;
 	// use distance moved as reference distance for Re
@@ -943,7 +943,7 @@ int GasSlug::adjust_end_cells()
     c->gas->T[0] += relax_factor * min_increment(c->gas->T[0], cn1->gas->T[0], cn2->gas->T[0]);
     c->gas->p += relax_factor * min_increment(c->gas->p, cn1->gas->p, cn2->gas->p);
     gmodel->eval_thermo_state_pT(*(c->gas));
-    gmodel->eval_transport_coefficients(*(c->gas), gmodel);
+    gmodel->eval_transport_coefficients(*(c->gas));
     /* c->u += relax_factor * (cn->u - c->u); */
     c->encode_conserved();
     /* 
@@ -955,7 +955,7 @@ int GasSlug::adjust_end_cells()
     c->gas->T[0] += relax_factor * min_increment(c->gas->T[0], cn1->gas->T[0], cn2->gas->T[0]);
     c->gas->p += relax_factor * min_increment(c->gas->p, cn1->gas->p, cn2->gas->p);
     gmodel->eval_thermo_state_pT(*(c->gas));
-    gmodel->eval_transport_coefficients(*(c->gas), gmodel);
+    gmodel->eval_transport_coefficients(*(c->gas));
     /* c->u += relax_factor * (cn->u - c->u); */
     c->encode_conserved();
 

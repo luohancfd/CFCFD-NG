@@ -223,7 +223,7 @@ s_eval_thermo_state_rhoT(Gas_data &Q)
 
 int
 REFPROP_gas_model::
-s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel)
+s_eval_transport_coefficients(Gas_data &Q)
 {   // Transport properties from temperature, density and composition.
     t = Q.T[0];
     d = Q.rho/wm; // kg/m^3 to mol/L

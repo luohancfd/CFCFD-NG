@@ -25,7 +25,7 @@ private:
     int determine_interpolants(const Gas_data &Q, int &ir, int &ie,
 			       double &lrfrac, double &efrac);
     int s_eval_thermo_state_rhoe(Gas_data &Q);
-    int s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel);
+    int s_eval_transport_coefficients(Gas_data &Q);
     int s_eval_diffusion_coefficients(Gas_data &Q);
     double s_molecular_weight(int isp); 
     double s_internal_energy(const Gas_data &Q, int isp);

@@ -162,7 +162,7 @@ int LCell::decode_conserved()
     }
     // Fill out the other thermo variables
     gmodel->eval_thermo_state_rhoe(*(gas));
-    gmodel->eval_transport_coefficients(*(gas), gmodel);
+    gmodel->eval_transport_coefficients(*(gas));
     // c->entropy = gmodel->mixture_entropy(*(c->gas)); 
     // FIX-ME -- would like the generic call to entropy to work
     // Entropy referenced to 1 atm and 300K */
@@ -316,7 +316,7 @@ int L_blend_cells(LCell& cA, LCell& cB, LCell& c, double alpha, int blend_type)
 		            alpha * cB.gas->massf[isp];
 	}
 	gmodel->eval_thermo_state_pT(*(c.gas));
-	gmodel->eval_transport_coefficients(*(c.gas), gmodel);
+	gmodel->eval_transport_coefficients(*(c.gas));
     } else {
 	c.u       = (1.0 - alpha) * cA.u       + alpha * cB.u;
 	c.gas->rho = (1.0 - alpha) * cA.gas->rho + alpha * cB.gas->rho;
@@ -328,7 +328,7 @@ int L_blend_cells(LCell& cA, LCell& cB, LCell& c, double alpha, int blend_type)
 	    c.gas->T[imode]= (1.0 - alpha) * cA.gas->T[imode]+ alpha * cB.gas->T[imode];
 	}
 	gmodel->eval_thermo_state_rhoe(*(c.gas));
-	gmodel->eval_transport_coefficients(*(c.gas), gmodel);
+	gmodel->eval_transport_coefficients(*(c.gas));
     }
     return SUCCESS;
 } // end L_blend_cells()
