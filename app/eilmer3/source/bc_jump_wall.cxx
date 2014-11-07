@@ -170,14 +170,32 @@ int JumpWallBC::apply_viscous(double t)
 		double cell_half_width = cell->jLength / 2.0;
 		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
 		double v_cell_tangent = hypot(fs.vel.y, fs.vel.z);
+		std::cout << "velocity components for v_cell_tangent=" 
+			  << v_cell_tangent <<  std::endl;
 		double dvdn = v_cell_tangent / cell_half_width;
+		std::cout << "dvdn=" 
+			  << dvdn << std::endl;
 		double c_bar = sqrt(8.0 * gm.R(*(fs.gas), gas_status) * fs.gas->T[0] / M_PI);
+		std::cout << " c_bar=" 
+			  << c_bar << std::endl;
 		double lambda_v = 2.0 * fs.gas->mu / (fs.gas->rho * c_bar);
+		std::cout << "lambda_v=" 
+			  << lambda_v << std::endl;
 		double v_slip = factor * lambda_v * dvdn;
+		std::cout << " v_slip=" 
+			  << v_slip << std::endl;
 		// Now, recover the slip-velocity components.
 		fs.vel.x = 0.0;
-		fs.vel.y *= v_slip/v_cell_tangent;
-		fs.vel.z *= v_slip/v_cell_tangent;
+		if ( fabs(v_cell_tangent) < 1.0e-12 ) {
+		    fs.vel.y = 0.0;
+		    fs.vel.z = 0.0;
+		} else {
+		    fs.vel.y *= v_slip/v_cell_tangent;
+		    fs.vel.z *= v_slip/v_cell_tangent;
+		}
+		std::cout << "velocity components for v_slip=" 
+			  << fs.vel.y << " and = " << fs.vel.z << std::endl;
+		//exit(-1);
 		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
 		// Evaluate effective (jump) temperature that the gas feels.
 		double dTdn = (cell->fs->gas->T[0] - Twall) / cell_half_width;
