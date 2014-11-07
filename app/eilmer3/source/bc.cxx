@@ -1092,7 +1092,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     bool sets_conv_flux = false;
     bool sets_visc_flux = false;
     double emissivity = 0.0;
-    double sigma = 0.0;
+    double sigma_jump = 0.0;
     std::vector<double> mdot;
     std::vector<double> vnf;
     vnf.resize(get_gas_model_ptr()->get_number_of_species(), 0.0);
@@ -1327,8 +1327,8 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	break;
     case JUMP_WALL:
 	dict.parse_double(section, "Twall", Twall, 300.0);
-	dict.parse_double(section, "sigma", sigma, 1.0);
-	newBC = new JumpWallBC(bdp, which_boundary, Twall, sigma);
+	dict.parse_double(section, "sigma_jump", sigma_jump, 1.0);
+	newBC = new JumpWallBC(bdp, which_boundary, Twall, sigma_jump);
 	break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 

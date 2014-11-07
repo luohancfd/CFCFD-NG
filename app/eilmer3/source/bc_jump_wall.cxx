@@ -1,4 +1,16 @@
 // bc_jump_wall.cxx
+// Velocity slip and temperature jump boundary condition
+// for rarefied flows.
+//
+// Implemented by Amna Khraibut and Peter J.
+// November 2014
+
+// following the description in the paper:
+// A.J. Lofthouse, L.C. Scalabrim and I.D. Boyd
+// Velocity slip and temperature jump in hypersonic aerothermodynamics
+// AIAA Paper 2007-0208
+// 45th AIAA Aerospace Dciences Meeting and Exhibit, 8-11 January 2007, Reno, Nevada.
+//
 
 #include <math.h>
 #include "../../../lib/util/source/useful.h"
@@ -12,25 +24,29 @@
 #include "bc_catalytic.hh"
 #include "bc_menter_correction.hh"
 
+constexpr int jump_type = 1;
+// 1 == classic Maxwell form
+// 2 == (better?) Gokcen form
+
 //------------------------------------------------------------------------
 
-JumpWallBC::JumpWallBC(Block *bdp, int which_boundary, double Twall, double sigma)
+JumpWallBC::JumpWallBC(Block *bdp, int which_boundary, double Twall, double sigma_jump)
     : BoundaryCondition(bdp, which_boundary, JUMP_WALL),
-      Twall(Twall), sigma(sigma)
+      Twall(Twall), sigma_jump(sigma_jump)
 {
     is_wall_flag = true;
 }
 
 JumpWallBC::JumpWallBC(const JumpWallBC &bc)
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
-      Twall(bc.Twall), sigma(bc.sigma)
+      Twall(bc.Twall), sigma_jump(bc.sigma_jump)
 {
     is_wall_flag = bc.is_wall_flag;
 }
 
 JumpWallBC::JumpWallBC()
     : BoundaryCondition(0, 0, JUMP_WALL),
-      Twall(300.0), sigma(0.0)
+      Twall(300.0), sigma_jump(1.0)
 {
     is_wall_flag = true;
 }
@@ -39,7 +55,7 @@ JumpWallBC & JumpWallBC::operator=(const JumpWallBC &bc)
 {
     BoundaryCondition::operator=(bc);
     Twall = bc.Twall; // Ok for self-assignment.
-    sigma = bc.sigma;
+    sigma_jump = bc.sigma_jump;
     return *this;
 }
 
@@ -49,7 +65,7 @@ void JumpWallBC::print_info(std::string lead_in)
 {
     BoundaryCondition::print_info(lead_in);
     cout << lead_in << "Twall= " << Twall << endl;
-    cout << lead_in << "sigma= " << sigma << endl;
+    cout << lead_in << "sigma_jump= " << sigma_jump << endl;
     return;
 }
 
@@ -62,6 +78,14 @@ int JumpWallBC::apply_viscous(double t)
     int gas_status = 0;
     size_t nmodes = gm.get_number_of_modes();
     Block & bd = *bdp;
+    double factor;
+    if ( jump_type == 2 ) {
+	factor = 2.0 / sigma_jump;
+    } else if ( jump_type == 1 ) {
+	factor = ( 2.0 - sigma_jump ) / sigma_jump;
+    } else {
+	throw new runtime_error("Invalid selection for jump_type");
+    }
 
     switch ( which_boundary ) {
     case NORTH:
@@ -79,8 +103,9 @@ int JumpWallBC::apply_viscous(double t)
 		double dvdn = v_cell_tangent / cell_half_width;
 		double c_bar = sqrt(8.0 * gm.R(*(fs.gas), gas_status) * fs.gas->T[0] / M_PI);
 		double lambda_v = 2.0 * fs.gas->mu / (fs.gas->rho * c_bar);
-		double v_slip = 2.0 * lambda_v * dvdn / sigma;
+		double v_slip = factor * lambda_v * dvdn;
 		// Now, recover the slip-velocity components.
+		fs.vel.x = 0.0;
 		fs.vel.y *= v_slip/v_cell_tangent;
 		fs.vel.z *= v_slip/v_cell_tangent;
 		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
@@ -88,7 +113,7 @@ int JumpWallBC::apply_viscous(double t)
 		double dTdn = (cell->fs->gas->T[0] - Twall) / cell_half_width;
 		double lambda_T = 4.0 / (gm.gamma(*(fs.gas), gas_status) + 1.0) * 
 		    fs.gas->k[0] / (fs.gas->rho * c_bar * gm.Cv(*(fs.gas), gas_status));
-		double T_effective = Twall + 2.0 * lambda_T * dTdn / sigma;
+		double T_effective = Twall + factor * lambda_T * dTdn;
 		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = T_effective;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
@@ -113,8 +138,9 @@ int JumpWallBC::apply_viscous(double t)
 		double dvdn = v_cell_tangent / cell_half_width;
 		double c_bar = sqrt(8.0 * gm.R(*(fs.gas), gas_status) * fs.gas->T[0] / M_PI);
 		double lambda_v = 2.0 * fs.gas->mu / (fs.gas->rho * c_bar);
-		double v_slip = 2.0 * lambda_v * dvdn / sigma;
+		double v_slip = factor * lambda_v * dvdn;
 		// Now, recover the slip-velocity components.
+		fs.vel.x = 0.0;
 		fs.vel.y *= v_slip/v_cell_tangent;
 		fs.vel.z *= v_slip/v_cell_tangent;
 		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
@@ -122,7 +148,7 @@ int JumpWallBC::apply_viscous(double t)
 		double dTdn = (cell->fs->gas->T[0] - Twall) / cell_half_width;
 		double lambda_T = 4.0 / (gm.gamma(*(fs.gas), gas_status) + 1.0) * 
 		    fs.gas->k[0] / (fs.gas->rho * c_bar * gm.Cv(*(fs.gas), gas_status));
-		double T_effective = Twall + 2.0 * lambda_T * dTdn / sigma;
+		double T_effective = Twall + factor * lambda_T * dTdn;
 		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = T_effective;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
@@ -147,8 +173,9 @@ int JumpWallBC::apply_viscous(double t)
 		double dvdn = v_cell_tangent / cell_half_width;
 		double c_bar = sqrt(8.0 * gm.R(*(fs.gas), gas_status) * fs.gas->T[0] / M_PI);
 		double lambda_v = 2.0 * fs.gas->mu / (fs.gas->rho * c_bar);
-		double v_slip = 2.0 * lambda_v * dvdn / sigma;
+		double v_slip = factor * lambda_v * dvdn;
 		// Now, recover the slip-velocity components.
+		fs.vel.x = 0.0;
 		fs.vel.y *= v_slip/v_cell_tangent;
 		fs.vel.z *= v_slip/v_cell_tangent;
 		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
@@ -156,7 +183,7 @@ int JumpWallBC::apply_viscous(double t)
 		double dTdn = (cell->fs->gas->T[0] - Twall) / cell_half_width;
 		double lambda_T = 4.0 / (gm.gamma(*(fs.gas), gas_status) + 1.0) * 
 		    fs.gas->k[0] / (fs.gas->rho * c_bar * gm.Cv(*(fs.gas), gas_status));
-		double T_effective = Twall + 2.0 * lambda_T * dTdn / sigma;
+		double T_effective = Twall + factor * lambda_T * dTdn;
 		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = T_effective;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
@@ -181,8 +208,9 @@ int JumpWallBC::apply_viscous(double t)
 		double dvdn = v_cell_tangent / cell_half_width;
 		double c_bar = sqrt(8.0 * gm.R(*(fs.gas), gas_status) * fs.gas->T[0] / M_PI);
 		double lambda_v = 2.0 * fs.gas->mu / (fs.gas->rho * c_bar);
-		double v_slip = 2.0 * lambda_v * dvdn / sigma;
+		double v_slip = factor * lambda_v * dvdn;
 		// Now, recover the slip-velocity components.
+		fs.vel.x = 0.0;
 		fs.vel.y *= v_slip/v_cell_tangent;
 		fs.vel.z *= v_slip/v_cell_tangent;
 		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
@@ -190,7 +218,7 @@ int JumpWallBC::apply_viscous(double t)
 		double dTdn = (cell->fs->gas->T[0] - Twall) / cell_half_width;
 		double lambda_T = 4.0 / (gm.gamma(*(fs.gas), gas_status) + 1.0) * 
 		    fs.gas->k[0] / (fs.gas->rho * c_bar * gm.Cv(*(fs.gas), gas_status));
-		double T_effective = Twall + 2.0 * lambda_T * dTdn / sigma;
+		double T_effective = Twall + factor * lambda_T * dTdn;
 		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = T_effective;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
@@ -215,8 +243,9 @@ int JumpWallBC::apply_viscous(double t)
 		double dvdn = v_cell_tangent / cell_half_width;
 		double c_bar = sqrt(8.0 * gm.R(*(fs.gas), gas_status) * fs.gas->T[0] / M_PI);
 		double lambda_v = 2.0 * fs.gas->mu / (fs.gas->rho * c_bar);
-		double v_slip = 2.0 * lambda_v * dvdn / sigma;
+		double v_slip = factor * lambda_v * dvdn;
 		// Now, recover the slip-velocity components.
+		fs.vel.x = 0.0;
 		fs.vel.y *= v_slip/v_cell_tangent;
 		fs.vel.z *= v_slip/v_cell_tangent;
 		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
@@ -224,7 +253,7 @@ int JumpWallBC::apply_viscous(double t)
 		double dTdn = (cell->fs->gas->T[0] - Twall) / cell_half_width;
 		double lambda_T = 4.0 / (gm.gamma(*(fs.gas), gas_status) + 1.0) * 
 		    fs.gas->k[0] / (fs.gas->rho * c_bar * gm.Cv(*(fs.gas), gas_status));
-		double T_effective = Twall + 2.0 * lambda_T * dTdn / sigma;
+		double T_effective = Twall + factor * lambda_T * dTdn;
 		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = T_effective;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
@@ -249,8 +278,9 @@ int JumpWallBC::apply_viscous(double t)
 		double dvdn = v_cell_tangent / cell_half_width;
 		double c_bar = sqrt(8.0 * gm.R(*(fs.gas), gas_status) * fs.gas->T[0] / M_PI);
 		double lambda_v = 2.0 * fs.gas->mu / (fs.gas->rho * c_bar);
-		double v_slip = 2.0 * lambda_v * dvdn / sigma;
+		double v_slip = factor * lambda_v * dvdn;
 		// Now, recover the slip-velocity components.
+		fs.vel.x = 0.0;
 		fs.vel.y *= v_slip/v_cell_tangent;
 		fs.vel.z *= v_slip/v_cell_tangent;
 		fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
@@ -258,7 +288,7 @@ int JumpWallBC::apply_viscous(double t)
 		double dTdn = (cell->fs->gas->T[0] - Twall) / cell_half_width;
 		double lambda_T = 4.0 / (gm.gamma(*(fs.gas), gas_status) + 1.0) * 
 		    fs.gas->k[0] / (fs.gas->rho * c_bar * gm.Cv(*(fs.gas), gas_status));
-		double T_effective = Twall + 2.0 * lambda_T * dTdn / sigma;
+		double T_effective = Twall + factor * lambda_T * dTdn;
 		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = T_effective;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);

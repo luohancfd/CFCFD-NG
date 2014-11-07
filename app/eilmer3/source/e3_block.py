@@ -543,7 +543,7 @@ class Block(object):
                Twall_flag=False,
                reorient_vector_quantities=False, 
                Rmatrix=[1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0],
-               assume_ideal=0, mdot=None, emissivity=None, sigma=1.0,
+               assume_ideal=0, mdot=None, emissivity=None, sigma_jump=1.0,
                Twall_i=None, Twall_f=None, t_i=None, t_f=None,
                mass_flux=0.0, p_init=100.0e3, relax_factor=0.05,
                direction_type="normal", direction_vector=[1.0,0.0,0.0],
@@ -685,7 +685,7 @@ class Block(object):
         if type_of_BC == NONUNIFORM_T:
             newbc = NonuniformTBC(T_non, starting_blk, no_blk, r_omega, centre, v_trans, label=label)
         if type_of_BC == JUMP_WALL:
-            newbc = JumpWallBC(Twall, sigma, label=label)
+            newbc = JumpWallBC(Twall, sigma_jump, label=label)
         #
         try:
             self.bc_list[iface] = newbc
@@ -802,7 +802,7 @@ class Block(object):
                 fp.write("%e " % val )
             fp.write("\n")
             fp.write("emissivity = %e\n" % bc.emissivity)
-            fp.write("sigma = %e\n" % bc.sigma)
+            fp.write("sigma_jump = %e\n" % bc.sigma_jump)
             fp.write("mass_flux = %e\n" % bc.mass_flux)
             fp.write("p_init = %e\n" % bc.p_init)
             fp.write("relax_factor = %e\n" % bc.relax_factor)
@@ -931,7 +931,7 @@ class Block(object):
                 fp.write("%e, " % val) # TODO -- do we need to eliminate trailing comma?
             fp.write('],\n')
             fp.write('        "emissivity": %e,\n' % bc.emissivity)
-            fp.write('        "sigma": %e,\n' % bc.sigma)
+            fp.write('        "sigma_jump": %e,\n' % bc.sigma_jump)
             fp.write('        "mass_flux": %e,\n' % bc.mass_flux)
             fp.write('        "p_init": %e,\n' % bc.p_init)
             fp.write('        "relax_factor": %e,\n' % bc.relax_factor)

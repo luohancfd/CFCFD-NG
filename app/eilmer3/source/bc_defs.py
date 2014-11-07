@@ -186,7 +186,7 @@ class BoundaryCondition(object):
                 'x_order', 'sponge_flag', 'other_block', 'other_face', 'orientation', \
                 'filename', 'n_profile', 'is_wall', 'sets_conv_flux', 'sets_visc_flux', \
                 'assume_ideal', 'mdot', 'Twall_i', 'Twall_f', 't_i', 't_f', 'emissivity', \
-                'sigma', 'r_omega', 'centre', 'v_trans', 'Twall_flag', \
+                'sigma_jump', 'r_omega', 'centre', 'v_trans', 'Twall_flag', \
                 'reorient_vector_quantities', 'Rmatrix', \
                 'mass_flux', 'p_init', 'relax_factor', \
                 'direction_type', 'direction_vector', 'direction_alpha', 'direction_beta', \
@@ -216,7 +216,7 @@ class BoundaryCondition(object):
                  t_i=0.0,
                  t_f=0.0,
                  emissivity=1.0,
-                 sigma=1.0,
+                 sigma_jump=1.0,
                  r_omega=None,
                  centre=None,
                  v_trans=None,
@@ -282,7 +282,7 @@ class BoundaryCondition(object):
         :param assume_ideal:
         :param mdot: species ablation rate (list)
         :param emissivity: surface radiative emissivity (between 0 and 1)
-        :param sigma: accommodation coefficient for velocity/temperature jump boundary
+        :param sigma_jump: accommodation coefficient for velocity/temperature jump boundary
         :param Twall_i: initial temperature for sliding temperature BC
         :param Twall_f: final temperature for sliding temperature BC
         :param t_i: initial time for sliding temperature BC
@@ -341,7 +341,7 @@ class BoundaryCondition(object):
         self.t_i = t_i
         self.t_f = t_f
         self.emissivity = emissivity
-        self.sigma = sigma
+        self.sigma_jump = sigma_jump
         if r_omega is None:
             self.r_omega = [0.0, 0.0, 0.0]
         else:
@@ -399,7 +399,7 @@ class BoundaryCondition(object):
         for mdi in mdot: str_rep += "%g," % mdi
         str_rep += "]"
         str_rep += ", emissivity=%g" % self.emissivity
-        str_rep += ", sigma=%g" % self.sigma
+        str_rep += ", sigma_jump=%g" % self.sigma_jump
         str_rep += ", r_omega=[%g, %g, %g]" % (self.r_omega[0], self.r_omega[1], self.r_omega[2])
         str_rep += ", centre=[%g, %g, %g]" % (self.centre[0], self.centre[1], self.centre[2])
         str_rep += ", v_trans=[%g, %g, %g]" % (self.v_trans[0], self.v_trans[1], self.v_trans[2])
@@ -451,7 +451,7 @@ class BoundaryCondition(object):
                                  t_i=self.t_i,
                                  t_f=self.t_f,
                                  emissivity=self.emissivity,
-                                 sigma=self.sigma,
+                                 sigma_jump=self.sigma_jump,
                                  r_omega=copy.copy(self.r_omega),
                                  centre=copy.copy(self.centre),
                                  v_trans=copy.copy(self.v_trans),
@@ -1382,22 +1382,23 @@ class JumpWallBC(BoundaryCondition):
     Like the AdiabaticBC, this is completey effective only when viscous
     effects are active.  Else, it is just like another solid (slip) wall.
     """
-    def __init__(self, Twall, sigma, label=""):
+    def __init__(self, Twall, sigma_jump, label=""):
         """
         Construct a somewhat accommodating solid-wall boundary with a jump in velocity and temperature.
 
         :param Twall: fixed wall temperature (in degrees K) 
-        :param sigma: accommodation coefficient (between 0 and 1) 
+        :param sigma_jump: accommodation coefficient (between 0 and 1) 
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
         BoundaryCondition.__init__(self, type_of_BC=JUMP_WALL, Twall=Twall, 
-                                   is_wall=1, sigma=sigma, label=label)
+                                   is_wall=1, sigma_jump=sigma_jump, label=label)
         return
     def __str__(self):
-        return "JumpWallBC(Twall=%g, sigma=%g, label=\"%s\")" % (self.Twall, self.sigma, self.label)
+        return "JumpWallBC(Twall=%g, sigma_jump=%g, label=\"%s\")" % \
+            (self.Twall, self.sigma_jump, self.label)
     def __copy__(self):
-        return JumpWallBC(Twall=self.Twall, sigma=self.sigma, label=self.label)
+        return JumpWallBC(Twall=self.Twall, sigma_jump=self.sigma_jump, label=self.label)
 
 
 #####################################################################################

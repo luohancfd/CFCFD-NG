@@ -5,9 +5,9 @@
 class JumpWallBC : public BoundaryCondition {
 public:
     double Twall; // specified wall temperature
-    double sigma; // accommodation coefficient
+    double sigma_jump; // accommodation coefficient
 public:
-    JumpWallBC(Block *bdp, int which_boundary, double Twall, double sigma);
+    JumpWallBC(Block *bdp, int which_boundary, double Twall, double sigma_jump);
     JumpWallBC(const JumpWallBC &bc);
     JumpWallBC();
     JumpWallBC & operator=(const JumpWallBC &bc);
