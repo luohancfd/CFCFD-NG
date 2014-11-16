@@ -370,6 +370,133 @@ int Block::write_solution(std::string filename, double sim_time, size_t dimensio
 } // end of Block::write_solution()
 
 
+int Block::write_profile(std::string filename, int which_face, double sim_time,
+			 bool write_header, size_t gtl)
+/// \brief Write out the flow solution for a full face of cells.
+///
+/// This us usually done at a different (often smaller) time interval 
+/// to the full flow solution and is written so that, later,
+/// it may be directly imported into the TransientProfileBC of a subsequent simulation.
+/// Notes:
+/// (1) after writing the header, the file is opened in append mode 
+/// so that the data may accumulate.
+/// (2) For each location on the bounding face of the block, 
+/// the boundary cell is written first, followed by the next inner cell.
+/// This is the order that the TransientProfileBC and StaticProfileBC are
+/// expecting the data.  
+/// It should match the order of the corresponding function
+/// write_static_profile_from_block(), that is in e3_flow.py
+///
+/// Peter J. 2014-11-16
+{
+    size_t i, j, k;
+    FILE *fp;
+    string str;
+    if ( write_header ) {
+	if ((fp = fopen(filename.c_str(), "w")) == NULL) {
+	    cerr << "write_profile(): Could not open " << filename << "; BAILING OUT" << endl;
+	    exit( FILE_ERROR );
+	}
+	fprintf(fp, "data from %s face\n", get_face_name(which_face).c_str());
+	fprintf(fp, "%s\n", variable_list_for_cell().c_str());
+	switch ( which_face ) {
+	case NORTH:
+	case SOUTH:
+	    fprintf(fp, "nnk=%d nni=%d\n", static_cast<int>(nnk), static_cast<int>(nni));
+	    break;
+	case EAST:
+	case WEST:
+	    fprintf(fp, "nnk=%d nnj=%d\n", static_cast<int>(nnk), static_cast<int>(nnj));
+	    break;
+	case BOTTOM:
+	case TOP:
+	    fprintf(fp, "nnj=%d nni=%d\n", static_cast<int>(nnj), static_cast<int>(nni));
+	    break;
+	default:
+	    cerr << "write_profile(): invalid face index " << which_face << endl;
+	} // end switch
+    } else {
+	if ((fp = fopen(filename.c_str(), "a")) == NULL) {
+	    cerr << "write_profile(): Could not open " << filename << "; BAILING OUT" << endl;
+	    exit( FILE_ERROR );
+	}
+	fprintf(fp, "time= %20.12e\n", sim_time);
+	switch ( which_face ) {
+	case NORTH:
+	    j = jmax;
+	    for ( size_t k = kmin; k <= kmax; ++k ) {
+		for ( size_t i = imin; i <= imax; ++i ) {
+		    str = get_cell(i,j,k)->write_values_to_string();
+		    fputs(str.c_str(), fp); fputc('\n', fp);
+		    str = get_cell(i,j-1,k)->write_values_to_string();
+		    fputs(str.c_str(), fp); fputc('\n', fp);
+		} // i-loop
+	    } // k-loop
+	    break;
+	case SOUTH:
+	    j = jmin;
+	    for ( size_t k = kmin; k <= kmax; ++k ) {
+		for ( size_t i = imin; i <= imax; ++i ) {
+		    str = get_cell(i,j,k)->write_values_to_string();
+		    fputs(str.c_str(), fp); fputc('\n', fp);
+		    str = get_cell(i,j+1,k)->write_values_to_string();
+		    fputs(str.c_str(), fp); fputc('\n', fp);
+		} // i-loop
+	    } // k-loop
+	    break;
+	case EAST:
+	    i = imax;
+	    for ( size_t k = kmin; k <= kmax; ++k ) {
+		for ( size_t j = jmin; j <= jmax; ++j ) {
+		    str = get_cell(i,j,k)->write_values_to_string();
+		    fputs(str.c_str(), fp); fputc('\n', fp);
+		    str = get_cell(i-1,j,k)->write_values_to_string();
+		    fputs(str.c_str(), fp); fputc('\n', fp);
+		} // j-loop
+	    } // k-loop
+	    break;
+	case WEST:
+	    i = imin;
+	    for ( size_t k = kmin; k <= kmax; ++k ) {
+		for ( size_t j = jmin; j <= jmax; ++j ) {
+		    str = get_cell(i,j,k)->write_values_to_string();
+		    fputs(str.c_str(), fp); fputc('\n', fp);
+		    str = get_cell(i+1,j,k)->write_values_to_string();
+		    fputs(str.c_str(), fp); fputc('\n', fp);
+		} // j-loop
+	    } // k-loop
+	    break;
+	case BOTTOM:
+	    k = kmin;
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t i = imin; i <= imax; ++i ) {
+		    str = get_cell(i,j,k)->write_values_to_string();
+		    fputs(str.c_str(), fp); fputc('\n', fp);
+		    str = get_cell(i,j,k+1)->write_values_to_string();
+		    fputs(str.c_str(), fp); fputc('\n', fp);
+		} // i-loop
+	    } // j-loop
+	    break;
+	case TOP:
+	    k = kmax;
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t i = imin; i <= imax; ++i ) {
+		    str = get_cell(i,j,k)->write_values_to_string();
+		    fputs(str.c_str(), fp); fputc('\n', fp);
+		    str = get_cell(i,j,k-1)->write_values_to_string();
+		    fputs(str.c_str(), fp); fputc('\n', fp);
+		} // i-loop
+	    } // j-loop
+	    break;
+	default:
+	    cerr << "write_profile(): invalid face index " << which_face << endl;
+	} // end switch
+    }
+    fclose(fp);
+    return SUCCESS;
+} // end of Block::write_profile()
+
+
 int Block::write_history(std::string filename, double sim_time, bool write_header, size_t gtl)
 /// \brief Write out the flow solution in a (small) subset of cells.
 ///

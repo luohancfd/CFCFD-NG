@@ -760,6 +760,11 @@ class Block(object):
                     fp.write("monitor-cell-%d = %d %d\n" % 
                              (count,mcell[0],mcell[1]))
                 count += 1
+        #
+        fp.write("transient_profile_faces =")
+        for item in self.transient_profile_faces:
+            fp.write(" %s" % item)
+        fp.write("\n");
         # Now, write information for all faces of the block.
         if dimensions == 3:
             faceList = faceList3D
@@ -884,6 +889,11 @@ class Block(object):
                     fp.write('    "monitor-cell-%d": [%d, %d],\n' % 
                              (count,mcell[0],mcell[1]))
                 count += 1
+        if len(transient_profile_faces):
+            fp.write('    "transient_profile_faces": [')
+            for item in self.transient_profile_faces:
+                fp.write(' "%s",' % item)
+            fp.write('],\n');
         # Now, write information for all faces of the block.
         if dimensions == 3:
             faceList = faceList3D
@@ -1068,7 +1078,7 @@ class Block2D(Block):
 
     __slots__ = 'blkId', 'label', 'psurf', 'nni', 'nnj', 'nnk', 'grid', \
                 'hcell_list', 'mcell_list', 'fill_condition', 'active', \
-                'cf_list', 'bc_list', 'vtx', \
+                'transient_profile_faces', 'cf_list', 'bc_list', 'vtx', \
                 'xforce_list', 'wc_bc_list', 'omegaz'
     
     def __init__(self,
@@ -1084,6 +1094,7 @@ class Block2D(Block):
                  hcell_list=[],
                  mcell_list=[],
                  xforce_list = [0,]*4,
+                 transient_profile_faces=[],
                  label="",
                  active=1,
                  verbosity_level=0
@@ -1113,6 +1124,8 @@ class Block2D(Block):
             whose Temperature is to be monitored during the simulation.
         :param xforce_list: list of int flags to indicate that we want 
             boundary forces calculated
+        :param transient_profile_faces: list of names of faces for which we'll write
+            a transient profile file
         :param label: Optional string label that will appear 
             in the generated parameter file.
         :param active: flag that indicates if the block is active:
@@ -1190,6 +1203,7 @@ class Block2D(Block):
         self.cf_list = copy.copy(cf_list)
         self.hcell_list = copy.copy(hcell_list)
         self.mcell_list = copy.copy(mcell_list)
+        self.transient_profile_faces = copy.copy(transient_profile_faces)
         self.xforce_list = copy.copy(xforce_list)
         self.fill_condition = fill_condition
         #
@@ -1660,6 +1674,7 @@ class SuperBlock2D(object):
                              NonCatalyticWBC(), NonCatalyticWBC()],
                  fill_condition=None,
                  hcell_list=[],
+                 transient_profile_faces=[],
                  label="sblk",
                  active=1,
                  verbosity_level=0
@@ -1729,6 +1744,23 @@ class SuperBlock2D(object):
                 for j in range(1,nbj):
                     connect_blocks_2D(self.blks[i][j-1], NORTH, self.blks[i][j], SOUTH)
         #
+        # 5. Transfer profile-writing information to the sub-blocks.
+        if ((NORTH in transient_profile_faces) or 
+            (0 in transient_profile_faces) or 
+            ('north' in transient_profile_faces)):
+            for i in range(nbi): self.blks[i][nbj-1].transient_profile_faces.append('north')
+        if ((SOUTH in transient_profile_faces) or 
+            (2 in transient_profile_faces) or 
+            ('south' in transient_profile_faces)):
+            for i in range(nbi): self.blks[i][0].transient_profile_faces.append('south')
+        if ((EAST in transient_profile_faces) or 
+            (1 in transient_profile_faces) or 
+            ('east' in transient_profile_faces)):
+            for j in range(nbj): self.blks[nbi-1][j].transient_profile_faces.append('east')
+        if ((WEST in transient_profile_faces) or 
+            (3 in transient_profile_faces) or 
+            ('west' in transient_profile_faces)):
+            for j in range(nbj): self.blks[0][j].transient_profile_faces.append('west')
         return
     
 # --------------------------------------------------------------------
@@ -1739,6 +1771,7 @@ class Block3D(Block):
     """
     __slots__ = 'blkId', 'nni', 'nnj', 'nnk', 'label', \
                 'parametric_volume', 'grid', 'cf_list', 'hcell_list', \
+                'transient_profile_faces', \
                 'mcell_list', 'fill_condition', 'omegaz', 'active', \
                 'bc_list', 'Twall_list', 'Pout_list', 'r_omega_list', \
                 'xforce_list', 'wc_bc_list', 'sponge_flag_list', \
@@ -1758,6 +1791,7 @@ class Block3D(Block):
                  hcell_list=None,
                  mcell_list=None,
                  xforce_list=[0,]*6,
+                 transient_profile_faces=[],
                  label="",
                  active=1,
                  omegaz=0.0,
@@ -1876,6 +1910,8 @@ class Block3D(Block):
         else:
             mcell_list = []
         self.mcell_list = copy.copy(mcell_list)
+        #
+        self.transient_profile_faces = copy.copy(transient_profile_faces)
         #
         # Dummy values for the boundary conditions.
         # Other values may be selected via the set_BC() method.
@@ -2117,6 +2153,7 @@ class SuperBlock3D(object):
                              NonCatalyticWBC(), NonCatalyticWBC()],
                  fill_condition=None,
                  hcell_list=[],
+                 transient_profile_faces=[],
                  label="sblk",
                  omegaz = 0.0,
                  active=1
@@ -2188,7 +2225,7 @@ class SuperBlock3D(object):
                     flat_list.append(new_blk)
                 slab_of_blocks.append(column_of_blocks)
             self.blks.append(slab_of_blocks)
-        # Explicitly connect blocks together within this SuperBlock because the
+        # 4. Explicitly connect blocks together within this SuperBlock because the
         # automatic search breaks when surfaces are allowed to collapse to lines.
         # identify_block_connections(flat_list)
         if nbi > 1:
@@ -2212,6 +2249,44 @@ class SuperBlock3D(object):
                     for k in range(nbk-1):
                         connect_blocks_3D(self.blks[i][j][k], self.blks[i][j][k+1],
                                           ((5,1),(6,2),(7,3),(4,0)))
+        #
+        # 5. Transfer profile-writing information to the sub-blocks.
+        if ((NORTH in transient_profile_faces) or 
+            (0 in transient_profile_faces) or 
+            ('north' in transient_profile_faces)):
+            for k in range(nbk):
+                for i in range(nbi):
+                    self.blks[i][nbj-1][k].transient_profile_faces.append('north')
+        if ((SOUTH in transient_profile_faces) or 
+            (2 in transient_profile_faces) or 
+            ('south' in transient_profile_faces)):
+            for k in range(nbk):
+                for i in range(nbi):
+                    self.blks[i][0][k].transient_profile_faces.append('south')
+        if ((EAST in transient_profile_faces) or 
+            (1 in transient_profile_faces) or 
+            ('east' in transient_profile_faces)):
+            for k in range(nbk):
+                for j in range(nbj):
+                    self.blks[nbi-1][j][k].transient_profile_faces.append('east')
+        if ((WEST in transient_profile_faces) or 
+            (3 in transient_profile_faces) or 
+            ('west' in transient_profile_faces)):
+            for k in range(nbk):
+                for j in range(nbj):
+                    self.blks[0][j][k].transient_profile_faces.append('west')
+        if ((TOP in transient_profile_faces) or 
+            (4 in transient_profile_faces) or 
+            ('top' in transient_profile_faces)):
+            for j in range(nbk):
+                for i in range(nbi):
+                    self.blks[i][j][nbk-1].transient_profile_faces.append('top')
+        if ((BOTTOM in transient_profile_faces) or 
+            (5 in transient_profile_faces) or 
+            ('bottom' in transient_profile_faces)):
+            for j in range(nbk):
+                for i in range(nbi):
+                    self.blks[i][j][0].transient_profile_faces.append('bottom')
         return
 
 #----------------------------------------------------------------------

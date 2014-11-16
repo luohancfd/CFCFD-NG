@@ -472,6 +472,13 @@ int prepare_to_integrate(size_t start_tindx)
 	    // History file does not yet exist; write header.
 	    bdp->write_history(filename, G.sim_time, true);
 	}
+	for ( int iface: bdp->transient_profile_faces ) {
+	    filename = "./" + G.base_file_name + ".blk"+jbstring+"."+get_face_name(iface)+".profile";
+	    if ( access(filename.c_str(), F_OK) != 0 ) {
+		// History file does not yet exist; write header.
+		bdp->write_profile(filename, iface, G.sim_time, true);
+	    }
+	}
 	// Read in heat-flux vectors if present
 	for ( int iface = NORTH; iface <= ((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
 	    sprintf( ifcstr, ".s%04d", iface );
@@ -1669,6 +1676,10 @@ int integrate_in_time(double target_time)
 		filename = "hist/"+G.base_file_name+".hist"+jbstring;
                 bdp->write_history(filename, G.sim_time);
 		bdp->print_forces(G.logfile, G.sim_time, G.dimensions);
+		for ( int iface: bdp->transient_profile_faces ) {
+		    filename = "./" + G.base_file_name + ".blk"+jbstring+"."+get_face_name(iface)+".profile";
+		    bdp->write_profile(filename, iface, G.sim_time, false);
+		}
 	    }
             history_just_written = true;
             G.t_his += G.dt_his;
@@ -1882,6 +1893,10 @@ int finalize_simulation( void )
 	    sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr;
 	    filename = "hist/"+G.base_file_name+".hist"+jbstring;
             bdp->write_history( filename, G.sim_time );
+	    for ( int iface: bdp->transient_profile_faces ) {
+		filename = "./" + G.base_file_name + ".blk"+jbstring+"."+get_face_name(iface)+".profile";
+		bdp->write_profile(filename, iface, G.sim_time, false);
+	    }
 	}
         history_just_written = true;
     }

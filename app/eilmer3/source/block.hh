@@ -58,6 +58,10 @@ public:
     std::vector<size_t> micell, mjcell, mkcell; // location of monitor cells
     std::vector<double> initial_T_value;
 
+    // list of which faces for which we shall write flow data with the same
+    // regularity as the history/sample points.
+    std::vector<int> transient_profile_faces; 
+
     // Total number of cells in each direction for this block.
     // these will be used in the array allocation routines.
     size_t nidim, njdim, nkdim;
@@ -179,6 +183,8 @@ public:
 		      bool zip_file=true, size_t gtl=0);
     int write_solution(std::string filename, double sim_time, size_t dimensions,
 		       bool zip_file=true, size_t gtl=0);
+    int write_profile(std::string filename, int which_face, double sim_time,
+		      bool write_header=false, size_t gtl=0);
     int write_history(std::string filename, double sim_time,
 		      bool write_header=false, size_t gtl=0);
     void compute_x_forces(char *text_string, int ibndy, size_t dimensions, size_t gtl=0);

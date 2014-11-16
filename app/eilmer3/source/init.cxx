@@ -1160,6 +1160,24 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	}
     }
 
+    // Writing of transient profiles for David Gildfind's X-tube simulations.
+    // Peter J, 2014-11-16
+    section = "block/" + tostring(indx);
+    dict.parse_string(section, "transient_profile_faces", value_string, "");
+    // Expect space separated entries that are either face indices or face names.
+    std::istringstream itemstream(value_string);
+    string item;
+    while ( itemstream >> item ) {
+	int i = get_face_index(item);
+	if ( G.dimensions == 2 && (i == TOP || i == BOTTOM) ) continue;
+	bd.transient_profile_faces.push_back(i);
+    }
+    if ( G.verbosity_level >= 2 ) {
+	cout << "    transient_profile_faces=";
+	for ( int i: bd.transient_profile_faces ) cout << " " << get_face_name(i);
+	cout << endl;
+    }
+
     return SUCCESS;
 } // end set_block_parameters()
 
