@@ -1120,6 +1120,9 @@ class Block2D(Block):
             For an MPI simulation, there is one history file for each
             block but, for a shared-memory simulation, the history cells
             for all blocks are written to a single history file.
+        :param transient_profile_faces: list of face names or indices for which we want
+            the transient flow data written.  There will be one file created for each
+            specified face.
         :param mcell_list: List of (i,j) tuples specifying the cells (for this block)
             whose Temperature is to be monitored during the simulation.
         :param xforce_list: list of int flags to indicate that we want 

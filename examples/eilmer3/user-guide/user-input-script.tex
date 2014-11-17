@@ -853,6 +853,7 @@ To define a block in your input script for a 2D simulation, create a \texttt{Blo
 my\_2d\_block = Block2D(\=psurf=None, grid=None, \\
                         \>import\_grid\_file\_name=None, nni=2, nnj=2, \\
                         \>cf\_list=[None,]*4, bc\_list=[SlipWallBC(),]*4, \\
+                        \>transient\_profile\_faces=[], \\
                         \>fill\_condition=None, hcell\_list=[], \\
                         \>xforce\_list=[0,]*4, label="", active=1)
 \end{tabbing}\index{block!Block2D}
@@ -940,6 +941,13 @@ the \texttt{e3prep.py} program and these represent\footnote{The
   Data from the specified cells will be written to a ``history'' file for the
   block and may be used at the postprocessing stage to provide flow data as if
   there was a sensor located in the cell.
+\item \texttt{transient\_profile\_faces}\index{transient\_profile\_faces} 
+  is an optional (unordered) list of block faces for which we
+  want transient flow data to be written.  The frequency of writing the data is the same
+  as that for the history cells mentioned above.
+  The particular faces may be identified by index or by string.  
+  For example, to have the flow data for the NORTH face to be written, we may
+  specify \verb!0!, \verb!"north"! or \verb!NORTH! as one of the entries in the list.
 \item \texttt{xforce\_list}\index{xforce\_list} is an optional list of zeros/ones that indicate if we
   want the force to be calculated for each of the four edges and written to the 
   \texttt{e3shared.log} log file.
@@ -951,7 +959,7 @@ the \texttt{e3prep.py} program and these represent\footnote{The
   For example, the \texttt{e3cgns.py} postprocessing program uses labels to group block boundaries symbolically.
 \end{itemize}
 Note that, when lists of items are provided for the four boundaries,
-the order of the boundaries is NORTH, EAST, SOUTH and WEST.
+the order of the boundaries is NORTH, EAST, SOUTH and WEST, for situations where order is significant.
  
 
 \medskip
@@ -963,7 +971,8 @@ The first of two constructors for this situation is
 \index{block!SuperBlock2D}
 my\_block\_list = SuperBlock2D(\=psurf=None, nni=2, nnj=2, nbi=1, nbj=1, \\
                                \>cf\_list=[None,]*4, bc\_list=[SlipWallBC(),]*4, \\
-                               \>fill\_condition=None, hcell\_list=[], label="sblk")
+                               \>fill\_condition=None, hcell\_list=[], \\
+                               \>transient\_profile\_faces=[], label="sblk")
 \end{tabbing}
 }
 \noindent
@@ -1224,8 +1233,8 @@ my\_3d\_block = Block3D(\=parametric\_volume=None, grid=None, \\
                         \>import\_grid\_file\_name=None, \\
                         \>nni=None, nnj=None, nnk=None, \\
                         \>cf\_list=[None,]*12, bc\_list=[SlipWallBC(),]*6, \\
-                        \>fill\_condition=None, \\
-                        \>hcell\_list=None, xforce\_list=[0,]*6, \\
+                        \>fill\_condition=None, hcell\_list=None, \\
+                        \>transient\_profile\_faces=[], xforce\_list=[0,]*6, \\
                         \>label="", active=1, omegaz=0.0)
 \end{tabbing}\index{block!Block3D}
 }
@@ -1305,6 +1314,13 @@ the \texttt{e3prep.py} program and these represent\footnote{Again, the
   Data from the specified cells will be written to a ``history'' file for the
   block and may be used at the postprocessing stage to provide flow data as if
   there was a sensor located in the cell.
+\item \texttt{transient\_profile\_faces}\index{transient\_profile\_faces}
+  is an optional (unordered) list of block faces for which we
+  want transient flow data to be written.  The frequency of writing the data is the same
+  as that for the history cells mentioned above.
+  The particular faces may be identified by index or by string.  
+  For example, to have the flow data for the NORTH face to be written, we may
+  specify \verb!0!, \verb!"north"! or \verb!NORTH! as one of the entries in the list.
 \item \texttt{xforce\_list} is an optional list of zeros/ones that indicate if we
   want the force to be calculated for each of the six surfaces and written to the 
   \texttt{e3shared.log} log file.
@@ -1341,8 +1357,10 @@ my\_3d\_block = SuperBlock3D(\=parametric\_volume=None, cf\_list=[None,]*12, \\
                         \>fill\_condition=None, \\
                         \>nni=2, nnj=2, nnk=2, \\
                         \>nbi=1, nbj=1, nbk=1, \\
-                        \>bc\_list=[SlipWallBC(),]*6, label="sblk", \\
-                        \>hcell\_list=None, omegaz=0.0)
+                        \>bc\_list=[SlipWallBC(),]*6, \\
+                        \>hcell\_list=None, \\
+                        \>transient\_profile\_faces=[], \\
+                        \>omegaz=0.0, label="sblk")
 \end{tabbing}\index{block!SuperBlock3D}
 }
 \noindent
