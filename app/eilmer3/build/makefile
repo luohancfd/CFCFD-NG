@@ -139,6 +139,7 @@ E3_OBJECTS_COMMON := kernel.o \
 	bc_subsonic_in.o \
 	bc_transient_uniform.o \
 	bc_static_profile.o \
+	bc_transient_profile.o \
 	bc_fixed_p_out.o \
 	bc_ablating.o \
 	bc_surface_energy_balance.o \
@@ -617,6 +618,10 @@ bc_transient_uniform.o : $(SRC)/bc_transient_uniform.cxx $(SRC)/block.hh $(SRC)/
 bc_static_profile.o : $(SRC)/bc_static_profile.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_static_profile.cxx -o bc_static_profile.o
+
+bc_transient_profile.o : $(SRC)/bc_transient_profile.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
+    $(NM_SRC)/zero_finders.hh
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_transient_profile.cxx -o bc_transient_profile.o
 
 bc_fixed_p_out.o : $(SRC)/bc_fixed_p_out.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh

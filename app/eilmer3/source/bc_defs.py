@@ -46,9 +46,10 @@ These definitions are now gone and symbols are used instead:
 * SUB_OUT: Synonym for SUBSONIC_OUT
 * TRANSIENT_UNI: An transient inflow boundary which has
     a uniform flow condition applied across the full boundary.
-* TRANSIENT_PROF
 * STATIC_PROF: A steady inflow boundary with a variable set of
     flow conditions across the boundary.
+* TRANSIENT_PROF: An unsteady inflow boundary which has a variable set
+    of conditions across the boundary
 * FIXED_P_OUT: Something like EXTRAPOLATE_OUT but with the
     pressure set to some user-specified value.
     It is probably best to set this pressure at the same value as

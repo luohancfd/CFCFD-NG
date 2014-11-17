@@ -44,6 +44,7 @@ extern "C" {
 #include "bc_subsonic_in.hh"
 #include "bc_transient_uniform.hh"
 #include "bc_static_profile.hh"
+#include "bc_transient_profile.hh"
 #include "bc_fixed_p_out.hh"
 #include "bc_ablating.hh"
 #include "bc_surface_energy_balance.hh"
@@ -1230,6 +1231,11 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	dict.parse_string(section, "filename", filename, "");
 	dict.parse_size_t(section, "n_profile", n_profile, 1);
 	newBC = new StaticProfileBC(bdp, which_boundary, filename, n_profile);
+	break;
+    case TRANSIENT_PROF:
+	dict.parse_string(section, "filename", filename, "");
+	dict.parse_size_t(section, "n_profile", n_profile, 1);
+	newBC = new TransientProfileBC(bdp, which_boundary, filename, n_profile);
 	break;
     case FIXED_P_OUT:
 	dict.parse_double(section, "Pout", Pout, 100.0e3);
