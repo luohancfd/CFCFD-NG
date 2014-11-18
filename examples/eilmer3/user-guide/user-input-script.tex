@@ -1509,8 +1509,13 @@ Available boundary condition classes include:\index{boundary conditions!list of 
       particularly when large waves cross the boundary, however, it tends to work well in the steady-state limit.
     \item \verb!TransientUniBC(filename, label='')!\index{boundary conditions!TransientUniBC} where we want to specify the time-history of
       the inflow condition.
+      It is most likely used when feeding your flow simulation with inflow data produced by an earlier \verb!L1d3! simulation.
     \item \verb!StaticProfileBC(filename, n_profile=1, label='')!\index{boundary conditions!StaticProfileBC} where we want to apply a steady-state inflow
        which may vary in space.
+    \item \verb!TransientProfBC(filename, label='')!\index{boundary conditions!TransientProfBC} where we want to specify the time-history of
+      the inflow condition that also has a varying profile across the block face.
+      This boundary condition is most likely used in a simulation that takes it inflow data from an earlier simulation, 
+      which wrote it's transient flow data via the \verb!transient_profile_faces! option.
     \item \verb!FixedPOutBC(Pout, Tout=300.0, use_Tout=False, x_order=0, label='')!\index{boundary conditions!FixedPOutBC} \\
       is like \verb!ExtrapolateOutBC()! but with a specified back pressure and, possible, a temperature.
       This can be analogous to a vacuum pump that removes gas at the boundary to maintain
