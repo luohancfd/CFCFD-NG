@@ -522,6 +522,78 @@ def ParametricSurface_vrml_str(self, rgb=vrml_black, ni=10, nj=10, draw_as_mesh=
     ost += "\n# end ParametricSurface"
     return ost
 ParametricSurface.vrml_str = ParametricSurface_vrml_str
+
+from math import tan, atan
+
+def ExpandingChannelPatch(cA, cB, cC, cD, label=""):
+    # This is Wilson Chan's specialized surface for nozzle expansion regions.
+    # It was extracted from the nozzle.input.template in the nenzfr application.
+    # [TODO] make it a little more general by using the south path 
+    # and not restricting the surface to the x,y-plane.
+    # The intent is to make also a general ChannelPatch to complement CoonsPatch and AOPatch.
+    # 2014-nov-18: Peter J.
+    #
+    def make_expansion_region_grid(r, s, n_south=cA, n_north=cB, n_west=cC, n_east=cD):
+        # Define the expansion_region of a nozzle using a specialised Surface Function.
+        # For viscous simulations, it is necessary to keep the cells near
+        # the non-slip walls as orthogonal to the walls as possible. However,
+        # because the "AO" option in make_patch() does not give a grid that is 
+        # good enough for the nozzle geometry, a specialised surface function
+        # has to be used. Points in the grid along the north, east and west
+        # edges follow that specified by n_north, n_east and n_west. The rest
+        # of the other points in the grid are built by creating strips of 
+        # quadratic Bezier curves that run from the nozzle wall to the axis.
+        # The use of quadratic Bezier curves allows the generated points to
+        # be orthogonal to the wall near the nozzle wall and orthogonal to
+        # the axis near the axis.
+        # 2012-Apr-20: Wilson Chan
+        if r == 0.0:
+            x = n_north.eval(r).x
+            y = n_west.eval(s).y
+        elif r == 1.0:
+            x = n_north.eval(r).x
+            y = n_east.eval(s).y
+        elif s == 1.0:
+            x = n_north.eval(r).x
+            y = n_north.eval(r).y
+        else:
+            # Wall point (Bezier control point 1)
+            wall_pt_x = n_north.eval(r).x
+            wall_pt_y = n_north.eval(r).y
+            # Angle perpendicular to the wall at wall point
+            wall_angle = atan((n_north.eval(r+0.0001).y - n_north.eval(r-0.0001).y) /\
+                              (n_north.eval(r+0.0001).x - n_north.eval(r-0.0001).x))
+            # If the expansion region starts sharply from the throat, then we
+            # need some way of transitioning from the grid in the throat region
+            # to the expansion region. To do so, we tweak the wall_angle in a
+            # small starting region in the nozzle (say, 2% of the length of the
+            # expansion region). The wall_angle starts from 0 degrees at the
+            # start of this small region and smooths it out to the actual
+            # wall_angle at the end of this small region.
+            north_length = n_north.eval(1.0).x - n_north.eval(0.0).x
+            if (n_north.eval(r).x - n_north.eval(0.0).x) <= (0.02 * north_length):
+                wall_angle = (n_north.eval(r).x - n_north.eval(0.0).x) / \
+                             (0.02 * north_length) * wall_angle
+            # Do the same for a small region at the end of the nozzle. This is
+            # to accommodate to nozzles that have been a non-zero gradient at
+            # at the nozzle exit (which is brought about by nozzle truncation).
+            if (n_north.eval(r).x - n_north.eval(0.0).x) >= (0.98 * north_length):
+                wall_angle = (n_north.eval(1.0).x - n_north.eval(r).x) / \
+                             (0.02 * north_length) * wall_angle
+            # Mid point (Bezier control point 2).
+            mid_pt_y = n_north.eval(r).y / 2.0
+            mid_pt_x = wall_pt_x + (mid_pt_y * tan(wall_angle))
+            # Axis point (Bezier control point 3).
+            axis_pt_x = mid_pt_x
+            axis_pt_y = 0.0
+            # Generate t for quadratic Bezier curve equation.
+            t = (1.0 - s)
+            # Generate point on quadratic Bezier curve.
+            x = (1-t)*(1-t)*wall_pt_x + 2*t*(1-t)*mid_pt_x + t*t*axis_pt_x
+            y = (1-t)*(1-t)*wall_pt_y + 2*t*(1-t)*mid_pt_y + t*t*axis_pt_y
+        return (x, y, 0.0)
+    #
+    return PyFunctionSurface(make_expansion_region_grid)
 %}
 
 
