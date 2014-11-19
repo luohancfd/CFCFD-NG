@@ -701,10 +701,10 @@ represents two-dimensional objects which can be constructed from \texttt{Path} o
 These can be used as the \verb!ParametricSurface! objects that are passed to the \verb!Block2D! constructor
 (Sec.\,\ref{block2d-sec}) or they can be used to form the bounding surfaces of a 3D \verb!ParametricVolume! object
 (Sec.\,\ref{parametric-volume-sec}).
-Examples are:
+Examples of the most commonly used surface patches are:
 \begin{itemize}
-\item \texttt{CoonsPatch}($p_S, p_N, p_W, p_E$): a transfinite interpolated
-  surface between the four paths.\index{geometric element!CoonsPatch}
+\item \texttt{CoonsPatch}($p_S, p_N, p_W, p_E$, \verb!label="", r0=0.0, r1=1.0, s0=0.0, s1=1.0!): 
+  a transfinite interpolated surface between the four paths.\index{geometric element!CoonsPatch}
   It is expected that the paths join at the corners of the patch, such that
   $p_S(0) = p_W(0) = p00$, $p_S(1) = p_E(0) = p10$, $p_N(0) = p_W(1) = p01$ and $p_N(1) =  p_E(1) = p11$.
   See the left part of Figure\,\ref{block2d-defn-fig} for the layout of this surface.
@@ -723,23 +723,46 @@ Examples are:
   The WEST and EAST boundaries progress SOUTH to NORTH.
   If the \texttt{e3prep.py} program complains that the corners of your patch are ``open'',
   that may be a symptom of having one, or more, of your bounding paths having incorrect orientation.
-\item \texttt{CoonsPatch}($p00, p10, p11, p01$): a quadrilateral surface defined by it corners.
+  The named arguments following the four paths each have default values so you will usually not
+  need to think about them, however, it is occasionally convenient to specify a subsection 
+  of the full patch and the parameters \verb!r0, r1, s0, s1! allow a subsection to be defined.
+\item \texttt{CoonsPatch}($p00, p10, p11, p01$ \verb!label="", r0=0.0, r1=1.0, s0=0.0, s1=1.0!): 
+  a quadrilateral surface defined by it corners.
   Straight line segments (implicitly) join the corners.
   This is convenient for building simple regions that can be tiled with straight edged patches,
   since you don't need to explicitly generate Lines to form the edges of each patch.
   Note that the order for specifying the corners is counter-clockwise,
   starting with the South-West corner.
-\item \texttt{AOPatch}($p_S, p_N, p_W, p_E$): an interpolated surface, \index{geometric element!AOPatch}
-  bounded by four paths,
-  that tries to keep the grid orthogonal near the edges and 
-  also tries to keep equal areas across the surface.
-\item \texttt{AOPatch}($p00, p10, p11, p01$): a quadrilateral surface defined by it corners.
+\item \texttt{ChannelPatch}($p_S, p_N$, \verb!ruled=False,! \verb!pure2D=False,!
+  \verb!label="",! \verb!r0=0.0,! \verb!r1=1.0,! \verb!s0=0.0,! \verb!s1=1.0!):
+  an interpolated surface between two paths.\index{geometric element!ChannelPatch}
+  By default, cubic Bezier curves are used to bridge the region between the defining curves,
+  resulting in a grid that is orthogonal to those curves.
+  Providing a \verb!True! value for the \verb!ruled! parameter results in 
+  the bridging curves being straight line segments.
+  If you are integrating this patch into a larger construction, it may be convenient to obtain the
+  WEST and EAST bounding curves by calling the Patch's \verb!make_bridging_path! method 
+  with arguments of \verb!0.0! and \verb!1.0!, respectively.
+  The argument for \verb!pure2D! may be set to \verb!True! to set all z-coordinate values to zero
+  for purely two-dimensional constructions.
+\item \texttt{AOPatch}($p_S, p_N, p_W, p_E$, \verb!label="",! \verb!nx=20,! \verb!ny=20,!
+  \verb!r0=0.0,! \verb!r1=1.0,! \verb!s0=0.0,! \verb!s1=1.0!): 
+  an interpolated surface, \index{geometric element!AOPatch} bounded by four paths.
+  When constructed, this surface sets up a background mesh with resolution specified by
+  \verb!nx! and \verb!ny!.
+  The construction method tries to keep the background mesh orthogonal near the edges and 
+  also tries to keep equal cell areas across the surface.
+  The background mesh is retained within the \verb!AOPatch! object and, 
+  if the \verb!AOPatch! is later passed to the grid generator, 
+  the final grid is produced by interpolating within this background mesh.
+\item \texttt{AOPatch}($p00, p10, p11, p01$, \verb!label="",! \verb!nx=20,! \verb!ny=20,!
+  \verb!r0=0.0,! \verb!r1=1.0,! \verb!s0=0.0,! \verb!s1=1.0!): 
+  a quadrilateral surface defined by it corners.
   Straight line segments (implicitly) join the corners.
   Note that the order for specifying the corners is counter-clockwise,
   starting with the South-West corner.
-  The difference with the corresponding CoonsPatch is that the internal grid, here,
-  tries to be orthogonal to the edges and maintain
-  equal cell areas across the surface.
+  The difference with the corresponding CoonsPatch is that the background mesh, here,
+  tries to be orthogonal to the edges and maintain equal cell areas across the surface.
 \item \verb!make_patch(!$p_N, p_E, p_S, p_W$, \verb!grid_type='TFI', tol=1.0e-6)!: an interpolated surface, 
   \index{geometric element!mesh\_patch} bounded by four paths.
   It actually returns either a \verb!CoonsPatch! (TFI, by default) or 
@@ -747,6 +770,15 @@ Examples are:
   The convenience that it provides is in accepting the same order for the paths (\textit{i.e.} N,E,S,W)
   as the other lists that are used as arguments when constructing a \verb!Block2D! object.
   Look ahead to Sec.\ref{block2d-sec}.
+\item \texttt{PyFunctionSurface}($f$)\index{geometric element!PyFunctionSurface}: 
+  a surface defined by the user-supplied Python function, $f(r,s)$.
+  The user function returns a tuple of three values representing the point in 3D space 
+  for parameter values $r$ and $s$.
+  If you are trying to build a 2D simulation, just return the z-coordinate as zero.
+\end{itemize} 
+As listed below, there are more surface patch constructors, however, 
+you will need to refer to their source code for documentation.
+\begin{itemize}
 \item \texttt{MeshPatch}: a surface defined over a structured mesh of
   quadrilateral facets.\index{geometric element!MeshPatch}
   This might be useful for generating new grids from files imported from
@@ -775,10 +807,6 @@ Examples are:
   ParametricVolume $V(r,s,t)$, defined by the univariate functions 
   $r=f_r(t)$, $s=f_s(t)$ and $t=f_t(t)$.
 \item \texttt{NurbsSurface}\index{geometric element!NurbsSurface}: a surface defined as the tensor product of non-uniform rational B-splines.
-\item \texttt{PyFunctionSurface}($f$)\index{geometric element!PyFunctionSurface}: a surface defined by the user-supplied Python function, $f(r,s)$.
-  The user function returns a tuple of three values representing the point in 3D space 
-  for parameter values $r$ and $s$.
-  If you are trying to build a 2D simulation, just return the z-coordinate as zero.
 \end{itemize} 
 
 Except for \texttt{PyFunctionSurface}, most of the surface objects can be cloned and transformed
