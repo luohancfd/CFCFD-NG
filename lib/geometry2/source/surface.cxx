@@ -281,6 +281,116 @@ CoonsPatch* CoonsPatch::rotate_about_zaxis( double dtheta )
     return this;
 }
 
+//----------------------------------------------------------------------------------
+
+ChannelPatch::ChannelPatch( const Path &_cA, const Path &_cB,
+			    bool ruled, bool pure2D,
+			    string label, 
+			    double r0, double r1, 
+			    double s0, double s1 )
+    : ParametricSurface(label, r0, r1, s0, s1), 
+      cA(_cA.clone()), cB(_cB.clone()), ruled(ruled), pure2D(pure2D)
+{
+    // We have cloned the boundary paths to ensure their persistence.
+}
+ChannelPatch::ChannelPatch( const ChannelPatch &surf )
+    : ParametricSurface(surf.label, surf.r0, surf.r1, surf.s0, surf.s1), 
+      cA(0), cB(0), ruled(surf.ruled), pure2D(surf.pure2D)
+{
+    cA = surf.cA->clone();
+    cB = surf.cB->clone();
+}
+ChannelPatch::~ChannelPatch() 
+{
+    delete cA; delete cB;
+}
+ChannelPatch* ChannelPatch::clone() const
+{
+    return new ChannelPatch(*this);
+}
+ChannelPatch* ChannelPatch::copy() const
+{
+    return new ChannelPatch(*this);
+}
+Vector3 ChannelPatch::eval( double r, double s ) const 
+{ 
+    // Locate a point on the ChannelPatch surface by blended linear interpolation.
+    // @param r: interpolation parameter along curves cA and cB, 0.0<=r<=1.0
+    // @param s: interpolation parameter between curves cA and cB, 0.0<=s<=1.0
+    // @returns: a L{Vector3} value for the point.
+    r = r0 + (r1 - r0) * r;
+    s = s0 + (s1 - s0) * s;
+    Path* bridge_path = this->make_bridging_path(r);
+    Vector3 p = bridge_path->eval(s);
+    delete bridge_path;
+    if ( pure2D ) p.z = 0.0;
+    return p; 
+}
+Path* ChannelPatch::make_bridging_path( double r ) const
+{
+    Vector3 cAr = cA->eval(r); 
+    Vector3 cBr = cB->eval(r);
+    if ( pure2D ) { cAr.z = 0.0; cBr.z = 0.0; }
+    if ( ruled ) {
+	// Bridge with a straight line for a ruled surface.
+	return new Line(cAr, cBr);
+    } else {
+	// Bridge with a Bezier3 path that is normal to both defining curves.
+	Vector3 pBminuspA = cBr - cAr;
+	double L = vabs(pBminuspA);
+	Vector3 dcArdt = cA->dpdt(r);
+	Vector3 dcBrdt = cB->dpdt(r);
+	// Out-of-plane vectors
+	Vector3 oopvA = cross(dcArdt, pBminuspA);
+	Vector3 oopvB = cross(dcBrdt, pBminuspA);
+	// Inward-facing normal vectors on the surface.
+	Vector3 nA = cross(oopvA, dcArdt).norm();
+	Vector3 nB = cross(dcBrdt, oopvB).norm();
+	// Intermediate control points for the cubic Bezier.
+	Vector3 p1 = cAr + L/3.0*nA;
+	Vector3 p2 = cBr + L/3.0*nB;
+	if ( pure2D ) { p1.z = 0.0; p2.z = 0.0; }
+	std::vector<Vector3> control_points;
+	control_points.push_back(cAr);
+	control_points.push_back(p1);
+	control_points.push_back(p2);
+	control_points.push_back(cBr);
+	return new Bezier(control_points);
+    }
+} // end ChannelPatch::make_bridging_path
+string ChannelPatch::str() const
+{
+    ostringstream ost;
+    ost << "ChannelPatch("
+	<< cA->str() << ", " << cB->str() << ", " 
+	<< ruled << ", " << pure2D << ", \"" << label << ", ";
+    ost << r0 << ", " << r1 << ", " << s0 << ", " << s1 << ")";
+    return ost.str();
+}
+ChannelPatch* ChannelPatch::translate( const Vector3 &v ) 
+{
+    cA->translate(v);
+    cB->translate(v);
+    return this;
+}
+ChannelPatch* ChannelPatch::translate( double vx, double vy, double vz ) 
+{
+    translate(Vector3(vx, vy, vz));
+    return this;
+}
+ChannelPatch* ChannelPatch::mirror_image( const Vector3 &point, const Vector3 &normal ) 
+{
+    cA->mirror_image(point, normal);
+    cB->mirror_image(point, normal);
+    return this;
+}
+ChannelPatch* ChannelPatch::rotate_about_zaxis( double dtheta ) 
+{
+    cA->rotate_about_zaxis(dtheta);
+    cB->rotate_about_zaxis(dtheta);
+    return this;
+}
+
 //---------------------------------------------------------------------------------
 
 AOPatch::AOPatch( const Path &cA, const Path &cB,

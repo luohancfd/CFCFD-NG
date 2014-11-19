@@ -71,6 +71,18 @@ surf5 = PyFunctionSurface(myfun, "Stretched plane")
 print surf5
 print "surf5.eval(0.25,0.75)=", surf5.eval(0.25,0.75)
 
+print "\nChannelPatch:"
+south = Line(Vector3(-3.0, -1.0, 0.0), Vector3(-2.0, -1.0, 0.0))
+north = Arc(Vector3(-3.0, 1.0, 0.0), Vector3(-2.0, 1.0, 0.0), Vector3(-2.5, 1.5, 0.0))
+surf6 = ChannelPatch(south, north)
+print surf6
+print "surf6.eval(0.25,0.75)=", surf6.eval(0.25,0.75)
+south.translate(0.0,2.5,0.0)
+north.translate(0.0,2.5,0.0)
+surf7 = ChannelPatch(south, north, True)
+print surf7
+print "surf7.eval(0.25,0.75)=", surf7.eval(0.25,0.75)
+
 print "Render to VRML"
 outfile = open("surface_test_py.wrl", "w")
 outfile.write("#VRML V2.0 utf8\n")
@@ -84,6 +96,8 @@ outfile.write(surf2_mirror.vrml_str() + "\n")
 outfile.write(surf3.vrml_str() + "\n")
 outfile.write(surf4.vrml_str() + "\n")
 outfile.write(surf5.vrml_str() + "\n")
+outfile.write(surf6.vrml_str() + "\n")
+outfile.write(surf7.vrml_str() + "\n")
 outfile.close()
 
 print "Done."
