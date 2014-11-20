@@ -120,10 +120,11 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     // perform divergence cleaning of the magnetic field
     // implemented by modifying the flux of B according to the method of Dedner et al.
     if ( G.MHD ) {
-	F.divB = Lft.B.x + 0.5*(Rght.B.x - Lft.B.x) - (1.0/(2.0*G.c_h))*(Rght.psi - Lft.psi);
+	F.divB = 0.5*(Rght.B.x + Lft.B.x); 
+	//NOTE: This is NOT the real divergence of B, used as an indicator according to the method of Dedner et al.
 	if (G.div_clean) {
 	    F.B.x += Lft.psi + 0.5*(Rght.psi - Lft.psi) - (G.c_h/2.0)*(Rght.B.x - Lft.B.x);
-	    F.psi  = F.divB * G.c_h * G.c_h;
+	    F.psi  = (F.divB - (1.0/(2.0*G.c_h))*(Rght.psi - Lft.psi)) * G.c_h * G.c_h;
 	}
     }
 

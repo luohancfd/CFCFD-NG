@@ -98,9 +98,9 @@ int hlle(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     u   = 0.5*(uL+uR);
     //v   = 0.5*(vL+vR);
     //w   = 0.5*(wL+wR);
-    Bx  =  BxL + 0.5*(BxR-BxL) - 0.5*(psiR-psiL)/G.c_h; //0.5*(BxL+BxR);
-    By  = 0.5*(ByL+ByR);
-    Bz  = 0.5*(BzL+BzR);
+    Bx = 0.5*(BxL+BxR);
+    By = 0.5*(ByL+ByR);
+    Bz = 0.5*(BzL+BzR);
 
     // Compute Eigenvalues of Roe Matrix
 
