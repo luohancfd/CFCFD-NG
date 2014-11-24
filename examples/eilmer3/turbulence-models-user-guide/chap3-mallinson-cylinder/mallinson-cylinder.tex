@@ -37,8 +37,8 @@ allowed to transition naturally to turbulence from its laminar
 state. Since the test surface was the external surface of the cylinder, 
 this test case had the advantage that the body surface was offset from 
 the tunnel axis, hence avoiding any centreline focusing effects. The
-cylinder was 850 mm long and had an outer diameter of 75 mm. The leading
-edge of this cylinder was positioned 150 mm upstream of the nozzle exit
+cylinder was 850\,mm long and had an outer diameter of 75\,mm. The leading
+edge of this cylinder was positioned 150\,mm upstream of the nozzle exit
 plane for these experiments.
 
 An extensive calibration of the nozzle outflow was conducted by 
@@ -143,13 +143,13 @@ are examined in this chapter - $y^+$ and cell aspect ratio.
 
 Table~\ref{table-cylinder-grids} shows the different grids that were used.
 Note that the $y^+$ specified in the fourth column of Table~\ref{table-cylinder-grids}
-is only an averaged $y^+$ value taken between $x$ = 0.2 m and $x$ = 0.8 m
+is only an averaged $y^+$ value taken between $x$ = 0.2\,m and $x$ = 0.8\,m
 - a typical $y^+$ distribution along the test surface is shown in 
 Figure~\ref{figure-cylinder-typical-yplus-dist}.
 
 The test gas used was nitrogen with an ideal gas assumption, a 
-constant specific heats ratio of 1.4 and a gas constant of 296.8 J/kg.K. 
-An isothermal wall at a temperature of 295 K was used. 
+constant specific heats ratio of 1.4 and a gas constant of 296.8\,J/kg.K. 
+An isothermal wall at a temperature of 295\,K was used. 
 The setup of the supersonic inflow boundary condition is different
 to the flat plate test case due to the presence of flow angularity
 in the inflow. This angularity was taken into account by using the 
@@ -200,7 +200,7 @@ grid-converged results.
  \begin{center}
   \includegraphics[width=15cm]{./chap3-mallinson-cylinder/figs/boundary-layer-profile-800mm.pdf}
  \end{center}
- \caption{Near wall boundary layer profiles at $x$ = 0.8 m 
+ \caption{Near wall boundary layer profiles at $x$ = 0.8\,m 
           (where ``coarse" is the ``100x33cells-yplus3.0-ar215" grid, 
           ``medium" is the ``200x65cells-yplus1.5-ar227" grid,
           ``fine" is the ``400x130cells-yplus0.8-ar235" grid, and
@@ -256,7 +256,7 @@ It can be observed that only the heat flux distribution is truly sensitive to th
 differences in $y^+$; the average values of pressure distribution are similar for 
 all three grids. To quantify the $k$-$\omega$ model's sensitivity to $y^+$ values, the 
 $y^+$ value is plotted against the wall heat flux value at an arbitrary location 
-($x$ = 0.8 m) for each grid in Figure~\ref{cylinder-surface-heat-flux-compare-yplus},
+($x$ = 0.8\,m) for each grid in Figure~\ref{cylinder-surface-heat-flux-compare-yplus},
 and shown in Figure~\ref{cylinder-compare-surface-heat-flux-for-different-yplus}. 
 A line fitted through these points is extrapolated to estimate the wall heat flux value 
 if an infinitesimally small $y^+$ is used. A comparison between this extrapolated 
@@ -270,14 +270,14 @@ lesser than 0.8 is acceptable.
  \begin{center}
   \includegraphics[width=15cm]{./chap3-mallinson-cylinder/figs/yplus-sensitivity.pdf}
  \end{center}
- \caption{Surface heat flux values at $x$ = 0.8 m for different $y^+$ values}
+ \caption{Surface heat flux values at $x$ = 0.8\,m for different $y^+$ values}
  \label{cylinder-compare-surface-heat-flux-for-different-yplus}
 \vspace{2cm}
 \end{figure}
 
 It can also be noted in Figure~\ref{cylinder-surface-heat-flux-compare-yplus} that 
 the surface heat flux distribution for the ``400x130cells-yplus0.2-ar961" grid 
-become unstable downstream of $x$ = 0.3 m. This instability is brought about by 
+become unstable downstream of $x$ = 0.3\,m. This instability is brought about by 
 the aspect ratio of the cells. Clustering to the surface to achieve low
 $y^+$ values tends to lead to cells with high aspect ratios. To quantify the
 effects of cell aspect ratio on the simulations, results from grids with different
@@ -308,25 +308,25 @@ than 600, and it has an average $y^+$ of about 0.2. The numerical results
 for this grid are plotted against the experimental data in 
 Figures~\ref{cylinder-surface-static-pressure} and \ref{cylinder-surface-heat-flux}.
 The computed surface static pressures agree well with those measured experimentally. 
-The slight dip in the surface static pressure distribution at $x$ $\approx$ 0.1 m 
+The slight dip in the surface static pressure distribution at $x$ $\approx$ 0.1\,m 
 in Figure~\ref{cylinder-surface-static-pressure} is an artefact of the 
 turbulence model transitioning the boundary layer from a laminar to a turbulent 
 state. 
 
 The surface heat flux distribution in Figure~\ref{cylinder-surface-heat-flux}
-can be divided into three regions - laminar region between $x$ $\approx$ 0.0 m 
-and 0.1 m, transitioning region between $x$ $\approx$ 0.1 m and 0.16 m, and
-turbulent region from $x$ $\approx$ 0.16 m onwards. The laminar surface heat 
+can be divided into three regions - laminar region between $x$ $\approx$ 0.0\,m 
+and 0.1\,m, transitioning region between $x$ $\approx$ 0.1\,m and 0.16\,m, and
+turbulent region from $x$ $\approx$ 0.16\,m onwards. The laminar surface heat 
 flux distribution is well predicted by Eilmer3. The transitioning region also
 appears to be well modelled by the $k$-$\omega$ model in Eilmer3. An interesting 
 point to note here is that even though the only variable fixed by the user in 
 this simulation is the transitioning location, the overall transitioning process 
 (the peak, slope and length of surface heat flux distribution in the transitioning 
 region) is predicted quite well by the $k$-$\omega$ model. For the turbulent
-region, the simulated surface heat flux distribution from $x$ $\approx$ 0.16 m to
-$x$ $\approx$ 0.5 m matches the experimental data. However, the numerically 
+region, the simulated surface heat flux distribution from $x$ $\approx$ 0.16\,m to
+$x$ $\approx$ 0.5\,m matches the experimental data. However, the numerically 
 predicted heat flux deviates progressively from the experimental values downstream 
-of $x$ $\approx$ 0.5 m.
+of $x$ $\approx$ 0.5\,m.
 %
 \begin{figure}[h]
  \begin{center}

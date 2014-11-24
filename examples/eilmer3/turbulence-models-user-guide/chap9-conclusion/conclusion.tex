@@ -1,0 +1,27 @@
+% conclusion.tex
+
+\newpage
+\section{Conclusion}
+\label{chapter-conclusion}
+Wilcox's 2006 $k$-$\omega$ turbulence model has been implemented in 
+Eilmer3 and validated against seven test cases (four two-dimensional and three three-dimensional) that had flowfields 
+representative of those to be expected in hypersonic airbreathing 
+propulsion. 
+
+The first test case showed that Eilmer3 can be used to 
+predict turbulent boundary layer profiles 
+and skin friction distribution for a Mach 4 flow on a flat plate 
+despite the turbulence model's sensitivity to user-defined freestream 
+turbulence properties. The second test case, an axisymmetric analogy 
+of the flat plate test case, showed that Eilmer3 can be used to 
+predict turbulent heat flux distribution on the external surface of a cylinder 
+in a Mach 9 flow. This test case also demonstrated that $y^+$ values
+and maximum cell aspect ratios should be kept below 1 and 600
+respectively for turbulent CFD simulations. The third test case showed
+that Eilmer3 can be used to predict the boundary layer profiles of
+a Mach 2 flow past a backward facing step and the fourth test case
+demonstrated that Eilmer3 can be used to predict the turbulent mixing 
+phenomena of two coaxial Mach 2 jets. 
+%
+
+The fifth test case was successful in closely replicating the data produced by the two-dimensional flat plate case it extended. Adding a third-dimension resulted in the development of $Y$ velocity components between the cells, and a lowered parallel ($X$ direction) velocity within the turbulent boundary layer for the $C_f$ calculations. The differences in skin friction coefficient $C_f$, but close correlation with other flow properties, helped to identify a potential bug in the solver caused by extending the case into 3D. 

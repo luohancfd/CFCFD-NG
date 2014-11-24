@@ -7,7 +7,10 @@ eilmer3-user-guide.dvi: eilmer3-turbulence-model-validation.tex \
                        ./chap3-mallinson-cylinder/mallinson-cylinder.tex \
                        ./chap4-backward-facing-step/backward-facing-step.tex \
                        ./chap5-coaxial-jets/coaxial-jets.tex \
-                       ./chap6-conclusion/conclusion.tex \
+		       ./chap6-3Dflatplate/3Dflatplate.tex \
+		       ./chap7-3Dsinglefin/3Dsinglefin.tex \
+		       ./chap8-3Dinjector/3Dinjector.tex \
+                       ./chap9-conclusion/conclusion.tex \
                        ./evaluation-template/evaluation-template.tex 
 #	export BIBINPUTS=$HOME/papers/bibtex/
 	pdflatex eilmer3-turbulence-model-validation
@@ -26,7 +29,10 @@ clean:
                 ./chap3-mallinson-cylinder/mallinson-cylinder.aux \
                 ./chap4-backward-facing-step/backward-facing-step.aux \
                 ./chap5-coaxial-jets/coaxial-jets.aux \
-                ./chap6-conclusion/conclusion.aux \
+		./chap6-3Dflatplate/3Dflatplate.aux \
+		./chap7-3Dsinglefin/3Dsinglefin.aux \
+		./chap8-3Dinjector/3Dinjector.aux \
+                ./chap9-conclusion/conclusion.aux \
                 ./evaluation-template/evaluation-template.aux
 
 all_clean:
