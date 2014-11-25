@@ -676,14 +676,20 @@ double collider_distance_B(Diatomic_species &p, Diatomic_species &n)
 double xi_correction(Diatomic_species &p, Diatomic_species &n)
 {
     double mu_star, tmp_a, tmp_b, xi;
+    // Require eps in K (convert from J).
+    double eps_p = p.get_eps0()/PC_k_SI;
+    double eps_n = n.get_eps0()/PC_k_SI;
+    // Require r0 in Angstrom
+    double r_p = p.get_r0() * 1.0e10;
+    double r_n = n.get_r0() * 1.0e10;
 
-    mu_star = p.get_mu_B() / sqrt( p.get_eps0() * pow(p.get_r0(), 3.0));
-    tmp_a = (n.get_alpha() * mu_star*mu_star) / ( 4.0 * pow(n.get_r0(), 3.0));
-    tmp_b = sqrt(p.get_eps0() / n.get_eps0());
+    mu_star = p.get_mu_B() / sqrt( eps_p * pow(r_p, 3.0));
+    tmp_a = (n.get_alpha() * mu_star*mu_star) / pow(r_n, 3.0);
+    tmp_b = sqrt(eps_p / eps_n);
 
-    xi = 1.0 + tmp_a * tmp_b;
+    xi = 1.0 + 0.25*tmp_a*tmp_b;
 
-    return (xi);
+    return xi;
 }
 
 /**
@@ -719,11 +725,10 @@ double potential_well_A(Diatomic_species &p, Diatomic_species &q)
 double potential_well_B(Diatomic_species &p, Diatomic_species &n)
 {
     double eps_pq, xi;
-    
     xi = xi_correction(p, n);
-    eps_pq = sqrt(p.get_eps0() * n.get_eps0()) * pow(xi, 2.0);
+    eps_pq = sqrt(p.get_eps0()*n.get_eps0())*xi*xi;
 
-    return (eps_pq);
+    return eps_pq;
 }
 
 /**
