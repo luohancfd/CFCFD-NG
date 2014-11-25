@@ -1,5 +1,6 @@
 # makefile for eilmer3-k-omega-user-guide
 # WYKC & PJ, 2011
+# Modified Samuel Stennett, Nov 2014
 
 eilmer3-user-guide.dvi: eilmer3-turbulence-model-validation.tex \
                        ./chap1-introduction/introduction.tex \
