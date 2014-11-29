@@ -46,7 +46,7 @@ test check-ionization-fraction-error {The divergence RMS error with respect to t
 	        set alpha_RMS_error [lindex [split $line] 6]
 	    }
     }
-    expr abs($Tve_RMS_error) < 50.0
+    expr abs($alpha_RMS_error) < 50.0
 } -result {1}
 
 cleanupTests
