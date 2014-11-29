@@ -44,6 +44,7 @@ extern "C" {
 #include "bc_subsonic_in.hh"
 #include "bc_transient_uniform.hh"
 #include "bc_static_profile.hh"
+#include "bc_transient_profile.hh"
 #include "bc_fixed_p_out.hh"
 #include "bc_ablating.hh"
 #include "bc_surface_energy_balance.hh"
@@ -56,6 +57,7 @@ extern "C" {
 #include "bc_mass_flux_out.hh"
 #include "bc_inlet_outlet.hh"
 #include "bc_nonuniform_t.hh"
+#include "bc_jump_wall.hh"
 #include "kernel.hh"
 #include "diffusion.hh"
 
@@ -96,6 +98,7 @@ std::string get_bc_name(bc_t bc)
     case MAPPED_CELL: return "mapped_cell";
     case INLET_OUTLET: return "inlet_outlet";
     case NONUNIFORM_T: return "nonuniform_t";
+    case JUMP_WALL: return "jump_wall";
     default: return "none";
     }
 } // end get_bc_name()
@@ -1090,6 +1093,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     bool sets_conv_flux = false;
     bool sets_visc_flux = false;
     double emissivity = 0.0;
+    double sigma_jump = 0.0;
     std::vector<double> mdot;
     std::vector<double> vnf;
     vnf.resize(get_gas_model_ptr()->get_number_of_species(), 0.0);
@@ -1228,6 +1232,11 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	dict.parse_size_t(section, "n_profile", n_profile, 1);
 	newBC = new StaticProfileBC(bdp, which_boundary, filename, n_profile);
 	break;
+    case TRANSIENT_PROF:
+	dict.parse_string(section, "filename", filename, "");
+	dict.parse_size_t(section, "n_profile", n_profile, 1);
+	newBC = new TransientProfileBC(bdp, which_boundary, filename, n_profile);
+	break;
     case FIXED_P_OUT:
 	dict.parse_double(section, "Pout", Pout, 100.0e3);
 	dict.parse_double(section, "Tout", Tout, 300.0);
@@ -1321,6 +1330,11 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
         dict.parse_vector_of_doubles(section, "v_trans", v_trans, v_trans);
 	dict.parse_double(section, "emissivity", emissivity, 1.0);
 	newBC = new NonuniformTBC(bdp, which_boundary, T_non, starting_blk, no_blk, r_omega, centre, v_trans, emissivity);
+	break;
+    case JUMP_WALL:
+	dict.parse_double(section, "Twall", Twall, 300.0);
+	dict.parse_double(section, "sigma_jump", sigma_jump, 1.0);
+	newBC = new JumpWallBC(bdp, which_boundary, Twall, sigma_jump);
 	break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 

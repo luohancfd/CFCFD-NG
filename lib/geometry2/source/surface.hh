@@ -116,6 +116,56 @@ public:
     virtual CoonsPatch* rotate_about_zaxis( double dtheta );
 };
 
+/** \brief A surface defined between two bounding paths.
+ *         Bezier3 curves (normal to the defining paths)
+ *         or straight lines (for a ruled surface) are used
+ *         to bridge the region between the defining paths.
+ *
+ * The topology of the parametric surface is shown here.
+ *
+ * \verbatim
+ *      1   +-----B-----+            p01----B----p11
+ *      ^   |           |             |           |
+ *      |   |           |             |           |
+ *      s   |           |             |           |
+ *      |   |           |             |           |
+ *      |   |           |             |           |
+ *      0   +-----A-----+            p00----A----p10
+ *
+ *          0-----r---->1
+ * \endverbatim
+ *
+ * The bounding paths are A and B while 
+ * the corner points are labelled with r and s parameter values.
+ *
+ * 2014-Nov-19: Peter J. inspired by Wilson's expansion-region surface.
+ */
+class ChannelPatch : public ParametricSurface {
+public:
+    /// Pointers to the bounding paths.
+    Path* cA; Path* cB; 
+    bool ruled;
+    bool pure2D;
+    /// Construct a parametric surface from 2 bounding paths.
+    ChannelPatch( const Path &_cA, const Path &_cB,
+		  bool ruled=false, bool pure2D=false,
+		  string label="", 
+		  double r0 = 0.0, double r1 = 1.0,
+		  double s0 = 0.0, double s1 = 1.0 );
+    /// Construct as a copy of another CoonsPatch surface.
+    ChannelPatch( const ChannelPatch &surf );
+    virtual ~ChannelPatch();
+    virtual ChannelPatch* clone() const; 
+    virtual ChannelPatch* copy() const; 
+    virtual Vector3 eval( double r, double s ) const;
+    Path* make_bridging_path( double r ) const;
+    virtual string str() const;
+    virtual ChannelPatch* translate( const Vector3 &v );
+    virtual ChannelPatch* translate( double vx, double vy, double vz );
+    virtual ChannelPatch* mirror_image( const Vector3 &point, const Vector3 &normal );
+    virtual ChannelPatch* rotate_about_zaxis( double dtheta );
+};
+
 /** \brief Another surface defined as a blend of 4 bounding paths.
  *
  * The topology of the parametric surface is the same as that of the CoonsPatch.

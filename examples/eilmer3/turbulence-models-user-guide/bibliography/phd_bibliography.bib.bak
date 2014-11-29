@@ -1,0 +1,4540 @@
+% This file was created with JabRef 2.7b.
+% Encoding: Cp1252
+
+@ARTICLE{Volchkov1967,
+  author = {Volchkov, E. P. and Zaulichnyi, E. G. and Kutateladze, S. S. and
+	Leont'ev, A. I.},
+  title = {Film cooling by injection into a turbulent boundary layer},
+  journal = {Journal of Applied Mechanics and Technical Physics},
+  year = {1967},
+  volume = {8},
+  number = {2},
+  month = {March},
+  comment = {Boundary Layer},
+  crossref = {63-64},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Alzner1971,
+  author = {Alzner, E. and Zakkay, V.},
+  title = {Turbulent boundary layer shock interaction with and without injection},
+  journal = {AIAA Journal},
+  year = {1971},
+  volume = {9},
+  pages = {1769-1776},
+  number = {9},
+  owner = {uqychan2},
+  timestamp = {2008.09.22}
+}
+
+@BOOK{Anderson1984,
+  title = {Computational fluid mechanics and heat transfer},
+  publisher = {Hemisphere Publishing},
+  year = {1984},
+  author = {Anderson, Dale A. and Tannehill, John C. and Pletcher, Richard H.},
+  address = {New York, USA},
+  comment = {CFD},
+  owner = {uqychan2},
+  review = {Obtained= NO (QA901 .A53 1984 UQ-PSE)
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@BOOK{Anderson2006,
+  title = {Hypersonic and high-temperature gas dynamics},
+  publisher = {American Institute of Aeronautics and Astronautics},
+  year = {2006},
+  author = {Anderson, John D.},
+  address = {Reston, Virginia, USA},
+  edition = {2nd},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This is an essential reference book for fundamentals on hypersonic
+	flows, and also includes 
+	
+	a section on high temperature gas dynamics, which essentially occurs
+	in hypersonic flows.},
+  timestamp = {2008.07.23}
+}
+
+@BOOK{Anderson2003,
+  title = {Modern compressible flow : with historical perspective},
+  publisher = {McGraw-Hill},
+  year = {2003},
+  author = {Anderson, John D.},
+  address = {Boston, USA},
+  edition = {3rd},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This is an essential reference book for fundamentals on compressible
+	flow theory. I have bought a copy of it.},
+  timestamp = {2008.07.23}
+}
+
+@BOOK{Anderson1995,
+  title = {Computational fluid dynamics : the basics with applications},
+  publisher = {McGraw-Hill},
+  year = {1995},
+  author = {Anderson, John D.},
+  address = {New York, USA},
+  comment = {CFD},
+  owner = {uqychan2},
+  review = {Obtained= NO (QA911 .A58 1995 UQ-PSE)
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{bag2006,
+  author = {Baglietto,E. and Ninokata,H. and Misawa,Takeharu},
+  title = {{CFD} and {DNS} methodologies development for fuel bundle simulations},
+  journal = {Nuclear Engineering and Design},
+  year = {2006},
+  volume = {236},
+  pages = {1503-1510},
+  number = {14},
+  isbn = {0029-5493},
+  language = {English},
+  owner = {Sambo},
+  timestamp = {2014.10.18},
+  url = {www.summon.com}
+}
+
+@TECHREPORT{Bakos1993,
+  author = {Bakos, R. J. and R. G. Morgan, S. L. Tuttle, G. M. Kelly, A. Paull,
+	J. M. Simmons, R. J. Stalker, M. V. Pulsonetti, D. Buttsworth, G.
+	A. Allen, Jr., N. Ward, K. Skinner, A. J. Neely, and R. M. Krek},
+  title = {Shock tunnel studies of scramjet phenomena - Supplement 7},
+  institution = {NASA Langley Research Center},
+  year = {1993},
+  type = {Contractor Report},
+  number = {NASA CR 191572},
+  month = {December},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= NO
+	
+	
+	## REVIEW -
+	
+	 This paper belongs to a set of continual updates of the 1991 work
+	carried out at the Centre 
+	
+	for Hypersonics at UQ.
+	
+	
+	 This paper is a good review of scramjet and shock tunnel related
+	experiments performed at 
+	
+	the University of Queensland, Australia.},
+  timestamp = {2008.07.23}
+}
+
+@TECHREPORT{Bardina1997,
+  author = {Bardina, J. E. and Huang, P. G. and Coakley, T. J.},
+  title = {Turbulence modeling validation, testing, and development},
+  institution = {NASA},
+  year = {1997},
+  type = {Technical Memorandum},
+  number = {NASA TM 110446},
+  month = {April},
+  owner = {uqychan2},
+  timestamp = {2008.11.06}
+}
+
+@TECHREPORT{Barger1981,
+  author = {Barger, Raymond L.},
+  title = {A procedure for designing forebodies with constraints on cross-section
+	shape and axial area distribution},
+  institution = {NASA},
+  year = {1981},
+  number = {NASA TM 1881},
+  month = {July},
+  comment = {REST inlets},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper is a supplement for Smart's 1999 paper, for the mathematical
+	lofting procedure 
+	
+	
+	described for the smoothing of the transition from a rectangular inlet
+	shape to an elliptical 
+	
+	
+	throat shape.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Baurle2008,
+  author = {Baurle, R. A. and Gaffney, R. L.},
+  title = {Extraction of one-dimensional flow properties from multidimensional
+	data sets},
+  journal = {Journal of Propulsion and Power},
+  year = {2008},
+  volume = {24},
+  pages = {704 - 714},
+  number = {4},
+  month = {July-August},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@ARTICLE{Billig1993,
+  author = {Billig, F. S.},
+  title = {Research on supersonic combustion},
+  journal = {Journal of Propulsion and Power},
+  year = {1993},
+  volume = {9},
+  pages = {499-514},
+  number = {4},
+  month = {July - August},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@BOOK{Bird2007,
+  title = {Transport phenomena},
+  publisher = {John Wiley \& Sons},
+  year = {2007},
+  author = {Bird, Robert Byron and Stewart, Warren E. and Lightfoot, Edwin N.},
+  address = {New York},
+  edition = {2nd},
+  owner = {uqychan2},
+  timestamp = {2011.01.10}
+}
+
+@ARTICLE{Blake1970,
+  author = {Blake, Lynn H.},
+  title = {Approximate transport calculations for high-temperature air},
+  journal = {AIAA Journal},
+  year = {1970},
+  volume = {8},
+  pages = {1698-1701},
+  number = {9},
+  month = {September},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This report is a reference for Stalker, R 2005 paper. It reports
+	the Wilke's method for 
+	
+	
+	calculating viscosity of gas mixtures.},
+  timestamp = {2008.07.23}
+}
+
+@INPROCEEDINGS{Boyce2000,
+  author = {Boyce, Russell R. and Hillier, R.},
+  title = {Shock-induced three-dimensional separation of an axisymmetric hypersonic
+	turbulent boundary layer},
+  booktitle = {Fluids 2000},
+  year = {2000},
+  number = {AIAA 2000-2226},
+  address = {Denver, CO},
+  month = {19-22 June},
+  organization = {American Institute of Aeronautics and Astronautics Inc.},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@ARTICLE{Boyce2005,
+  author = {Boyce, Russell R. and Takahashi, M. and Stalker, Raymond J.},
+  title = {Mass spectrometric measurements of driver gas arrival in the {T}4
+	free-piston shock-tunnel},
+  journal = {Shock Waves},
+  year = {2005},
+  volume = {14},
+  pages = {371-378},
+  number = {5/6},
+  owner = {uqychan2},
+  timestamp = {2009.11.25}
+}
+
+@TECHREPORT{Burrows1971,
+  author = {Burrows, M C and Kurkov, A P},
+  title = {Supersonic combustion of hydrogen in a vitiated air stream using
+	stepped-wall injection},
+  institution = {NASA},
+  year = {1971},
+  type = {Technical Memorandum},
+  number = {NASA TM X67840},
+  comment = {CFD},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper is commonly used for the validation of the planar 2D stepped-wall
+	injection 
+	
+	problem. Although it was not used by me, this paper might be useful
+	for future validation 
+	
+	cases.},
+  timestamp = {2008.07.23}
+}
+
+@BOOK{Bushnell1990,
+  title = {Viscous drag reduction in boundary layers},
+  publisher = {American Institute of Aeronautics and Astronautics},
+  year = {1990},
+  author = {Bushnell, Dennis M. and Hefner, Jerry N.},
+  address = {Washington D.C., USA},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES (TL507 .P75V.123 UQ-PSE)
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This book is an interesting and relevant book to read about viscous
+	(boundary layer) drag 
+	
+	
+	reduction techniques. The most relevant chapter, titled "Viscous Drag
+	Reduction via Surface 
+	
+	
+	Mass Injection", is photocopied and filed for future reference. This
+	chapter contains many 
+	
+	
+	references to "film cooling techniques" and "mass injection techniques".
+	Please look up 
+	
+	
+	relevant references. This chapter also describes how the ratio of
+	slot static pressure and 
+	
+	
+	freestream static pressure can affect the types of flow that follow
+	after slot injection, be it 
+	
+	
+	under- or over-expanded flow. It also describes the dilemma in the
+	decision of whether to 
+	
+	
+	increase downstream mixing (which reduces slot base-drag penalty)
+	or to decrease downstream 
+	
+	
+	mixing (which extends the length of skin friction reduction by film-cooling).
+	Finally, this 
+	
+	
+	paper also discusses the possibility of multiple slot injections and
+	of improving slot 
+	
+	
+	injection efficiencies.
+	
+	
+	 It should be noted that the introduction in this book by Dennis Bushnell
+	contains a very 
+	
+	
+	good phase which is repeated here - "... so little is known about
+	the nature of turbulent 
+	
+	
+	boundary layers, and so much benefit would accrue to aviation from
+	a reduction in turbulent 
+	
+	
+	skin friction, that allavenues for its reduction should be thoroughly
+	examined." by Schairer G 
+	
+	
+	S in Journal of Aircraft v 1 in 1964.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Cary1972,
+  author = {Cary Jr, Aubrey M and Hefner, Jerry N},
+  title = {Film-cooling effectiveness and skin friction in hypersonic turbulent
+	flow},
+  journal = {AIAA Journal},
+  year = {1972},
+  volume = {10},
+  pages = {1188-1193},
+  number = {3},
+  month = {September},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This is one of the many many literatures on "Film Cooling", "Mass
+	Injection Method", and 
+	
+	
+	"Skin Friction Reduction". It describes experiments with a tangential
+	injection method with 
+	
+	
+	film-cooling effectiveness and skin friction reduction results. Experiments
+	demonstrated 40-48% 
+	
+	
+	total drag reduction due to film cooling technique.},
+  timestamp = {2008.07.23}
+}
+
+@BOOK{Cebeci2005,
+  title = {Modeling and computation of boundary-layer flows : laminar, turbulent
+	and transitional boundary layers in incompressible and compressible
+	flows},
+  publisher = {Springer},
+  year = {2005},
+  author = {Cebeci, Tuncer and Cousteix, Jean},
+  address = {Berlin, Germany},
+  edition = {2nd},
+  comment = {CFD},
+  owner = {uqychan2},
+  review = {Obtained= NO (QA913 .C42 2005 UQ-PSE)
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@PHDTHESIS{Chan2008,
+  author = {Chan, Wilson Yong Khang},
+  title = {Enhancing scramjet performance by boundary layer combustion},
+  school = {The University of Queensland},
+  year = {2008},
+  type = {Confirmation of candidature report},
+  address = {Queensland, Australia},
+  month = {October},
+  owner = {uqychan2},
+  timestamp = {2009.04.10}
+}
+
+@ARTICLE{Chan2012,
+  author = {Chan, W. Y. K. and Jacobs, P. A. and Mee, D. J.},
+  title = {Suitability of the $k$-$\omega$ turbulence model for scramjet flowfield
+	simulations},
+  journal = {International Journal for Numerical Methods in Fluids},
+  year = {2012},
+  volume = {70},
+  pages = {493-514},
+  number = {4},
+  isbn = {0271-2091},
+  keywords = {scramjet; CFD validation; hypersonic; supersonic; turbulence model},
+  language = {English},
+  owner = {sambo},
+  timestamp = {2014.11.18}
+}
+
+@TECHREPORT{Chan2010a,
+  author = {Chan, Wilson Yong Khang and Jacobs, P. A. and Nap, J. P. and Mee,
+	.D. J. and Kirchhartz, R. M.},
+  title = {The k-omega turbulence model in {E}ilmer3: {U}ser guide and test
+	cases},
+  institution = {The University of Queensland},
+  year = {2010},
+  type = {Department of Mechanical Engineering Report},
+  number = {2010/01},
+  owner = {uqychan2},
+  timestamp = {2008.09.22}
+}
+
+@ARTICLE{Chan2010,
+  author = {Chan, W. Y. K. and Jacobs, P. A. and Nap, J. P. and Mee, D. J. and
+	Kirchhartz, R. M.},
+  title = {The $k$-$\omega$ turbulence model in Eilmer3: User guide and test
+	cases},
+  journal = {The University of Queensland - School of Mechanical and Mining Engineering
+	- Research Report},
+  year = {2010},
+  volume = {2010},
+  pages = {493-514},
+  number = {01},
+  keywords = {scramjet; CFD validation; hypersonic; supersonic; turbulence model},
+  owner = {Sambo},
+  timestamp = {2014.08.27}
+}
+
+@INPROCEEDINGS{Chan2010,
+  author = {Chan, Wilson Yong Khang and Mee, David J. and Smart, Michael K. and
+	Turner, James C. and Stalker, R. J.},
+  title = {Boundary layer combustion for viscous drag reduction in practical
+	scramjet configurations},
+  booktitle = {27th Congress of The International Council of the Aeronautical Sciences},
+  year = {2010},
+  number = {ICAS2010-241},
+  address = {Nice, France},
+  month = {19 - 24 September},
+  organization = {The International Council of the Aeronautical Sciences},
+  owner = {uqychan2},
+  timestamp = {2010.12.31}
+}
+
+@PHDTHESIS{Coles1953,
+  author = {Coles, Donald},
+  title = {Measurements in the boundary layer on a smooth flat plate in supersonic
+	flow},
+  school = {California Insitute of Technology},
+  year = {1953},
+  type = {{P}h{D} Thesis},
+  address = {Pasadena, California, USA},
+  owner = {uqychan2},
+  timestamp = {2008.09.23}
+}
+
+@BOOK{Cox1965,
+  title = {Elements of Hypersonic Aerodynamics},
+  publisher = {Academic Press},
+  year = {1965},
+  author = {Cox, R N and Crabtree, L F},
+  address = {New York, USA},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= NO (TL571.5 .C68 1965A UQ-PSE)
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Curran1996,
+  author = {Curran, E.T. and Heiser, William H. and Pratt, David T.},
+  title = {Fluid phenomena in scramjet combustion systems},
+  journal = {Annual Review of Fluid Mechanics},
+  year = {1996},
+  volume = {28},
+  pages = {323-360},
+  owner = {uqychan2},
+  timestamp = {2008.08.28}
+}
+
+@BOOK{Curran2000,
+  title = {Scramjet propulsion},
+  publisher = {American Institute of Aeronautics and Astronautics,},
+  year = {2000},
+  author = {Curran, E.T. and Murthy, S.N.B.},
+  address = {Reston, Virginia, USA},
+  comment = {Scramjets},
+  owner = {uqychan2},
+  review = {Obtained= NO
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Curran2001,
+  author = {Curran, Edward T},
+  title = {Scramjet engines: The first forty years},
+  journal = {Journal of Propulsion and Power},
+  year = {2001},
+  volume = {17},
+  pages = {1138-1148},
+  number = {6},
+  month = {November - December},
+  owner = {uqychan2},
+  timestamp = {2008.08.25}
+}
+
+@ARTICLE{Cutler2006,
+  author = {Cutler, A D and Diskin, G S and Drummond, J P and White, J A},
+  title = {Supersonic coaxial jet experiment for computational fluid dynamics
+	code validation},
+  journal = {AIAA Journal},
+  year = {2006},
+  volume = {44},
+  pages = {585-592},
+  number = {4},
+  month = {March},
+  owner = {uqychan2},
+  timestamp = {2008.09.11}
+}
+
+@INPROCEEDINGS{Cutler2001,
+  author = {Cutler, A D and White, J A},
+  title = {An experimental and CFD study of a supersonic coaxial jet},
+  booktitle = {39th Aerospace Sciences Meeting and Exhibit},
+  year = {2001},
+  number = {AIAA 2001-0143},
+  address = {Reno, Nevada, USA},
+  month = {8-11 January},
+  organization = {American Institute of Aeronautics and Astronautics Inc.},
+  owner = {uqychan2},
+  timestamp = {2008.09.11}
+}
+
+@ARTICLE{Davis1989,
+  author = {Davis, D. O. and Gessner, F. B.},
+  title = {Further experiments on supersonic turbulent flow development in a
+	square duct},
+  journal = {AIAA Journal},
+  year = {1989},
+  volume = {27},
+  pages = {1023-1030},
+  number = {8},
+  isbn = {0001-1452},
+  language = {English},
+  owner = {sambo},
+  timestamp = {2014.11.18}
+}
+
+@PHDTHESIS{Denman2007,
+  author = {Denman, Andrew W},
+  title = {Large-eddy simulation of compressible turbulent boundary layers with
+	heat addition},
+  school = {The University of Queensland},
+  year = {2007},
+  type = {{P}h{D} Thesis},
+  address = {Queensland, Australia},
+  comment = {LES Skin Friction Reduction},
+  owner = {uqychan2},
+  timestamp = {2008.07.23}
+}
+
+@INPROCEEDINGS{Denman2005,
+  author = {Denman, Andrew W and Jacobs, Peter A. and Mee, David J.},
+  title = {Compressible turbulent flow with boundary-layer heat addition},
+  booktitle = {43rd AIAA Aerospace Sciences Meeting and Exhibit},
+  year = {2005},
+  number = {AIAA 2005-1097},
+  address = {Reno, Nevada, USA},
+  month = {10-13 January},
+  organization = {American Institute of Aeronautics and Astronautics Inc.},
+  owner = {uqychan2},
+  timestamp = {2008.09.01}
+}
+
+@ARTICLE{Dershin1967,
+  author = {Dershin, Harvey and Leonard, Charles A and Gallaher, William H},
+  title = {Direct measurement of skin friction on a porous flat plate with mass
+	injection},
+  journal = {AIAA Journal},
+  year = {1967},
+  volume = {5},
+  pages = {1934 - 1939},
+  number = {11},
+  month = {November},
+  owner = {uqychan2},
+  timestamp = {2008.09.01}
+}
+
+@ARTICLE{Dolling1993,
+  author = {Dolling, D. S.},
+  title = {Unsteady Phenomena in Shock Wave/Boundary Layer Interaction},
+  journal = {AGARD - Special Course on Shock-Wave/Boundary-Layer Interactions
+	in Supersonic and Hypersonic Flows},
+  year = {1993},
+  volume = {AGARD-R-792},
+  pages = {1-46},
+  number = {4},
+  owner = {Sambo},
+  timestamp = {2014.08.27}
+}
+
+@ARTICLE{Donohue1994,
+  author = {Donohue, James M. and McDaniel, James C. and Haj-Hariri, Hossein},
+  title = {Experimental and numerical study of swept ramp injection into a supersonic
+	flowfield},
+  journal = {AIAA Journal},
+  year = {1994},
+  volume = {32},
+  pages = {1860-1867},
+  number = {9},
+  owner = {uqychan2},
+  timestamp = {2008.09.23}
+}
+
+@BOOK{Dorrance1962,
+  title = {Viscous hypersonic flow; theory of reacting and hypersonic boundary
+	layers},
+  publisher = {McGraw-Hill},
+  year = {1962},
+  author = {Dorrance, William H.},
+  address = {New York, USA},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= NO (TL574.B6 D64 1962 UQ-PSE)
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@INPROCEEDINGS{Eggers2009,
+  author = {Eggers, Thino and Silvester, Todd B. and Paull, Allan and Smart,
+	Michael K.},
+  title = {Aerodynamic design of hypersonic re-entry flight {HIF}i{RE} 7},
+  booktitle = {16th AIAA/DLR/DGLR International Space Planes and Hypersonic Systems
+	and Technologies Conference},
+  year = {2009},
+  number = {AIAA 2009-7256},
+  address = {Bremen, Germany},
+  month = {19-22 October},
+  organization = {American Institute of Aeronautics and Astronautics Inc.},
+  owner = {uqychan2},
+  timestamp = {2010.06.12}
+}
+
+@ARTICLE{Eklund1995,
+  author = {Eklund, D R and Fletcher, D G and Hartfield, J R J and Northam, G
+	B and Dancey, CL},
+  title = {A comparative computational/experimental investigation of Mach 2
+	flow over a rearward-facing step},
+  journal = {Computers \& Fluids},
+  year = {1995},
+  volume = {24},
+  pages = {593-608},
+  number = {5},
+  comment = {CFD},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper is a more comprehensive paper detailing similar experiments
+	in the Hartfield JRJ 
+	
+	et al (1993) paper. It was used for the validation of mbcns2 amd its
+	k-omega model as well.},
+  timestamp = {2008.07.23}
+}
+
+@BOOK{Fernholz1977,
+  title = {AGARDograph No. 223 - A critical compilation of compressible turbulent
+	boundary layer data},
+  publisher = {Neuilly Sur Seine, France : Advisory Group for Aerospace Research
+	\& Development, North Atlantic Treaty Organization},
+  year = {1977},
+  author = {Fernholz, H. H. and Finley, P. J.},
+  number = {AGARD-AG-223},
+  owner = {uqychan2},
+  timestamp = {2010.03.25}
+}
+
+@INPROCEEDINGS{Ferri1964,
+  author = {Ferri, A. and Libby, P. A. and Zakkay, V.},
+  title = {Theoretical and experimental investigations of supersonic combustion},
+  booktitle = {Proceedings of the International Council of the Aeronautical Sciences,
+	Third Congress, Stockholm, 1962},
+  year = {1964},
+  pages = {1089 - 1155},
+  address = {New York, USA},
+  publisher = {Spartan},
+  owner = {uqychan2},
+  timestamp = {2008.09.22}
+}
+
+@ARTICLE{Fry2004,
+  author = {Fry, Ronald S.},
+  title = {A century of ramjet propulsion technology evolution},
+  journal = {Journal of Propulsion and Power},
+  year = {2004},
+  volume = {20},
+  pages = {27-58},
+  number = {1},
+  month = {January-February},
+  owner = {uqychan2},
+  timestamp = {2011.01.19}
+}
+
+@INPROCEEDINGS{Gangurde2007,
+  author = {Gangurde, Dhananjay Y. and Mee, David J. and Jacobs, Peter A.},
+  title = {Numerical simulation of a {L}udwieg-tube fuel delivery system for
+	scramjet experiments in shock tunnels},
+  booktitle = {16th Australasian Fluid Mechanics Conference},
+  year = {2007},
+  address = {Gold Coast, Queensland, Australia},
+  month = {December},
+  publisher = {School of Engineering, The University of Queensland},
+  owner = {uqychan2},
+  timestamp = {2009.04.10}
+}
+
+@ARTICLE{Gilreath1971,
+  author = {Gilreath, H.E. and Schetz, J.A.},
+  title = {Transition and mixing in the shear layer produced by tangential injection
+	in supersonic flow},
+  journal = {Transactions of the ASME. Series D, Journal of Basic Engineering},
+  year = {1971},
+  volume = {93},
+  pages = {610-618},
+  number = {4},
+  month = {December},
+  owner = {uqychan2},
+  timestamp = {2008.08.25}
+}
+
+@ARTICLE{Goldstein1971,
+  author = {Goldstein, Richard J.},
+  title = {Film cooling},
+  journal = {Advances in Heat Transfer},
+  year = {1971},
+  volume = {7},
+  pages = {321-379},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This is one of the many many literatures on "Film Cooling" and "Mass
+	Injection Method". It 
+	
+	
+	describes some interesting factors that could affect film-cooling
+	effectiveness, and possibly 
+	
+	
+	skin-friction reduction by the film cooling technique. It also includes
+	a table that describes 
+	
+	
+	the many possibilities of 2D injection slot geometries.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Gollan2013,
+  author = {Gollan, R. J. and Jacobs, P. A.},
+  title = {About the formulation, verification and validation of the hypersonic
+	flow solver Eilmer},
+  journal = {International Journal for Numerical Methods in Fluids},
+  year = {2013},
+  volume = {73},
+  pages = {19-57},
+  number = {1},
+  isbn = {0271-2091},
+  keywords = {validation; verification; compressible flow; hypersonic; Navier Stokes;
+	finite volume},
+  language = {English},
+  owner = {sambo},
+  timestamp = {2014.11.18}
+}
+
+@ELECTRONIC{Gollan2012,
+  author = {Gollan, R. J. and Jacobs, P. A.},
+  year = {2012},
+  title = {The Compressible-Flow CFD Project},
+  url = {http://cfcfd.mechmining.uq.edu.au/index.html},
+  owner = {Sambo},
+  timestamp = {2014.08.27}
+}
+
+@ARTICLE{Goyne2003,
+  author = {Goyne, C.P. and Stalker, R.J. and Paull, A.},
+  title = {Skin-friction measurements in high-enthalpy hypersonic boundary layers},
+  journal = {Journal of Fluid Mechanics},
+  year = {2003},
+  volume = {485},
+  pages = {1-32},
+  month = {June},
+  comment = {Thrust / Drag Measurement},
+  owner = {uqychan2},
+  review = {Obtained= NO
+	
+	 Read= NO
+	
+	
+	## REVIEW -
+	
+	 This paper is one of the UQ's collections of 'skin friction reduction
+	by boundary layer combustion' papers. It should be noted that the
+	method of skin friction measurement here is done by skin friction
+	gauges rather than the stress wave force balance, which in turn returns
+	local skin friction drag values rather than the overall one. Please
+	read.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Goyne2002,
+  author = {Goyne, C.P. and Stalker, R.J. and Paull, A.},
+  title = {Transducer for direct measurement of skin friction in hypervelocity
+	impulse facilities},
+  journal = {AIAA Journal},
+  year = {2002},
+  volume = {40},
+  pages = {42-49},
+  number = {1},
+  month = {January},
+  comment = {Thrust / Drag Measurement},
+  owner = {uqychan2},
+  review = {Obtained= NO
+	
+	 Read= NO
+	
+	
+	## REVIEW -
+	
+	 This paper is one of the UQ's collections of 'skin friction reduction
+	by boundary layer combustion' papers. It should be noted that the
+	method of skin friction measurement here is done by skin friction
+	gauges rather than the stress wave force balance, which in turn returns
+	local skin friction drag values rather than the overall one. Please
+	read.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Goyne1999,
+  author = {Goyne, C. P. and Stalker, R. J. and Paull, A.},
+  title = {Shock-tunnel skin-friction measurement in a supersonic combustor},
+  journal = {Journal of Propulsion and Power},
+  year = {1999},
+  volume = {15},
+  pages = {699-705},
+  number = {5},
+  month = {September-October},
+  owner = {uqychan2},
+  timestamp = {2010.06.13}
+}
+
+@ARTICLE{Goyne2000,
+  author = {Goyne, C. P. and Stalker, R. J. and Paull, A. and Brescianini, C.
+	P.},
+  title = {Hypervelocity skin-friction reduction by boundary-layer combustion
+	of hydrogen},
+  journal = {Journal of Spacecraft and Rockets},
+  year = {2000},
+  volume = {37},
+  pages = {740-746},
+  number = {6},
+  month = {November},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper is one of the UQ's collections of 'skin friction reduction
+	by boundary layer 
+	
+	
+	combustion' papers. It should be noted that the method of skin friction
+	measurement here is 
+	
+	
+	done by skin friction gauges rather than the stress wave force balance,
+	which in turn returns 
+	
+	
+	local skin friction drag values rather than the overall one. Please
+	read. This is probably one 
+	
+	
+	of the first papers that reported a positive reduction in skin friction
+	and also heat transfer 
+	
+	
+	by boundary layer combustion of hydrogen.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Grin'1971,
+  author = {Grin', V. T. and Zakharov, N. N.},
+  title = {Experimental investigation of effect of tangential blowing and wall
+	cooling on flow with separation},
+  journal = {Fluid Dynamics},
+  year = {1971},
+  volume = {6},
+  pages = {1035-1038},
+  number = {6},
+  month = {November},
+  owner = {uqychan2},
+  timestamp = {2008.09.22}
+}
+
+@ARTICLE{Gromov1987,
+  author = {Gromov, V G and Larin, O B and Levin, V A},
+  title = {Turbulent combustion of hydrogen in a boundary jet discharged into
+	a co-current supersonic air flow},
+  journal = {Fizika Goreniya i Vzryva},
+  year = {1987},
+  volume = {23},
+  pages = {3-9},
+  number = {6},
+  month = {November - December},
+  owner = {uqychan2},
+  timestamp = {2008.09.01}
+}
+
+@ARTICLE{Halupovich1999,
+  author = {Halupovich, Y. and Natan B. and Rom, J.},
+  title = {Numerical solution of the turbulent supersonic flow over a backward
+	facing step},
+  journal = {Fluid Dynamics Research},
+  year = {1999},
+  volume = {24},
+  pages = {251-273},
+  comment = {CFD},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper was used for the validation of the backward facing step
+	compressible flow 
+	
+	problem. The paper was using experimental and numerical data from
+	Hartfield JRJ et al (1993). 
+	
+	Please refer to Eklund et al (1995) for a better paper for validation
+	of this test case.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Hartfield1993,
+  author = {Hartfield, J R J and Hollo, S D and McDaniel, J C},
+  title = {Planar measurement techniques for compressible flows using laser-induced
+	iodine fluorescence},
+  journal = {AIAA Journal},
+  year = {1993},
+  volume = {31},
+  pages = {483-490},
+  number = {3},
+  month = {March},
+  comment = {CFD},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper was referred to by Halupovich et al (1999) for the compressible
+	backward facing 
+	
+	step flow problem.},
+  timestamp = {2008.07.23}
+}
+
+@BOOK{Hayes1966,
+  title = {Hypersonic flow theory},
+  publisher = {Academic Press},
+  year = {1966},
+  author = {Hayes, Wallace D. and Probstein, Ronald F.},
+  address = {New York, USA},
+  edition = {2nd},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= NO (TL571.5 .H32 1966 V.1 UQ-PSE)
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{He1994,
+  author = {He, Y. and Morgan, R G},
+  title = {Transition of compressible high enthalpy boundary layer flow over
+	a flat plate},
+  journal = {Aeronautical Journal},
+  year = {1994},
+  volume = {98},
+  pages = {25-34},
+  number = {972},
+  month = {February},
+  owner = {uqychan2},
+  timestamp = {2008.08.25}
+}
+
+@ARTICLE{Hefner1976,
+  author = {Hefner, Jerry N},
+  title = {Effect of geometry modifications on effectiveness of slot injection
+	in hypersonic flow},
+  journal = {AIAA Journal},
+  year = {1976},
+  volume = {14},
+  pages = {817-818},
+  number = {4},
+  month = {June},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	## REVIEW -
+	
+	 This is one of the many many literatures on "Film Cooling", "Mass
+	Injection Method", and 
+	
+	
+	"Skin Friction Reduction". It describes experiments with a tangential
+	injection method with 
+	
+	
+	film-cooling effectiveness and skin friction reduction results. There
+	are 4 experimental 
+	
+	
+	configurations: I and III are baseline configurations with the only
+	difference being the slot 
+	
+	
+	height. II has a thicker slot lip, and IV has an elevated injection
+	slot. Results show that 
+	
+	
+	even though the modifications in II and IV result in better skin-friction
+	drag reduction, the 
+	
+	
+	base drag increase brought about by these modifications is even more
+	than the skin-friction 
+	
+	
+	drag reduction for the film-cooling technique. (Note: However, could
+	these modifications be 
+	
+	
+	useful for skin-friction reduction by boundary layer combustion?)},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Heidmann2008,
+  author = {Heidmann, James D. and Ekkad, Srinath},
+  title = {A novel antivortex turbine film-cooling hole concept},
+  journal = {Journal of Turbomachinery},
+  year = {2008},
+  volume = {130},
+  pages = {031020-1 - 031020-9},
+  month = {July},
+  owner = {uqychan2},
+  timestamp = {2008.09.22}
+}
+
+@BOOK{Heiser1996,
+  title = {Hypersonic airbreathing propulsion},
+  publisher = {American Institute of Aeronautics and Astronautics},
+  year = {1996},
+  author = {Heiser, William H. and Pratt, David T.},
+  address = {Washington D.C., USA},
+  comment = {Scramjets},
+  owner = {uqychan2},
+  review = {Obtained= YES (TL709 .H45 1994 UQ-PSE)
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Hillier2003,
+  author = {Hillier, R. and Boyce, Russell R. and Creighton, S. A. and Fiala,
+	A. and Jackson, A. P. and Mallinson, S. G. and Sheikh, A. H. and
+	Soltani, S. and Williams, S.},
+  title = {Development of some hypersonic benchmark flows using CFD and experiment},
+  journal = {Shock Waves},
+  year = {2003},
+  volume = {13},
+  pages = {375-384},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@ARTICLE{Hillier1995,
+  author = {Hillier, R. and Kirk, D. C. and Soltani, S.},
+  title = {Navier-Stokes computations of hypersonic flows},
+  journal = {International Journal of Numerical Methods for Heat \& Fluid Flow},
+  year = {1995},
+  volume = {5},
+  pages = {195-211},
+  number = {3},
+  month = {March},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@BOOK{Hinze1975,
+  title = {Turbulence},
+  publisher = {McGraw-Hill},
+  year = {1975},
+  author = {Hinze, J. O.},
+  owner = {uqychan2},
+  timestamp = {2010.03.25}
+}
+
+@BOOK{Hirsch2007,
+  title = {Numerical computation of internal and external flows},
+  publisher = {Butterworth-Heinemann},
+  year = {2007},
+  author = {Hirsch, Charles},
+  edition = {2nd},
+  owner = {uqychan2},
+  timestamp = {2010.03.25}
+}
+
+@BOOK{Hirsch1988,
+  title = {Numerical computation of internal and external flows},
+  publisher = {Wiley},
+  year = {1988},
+  author = {Hirsch, Charles.},
+  address = {Chichester, England},
+  comment = {CFD},
+  owner = {uqychan2},
+  review = {Obtained= NO (TA357 .H574 1988 UQ-PSE)
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Hopkins1971,
+  author = {Hopkins, Edward J. and Inouye, Mamoru},
+  title = {An evaluation of theories for predicting turbulent skin friction
+	and heat transfer on flat plates at supersonic and hypersonic Mach
+	numbers},
+  journal = {AIAA Journal},
+  year = {1971},
+  volume = {9},
+  pages = {993-1003},
+  number = {6},
+  month = {June},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@ARTICLE{Hopkins1972,
+  author = {Hopkins, Edward J. and Keener, Earl R. and Polek, Thomas E. and Dwyer,
+	Harry A.},
+  title = {Hypersonic turbulent skin-friction and boundary-layer profiles on
+	nonadiabatic flat plates},
+  journal = {AIAA Journal},
+  year = {1972},
+  volume = {10},
+  pages = {40-48},
+  number = {1},
+  month = {January},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@INBOOK{hornung2006,
+  pages = {335-344},
+  title = {Hypersonic Real-Gas Effects on Transition},
+  publisher = {Springer Netherlands},
+  year = {2006},
+  author = {Hornung,Hans G.},
+  volume = {129},
+  address = {Dordrecht},
+  isbn = {9781402041495; 1402041497},
+  keywords = {Automotive and Aerospace Engineering, Traffic; Civil Engineering;
+	Numerical and Computational Methods in Engineering; Engineering;
+	Vibration, Dynamical Systems, Control; Mechanical Engineering},
+  language = {English},
+  owner = {Sambo},
+  timestamp = {2014.10.08},
+  url = {www.summon.com}
+}
+
+@TECHREPORT{Huber1979,
+  author = {Huber, Paul W. and Schexnayder, Charles J. Jr. and McClinton, Charles
+	R.},
+  title = {Criteria for self-ignition of supersonic hydrogen-air mixtures},
+  institution = {NASA},
+  year = {1979},
+  type = {NASA Technical Paper},
+  number = {NASA-TP-1457},
+  month = {August},
+  owner = {uqychan2},
+  timestamp = {2010.06.29}
+}
+
+@TECHREPORT{Jacobs2006,
+  author = {Jacobs, P. A.},
+  title = {{MBCNS}2 example book},
+  institution = {The University of Queensland},
+  year = {2006},
+  type = {Department of Mechanical Engineering Report},
+  number = {2006/02},
+  owner = {uqychan2},
+  timestamp = {2010.03.25}
+}
+
+@TECHREPORT{Jacobs1996,
+  author = {Jacobs, P. A.},
+  title = {{MBCNS}: A computer program for the simulation of transient compressible
+	flows},
+  institution = {The University of Queensland},
+  year = {1996},
+  type = {Department of Mechanical Engineering Report},
+  number = {10/96},
+  month = {December},
+  owner = {uqychan2},
+  timestamp = {2008.09.22}
+}
+
+@TECHREPORT{Jacobs1991,
+  author = {Jacobs, P. A.},
+  title = {Single-block {N}avier-{S}tokes integrator},
+  institution = {Institute for Computer Applications in Science and Engineering, NASA
+	Langley Research Center},
+  year = {1991},
+  type = {ICASE Interim Report},
+  number = {18},
+  address = {Hampton, Virginia},
+  month = {July},
+  owner = {uqychan2},
+  timestamp = {2008.09.22}
+}
+
+@TECHREPORT{Jacobs2008,
+  author = {Jacobs, P. A. and Gollan, R. J.},
+  title = {The {E}ilmer3 code: {U}ser guide and example book},
+  institution = {The University of Queensland},
+  year = {2008},
+  type = {Department of Mechanical Engineering Report},
+  number = {2008/07},
+  owner = {uqychan2},
+  timestamp = {2008.09.22}
+}
+
+@TECHREPORT{Jacobs2007,
+  author = {Jacobs, P. A. and Gollan, R. J. and Denman, Andrew W},
+  title = {The {E}lmer code: {U}ser guide and example book},
+  institution = {The University of Queensland},
+  year = {2007},
+  type = {Department of Mechanical Engineering Report},
+  number = {2007/02},
+  month = {September},
+  owner = {uqychan2},
+  timestamp = {2008.09.22}
+}
+
+@TECHREPORT{Jacobs2010,
+  author = {Jacobs, P. A. and Gollan, R. J. and Denman, A. W. and O'Flaherty,
+	B. T. and Potter, D. F. and Petrie-Repar, P. J. and Johnston, I.
+	A.},
+  title = {{E}ilmer's Theory Book: {B}asic models for gas dynamics and thermochemistry},
+  institution = {The University of Queensland},
+  year = {2010},
+  type = {Department of Mechanical Engineering Report},
+  number = {2010/09},
+  owner = {uqychan2},
+  timestamp = {2008.09.22}
+}
+
+@MANUAL{eilmer2014,
+  title = {The Eilmer3 Code: User Guide and Example Book},
+  author = {Jacobs, P. A. and Gollan, R. J. and Potter, D. F.},
+  organization = {The Compressible Flow CFD Project, School of Mechanical and Mining
+	Engineering, The University of Queensland},
+  edition = {2014},
+  month = {June},
+  year = {2014},
+  owner = {Sambo},
+  timestamp = {2014.10.05}
+}
+
+@INPROCEEDINGS{Jacobs1993,
+  author = {Jacobs, Peter A. and Morgan, Richard G. and Stalker, R. J. and Mee,
+	David J.},
+  title = {Use of {A}rgon-{H}elium driver-gas mixtures in the {T}4 shock tunnel},
+  booktitle = {19th International Symposium on Shock Waves},
+  year = {1993},
+  address = {Marseille, France},
+  month = {26-30 July},
+  publisher = {Springer-Verlag, Heidelberg, Germany},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@ARTICLE{Jacobs1992,
+  author = {Jacobs, Peter A. and Rogers, R. C. and Weidner, E. H. and Bittner,
+	R. D.},
+  title = {Flow establishment in a generic scramjet combustor},
+  journal = {Journal of Propulsion and Power},
+  year = {1992},
+  volume = {8},
+  pages = {890-899},
+  number = {4},
+  month = jul # {-} # aug,
+  owner = {uqychan2},
+  timestamp = {2009.07.21}
+}
+
+@ARTICLE{Jones1971,
+  author = {Jones, J. W. and Isaacson, L. K. and Vreeke, S.},
+  title = {A turbulent boundary layer with mass addition, combustion, and pressure
+	gradients},
+  journal = {AIAA Journal},
+  year = {1971},
+  volume = {9},
+  pages = {1762-1768},
+  number = {9},
+  month = {September},
+  owner = {uqychan2},
+  timestamp = {2008.09.01}
+}
+
+@ARTICLE{Juhany1994,
+  author = {Juhany, K. A. and Hunt, M. L.},
+  title = {Flowfield measurements in supersonic film cooling including the effect
+	of shock-wave interaction},
+  journal = {AIAA Journal},
+  year = {1994},
+  volume = {32},
+  pages = {578-583},
+  number = {3},
+  month = {March},
+  owner = {uqychan2},
+  timestamp = {2008.09.01}
+}
+
+@ARTICLE{Kanda1997,
+  author = {Kanda, Takeshi and Ono, Fumiei},
+  title = {Experimental studies of supersonic film cooling with shock wave interaction
+	(II)},
+  journal = {Journal of Thermophysics and Heat Transfer},
+  year = {1997},
+  volume = {11},
+  pages = {590-593},
+  number = {4},
+  month = {October - December},
+  owner = {uqychan2},
+  timestamp = {2008.09.11}
+}
+
+@ARTICLE{Kanda1996,
+  author = {Kanda, Takeshi and Ono, Fumiei and Takahashi, Masahiro and Saito,
+	Toshihito and Wakamatsu, Yoshio},
+  title = {Experimental studies of supersonic film cooling with shock wave interaction},
+  journal = {AIAA Journal},
+  year = {1996},
+  volume = {34},
+  pages = {265-271},
+  number = {2},
+  month = {February},
+  owner = {uqychan2},
+  timestamp = {2008.09.11}
+}
+
+@ARTICLE{Kim2003,
+  author = {Kim, John},
+  title = {Control of turbulent boundary layers},
+  journal = {Physics of Fluids},
+  year = {2003},
+  volume = {15},
+  pages = {1093-1105},
+  number = {5},
+  month = {May},
+  comment = {Boundary Layer},
+  owner = {uqychan2},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{kim1991,
+  author = {Kim,K. and Lee,Y. and Alvi,F. S. and Settles,G. S. and Horstman,C.},
+  title = {Skin-friction measurements and computational comparison of swept
+	shock/boundary-layer interactions},
+  journal = {AIAA Journal},
+  year = {1991},
+  volume = {29},
+  pages = {1643-1650},
+  number = {10},
+  isbn = {0001-1452},
+  language = {English},
+  owner = {Sambo},
+  timestamp = {2014.10.05},
+  url = {www.summon.com}
+}
+
+@ARTICLE{Kim1991,
+  author = {Kim, K.-S. and Lee, Y. and Alvi, F. S. and Settles, G. S. and Horstman,
+	C. C.},
+  title = {Skin-friction measurements and computational comparison of swept
+	shock/boundary-layer interactions},
+  journal = {AIAA Journal},
+  year = {1991},
+  volume = {29},
+  pages = {1643-1650},
+  number = {10},
+  month = {October},
+  owner = {uqychan2},
+  timestamp = {2011.01.10}
+}
+
+@PHDTHESIS{Kirchhartz2010b,
+  author = {Kirchhartz, Rainer M},
+  title = {Upstream wall layer effects on drag reduction with boundary layer
+	combustion},
+  school = {The University of Queensland},
+  year = {2010},
+  type = {{P}h{D} Thesis},
+  address = {Queensland, Australia},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  timestamp = {2008.07.23}
+}
+
+@PHDTHESIS{Kirchhartz2007,
+  author = {Kirchhartz, R M},
+  title = {Enhancing scramjet performance by boundary layer combustion},
+  school = {The University of Queensland},
+  year = {2007},
+  type = {Confirmation of candidature report},
+  address = {Queensland, Australia},
+  month = {May},
+  owner = {uqychan2},
+  timestamp = {2008.08.11}
+}
+
+@INPROCEEDINGS{Kirchhartz2008,
+  author = {Kirchhartz, Rainer M and Mee, David J and Stalker, Raymond J},
+  title = {Skin friction drag with boundary layer combustion in a circular combustor},
+  booktitle = {15th AIAA International Space Planes and Hypersonic Systems and Technologies
+	Conference},
+  year = {2008},
+  number = {AIAA 2008-2589},
+  address = {Dayton, Ohio, USA},
+  month = {28 April - 1 May},
+  organization = {American Institute of Aeronautics and Astronautics Inc.},
+  owner = {uqychan2},
+  timestamp = {2008.09.01}
+}
+
+@INPROCEEDINGS{Kirchhartz2007a,
+  author = {Kirchhartz, R M and Mee, D J and Stalker, R J},
+  title = {Effect of boundary layer thickness and entropy layer on boundary
+	layer combustion},
+  booktitle = {16th Australasian Fluid Mechanics Conference},
+  year = {2007},
+  address = {Gold Coast, Queensland, Australia},
+  month = {December},
+  publisher = {School of Engineering, The University of Queensland},
+  owner = {uqychan2},
+  timestamp = {2008.08.11}
+}
+
+@ARTICLE{kirch2010,
+  author = {Kirchhartz,Rainer M. and Mee,David J. and Stalker,Raymond J. and
+	Jacobs,Peter A. and Smart,Michael K.},
+  title = {Supersonic Boundary-Layer Combustion: Effects of Upstream Entropy
+	and Shear-Layer Thickness},
+  journal = {Journal of Propulsion and Power},
+  year = {2010},
+  volume = {26},
+  pages = {57-66},
+  number = {1},
+  abstract = {  There is much interest in the way in which fuel is injected into
+	scramjet combustors and the way this influences ignition and combustion.
+	Experiments were conducted in the T4 Stalker Tube to assess the combustion
+	of hydrogen when it is injected directly into the boundary layer
+	of a circular constant-area supersonic combustion chamber ( M>4M>4).
+	The wall-layer conditions at the fuel-injection station were varied
+	to study the effects on the ignition and combustion of the injected
+	hydrogen. This was achieved by varying the leading-edge bluntness
+	and the length of the constant-area inlet upstream of the annular
+	fuel-injection slot that delivers fuel as a layer underneath the
+	existing boundary layer. Flow properties at the injection location
+	calculated using computational fluid dynamics are presented as well
+	as experimental data and analytical predictions of the pressure distributions
+	along the combustion chamber wall. It is shown that a thicker boundary
+	layer promotes combustion and that leading-edge bluntness, which
+	leads to more hot gas near the walls, is more effective for ignition.
+	[PUBLISHER ABSTRACT];   There is much interest in the way in which
+	fuel is injected into scramjet combustors and the way this influences
+	ignition and combustion. Experiments were conducted in the T4 Stalker
+	Tube to assess the combustion of hydrogen when it is injected directly
+	into the boundary layer of a circular constant-area supersonic combustion
+	chamber ( M>4M>4). The wall-layer conditions at the fuel-injection
+	station were varied to study the effects on the ignition and combustion
+	of the injected hydrogen. This was achieved by varying the leading-edge
+	bluntness and the length of the constant-area inlet upstream of the
+	annular fuel-injection slot that delivers fuel as a layer underneath
+	the existing boundary layer. Flow properties at the injection location
+	calculated using computational fluid dynamics are presented as well
+	as experimental data and analytical predictions of the pressure distributions
+	along the combustion chamber wall. It is shown that a thicker boundary
+	layer promotes combustion and that leading-edge bluntness, which
+	leads to more hot gas near the walls, is more effective for ignition.
+	[PUBLISHER ABSTRACT]},
+  isbn = {0748-4658},
+  language = {English},
+  owner = {Sambo},
+  timestamp = {2014.10.19},
+  url = {www.summon.com}
+}
+
+@ARTICLE{Kirchhartz2010a,
+  author = {Kirchhartz, Rainer M. and Mee, David J. and Stalker, Raymond J. and
+	Jacobs, Peter A. and Smart, Michael K.},
+  title = {Supersonic boundary-layer combustion: {E}ffects of upstream entropy
+	and shear-layer thickness},
+  journal = {Journal of Propulsion and Power},
+  year = {2010},
+  volume = {26},
+  pages = {57-66},
+  number = {1},
+  owner = {uqychan2},
+  timestamp = {2010.06.13}
+}
+
+@ARTICLE{Knight2003,
+  author = {Knight, Doyle and Yan, Hong and Panaras, Argyris G. and Zheltovodov,
+	Alexander},
+  title = {Advances in CFD prediction of shock wave turbulent boundary layer
+	interactions},
+  journal = {Progress in Aerospace Sciences},
+  year = {2003},
+  volume = {39},
+  pages = {121-184},
+  owner = {uqychan2},
+  timestamp = {2011.01.10}
+}
+
+@ARTICLE{Knight1993,
+  author = {Knight, D. D.},
+  title = {Numerical Simulation of {3D} Shock Wave Turbulent Boundary Layer
+	Interactions},
+  journal = {AGARD - Special Course on Shock-Wave/Boundary-Layer Interactions
+	in Supersonic and Hypersonic Flows},
+  year = {1993},
+  volume = {AGARD-R-792},
+  pages = {1-32},
+  number = {3},
+  owner = {Sambo},
+  timestamp = {2014.08.27}
+}
+
+@ARTICLE{Korkegi1985,
+  author = {Korkegi, R H},
+  title = {A lower bound for three-dimensional turbulent separation in supersonic
+	flow},
+  journal = {AIAA Journal},
+  year = {1985},
+  volume = {23},
+  pages = {475-476},
+  number = {3},
+  month = {March},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 One of the 'turbulent boundary layer separation criterion' papers
+	by Korkegi RH that is 
+	
+	frequently used by many researchers in their work. This paper adds
+	on to Korkegi's previous 
+	
+	papers by providing a lower bound for 3D turbulent boundary layer
+	separation in supersonic 
+	
+	flow.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Korkegi1975,
+  author = {Korkegi, R H},
+  title = {Comparison of shock-induced two- and three-dimensional incipient
+	turbulent separation},
+  journal = {AIAA Journal},
+  year = {1975},
+  volume = {13},
+  pages = {534-535},
+  number = {4},
+  month = {April},
+  comment = {Boundary Layer},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 One of the 'turbulent boundary layer separation criterion' papers
+	by Korkegi RH that is 
+	
+	frequently used by many researchers in their work. This paper provides
+	pressure correlations 
+	
+	and separation angles as turbulent boundary layer separation criterions.
+	This paper also 
+	
+	provides several references for turbulent boundary layer separation
+	research.},
+  timestamp = {2008.07.23}
+}
+
+@INBOOK{kul2009,
+  pages = {565-570},
+  title = {Drag reduction by a forward facing aerospike for a large angle blunt
+	cone in high enthalpy flows},
+  publisher = {Springer Berlin Heidelberg},
+  year = {2009},
+  author = {Kulkarni,V. and Kulkarni,P. S. and Reddy,K. P. J.},
+  address = {Berlin, Heidelberg},
+  abstract = {Drag reduction studies are conducted using a flat disc tipped aerospike
+	for a 120-degree apex angle blunt cone model in high enthalpy flows.
+	Accelerometer based force balance is used for the drag force measurement
+	in the newly established free piston driven shock tunnel, HST3. Drag
+	reduction upto about 58 percent has been achieved for Mach 8 flow
+	of 5 MJ/kg specific enthalpy at zero degree angle of attack.},
+  isbn = {3540851674; 9783540851677},
+  keywords = {Engineering; Mechanics, Fluids, Thermodynamics; Engineering Fluid
+	Dynamics; Acoustics; Engineering Thermodynamics, Heat and Mass Transfer;
+	Automotive Engineering; Fluids},
+  language = {English},
+  owner = {Sambo},
+  timestamp = {2014.10.19},
+  url = {www.summon.com}
+}
+
+@INPROCEEDINGS{Kulkarni2007,
+  author = {Kulkarni, V and Kulkarni, P. S. and Reddy, K. P. J.},
+  title = {Drag reduction by a forward facing aerospike for a large angle blunt
+	cone in high enthalpy flows},
+  booktitle = {26th International Symposium on Shock Waves},
+  year = {2007},
+  volume = {1},
+  pages = {565-570},
+  address = {Gottingen, Germany},
+  month = {15-20 July},
+  publisher = {Springer-Verlag, Berlin, Heidelberg},
+  owner = {uqychan2},
+  timestamp = {2011.01.10}
+}
+
+@INBOOK{kun2011,
+  pages = {3-14},
+  title = {Large Scale Computations in Nuclear Engineering: CFD for Multiphase
+	Flows and DNS for Turbulent Flows with/without Magnetic Field},
+  publisher = {Springer Berlin Heidelberg},
+  year = {2011},
+  author = {Kunugi,Tomoaki and Satake,Shin-ichi and Ose,Yasuo and Yoshida,Hiroyuki
+	and Takase,Kazuyuki},
+  volume = {74},
+  address = {Berlin, Heidelberg},
+  abstract = {Large scale computations are being carried out in nuclear engineering
+	fields such as light water reactors, fast breeder reactors, high
+	temperature gas-cooled reactors and nuclear fusion reactors. The
+	computational fluid dynamics (CFD) regarding not only the single-phase
+	flows but also the two-phase flow plays an important role for the
+	developments of advanced nuclear reactor systems. In this review
+	paper, some examples of large scale computations in nuclear engineering
+	fields are illustrated by using a parallel visualization.},
+  isbn = {3642144373; 9783642144370},
+  keywords = {Fluid- and Aerodynamics; Appl.Mathematics/Computational Methods of
+	Engineering; Computational Science and Engineering; Theoretical,
+	Mathematical and Computational Physics; Mathematics},
+  language = {English},
+  owner = {Sambo},
+  timestamp = {2014.10.18},
+  url = {www.summon.com}
+}
+
+@TECHREPORT{Kussoy1992,
+  author = {Kussoy, M. I. and Horstman, K. C.},
+  title = {Intersecting shock-wave/turbulent boundary-layer interactions at
+	Mach 8.3},
+  institution = {NASA},
+  year = {1992},
+  number = {NASA TM 103909},
+  month = {February},
+  owner = {uqychan2},
+  timestamp = {2009.04.10}
+}
+
+@TECHREPORT{Kussoy1991,
+  author = {Kussoy, M. I. and Horstman, K. C.},
+  title = {Documentation of two- and three-dimensional shock-wave/turbulent-boundary-layer
+	interaction flows at Mach 8.2},
+  institution = {NASA},
+  year = {1991},
+  number = {NASA TM 103838},
+  month = {May},
+  owner = {uqychan2},
+  timestamp = {2009.04.10}
+}
+
+@ARTICLE{Ladeinde2010,
+  author = {Ladeinde, Foluso},
+  title = {Advanced computational-fluid-dynamics techniques for scramjet combustion
+	simulation},
+  journal = {AIAA Journal},
+  year = {2010},
+  volume = {48},
+  pages = {513-514},
+  number = {3},
+  month = {March},
+  owner = {uqychan2},
+  timestamp = {2011.01.09}
+}
+
+@ARTICLE{Ladeinde2010,
+  author = {Ladeinde, F.},
+  title = {Advanced Computational-Fluid-Dynamics Techniques for Scramjet Combustion
+	Simulation},
+  journal = {AIAA Journal},
+  year = {2010},
+  volume = {48},
+  pages = {513-514},
+  number = {3},
+  isbn = {0001-1452},
+  language = {English},
+  owner = {sambo},
+  timestamp = {2014.11.18}
+}
+
+@ARTICLE{Larin2001,
+  author = {Larin, O B and Levin, V A},
+  title = {Energy addition to a gas in a turbulent supersonic boundary layer},
+  journal = {Journal of Applied Mechanics and Technical Physics},
+  year = {2001},
+  volume = {42},
+  pages = {87-90},
+  number = {1},
+  owner = {uqychan2},
+  timestamp = {2008.09.01}
+}
+
+@INPROCEEDINGS{Levin2003,
+  author = {Levin, V A and Larin, O B},
+  title = {Skin-friction reduction by energy addition into a turbulent boundary
+	layer},
+  booktitle = {41st AIAA Aerospace Sciences Meeting and Exhibit},
+  year = {2003},
+  number = {AIAA 2003-0036},
+  address = {Reno, Nevada, USA},
+  month = {6-9 January},
+  organization = {American Institute of Aeronautics and Astronautics Inc.},
+  owner = {uqychan2},
+  timestamp = {2008.09.01}
+}
+
+@ARTICLE{Liou2006,
+  author = {Liou, Meng-Sing},
+  title = {A sequel to {AUSM}, Part {II}: AUSM{^+}-up for all speeds},
+  journal = {Journal of Computational Physics},
+  year = {2006},
+  volume = {214},
+  pages = {137-170},
+  owner = {uqychan2},
+  timestamp = {2010.12.31}
+}
+
+@TECHREPORT{Lordi1966,
+  author = {Lordi, J. A. and Mates, R. E. and Moselle, J. R.},
+  title = {Computer program for the numerical simulation of non-equilibrium
+	expansions of reaction gas mixtures},
+  institution = {Cornell Aeronautical Laboratory, Inc., Buffalo, NY},
+  year = {1966},
+  type = {{NASA} {C}ontractor {R}eport},
+  number = {NASA-CR-472},
+  owner = {uqychan2},
+  timestamp = {2010.06.12}
+}
+
+@PHDTHESIS{Lu1988,
+  author = {Lu, F. K.},
+  title = {Mach number effects on fin-generated shock-wave boundary layer interactions},
+  school = {Pennsylvania State University},
+  year = {1988},
+  type = {{P}h{D} Thesis},
+  address = {University Park, PA},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  timestamp = {2008.07.23}
+}
+
+@PHDTHESIS{lu1988,
+  author = {Lu,Frank K.},
+  title = {Fin generated shock wave boundary-layer interactions},
+  school = {M.E. Dept., Penn State University},
+  year = {1988},
+  type = {Ph.D. Dissertation},
+  month = {May},
+  journal = {Ph.D. Dissertation, M.E. Dept., Penn State University},
+  keywords = {Applied sciences; Mechanical engineering},
+  language = {English},
+  owner = {Sambo},
+  timestamp = {2014.10.05},
+  url = {www.summon.com}
+}
+
+@ARTICLE{Macrossan1989,
+  author = {Macrossan, Michael N.},
+  title = {The equilibrium flux method for the calculation of flows with non-equilibrium
+	chemical-reactions},
+  journal = {Journal of Computational Physics},
+  year = {1989},
+  volume = {80},
+  pages = {204-231},
+  number = {1},
+  month = {January},
+  owner = {uqychan2},
+  timestamp = {2011.01.09}
+}
+
+@ARTICLE{Mallinson2000,
+  author = {Mallinson, S. G. and Hillier, R. and Jackson, A. P. and Kirk, D.
+	C. and Soltani, S. and Zanchetta, M.},
+  title = {Gun tunnel flow calibration: defining input conditions for hypersonic
+	flow computations},
+  journal = {Shock Waves},
+  year = {2000},
+  volume = {10},
+  pages = {313-322},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@ARTICLE{Marren2001,
+  author = {Marren, Dan and Lewis, Mark and Lourdes, Maurice Q.},
+  title = {Experimentation, test, and evaluation requirements for future airbreathing
+	hypersonic systems},
+  journal = {Journal of Propulsion and Power},
+  year = {2001},
+  volume = {17},
+  pages = {1361-1365},
+  number = {6},
+  month = {November-December},
+  owner = {uqychan2},
+  timestamp = {2011.01.19}
+}
+
+@ARTICLE{Mathew2010,
+  author = {Mathew, J.},
+  title = {Large Eddy Simulation},
+  journal = {Defence Science Journal},
+  year = {2010},
+  volume = {60},
+  number = {6},
+  isbn = {0011-748X},
+  keywords = {Computational fluid dynamics; large eddy simulation; turbulent flow},
+  language = {English},
+  owner = {sambo},
+  timestamp = {2014.11.18}
+}
+
+@TECHREPORT{McBride2002,
+  author = {McBride, B. J. and Zehe, M. J. and Gordon, S.},
+  title = {{NASA} Glenn coefficients for calculating thermodynamic properties
+	of individual species},
+  institution = {NASA John H. Glenn Research Center at Lewis Field},
+  year = {2002},
+  type = {{NASA} {T}echnical {P}aper},
+  number = {NASA-TP-2002-211556},
+  address = {Cleveland, Ohio},
+  month = sep,
+  abstract = {.},
+  owner = {uqychan2},
+  timestamp = {2010.06.12}
+}
+
+@INPROCEEDINGS{McDaniel1991,
+  author = {McDaniel, J C and Fletcher, D G and Hartfield, J R J and Hollo, S
+	D},
+  title = {Staged transverse injection into Mach 2 flow behind a rearward-facing
+	step: A 3-D compressible test case for hypersonic combustor code
+	validation},
+  booktitle = {AIAA 3rd International Aerospace Planes Conference},
+  year = {1991},
+  number = {AIAA-91-5071},
+  address = {Orlando, Florida},
+  month = {3-5 December},
+  organization = {American Institute of Aeronautics and Astronautics Inc.},
+  owner = {uqychan2},
+  timestamp = {2010.01.14}
+}
+
+@ARTICLE{mcgil20091,
+  author = {McGilvray,M. and Austin,J. M. and Sharma,M. and Jacobs,P. A. and
+	Morgan,R. G.},
+  title = {Diagnostic modelling of an expansion tube operating condition},
+  journal = {Shock Waves},
+  year = {2009},
+  volume = {19},
+  pages = {59-66},
+  number = {1},
+  abstract = {Computational simulations of an expansion tube were conducted to estimate
+	flow parameters and verify experimental uncertainties. Two types
+	of simulations of the complete facility were undertaken: a one-dimensional
+	simulation, and a hybrid simulation where a one-dimensional simulation
+	of the shock tube section was coupled with a two-dimensional simulation
+	of the acceleration tube. Good agreement between the one-dimensional
+	simulations and experiments were obtained in the shock tube portion
+	of the facility. In the acceleration section, initial two-dimensional
+	simulations did not match the experimentally measured pitot pressure
+	and showed a discrepancy in the shock speed. Further studies examined
+	how the accelerator gas composition affected shock speed, static
+	pressure and pitot pressure levels in expansion tube operation. Subsequent
+	two-dimensional simulations, using an 8% level of air contamination
+	in helium, showed reasonable agreement with experimental data. This
+	prediction of air contamination was later confirmed with experimental
+	measurements of the air partial pressure before operation.; Computational
+	simulations of an expansion tube were conducted to estimate flow
+	parameters and verify experimental uncertainties. Two types of simulations
+	of the complete facility were undertaken: a one-dimensional simulation,
+	and a hybrid simulation where a one-dimensional simulation of the
+	shock tube section was coupled with a two-dimensional simulation
+	of the acceleration tube. Good agreement between the one-dimensional
+	simulations and experiments were obtained in the shock tube portion
+	of the facility. In the acceleration section, initial two-dimensional
+	simulations did not match the experimentally measured pitot pressure
+	and showed a discrepancy in the shock speed. Further studies examined
+	how the accelerator gas composition affected shock speed, static
+	pressure and pitot pressure levels in expansion tube operation. Subsequent
+	two-dimensional simulations, using an 8% level of air contamination
+	in helium, showed reasonable agreement with experimental data. This
+	prediction of air contamination was later confirmed with experimental
+	measurements of the air partial pressure before operation.},
+  isbn = {0938-1287},
+  keywords = {Hypersonic; Engineering; Thermodynamics; Engineering Fluid Dynamics;
+	Acoustics; Engineering Thermodynamics, Heat and Mass Transfer; Condensed
+	Matter; Ground testing; Expansion tube; Fluids; Aerospace engineering;
+	Computer-generated environments; Universities and colleges; Computer
+	simulation; Hypersonic planes; Models},
+  language = {English},
+  owner = {Sambo},
+  timestamp = {2014.10.19},
+  url = {www.summon.com}
+}
+
+@ARTICLE{McGilvray2009,
+  author = {McGilvray, Matthew and Austin, J. M. and Sharma, M. and Jacobs, Peter
+	A. and Morgan, Richard G.},
+  title = {Diagnostic modelling of an expansion tube operating condition},
+  journal = {Shock Waves},
+  year = {2009},
+  volume = {19},
+  pages = {59-66},
+  number = {1},
+  owner = {uqychan2},
+  timestamp = {2011.01.10}
+}
+
+@ARTICLE{mcgil20092,
+  author = {McGilvray,Matthew and Jacobs,Peter A. and Morgan,Richard G. and Gollan,Rowan
+	J. and Jacobs,Carolyn M.},
+  title = {Helmholtz Resonance of Pitot Pressure Measurements in Impulsive Hypersonic
+	Test Facilities},
+  journal = {AIAA Journal},
+  year = {2009},
+  volume = {47},
+  pages = {2430-2439},
+  number = {10},
+  abstract = {Experimental pitot pressure measurements in impulse facilities have
+	typically had large-scale harmonic fluctuations associated with them.
+	A combined experimental and numerical approach is used to investigate
+	if a Helmholtz resonance is created from the shrouding that protects
+	the pressure sensor from particle impact, rather than from disturbances
+	being present in the freestream. To verify this experimentally, hydraulic
+	oil was used to change the sound speed in the cavity. Numerical calculations
+	of the pitot probe were used to show that both the steady and the
+	expected transient inflow cause a Helmholtz resonance of similar
+	period. However, a 5 % isothermal level of freestream noise was required
+	to match the experimental fluctuation levels. Viscous effects were
+	also shown to be significant during the initial transient response
+	of the pressure measurement. A new pitot probe design was successfully
+	tested and shown to be able to reduce the magnitude and period of
+	the fluctuations.;   Experimental pitot pressure measurements in
+	impulse facilities have typically had large-scale harmonic fluctuations
+	associated with them. A combined experimental and numerical approach
+	is used to investigate if a Helmholtz resonance is created from the
+	shrouding that protects the pressure sensor from particle impact,
+	rather than from disturbances being present in the freestream. To
+	verify this experimentally, hydraulic oil was used to change the
+	sound speed in the cavity. Numerical calculations of the pitot probe
+	were used to show that both the steady and the expected transient
+	inflow cause a Helmholtz resonance of similar period. However, a
+	5% isothermal level of freestream noise was required to match the
+	experimental fluctuation levels. Viscous effects were also shown
+	to be significant during the initial transient response of the pressure
+	measurement. A new pitot probe design was successfully tested and
+	shown to be able to reduce the magnitude and period of the fluctuations.
+	[PUBLICATION ABSTRACT];   Experimental pitot pressure measurements
+	in impulse facilities have typically had large-scale harmonic fluctuations
+	associated with them. A combined experimental and numerical approach
+	is used to investigate if a Helmholtz resonance is created from the
+	shrouding that protects the pressure sensor from particle impact,
+	rather than from disturbances being present in the freestream. To
+	verify this experimentally, hydraulic oil was used to change the
+	sound speed in the cavity. Numerical calculations of the pitot probe
+	were used to show that both the steady and the expected transient
+	inflow cause a Helmholtz resonance of similar period. However, a
+	5% isothermal level of freestream noise was required to match the
+	experimental fluctuation levels. Viscous effects were also shown
+	to be significant during the initial transient response of the pressure
+	measurement. A new pitot probe design was successfully tested and
+	shown to be able to reduce the magnitude and period of the fluctuations.
+	[PUBLICATION ABSTRACT]},
+  isbn = {0001-1452},
+  keywords = {Measuring instruments; Aircraft; Aerodynamics; Pressure measurement;
+	Measurement; Sensors; Resonance; Methods; Design and construction;
+	Research; Pressure},
+  language = {English},
+  owner = {Sambo},
+  timestamp = {2014.10.19},
+  url = {www.summon.com}
+}
+
+@ARTICLE{McGilvray2009a,
+  author = {McGilvray, Matthew and Jacobs, Peter A. and Morgan, Richard G. and
+	Gollan, Rowan J. and Jacobs, Carolyn M.},
+  title = {Helmholtz resonance of pitot pressure measurements in impulsive hypersonic
+	test facilities},
+  journal = {AIAA Journal},
+  year = {2009},
+  volume = {47},
+  pages = {2430-2439},
+  owner = {uqychan2},
+  timestamp = {2011.01.10}
+}
+
+@ARTICLE{mcgil2010,
+  author = {McGilvray,Matthew and Morgan,Richard G. and Jacobs,Peter A.},
+  title = {Scramjet Experiments in an Expansion Tunnel: Evaluated Using a Quasi-Steady
+	Analysis Technique},
+  journal = {AIAA Journal},
+  year = {2010},
+  volume = {48},
+  pages = {1635-1646},
+  number = {8},
+  abstract = {  As scramjet engine development moves toward higher and higher speeds,
+	it will be important to continue to ground test complete nose-to-tail
+	configurations at true flight conditions. Above Mach 10, the freestream
+	total pressure requirements can only be met by an expansion-tube
+	facility. To establish the practicality of ground-testing complete
+	scramjet configurations at high Mach numbers, an expansion-tunnel
+	facility is used to test a generic two-dimensional scramjet at a
+	Mach 10 replication condition. As the flow produced in an expansion-tube
+	facility is transient in nature, a method for analyzing point measurements
+	within the scramjet is developed. A transient numerical simulation
+	of the engine configuration without fuel injection is used to verify
+	the validity of the technique, as well as to provide a reference
+	data set for comparison to experimental data. These experiments show
+	that stable supersonic combustion is established during the test
+	time. Using the developed transient analysis, accurate quasi-steady
+	pressure data at true flight conditions can be inferred from scramjet
+	test measurements in an expansion-tube facility. [PUBLICATION ABSTRACT];
+	  As scramjet engine development moves toward higher and higher
+	speeds, it will be important to continue to ground test complete
+	nose-to-tail configurations at true flight conditions. Above Mach
+	10, the freestream total pressure requirements can only be met by
+	an expansion-tube facility. To establish the practicality of ground-testing
+	complete scramjet configurations at high Mach numbers, an expansion-tunnel
+	facility is used to test a generic two-dimensional scramjet at a
+	Mach 10 replication condition. As the flow produced in an expansion-tube
+	facility is transient in nature, a method for analyzing point measurements
+	within the scramjet is developed. A transient numerical simulation
+	of the engine configuration without fuel injection is used to verify
+	the validity of the technique, as well as to provide a reference
+	data set for comparison to experimental data. These experiments show
+	that stable supersonic combustion is established during the test
+	time. Using the developed transient analysis, accurate quasi-steady
+	pressure data at true flight conditions can be inferred from scramjet
+	test measurements in an expansion-tube facility. [PUBLICATION ABSTRACT];
+	As scramjet engine development moves toward higher and higher speeds,
+	it will be important to continue to ground test complete nose-to-tail
+	configurations at true flight conditions. Above Mach 10, the freestream
+	total pressure requirements can only be met by an expansion-tube
+	facility. To establish the practicality of ground-testing complete
+	scramjet configurations at high Mach numbers, an expansion-tunnel
+	facility is used to test a generic two-dimensional scramjet at a
+	Mach 10 replication condition. As the flow produced in an expansion-tube
+	facility is transient in nature, a method for analyzing point measurements
+	within the scram jet is developed. A transient numerical simulation
+	of the engine configuration without fuel injection is used to verify
+	the validity of the technique, as well as to provide a reference
+	data set for comparison to experimental data. These experiments show
+	that stable supersonic combustion is established during the test
+	time. Using the developed transient analysis, accurate quasi-steady
+	pressure data at true flight conditions can be inferred from scram
+	jet test measurements in an expansion-tube facility.},
+  isbn = {0001-1452},
+  keywords = {Wind tunnels; Aerospace engineering; Experiments; Aircraft; Aerodynamics;
+	Analysis; Research; Design and construction; Scramjet engines; Transients
+	(Dynamics)},
+  language = {English},
+  owner = {Sambo},
+  timestamp = {2014.10.19},
+  url = {www.summon.com}
+}
+
+@ARTICLE{McGilvray2010,
+  author = {McGilvray, Matthew and Morgan, Richard G. and Jacobs, Peter A.},
+  title = {Scramjet experiments in an expansion tunnel: {E}valuated using a
+	quasi-steady analysis},
+  journal = {AIAA Journal},
+  year = {2010},
+  volume = {48},
+  pages = {1635-1646},
+  number = {8},
+  owner = {uqychan2},
+  timestamp = {2011.01.10}
+}
+
+@TECHREPORT{McIntosh1968,
+  author = {McIntosh, M. K.},
+  title = {Computer program for the numerical calculation of frozen and equilibrium
+	conditions in shock tunnels},
+  institution = {Department of Physics, Australian National University},
+  year = {1968},
+  type = {{Departmental Report}},
+  address = {Canberra, Australia},
+  owner = {uqychan2},
+  timestamp = {2010.06.12}
+}
+
+@ARTICLE{Mee2003,
+  author = {Mee, David J.},
+  title = {Dynamic calibration of force balances for impulse hypersonic facilities},
+  journal = {Shock Waves},
+  year = {2003},
+  volume = {12},
+  pages = {443-455},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@TECHREPORT{Mee2002,
+  author = {Mee, David J.},
+  title = {Dynamic calibration of force balances},
+  institution = {The University of Queensland},
+  year = {2002},
+  type = {Department of Mechanical Engineering Research Report},
+  number = {2002/6},
+  month = {June},
+  comment = {Thrust / Drag Measurement},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This article is the first paper reporting on the stress wave force
+	balance for measuring overall skin friction drag. Although the modified
+	stress wave force balance reported in Tanno's and Rowan's papers
+	are the models that are relevant (and will be used) in my project,
+	this paper still provides a fundamental idea of how the force balance
+	works. Please read.},
+  timestamp = {2008.07.23}
+}
+
+@TECHREPORT{Mee1993,
+  author = {Mee, David J.},
+  title = {Uncertainty analysis of conditions in the test section of the T4
+	shock tunnel},
+  institution = {The University of Queensland},
+  year = {1993},
+  type = {Department of Mechanical Engineering Research Report},
+  number = {4/93},
+  comment = {Thrust / Drag Measurement},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This article is the first paper reporting on the stress wave force
+	balance for measuring overall skin friction drag. Although the modified
+	stress wave force balance reported in Tanno's and Rowan's papers
+	are the models that are relevant (and will be used) in my project,
+	this paper still provides a fundamental idea of how the force balance
+	works. Please read.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Menter1994,
+  author = {Menter, F. R.},
+  title = {Two-equation eddy-viscosity turbulence models for engineering applications},
+  journal = {AIAA Journal},
+  year = {1994},
+  volume = {32},
+  pages = {1598-1605},
+  number = {8},
+  month = {August},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@INPROCEEDINGS{Moore1999,
+  author = {Moore, Joan G. and Moore, John},
+  title = {Realizability in two-equation turbulence models},
+  booktitle = {30th AIAA Fluid Dynamics Conference},
+  year = {1999},
+  number = {AIAA-99-2779},
+  address = {Norfolk, VA},
+  month = {28 June - 1 July},
+  organization = {American Institute of Aeronautics and Astronautics Inc.},
+  owner = {uqychan2},
+  timestamp = {2011.01.10}
+}
+
+@TECHREPORT{Morgan1988,
+  author = {Morgan, R.G. and A. Paull, R.J. Stalker, P. Jacobs, N. Morris, I.
+	Stringer, C.},
+  title = {Shock tunnel studies of scramjet phenomena},
+  institution = {NASA Langley Research Center},
+  year = {1988},
+  type = {Contractor Report},
+  number = {NASA CR 181721},
+  month = {September},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= NO
+	
+	
+	## REVIEW -
+	
+	 This paper belongs to a set of continual updates of the 1988 work
+	carried out at the Centre 
+	
+	for Hypersonics at UQ.
+	
+	
+	 This paper is a good review of scramjet and shock tunnel related
+	experiments performed at 
+	
+	the University of Queensland, Australia.},
+  timestamp = {2008.07.23}
+}
+
+@INPROCEEDINGS{Morgan1967,
+  author = {Morgan, R G and Casey, R},
+  title = {Supersonic combustion with transverse circular wall jets},
+  booktitle = {ISABE Conference Proceeding},
+  year = {1967},
+  number = {91-7131},
+  pages = {1211-1218},
+  publisher = {ISABE},
+  comment = {Fuel Injection},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper involved experiments with a transverse discrete circular
+	wall jets in supersonic 
+	
+	combustion. Experiments showed that inclined circular fuel injection
+	can be effective for 
+	
+	supersonic & hypersonic combustions.
+	
+	
+	 Significant points relating to fuel injection that could be inferred
+	from this paper 
+	
+	includes: 
+	
+	 - Width to height aspect ratio of 2:1 is recommended, though changing
+	it to 1:1 doesn't 
+	
+	seem to affect the results much.
+	
+	 - With closer holes, there appears to be better combustion-induced
+	pressure rise.},
+  timestamp = {2008.07.23}
+}
+
+@TECHREPORT{Morgan1997,
+  author = {R. G. Morgan and A. Paull and R J. Stalker},
+  title = {Shock tunnel studies of scramjet phenomena 1994 - Supplements 11
+	\& 12},
+  institution = {NASA Langley Research Center},
+  year = {1997},
+  type = {Contractor Report},
+  number = {NASA CR 201693},
+  month = {April},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= NO
+	
+	## REVIEW -
+	
+	 This paper belongs to a set of continual updates of the 1988 work
+	carried out at the Centre 
+	
+	for Hypersonics at UQ.
+	
+	
+	 This paper is a good review of scramjet and shock tunnel related
+	experiments performed at 
+	
+	the University of Queensland, Australia.},
+  timestamp = {2008.07.23}
+}
+
+@TECHREPORT{Morgan1997a,
+  author = {R. G. Morgan and R. J. Stalker and A. Paull},
+  title = {Shock tunnel studies of scramjet phenomena 1995 - Supplement 13},
+  institution = {NASA Langley Research Center},
+  year = {1997},
+  type = {Contractor Report},
+  number = {NASA CR 201694},
+  month = {April},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= NO
+	
+	
+	## REVIEW -
+	
+	 This paper belongs to a set of continual updates of the 1995 work
+	carried out at the Centre 
+	
+	for Hypersonics at UQ.
+	
+	
+	 This paper is a good review of scramjet and shock tunnel related
+	experiments performed at 
+	
+	the University of Queensland, Australia.},
+  timestamp = {2008.07.23}
+}
+
+@TECHREPORT{Morgenthaler1967,
+  author = {Morgenthaler, J.H.},
+  title = {Supersonic mixing of hydrogen and air},
+  institution = {NASA (also John Hopkins University)},
+  year = {1967},
+  type = {Contractor Report},
+  number = {NASA CR 747},
+  month = {April},
+  comment = {Fuel Injection},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper reports experiments involving both radial and axial (or
+	tangential) injection 
+	
+	with similar inlet mass flow rates. Like the numerical modelling done
+	by Brescianini & Morgan 
+	
+	(1993), it appeared that radial injection produces better mainstream
+	penetration and mixing 
+	
+	than the axial case. Also, experiments seem to show that for a particular
+	equivalence ratio, 
+	
+	there seems to be little effect of air inlet Mach number.},
+  timestamp = {2008.07.23}
+}
+
+@BOOK{Murty1975,
+  title = {Introduction to combustion phenomena},
+  publisher = {Gordon and Breach},
+  year = {1975},
+  author = {Murty, Kanury A},
+  address = {New York, USA},
+  comment = {Combustion},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES 
+	
+	
+	## REVIEW -
+	
+	 This book is recommended by A/Prof David Mee for issues related to
+	combustion.},
+  timestamp = {2008.07.23}
+}
+
+@PHDTHESIS{Nap2007,
+  author = {Nap, Jan Pieter},
+  title = {Implementing the Wilcox 2006 k-omega turbulence model in MBCNS2},
+  school = {The University of Queensland},
+  year = {2007},
+  type = {Internship report},
+  address = {Queensland, Australia},
+  month = {February},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@INPROCEEDINGS{OByrne2008,
+  author = {O'Byrne, Sean and Wittig, Sven},
+  title = {Measurement of hypersonic inlet flow using diode laser absorption
+	spectroscopy},
+  booktitle = {Proceedings of the 8th Australian Space Science Conference},
+  year = {2008},
+  pages = {68-75},
+  address = {Canberra, Australia},
+  month = {29 September - 1 October},
+  publisher = {National Space Society of Australia Ltd},
+  owner = {uqychan2},
+  timestamp = {2011.01.10}
+}
+
+@ARTICLE{O'Connor1992,
+  author = {O'Connor, John P and Haji-Sheikh, A},
+  title = {Numerical study of film cooling in supersonic flow},
+  journal = {AIAA Journal},
+  year = {1992},
+  volume = {30},
+  pages = {2426-2433},
+  number = {10},
+  month = {October},
+  owner = {uqychan2},
+  timestamp = {2008.09.11}
+}
+
+@INPROCEEDINGS{Overton1994,
+  author = {Overton, S. and Mee, D. J.},
+  title = {{T}4's {M}5 and {M}8 nozzle pitot rake survey},
+  booktitle = {The 4th International Workshop on Shock Tube Technology Proceedings},
+  year = {1994},
+  editor = {Paull, Allan},
+  address = {Brisbane, Australia},
+  month = {20-23 September},
+  owner = {uqychan2},
+  timestamp = {2009.05.28}
+}
+
+@ARTICLE{Parent2004,
+  author = {Parent, Bernard and Sislian, Jean Pascal},
+  title = {Validation of Wilcox k-omega model for flows characteristic to hypersonic
+	airbreathing propulsion},
+  journal = {AIAA Journal},
+  year = {2004},
+  volume = {42},
+  pages = {261-270},
+  number = {2},
+  month = {February},
+  owner = {uqychan2},
+  timestamp = {2011.01.09}
+}
+
+@ARTICLE{Parthasarathy1970,
+  author = {Parthasarathy, K and Zakkay, V.},
+  title = {An experimental investigation of turbulent slot injection at Mach
+	6},
+  journal = {AIAA Journal},
+  year = {1970},
+  volume = {8},
+  pages = {1302-1307},
+  number = {7},
+  month = {July},
+  owner = {uqychan2},
+  timestamp = {2008.08.25}
+}
+
+@ARTICLE{Paull1995,
+  author = {Paull, A and Stalker, RJ and Mee, DJ},
+  title = {Experiments on supersonic combustion ramjet propulsion in a shock
+	tunnel},
+  journal = {Journal of Fluid Mechanics},
+  year = {1995},
+  volume = {296},
+  pages = {159-183},
+  comment = {Scramjets},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper describes scramjet testing conducted in T4 with the SWFB.
+	It has some interesting 
+	
+	
+	points in its content, particularly the ones highlighting the significance
+	of viscous drag in 
+	
+	
+	the performance of high speed airbreathing engines.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Pecnik2012,
+  author = {Pecnik, R. and Terrapon, V. E. and Ham, F. and Laccarino, G. and
+	Pitsch, H.},
+  title = {Reynolds-Averaged Navier-Stokes Simulations of the HyShot II Scramjet},
+  journal = {AIAA Journal},
+  year = {2012},
+  volume = {50},
+  pages = {1717-1732},
+  number = {8},
+  isbn = {0001-1452},
+  keywords = {Aerospace engineering; Sensitivity analysis; Turbulence models; Aircraft;
+	Kinetics; Gaussian distribution; Reynolds number; Simulation methods},
+  language = {English},
+  owner = {sambo},
+  timestamp = {2014.11.18}
+}
+
+@BACHELORSTHESIS{Peterson2005,
+  author = {Peterson, Brett},
+  title = {Scramjet inlets with a rectangular to circular shape transition},
+  school = {The University of Queensland},
+  year = {2005},
+  type = {{BE}ng Thesis},
+  address = {Queensland, Australia},
+  comment = {REST inlets},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Pope1978,
+  author = {Pope, S. B.},
+  title = {An explanation of the turbulent round-jet/plane-jet anomaly},
+  journal = {AIAA Journal},
+  year = {1978},
+  volume = {16},
+  pages = {279-281},
+  number = {3},
+  month = {March},
+  owner = {uqychan2},
+  timestamp = {2010.03.26}
+}
+
+@BOOK{Probstein1961,
+  title = {Introduction to hypersonic flow / translated and edited by Ronald
+	F.},
+  publisher = {Academic Press},
+  year = {1961},
+  author = {Ronald F. Probstein},
+  address = {New York, USA},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= NO (TL574.F5 C37 1961 UQ-PSE)
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Pros2012,
+  author = {Prospathopoulos, J. M. and Politis, E. S. and Chaviaropoulos, P.
+	K.},
+  title = {Application of a 3D RANS solver on the complex hill of Bolund and
+	assessment of the wind flow predictions},
+  journal = {Journal of Wind Engineering and Industrial Aerodynamics},
+  year = {2012},
+  volume = {107-108},
+  pages = {149-159},
+  owner = {Sambo},
+  timestamp = {2014.08.27}
+}
+
+@TECHREPORT{Pulsonetti1995,
+  author = {Pulsonetti, Maria V.},
+  title = {The purpose of scramjets},
+  institution = {The University Of Queensland},
+  year = {1995},
+  type = {Mechanical Engineering Departmental Report},
+  number = {1995/5},
+  month = {June},
+  comment = {Scramjets},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This report is an interesting and brief introductory report for scramjets.
+	This report is 
+	
+	
+	only suited as a really brief introduction for people completely new
+	to the hypersonics field.
+	
+	
+	 Most details of this report can be found in the opening chapter of
+	Anderson's "Hypersonic & 
+	
+	
+	High Temperature Gas Dynamics" book. This report also includes some
+	introduction on the topic 
+	
+	
+	of specific impulse and scramjet fuel injection types.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Edwards1998,
+  author = {Edwards. Jack R. and Liou, Meng-Sing},
+  title = {Low-diffusion flux-splitting methods for flows at all speeds},
+  journal = {AIAA Journal},
+  year = {1998},
+  volume = {36},
+  pages = {1610-1617},
+  number = {9},
+  month = {September},
+  owner = {uqychan2},
+  timestamp = {2010.12.31}
+}
+
+@BOOK{Rasmussen1994,
+  title = {Hypersonic flow},
+  publisher = {Wiley},
+  year = {1994},
+  author = {Rasmussen, Maurice and Boyd, David Ross},
+  address = {New York, USA},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= NO (TL571.5 .R37 1994 UQ-PSE)
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Rhie1983,
+  author = {Rhie, C. M. and Chow, W. L.},
+  title = {Numerical study of the turbulent flow past an airfoil with trailing
+	edge separation},
+  journal = {AIAA Journal},
+  year = {1983},
+  volume = {21},
+  pages = {1525-1532},
+  number = {11},
+  month = {November},
+  owner = {uqychan2},
+  timestamp = {2010.12.31}
+}
+
+@MISC{Ridings2008,
+  author = {Ridings, A. N.},
+  title = {Personal communication},
+  year = {2008},
+  owner = {uqychan2},
+  timestamp = {2008.09.23}
+}
+
+@PHDTHESIS{Ridings2007,
+  author = {Ridings, A N},
+  title = {Scramjet experiments using divergent circular combustors},
+  school = {The University of Queensland},
+  year = {2007},
+  type = {Confirmation of candidature report},
+  address = {Queensland, Australia},
+  month = {November},
+  owner = {uqychan2},
+  timestamp = {2008.08.11}
+}
+
+@BOOK{Roache1998,
+  title = {Verification and validation in computational science and engineering},
+  publisher = {Hermosa Publishers},
+  year = {1998},
+  author = {Roache, Patrick J.},
+  owner = {uqychan2},
+  timestamp = {2010.03.25}
+}
+
+@PHDTHESIS{Rowan2003,
+  author = {Rowan, Scott A},
+  title = {Viscous drag reduction in a scramjet combustor},
+  school = {The University of Queensland},
+  year = {2003},
+  type = {{P}h{D} Thesis},
+  address = {Queensland, Australia},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This thesis is one of the UQ's collections of 'skin friction reduction
+	by boundary layer 
+	
+	
+	combustion' papers. It also contains information on the stress wave
+	force balance for measuring 
+	
+	
+	overall skin friction drag, which I will be using on my PhD project.
+	Please read.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Rowan2006,
+  author = {Rowan, Scott A. and Paull, Allan},
+  title = {Performance of a scramjet combustor with combined normal and tangential
+	fuel injection},
+  journal = {Journal of Propulsion and Power},
+  year = {2006},
+  volume = {22},
+  pages = {1334-1338},
+  number = {6},
+  month = {November - December},
+  owner = {uqychan2},
+  timestamp = {2008.09.02}
+}
+
+@INPROCEEDINGS{Rowan2005,
+  author = {Rowan, Scott A and Paull, Allan},
+  title = {Performance of a scramjet combustor with combined normal and tangential
+	fuel injection},
+  booktitle = {43rd AIAA Aerospace Sciences Meeting and Exhibit},
+  year = {2005},
+  number = {AIAA 2005-615},
+  address = {Reno, Nevada},
+  month = {10-13 January},
+  organization = {American Institute of Aeronautics and Astronautics Inc.},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@ARTICLE{Roy2006,
+  author = {Roy, Christopher J. and Blottner, Frederick G.},
+  title = {Review and assessment of turbulence models for hypersonic flows},
+  journal = {Progress in Aerospace Sciences},
+  year = {2006},
+  volume = {42},
+  pages = {469�530},
+  owner = {uqychan2},
+  timestamp = {2008.11.06}
+}
+
+@ARTICLE{Roy2003,
+  author = {Roy, Christopher J. and Blottner, Frederick G.},
+  title = {Methodology for turbulence model validation: Application to hypersonic
+	flows},
+  journal = {Journal of Spacecraft and Rockets},
+  year = {2003},
+  volume = {40},
+  pages = {313-325},
+  number = {3},
+  month = {May-June},
+  owner = {uqychan2},
+  timestamp = {2010.03.25}
+}
+
+@ELECTRONIC{Rumsey2013,
+  author = {Rumsey, C.},
+  year = {2013},
+  title = {Turbulence Modelling Resource},
+  organization = {NASA Langley Research Center},
+  url = {http://turbmodels.larc.nasa.gov/index.html},
+  journal = {NASA Langley Research Center},
+  owner = {Sambo},
+  timestamp = {2014.08.27}
+}
+
+@ARTICLE{Sanderson1991,
+  author = {Sanderson, SR and Simmons, JM},
+  title = {Drag balance for hypervelocity impulse facilities},
+  journal = {AIAA Journal},
+  year = {1991},
+  volume = {29},
+  pages = {2185-2191},
+  number = {12},
+  month = {December},
+  comment = {Thrust / Drag Measurement},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This article is the first paper reporting on the stress wave force
+	balance for measuring overall skin friction drag. Although the modified
+	stress wave force balance reported in Tanno's and Rowan's papers
+	are the models that are relevant (and will be used) in my project,
+	this paper still provides a fundamental idea of how the force balance
+	works. Please read.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Schetz1967,
+  author = {Schetz, J.A. and Gilreath, H.E.},
+  title = {Tangential slot injection in supersonic flow},
+  journal = {AIAA Journal},
+  year = {1967},
+  volume = {5},
+  pages = {2149-2154},
+  number = {12},
+  month = {December},
+  comment = {Fuel Injection},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	## REVIEW -
+	
+	 This paper investigates a subsonic tangential slot H2 injection into
+	a parallel supersonic 
+	
+	flow. It contains some interesting shadowgraphs and inteferograms
+	of the flowfield during 
+	
+	injection. It also claims in the paper to have an excellent analytical
+	prediction of the 
+	
+	turbulent mixing process.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{schetz2009,
+  author = {Schetz, J. and Neel, R. and Viti, V.},
+  title = {Detailed flow physics of the supersonic jet interaction flow field},
+  journal = {Physics of Fluids},
+  year = {2009},
+  volume = {21},
+  pages = {046101-046101-16},
+  number = {4},
+  isbn = {1070-6631},
+  keywords = {PHYSICS, FLUIDS & PLASMAS; INJECTION; shock waves; numerical analysis;
+	flow visualisation; external flows; jets; supersonic flow; boundary
+	layer turbulence; STRESS TURBULENCE MODEL; Mach number; MECHANICS;
+	Navier-Stokes equations; flow separation; CROSS-FLOW; flow simulation;
+	PRESSURE; vortices},
+  language = {English},
+  owner = {sambo},
+  timestamp = {2014.10.03},
+  url = {www.summon.com}
+}
+
+@BOOK{Schultz1973,
+  title = {Heat-transfer measurements in short-duration hypersonic facilities},
+  publisher = {Neuilly Sur Seine, France : Advisory Group for Aerospace Research
+	\& Development, North Atlantic Treaty Organization},
+  year = {1973},
+  author = {Schultz, D. L. and Jones, T. V.},
+  owner = {uqychan2},
+  timestamp = {2010.03.25}
+}
+
+@INBOOK{segal2009,
+  chapter = {3},
+  pages = {35-61},
+  title = {High-Temperature Gas Dynamics and Hypersonic Effects},
+  publisher = {Cambridge Books Online},
+  year = {2009},
+  author = {Segal,Corin},
+  isbn = {9780521838153; 0521838150},
+  keywords = {Aerospace engineering; Thermal-fluids engineering; Engineering},
+  language = {English},
+  owner = {Sambo},
+  timestamp = {2014.10.08},
+  url = {www.summon.com}
+}
+
+@ARTICLE{settles1991,
+  author = {Settles, G and Dodson, L},
+  title = {Hypersonic Shock/Boundary-Layer Interaction Database},
+  journal = {NASA Contractor Report},
+  year = {1991},
+  volume = {NAG2-565},
+  pages = {128-131},
+  number = {177577},
+  owner = {Sambo},
+  timestamp = {2014.10.05}
+}
+
+@BOOK{Shapiro1954,
+  title = {The dynamics and thermodynamics of compressible fluid flow - Volume
+	2},
+  publisher = {Ronald Press Co.},
+  year = {1954},
+  author = {Shapiro, Ascher Herman},
+  volume = {2},
+  address = {New York, USA},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= NO (QA913 .S497 1953-54 V.2 UQ-PSE)
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@BOOK{Shapiro1953,
+  title = {The dynamics and thermodynamics of compressible fluid flow - Volume
+	1},
+  publisher = {Ronald Press Co.},
+  year = {1953},
+  author = {Shapiro, Ascher Herman},
+  volume = {1},
+  address = {New York, USA},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= NO (QA913 .S497 1953-54 V.2 UQ-PSE)
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ELECTRONIC{Slater2012,
+  author = {Slater, J. W.},
+  month = {Feb.},
+  year = {2012},
+  title = {{NPARC} Alliance Verification and Validation Archive},
+  organization = {National Aeronautics and Space Administration},
+  url = {http://www.grc.nasa.gov/WWW/wind/valid/archive.html},
+  owner = {Sambo},
+  timestamp = {2014.08.27}
+}
+
+@ARTICLE{Smart2001,
+  author = {Smart, M. K.},
+  title = {Experimental testing of a hypersonic inlet with rectangular-to-elliptical
+	shape transition},
+  journal = {Journal of Propulsion and Power},
+  year = {2001},
+  volume = {17},
+  pages = {276-283},
+  number = {2},
+  month = {March-April},
+  comment = {REST inlets},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This is the second paper by M K Smart for his Mach 6.0 REST inlet.
+	It describes the 
+	
+	
+	experimental testing of the designed REST inlet. A Mach 6.0 REST inlet,
+	similar to the kind 
+	
+	
+	designed in Smart (1999), was used. Tests were carried out at (near)
+	the design point of the 
+	
+	
+	inlet, that is, at Mach 6.0 (on-design experiments).
+	
+	
+	 The tests validated the superiority in terms of inlet performance
+	of the REST inlet in 
+	
+	
+	comparison with the traditionally-designed 2D ones, as first mentioned
+	by Smart in his 1999 
+	
+	
+	paper. One point noted in these tests was that not only did the REST
+	inlet started all the time 
+	
+	
+	(none was not able to start during any tests), the inlet also exhibited
+	self-starting 
+	
+	
+	capability after mechanically-induced unstarts. There are some nice
+	instantaneous schlieren 
+	
+	
+	images showing the appearance of an unsteady strong shock during inlet-unstart,
+	in contrast 
+	
+	
+	with the regular cowl shock enamating from the inlet crotch when an
+	inlet was started.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Smart1999,
+  author = {Smart, M. K.},
+  title = {Design of three-dimensional hypersonic inlets with rectangular-to-elliptical
+	shape transition},
+  journal = {Journal of Propulsion and Power},
+  year = {1999},
+  volume = {15},
+  pages = {408-416},
+  number = {3},
+  month = {May-Jun},
+  comment = {REST inlets},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW - 
+	
+	 This is M K Smart's first officially published paper on REST inlets
+	(I think there was an 
+	
+	
+	earlier one - 21st International Symposium on Shock Waves, Paper 5330,
+	July 1997). This paper 
+	
+	
+	basically gives a brief decription of the methodology for the deisgn
+	of 3D hypersonic inlets 
+	
+	
+	with Rectangular-to-Elliptical Shape Transition.
+	
+	
+	 The methodology used first involved calculations using an inviscid
+	stream-tracing technique 
+	
+	
+	to determine stream-traced 3D inlet shapes, which then involved a
+	mathematical lofting 
+	
+	
+	procedure developed by Barger (1981). Established correlations by
+	Korkegi (1975, 1985) were 
+	
+	
+	then used to check for boundary layer separations caused by shock
+	wave interactions. A 3D 
+	
+	
+	boundary layer calculation was then performed to determine the physical
+	inlet shape that 
+	
+	
+	generated the inviscid flowfield. Finally, viscous corrections were
+	made to the physical 
+	
+	
+	inviscid inlet shape. 
+	
+	
+	 The design point of the REST inlet designed in this paper was Mach
+	6.0. Comparison yielded 
+	
+	
+	better inlet performances (total pressure recovery, kinetic energy
+	efficiency, process 
+	
+	
+	efficiency, drag coefficient & inlet length-to-throat-hydraulic-diameter
+	ratio) when compared 
+	
+	
+	with quasi-similar 2D inlets.},
+  timestamp = {2008.07.23}
+}
+
+@INPROCEEDINGS{Smart2006,
+  author = {Smart, Michael K. and Ruf, Edward G.},
+  title = {Free-jet testing of a {REST} scramjet at off-design conditions},
+  booktitle = {Collection of Technical Papers - 25th AIAA Aerodynamic Measurement
+	Technology and Ground Testing Conference},
+  year = {2006},
+  number = {AIAA 2006-2955},
+  pages = {190-201},
+  address = {San Francisco, California, USA},
+  month = {June},
+  organization = {American Institute of Aeronautics and Astronautics Inc.},
+  comment = {REST inlets},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Smart2004,
+  author = {Smart, Michael K. and Trexler, Carl A.},
+  title = {Mach 4 performance of hypersonic inlet with rectangular-to-elliptical
+	shape transition},
+  journal = {Journal of Propulsion and Power},
+  year = {2004},
+  volume = {20},
+  pages = {288-293},
+  number = {2},
+  month = {March-April},
+  comment = {REST inlets},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This is the third paper by M K Smart for his Mach 6.0 REST inlet.
+	It describes the 
+	
+	
+	off-design experimental testing of a REST inlet. A Mach 5.7 REST inlet,
+	similar to the kind 
+	
+	
+	designed in Smart (1999, 2004), was used instead due to some test
+	facility administrative 
+	
+	
+	difficulties. Tests were carried out off the design point of the inlet
+	at Mach 4.0.
+	
+	
+	 Initial tests indicated that the inlet would not self-start at Mach
+	4.0. This limitation was 
+	
+	
+	overcome by the introduction of spillage holes on the inlet cowl and/or
+	sides. Numerous 
+	
+	
+	spillage hole configurations showed that holes on side were more effective
+	than holes on the 
+	
+	
+	cowl for improving inlet start ability. It was postulated that this
+	was caused by the side 
+	
+	
+	holes spilling a larger proportion of boundary layer fluid than cowl
+	holes.
+	
+	
+	 These tests also showed that good performance is obtainable for REST
+	inlets at Mach numbers 
+	
+	
+	well below design point.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Smith1996b,
+  author = {Smith, A. L. and Mee, .D. J.},
+  title = {Dynamic strain measurement using piezoelectric polymer film},
+  journal = {Journal of Strain Analysis},
+  year = {1996},
+  volume = {31},
+  pages = {463-465},
+  number = {6},
+  owner = {uqychan2},
+  timestamp = {2010.06.12}
+}
+
+@ARTICLE{Smith1996a,
+  author = {Smith, A. L. and Mee, D. J.},
+  title = {Drag measurements in a hypervelocity expansion tube},
+  journal = {Shock Waves},
+  year = {1996},
+  volume = {6},
+  pages = {161-166},
+  owner = {uqychan2},
+  timestamp = {2008.09.23}
+}
+
+@ARTICLE{Smith2001,
+  author = {Smith, A. L. and Mee, D. J. and Daniel, W. J. T. and Shimoda, T.},
+  title = {Design, modelling and analysis of a six component force balance for
+	hypervelocity wind tunnel testing},
+  journal = {Computers and Structures},
+  year = {2001},
+  volume = {79},
+  pages = {1077-1088},
+  owner = {uqychan2},
+  timestamp = {2008.09.23}
+}
+
+@BOOK{Smits2006,
+  title = {Turbulent shear layers in supersonic flow},
+  publisher = {Springer},
+  year = {2006},
+  author = {Smits, Alexander J. and Jean-Paul Dussauge},
+  address = {New York, USA},
+  edition = {2nd},
+  comment = {Boundary Layer},
+  owner = {uqychan2},
+  review = {Obtained= NO (TL574.T8 S63 2006)
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Squire2000,
+  author = {Squire, L. C.},
+  title = {The accuracy of flat plate, turbulent skin friction at supersonic
+	speeds},
+  journal = {The Aeronautical Journal},
+  year = {2000},
+  volume = {104},
+  pages = {257-263},
+  number = {1036},
+  month = {June},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@ARTICLE{Stalker2006,
+  author = {Stalker, R. J.},
+  title = {Modern developments in hypersonic wind tunnels},
+  journal = {The Aeronautical Journal},
+  year = {2006},
+  volume = {110},
+  pages = {21-39},
+  number = {1103},
+  month = {January},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@INPROCEEDINGS{Stalker2006a,
+  author = {Stalker, R. J.},
+  title = {Scramjets, sub-orbital flight and skin friction},
+  booktitle = {A Collection of Technical Papers - 14th AIAA/AHI International Space
+	Planes and Hypersonic Systems and Technologies Conference},
+  year = {2006},
+  volume = {3},
+  pages = {2472 - 2501},
+  organization = {American Institute of Aeronautics and Astronautics Inc.},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= NO
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Stalker2005,
+  author = {Stalker, R. J.},
+  title = {Control of hypersonic turbulent skin friction by boundary-layer combustion
+	of hydrogen},
+  journal = {Journal of Spacecraft and Rockets},
+  year = {2005},
+  volume = {42},
+  pages = {577-587},
+  number = {4},
+  month = {July-August},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper is the fundamental and most important paper for my PhD
+	thesis. It provides an 
+	
+	
+	analytical method of calculating turbulent skin friction coefficient,
+	heat transfer 
+	
+	
+	coefficient, and hydrogen fuel mass injection flow rate. This method
+	uses Van Driest II's 
+	
+	
+	turbulent boundary layer theory together with Shvab-Zeldovich's coupling
+	parameters to 
+	
+	
+	incorporate hydrogen combustion in boundary layer analysis.
+	
+	
+	 There are quite a few references that were used in this paper, and
+	are also archived in my 
+	
+	
+	records for future references. I have also performed a complete analysis
+	of this paper and 
+	
+	
+	recorded that in my logbook. Please refer if necessary.},
+  timestamp = {2008.07.23}
+}
+
+@INPROCEEDINGS{Stalker1989,
+  author = {Stalker, R. J.},
+  title = {Recent developments with free piston drivers},
+  booktitle = {Seventeenth International Symposium on Shock Waves and Shock Tube},
+  year = {1989},
+  volume = {AIP Conference Proceedings 208},
+  pages = {96 - 105},
+  address = {Bethlehem, PA},
+  month = {17-21 July},
+  organization = {American Institute of Physics},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@ARTICLE{Stalker1967,
+  author = {Stalker, R. J.},
+  title = {A study of the free-piston shock tunnel},
+  journal = {AIAA Journal},
+  year = {1967},
+  volume = {5},
+  pages = {2160-2165},
+  number = {12},
+  month = {December},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper is one of the first few papers relating to the T4 shock
+	tunnel facility at UQ. It 
+	
+	describes the basic fundamentals and also some in-depth theory on
+	how free-piston shock tunnels 
+	
+	work.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Stalker1966,
+  author = {Stalker, R. J.},
+  title = {The free-piston shock tube},
+  journal = {The Aeronautical Quarterly},
+  year = {1966},
+  volume = {17},
+  pages = {351-369},
+  month = {February-November},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper is one of the first few papers relating to the T4 shock
+	tunnel facility at UQ. It 
+	
+	describes the basic fundamentals and also some in-depth theory on
+	how free-piston shock tubes 
+	
+	work.},
+  timestamp = {2008.07.23}
+}
+
+@INPROCEEDINGS{Stalker1988,
+  author = {Stalker, R. J. and Morgan, R. G.},
+  title = {The University of Queensland free piston shock tunnel T4 - Initial
+	operation and preliminary calibration},
+  booktitle = {4th National Space Engineering Symposium},
+  year = {1988},
+  address = {Adelaide, Australia},
+  month = {12-14 July},
+  organization = {National Panel on Space Engineering, the Joint College Board of the
+	Institution of Engineers, Australia.},
+  owner = {uqychan2},
+  timestamp = {2009.04.13}
+}
+
+@ARTICLE{Stalker2005a,
+  author = {Stalker, R. J. and Paull, A. and Mee, D. J. and Morgan, R. G. and
+	Jacobs, P. A.},
+  title = {Scramjets and shock tunnels - The Queensland experience},
+  journal = {Progress in Aerospace Sciences},
+  year = {2005},
+  volume = {41},
+  pages = {471-513},
+  number = {6},
+  month = {August},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper belongs to a set of continual updates of the 2005 work
+	carried out at the Centre 
+	
+	for Hypersonics at UQ.
+	
+	
+	 This paper is a good review of scramjet and shock tunnel related
+	experiments performed at 
+	
+	the University of Queensland, Australia. This article is a continuation
+	from the initial review 
+	
+	of Australian scramjet research done in 2000 (by Paull A & Stalker
+	RJ in book - Scramjet 
+	
+	Propulsion AIAA Progress in Astronautics and Aeronautics, v189, 2000,
+	pp1-46).
+	
+	
+	 This paper contains details extremely relevant to my current project,
+	and also a hugh 
+	
+	armoury of relevant and useful references collected from over the
+	many years of research.},
+  timestamp = {2008.07.23}
+}
+
+@TECHREPORT{Stalker1995,
+  author = {Stalker, R. J. and R. J. Bakos, R. G. Morgan, L. Porter, D. Mee,
+	A. Paull, S. Tuttle, J. M. Simmons, M. Wendt, K. Skinner, Y. He,
+	A. Neely, and W. Daniel},
+  title = {Shock tunnel studies of scramjet phenomena 1993 - Supplement 10},
+  institution = {NASA Langley Research Center},
+  year = {1995},
+  type = {Contractor Report},
+  number = {NASA CR 195038},
+  month = {January},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= NO
+	
+	
+	## REVIEW -
+	
+	 This paper belongs to a set of continual updates of the 1993 work
+	carried out at the Centre 
+	
+	for Hypersonics at UQ.
+	
+	
+	 This paper is a good review of scramjet and shock tunnel related
+	experiments performed at 
+	
+	the University of Queensland, Australia.},
+  timestamp = {2008.07.23}
+}
+
+@PHDTHESIS{Stephensen2002,
+  author = {Stephensen, Drew},
+  title = {Controlling skin friction by boundary layer combustion},
+  school = {The University of Queensland},
+  year = {2002},
+  type = {Bachelor of Engineering ({H}onours) Thesis},
+  address = {Queensland, Australia},
+  month = {November},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	## REVIEW -
+	
+	 This thesis is one of the UQ's collections of 'skin friction reduction
+	by boundary layer 
+	
+	
+	combustion' papers. It reports extremely useful information on the
+	numerical simulations 
+	
+	
+	performed for boundary layer combustion. it reports the effects of
+	varying boundary layer 
+	
+	
+	thickness, reynolds number, pressure, density, mainstream Mach number,
+	injectant flow rates, 
+	
+	
+	and mainstream temperature. Please read.},
+  timestamp = {2008.07.23}
+}
+
+@PHDTHESIS{Suraweera2006,
+  author = {Suraweera, Milinda V.},
+  title = {Reduction of skin friction drag in hypersonic flow by boundary layer},
+  school = {The University of Queensland},
+  year = {2006},
+  type = {{P}h{D} Thesis},
+  address = {Queensland, Australia},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This thesis is one of the UQ's collections of 'skin friction reduction
+	by boundary layer 
+	
+	
+	combustion' papers. It should be noted that the method of skin friction
+	measurement here is 
+	
+	
+	done by skin friction gauges rather than the stress wave force balance,
+	which in turn returns 
+	
+	
+	local skin friction drag values rather than the overall one. Please
+	read.},
+  timestamp = {2008.07.23}
+}
+
+@INPROCEEDINGS{Suraweera2005,
+  author = {Suraweera, Milinda V.},
+  title = {Skin friction reduction in hypersonic turbulent flow by boundary
+	layer combustion},
+  booktitle = {43rd AIAA Aerospace Sciences Meeting and Exhibit},
+  year = {2005},
+  number = {AIAA 2005-613},
+  address = {Reno, Nevada, USA},
+  month = {January},
+  organization = {American Institute of Aeronautics and Astronautics Inc.},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper is one of the UQ's collections of 'skin friction reduction
+	by boundary layer 
+	
+	combustion' papers. It should be noted that the method of skin friction
+	measurement here is 
+	
+	done by skin friction gauges rather than the stress wave force balance,
+	which in turn returns 
+	
+	local skin friction drag values rather than the overall one. For more
+	updated experimental data 
+	
+	from experiments, please refer to the author's 2006 PhD thesis.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Suraweera2009,
+  author = {Suraweera, Milinda V. and Smart, Michael K.},
+  title = {Shock-tunnel experiments with a {M}ach 12 {R}ectangular-to-{E}lliptical
+	{S}hape-{T}ransition scramjet at off-design conditions},
+  journal = {Journal of Propulsion and Power},
+  year = {2009},
+  volume = {25},
+  pages = {555-564},
+  number = {3},
+  month = {May-June},
+  owner = {uqychan2},
+  timestamp = {2008.08.28}
+}
+
+@INPROCEEDINGS{Swithenbank1964,
+  author = {Swithenbank, J.},
+  title = {Experimental investigation of hypersonic ramjets},
+  booktitle = {Proceedings of the International Council of the Aeronautical Sciences,
+	Third Congress, Stockholm, 1962},
+  year = {1964},
+  pages = {951 - 977},
+  address = {New York, USA},
+  publisher = {Spartan},
+  owner = {uqychan2},
+  timestamp = {2008.09.22}
+}
+
+@ARTICLE{Takita2000,
+  author = {Takita, Kenichi and Masuya, Goro},
+  title = {Effects of combustion and shock impingement on supersonic film cooling
+	by hydrogen},
+  journal = {AIAA Journal},
+  year = {2000},
+  volume = {38},
+  pages = {1899-1906},
+  number = {10},
+  month = {October},
+  owner = {uqychan2},
+  timestamp = {2008.09.01}
+}
+
+@ARTICLE{Tanimizu2009,
+  author = {Tanimizu, Katsuyoshi and Mee, David J. and Stalker, R. J. and Jacobs,
+	Peter A.},
+  title = {Drag force on quasi-axisymmetric scramjets at various flight {M}ach
+	numbers: theory and experiment},
+  journal = {Shock Waves},
+  year = {2009},
+  volume = {19},
+  pages = {83-93},
+  number = {2},
+  owner = {uqychan2},
+  timestamp = {2011.01.10}
+}
+
+@ARTICLE{tanimizu2009,
+  author = {Tanimizu,Katsuyoshi and Mee,David J. and Stalker,Raymond J. and Jacobs,Peter
+	A.},
+  title = {Drag force on quasi-axisymmetric scramjets at various flight Mach
+	numbers: theory and experiment},
+  journal = {Shock Waves},
+  year = {2009},
+  volume = {19},
+  pages = {83-93},
+  number = {2},
+  abstract = {The net axial force on a non-fuelled quasi-axisymmetric scramjet model
+	designed for operation at Mach 6 was measured in the T4 Stalker tube
+	at The University of Queensland using a single-component stress wave
+	force balance. The design used was a variant of a model that was
+	tested previously at Mach 6. The new model was equipped with a modified
+	thrust nozzle that was designed to improve the performance of the
+	nozzle. Tests were performed to measure the drag force on the model
+	for Mach 6, Mach 8 and Mach 10 shock tunnel nozzles for a range of
+	flow conditions. The nozzle-supply enthalpy was varied from 3 to
+	10 MJ/kg and the nozzle-supply pressure from 35 to 45 MPa. For
+	the test model, the drag coefficient increased with increasing nozzle-supply
+	enthalpy. The test results are compared with a force prediction method
+	based on simple hypersonic theories and three-dimensional CFD. The
+	test results are in good agreement with the predictions over the
+	wide range of conditions tested. The re-designed model has a more
+	efficient nozzle but this comes at the expense of increased drag
+	associated with the modifications required for the cowl. The results
+	indicate that this type of vehicle design is not likely to be suitable
+	for flight above Mach 8.},
+  isbn = {0938-1287},
+  keywords = {Engineering; Thermodynamics; Engineering Fluid Dynamics; Acoustics;
+	Scramjet; Engineering Thermodynamics, Heat and Mass Transfer; Condensed
+	Matter; Flow visualization; Fluids; Force measurement; Mechanical
+	engineering; Statistics; Hypersonic planes; Analysis},
+  language = {English},
+  owner = {Sambo},
+  timestamp = {2014.10.19},
+  url = {www.summon.com}
+}
+
+@ARTICLE{Tanno2001,
+  author = {Tanno, H. and Paull, A. and Stalker, R. J.},
+  title = {Skin-friction measurements in a supersonic combustor with crossflow
+	fuel injection},
+  journal = {Journal of Propulsion and Power},
+  year = {2001},
+  volume = {17},
+  pages = {1333-1338},
+  number = {6},
+  month = {November-December},
+  comment = {Thrust / Drag Measurement},
+  owner = {uqychan2},
+  review = {This article is one of the UQ's collections of 'skin friction reduction
+	by boundary layer combustion' papers. It also contains information
+	on the stress wave force balance for measuring overall skin friction
+	drag, which I will be using on my PhD project. Please read.
+	
+	
+	 Obtained= YES
+	
+	 Read= YES},
+  timestamp = {2008.07.23}
+}
+
+@BOOK{Timnat1996,
+  title = {Advanced Airbreathing Propulsion},
+  publisher = {Krieger Publishing Company},
+  year = {1996},
+  author = {Timnat, Y. M.},
+  address = {Malabar, Florida, USA},
+  comment = {Scramjets},
+  owner = {uqychan2},
+  review = {Obtained= YES (TL709. T54 1996 UQ-PSE)
+	
+	 Read= YES
+	
+	## REVIEW -
+	
+	 This book provides an reasonable introduction to airbreathing propulsion
+	(ramjets, scramjets 
+	
+	
+	& pulsejets). Facilities for the testing of airbreathing propulsion
+	engines are also described 
+	
+	
+	in one section of this book. It also provides an 1996 update of the
+	status of hypersonic 
+	
+	
+	combustion technology. (Please note that on Part I of this book is
+	relevant.)},
+  timestamp = {2008.07.23}
+}
+
+@BOOK{Tu2008,
+  title = {Computational fluid dynamics : a practical approach},
+  publisher = {Butterworth-Heinemann},
+  year = {2008},
+  author = {Tu, Jiyuan and Yeoh, Guan Heng and Liu, Chaoqun},
+  owner = {uqychan2},
+  timestamp = {2010.03.25}
+}
+
+@PHDTHESIS{Turner2010,
+  author = {Turner, James C.},
+  title = {An experimental investigation of inlet fuel injection in a three-dimensional
+	scramjet engine},
+  school = {The University of Queensland},
+  year = {2010},
+  type = {{P}h{D} Thesis},
+  address = {Queensland, Australia},
+  owner = {uqychan2},
+  timestamp = {2010.12.31}
+}
+
+@INPROCEEDINGS{Turner2007,
+  author = {Turner, James C and Smart, Michael K.},
+  title = {Experimental investigation of inlet injection in a scramjet with
+	rectangular to elliptical shape transition},
+  booktitle = {Proceedings of the 26th International Symposium on Shock Waves},
+  year = {2007},
+  address = {Gottingen, Germany},
+  month = {15-20 July},
+  publisher = {International Symposium on Shock Waves},
+  owner = {uqychan2},
+  timestamp = {2008.08.28}
+}
+
+@PHDTHESIS{Tuttle1996,
+  author = {Tuttle, Sean Lee},
+  title = {Measuring thrust and drag in a hypersonic impulse facility},
+  school = {The University of Queensland},
+  year = {1996},
+  type = {{P}h{D} Thesis},
+  address = {Queensland, Australia},
+  comment = {Thrust / Drag Measurement},
+  owner = {uqychan2},
+  review = {This thesis contains information on the stress wave force balance
+	for measuring overall skin friction drag, which I will be using on
+	my PhD project. Please read.
+	
+	
+	 Obtained = NO
+	
+	 Read = NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Tuttle1995,
+  author = {Tuttle, S. L. and Mee, .D. J. and Simmons, J. M.},
+  title = {Drag measurements at {M}ach 5 using a stress wave force balance},
+  journal = {Experiments in Fluids},
+  year = {1995},
+  volume = {19},
+  pages = {336-341},
+  number = {5},
+  month = {September},
+  comment = {Thrust / Drag Measurement},
+  owner = {uqychan2},
+  review = {This article is one of the UQ's collections of 'stress wave force
+	balance' papers. It also contains information on the stress wave
+	force balance for measuring overall skin friction drag, which I will
+	be using on my PhD project. Please read.
+	
+	
+	
+	 Obtained= YES 
+	
+	 Read= YES},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{VanDriest1956,
+  author = {Van Driest, E. R.},
+  title = {The problem of aerodynamic heating},
+  journal = {Journal of the Aeronautical Sciences},
+  year = {1956},
+  volume = {15},
+  pages = {26-41},
+  number = {10},
+  month = {October},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This report is a reference for Stalker, R 2005 paper. It reports
+	the Van Driest II theory.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{VanDriest1951,
+  author = {Van Driest, E. R.},
+  title = {Turbulent boundary layer in compressible fluids},
+  journal = {Journal of the Aeronautical Sciences},
+  year = {1951},
+  volume = {18},
+  pages = {145-160},
+  number = {3},
+  month = {March},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	## REVIEW -
+	
+	 This report is a reference for Stalker, R 2005 paper. It reports
+	the Van Driest I theory.},
+  timestamp = {2008.07.23}
+}
+
+@INPROCEEDINGS{Ventura2010,
+  author = {Ventura, C and Sauret, Emilie and Jacobs, Peter A. and Petrie-Repar,
+	Paul and Gollan, Rowan G. and van der Laan, Paul},
+  title = {Adaption and use of a compressible flow code for turbomachinery design},
+  booktitle = {5th European Conference on Computational Fluid Dynamics ECCOMAS CFD
+	2010},
+  year = {2010},
+  address = {Lisbon, Portugal},
+  month = {14-17 June},
+  organization = {European Community on Computational Methods in Applied Sciences},
+  owner = {uqychan2},
+  timestamp = {2011.01.10}
+}
+
+@BOOK{vers2007,
+  title = {An introduction to computational fluid dynamics: the finite volume
+	method},
+  publisher = {Pearson/Prentice Hall},
+  year = {2007},
+  author = {Versteeg,H. K. and Malalasekera,W.},
+  address = {New York},
+  isbn = {9780131274983; 0131274988},
+  keywords = {Data processing; Fluid dynamics; Finite volume method},
+  language = {English},
+  owner = {Sambo},
+  timestamp = {2014.10.19},
+  url = {www.summon.com}
+}
+
+@BOOK{Versteeg2007,
+  title = {An introduction to computational fluid dynamics : the finite volume
+	method},
+  publisher = {Pearson/Prentice Hall},
+  year = {2007},
+  author = {Versteeg, H. K. and Malalasekera, W.},
+  edition = {2nd},
+  owner = {uqychan2},
+  timestamp = {2010.03.25}
+}
+
+@PHDTHESIS{viti2002,
+  author = {Viti, V.},
+  title = {Numerical studies of the jet interaction flowfield with a main jet
+	and an array of smaller jets},
+  school = {Virginia Tech},
+  year = {2002},
+  month = {September},
+  owner = {Sambo},
+  timestamp = {2014.10.22}
+}
+
+@ARTICLE{viti2004,
+  author = {Viti,Valerio and Wallis,Scott and Schetz,Joseph A. and Neel,Reece
+	and W. Bowersox,R. D.},
+  title = {Jet Interaction with a Primary Jet and an Array of Smaller Jets},
+  journal = {AIAA Journal},
+  year = {2004},
+  volume = {42},
+  pages = {1358-1368},
+  number = {7},
+  isbn = {0001-1452},
+  keywords = {Numerical analysis; Air jets; ENGINEERING, AEROSPACE; Fluid dynamics;
+	Reynolds equation; Cross flow; Turbulence; Models},
+  language = {English},
+  owner = {sambo},
+  timestamp = {2014.10.03},
+  url = {www.summon.com}
+}
+
+@ARTICLE{Volchkov1965,
+  author = {Volchkov, E. P. and Kutateladze, S. S. and Leont'ev, A. I.},
+  title = {Interaction of a submerged turbulent jet with a solid wall},
+  journal = {Journal of Applied Mechanics and Technical Physics},
+  year = {1965},
+  volume = {6},
+  pages = {41-44},
+  number = {2},
+  month = {March},
+  comment = {Boundary Layer},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Volchkov1965a,
+  author = {E. P. Volchkov and V. Ya. Levchenko},
+  title = {Effectiveness of gas film cooling for a turbulent boundary layer},
+  journal = {Journal of Applied Mechanics and Technical Physics },
+  year = {1965},
+  volume = {6},
+  pages = {100-102},
+  number = {5},
+  month = {September},
+  comment = {Boundary Layer},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Volchkov2004,
+  author = {Volchkov, �. P. and Terekhov, V. I. and Terekhov, V. V.},
+  title = {Flow structure and heat and mass transfer in boundary layers with
+	injection of chemically reacting substances (Review)},
+  journal = {Combustion, Explosion, and Shock Waves},
+  year = {2004},
+  volume = {40},
+  pages = {1-16},
+  number = {1},
+  month = {January},
+  comment = {Boundary Layer},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Volchkov2002,
+  author = {Volchkov, �. P. and Terekhov, V. V. and Terekhov, V. I.},
+  title = {Boundary-Layer Structure with Hydrogen Combustion with Different
+	Injection Intensities},
+  journal = {Combustion, Explosion, and Shock Waves},
+  year = {2002},
+  volume = {38},
+  pages = {269-277},
+  number = {3},
+  month = {May},
+  comment = {Boundary Layer},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@INPROCEEDINGS{Wada1994,
+  author = {Wada, Yasuhiro and Liou, Meng-Sing},
+  title = {A flux splitting scheme with high-resolution and robustness for discontinuities},
+  booktitle = {32nd Aerospace Sciences Meeting and Exhibit},
+  year = {1994},
+  number = {AIAA-94-0083},
+  address = {Reno, Nevada},
+  month = {10-13 January},
+  organization = {American Institute of Aeronautics and Astronautics Inc.},
+  note = {Also as NASA-TM-106452},
+  owner = {uqychan2},
+  timestamp = {2010.12.31}
+}
+
+@MASTERSTHESIS{wallis2001,
+  author = {Wallis, S.},
+  title = {Innovative transverse jet interaction arrangements in supersonic
+	crossflow},
+  school = {Virginia Tech},
+  year = {2001},
+  month = {December},
+  owner = {Sambo},
+  timestamp = {2014.10.21}
+}
+
+@TECHREPORT{Weber1958,
+  author = {Weber, Richard J. and MacKay, John S.},
+  title = {An analysis of ramjet engines using supersonic combustion},
+  institution = {National Advisory Committee for Aeronautics},
+  year = {1958},
+  type = {Technical note},
+  number = {NACA TN 4386},
+  address = {Washington},
+  month = {September},
+  owner = {uqychan2},
+  timestamp = {2008.09.22}
+}
+
+@BOOK{Wendt1996,
+  title = {Computational fluid dynamics : an introduction},
+  publisher = {Springer Verlag},
+  year = {1996},
+  author = {Wendt, John F. and Anderson, John D.},
+  address = {Berlin, Germany},
+  edition = {2nd},
+  comment = {CFD},
+  owner = {uqychan2},
+  review = {Obtained= NO (TA357 .C65 1996 UQ-PSE)
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@TECHREPORT{Wendt1993,
+  author = {M. Wendt and M. Nettleton and R. G. Morgan and K. Skinner and R.
+	Casey and R. Stalker and C. Brescianini, A. Paull, G. Allen, M. Smart,
+	N. Akman, N. Ward, S. Tuttle, J. Simmons, S. Sanderson, G. Kelly,
+	A. Neely, and R. Krek},
+  title = {Shock Tunnel Studies of Scramjet Phenomena - Supplement 6},
+  institution = {NASA Langley Research Center},
+  year = {1993},
+  type = {Contractor Report},
+  number = {NASA CR 191428},
+  month = {February},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= NO
+	
+	
+	## REVIEW -
+	
+	 This paper belongs to a set of continual updates of the 1993 work
+	carried out at the Centre 
+	
+	for Hypersonics at UQ.
+	
+	
+	 This paper is a good review of scramjet and shock tunnel related
+	experiments performed at 
+	
+	the University of Queensland, Australia.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{Wendt1999,
+  author = {Wendt, M. N. and Jacobs, P. A. and Stalker, R. J.},
+  title = {Displacement effects and scaling of ducted supersonic flames},
+  journal = {Combustion and Flame},
+  year = {1999},
+  volume = {116},
+  pages = {593-604},
+  owner = {uqychan2},
+  timestamp = {2008.08.28}
+}
+
+@ARTICLE{Wendt1996a,
+  author = {Wendt, M. N. and Stalker, R. J.},
+  title = {Transverse and parallel injection of hydrogen with supersonic combustion
+	in a shock tunnel},
+  journal = {Shock Waves},
+  year = {1996},
+  volume = {6},
+  pages = {53-59},
+  number = {1},
+  month = {June},
+  comment = {Fuel Injection},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This paper presents experiments involving fuel injection between
+	2 configurations - a wall 
+	
+	orifice injector at 30deg and a central strut injector.
+	
+	
+	 Significant points relating to fuel injection that could be inferred
+	from this paper 
+	
+	includes: 
+	
+	 - streamwise component of injection velocity adds significantly to
+	the overall thrust.
+	
+	 - with 20% uncertainty (due to 3 dimensional effects), both types
+	of injection 
+	
+	configurations produce the same combustion-induced pressure rise.},
+  timestamp = {2008.07.23}
+}
+
+@ARTICLE{wheatley2004,
+  author = {Wheatley,V. and Chiu,H. S. and Jacobs,P. A. and Macrossan,M. N. and
+	Mee,D. J. and Morgan,R. G.},
+  title = {Rarefied, superorbital flows in an expansion tube},
+  journal = {International Journal of Numerical Methods for Heat \& Fluid Flow},
+  year = {2004},
+  volume = {14},
+  pages = {512-537},
+  number = {4},
+  abstract = {This paper describes a free-piston driven expansion tube and its instrumentation.
+	The facility is used to generate rarefied flows at speeds of approximately
+	10 km/s. Although the flow in the tube itself is in the continuum
+	regime, rarefied flow conditions are achieved by allowing the test
+	gas to further expand as a free jet into the facility's test section.
+	The test flow is surveyed to provide bar-gauge pressure measurements.
+	Numerical simulation is then used to describe more fully the test
+	flow properties. The flows produced are suitable for the aerodynamic
+	testing of small models at superorbital speeds and should provide
+	data that are suitable for the calibration of Direct Simulation Monte-Carlo
+	codes.;   This paper describes a free-piston driven expansion tube
+	and its instrumentation. The facility is used to generate rarefied
+	flows at speeds of approximately 10 km/s. Although the flow in the
+	tube itself is in the continuum regime, rarefied flow conditions
+	are achieved by allowing the test gas to further expand as a free
+	jet into the facility's test section. The test flow is surveyed to
+	provide bar-gauge pressure measurements. Numerical simulation is
+	then used to describe more fully the test flow properties. The flows
+	produced are suitable for the aerodynamic testing of small models
+	at superorbital speeds and should provide data that are suitable
+	for the calibration of Direct Simulation Monte-Carlo codes.[PUBLICATION
+	ABSTRACT]},
+  isbn = {0961-5539},
+  keywords = {Studies; Mathematical models; Flow velocity; Mathematical analysis;
+	Numerical controls},
+  language = {English},
+  owner = {Sambo},
+  timestamp = {2014.10.19},
+  url = {www.summon.com}
+}
+
+@ARTICLE{Wheatley2004,
+  author = {Wheatley, V. and Chiu, H. S. and Jacobs, Peter A. and Macrossan,
+	Michael N. and Mee, David J. and Morgan, Richard G.},
+  title = {Rarefied, superorbital flows in an expansion tube},
+  journal = {International Journal of Numerical Methods for Heat \& Fluid Flow},
+  year = {2004},
+  volume = {14},
+  pages = {512-537},
+  number = {4},
+  owner = {uqychan2},
+  timestamp = {2011.01.10}
+}
+
+@BOOK{white2011,
+  title = {Fluid Mechanics},
+  publisher = {McGraw-Hill},
+  year = {2011},
+  editor = {Lange, M.},
+  author = {White, F. M.},
+  owner = {Sambo},
+  timestamp = {2014.10.19}
+}
+
+@BOOK{White2006,
+  title = {Viscous Fluid Flow},
+  publisher = {McGraw-Hill},
+  year = {2006},
+  author = {White, Frank M.},
+  address = {New York, USA},
+  edition = {3rd},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= YES 
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This book is highly recommended by A/Prof David Mee for my current
+	PhD project. He mentioned 
+	
+	that it is very informative and comprehensive, though a tad bit 'viscous'
+	theoretically (since 
+	
+	it is a graduate level book).
+	
+	
+	 Personally, this book has a great informative chapter on compressible
+	turbulent boundary 
+	
+	layers (chapter 7). It also contains a great arsenal of relevant references
+	for my PhD project.},
+  timestamp = {2008.07.23}
+}
+
+@INPROCEEDINGS{White1999,
+  author = {White, J. A. and Morrison, J. H.},
+  title = {A pseudo-temporal multi-grid relaxation scheme for solving the parabolized
+	{N}avier-{S}tokes equations},
+  booktitle = {14th AIAA Computational Fluid Dynamics Conference},
+  year = {1999},
+  number = {AIAA Paper 99-3360},
+  month = {28 June - 1 July},
+  organization = {American Institute of Aeronautics and Astronautics Inc.},
+  owner = {uqychan2},
+  timestamp = {2010.06.13}
+}
+
+@ARTICLE{Wilcox2008,
+  author = {Wilcox, D. C.},
+  title = {Formulation of the $k$-$\omega$ Turbulence Model Revisited},
+  journal = {AIAA Journal},
+  year = {2008},
+  volume = {46},
+  pages = {2823-2838},
+  number = {11},
+  isbn = {0001-1452},
+  language = {English},
+  owner = {sambo},
+  timestamp = {2014.11.18}
+}
+
+@BOOK{Wilcox2006,
+  title = {Turbulence modelling for CFD},
+  publisher = {DCW Industries, Inc},
+  year = {2006},
+  author = {Wilcox, David C.},
+  address = {California, USA},
+  edition = {3rd},
+  month = {November},
+  owner = {uqychan2},
+  timestamp = {2008.08.08}
+}
+
+@BOOK{Wilcox1998,
+  title = {Turbulence modelling for CFD},
+  publisher = {DCW Industries, Inc},
+  year = {1998},
+  author = {Wilcox, David C.},
+  address = {California, USA},
+  edition = {2nd},
+  owner = {uqychan2},
+  timestamp = {2008.08.08}
+}
+
+@ARTICLE{Wilcox1990,
+  author = {Wilcox, D. C.},
+  title = {Supersonic compression-corner applications of a multiscale model
+	forturbulent flows},
+  journal = {AIAA Journal},
+  year = {1990},
+  volume = {28},
+  pages = {1194-1198},
+  number = {7},
+  isbn = {0001-1452},
+  language = {English},
+  owner = {sambo},
+  timestamp = {2014.11.18}
+}
+
+@ARTICLE{Wilcox1988,
+  author = {Wilcox, David C.},
+  title = {Reassessment of the scale-determining equation for advanced turbulence
+	models},
+  journal = {AIAA Journal},
+  year = {1988},
+  volume = {26},
+  pages = {1299-1310},
+  number = {11},
+  month = {November},
+  owner = {uqychan2},
+  timestamp = {2010.03.26}
+}
+
+@ARTICLE{Wilke1950,
+  author = {Wilke, C. R.},
+  title = {A viscosity equation for gas mixtures},
+  journal = {The Journal of Chemical Physics},
+  year = {1950},
+  volume = {18},
+  pages = {517-519},
+  number = {4},
+  month = {April},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	## REVIEW -
+	
+	 This report is the original article reporting Wilke's method for
+	calculating viscosity of 
+	
+	
+	gas mixtures. Please reference this article instead of Blake LH (1970).},
+  timestamp = {2008.07.23}
+}
+
+@MANUAL{Williams2007,
+  title = {gnuplot: an interactive plotting program},
+  author = {Williams, Thomas and Kelley, Colin},
+  month = {March},
+  year = {2007},
+  owner = {uqychan2},
+  timestamp = {2008.08.11}
+}
+
+@INPROCEEDINGS{Wooldridge1965,
+  author = {Wooldridge, C. E. and Muzzy, R. J.},
+  title = {Measurements in a turbulent boundary layer with porous wall injection
+	and combustion},
+  booktitle = {Tenth Symposium (International) on Combustion},
+  year = {1965},
+  pages = {1351 - 1362},
+  organization = {The Combustion Institute},
+  owner = {uqychan2},
+  timestamp = {2008.09.01}
+}
+
+@BOOK{Young1989,
+  title = {Boundary layers},
+  publisher = {American Institute of Aeronautics and Astronautics},
+  year = {1989},
+  author = {Young, Alec David},
+  address = {Washington, D.C., USA},
+  comment = {Boundary Layer},
+  owner = {uqychan2},
+  review = {Obtained= NO 
+	
+	 Read= NO},
+  timestamp = {2008.07.23}
+}
+
+@TECHREPORT{Zeldovich1951,
+  author = {Zeldovich, Y. B.},
+  title = {On the theory of combustion of initially unmixed gases},
+  institution = {National Advisory Committee for Aeronautics (NACA)},
+  year = {1951},
+  type = {Technical Memorandum},
+  number = {NACA TM 1296},
+  month = {June},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES
+	
+	
+	## REVIEW -
+	
+	 This report is a reference for Stalker, R 2005 paper. It reports
+	the Shvab-Zeldovich 
+	
+	
+	coupling parameters.},
+  timestamp = {2008.07.23}
+}
+
+@MANUAL{Aerosoft2009,
+  title = {GASP version 5.0 reference guide},
+  organization = {AeroSoft, Inc.},
+  address = {2000 Kraft Drive, Suite 1400, Blacksburg, VA 24060-6363},
+  year = {2009},
+  owner = {uqychan2},
+  timestamp = {2010.03.25}
+}
+
+@MANUAL{Fluent2006,
+  title = {FLUENT 6.3 user's guide},
+  organization = {Fluent, Inc.},
+  address = {Centerra Resource Park, 10 Cavendish Court, Lebanon, NH 03766},
+  month = {September},
+  year = {2006},
+  owner = {uqychan2},
+  timestamp = {2010.03.25}
+}
+
+@MANUAL{2004,
+  title = {T4 free piston shock tunnel training program},
+  organization = {The University of Queensland},
+  address = {Queensland, Australia},
+  month = {October},
+  year = {2004},
+  comment = {General},
+  owner = {uqychan2},
+  review = {Obtained= YES
+	
+	 Read= YES},
+  timestamp = {2008.07.23}
+}
+
+@MANUAL{ESI2004,
+  title = {CFD-FASTRAN user manual},
+  organization = {ESI CFD, Inc.},
+  year = {2004},
+  owner = {uqychan2},
+  timestamp = {2010.03.25}
+}
+
+@comment{jabref-meta: selector_publisher:}
+
+@comment{jabref-meta: selector_author:}
+
+@comment{jabref-meta: selector_journal:}
+
+@comment{jabref-meta: selector_keywords:}
+
+@comment{jabref-entrytype: Bachelorsthesis: req[author;title;school;year] opt[type;address;month;note]}
+

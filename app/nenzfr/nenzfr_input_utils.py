@@ -72,6 +72,50 @@ def input_checker(cfg):
     
     """
     
+    # Define default the default nozzles
+    default_nozzles = {'t4-m4':{'contourFileName':'Bezier-control-pts-t4-m4.data',
+                                'include_throat_block':True, 'Lthr':12.5e-3,
+                                'truncate_nozzle':False, 'Lnoz':5.118100e-01,
+                                'nni':600, 'nnj':40, 'nbi':60, 'nbj':1, 'bx':1.10, 'by':1.02,
+                                'fully_contoured_nozzle':False},
+                       #
+                       't4-m6':{'contourFileName':'Bezier-control-pts-t4-m6.data',
+                                'include_throat_block':True, 'Lthr':12.5e-3,
+                                'truncate_nozzle':False, 'Lnoz':7.970280e-01,
+                                'nni':600, 'nnj':40, 'nbi':60, 'nbj':1, 'bx':1.10, 'by':1.02,
+                                'fully_contoured_nozzle':False},
+                       #
+                       't4-m7':{'contourFileName':'Bezier-control-pts-t4-m7.data',
+                                'include_throat_block':True, 'Lthr':20.0e-3,
+                                'truncate_nozzle':False, 'Lnoz':1.00,
+                                'nni':600, 'nnj':60, 'nbi':60, 'nbj':4, 'bx':1.10, 'by':1.02,
+                                'fully_contoured_nozzle':True},
+                       #
+                       't4-m8b':{'contourFileName':'Bezier-control-pts-t4-m8.data',
+                                'include_throat_block':True, 'Lthr':8.2e-3,
+                                'truncate_nozzle':False, 'Lnoz':1.11,
+                                'nni':1440, 'nnj':80, 'nbi':144, 'nbj':4, 'bx':1.05, 'by':1.002,
+                                'fully_contoured_nozzle':True},
+                       #
+                       't4-m10b':{'contourFileName':'Bezier-control-pts-t4-m10.data',
+                                'include_throat_block':True, 'Lthr':10.0e-3,
+                                'truncate_nozzle':True, 'Lnoz':1.633197,
+                                'nni':1800, 'nnj':100, 'nbi':180, 'nbj':4, 'bx':1.05, 'by':1.002,
+                                'fully_contoured_nozzle':True},
+                       #
+                       'x2-m10':{'contourFileName':'Bezier-control-pts-x2-m10.data',
+                                'include_throat_block':True, 'Lthr':42.5e-3,
+                                'truncate_nozzle':False, 'Lnoz':1.40,
+                                'nni':1800, 'nnj':100, 'nbi':180, 'nbj':4, 'bx':1.05, 'by':1.002,
+                                'fully_contoured_nozzle':True},
+                       #
+                       'x3-m10':{'contourFileName':'Bezier-control-pts-x3-m10.data',
+                                'include_throat_block':True, 'Lthr':91.3e-3,
+                                'truncate_nozzle':False, 'Lnoz':2.59,
+                                'nni':1800, 'nnj':100, 'nbi':180, 'nbj':4, 'bx':1.05, 'by':1.002,
+                                'fully_contoured_nozzle':True}
+                       }
+    
     print "Checking nenzfr inputs."
     
     cfg['bad_input'] = False
@@ -145,8 +189,8 @@ def input_checker(cfg):
               
     if 'gasName' not in cfg:
         cfg['gasName'] = 'air5species'
-        print "No gas model chosen. Setting it to default value of '{0}'."\
-        .format(cfg['gasName'])
+        print "No gas model chosen."
+        print "    Setting it to default value of '{0}'.".format(cfg['gasName'])
 
     if cfg['gasName'] in ['n2','N2','nitrogen']:
         cfg['gasName'] = 'n2'
@@ -178,8 +222,10 @@ def input_checker(cfg):
                 cfg['bad_input'] = True
         else:
             cfg['reactionSchemeFile'] = 'Not-needed'
-        print "No reaction scheme specified. Setting it to '{0}'."\
-        .format(cfg['reactionSchemeFile'])
+        #
+        #print "No reaction scheme specified." 
+        #print "    Setting it to '{0}'.".format(cfg['reactionSchemeFile'])
+    print "Reaction scheme is '{0}'.".format(cfg['reactionSchemeFile'])
     
     if 'thermalSchemeFile' not in cfg:
         if cfg['chemModel'] in ['tc-neq']:
@@ -189,6 +235,8 @@ def input_checker(cfg):
             cfg['bad_input'] = True
         else:
             cfg['thermalSchemeFile'] = 'Not-needed'
+    #
+    print "Energy-exchange scheme is '{0}'.".format(cfg['thermalSchemeFile'])
             
     if cfg['facility'] == 'reflected-shock-tunnel' and 'areaRatio' not in cfg:
         cfg['areaRatio'] = 1581.165
@@ -199,12 +247,7 @@ def input_checker(cfg):
         cfg['jobName'] = 'nozzle'
         print "No job name set. Setting default job name of '{0}'."\
         .format(cfg['jobName'])
-        
-    if 'contourFileName' not in cfg:
-        cfg['contourFileName'] = 'Bezier-control-pts-t4-m10.data'
-        print "No nozzle contour file selected. Choosing '{0}'."\
-        .format(cfg['contourFileName'])
-        
+         
     if 'exitSliceFileName' not in cfg:
         cfg['exitSliceFileName'] = 'nozzle-exit.data'
         print "No filename specified for file that holds nozzle-exit data."
@@ -224,39 +267,189 @@ def input_checker(cfg):
         cfg['blockMarching'] = True
         print "Switch to use or not use Block Marching mode not specified."
         print "    Setting it to default value of blockMarching = {0}".format(cfg['blockMarching'])
+     
+    #config_backwards_compatability = {'Bezier-control-pts-t4-m4.data' : 't4-m4',
+    #                                  'Bezier-control-pts-t4-m6.data' : 't4-m6',
+    #                                  'Bezier-control-pts-t4-m7.data' : 't4-m7',
+    #                                  'Bezier-control-pts-t4-m8.data' : 't4-m8b',
+    #                                  'Bezier-control-pts-t4-m10.data': 't4-m10b',
+    #                                  'Bezier-control-pts-x2-m10.data': 'x2-m10',
+    #                                  'Bezier-control-pts-x3-m10.data': 'x3-m10'}   
+    #if 'nozzle' not in cfg and cfg['contourFileName'] in config_backwards_compatability:
+    #    cfg['nozzle'] = nozzle_backwards_compatability[cfg['contourFileName']]
+    #
+    if 'nozzle' not in cfg:
+        cfg['bad_input'] = True
+        print "Your must define a nozzle (either by way of using a default nozzle," 
+        print "    defining your own or by specifying an external grid file)."
+    else:
+        nozzle = cfg['nozzle']
+        if nozzle in default_nozzles:
+            # Use a default nozzle but perhaps with altered grid dimensions
+            if 'nni' not in cfg:
+                cfg['nni'] = default_nozzles[nozzle]['nni']
+                print "Number of axial cells not set."
+                print "    Setting it to default value of {0}.".format(cfg['nni'])
         
-    #these default values below are based on Luke's Mach 10 calculations.
-    
-    if 'nni' not in cfg:
-        cfg['nni'] = 1800
-        print "Number of axial cells not set. Setting it to default value of {0}."\
-        .format(cfg['nni'])
-        
-    if 'nnj' not in cfg:
-        cfg['nnj'] = 100
-        print "Number of radial cells not set. Setting it to default value of {0}."\
-        .format(cfg['nnj'])
-    
-    if 'nbi' not in cfg:
-        cfg['nbi'] = 180
-        print "Number of axial blocks for the divergence section (nozzle_blk) not set"
-        print "    Setting it to default value of {0}.".format(cfg['nbi']) 
-        
-    if 'nbj' not in cfg:
-        cfg['nbj'] = 1
-        print "Number of radial blocks not set. Setting it to default value of {0}."\
-        .format(cfg['nbj'])
-        
-    if 'bx' not in cfg:
-        cfg['bx'] = 1.10
-        print "Clustering in the axial direction not set. Setting it to default value of {0}."\
-        .format(cfg['bx'])
-    
-    if 'by' not in cfg:
-        cfg['by'] = 1.002
-        print "Clustering in the radial direction not set. Setting it to default value of {0}."\
-        .format(cfg['by'])
-
+            if 'nnj' not in cfg:
+                cfg['nnj'] = default_nozzles[nozzle]['nnj']
+                print "Number of radial cells not set."
+                print "    Setting it to default value of {0}.".format(cfg['nnj'])
+     
+            if 'nbi' not in cfg:
+                cfg['nbi'] = default_nozzles[nozzle]['nbi']
+                print "Number of axial blocks for the divergence section (nozzle_blk) not set"
+                print "    Setting it to default value of {0}.".format(cfg['nbi']) 
+            
+            if 'nbj' not in cfg:
+                cfg['nbj'] = default_nozzles[nozzle]['nbj']
+                print "Number of radial blocks not set."
+                print "    Setting it to default value of {0}.".format(cfg['nbj'])
+            
+            if 'bx' not in cfg:
+                cfg['bx'] = default_nozzles[nozzle]['bx']
+                print "Clustering in the axial direction not set."
+                print "    Setting it to default value of {0}.".format(cfg['bx'])
+            
+            if 'by' not in cfg:
+                cfg['by'] = default_nozzles[nozzle]['by']
+                print "Clustering in the radial direction not set."
+                print "    Setting it to default value of {0}.".format(cfg['by'])
+            
+            # Assign the rest of the required inputs. We don't allow users access to these when 
+            # using a default nozzle. If they want to change them, they should use a custom nozzle
+            # name
+            cfg['contourFileName'] = default_nozzles[nozzle]['contourFileName']
+            cfg['gridFileName'] = 'None'
+            cfg['include_throat_block'] = default_nozzles[nozzle]['include_throat_block']
+            cfg['Lthr'] = default_nozzles[nozzle]['Lthr']
+            cfg['truncate_nozzle'] = default_nozzles[nozzle]['truncate_nozzle']
+            cfg['Lnoz'] = default_nozzles[nozzle]['Lnoz']
+            cfg['fully_contoured_nozzle'] = default_nozzles[nozzle]['fully_contoured_nozzle']
+            
+        else:
+            # Use a non-standard grid. We must either provide a grid-file to load in or define
+            # everything we need to build the grid within nenzfr/eilmer
+            if 'contourFileName' not in cfg:
+                if 'gridFileName' not in cfg:
+                    cfg['bad_input'] = True
+                    print "You appear to want to use a non-default nozzle but have not defined"
+                    print "    either a contourFileName or a gridFileName. Check your input."
+                else:
+                    if cfg['gridFileName'] in ['None']:
+                        cfg['bad_input'] = True
+                        print "You appear to want to use a non-default nozzle and import a grid"
+                        print "    but have not defined a grid file. Check your input."
+                    else:
+                        # The user will be importing a predefined grid so we don't need various
+                        # inputs.
+                        cfg['nni'] = None
+                        cfg['nnj'] = None
+                        cfg['nbi'] = None
+                        cfg['nbj'] = None
+                        cfg['bx'] = None
+                        cfg['by'] = None
+                        cfg['include_throat_block'] = None
+                        cfg['Lthr'] = None
+                        cfg['trucate_nozzle'] = None
+                        cfg['Lnoz'] = None
+                        cfg['fully_contoured_nozzle'] = None
+            else:
+                if cfg['contourFileName'] in ['None']:
+                    if 'gridFileName' not in cfg:
+                        cfg['bad_input'] = True
+                        print "You appear to want to use a non-default nozzle but have not defined"
+                        print "    either the contourFileName or gridFileName appropriately. Check your input."
+                    else:
+                        if cfg['gridFileName'] in ['None']:
+                            cfg['bad_input'] = True
+                            print "You appear to want to use a non-default nozzle but have not defined"
+                            print ("    either the contourFileName or gridFilename appropriately. "
+                                  "Check your input.")
+                        else:
+                            # The user will be importing a predefined grid so we don't need various
+                            # inputs.
+                            cfg['nni'] = None
+                            cfg['nnj'] = None
+                            cfg['nbi'] = None
+                            cfg['nbj'] = None
+                            cfg['bx'] = None
+                            cfg['by'] = None
+                            cfg['include_throat_block'] = None
+                            cfg['Lthr'] = None
+                            cfg['trucate_nozzle'] = None
+                            cfg['Lnoz'] = None
+                            cfg['fully_contoured_nozzle'] = None    
+                else:
+                    # A contour file has been specified so now we check that the rest of the 
+                    # grid-related inputs are present
+                    cfg['gridFileName'] = 'None'
+                 
+                    if 'nni' not in cfg:
+                        cfg['bad_input'] = True
+                        print "To build a custom nozzle grid you must specify the"
+                        print "    number of axial cells (nni). Check your input."
+            
+                    if 'nnj' not in cfg:
+                        cfg['bad_input'] = True
+                        print "To build a custom nozzle grid you must specify the"
+                        print "    number of radial cells (nnj). Check your input."
+            
+                    if 'nbi' not in cfg:
+                        cfg['bad_input'] = True
+                        print "To build a custom nozzle grid you must specify the"
+                        print "    number of axial blocks (nbi). Check your input."
+                
+                    if 'nbj' not in cfg:
+                        cfg['bad_input'] = True
+                        print "To build a custom nozzle grid you must specify the"
+                        print "    number of radial blocks (nbj). Check your input."
+                
+                    if 'bx' not in cfg:
+                        cfg['bad_input'] = True
+                        print "To build a custom nozzle grid you must specify the"
+                        print "    axial cell clustering (bx). Check your input."
+            
+                    if 'by' not in cfg:
+                        cfg['bad_input'] = True
+                        print "To build a custom nozzle grid you must specify the"
+                        print "    radial cell clustering (by). Check your input."
+                
+                    if 'include_throat_block' not in cfg:
+                        cfg['bad_input'] = True
+                        print "To build a custom nozzle grid you must specify whether or not"
+                        print "    to include a throat block (include_throat_block=True/False)."
+                        print "    Check your input."
+                    else:
+                        if cfg['include_throat_block']:
+                            if 'Lthr' not in cfg:
+                                cfg['bad_input'] = True
+                                print "Length of the throat block (Lthr) not set."
+                                print "    Check your input."
+                        else:
+                            if 'Lthr' not in cfg:
+                                cfg['Lthr'] = 0.0
+                    
+                    if 'truncate_nozzle' not in cfg:
+                        cfg['bad_input'] = True
+                        print "To build a custom nozzle grid you must specify whether or not"
+                        print "    nozzle is trucated wrt the Bezier-contour (truncate_nozzle=True/False)."
+                        print "    Check your input."
+                    else:
+                        if cfg['truncate_nozzle']:
+                            if 'Lnoz' not in cfg:
+                                cfg['bad_input'] = True
+                                print "Length of truncated nozzle (Lnoz) not set."
+                                print "    Check your input."
+                        else:
+                            if 'Lnoz' not in cfg:
+                                cfg['Lnoz'] = 1.0
+                
+                    if 'fully_contoured_nozzle' not in cfg:
+                        cfg['bad_input'] = True
+                        print "To build a custom nozzle grid you must specify if the nozzle is"
+                        print "    fully contoured (or not). Check your input."
+                
     if 'max_time' not in cfg:
         cfg['max_time'] = 6.0e-3
         print "Overall simulation time for nozzle flow not set."

@@ -139,9 +139,9 @@ def get_job_config_data(job):
             elif temp[2] == "west":
                 other_face[block,face] = 3 
             elif temp[2] == "top":
-                other_face[block,face] = 3 
+                other_face[block,face] = 4 
             elif temp[2] == "bottom":
-                other_face[block,face] = 3 
+                other_face[block,face] = 5 
             else:
                 print "Error"
             face = face + 1

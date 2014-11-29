@@ -147,9 +147,11 @@ def select_gas_model(model=None, species=None, fname=None):
     Selects a gas model for the simulation.
 
     :param model: (string) name of the gas model as shown in the list below.
-    :param species: list of species names (strings).
+    :param species: list of species names (strings). 
+                    Note that you could also provide a dictionary 
+                    with species names as keys and mass-fraction values
+                    (and the mass-fractions will be ignored).
     :param fname: (string) name of the gas-model file.
-
     :returns: a list of species names.
 
     The new gas models are configured by stand-alone files.

@@ -90,22 +90,30 @@ def make_test_gas(gasName, outputUnits='moles'):
                    outputUnits=outputUnits), None, 1.2923, 43.53 #Gas, ideal gas guess, gam, Mmass  
     elif gasName.lower() == 'co2':
         return Gas(reactants={'CO2':1.0}, outputUnits=outputUnits), None, 1.289, 44.01 #Gas, ideal gas guess, gam, Mmass
-    elif gasName.lower() == 'gasgiant_h215ne': #composition used in Chris James' equivalent condition tests
+    elif gasName.lower() == 'gasgiant_h215ne' or gasName.lower() == 'gasgiant_h2_15ne': 
+        #composition used in Chris James' equivalent condition tests
         return Gas(reactants={'H2':0.85, 'Ne':0.15}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits),{'gam':1.15,'R':3245.1}
-    elif gasName.lower() == 'gasgiant_h240ne':
+    elif gasName.lower() == 'gasgiant_h240ne' or gasName.lower() == 'gasgiant_h2_40ne':
         return Gas(reactants={'H2':0.6, 'Ne':0.4}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits),{'gam':1.5,'R':1443.2}
-    elif gasName.lower() == 'gasgiant_h285ne': #composition used by Charlotte Higgins
+    elif gasName.lower() == 'gasgiant_h285ne' or gasName.lower() == 'gasgiant_h2_85ne': 
+        #composition used by Charlotte Higgins
         return Gas(reactants={'H2':0.15, 'Ne':0.85}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits),{'gam':1.5,'R':547.8}
-    elif gasName.lower() == 'gasgiant_h215he': #composition used in Chris James' equivalent condition tests
+    elif gasName.lower() == 'gasgiant_h215he' or gasName.lower() == 'gasgiant_h2_15he': 
+        #composition used in Chris James' equivalent condition tests
         return Gas(reactants={'H2':0.85, 'He':0.15}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), {'gam':1.2,'R':6303.2}
-    elif gasName.lower() == 'gasgiant_h210he': #composition used in Chris James' undergrad thesis
+    elif gasName.lower() == 'gasgiant_h210he' or gasName.lower() == 'gasgiant_h2_10he': 
+        #composition used in Chris James' undergrad thesis
         return Gas(reactants={'H2':0.9, 'He':0.10}, inputUnits='moles', with_ions=True,
-                   outputUnits=outputUnits), None    
-    elif gasName.lower() == 'gasgiant_h210ne': #composition used in Chris James' undergrad thesis
+                   outputUnits=outputUnits), {'gam':1.2,'R':7100.0}   
+    elif gasName.lower() == 'gasgiant_h211he' or gasName.lower() == 'gasgiant_h2_11he': 
+        return Gas(reactants={'H2':0.89, 'He':0.11}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), {'gam':1.2,'R':7000.0}                      
+    elif gasName.lower() == 'gasgiant_h210ne' or gasName.lower() == 'gasgiant_h2_10ne': 
+        #composition used in Chris James' undergrad thesis
         return Gas(reactants={'H2':0.9, 'Ne':0.10}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), None
     elif gasName.lower() == 'h2':
@@ -116,7 +124,31 @@ def make_test_gas(gasName, outputUnits='moles'):
                    outputUnits=outputUnits), None
     elif gasName.lower() == 'ar':
         return Gas(reactants={'Ar':1.0}, inputUnits='moles', with_ions=True,
-                   outputUnits=outputUnits), {'gam':1.2,'R':271.0}                     
+                   outputUnits=outputUnits), {'gam':1.2,'R':271.0}   
+    elif gasName.lower() == 'gasgiant_h2_20he' or gasName.lower() == 'gasgiant_h220he': 
+        return Gas(reactants={'H2':0.80, 'He':0.20}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), {'gam':1.2,'R':6200.0}
+    elif gasName.lower() == 'gasgiant_h2_30he' or gasName.lower() == 'gasgiant_h230he': 
+        return Gas(reactants={'H2':0.70, 'He':0.30}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), {'gam':1.2,'R':5410.0}
+    elif gasName.lower() == 'gasgiant_h2_40he' or gasName.lower() == 'gasgiant_h240he': 
+        return Gas(reactants={'H2':0.60, 'He':0.40}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), {'gam':1.2,'R':4700.0}
+    elif gasName.lower() == 'gasgiant_h2_50he' or gasName.lower() == 'gasgiant_h250he': 
+        return Gas(reactants={'H2':0.50, 'He':0.50}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), {'gam':1.2,'R':4145.0}
+    elif gasName.lower() == 'gasgiant_h2_60he' or gasName.lower() == 'gasgiant_h260he': 
+        return Gas(reactants={'H2':0.40, 'He':0.60}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), {'gam':1.2,'R':3629.0} 
+    elif gasName.lower() == 'gasgiant_h2_70he' or gasName.lower() == 'gasgiant_h270he': 
+        return Gas(reactants={'H2':0.30, 'He':0.70}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), {'gam':1.2,'R':3170.0}  
+    elif gasName.lower() == 'gasgiant_h2_80he' or gasName.lower() == 'gasgiant_h280he': 
+        return Gas(reactants={'H2':0.20, 'He':0.80}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), {'gam':1.2,'R':2765.0}
+    elif gasName.lower() == 'gasgiant_h2_90he' or gasName.lower() == 'gasgiant_h290he': 
+        return Gas(reactants={'H2':0.10, 'He':0.90}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), {'gam':1.2,'R':2403.0}                                  
     else:
         raise Exception, 'make_test_gas(): unknown gasName: %s' % gasName 
    

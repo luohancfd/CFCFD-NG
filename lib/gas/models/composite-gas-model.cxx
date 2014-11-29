@@ -313,8 +313,9 @@ s_eval_sound_speed(Gas_data &Q)
 
 int
 Composite_gas_model::
-s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel)
+s_eval_transport_coefficients(Gas_data &Q)
 {
+    Gas_model *gmodel = this;
     return TCM_->eval_transport_coefficients(Q, gmodel);
 }
 

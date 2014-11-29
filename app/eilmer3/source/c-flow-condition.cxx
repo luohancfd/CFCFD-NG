@@ -52,7 +52,7 @@ CFlowCondition::CFlowCondition( Gas_model *gmodel,
     }
     gas->massf = massf;
     gmodel->eval_thermo_state_pT(*gas);
-    gmodel->eval_transport_coefficients(*gas, gmodel);
+    gmodel->eval_transport_coefficients(*gas);
 }
 
 CFlowCondition::CFlowCondition( const CFlowCondition &cfc ) 
@@ -66,7 +66,7 @@ CFlowCondition::CFlowCondition( const CFlowCondition &cfc )
     // The following two calls may be redundant since we have just
     // made a complete copy of the gas_data.
     gmodel->eval_thermo_state_pT(*gas);
-    gmodel->eval_transport_coefficients(*gas, gmodel);
+    gmodel->eval_transport_coefficients(*gas);
 }
 
 CFlowCondition::CFlowCondition()
@@ -82,7 +82,7 @@ CFlowCondition::CFlowCondition()
     gas->massf = std::vector<double>(nsp, 0.0);
     gas->massf[0] = 1.0;
     gmodel->eval_thermo_state_pT(*gas);
-    gmodel->eval_transport_coefficients(*gas, gmodel);
+    gmodel->eval_transport_coefficients(*gas);
 }
 
 CFlowCondition & CFlowCondition::operator=(const CFlowCondition & cfc)

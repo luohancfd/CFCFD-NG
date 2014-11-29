@@ -1,0 +1,31 @@
+===============================================
+ Projects/jobs for the cfcfd code collection
+===============================================
+
+This is our digital whiteboard where we can
+stick jobs that might be suitable as small projects
+for interns or vacation work students. We will revise
+these every so often and note the date of revision.
+
+--------------------------
+ Jobs list: 05-Nov-2014
+--------------------------
+
+Jobs suggested by PJ in an email to RJG:
+
+A list code development jobs that might be good to keep for people who ask...
+(1) CGNS grid import or conversion to VTK -- probably in C
+(2) dense-gas EOS examples and use -- D version
+(3) zeromq demonstration on the cluster
+(4) Blender
+(5) PLplot rendering of grid and geometry in D
+(6) Unit test framework or continuous integration server
+
+and, more ambitious jobs
+(7) moving-grid implementation (Jason Qin and Ingo, maybe)
+(8) implicit viscous updates
+(9) mixing-plane boundary conditions for turbo work
+(10) implementation of fog modelling (light two-phase flow)
+(11) unstructured-grid blocks
+
+

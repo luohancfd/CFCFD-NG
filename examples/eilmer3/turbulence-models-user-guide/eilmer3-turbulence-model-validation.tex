@@ -38,15 +38,16 @@
     School of Mechanical \& Mining Engineering \\
     Research Report Number 2010/01 
     \vspace{0.5cm} \\
-    W. Y. K. Chan, \thanks{Centre for Hypersonics, The University of 
+    W. Y. K. Chan\thanks{Centre for Hypersonics, The University of 
      Queensland, Brisbane, Australia.}, 
-    P. A. Jacobs, \thanks{Queensland Geothermal Energy Centre of 
+    P. A. Jacobs\thanks{Queensland Geothermal Energy Centre of 
      Excellence, The University of Queensland, Brisbane, Australia.}, 
     J. P. Nap\thanks{Engineering Fluid Dynamics Group, University of Twente, Netherlands.}, \\ 
     D. J. Mee\thanks{School of Mechanical \& Mining Engineering, 
-     The University of Queensland, Brisbane, Australia.} and 
+     The University of Queensland, Brisbane, Australia.},  
     R. M. Kirchhartz\thanks{Centre for Hypersonics, The University of
-     Queensland, Brisbane, Australia.} \\
+     Queensland, Brisbane, Australia.} and
+    S. J. Stennett\thanks{Supervised by W. Y. K. Chan at the University of Queensland, Brisbane, Australia.} \\
 }
 % \date{November 2008}
 
@@ -68,9 +69,8 @@ in two- and three-dimensions\cite{Jacobs2008,Jacobs2010}. The two-dimensional
 version of the $k$-$\omega$ model in Eilmer3 has been verified and
 validated against four test cases. These cases include a two-dimensional 
 flat plate case, an axisymmetric cylinder case, a backward-facing step
-case and a coaxial-jets mixing case. The implementation and validation of
-the three-dimensional version of this turbulence model is still in
-progress. Since guidelines with regards to the setting up of grids in the
+case and a coaxial-jets mixing case. The three-dimensional version of this turbulence model has also been investigated using three test cases, including a three-dimensional flat plate, single fin and normal injector. 
+Since guidelines with regards to the setting up of grids in the
 near-wall regions and specification of freestream turbulence properties 
 for turbulent CFD simulations are rather scattered in literature, this 
 report provides a compilation and, more importantly, a review of these 
@@ -86,9 +86,13 @@ recommended guidelines.
 \include{./chap3-mallinson-cylinder/mallinson-cylinder}
 \include{./chap4-backward-facing-step/backward-facing-step}
 \include{./chap5-coaxial-jets/coaxial-jets}
-\include{./chap6-conclusion/conclusion}
 
 % 3D examples
+\include{./chap6-3Dflatplate/3Dflatplate}
+\include{./chap7-3Dsinglefin/3Dsinglefin}
+\include{./chap8-3Dinjector/3Dinjector}
+
+\include{./chap9-conclusion/conclusion}
 
 %--------------------------------------------------------------------
 

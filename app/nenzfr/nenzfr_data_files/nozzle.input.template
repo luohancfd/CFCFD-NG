@@ -47,6 +47,10 @@
 #   accept a user-defined reaction scheme and started adding the capability 
 #   of using multi-temperature gas models i.e thermal-nonequilibrium.
 #
+# Luke Doherty, November-2014
+# - improved the nozzle grid building code by introducing a number of 
+#   parameters/flags. It should be easier now to add more nozzles to 
+#   the list of defaults.
 #---------------------------------------------------------------------
 import string, fileinput
 from estcj import reflected_shock_tube_calculation as rstc
@@ -58,16 +62,11 @@ from cfpylib.nm.zero_solvers import secant
 from string import upper, lower
 from numpy import arange
 from cfpylib.nm.roberts import roberts
-from math import tan, atan
 import os
 
+DEBUG_flag = 0
 #---------------------------------------------------------------------
 # Utility functions
-#def round_list(list, precision):
-#    #for k in range(len(list)):
-#    #    list[k] = round(list[k], precision)
-#    list = [round(k,precision) for k in list]
-#    return list
 
 def massFractionCheck(species):
     # The mass fractions we get from CEA do not always sum to one within
@@ -95,9 +94,6 @@ def massFractionCheck(species):
 
 #--------------------------------------------------------------------
 gdata.title = "Flow through a shock tunnel nozzle."
-
-DEBUG_flag = 0
-
 if $facility == 'reflected-shock-tunnel':
     # Shock tube conditions define flow condition at the nozzle throat.
     # This throat condition is used as the input to the simulation of
@@ -120,11 +116,10 @@ elif $facility == 'gun-tunnel':
     estc_result = ettc(stagnated_state, $p0, $T0)
     throat = estc_result['state6']
     throat_V = estc_result['V6']
-
 print "Flow velocity at nozzle throat = {0} m/s.".format(throat_V)
 print "Flow condition at nozzle throat:"
 throat.write_state(sys.stdout)  
-
+#
 # Estimate turbulence quantities for the inflow. Note that for 
 # fully laminar nozzles these values are adjusted later once 
 # the grid has been defined.
@@ -133,10 +128,7 @@ throat_mu_t = $TurbVisRatio * throat.mu
 throat_omega = throat.rho * throat_tke / throat_mu_t
 print "Inflow turbulence: tke=", throat_tke, "omega=", throat_omega
 print "These will be adjusted later if nozzle flow is fully laminar."
-
-if DEBUG_flag:
-    print "Test gas is "+$gasName
-
+#
 # Define the temperature and pressure of the intial gas sitting 
 # in the nozzle/dump tank. The values used here don't actually
 # matter as Wilson's block-marching methodology (re)initializes 
@@ -145,41 +137,32 @@ if DEBUG_flag:
 initial = {};
 initial['p'] = 106.4;
 initial['T'] = 300.0;
-
-# Determine the composition of the gas initially in the nozzle
-# and dump tank
+#
+# Determine the composition of the gas initially in the nozzle and dump tank
+if DEBUG_flag: print "Test gas is "+$gasName
 initialGas = make_gas_from_name($gasName)
 initialGas.set_pT(p=initial['p'],T=initial['T'])
-
-# Check that species mass fractions at 'throat' sum to one to within the
-# tolerance required by eilmer
 throat.species = massFractionCheck(throat.species)
 print "Flow species at nozzle throat:"
-print ("Note that if required, the equilibrium massf "
-      "values have been scaled by their summation")
 print throat.species
-
-# Set the gas model
+print("Note that, if required, the equilibrium massf "
+      "values have been scaled by their summation")
+#
+# Set the gas model and reaction schemes.
 if $chemModel in ['eq']:
-    select_gas_model(fname="cea-lut-"+upper($gasName)+".lua.gz")
-    # Artificially set species dictionaries so that we can use them later
-    # with FlowCondition
-    throat.species = {'air': 1.0}
-    initialGas.species = {'air': 1.0}
+    select_gas_model(fname="cea-lut-"+$gasName+".lua.gz")
+    # Artificially set species dictionaries so that we play 
+    # nicely with FlowCondition later
+    throat.species = [1.0,]      #{'air': 1.0}
+    initialGas.species = [1.0,]  #{'air': 1.0}
 elif $chemModel in ['frz','neq']:
     select_gas_model(model="thermally perfect gas", species=throat.species)
 else:
     select_gas_model(model="two temperature gas", species=throat.species)
-
-# Set the chemical reaction scheme
 if $chemModel in ['neq']:
     set_reaction_update($reactionSchemeFile)
-
-# Set the thermal exchange scheme
 if $chemModel in ['tc-neq']:
     set_energy_exchange_scheme($thermalSchemeFile)
-
-# Print some information
 message = {'eq'  : "Nozzle expansion uses equilibrium "+$gasName+" (CEA LUT)",
            'frz' : "Nozzle expansion uses (chemically) frozen "+$gasName,
            'neq' : "Nozzle expansion uses (chemical) non-equlibrium "+$gasName,
@@ -187,7 +170,7 @@ message = {'eq'  : "Nozzle expansion uses equilibrium "+$gasName+" (CEA LUT)",
 print 60*"-"
 print message[$chemModel]
 print 60*"-" 
-
+#
 # Now set the inflow and intial flow conditions
 inflow=FlowCondition(p=throat.p, u=throat_V, v=0.0, T=throat.T,
                        massf=throat.species, tke=throat_tke,
@@ -195,10 +178,15 @@ inflow=FlowCondition(p=throat.p, u=throat_V, v=0.0, T=throat.T,
 initial=FlowCondition(p=initial['p'], u=0.0, v=0.0, T=initial['T'],
                        massf=initialGas.species, tke=0.0, omega=1.0,
                        label="initial")
-
-# When no gridFileName is given we use the provided (or default) contourFile
-if $gridFileName in ['None']:
-    # Read in file for the particular nozzle.
+#
+# Define some parameters for building of the grid
+include_throat_block = $include_throat_block
+truncate_nozzle = $truncate_nozzle
+fully_contoured_nozzle = $fully_contoured_nozzle
+gridFileName = $gridFileName
+if gridFileName in ['None']:
+    print "Construct our own grid from the contourFile." 
+    # The nozzle is defined by its x,y-contour.
     x_c = []; y_c = []
     fp = open($contourFileName, 'r')
     for line in fp.readlines():
@@ -207,305 +195,192 @@ if $gridFileName in ['None']:
         if items[0] == '#': continue  # skip header lines
         x_c.append(float(items[0]))
         y_c.append(float(items[1]))
-    
     # Bezier control points that make up the nozzle contour. 
-    if $contourFileName in ['Bezier-control-pts-t4-m7.data',\
-                            'Bezier-control-pts-t4-m8.data',\
-                            'Bezier-control-pts-t4-m10.data',\
-                            'Bezier-control-pts-x2-m10.data',\
-                            'Bezier-control-pts-x3-m10.data',\
-                            'Bezier-control-pts-custom-nozzle.data']:
-        # For the T4 Mach 7, 8 and Mach 10 nozzles, the control points 
-        # start from the first pair of coordinates in the given data 
-        # file.
+    if fully_contoured_nozzle: 
+        # For fully contoured nozzles, the control points start 
+        # from the first pair of coordinates in the given data file.
         bezCtrlPts = [Vector(x_c[i],y_c[i]) for i in range(len(x_c))]
     else:
         # The first pair of coordinates in the given data file for 
         # the other nozzles are not Bezier control points.
         bezCtrlPts = [Vector(x_c[i],y_c[i]) for i in range(1, len(x_c))]
-    
-    # Create nodes
-    if $contourFileName in ['Bezier-control-pts-t4-m10.data']:
-        Lthr = 0.010
-        Lnoz = 1.633197
+    # Create nodes for throat block
+    if include_throat_block:
+        Lthr = $Lthr
+        throat_axis = Node(-Lthr, 0.0)
+        throat_wall = Node(-Lthr, y_c[0])
     else:
-        Lthr = y_c[0]
+        Lthr = 0.0
+    # Define the nozzle length
+    if truncate_nozzle:
+        Lnoz = $Lnoz
+    else:
         Lnoz = x_c[-1]
-    throat_axis = Node(-Lthr, 0.0) 
-    throat_wall = Node(-Lthr, y_c[0])
+    # Create nodes for the divergent section of nozzle
     divergence_axis = Node(0.0, 0.0)
     divergence_wall = Node(0.0, y_c[0])
     nozzle_end_axis = Node(x_c[-1], 0.0)
     nozzle_end_wall = Node(x_c[-1], y_c[-1])
-        
     # Define the lines making up the patch for the throat ..
-    t_south = Line(throat_axis, divergence_axis)
-    t_north = Line(throat_wall, divergence_wall)
-    t_west = Line(throat_axis, throat_wall)
-    t_east = Line(divergence_axis, divergence_wall)
+    if include_throat_block:
+        t_south = Line(throat_axis, divergence_axis)
+        t_north = Line(throat_wall, divergence_wall)
+        t_west = Line(throat_axis, throat_wall)
+        t_east = Line(divergence_axis, divergence_wall)
     # .. and the expansion region.
-    if $contourFileName in ['Bezier-control-pts-t4-m7.data',\
-                            'Bezier-control-pts-t4-m8.data',\
-                            'Bezier-control-pts-t4-m10.data',\
-                            'Bezier-control-pts-x2-m10.data',\
-                            'Bezier-control-pts-x3-m10.data',\
-                            'Bezier-control-pts-custom-nozzle.data']:
+    if fully_contoured_nozzle: 
         n_north = Bezier(bezCtrlPts)
-        
-        # For the Mach 10 nozzle the Bezier curve is longer than 
-        # the actual nozzle so we must truncate it.
-        if $contourFileName in ['Bezier-control-pts-t4-m10.data']:
-            def truncate_time(x, curve=n_north, L=Lnoz):
-                return curve.eval(x).x - L
-            tstar = secant(truncate_time,0.5,0.6,tol=1.0e-6,limits=[0.0,1.0])
-            n_north.t1 = tstar
-            # Redefine relevant nodes for nozzle exit
-            nozzle_end_axis = Node(n_north.eval(1.0).x,0.0)
-            nozzle_end_wall = Node(n_north.eval(1.0).x,n_north.eval(1.0).y) 
     else:
         n_north = Polyline([Line(divergence_wall,bezCtrlPts[0]), Bezier(bezCtrlPts)])
+    if truncate_nozzle:
+        # For some nozzles (e.g. t4-m10b) the Bezier points define a 
+        # contour that is longer than the physical nozzle. 
+        # For these cases we must truncate the Bezier contour
+        def truncate_time(x, curve=n_north, L=Lnoz):
+            return curve.eval(x).x - L
+        tstar = secant(truncate_time,0.5,0.6,tol=1.0e-6,limits=[0.0,1.0])
+        n_north.t1 = tstar
+        # Redefine relevant nodes for nozzle exit
+        nozzle_end_axis = Node(n_north.eval(1.0).x,0.0)
+        nozzle_end_wall = Node(n_north.eval(1.0).x,n_north.eval(1.0).y)
     n_west = Line(divergence_axis, divergence_wall)
     n_east = Line(nozzle_end_axis, nozzle_end_wall)
-    
-    # Write out the nozzle area ratio 
+    n_south = Line(divergence_axis, nozzle_end_axis)
+    expansion_region = ExpandingChannelPatch(n_south, n_north, n_west, n_east)
+    # To inform the user, write out the nozzle area ratio.
     area_ratio = (n_north.eval(1).y/n_north.eval(0).y)**2
     print "nozzle area ratio=", area_ratio
-
-    # Define the expansion_region using a specialised Surface Function.
-    # For viscous simulations, it is necessary to keep the cells near
-    # the non-slip walls as orthogonal to the walls as possible. However,
-    # because the "AO" option in make_patch() does not give a grid that is 
-    # good enough for the nozzle geometry, a specialised surface function
-    # has to be used. Points in the grid along the north, east and west
-    # edges follow that specified by n_north, n_east and n_west. The rest
-    # of the other points in the grid are built by creating strips of 
-    # quadratic Bezier curves that run from the nozzle wall to the axis.
-    # The use of quadratic Bezier curves allows the generated points to
-    # be orthogonal to the wall near the nozzle wall and orthogonal to
-    # the axis near the axis.
-    def make_expansion_region_grid(r, s):
-        global n_north, n_west, n_east
-        if r == 0.0:
-            x = n_north.eval(r).x
-            y = n_west.eval(s).y
-        elif r == 1.0:
-            x = n_north.eval(r).x
-            y = n_east.eval(s).y
-        elif s == 1.0:
-            x = n_north.eval(r).x
-            y = n_north.eval(r).y
-        else:
-            # Wall point (Bezier control point 1)
-            wall_pt_x = n_north.eval(r).x
-            wall_pt_y = n_north.eval(r).y
-            # Angle perpendicular to the wall at wall point
-            wall_angle = atan((n_north.eval(r+0.0001).y - n_north.eval(r-0.0001).y) /\
-                              (n_north.eval(r+0.0001).x - n_north.eval(r-0.0001).x))
-            # If the expansion region starts sharply from the throat, then we
-            # need some way of transitioning from the grid in the throat region
-            # to the expansion region. To do so, we tweak the wall_angle in a
-            # small starting region in the nozzle (say, 2% of the length of the
-            # expansion region). The wall_angle starts from 0 degrees at the
-            # start of this small region and smooths it out to the actual
-            # wall_angle at the end of this small region.
-            north_length = n_north.eval(1.0).x - n_north.eval(0.0).x
-            if (n_north.eval(r).x - n_north.eval(0.0).x) <= (0.02 * north_length):
-                wall_angle = (n_north.eval(r).x - n_north.eval(0.0).x) / \
-                             (0.02 * north_length) * wall_angle
-            # Do the same for a small region at the end of the nozzle. This is
-            # to accommodate to nozzles that have been a non-zero gradient at
-            # at the nozzle exit (which is brought about by nozzle truncation).
-            if (n_north.eval(r).x - n_north.eval(0.0).x) >= (0.98 * north_length):
-                wall_angle = (n_north.eval(1.0).x - n_north.eval(r).x) / \
-                             (0.02 * north_length) * wall_angle
-            # Mid point (Bezier control point 2).
-            mid_pt_y = n_north.eval(r).y / 2.0
-            mid_pt_x = wall_pt_x + (mid_pt_y * tan(wall_angle))
-            # Axis point (Bezier control point 3).
-            axis_pt_x = mid_pt_x
-            axis_pt_y = 0.0
-            # Generate t for quadratic Bezier curve equation.
-            t = (1.0 - s)
-            # Generate point on quadratic Bezier curve.
-            x = (1-t)*(1-t)*wall_pt_x + 2*t*(1-t)*mid_pt_x + t*t*axis_pt_x
-            y = (1-t)*(1-t)*wall_pt_y + 2*t*(1-t)*mid_pt_y + t*t*axis_pt_y
-        return (x, y, 0.0)
     #
-    expansion_region = PyFunctionSurface(make_expansion_region_grid)    
-
     # Define the clustering and grid resolution parameters for the "nozzle_blk". 
-    # We define these here like this as they may be needed to define the 
-    # "throat_blk" for the Mach 4, 6 and 8 nozzles
+    # We define these here like this as they may be needed to define the "throat_blk"
     nnj = $nnj   # number of radial cells
     nni = $nni   # number of axial cells
     nbi = $nbi   # number of axial blocks for the divergence section (nozzle_blk)
     nbj = $nbj   # number of radial blocks
     bx = $bx     # clustering in the axial direction
     by = $by     # clustering in the radial direction
-    if $contourFileName in ['Bezier-control-pts-t4-m7.data',\
-                            'Bezier-control-pts-t4-m8.data',\
-                            'Bezier-control-pts-t4-m10.data',\
-                            'Bezier-control-pts-x2-m10.data',\
-                            'Bezier-control-pts-x3-m10.data',\
-                            'Bezier-control-pts-custom-nozzle.data']:
+    if fully_contoured_nozzle:
         # To accomodate for the natural clustering induced by the Bezier curves
-        # for these nozzle we only cluster towards the nozzle exit.
+        # for fully contoured nozzles we only cluster towards the nozzle exit.
         x_clust = RobertsClusterFunction(0, 1, bx)
+        # [TODO] Wilson, could we remove this different clustering by making use of
+        # the option for arc-length parameterization of the Bezier curves?
+        # This clustering variation appears a few lines below, as well.
     else:
         x_clust = RobertsClusterFunction(1, 1, bx)
     y_clust = RobertsClusterFunction(0, 1, by)
     cf_list = [x_clust, y_clust, x_clust, y_clust]
-
+    #
     # Define boundary conditions
     Twall = $Tw
     bc_list = [FixedTBC(Twall), ExtrapolateOutBC(), SlipWallBC(), SupInBC(inflow)]
-
-    # Now, we also make a block for the throat region. We must define this
-    # block here BEFORE the "nozzle_blk" in order to ensure that the blocks are
-    # numbered in sequence in order to allow space-marching in the simulation.
     #
-    # The number of cells in the axial direction and clustering for
-    # this block are automatically calculated based on the clustering and 
-    # resolution of "nozzle_blk" as specified above. We try to ensure that the 
-    # spacing across the interface of the "throat_blk" and "nozzle_blk" is even
-    # and an appropriate number of cells/blocks are used in the throat.
-    #     Luke D. 21-Aug-2011
-    throat_region = make_patch(t_north, t_east, t_south, t_west)
-     
-    # We need to know the axial spacing of the first grid point in 
-    # "nozzle_blk" in order to calculate the required clustering. 
-    # The following code isn't very elegant but it works.
-    delta = 1.0/float(nni) # Intial uniform spacing
-    # Non-uniform spacing in logical space for the SOUTH boundary of "nozzle_blk"
-    if $contourFileName in ['Bezier-control-pts-t4-m7.data',\
-                            'Bezier-control-pts-t4-m8.data',\
-                            'Bezier-control-pts-t4-m10.data',\
-                            'Bezier-control-pts-x2-m10.data',\
-                            'Bezier-control-pts-x3-m10.data',\
-                            'Bezier-control-pts-custom-nozzle.data']:
-        logical_noz = roberts(arange(0.0, 1.+delta, delta), 0.0, bx)
-    else:
-        logical_noz = roberts(arange(0.0, 1.+delta, delta), 0.5, bx)
-    # Actual grid points
-    actual_noz = [make_expansion_region_grid(r,0)[0] for r in logical_noz]
-    # First cell width
-    diff = make_expansion_region_grid(logical_noz[1], 0)[0]
-
-    # Calculate the number of cells required on the NORTH/SOUTH boundaries of the 
-    # "throat_blk" based on how many cells there are in the "nozzle_blk" over the 
-    # same physical length. NB. If you are clustering very strongly in the x-direction 
-    # (x_clust, bx specified above) you may want to include a factor here to reduce
-    # the number of cells in the throat region.
-    nni_throat = [indexOf(actual_noz, x) for x in actual_noz if x < Lthr][-1] + 1
-    delta2 = 1./nni_throat # Intial uniform spacing
-    logical_throat = arange(0.0, 1.+delta2, delta2)
-            
-    # Define a function which calculates the difference in the grid
-    # spacing on either side of the "throat_blk"/"nozzle_blk" boundary
-    def spacing_error(x, L=Lthr, diff=diff, orig=logical_throat):
-        new = L * roberts(orig, 0.5, x)
-        return (new[1]-new[0] - diff)/diff
-    bx_throat = secant(spacing_error, 1.0001, 1.002, tol=1.0e-2,\
-                      limits=[1.0001,5])
-    if bx_throat in ['Fail','FAIL',]:
-        print "Failed to find throat clustering parameter"
-        print "Setting bx_throat == bx"
-        bx_throat = bx
-    # Infer the number of blocks from how many we set for "nozzle_blk"
-    nbi_throat = int(round(float(nbi)/float(nni)*float(nni_throat)))
-    if nbi_throat > 1:
-        nbi_throat = nbi_throat - 1
-    # We need at least 1 block for the throat region
-    if nbi_throat < 1:
-        nbi_throat = 1
-    
-    # Display the calculated data
-    print "nni_throat=",nni_throat
-    print "nbi_throat=",nbi_throat
-    print "Clustering, bx_throat=",bx_throat 
-    
-    # Now set the clustering and define the "throat_blk"
-    x_clust_throat = RobertsClusterFunction(1, 1, bx_throat)
-    cf_list_throat = [x_clust_throat, y_clust, x_clust_throat, y_clust]
-
-    # For block-marched simulations, the blocks are initialised with 
-    # throat conditions to help improve the convergence of the simulation
-    blockMarchingFlag = $blockMarching
-    if blockMarchingFlag == True:
-        print "Blocks initialised with throat conditions for block-marched simulation"
-        # Define the throat block
-        throat_blk = SuperBlock2D(throat_region, nni=nni_throat, nnj=nnj,
-                                  nbi=nbi_throat, nbj=nbj,
-                                  bc_list=bc_list, cf_list=cf_list_throat,
-                                  fill_condition=inflow, label="throat")
-        # Define the main nozzle block
-        nozzle_blk = SuperBlock2D(expansion_region, nni=nni, nnj=nnj,
-                                  nbi=nbi, nbj=nbj,
-                                  bc_list=bc_list, cf_list = cf_list,
-                                  fill_condition=inflow, label="nozzle")
-    else:
-        print "Blocks initialised with initial conditions for transient simulation"
-        # Define the throat block
+    if include_throat_block:
+        # Now, we also make a block for the throat region. We must define this
+        # block here BEFORE the "nozzle_blk" in order to ensure that the blocks are
+        # numbered in sequence in order to allow space-marching in the simulation.
+        #
+        # The number of cells in the axial direction and clustering for
+        # this block are automatically calculated based on the clustering and 
+        # resolution of "nozzle_blk" as specified above. We try to ensure that the 
+        # spacing across the interface of the "throat_blk" and "nozzle_blk" is even
+        # and an appropriate number of cells/blocks are used in the throat.
+        #     Luke D. 21-Aug-2011
+        throat_region = make_patch(t_north, t_east, t_south, t_west)
+        # We need to know the axial spacing of the first grid point in 
+        # "nozzle_blk" in order to calculate the required clustering. 
+        # The following code isn't very elegant but it works.
+        delta = 1.0/float(nni) # Intial uniform spacing
+        # Non-uniform spacing in logical space for the SOUTH boundary of "nozzle_blk"
+        if fully_contoured_nozzle:
+            logical_noz = roberts(arange(0.0, 1.+delta, delta), 0.0, bx)
+        else:
+            logical_noz = roberts(arange(0.0, 1.+delta, delta), 0.5, bx)
+        # Actual grid points
+        actual_noz = [expansion_region.eval(r,0).x for r in logical_noz]
+        # First cell width
+        diff = expansion_region.eval(logical_noz[1], 0).x
+        # Calculate the number of cells required on the NORTH/SOUTH boundaries of the 
+        # "throat_blk" based on how many cells there are in the "nozzle_blk" over the 
+        # same physical length. NB. If you are clustering very strongly in the x-direction 
+        # (x_clust, bx specified above) you may want to include a factor here to reduce
+        # the number of cells in the throat region.
+        nni_throat = [indexOf(actual_noz, x) for x in actual_noz if x < Lthr][-1] + 1
+        delta2 = 1./nni_throat # Intial uniform spacing
+        logical_throat = arange(0.0, 1.+delta2, delta2)
+        # Define a function which calculates the difference in the grid
+        # spacing on either side of the "throat_blk"/"nozzle_blk" boundary
+        def spacing_error(x, L=Lthr, diff=diff, orig=logical_throat):
+            new = L * roberts(orig, 0.5, x)
+            return (new[1]-new[0] - diff)/diff
+        bx_throat = secant(spacing_error, 1.0001, 1.002, tol=1.0e-2, limits=[1.0001,5])
+        if bx_throat in ['Fail','FAIL',]:
+            print "Failed to find throat clustering parameter"
+            print "Setting bx_throat == bx"
+            bx_throat = bx
+        # Infer the number of blocks from how many we set for "nozzle_blk"
+        nbi_throat = int(round(float(nbi)/float(nni)*float(nni_throat)))
+        if nbi_throat > 1: nbi_throat = nbi_throat - 1
+        # We need at least 1 block for the throat region
+        if nbi_throat < 1: nbi_throat = 1
+        # Display the calculated data
+        print "nni_throat=",nni_throat
+        print "nbi_throat=",nbi_throat
+        print "Clustering, bx_throat=",bx_throat 
+        # Now set the clustering and define the "throat_blk"
+        x_clust_throat = RobertsClusterFunction(1, 1, bx_throat)
+        cf_list_throat = [x_clust_throat, y_clust, x_clust_throat, y_clust]
         throat_blk = SuperBlock2D(throat_region, nni=nni_throat, nnj=nnj,
                                   nbi=nbi_throat, nbj=nbj,
                                   bc_list=bc_list, cf_list=cf_list_throat,
                                   fill_condition=initial, label="throat")
-        # Define the main nozzle block
-        nozzle_blk = SuperBlock2D(expansion_region, nni=nni, nnj=nnj,
-                                  nbi=nbi, nbj=nbj,
-                                  bc_list=bc_list, cf_list = cf_list,
-                                  fill_condition=initial, label="nozzle")
-        
-    identify_block_connections()
-
+    nozzle_blk = SuperBlock2D(expansion_region, nni=nni, nnj=nnj,
+                              nbi=nbi, nbj=nbj,
+                              bc_list=bc_list, cf_list = cf_list,
+                              fill_condition=initial, label="nozzle")
 else:
-    print "Importing specified grid...." 
-    scaleFactor = 1000.0 # Use this to alter the dimensions of your grid
-    importedGrid = read_plot3d_grid_from_pointwise($gridFileName, 3, scaleFactor)
+    print "Importing specified grid." 
+    scaleFactor = 1.0 # Use this to alter the dimensions of your grid
+    importedGrid = read_plot3d_grid_from_pointwise(gridFileName, 3, scaleFactor)
     nblocks =  len(importedGrid)
-    print "Finished importing grids."
-    print "Sanity check .. number of block = ", nblocks
-    
-    # Define the blocks, boundary conditions
+    print "Finished importing", nblocks, "grids."
     blockList = []
-    
     Twall = $Tw
     for count in range(nblocks):
-       blk = Block2D(nni=importedGrid[count].ni-1, nnj=importedGrid[count].nj-1,
-                     # minus 1 for nni because nni=number-of-cell-centres & ni=number-of-nodes
-                     fill_condition=initial, label="block-"+str(count), 
-                     grid=importedGrid[count],
-                     bc_list=[FixedTBC(Twall), SlipWallBC(), # NORTH, EAST, SOUTH, WEST
-                              SlipWallBC(), SlipWallBC()])
-       # Attach 1 block of the imported multi-block grid
-       #blk.attach_grid(importedGrid[count])
-       # Append block to list of blocks
-       blockList.append(blk)
+        blk = Block2D(nni=importedGrid[count].ni-1, nnj=importedGrid[count].nj-1,
+                      # minus 1 for nni because nni=number-of-cell-centres & ni=number-of-nodes
+                      fill_condition=initial, label="block-"+str(count), 
+                      grid=importedGrid[count],
+                      bc_list=[FixedTBC(Twall), SlipWallBC(), SlipWallBC(), SlipWallBC()])
+                      #        NORTH,           EAST,         SOUTH,        WEST
+        blockList.append(blk)
     blockList[0].bc_list[WEST] = SupInBC(inflow)
     blockList[nblocks-1].bc_list[EAST] = ExtrapolateOutBC()
-     
-    identify_block_connections()
-
-    
-# Define the turbulent portion of the nozzle. We adjust 
-# BLTrans by the length of the throat region. This ensures
-# that turbulence is turned on a distance of BLTrans from 
-# the START of the nozzle.
+    # For imported grids, we assume that the grid starts at x=0.0. 
+    # Hence, we don't need a throat-length (even if there is a throat).
+    Lthr = 0.0
+#
+# At this point, we have a grid with many blocks, either constructed or imported.
+identify_block_connections()
+#
+# Define the turbulent portion of the nozzle. 
+gdata.turbulence_model = 'k_omega'
+# We adjust BLTrans by the length of the throat region.
+# This ensures that turbulence is turned on a distance
+# of BLTrans from the START of the nozzle.
 point0=Vector($BLTrans-Lthr, 0.000, 0.000)
 point1=Vector(x_c[-1]*2.0, y_c[-1]*2.0, 0.000)
 TurbulenceZone(point0, point1, label="Turbulent")
-
 # We now do a final check on whether or not the nozzle is 
 # fully laminar. If it is we adjust the inflow turbulence
 # parameters (tke, omega).
 if $BLTrans-Lthr >= Lnoz:
+    print 60*'-'
+    print "Nozzle flow is fully Laminar: setting inflow turbulence to 0"
     inflow.flow.tke = 0.0
     inflow.flow.omega = 1.0
     print 60*'-'
-    print "Nozzle flow is fully Laminar: setting inflow turbulence to 0"
-    print 60*'-'
-
-    
+#
 # Attributes for the space-marching simulation.
 gdata.dimensions = 2
 gdata.sequence_blocks = $seq_blocks
@@ -524,9 +399,8 @@ gdata.cfl_count = 5
 # very large number.
 gdata.dt_plot = 1.0e6 #0.04e-3
 gdata.dt_history = 10.0e-6
-# gdata.turbulence_flag = 1 # No longer used, from 2013-04-23
-gdata.turbulence_model = 'k_omega'
-
+# The following sketch parameters should be customized for your particular nozzle
+# if you want an SVG drawing of the blocks with boundary conditions.
 sketch.xaxis(0.0, 1.2, 0.1, 0.)
 sketch.yaxis(0.0, 0.4, 0.1, 0.)
 sketch.window(0.0, 0.0, 1.0, 1.0, 0.015, 0.015, 0.15, 0.15)

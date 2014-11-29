@@ -145,6 +145,10 @@ def create_gas_file(model, species, fname="gas-model.lua", lut_file=None):
     Input:
     model   : (string) name of the gas model as specified in gasfile.lua.
     species : list of species names (strings)
+              Note that you could also provide a dictionary with species names as keys 
+              and mass-fraction values.  Sometimes it is convenient to such a dictionary 
+              because it has already been set up in the user's script. 
+              The mass-fractions will (of course) be ignored at this point.
     fname   : (string) name of the file to be output be gasfile.lua
     lut_file: (string) name of the Look-up table file, if any.
 

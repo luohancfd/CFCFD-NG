@@ -105,8 +105,8 @@ public:
     int eval_sound_speed(Gas_data &Q)
     { return s_eval_sound_speed(Q); }
 
-    int eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel)
-    { return s_eval_transport_coefficients(Q, gmodel); }
+    int eval_transport_coefficients(Gas_data &Q)
+    { return s_eval_transport_coefficients(Q); }
 
     int eval_diffusion_coefficients(Gas_data &Q)
     { return s_eval_diffusion_coefficients(Q); }
@@ -259,7 +259,7 @@ protected:
     virtual int s_eval_thermo_state_ps(Gas_data &Q, double p, double s);
     virtual int s_eval_thermo_state_hs(Gas_data &Q, double h, double s);
     virtual int s_eval_sound_speed(Gas_data &Q);
-    virtual int s_eval_transport_coefficients(Gas_data &Q, Gas_model *gmodel) = 0;
+    virtual int s_eval_transport_coefficients(Gas_data &Q) = 0;
     virtual int s_eval_diffusion_coefficients(Gas_data &Q) = 0;
     virtual double s_dTdp_const_rho(const Gas_data &Q, int &status);
     virtual double s_dTdrho_const_p(const Gas_data &Q, int &status);

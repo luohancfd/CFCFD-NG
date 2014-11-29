@@ -203,7 +203,7 @@ std::vector<double> *get_vweights_ptr(void)
 
 void update_MHD_c_h(void)
 {
-    gd.c_h = 0.3 * gd.cfl_max * gd.L_min  / gd.dt_global;
+    gd.c_h = gd.cfl_max * gd.L_min  / gd.dt_global;
 }
 
 //---------------------------------------------------------------------
