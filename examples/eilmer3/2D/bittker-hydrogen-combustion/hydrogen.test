@@ -69,12 +69,12 @@ test combustion-products {Combustion should have produced water by the end of th
 	# puts "rho= $rho p= $p T=$T massf O= $massf_O H2= $massf_H2 H2O= $massf_H2O"
     }
     # The difference with respect to the reference values should be small. 
-    list [expr abs($rho - $rho_ref)/$rho_ref < 1.0e-3] \
-    	 [expr abs($vx - $vx_ref)/$vx_ref < 1.0e-3] \
-    	 [expr abs($p - $p_ref)/$p_ref < 1.0e-3] \
+    list [expr abs($rho - $rho_ref)/$rho_ref < 5.0e-3] \
+    	 [expr abs($vx - $vx_ref)/$vx_ref < 5.0e-3] \
+    	 [expr abs($p - $p_ref)/$p_ref < 5.0e-3] \
     	 [expr abs($T - $T_ref)/$T_ref < 1.0e-2] \
-    	 [expr abs($massf_O - $massf_O_ref)/$massf_O_ref < 1.0e-2] \
-    	 [expr abs($massf_H2 - $massf_H2_ref)/$massf_H2_ref < 1.0e-2] \
+    	 [expr abs($massf_O - $massf_O_ref)/$massf_O_ref < 2.0e-2] \
+    	 [expr abs($massf_H2 - $massf_H2_ref)/$massf_H2_ref < 2.0e-2] \
     	 [expr abs($massf_H2O - $massf_H2O_ref)/$massf_H2O_ref < 1.0e-2]
 } -result {1 1 1 1 1 1 1}
 
