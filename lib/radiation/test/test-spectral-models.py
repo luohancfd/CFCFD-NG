@@ -50,7 +50,7 @@ if len(models.keys())==0:
     sys.exit()
            
 intensity_results = dict()
-expected_intensities = { "photaura"        : 1.249113903993e+05,
+expected_intensities = { "photaura"        : 13.11e4,
                          "equilibrium air" : 1.076e+05,
                          "spradian"        : 2.347982840522e+05,
                          "parade"          : 8.481522557937e+04  }
