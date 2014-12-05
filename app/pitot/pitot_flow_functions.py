@@ -106,9 +106,13 @@ def secondary_driver_calculation(cfg, states, V, M):
         cfg['Vsd'] = secant(error_in_velocity_s3s_to_sd3_driver_expansion_shock_speed_iterator, 
                             cfg['Vsd_guess_1'], cfg['Vsd_guess_2'], 
                             tol=1.0e-5,limits=[cfg['Vsd_lower'], cfg['Vsd_upper']])
-        if PRINT_STATUS: print "From secant solve: Vsd = {0} m/s".format(cfg['Vsd'])
+        if PRINT_STATUS: 
+            print '-'*60
+            print "From secant solve: Vsd = {0} m/s".format(cfg['Vsd'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
-        if PRINT_STATUS: print "Now that Vsd is known, finding conditions at states sd2 and sd3."
+        if PRINT_STATUS: 
+            print '-'*60
+            print "Now that Vsd is known, finding conditions at states sd2 and sd3."
     
     (Vsd2, V['sd2']) = normal_shock(states['sd1'], cfg['Vsd'], states['sd2'])
     V['sd3'], states['sd3'] = finite_wave_dv('cplus', V['s3s'], states['s3s'], V['sd2'], steps=cfg['secondary_driver_expansion_steps'])
@@ -439,10 +443,13 @@ def shock_tube_calculation(cfg, states, V, M):
                         print "This still isn't working. Bailing out."
                         raise Exception, "pitot_flow_functions.shock_tube_calculation() Run of pitot has failed in the shock tube calculation."  
 
-        if PRINT_STATUS: print '-' * 60
-        if PRINT_STATUS: print "From secant solve: Vs1 = {0} m/s".format(cfg['Vs1'])
+        if PRINT_STATUS: 
+            print '-' * 60
+            print "From secant solve: Vs1 = {0} m/s".format(cfg['Vs1'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
-        if PRINT_STATUS: print "Now that Vs1 is known, finding conditions at states 2 and 3."
+        if PRINT_STATUS: 
+            print '-' * 60
+            print "Now that Vs1 is known, finding conditions at states 2 and 3."
     # first do the normal shock
     try:
         if cfg['Vs1'] > 8500 and 'solver' in ['eq', 'pg-eq']:
@@ -522,9 +529,13 @@ def shock_tube_calculation(cfg, states, V, M):
     if PRINT_STATUS: 
         print "state 2: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s2'].p, states['s2'].T) 
         print "state 3: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s3'].p, states['s3'].T) 
-        if cfg['solver'] == 'eq':
+        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
             print 'species in state2 at equilibrium:'               
             print '{0}'.format(states['s2'].species)
+        if cfg['solver'] == 'eq':
+            states['s2_total'] = total_condition(states['s2'], V['s2'])
+            print 'The total enthalpy (Ht) at state 2 is {0:<.5g} MJ/kg (H2 - h1).'\
+            .format((states['s2_total'].h - states['s1'].h)/1.0e6) #(take away the initial enthalpy in state 1 to get the change)
         
     if cfg['state2_no_ions']:
         # Turn with ions back on so it will be on for other states based on s7
@@ -597,20 +608,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
         if Vs2 <= 19000.0 and cfg['solver'] in ['eq', 'pg-eq']:
             gas_guess = high_temp_gas_guess
         elif Vs2 > 19000.0 and cfg['solver'] in ['eq', 'pg-eq']:
-            print "Vs2 > 19 km/s a higher temperature gas guess gamma will be used."
-            if Vs2 < 20500.0:
-                gas_guess = {'gam':1.30, 'R':571.49}
-            elif Vs2 < 21500.0:
-                gas_guess = {'gam':1.26, 'R':571.49}
-            elif Vs2 < 22500.0:
-                gas_guess = {'gam':1.24, 'R':571.49}
-            elif Vs2 < 23800.0:
-                gas_guess = {'gam':1.22, 'R':571.49}
-            elif Vs2 <= 24900.0:
-                gas_guess = {'gam':1.20, 'R':571.49}
-            elif cfg['Vs2'] > 24900.0:
-                print "No gas guess has been tested for this shock speed. Bailing out."
-                raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Run of pitot has failed in the acceleration tube calculation."
+            gas_guess = very_high_temp_gas_guess(Vs2)
         else:
             gas_guess = None
         
@@ -625,7 +623,37 @@ def acceleration_tube_calculation(cfg, states, V, M):
         print "Current p6 = {0} Pa, current p7 = {1} Pa.".format(state6.p, state7.p)
         print "Current V6g = {0} m/s, current V7g = {1} m/s.".format(V6g, V7g)      
 
-        return (V6g - V7g)/V6g    
+        return (V6g - V7g)/V6g 
+        
+    def very_high_temp_gas_guess(Vs2):
+        """A small function that will drop the gas guess further for the
+           very high velocity gas giant entry conditions.
+           
+           Should only be used when Vs2 > 19,000 m/s.
+        """
+        
+        print "Vs2 > 19 km/s a higher temperature gas guess gamma will be used."
+        if Vs2 < 20500.0:
+            gas_guess = {'gam':1.30, 'R':571.49}
+        elif Vs2 < 21500.0:
+            gas_guess = {'gam':1.26, 'R':571.49}
+        elif Vs2 < 22500.0:
+            gas_guess = {'gam':1.24, 'R':571.49}
+        elif Vs2 < 23800.0:
+            gas_guess = {'gam':1.22, 'R':571.49}
+        elif Vs2 <= 24900.0:
+            gas_guess = {'gam':1.20, 'R':571.49}
+        elif Vs2 <= 26300.0:
+            gas_guess = {'gam':1.18, 'R':571.49}
+        elif Vs2 <= 27900.0:
+            gas_guess = {'gam':1.16, 'R':571.49}
+        elif Vs2 <= 29800.0:
+            gas_guess = {'gam':1.14, 'R':571.49}
+        elif cfg['Vs2'] > 29800.0:
+            print "No gas guess has been tested for this shock speed. Bailing out."
+            raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Run of pitot has failed in the acceleration tube calculation."
+        
+        return gas_guess
         
     #---------------------- acceleration tube calculations -----------------------
            
@@ -658,7 +686,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
         elif cfg['Vs1'] >= 2000.0 and 'Vs2_lower' and 'Vs2_upper' not in cfg:
             cfg['Vs2_lower'] = cfg['Vs1'] + 1000.0; cfg['Vs2_upper'] = 24900.0
         if 'Vs2_guess_1' not in cfg and 'Vs2_guess_2' not in cfg:
-            cfg['Vs2_guess_1'] = cfg['Vs1']+7000.0; cfg['Vs2_guess_2'] = 15100.0
+            cfg['Vs2_guess_1'] = cfg['Vs1']+7000.0; cfg['Vs2_guess_2'] = cfg['Vs1']+8000.0
             
         cfg['acc_tube_secant_tol'] = 1.0e-5    
         cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, \
@@ -670,10 +698,13 @@ def acceleration_tube_calculation(cfg, states, V, M):
             print "Acceleration tube secant solver did not converge after 100 iterations."
             raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Run of pitot has failed in the acceleration tube calculation."                    
                   
-        if PRINT_STATUS: print '-'*60
-        if PRINT_STATUS: print "From secant solve: Vs2 = {0} m/s".format(cfg['Vs2'])     
+        if PRINT_STATUS: 
+            print '-'*60
+            print "From secant solve: Vs2 = {0} m/s".format(cfg['Vs2'])     
 
-        if PRINT_STATUS: print "Now that Vs2 is known, finding conditions at state 6 and 7."
+        if PRINT_STATUS: 
+            print '-'*60
+            print "Now that Vs2 is known, finding conditions at state 6 and 7."
     elif cfg['test'] == 'experiment':
         if cfg['state7_no_ions']:
             # Need to turn ions off for state 2 here if it is required to make 
@@ -684,20 +715,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
     if cfg['Vs2'] <= 19000.0 and cfg['solver'] in ['eq', 'pg-eq']:
         gas_guess = cfg['gas_guess_air']
     elif cfg['Vs2'] > 19000.0 and cfg['solver'] in ['eq', 'pg-eq']:            
-        print "Vs2 > 19 km/s a higher temperature gas guess gamma will be used."
-        if cfg['Vs2'] < 20500.0:
-            gas_guess = {'gam':1.30, 'R':571.49}
-        elif cfg['Vs2'] < 21500.0:
-            gas_guess = {'gam':1.26, 'R':571.49}
-        elif cfg['Vs2'] < 22500.0:
-            gas_guess = {'gam':1.24, 'R':571.49}
-        elif cfg['Vs2'] < 23800.0:
-            gas_guess = {'gam':1.22, 'R':571.49}
-        elif cfg['Vs2'] <= 24900.0:
-            gas_guess = {'gam':1.20, 'R':571.49}
-        elif cfg['Vs2'] > 24900.0:
-            print "No gas guess has been tested for this shock speed. Bailing out."
-            raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Run of pitot has failed in the acceleration tube calculation."
+        gas_guess = very_high_temp_gas_guess(cfg['Vs2'])
     else:
         gas_guess = None
         
@@ -727,7 +745,8 @@ def acceleration_tube_calculation(cfg, states, V, M):
     M['s6'] = V['s6']/states['s6'].a
     M['s7']= V['s7']/states['s7'].a
     
-    if PRINT_STATUS: 
+    if PRINT_STATUS:
+        print '-'*60
         print "state 6: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s6'].p, states['s6'].T) 
         print "state 7: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s7'].p, states['s7'].T)
         if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
@@ -762,7 +781,10 @@ def rs_calculation(cfg, states, V, M):
     M['s5']= V['s5']/states['s5'].a
     
     if PRINT_STATUS: 
-        print "state 5: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s5'].p, states['s5'].T)     
+        print "state 5: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s5'].p, states['s5'].T)
+        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+            print 'species in state5 at equilibrium:'               
+            print '{0}'.format(states['s5'].species)
         
     return cfg, states, V, M
     
@@ -894,7 +916,6 @@ def shock_over_model_calculation(cfg, states, V, M):
                     del states['s10e']
                 print "Equilibrium normal shock calculation over the test model failed."
                 print "Result will not be printed." 
-                
         if 's10e' in states.keys():
             try:
                 (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10e'])

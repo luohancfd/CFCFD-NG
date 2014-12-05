@@ -10,13 +10,36 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "8-Oct-2014"
+VERSION_STRING = "5-Dec-2014"
 
 
 import sys
 
 from pitot import run_pitot
 from pitot_input_utils import *
+
+class stream_tee(object):
+    # Based on https://gist.github.com/327585 by Anand Kunal
+    def __init__(self, stream1, stream2):
+        self.stream1 = stream1
+        self.stream2 = stream2
+        self.__missing_method_name = None # Hack!
+ 
+    def __getattribute__(self, name):
+        return object.__getattribute__(self, name)
+ 
+    def __getattr__(self, name):
+        self.__missing_method_name = name # Could also be a property
+        return getattr(self, '__methodmissing__')
+ 
+    def __methodmissing__(self, *args, **kwargs):
+            # Emit method call to the log copy
+            callable2 = getattr(self.stream2, self.__missing_method_name)
+            callable2(*args, **kwargs)
+ 
+            # Emit method call to stdout (stream 1)
+            callable1 = getattr(self.stream1, self.__missing_method_name)
+            return callable1(*args, **kwargs)
 
 def check_new_inputs(cfg):
     """Takes the input file and checks that the extra inputs required for the
@@ -130,6 +153,13 @@ def condition_builder_test_run(cfg, condition_builder_output, results):
     
     cfg['filename'] = cfg['original_filename'] + '-test-{0}'.format(cfg['test_number'])
     
+    # some code here to make a copy of the stdout printouts for each test and store it
+    
+    import sys
+    
+    test_log = open(cfg['filename']+'-log.txt',"w")
+    sys.stdout = stream_tee(sys.stdout, test_log)
+    
     print '-'*60
     print "Running test {0} of {1}.".format(cfg['test_number'], cfg['number_of_test_runs'])
     try:
@@ -156,6 +186,11 @@ def condition_builder_test_run(cfg, condition_builder_output, results):
         cfg.pop('Vs1'); cfg.pop('Vs2')
         cfg['last_run_successful'] = False
         results['unsuccessful_runs'].append(cfg['test_number'])
+    
+    # now we end the stream teeing here by pulling out the original stdout object
+    # and overwriting the stream tee with that, then closing the log file
+    sys.stdout = sys.stdout.stream1   
+    test_log.close()
             
     return condition_status, results
     
@@ -542,7 +577,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
         intro_line_2 = basic + shock_over_model
     elif cfg['shock_over_model'] and cfg['conehead'] and not cfg['store_electron_concentration']:
         intro_line_2 = basic + conehead + shock_over_model   
-    if cfg['conehead'] and not cfg['shock_over_model'] and cfg['store_electron_concentration']:
+    elif cfg['conehead'] and not cfg['shock_over_model'] and cfg['store_electron_concentration']:
         intro_line_2 = basic + conehead + store_electron_concentration
     elif cfg['shock_over_model'] and not cfg['conehead'] and cfg['store_electron_concentration']:
         intro_line_2 = basic + shock_over_model + store_electron_concentration
@@ -552,6 +587,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
         intro_line_2 = basic + store_electron_concentration
     else:
         intro_line_2 = basic
+        
     condition_builder_output.write(intro_line_2 + '\n')
     
     # then make a dictionary of lists to store results in the Python memory
