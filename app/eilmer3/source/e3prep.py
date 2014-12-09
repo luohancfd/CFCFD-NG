@@ -1254,18 +1254,18 @@ class HistoryLocation(object):
     Contains the Cartesian (x,y,z) location of a history object.
     """
     __slots__ = 'x', 'y', 'z', 'label', 'i', 'j', 'k', 'i_offset', 'j_offset', \
-        'k_offset', 'blkId', 'cellId'
+        'k_offset', 'blkId', 'cellId','flag','blklabel'
 
     # Accumulate references to history locations
     historyList = []
 
-    def __init__(self, x, y, z=0.0, i_offset=0, j_offset=0, k_offset=0, label=""):
+    def __init__(self, x, y, z=0.0, i_offset=0, j_offset=0, k_offset=0, label="",flag=False,i=None,j=None,k=0,blklabel=None):
         """
         Initialises a history location.
 
         This location will later be tied to a cell in the grid.
-
-        :param x: (float) point in space
+        
+        :param x: (float) point in space (To be set explicitly to None if using i,j,k )
         :param y: (float)
         :param z: (float)
         :param i_offset: (int) Sometimes we want to be a cell or more away from a point 
@@ -1273,26 +1273,50 @@ class HistoryLocation(object):
         :param j_offset: (int)
         :param k_offset: (int)
         :param label: (string)
+        :param flag: (boolean) True if input is given with i,j,k coordinates. 
+         To be used along with x=None,y=None
+        :param i: (int) Grid-coordinate
+        :param j: (int)
+        :param k: (int)
+        :param blklabel: (str) Block label, assigned by the user.
         """
-        if not isinstance(x, float):
-            raise TypeError, ("x should be a float but it is: %s" % type(x))
-        if not isinstance(y, float):
-            raise TypeError, ("y should be a float but it is: %s" % type(y))
-        if not isinstance(z, float):
-            raise TypeError, ("z should be a float but it is: %s" % type(z))
-        self.x = x
-        self.y = y
-        self.z = z
-        self.label = label
-        self.i = 0
-        self.j = 0
-        self.k = 0
-        self.i_offset = i_offset
-        self.j_offset = j_offset
-        self.k_offset = k_offset
-        self.blkId = 0
-        self.cellId = 0
-        HistoryLocation.historyList.append(self)
+        if flag:
+            if not isinstance(i, int):
+                raise TypeError, ("i should be a int but it is: %s" % type(x))
+            if not isinstance(j, int):
+                raise TypeError, ("j should be a int but it is: %s" % type(y))
+            if not isinstance(k, int):
+                raise TypeError, ("k should be a int but it is: %s" % type(z))
+            if not isinstance(blklabel, str):
+                raise TypeError, ("blklabel should be a str but it is: %s" % type(z))
+            self.flag=flag
+            self.i=i
+            self.j=j
+            self.k=k
+            self.blklabel=blklabel
+            HistoryLocation.historyList.append(self)
+            self.label = label
+        else:
+            if not isinstance(x, float):
+                raise TypeError, ("x should be a float but it is: %s" % type(x))
+            if not isinstance(y, float):
+                raise TypeError, ("y should be a float but it is: %s" % type(y))
+            if not isinstance(z, float):
+                raise TypeError, ("z should be a float but it is: %s" % type(z))
+            self.x = x
+            self.y = y
+            self.z = z
+            self.label = label
+            self.i = 0
+            self.j = 0
+            self.k = 0
+            self.i_offset = i_offset
+            self.j_offset = j_offset
+            self.k_offset = k_offset
+            self.blkId = 0
+            self.cellId = 0
+            self.flag=flag
+            HistoryLocation.historyList.append(self)
         return
 
 
@@ -1393,7 +1417,29 @@ def locate_closest_cell(x_target, y_target, z_target=0.0):
 def keep_in_range(i, low, hi):
     return max(low, min(i, hi))
 
-
+def check_history_ijk(blklabel,i,j,k):
+    flag=False
+    for b in Block.blockList:
+        if blklabel==b.label:
+            flag=True
+            bb=b
+    if not flag:
+        raise NameError, ('blklabel not found among all blocks')
+    if gdata.dimensions == 3:
+        if k not in range(bb.grid.nk-1):
+            raise ValueError, ('The value chosen for k is not within the range for the block considered')
+        if j not in range(bb.grid.nj-1):
+            raise ValueError, ('The value chosen for j is not within the range for the block considered')
+        if i not in range(bb.grid.ni-1):
+            raise ValueError, ('The value chosen for i is not within the range for the block considered')
+    else:
+        if j not in range(bb.grid.nj-1):
+            raise ValueError, ('The value chosen for j is not within the range for the block considered')
+        if i not in range(bb.grid.ni-1):
+            raise ValueError, ('The value chosen for i is not within the range for the block considered')
+    x,y,z,vol = b.cell_centre_location(i,j,k,gdata)
+    return bb.blkId,x,y,z
+            
 def locate_history_cells():
     """
     Given the Cartesian coordinates of the history locations, 
@@ -1403,24 +1449,36 @@ def locate_history_cells():
     global verbosity_level
     #
     for h in HistoryLocation.historyList:
-        best_block, best_i, best_j, best_k, min_dist = locate_closest_cell(h.x, h.y, h.z)
-        b = Block.blockList[best_block]
-        if verbosity_level >= 1:
-            print "For history location: ", h.x, h.y, h.z
-            print "    Closest grid cell is at: block= ", best_block, \
-                "i=", best_i, "j=", best_j, "k=", best_k
-        best_i += h.i_offset; best_i = keep_in_range(best_i, 0, b.nni-1)
-        best_j += h.j_offset; best_j = keep_in_range(best_j, 0, b.nnj-1)
-        best_k += h.k_offset; best_k = keep_in_range(best_k, 0, b.nnk-1)
-        Block.blockList[best_block].hcell_list.append( (best_i, best_j, best_k) )
-        if verbosity_level >= 1:
-            print "    After offsets: i=", best_i, "j=", best_j, "k=", best_k
-            print "    For block", best_block ,"this becomes history cell index=", \
-                len(Block.blockList[best_block].hcell_list) - 1
-        h.i = best_i; h.j = best_j; h.k = best_k;
-        h.blkId = best_block
-        h.cellId = len(Block.blockList[best_block].hcell_list) - 1
-    #
+        if not h.flag:
+            best_block, best_i, best_j, best_k, min_dist = locate_closest_cell(h.x, h.y, h.z)
+            b = Block.blockList[best_block]
+            if verbosity_level >= 1:
+                print "For history location: ", h.x, h.y, h.z
+                print "    Closest grid cell is at: block= ", best_block, \
+                    "i=", best_i, "j=", best_j, "k=", best_k
+            best_i += h.i_offset; best_i = keep_in_range(best_i, 0, b.nni-1)
+            best_j += h.j_offset; best_j = keep_in_range(best_j, 0, b.nnj-1)
+            best_k += h.k_offset; best_k = keep_in_range(best_k, 0, b.nnk-1)
+            Block.blockList[best_block].hcell_list.append( (best_i, best_j, best_k) )
+            if verbosity_level >= 1:
+                print "    After offsets: i=", best_i, "j=", best_j, "k=", best_k
+                print "    For block", best_block ,"this becomes history cell index=", \
+                    len(Block.blockList[best_block].hcell_list) - 1
+            h.i = best_i; h.j = best_j; h.k = best_k;
+            h.blkId = best_block
+            h.cellId = len(Block.blockList[best_block].hcell_list) - 1
+        else:
+            best_block,x,y,z=check_history_ijk(h.blklabel,h.i,h.j,h.k)
+            b = Block.blockList[best_block]#write a function che faccia check su label, i,j,k 
+            if verbosity_level >= 1:
+                print "History location: using directly i,j,k", h.i, h.j, h.k, h.blklabel
+            Block.blockList[best_block].hcell_list.append( (h.i, h.j, h.k) )
+            h.blkId = best_block
+            h.cellId = len(Block.blockList[best_block].hcell_list) - 1
+            h.x=x
+            h.y=y
+            h.z=z
+            
     if len(HistoryLocation.historyList) > 0:
         hfp = open("history_cells.list", 'w')
         hfp.write("List of history cells associated with %s \n" % gdata.title )
