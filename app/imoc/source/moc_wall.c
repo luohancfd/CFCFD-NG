@@ -501,7 +501,10 @@ int LoadWall( int iw, char *FileName ) {
       return -1; 
    } /* end if */
 
-   fgets( textstring, sizeof(textstring), fp );
+   if ( NULL == fgets( textstring, sizeof(textstring), fp ) ) {
+      printf( "Failed to read number of wall points. Maybe end of file\n" );
+      return -1;
+   }
    arg_count = sscanf( textstring, "%d", &(npoint[iw]) );
    if ( arg_count != 1 ) {
       printf( "Failed to read number of wall points.\n");
@@ -510,7 +513,10 @@ int LoadWall( int iw, char *FileName ) {
 
    failed_flag = 0;
    for (ip = 0; ip < npoint[iw]; ++ip) {
-      fgets( textstring, sizeof(textstring), fp );
+      if ( NULL == fgets( textstring, sizeof(textstring), fp ) ) {
+	  printf( "Failed to read wall point %d. Maybe end of file\n", ip );
+	  return -1;
+      }
       arg_count = sscanf( textstring, "%lf %lf", &x, &y );
       if ( arg_count != 2 ) {
          printf( "Failed reading wall point %d.\n", ip );

@@ -13,14 +13,19 @@ ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
     TCL_INCLUDE_DIR := $(TCL_DIR)/include
 else
     # Assume that we are building in a Unix/Linux environment.
-    # Debian
-    TCL_INCLUDE_DIR := $(dir $(firstword $(wildcard /usr/include/tcl8*/tcl.h)))
-    # Unix/Linux with ActiveState Tcl installed.
+    # Debian default tcl
+    TCL_INCLUDE_DIR := $(dir $(wildcard /usr/include/tcl/tcl.h))
     ifeq ($(strip $(TCL_INCLUDE_DIR)),)
+        # If we were unsuccessful, there may be a specific version directory.
+        TCL_INCLUDE_DIR := $(dir $(firstword $(wildcard /usr/include/tcl8*/tcl.h)))
+    endif
+    ifeq ($(strip $(TCL_INCLUDE_DIR)),)
+        # Unix/Linux with ActiveState Tcl installed.
         TCL_INCLUDE_DIR := $(dir $(wildcard /usr/local/ActiveTcl/include/tcl.h))
     endif
-    # Hopefully, there is a Tcl distribution in the usual place.
     ifeq ($(strip $(TCL_INCLUDE_DIR)),)
+        # Still haven't found the tcl header.
+        # Hopefully, there is a Tcl distribution in the last place we look...
         TCL_INCLUDE_DIR := $(dir $(wildcard /usr/include/tcl.h))
     endif
 endif

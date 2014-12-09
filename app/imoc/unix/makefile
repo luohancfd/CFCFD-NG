@@ -50,6 +50,7 @@ endif
 #----------------------------------------------------------------------
 
 all: $(LOADABLE_MODULE) $(SRC)/pkgIndex.tcl documentation $(SRC)/moc_startup.tcl
+	@echo "Tcl headers were found in $(TCL_INCLUDE_DIR)"
 	@echo "Should have built shared-object and package-Index file."
 
 $(LOADABLE_MODULE) : imoc_wrap.o moc_kernel.o moc_gasdynamic.o \
