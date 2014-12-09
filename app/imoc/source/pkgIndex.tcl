@@ -8,4 +8,4 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded imoc 0.1 [list source [file join $dir moc_menu.tcl]]\n[list source [file join $dir moc_nodelist.tcl]]\n[list source [file join $dir moc_placard.tcl]]\n[list source [file join $dir moc_plot.tcl]]\n[list source [file join $dir moc_scales.tcl]]\n[list source [file join $dir moc_syn_cmds.tcl]]\n[list source [file join $dir moc_unitproc.tcl]]
+package ifneeded imoc 0.1 [list load [file join $dir imoc.so]]\n[list source [file join $dir moc_menu.tcl]]\n[list source [file join $dir moc_nodelist.tcl]]\n[list source [file join $dir moc_placard.tcl]]\n[list source [file join $dir moc_plot.tcl]]\n[list source [file join $dir moc_scales.tcl]]\n[list source [file join $dir moc_syn_cmds.tcl]]\n[list source [file join $dir moc_unitproc.tcl]]

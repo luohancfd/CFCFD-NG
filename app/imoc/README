@@ -8,7 +8,19 @@ The University of Queensland
 Brisbane, Qld 4072
 Australia
 
-http://www.mech.uq.edu.au/staff/jacobs/home/
+http://cfcfd.mechmining.uq.edu.au/
 
-For further instructions, see the HTML documentation in ./doc/.
+As at 2014-12-09, the linux version is known to build and run.
+It may run in other environments also, but they're untested.
 
+To build:
+$ cd ~/cfcfd3/app/imoc/unix/
+$ make
+$ make install
+
+To run:
+$ cd ~/imoc_bin/source
+$ ./moc_startup.tcl
+
+For further instructions, see the HTML documentation in ./doc/
+$ firefox ./doc/index.html

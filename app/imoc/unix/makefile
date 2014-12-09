@@ -22,7 +22,7 @@ include $(UTIL)/systems.mk
 
 # Assume Unix/GNU-Linux
 LOADABLE_MODULE := imoc.so
-COMPILE := gcc -c -O -fPIC -DUSE_TCL_STUBS -I$(TCL_INCLUDE_DIR)
+COMPILE := gcc -c -O -fPIC -I$(TCL_INCLUDE_DIR)
 LINK := gcc -shared
 LLIBS :=
 # For Solaris at DLR, Goettingen
