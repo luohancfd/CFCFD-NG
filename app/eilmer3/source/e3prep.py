@@ -1437,7 +1437,7 @@ def check_history_ijk(blklabel,i,j,k):
             raise ValueError, ('The value chosen for j is not within the range for the block considered')
         if i not in range(bb.grid.ni-1):
             raise ValueError, ('The value chosen for i is not within the range for the block considered')
-    x,y,z,vol = b.cell_centre_location(i,j,k,gdata)
+    x,y,z,vol = bb.cell_centre_location(i,j,k,gdata)
     return bb.blkId,x,y,z
             
 def locate_history_cells():
@@ -1469,7 +1469,7 @@ def locate_history_cells():
             h.cellId = len(Block.blockList[best_block].hcell_list) - 1
         else:
             best_block,x,y,z=check_history_ijk(h.blklabel,h.i,h.j,h.k)
-            b = Block.blockList[best_block]#write a function che faccia check su label, i,j,k 
+            b = Block.blockList[best_block]
             if verbosity_level >= 1:
                 print "History location: using directly i,j,k", h.i, h.j, h.k, h.blklabel
             Block.blockList[best_block].hcell_list.append( (h.i, h.j, h.k) )
