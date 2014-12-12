@@ -242,7 +242,7 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 	    vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
 	    vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
 	    IFace->pos = 0.5 * (vpm1 + vpm2);
-	    IFace->vel = 0.5 * (vtx1->pos[gtl] + vtx2->pos[gtl] - 
+	    IFace->ivel = 0.5 * (vtx1->pos[gtl] + vtx2->pos[gtl] - 
 	    			vtx1->pos[tl_old] - vtx2->pos[tl_old]) / dt;
             xA = vpm1.x;
 	    yA = vpm1.y;
@@ -264,7 +264,7 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 	    vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
 	    vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
 	    IFace->pos = 0.5 * (vpm1 + vpm2);
-	    IFace->vel = 0.5 * (vtx1->pos[gtl] + vtx2->pos[gtl] - 
+	    IFace->ivel = 0.5 * (vtx1->pos[gtl] + vtx2->pos[gtl] - 
 	    			vtx1->pos[tl_old] - vtx2->pos[tl_old]) / dt;
             xA = vpm2.x;
 	    yA = vpm2.y;
@@ -303,7 +303,7 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
 		vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
 		vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
 		IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
-		IFace->vel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
+		IFace->ivel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
 				     vtx3->pos[gtl] + vtx4->pos[gtl] - 
 				     vtx1->pos[tl_old] - vtx2->pos[tl_old] - 
 				     vtx3->pos[tl_old] - vtx4->pos[tl_old]) / dt;
@@ -329,7 +329,7 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
 		vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
 		vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
 		IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
-		IFace->vel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
+		IFace->ivel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
 				     vtx3->pos[gtl] + vtx4->pos[gtl] - 
 				     vtx1->pos[tl_old] - vtx2->pos[tl_old] - 
 				     vtx3->pos[tl_old] - vtx4->pos[tl_old]) / dt;
@@ -355,7 +355,7 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
 		vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
 		vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
 		IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
-		IFace->vel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
+		IFace->ivel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
 				     vtx3->pos[gtl] + vtx4->pos[gtl] - 
 				     vtx1->pos[tl_old] - vtx2->pos[tl_old] - 
 				     vtx3->pos[tl_old] - vtx4->pos[tl_old]) / dt;
@@ -384,7 +384,7 @@ int Block::set_interface_velocities2D(size_t gtl)
 	    vtx1 = get_vtx(i,j,k);
 	    vtx2 = get_vtx(i,j+1,k);
 	    IFace = get_ifi(i,j,k);
-	    IFace->vel = (vtx1->vel[gtl] + vtx2->vel[gtl]) / 2.0;
+	    IFace->ivel = (vtx1->vel[gtl] + vtx2->vel[gtl]) / 2.0;
 	}
     }
     for (j = jmin; j <= jmax+1; ++j) {
@@ -392,7 +392,7 @@ int Block::set_interface_velocities2D(size_t gtl)
 	    vtx1 = get_vtx(i,j,k);
 	    vtx2 = get_vtx(i+1,j,k);
 	    IFace = get_ifj(i,j,k);
-	    IFace->vel = (vtx1->vel[gtl] + vtx2->vel[gtl]) / 2.0;
+	    IFace->ivel = (vtx1->vel[gtl] + vtx2->vel[gtl]) / 2.0;
 	}
     }
     return SUCCESS;
@@ -414,7 +414,7 @@ int Block::set_interface_velocities3D(size_t gtl)
 		vtx3 = get_vtx(i,j,k+1);
 		vtx4 = get_vtx(i,j+1,k+1);
 		IFace = get_ifi(i,j,k);
-		IFace->vel = (vtx1->vel[gtl] + vtx2->vel[gtl] + vtx3->vel[gtl] + vtx4->vel[gtl]) / 4.0;
+		IFace->ivel = (vtx1->vel[gtl] + vtx2->vel[gtl] + vtx3->vel[gtl] + vtx4->vel[gtl]) / 4.0;
 	    }
 	}
     }
@@ -426,7 +426,7 @@ int Block::set_interface_velocities3D(size_t gtl)
 		vtx3 = get_vtx(i+1,j,k);
 		vtx4 = get_vtx(i+1,j,k+1);
 		IFace = get_ifj(i,j,k);
-		IFace->vel = (vtx1->vel[gtl] + vtx2->vel[gtl] + vtx3->vel[gtl] + vtx4->vel[gtl]) / 4.0;
+		IFace->ivel = (vtx1->vel[gtl] + vtx2->vel[gtl] + vtx3->vel[gtl] + vtx4->vel[gtl]) / 4.0;
 	    }
 	}
     }
@@ -438,7 +438,7 @@ int Block::set_interface_velocities3D(size_t gtl)
 		vtx3 = get_vtx(i,j+1,k);
 		vtx4 = get_vtx(i+1,j+1,k);
 		IFace = get_ifk(i,j,k);
-		IFace->vel = (vtx1->vel[gtl] + vtx2->vel[gtl] + vtx3->vel[gtl] + vtx4->vel[gtl]) / 4.0;
+		IFace->ivel = (vtx1->vel[gtl] + vtx2->vel[gtl] + vtx3->vel[gtl] + vtx4->vel[gtl]) / 4.0;
 	    }
 	}
     }

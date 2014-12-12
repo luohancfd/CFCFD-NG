@@ -75,8 +75,8 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     }
 
     // Transform to interface frame of reference.
-    Lft.vel.x -= IFace.vel.x;  Lft.vel.y -= IFace.vel.y;  Lft.vel.z -= IFace.vel.z;
-    Rght.vel.x -= IFace.vel.x; Rght.vel.y -= IFace.vel.y; Rght.vel.z -= IFace.vel.z;
+    Lft.vel.x -= IFace.ivel.x;  Lft.vel.y -= IFace.ivel.y;  Lft.vel.z -= IFace.ivel.z;
+    Rght.vel.x -= IFace.ivel.x; Rght.vel.y -= IFace.ivel.y; Rght.vel.z -= IFace.ivel.z;
     IFace.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     Lft.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     Rght.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
