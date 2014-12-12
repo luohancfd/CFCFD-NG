@@ -298,6 +298,7 @@ struct global_data
 
     std::string udf_file; // This file will contain user-defined procedures.
     int udf_source_vector_flag; // set to 1 to use (expensive) user-defined source terms
+    int udf_vtx_velocity_flag; // set to 1 to use (expensive) user-defined vextex velocity    
 
     // variables related to a wall model for conjugate heat transfer
     bool conjugate_ht_active; // if true, enables the conjugate heat transfer computation at a wall

@@ -480,7 +480,7 @@ class GlobalData(object):
                 'heat_time_start', 'heat_time_stop', 'heat_factor_increment', \
                 'ignition_time_start', 'ignition_time_stop', \
                 'electric_field_work_flag', 'conjugate_ht_flag', 'conjugate_ht_file', 'wall_update_count', \
-                'radiation_scaling'
+                'radiation_scaling', 'udf_vtx_velocity_flag'
     
     def __init__(self):
         """
@@ -494,6 +494,7 @@ class GlobalData(object):
         self.case_id = 0
         self.udf_file = "" # default is no file
         self.udf_source_vector_flag = 0
+        self.udf_vtx_velocity_flag = 1
         self.gas_model_file = "gas_model.lua"
         self.reaction_update = "dummy_scheme"
         self.reacting_flag = 0
@@ -699,6 +700,7 @@ class GlobalData(object):
         fp.write("case_id = %d\n" % self.case_id)
         fp.write("udf_file = %s\n" % self.udf_file)
         fp.write("udf_source_vector_flag = %d\n" % self.udf_source_vector_flag)
+        fp.write("udf_vtx_velocity_flag = %d\n" % self.udf_vtx_velocity_flag)
         fp.write("gas_model_file = %s\n" % self.gas_model_file)
         fp.write("reaction_update = %s\n" % self.reaction_update)
         fp.write("reacting_flag = %d\n" % self.reacting_flag)
@@ -789,6 +791,7 @@ class GlobalData(object):
         fp.write('"case_id": %d,\n' % self.case_id)
         fp.write('"udf_file": "%s",\n' % self.udf_file)
         fp.write('"udf_source_vector_flag": %d,\n' % self.udf_source_vector_flag)
+        fp.write('"udf_vtx_velocity_flag": %d,\n' % self.udf_vtx_velocity_flag)
         fp.write('"gas_model_file": "%s",\n' % self.gas_model_file)
         fp.write('"reaction_update" "%s",\n' % self.reaction_update)
         fp.write('"reacting_flag": %s,\n' % my_json_bool(self.reacting_flag))

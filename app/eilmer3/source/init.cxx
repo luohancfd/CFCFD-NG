@@ -325,6 +325,7 @@ int read_config_parameters(const string filename, bool master)
 
     dict.parse_string("global_data", "udf_file", G.udf_file, "");
     dict.parse_int("global_data", "udf_source_vector_flag", G.udf_source_vector_flag, 0);
+    dict.parse_int("global_data", "udf_vtx_velocity_flag", G.udf_vtx_velocity_flag, 0);
 
     dict.parse_string("global_data", "gas_model_file", s_value, "gas-model.lua");
     Gas_model *gmodel = set_gas_model_ptr(create_gas_model(s_value));
