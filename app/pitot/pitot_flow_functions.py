@@ -532,10 +532,12 @@ def shock_tube_calculation(cfg, states, V, M):
         if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
             print 'species in state2 at equilibrium:'               
             print '{0}'.format(states['s2'].species)
+            print 'state 2 gamma = {0}, state 2 R = {1}.'.format(states['s2'].gam,states['s2'].R)
         if cfg['solver'] == 'eq':
             states['s2_total'] = total_condition(states['s2'], V['s2'])
             print 'The total enthalpy (Ht) at state 2 is {0:<.5g} MJ/kg (H2 - h1).'\
             .format((states['s2_total'].h - states['s1'].h)/1.0e6) #(take away the initial enthalpy in state 1 to get the change)
+        
         
     if cfg['state2_no_ions']:
         # Turn with ions back on so it will be on for other states based on s7
@@ -722,18 +724,19 @@ def acceleration_tube_calculation(cfg, states, V, M):
     (V6, V['s6']) = normal_shock(states['s5'], cfg['Vs2'], states['s6'], gas_guess)
     #do any modifications that were requested to the velocity behind the shock here 
     if cfg['expand_to'] == 'flow-behind-shock':
-        V['s6'] = V['s6']*cfg['expansion_factor']
         print "State 7 is being expanded to V6 ({0}) multiplied by an expansion factor of {1}.".format(V['s6'], cfg['expansion_factor'])
+        acc_tube_expand_to_V = V['s6']*cfg['expansion_factor']
     elif cfg['expand_to'] == 'shock-speed':
-        V['s6'] = cfg['Vs2']*cfg['expansion_factor'] 
-        print "State 7 is being expanded to the shock speed of Vs2 ({0} m/s) multiplied by an expansion factor of {1}.".format(V['s6'], cfg['expansion_factor'])
+        acc_tube_expand_to_V = cfg['Vs2']*cfg['expansion_factor'] 
+        print "State 7 is being expanded to the shock speed of Vs2 ({0} m/s) multiplied by an expansion factor of {1}."\
+        .format(cfg['Vs2'], cfg['expansion_factor'])
     try:
-        V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], V['s6'], steps=cfg['acc_tube_expansion_steps'])
+        V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], acc_tube_expand_to_V, steps=cfg['acc_tube_expansion_steps'])
     except Exception as e:
         print "Finding state7 failed. Trying again with 'state7_no_ions' turned on."
         cfg['state7_no_ions'] = True
         states['s2'].with_ions = False
-        V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], V['s6'], steps=cfg['acc_tube_expansion_steps'])
+        V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], acc_tube_expand_to_V, steps=cfg['acc_tube_expansion_steps'])
     
     if cfg['state7_no_ions']:
         # Turn with ions back on so it will be on for other states based on s7
