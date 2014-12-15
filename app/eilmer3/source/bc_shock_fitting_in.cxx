@@ -262,7 +262,7 @@ int ShockFittingInBC::calculate_shock_speed(const FV_Cell &cL0, const FV_Cell &c
                              (exp(-1.0) - 1.0);
     }
     
-    if ( gd.sim_time >= gd.t_shock ) {
+    if ( gd.sim_time >= gd.t_moving ) {
 	// Detect shock from density jump.
 	double rel_density_jump = fabs(cR0.fs->gas->rho - cL0.fs->gas->rho) / 
 	    max(cL0.fs->gas->rho, cR0.fs->gas->rho);

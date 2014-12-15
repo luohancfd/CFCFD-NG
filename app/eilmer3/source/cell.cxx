@@ -588,9 +588,9 @@ int FV_Vertex::copy_grid_level_to_level(size_t from_level, size_t to_level)
     pos[to_level].x = pos[from_level].x;
     pos[to_level].y = pos[from_level].y;
     pos[to_level].z = pos[from_level].z;
-    vel[to_level].x = vel[from_level].x;
-    vel[to_level].y = vel[from_level].y;
-    vel[to_level].z = vel[from_level].z;
+//    vel[to_level].x = vel[from_level].x;
+//    vel[to_level].y = vel[from_level].y;
+//    vel[to_level].z = vel[from_level].z;
     return SUCCESS;
 }
 

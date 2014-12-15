@@ -193,8 +193,8 @@ struct global_data
     size_t write_at_step;   /* update step at which to write a solution, 0=don't do it */
     double t_his;           /* time to write next sample  */
     double t_fstc;          /* time to write next fluid-structure exchange data*/
-    double t_shock;         /* time to next adapt grid to shock    */
-    double dt_shock;        /* interval for running shock adapting algorithm  */
+    double t_moving;        /* time to next adapt new vertex velocity    */
+    double dt_moving;       /* interval for running setting vertex velocity for moving grid  */
     double dt_plot;         /* interval for writing soln  */
     double dt_his;          /* interval for writing sample */
     double dt_fstc;         /* interval for writing next f-s exchange data*/

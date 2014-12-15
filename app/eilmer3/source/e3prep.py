@@ -420,7 +420,7 @@ class GlobalData(object):
     * filter_mu: (float) Amount of diffusion to apply when filtering. 0.0 is no diffusion,
       1.0 replaces the cell information with the average of the adjacent cells.
     * filter_npass: (int) Number of passes of the filter to apply at each interval.
-    * dt_shock: (float) Period (in seconds) between running the shock adaptation algorithm.
+    * dt_moving: (float) Period (in seconds) between running the setting vertex velocity for moving grid.
     * dt_plot: (float) Period (in seconds) between writing all of the flow field data to the
       solution files.  Multiple instances, each with a specific time stamp/index,
       can be written for one simulation so be careful not to write too many
@@ -462,7 +462,7 @@ class GlobalData(object):
                 'scalar_pdf_flag', 'reacting_flag', 'T_frozen', 'reaction_time_start', \
                 'x_order', 'flux_calc', 'compression_tolerance', 'shear_tolerance', 'M_inf', \
                 't_order', 'gasdynamic_update_scheme', \
-                'stringent_cfl', 'shock_fitting_flag', 'dt_shock', \
+                'stringent_cfl', 'shock_fitting_flag', 'dt_moving', \
                 'shock_fitting_decay_flag', 'shock_fitting_speed_factor', \
                 'moving_grid_flag', 'write_vertex_velocities_flag', \
                 'filter_flag', 'filter_tstart', 'filter_tend', \
@@ -581,7 +581,7 @@ class GlobalData(object):
         self.filter_dt = 0.0
         self.filter_mu = 0.0
         self.filter_npass = 0
-        self.dt_shock = 0.0
+        self.dt_moving = 0.0
         self.dt_plot = 1.0e-3
         self.dt_history = 1.0e-3
         self.write_at_step = 0
@@ -640,7 +640,7 @@ class GlobalData(object):
         fp.write("stringent_cfl = %d\n" % self.stringent_cfl)
         fp.write("print_count = %d\n" % self.print_count)
         fp.write("cfl_count = %d\n" % self.cfl_count)
-        fp.write("dt_shock = %e\n" % self.dt_shock)
+        fp.write("dt_moving = %e\n" % self.dt_moving)
         fp.write("dt_plot = %e\n" % self.dt_plot)
         fp.write("write_at_step = %d\n" % self.write_at_step)
         fp.write("dt_history = %e\n" % self.dt_history)
@@ -676,7 +676,7 @@ class GlobalData(object):
         fp.write('"stringent_cfl": %d,\n' % self.stringent_cfl)
         fp.write('"print_count": %d,\n' % self.print_count)
         fp.write('"cfl_count": %d,\n' % self.cfl_count)
-        fp.write('"dt_shock": %e,\n' % self.dt_shock)
+        fp.write('"dt_moving": %e,\n' % self.dt_moving)
         fp.write('"dt_plot": %e,\n' % self.dt_plot)
         fp.write('"write_at_step": %d,\n' % self.write_at_step)
         fp.write('"dt_history": %e,\n' % self.dt_history)

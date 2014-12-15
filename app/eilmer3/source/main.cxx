@@ -903,35 +903,49 @@ int add_udf_source_vector_for_cell( FV_Cell *cell, size_t gtl, double t )
 } // end add_udf_source_vector_for_cell()
 
 
-/// \brief Add to the components of the vertex velocity, via a Lua udf.
+/// brief set to the components of the vertex velocity, via a Lua udf.
 /// This is done (only for moving grid) for inviscid flux calculation.
 int add_udf_velocity_for_vtx( Block *bdp, size_t gtl)
 {
     // Call the user-defined function which returns a table
     // of vertex velocity.
     // These are added to the inviscid source terms for moving grid
-
-    lua_getglobal(L, "vtx_velocity");  // Lua function to be called
-    lua_newtable(L); // creates a table that is now at the TOS
     
-    for ( size_t k = bdp->kmin; k <= bdp->kmax; ++k ) {
+    global_data &G = *get_global_data_ptr();
+
+    size_t krangemax = ( G.dimensions == 2 ) ? bdp->kmax : bdp->kmax+1;
+    for ( size_t k = bdp->kmin; k <= krangemax; ++k ) {
 	for ( size_t j = bdp->jmin; j <= bdp->jmax+1; ++j ) {
 	    for ( size_t i = bdp->imin; i <= bdp->imax+1; ++i ) {
-		FV_Vertex *vtx = bdp->get_vtx(i,j,k);
-                lua_pushnumber(L, vtx->vel[gtl].x); lua_setfield(L, -2, "u"); 
-                lua_pushnumber(L, vtx->vel[gtl].y); lua_setfield(L, -2, "v");
-                lua_pushnumber(L, vtx->vel[gtl].z); lua_setfield(L, -2, "w");
-                lua_pushnumber(L, i); lua_setfield(L, -2, "i"); 
-                lua_pushnumber(L, j); lua_setfield(L, -2, "j");
-                lua_pushnumber(L, k); lua_setfield(L, -2, "k");
-                lua_pushnumber(L, bdp->id); lua_setfield(L, -2, "id");                                
+	   
+	        FV_Vertex *vtx = bdp->get_vtx(i,j,k);
+	        
+                lua_getglobal(L, "vtx_velocity");  // Lua function to be called
+                lua_newtable(L); // creates a table that is now at the TOS
+	    
+                lua_pushinteger(L, i); lua_setfield(L, -2, "i");
+                lua_pushinteger(L, j); lua_setfield(L, -2, "j");
+                lua_pushinteger(L, k); lua_setfield(L, -2, "k");
+                lua_pushinteger(L, bdp->id); lua_setfield(L, -2, "bdp_id");
+                
+                int number_args = 1; // table of {i,j,k,bdp_id}
+                int number_results = 1; // one table of results returned on the stack.
+                if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
+	            handle_lua_error(L, "error running user vtx_velocity function: %s\n", 
+	                             lua_tostring(L, -1));
+                }
+                
+                lua_getfield(L, -1, "vel_x"); vtx->vel[gtl].x = lua_tonumber(L, -1); lua_pop(L, 1);
+                lua_getfield(L, -1, "vel_y"); vtx->vel[gtl].y = lua_tonumber(L, -1); lua_pop(L, 1);
+                lua_getfield(L, -1, "vel_z"); vtx->vel[gtl].z = lua_tonumber(L, -1); lua_pop(L, 1);
+                
                 lua_settop(L, 0); // clear the stack
 	    }
 	}
-    }        
+    }
+            
     return SUCCESS;
 } // end add_udf_velocity_for_vtx()
-
 
 
 //---------------------------------------------------------------------------
@@ -1189,7 +1203,8 @@ int integrate_in_time(double target_time)
     // The next time for output...
     G.t_plot = G.sim_time + G.dt_plot;
     G.t_his = G.sim_time + G.dt_his;
-    G.t_shock = G.sim_time + G.dt_shock;
+    //G.t_moving = G.sim_time + G.dt_moving;
+    G.t_moving = 0.0;
     
     // Flags to indicate that the saved output is fresh.
     // On startup or restart, it is assumed to be so.
@@ -1559,14 +1574,13 @@ int integrate_in_time(double target_time)
 	// Code removed 24-Mar-2013.
 
 	// 2b. Recalculate all geometry if moving grid.
-	if ( G.moving_grid && G.sim_time >= G.t_shock ) {
+	if ( G.moving_grid ) {
 	    for ( Block *bdp : G.my_blocks ) {
 		bdp->compute_primary_cell_geometric_data(G.dimensions, 0);
 		bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions, 0);
 		bdp->compute_secondary_cell_geometric_data(G.dimensions, 0);
-		G.t_shock += G.dt_shock;
 	    }
-	}
+	 }
 	
 	// 2c. Increment because of viscous effects may be done
 	//     separately to the convective terms.
@@ -2261,18 +2275,24 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	}	
 
 	// Grid-movement is done after a specified point in time.
-	if ( G.sim_time >= G.t_shock ) {
+	if ( G.sim_time >= G.t_moving ) {
 	    for ( Block *bdp : G.my_blocks ) {
 	        if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
 	            add_udf_velocity_for_vtx(bdp, 0);
+	            add_udf_velocity_for_vtx(bdp, 1);
 	        } else { // mainly for shock fitting
 		    bdp->set_geometry_velocities(G.dimensions, 0);
 		}
-		bdp->predict_vertex_positions(G.dimensions, G.dt_global);
-		bdp->compute_primary_cell_geometric_data(G.dimensions, 1); // for start of next stage
-		bdp->set_gcl_interface_properties(G.dimensions, 1, G.dt_global);
 	    }
 	}
+	
+	// predict new vertex positions
+	for ( Block *bdp : G.my_blocks ) {
+            bdp->predict_vertex_positions(G.dimensions, G.dt_global);
+	    bdp->compute_primary_cell_geometric_data(G.dimensions, 1); // for start of next stage
+	    bdp->set_gcl_interface_properties(G.dimensions, 1, G.dt_global);		
+	}				
+
 	// First-stage of inviscid gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( !bdp->active ) continue;
@@ -2318,18 +2338,25 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    }
 	}
 #       endif
-	if ( G.sim_time >= G.t_shock ) {
+
+	if ( G.sim_time >= G.t_moving ) {
 	    for ( Block *bdp : G.my_blocks ) {
 	        if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
+	            add_udf_velocity_for_vtx(bdp, 0);
 	            add_udf_velocity_for_vtx(bdp, 1);
 	        } else { // mainly for shock fitting
 		    bdp->set_geometry_velocities(G.dimensions, 1);
-		}
-		bdp->correct_vertex_positions(G.dimensions, G.dt_global);
-		bdp->compute_primary_cell_geometric_data(G.dimensions, 2);
-		bdp->set_gcl_interface_properties(G.dimensions, 2, G.dt_global);
+                }
 	    }
+	    G.t_moving = G.sim_time + G.dt_moving;
 	}
+	
+	for ( Block *bdp : G.my_blocks ) {
+	    bdp->correct_vertex_positions(G.dimensions, G.dt_global);
+	    bdp->compute_primary_cell_geometric_data(G.dimensions, 2);
+	    bdp->set_gcl_interface_properties(G.dimensions, 2, G.dt_global);	
+	}
+		
 	// Second-stage of inviscid gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( !bdp->active ) continue;
@@ -2344,7 +2371,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 		cp->decode_conserved(2, 2, bdp->omegaz, with_k_omega);
 	    } // end for *cp
 	} // end for jb loop
-   
+	   
 	// 2d. Check the record of bad cells and if any cells are bad, 
 	//     fail this attempt at taking a step,
 	//     set everything back to the initial state and
@@ -2366,7 +2393,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 		}
 	    } // end for *bdp
 	} // end if step_status_flag
-
+	
     } while (attempt_number < 3 && step_status_flag == 1);
 
     for ( Block *bdp : G.my_blocks ) {
