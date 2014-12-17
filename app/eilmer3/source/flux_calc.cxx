@@ -75,6 +75,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     }
 
     // Transform to interface frame of reference.
+    // IFace.ivel is the moving velocity of interface
     Lft.vel.x -= IFace.ivel.x;  Lft.vel.y -= IFace.ivel.y;  Lft.vel.z -= IFace.ivel.z;
     Rght.vel.x -= IFace.ivel.x; Rght.vel.y -= IFace.ivel.y; Rght.vel.z -= IFace.ivel.z;
     IFace.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
@@ -146,10 +147,11 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     }
 
     // Transform fluxes back from interface frame of reference to local frame of reference.
+    // See Ian Johnston's thesis, Equations 3.31, 3.34 and 3.37
     /* Flux of Total Energy */
-    F.total_energy += 0.5 * F.mass * pow(vabs(IFace.vel),2) + dot(F.momentum, IFace.vel);
+    F.total_energy += 0.5 * F.mass * pow(vabs(IFace.ivel),2) + dot(F.momentum, IFace.ivel);
     /* Flux of momentum */
-    F.momentum += F.mass * IFace.vel;
+    F.momentum += F.mass * IFace.ivel;
  
     // Rotate momentum fluxes back to the global frame of reference.
     F.momentum.transform_to_global(IFace.n, IFace.t1, IFace.t2);

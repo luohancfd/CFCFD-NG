@@ -243,8 +243,7 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 	    vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
 	    IFace->pos = 0.5 * (vpm1 + vpm2);
 	    IFace->ivel = 0.5 * (vtx1->pos[gtl] + vtx2->pos[gtl] - 
-	    			vtx1->pos[tl_old] - vtx2->pos[tl_old]) / dt;
-	    cout << IFace->ivel << endl;		
+	    			vtx1->pos[tl_old] - vtx2->pos[tl_old]) / dt;		
             xA = vpm1.x;
 	    yA = vpm1.y;
             xB = vpm2.x;
@@ -266,8 +265,7 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 	    vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
 	    IFace->pos = 0.5 * (vpm1 + vpm2);
 	    IFace->ivel = 0.5 * (vtx1->pos[gtl] + vtx2->pos[gtl] - 
-	    			vtx1->pos[tl_old] - vtx2->pos[tl_old]) / dt;
-            cout << IFace->ivel << endl;    			
+	    			vtx1->pos[tl_old] - vtx2->pos[tl_old]) / dt;			
             xA = vpm2.x;
 	    yA = vpm2.y;
             xB = vpm1.x;
