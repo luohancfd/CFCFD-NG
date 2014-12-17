@@ -155,10 +155,12 @@ if $chemModel in ['eq']:
     # nicely with FlowCondition later
     throat.species = [1.0,]      #{'air': 1.0}
     initialGas.species = [1.0,]  #{'air': 1.0}
-elif $chemModel in ['frz','neq']:
+elif $chemModel in ['frz']:
     select_gas_model(model="thermally perfect gas", species=throat.species)
+elif $chemModel in ['neq']:
+    select_gas_model(model="thermally perfect gas", species=throat.onlyList)
 else:
-    select_gas_model(model="two temperature gas", species=throat.species)
+    select_gas_model(model="two temperature gas", species=throat.onlyList)
 if $chemModel in ['neq']:
     set_reaction_update($reactionSchemeFile)
 if $chemModel in ['tc-neq']:
