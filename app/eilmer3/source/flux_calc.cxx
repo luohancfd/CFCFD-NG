@@ -78,7 +78,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     // IFace.ivel is the moving velocity of interface
     Lft.vel.x -= IFace.ivel.x;  Lft.vel.y -= IFace.ivel.y;  Lft.vel.z -= IFace.ivel.z;
     Rght.vel.x -= IFace.ivel.x; Rght.vel.y -= IFace.ivel.y; Rght.vel.z -= IFace.ivel.z;
-    IFace.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+    IFace.ivel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     Lft.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     Rght.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
 
@@ -156,7 +156,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     // Rotate momentum fluxes back to the global frame of reference.
     F.momentum.transform_to_global(IFace.n, IFace.t1, IFace.t2);
     // also transform the interface velocities
-    IFace.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+    IFace.ivel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
     // also transform the magnetic field
     if ( G.MHD ) {
 	F.B.transform_to_global(IFace.n, IFace.t1, IFace.t2);
