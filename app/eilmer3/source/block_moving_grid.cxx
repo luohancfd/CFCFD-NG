@@ -59,6 +59,7 @@ int Block::correct_vertex_positions(size_t dimensions, double dt)
 	    for ( size_t i = imin; i <= imax+1; ++i ) {
 		FV_Vertex *vtx = get_vtx(i,j,k);
 		vtx->pos[2] = vtx->pos[tl_old] + dt * (th_inv * vtx->vel[0] + th * vtx->vel[1]);
+		vtx->pos[2] = vtx->pos[1];
 	    }
 	}
     }
@@ -226,34 +227,34 @@ int Block::set_gcl_interface_properties(size_t dimensions, size_t gtl, double dt
 ///
 int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 {
-    global_data &G = *get_global_data_ptr();
+    // global_data &G = *get_global_data_ptr();
     size_t i, j, k;
     FV_Vertex *vtx1, *vtx2;
     FV_Interface *IFace;
-    Vector3 vpm1, vpm2;
-    double xA, xB, yA, yB;
-    size_t tl_old = gtl - 1;
+    // Vector3 vpm1, vpm2;
+    // double xA, xB, yA, yB;
+    size_t tl_old = 0;
     k = kmin;
     for (j = jmin; j <= jmax; ++j) {
 	for (i = imin; i <= imax+1; ++i) {
 	    vtx1 = get_vtx(i,j,k);
 	    vtx2 = get_vtx(i,j+1,k);
 	    IFace = get_ifi(i,j,k);   
-	    vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
-	    vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
-	    IFace->pos = 0.5 * (vpm1 + vpm2);
+	    // vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
+	    // vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
+	    // IFace->pos = 0.5 * (vpm1 + vpm2);
 	    IFace->ivel = 0.5 * (vtx1->pos[gtl] + vtx2->pos[gtl] - 
 	    			vtx1->pos[tl_old] - vtx2->pos[tl_old]) / dt;		
-            xA = vpm1.x;
-	    yA = vpm1.y;
-            xB = vpm2.x;
-	    yB = vpm2.y;	 
+            // xA = vpm1.x;
+	    // yA = vpm1.y;
+            // xB = vpm2.x;
+	    // yB = vpm2.y;	 
 	    // Interface area at midpoint.   
-	    IFace->area[gtl] = sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA)); 
-	    if ( G.axisymmetric ) {
-		IFace->Ybar = 0.5 * (yA + yB);
-                IFace->area[gtl] *= IFace->Ybar;
-            }
+	    // IFace->area[gtl] = sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA)); 
+	    // if ( G.axisymmetric ) {
+	    // 	IFace->Ybar = 0.5 * (yA + yB);
+            //     IFace->area[gtl] *= IFace->Ybar;
+            // }
 	}
     }
     for (j = jmin; j <= jmax+1; ++j) {
@@ -261,21 +262,21 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 	    vtx1 = get_vtx(i,j,k);
 	    vtx2 = get_vtx(i+1,j,k);
 	    IFace = get_ifj(i,j,k);
-	    vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
-	    vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
-	    IFace->pos = 0.5 * (vpm1 + vpm2);
+	    // vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
+	    // vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
+	    // IFace->pos = 0.5 * (vpm1 + vpm2);
 	    IFace->ivel = 0.5 * (vtx1->pos[gtl] + vtx2->pos[gtl] - 
 	    			vtx1->pos[tl_old] - vtx2->pos[tl_old]) / dt;			
-            xA = vpm2.x;
-	    yA = vpm2.y;
-            xB = vpm1.x;
-	    yB = vpm1.y;
+            // xA = vpm2.x;
+	    // yA = vpm2.y;
+            // xB = vpm1.x;
+	    // yB = vpm1.y;
 	    // Interface area at midpoint.   
-	    IFace->area[gtl] = sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA)); 
-	    if ( G.axisymmetric ) {
-		IFace->Ybar = 0.5 * (yA + yB);
-                IFace->area[gtl] *= IFace->Ybar;
-            }
+	    // IFace->area[gtl] = sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA)); 
+	    // if ( G.axisymmetric ) {
+	    // 	IFace->Ybar = 0.5 * (yA + yB);
+            //     IFace->area[gtl] *= IFace->Ybar;
+            // }
 	}
     }
     return SUCCESS;
@@ -288,8 +289,8 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
     size_t i, j, k;
     FV_Vertex *vtx1, *vtx2, *vtx3, *vtx4;
     FV_Interface *IFace;
-    Vector3 vpm1, vpm2, vpm3, vpm4, p1, p2, p3, p4;
-    size_t tl_old = gtl - 1;
+    // Vector3 vpm1, vpm2, vpm3, vpm4, p1, p2, p3, p4;
+    size_t tl_old = 0;
     for (k = kmin; k <= kmax; ++k) {
 	for (j = jmin; j <= jmax; ++j) {
 	    for (i = imin; i <= imax+1; ++i) {
@@ -298,21 +299,21 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
 		vtx3 = get_vtx(i,j,k+1);
 		vtx4 = get_vtx(i,j+1,k+1);
 		IFace = get_ifi(i,j,k);   
-		vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
-		vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
-		vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
-		vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
-		IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
+		// vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
+		// vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
+		// vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
+		// vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
+		// IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
 		IFace->ivel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
 				     vtx3->pos[gtl] + vtx4->pos[gtl] - 
 				     vtx1->pos[tl_old] - vtx2->pos[tl_old] - 
 				     vtx3->pos[tl_old] - vtx4->pos[tl_old]) / dt;
-		p1 = vpm1;
-		p4 = vpm2;
-		p2 = vpm3;
-		p3 = vpm4;
+		// p1 = vpm1;
+		// p4 = vpm2;
+		// p2 = vpm3;
+		// p3 = vpm4;
 		// Interface area at midpoint.
-		IFace->area[gtl] = vabs(0.25 * cross(p2-p1+p3-p4, p4-p1+p3-p2)); 
+		// IFace->area[gtl] = vabs(0.25 * cross(p2-p1+p3-p4, p4-p1+p3-p2)); 
 	    }
 	}
     }
@@ -324,21 +325,21 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
 		vtx3 = get_vtx(i,j,k+1);
 		vtx4 = get_vtx(i+1,j,k+1);
 		IFace = get_ifj(i,j,k);
-		vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
-		vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
-		vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
-		vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
-		IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
+		// vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
+		// vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
+		// vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
+		// vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
+		// IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
 		IFace->ivel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
 				     vtx3->pos[gtl] + vtx4->pos[gtl] - 
 				     vtx1->pos[tl_old] - vtx2->pos[tl_old] - 
 				     vtx3->pos[tl_old] - vtx4->pos[tl_old]) / dt;
-		p1 = vpm1;
-		p4 = vpm2;
-		p2 = vpm3;
-		p3 = vpm4;
+		// p1 = vpm1;
+		// p4 = vpm2;
+		// p2 = vpm3;
+		// p3 = vpm4;
 		// Interface area at midpoint.		
-		IFace->area[gtl] = vabs(0.25 * cross(p2-p1+p3-p4, p4-p1+p3-p2)); 
+		// IFace->area[gtl] = vabs(0.25 * cross(p2-p1+p3-p4, p4-p1+p3-p2)); 
 	    }
 	}
     }
@@ -350,21 +351,21 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
 		vtx3 = get_vtx(i,j+1,k);
 		vtx4 = get_vtx(i+1,j+1,k);
 		IFace = get_ifk(i,j,k);
-		vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
-		vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
-		vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
-		vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
-		IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
+		// vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
+		// vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
+		// vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
+		// vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
+		// IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
 		IFace->ivel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
 				     vtx3->pos[gtl] + vtx4->pos[gtl] - 
 				     vtx1->pos[tl_old] - vtx2->pos[tl_old] - 
 				     vtx3->pos[tl_old] - vtx4->pos[tl_old]) / dt;
-		p1 = vpm1;
-		p4 = vpm2;
-		p2 = vpm3;
-		p3 = vpm4;
+		// p1 = vpm1;
+		// p4 = vpm2;
+		// p2 = vpm3;
+		// p3 = vpm4;
 		// Interface area at midpoint.		
-		IFace->area[gtl] = vabs(0.25 * cross(p2-p1+p3-p4, p4-p1+p3-p2)); 
+		// IFace->area[gtl] = vabs(0.25 * cross(p2-p1+p3-p4, p4-p1+p3-p2)); 
 	    }
 	}
     }

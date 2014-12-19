@@ -2275,6 +2275,9 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	}	
 
 	// Grid-movement is done after a specified point in time.
+	// As Paul Petrie-repar suggested
+        // The edge length (2D) or interface area (3D), interface velocity, normal vector
+        // should be remained as the same as level 0 for both stages of the pc
 	if ( G.sim_time >= G.t_moving ) {
 	    for ( Block *bdp : G.my_blocks ) {
 	        if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
@@ -2284,8 +2287,8 @@ int gasdynamic_increment_with_moving_grid(double dt)
 		    bdp->set_geometry_velocities(G.dimensions, 0);
 		}
 	    }
-	}
-	
+            G.t_moving = G.sim_time + G.dt_moving;
+	}	
 	// predict new vertex positions
 	for ( Block *bdp : G.my_blocks ) {
             bdp->predict_vertex_positions(G.dimensions, G.dt_global);
@@ -2334,11 +2337,12 @@ int gasdynamic_increment_with_moving_grid(double dt)
 #       else
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active ) {
-		exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 0);
+		exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 1);
 	    }
 	}
 #       endif
 
+        /*
 	if ( G.sim_time >= G.t_moving ) {
 	    for ( Block *bdp : G.my_blocks ) {
 	        if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
@@ -2350,7 +2354,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    }
 	    G.t_moving = G.sim_time + G.dt_moving;
 	}
-	
+	*/
 	for ( Block *bdp : G.my_blocks ) {
 	    bdp->correct_vertex_positions(G.dimensions, G.dt_global);
 	    bdp->compute_primary_cell_geometric_data(G.dimensions, 2);
