@@ -926,6 +926,9 @@ int add_udf_velocity_for_vtx( Block *bdp, size_t gtl)
                 lua_pushinteger(L, i); lua_setfield(L, -2, "i");
                 lua_pushinteger(L, j); lua_setfield(L, -2, "j");
                 lua_pushinteger(L, k); lua_setfield(L, -2, "k");
+                lua_pushnumber(L, vtx->pos[0].x); lua_setfield(L, -2, "x");
+                lua_pushnumber(L, vtx->pos[0].y); lua_setfield(L, -2, "y");
+                lua_pushnumber(L, vtx->pos[0].z); lua_setfield(L, -2, "z");
                 lua_pushinteger(L, bdp->id); lua_setfield(L, -2, "bdp_id");
                 
                 int number_args = 1; // table of {i,j,k,bdp_id}
