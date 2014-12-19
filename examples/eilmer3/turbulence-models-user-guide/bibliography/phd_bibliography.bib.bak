@@ -484,7 +484,7 @@
   timestamp = {2008.09.22}
 }
 
-@ARTICLE{Chan2010,
+@ARTICLE{Chan20102,
   author = {Chan, W. Y. K. and Jacobs, P. A. and Nap, J. P. and Mee, D. J. and
 	Kirchhartz, R. M.},
   title = {The $k$-$\omega$ turbulence model in Eilmer3: User guide and test
@@ -1815,21 +1815,6 @@
   timestamp = {2011.01.09}
 }
 
-@ARTICLE{Ladeinde2010,
-  author = {Ladeinde, F.},
-  title = {Advanced Computational-Fluid-Dynamics Techniques for Scramjet Combustion
-	Simulation},
-  journal = {AIAA Journal},
-  year = {2010},
-  volume = {48},
-  pages = {513-514},
-  number = {3},
-  isbn = {0001-1452},
-  language = {English},
-  owner = {sambo},
-  timestamp = {2014.11.18}
-}
-
 @ARTICLE{Larin2001,
   author = {Larin, O B and Levin, V A},
   title = {Energy addition to a gas in a turbulent supersonic boundary layer},
@@ -1879,18 +1864,6 @@
   timestamp = {2010.06.12}
 }
 
-@PHDTHESIS{Lu1988,
-  author = {Lu, F. K.},
-  title = {Mach number effects on fin-generated shock-wave boundary layer interactions},
-  school = {Pennsylvania State University},
-  year = {1988},
-  type = {{P}h{D} Thesis},
-  address = {University Park, PA},
-  comment = {Skin Friction Reduction},
-  owner = {uqychan2},
-  timestamp = {2008.07.23}
-}
-
 @PHDTHESIS{lu1988,
   author = {Lu,Frank K.},
   title = {Fin generated shock wave boundary-layer interactions},
@@ -1904,6 +1877,18 @@
   owner = {Sambo},
   timestamp = {2014.10.05},
   url = {www.summon.com}
+}
+
+@PHDTHESIS{Lu1988,
+  author = {Lu, F. K.},
+  title = {Mach number effects on fin-generated shock-wave boundary layer interactions},
+  school = {Pennsylvania State University},
+  year = {1988},
+  type = {{P}h{D} Thesis},
+  address = {University Park, PA},
+  comment = {Skin Friction Reduction},
+  owner = {uqychan2},
+  timestamp = {2008.07.23}
 }
 
 @ARTICLE{Macrossan1989,
@@ -2556,6 +2541,21 @@
   timestamp = {2009.05.28}
 }
 
+@ARTICLE{panaras97,
+  author = {Panaras, A. G.},
+  title = {The effect of the structure of swept-shock-wave/turbulent-boundary-layer
+	interactions on turbulence modelling},
+  journal = {Journal of Fluid Mechanics},
+  year = {1997},
+  volume = {338},
+  pages = {203-230},
+  isbn = {0022-1120},
+  language = {English},
+  owner = {sambo},
+  timestamp = {2014.12.12},
+  url = {www.summon.com}
+}
+
 @ARTICLE{Parent2004,
   author = {Parent, Bernard and Sislian, Jean Pascal},
   title = {Validation of Wilcox k-omega model for flows characteristic to hypersonic
@@ -2941,26 +2941,6 @@
 	
 	turbulent mixing process.},
   timestamp = {2008.07.23}
-}
-
-@ARTICLE{schetz2009,
-  author = {Schetz, J. and Neel, R. and Viti, V.},
-  title = {Detailed flow physics of the supersonic jet interaction flow field},
-  journal = {Physics of Fluids},
-  year = {2009},
-  volume = {21},
-  pages = {046101-046101-16},
-  number = {4},
-  isbn = {1070-6631},
-  keywords = {PHYSICS, FLUIDS & PLASMAS; INJECTION; shock waves; numerical analysis;
-	flow visualisation; external flows; jets; supersonic flow; boundary
-	layer turbulence; STRESS TURBULENCE MODEL; Mach number; MECHANICS;
-	Navier-Stokes equations; flow separation; CROSS-FLOW; flow simulation;
-	PRESSURE; vortices},
-  language = {English},
-  owner = {sambo},
-  timestamp = {2014.10.03},
-  url = {www.summon.com}
 }
 
 @BOOK{Schultz1973,
@@ -3719,20 +3699,6 @@
   timestamp = {2008.09.01}
 }
 
-@ARTICLE{Tanimizu2009,
-  author = {Tanimizu, Katsuyoshi and Mee, David J. and Stalker, R. J. and Jacobs,
-	Peter A.},
-  title = {Drag force on quasi-axisymmetric scramjets at various flight {M}ach
-	numbers: theory and experiment},
-  journal = {Shock Waves},
-  year = {2009},
-  volume = {19},
-  pages = {83-93},
-  number = {2},
-  owner = {uqychan2},
-  timestamp = {2011.01.10}
-}
-
 @ARTICLE{tanimizu2009,
   author = {Tanimizu,Katsuyoshi and Mee,David J. and Stalker,Raymond J. and Jacobs,Peter
 	A.},
@@ -3771,6 +3737,20 @@
   owner = {Sambo},
   timestamp = {2014.10.19},
   url = {www.summon.com}
+}
+
+@ARTICLE{Tanimizu2009,
+  author = {Tanimizu, Katsuyoshi and Mee, David J. and Stalker, R. J. and Jacobs,
+	Peter A.},
+  title = {Drag force on quasi-axisymmetric scramjets at various flight {M}ach
+	numbers: theory and experiment},
+  journal = {Shock Waves},
+  year = {2009},
+  volume = {19},
+  pages = {83-93},
+  number = {2},
+  owner = {uqychan2},
+  timestamp = {2011.01.10}
 }
 
 @ARTICLE{Tanno2001,
@@ -4000,6 +3980,26 @@
   month = {September},
   owner = {Sambo},
   timestamp = {2014.10.22}
+}
+
+@ARTICLE{schetz2009,
+  author = {Viti, V. and Neel, R. and Schetz, J.},
+  title = {Detailed flow physics of the supersonic jet interaction flow field},
+  journal = {Physics of Fluids},
+  year = {2009},
+  volume = {21},
+  pages = {046101-046101-16},
+  number = {4},
+  isbn = {1070-6631},
+  keywords = {PHYSICS, FLUIDS & PLASMAS; INJECTION; shock waves; numerical analysis;
+	flow visualisation; external flows; jets; supersonic flow; boundary
+	layer turbulence; STRESS TURBULENCE MODEL; Mach number; MECHANICS;
+	Navier-Stokes equations; flow separation; CROSS-FLOW; flow simulation;
+	PRESSURE; vortices},
+  language = {English},
+  owner = {sambo},
+  timestamp = {2014.10.03},
+  url = {www.summon.com}
 }
 
 @ARTICLE{viti2004,
