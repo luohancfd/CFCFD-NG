@@ -149,6 +149,8 @@ ifeq ($(TARGET), for_gnu_debug)
     # Note, however, that only the statically linked executables are useful from this build.
     # You should build without installing and then manually copy just the executables
     # into $(E3BIN).
+    # 2014-12-21 Let's now get rid of that address sanitizer option because we really want 
+    # to use a debug version of the libprep shared library.
     COMPILE := gcc$(GNU_SUFFIX) 
     LINK    := gcc$(GNU_SUFFIX)
     CXXCOMPILE := g++$(GNU_SUFFIX)
@@ -169,9 +171,9 @@ ifeq ($(TARGET), for_gnu_debug)
         LFLAG   := -g -Wl,stack=0x8000000 $(MARCH_FLAG)
         CXXFLAG := -c -std=c++11 -Wall -pedantic -g $(MARCH_FLAG)
     endif
-    CFLAG   += -ftrapping-math -fsignaling-nans -Og -fsanitize=address -fno-omit-frame-pointer -DDEBUG
-    CXXFLAG += -ftrapping-math -fsignaling-nans -Og -fsanitize=address -fno-omit-frame-pointer -DDEBUG
-    LFLAG   += -ftrapping-math -fsignaling-nans -Og -fsanitize=address -DDEBUG
+    CFLAG   += -ftrapping-math -fsignaling-nans -Og -fno-omit-frame-pointer -DDEBUG
+    CXXFLAG += -ftrapping-math -fsignaling-nans -Og -fno-omit-frame-pointer -DDEBUG
+    LFLAG   += -ftrapping-math -fsignaling-nans -Og -DDEBUG
     LLIB    := -lm
 endif
 
@@ -428,13 +430,15 @@ ifeq ($(TARGET), for_openmpi_debug)
     # Note, however, that only the statically linked executables are useful from this build.
     # You should build without installing and then manually copy just the executables
     # into $(E3BIN).
+    # 2014-12-21 Yep, got rid of that address sanitizer option so we could debug the 
+    # dynamically loaded library :)
     COMPILE := mpicc
     LINK    := mpicc
     CXXCOMPILE := mpicxx
     CXXLINK := mpicxx
-    CFLAG   := -c -fPIC -ggdb -Wall -pedantic -Og -fsanitize=address -fno-omit-frame-pointer 
-    CXXFLAG := -c -std=c++11 -fPIC -ggdb -Wall -pedantic -Og -fsanitize=address -fno-omit-frame-pointer  
-    LFLAG   := -fPIC -ggdb -Og -fsanitize=address
+    CFLAG   := -c -fPIC -ggdb -Wall -pedantic -Og -fno-omit-frame-pointer 
+    CXXFLAG := -c -std=c++11 -fPIC -ggdb -Wall -pedantic -Og -fno-omit-frame-pointer  
+    LFLAG   := -fPIC -ggdb -Og
     LLIB    := -lm
 endif
 
