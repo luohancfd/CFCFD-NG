@@ -1223,8 +1223,9 @@ double Polyline::t_from_arc_length(double t) const
 
 // A Spline curve is a specialized Polyline.
 Spline::Spline( const vector<Vector3> &p, string label, 
-		double t0, double t1, double tolerance )
-    : Polyline( p.size()-1, label, t0, t1 )
+		double t0, double t1,
+		int arc_length_p, double tolerance )
+    : Polyline( p.size()-1, label, t0, t1, arc_length_p )
 {
     size_t m = p.size() - 1;
     // Given m+1 interpolation points p, determine the m-segment
@@ -1275,9 +1276,15 @@ Spline::Spline( const vector<Vector3> &p, string label,
 	seg[i] = new Bezier(p03);
     }
     reset_breakpoints();
+    if ( arc_length_param_flag ) {
+	n_arc_length = 100;
+    } else {
+	n_arc_length = 0;
+    }
+     set_arc_length_vector();
 }
 Spline::Spline( const Spline &spl ) 
-    : Polyline(spl.seg, spl.label, spl.t0, spl.t1) {}
+    : Polyline(spl.seg, spl.label, spl.t0, spl.t1, spl.arc_length_param_flag) {}
 
 Vector3 Spline::eval_from_x(double x) const
 {

@@ -310,7 +310,6 @@ public:
     virtual Polyline* rotate_about_zaxis( double dtheta );
 protected:
     void reset_breakpoints();
-private:
     void set_arc_length_vector();
     double t_from_arc_length(double t) const;
     vector<double> arc_length;
@@ -323,7 +322,8 @@ class Spline : public Polyline {
 public:
     /// Construct the Spline through a collection of points.
     Spline( const vector<Vector3> &p, string label="", 
-	    double t0=0.0, double t1=1.0, double tolerance=1.0e-10 );
+	    double t0=0.0, double t1=1.0,
+	    int arc_length_p=0, double tolerance=1.0e-10 );
     /// Construct as a copy of another Spline.
     Spline( const Spline &spl );
     Vector3 eval_from_x(double x) const;
