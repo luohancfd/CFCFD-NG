@@ -180,6 +180,18 @@ inflow=FlowCondition(p=throat.p, u=throat_V, v=0.0, T=throat.T,
 initial=FlowCondition(p=initial['p'], u=0.0, v=0.0, T=initial['T'],
                        massf=initialGas.species, tke=0.0, omega=1.0,
                        label="initial")
+# For block-marched simulations, e3march does not initialise the 
+# blocks with the inflow condition for the first run, hence, 
+# we need to appropriately set the fill_condition here.
+blockMarchingFlag = $blockMarching
+if blockMarchingFlag == True:
+    print "Blocks initialised with throat conditions for block-marched simulation"
+    print 60*"-"
+    fill_condition = inflow
+else:
+    print "Blocks initialised with initial conditions for transient simulation"
+    print 60*"-"
+    fill_condition = initial
 #
 # Define some parameters for building of the grid
 include_throat_block = $include_throat_block
@@ -335,11 +347,11 @@ if gridFileName in ['None']:
         throat_blk = SuperBlock2D(throat_region, nni=nni_throat, nnj=nnj,
                                   nbi=nbi_throat, nbj=nbj,
                                   bc_list=bc_list, cf_list=cf_list_throat,
-                                  fill_condition=initial, label="throat")
+                                  fill_condition=fill_condition, label="throat")
     nozzle_blk = SuperBlock2D(expansion_region, nni=nni, nnj=nnj,
                               nbi=nbi, nbj=nbj,
                               bc_list=bc_list, cf_list = cf_list,
-                              fill_condition=initial, label="nozzle")
+                              fill_condition=fill_condition, label="nozzle")
 else:
     print "Importing specified grid." 
     scaleFactor = 1.0 # Use this to alter the dimensions of your grid
@@ -351,7 +363,7 @@ else:
     for count in range(nblocks):
         blk = Block2D(nni=importedGrid[count].ni-1, nnj=importedGrid[count].nj-1,
                       # minus 1 for nni because nni=number-of-cell-centres & ni=number-of-nodes
-                      fill_condition=initial, label="block-"+str(count), 
+                      fill_condition=fill_condition, label="block-"+str(count), 
                       grid=importedGrid[count],
                       bc_list=[FixedTBC(Twall), SlipWallBC(), SlipWallBC(), SlipWallBC()])
                       #        NORTH,           EAST,         SOUTH,        WEST
