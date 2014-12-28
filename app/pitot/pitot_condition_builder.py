@@ -10,8 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "5-Dec-2014"
-
+VERSION_STRING = "28-Dec-2014"
 
 import sys
 
@@ -137,7 +136,82 @@ def calculate_number_of_test_runs(cfg):
     
     return total
     
-def condition_builder_test_run(cfg, condition_builder_output, results):
+def start_message(cfg):
+    """Function that takes the cfg file and prints a start message for the
+       program, detailing what it will do.
+    """
+    
+    # print how many tests we're going to run, and the ranges.
+    
+    print '-'*60    
+    print "{0} tests will be run.".format(cfg['number_of_test_runs'])
+    
+    if True in cfg['secondary_list']:
+        if len(cfg['psd1_list']) > 1:
+            print 'psd1 will be changed from from {0} - {1} Pa in increments of {2} Pa.'\
+            .format(cfg['psd1_list'][0], cfg['psd1_list'][-1], cfg['psd1_list'][1] - cfg['psd1_list'][0])
+        else:
+            print 'psd1 is kept at {0} Pa.'.format(cfg['psd1_list'][0])
+            
+    if len(cfg['p1_list']) > 1:
+        print 'p1 will be changed from from {0} - {1} Pa in increments of {2} Pa.'\
+        .format(cfg['p1_list'][0], cfg['p1_list'][-1], cfg['p1_list'][1] - cfg['p1_list'][0])
+    else:
+        print 'p1 is kept at {0} Pa.'.format(cfg['p1_list'][0])
+        
+    if cfg['tunnel_mode'] == 'expansion-tube':
+        if len(cfg['p5_list']) > 1:
+            print 'p5 will be changed from from {0} - {1} Pa in increments of {2} Pa.'\
+            .format(cfg['p5_list'][0], cfg['p5_list'][-1], cfg['p5_list'][1] - cfg['p5_list'][0])
+        else:
+            print 'p5 is kept at {0} Pa.'.format(cfg['p5_list'][0])
+            
+    return cfg
+    
+def build_results_dict(cfg):
+    """Function that looks at the cfg dictionary and works out what data needs
+       to be stored for the type of test that we're running. Then it populates
+       a dictionary called 'results' with empty lists for the data to be stored in.
+       The dictionary is then returned.
+    """
+    
+    # need to make a list to create a series of empty lists in the results
+    # dictionary to store the data. the list is tailored to the test we're running
+    
+    full_list = []
+    
+    basic_list = ['test number','driver condition','psd1','p1','p5','Vsd','Vs1',
+                  'Vs2','p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2',
+                  'p7','T7','rho7','V7','M7','Ht','u_eq']
+    full_list += basic_list
+    
+    if cfg['nozzle']:
+        nozzle_list = ['arearatio','p8','T8','rho8','V8','M8']
+        full_list += nozzle_list
+    if cfg['conehead']:
+         conehead_list = ['p10c','T10c','rho10c','V10c']
+         full_list += conehead_list
+    if cfg['shock_over_model']:
+        shock_over_model_list = ['p10f','T10f','rho10f','V10f','p10e','T10e','rho10e','V10e']
+        full_list += shock_over_model_list
+    if cfg['store_electron_concentration']:     
+        store_electron_concentration_list = ['s2ec','s7ec','s8ec','s10ec']
+        full_list += store_electron_concentration_list
+
+    # now populate the dictionary with a bunch of empty lists based on that list
+
+    results = {title : [] for title in full_list}
+    
+    # add the list of titles in case we want to use it in future
+    
+    results['full_list'] = full_list
+    
+    #add a list where we can store unsuccesful run numbers for analysis
+    results['unsuccessful_runs'] = []
+    
+    return results
+    
+def condition_builder_test_run(cfg, results):
     """Function that takes the fully built config dictionary
        and the text file that is being used for the program output
        and does the test run then adds a line to the output file.
@@ -173,8 +247,6 @@ def condition_builder_test_run(cfg, condition_builder_output, results):
         condition_status = False
     if condition_status:
         results = add_new_result_to_results_dict(cfg, states, V, M, results)
-        string_output = output_builder (cfg, states, V, M, results)
-        condition_builder_output.write(string_output + '\n')
         # need to remove Vs values from the dictionary or it will bail out
         # on the next run
         cfg.pop('Vsd'); cfg.pop('Vs1'); cfg.pop('Vs2')
@@ -230,91 +302,53 @@ def guess_modifier(cfg, results):
                       format(cfg['Vs1_guess_1'], cfg['Vs1_guess_2'])
                 
     return cfg, results
-    
-    
-def output_builder(cfg, states, V, M, results):
-    """Function that takes the four dictionaries from the completed
-       Pitot run and builds a string output that can be added to the
-       csv output file.
+       
+def results_csv_builder(results, test_name = 'pitot_run',  intro_line = None):
+    """Function that takes the final results dictionary (which must include a 
+       list called 'full_list' that tells this function what to print and in 
+       what order) and then outputs a results csv. It will also add an intro line
+       if a string with that is added. The name of the test is also required.
     """
     
-    if not cfg['secondary']: #need to fill psd and Vsd with string values
-        cfg['psd1'] = 'Not used'
-        cfg['Vsd'] = 'N/A'
+    # open a file to start saving results
+    condition_builder_output = open(test_name + '-condition-builder.csv',"w")  #csv_output file creation
     
-    # needed to change these as the extra comma was screwing up the csv
-    if cfg['driver_gas'] == 'He:1.0':
-        driver_gas = cfg['driver_gas']
-    elif cfg['driver_gas'] == 'He:0.90,Ar:0.10':
-        driver_gas = 'He:0.9 Ar:0.1'
-    elif cfg['driver_gas'] == 'He:0.80,Ar:0.20':
-        driver_gas = 'He:0.8 Ar:0.2'
+    # print a line explaining the results if the user gives it
+    if intro_line:
+        intro_line_optional = "# " + intro_line
+        condition_builder_output.write(intro_line_optional + '\n')
     
-    # Now make the basic string
+    #now we'll make the code build us the second intro line
+    intro_line = '#'
+    for value in results['full_list']:
+        if value != results['full_list'][-1]:
+            intro_line += "{0},".format(value)
+        else: #don't put the comma if it's the last value
+            intro_line += "{0}".format(value)
+        
+    condition_builder_output.write(intro_line + '\n')
     
-    # something to add a line if the stagnation enthalpy did not calculate
-    # properly in the last run
-    # (it will be set to None)
+    # now we need to go through every test run and print the data.
+    # we'll use 'full_list' to guide our way through
     
-    if cfg['stagnation_enthalpy'] == None:
-        cfg['stagnation_enthalpy'] = 0.0
-        cfg['u_eq'] = 0.0
+    # get the number of the test runs from the length of the first data list mentioned
+    # in 'full_list'. need to assume the user hasn't screwed up and got lists of
+    # different lengths
+    number_of_test_runs = len(results[results['full_list'][0]])
     
-    basic = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19}"\
-            .format(cfg['test_number'], driver_gas, cfg['psd1'], 
-                    cfg['p1'], cfg['p5'], cfg['Vsd'], cfg['Vs1'], cfg['Vs2'],
-                    states['s2'].p, states['s2'].T, states['s2'].rho, 
-                    V['s2'], M['s2'],
-                    states['s7'].p, states['s7'].T, states['s7'].rho, 
-                    V['s7'], M['s7'],cfg['stagnation_enthalpy']/10**6,
-                    cfg['u_eq'])
-                    
-    # then make other strings that are needed and add what is required.               
-    
-    if cfg['nozzle']:
-        nozzle = ",{0},{1},{2},{3},{4},{5}"\
-                 .format(cfg['area_ratio'], states['s8'].p, states['s8'].T, 
-                         states['s8'].rho, V['s8'], M['s8'])        
-    if cfg['conehead']:
-        conehead = ",{0},{1},{2},{3}".format(states['s10c'].p, states['s10c'].T, 
-                                             states['s10c'].rho, V['s10c'])
-    if cfg['shock_over_model']:
-        shock_over_model = ",{0},{1},{2},{3},{4},{5},{6},{7}"\
-                           .format(results['p10f'][-1], results['T10f'][-1],
-                                   results['rho10f'][-1], results['V10f'][-1],
-                                   results['p10e'][-1], results['T10e'][-1],
-                                   results['rho10e'][-1], results['V10e'][-1])
-    
-    if cfg['store_electron_concentration']:
-        # I decided to start just pulling these from the results dict lists 
-        # instead of refinding them, that seems lazy 
-        store_electron_concentration = ",{0},{1},{2},{3}"\
-                                       .format(results['s2ec'][-1],
-                                               results['s7ec'][-1],
-                                               results['s8ec'][-1],
-                                               results['s10ec'][-1])        
-                                   
-    # now put it all together
-    
-    if cfg['nozzle']:
-        basic = basic + nozzle
-    
-    if cfg['conehead'] and not cfg['shock_over_model'] and not cfg['store_electron_concentration']:
-        string_output = basic + conehead
-    elif cfg['shock_over_model'] and not cfg['conehead'] and not cfg['store_electron_concentration']:
-        string_output = basic + shock_over_model
-    elif cfg['shock_over_model'] and cfg['conehead'] and not cfg['store_electron_concentration']:
-        string_output = basic + conehead + shock_over_model   
-    elif cfg['conehead'] and not cfg['shock_over_model'] and cfg['store_electron_concentration']:
-        string_output = basic + conehead + store_electron_concentration
-    elif cfg['shock_over_model'] and not cfg['conehead'] and cfg['store_electron_concentration']:
-        string_output = basic + shock_over_model + store_electron_concentration
-    elif cfg['shock_over_model'] and cfg['conehead'] and cfg['store_electron_concentration']:
-        string_output = basic + conehead + shock_over_model + store_electron_concentration
-    else:
-        string_output = basic
-    
-    return string_output
+    for i in range(0, number_of_test_runs, 1):
+        output_line = ''
+        for value in results['full_list']:
+            if value != results['full_list'][-1]:
+                output_line += "{0},".format(results[value][i])
+            else: #don't put the comma if it's the last value in the csv
+                output_line += "{0}".format(results[value][i])
+        
+        condition_builder_output.write(output_line + '\n')  
+
+    condition_builder_output.close()              
+                                  
+    return 
     
 def add_new_result_to_results_dict(cfg, states, V, M, results):
     """Function that takes a completed test run and adds the tunnel
@@ -327,20 +361,38 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     if cfg['tunnel_mode'] == 'nr-shock-tunnel':
         cfg['p5'] = 'Not used'
         cfg['Vs2'] = 'N/A'
+        
+    # needed to change these as the extra comma was screwing up the csv
+    if cfg['driver_gas'] == 'He:1.0':
+        driver_condition = cfg['driver_gas']
+    elif cfg['driver_gas'] == 'He:0.90,Ar:0.10':
+        driver_condition = 'He:0.9 Ar:0.1'
+    elif cfg['driver_gas'] == 'He:0.80,Ar:0.20':
+        driver_condition = 'He:0.8 Ar:0.2'
     
     results['test number'].append(cfg['test_number'])
-    results['driver condition'].append(cfg['driver_gas'])
+    results['driver condition'].append(driver_condition)
     results['psd1'].append(cfg['psd1'])
     results['p1'].append(cfg['p1']) 
     results['p5'].append(cfg['p5'])
+    
     results['Vsd'].append(cfg['Vsd'])
     results['Vs1'].append(cfg['Vs1'])
     results['Vs2'].append(cfg['Vs2'])
+    
     results['p2'].append(states['s2'].p)
     results['T2'].append(states['s2'].T)
     results['rho2'].append(states['s2'].rho)
     results['V2'].append(V['s2'])
     results['M2'].append(M['s2'])
+    results['a2'].append(states['s2'].a)
+    results['gamma2'].append(states['s2'].gam)
+    results['R2'].append(states['s2'].R)
+    if cfg['Ht2']:
+        results['Ht2'].append(cfg['Ht2']/10**6)
+    else:
+        results['Ht2'].append('did not solve')    
+
     if cfg['tunnel_mode'] == 'expansion-tube':
         results['p7'].append(states['s7'].p)
         results['T7'].append(states['s7'].T)
@@ -422,25 +474,32 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
                      
     return results
     
-def condition_builder_summary_builder(cfg, results, condition_builder_summary_file):
+def condition_builder_summary_builder(cfg, results):
     """Function that takes the config dictionary and results dictionary 
        made throughout the running of the program and prints a summary of 
        the run to the screen and to a summary text file
     """
     
+    condition_builder_summary_file = open(cfg['original_filename']+'-condition-builder-summary.txt',"w")
+    # print a line explaining the results
+    summary_line_1 = "# Summary of pitot condition building program output."
+    condition_builder_summary_file.write(summary_line_1 + '\n')
+    summary_line_2 = "# Summary performed using Version {0} of the condition building program.".format(VERSION_STRING)
+    condition_builder_summary_file.write(summary_line_2 + '\n')
+    
     print '-'*60
     print "Printing summary to screen and to a text document."
     
-    summary_line_2 = "{0} tests ran. {1} ({2:.1f}%) were successful."\
+    summary_line_3 = "{0} tests ran. {1} ({2:.1f}%) were successful."\
         .format(cfg['number_of_test_runs'], len(results['test number']),
         float(len(results['test number']))/float(cfg['number_of_test_runs'])*100.0)
-    print summary_line_2
-    condition_builder_summary_file.write(summary_line_2 + '\n')  
+    print summary_line_3
+    condition_builder_summary_file.write(summary_line_3 + '\n')  
 
     if results['unsuccessful_runs']: 
-        summary_line_3 = "Unsucessful runs were run numbers {0}.".format(results['unsuccessful_runs'])
-        print summary_line_3
-        condition_builder_summary_file.write(summary_line_3 + '\n')  
+        summary_line_4 = "Unsucessful runs were run numbers {0}.".format(results['unsuccessful_runs'])
+        print summary_line_4
+        condition_builder_summary_file.write(summary_line_4 + '\n')  
 
     if len(cfg['driver_condition_list']) > 1:
         summary_line_4 = "{0} driver conditions were tested ({1})."\
@@ -493,7 +552,9 @@ def condition_builder_summary_builder(cfg, results, condition_builder_summary_fi
                     .format(variable, min_value, max_value)
                 print summary_line
                 condition_builder_summary_file.write(summary_line + '\n')
-                
+    
+    condition_builder_summary_file.close()   
+            
     return
             
 def run_pitot_condition_builder(cfg = {}, config_file = None):
@@ -532,102 +593,14 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     counter = 0
     good_counter = 0
     
-    # print how many tests we're going to run, and the ranges.
+    # print the start message
+       
+    cfg = start_message(cfg)
     
-    print '-'*60    
-    print "{0} tests will be run.".format(cfg['number_of_test_runs'])
+    # work out what we need in our results dictionary and make the dictionary
     
-    if True in cfg['secondary_list']:
-        if len(cfg['psd1_list']) > 1:
-            print 'psd1 will be changed from from {0} - {1} Pa in increments of {2} Pa.'\
-            .format(cfg['psd1_list'][0], cfg['psd1_list'][-1], cfg['psd1_list'][1] - cfg['psd1_list'][0])
-        else:
-            print 'psd1 is kept at {0} Pa.'.format(cfg['psd1_list'][0])
-            
-    if len(cfg['p1_list']) > 1:
-        print 'p1 will be changed from from {0} - {1} Pa in increments of {2} Pa.'\
-        .format(cfg['p1_list'][0], cfg['p1_list'][-1], cfg['p1_list'][1] - cfg['p1_list'][0])
-    else:
-        print 'p1 is kept at {0} Pa.'.format(cfg['p1_list'][0])
-        
-    if cfg['tunnel_mode'] == 'expansion-tube':
-        if len(cfg['p5_list']) > 1:
-            print 'p5 will be changed from from {0} - {1} Pa in increments of {2} Pa.'\
-            .format(cfg['p5_list'][0], cfg['p5_list'][-1], cfg['p5_list'][1] - cfg['p5_list'][0])
-        else:
-            print 'p5 is kept at {0} Pa.'.format(cfg['p5_list'][0])
-        
-    #open our csv file ready to go
-    
-    # open a file to start saving results
-    condition_builder_output = open(cfg['filename']+'-condition-builder.csv',"w")  #csv_output file creation
-    # print a line explaining the results
-    intro_line_1 = "# Output of pitot area condition building program."
-    condition_builder_output.write(intro_line_1 + '\n')
-    basic = "#test number,driver condition,psd1,p1,p5,Vsd,Vs1,Vs2,p2,T2,rho2,V2,M2,p7,T7,rho7,V7,M7,Ht,u_eq"
-    nozzle = ",arearatio,p8,T8,rho8,V8,M8"
-    if cfg['nozzle']:
-        basic = basic + nozzle
-    conehead = ",p10c,T10c,rho10c,V10c"
-    shock_over_model = ",p10f,T10f,rho10f,V10f,p10e,T10e,rho10f,V10e"
-    store_electron_concentration = ",s2ec, s7ec, s8ec, s10ec"
-    if cfg['conehead'] and not cfg['shock_over_model'] and not cfg['store_electron_concentration']:
-        intro_line_2 = basic + conehead
-    elif cfg['shock_over_model'] and not cfg['conehead'] and not cfg['store_electron_concentration']:
-        intro_line_2 = basic + shock_over_model
-    elif cfg['shock_over_model'] and cfg['conehead'] and not cfg['store_electron_concentration']:
-        intro_line_2 = basic + conehead + shock_over_model   
-    elif cfg['conehead'] and not cfg['shock_over_model'] and cfg['store_electron_concentration']:
-        intro_line_2 = basic + conehead + store_electron_concentration
-    elif cfg['shock_over_model'] and not cfg['conehead'] and cfg['store_electron_concentration']:
-        intro_line_2 = basic + shock_over_model + store_electron_concentration
-    elif cfg['shock_over_model'] and cfg['conehead'] and cfg['store_electron_concentration']:
-        intro_line_2 = basic + conehead + shock_over_model + store_electron_concentration
-    elif cfg['store_electron_concentration'] and not cfg['shock_over_model'] and not cfg['conehead']:
-        intro_line_2 = basic + store_electron_concentration
-    else:
-        intro_line_2 = basic
-        
-    condition_builder_output.write(intro_line_2 + '\n')
-    
-    # then make a dictionary of lists to store results in the Python memory
-        
-    # need to make a list to create a series of empty lists in the results
-    # dictionary to store the data. the list is tailored to the test condition
-    basic_list = ['test number','driver condition','psd1','p1','p5','Vsd','Vs1',
-                  'Vs2','p2','T2','rho2','V2','M2','p7','T7','rho7','V7','M7','Ht','u_eq']
-    nozzle_list = ['arearatio','p8','T8','rho8','V8','M8']
-    if cfg['nozzle']:
-        basic_list = basic_list + nozzle_list
-    conehead_list = ['p10c','T10c','rho10c','V10c']
-    shock_over_model_list = ['p10f','T10f','rho10f','V10f','p10e','T10e','rho10e','V10e']
-    store_electron_concentration_list = ['s2ec','s7ec','s8ec','s10ec']
-    if cfg['conehead'] and not cfg['shock_over_model'] and not cfg['store_electron_concentration']:
-        full_list = basic_list + conehead_list
-    elif cfg['shock_over_model'] and not cfg['conehead'] and not cfg['store_electron_concentration']:
-        full_list = basic_list + shock_over_model_list
-    elif cfg['shock_over_model'] and cfg['conehead'] and not cfg['store_electron_concentration']:
-        full_list = basic_list + conehead_list + shock_over_model_list
-    elif cfg['conehead'] and not cfg['shock_over_model'] and cfg['store_electron_concentration']:
-        full_list = basic_list + conehead_list + store_electron_concentration_list
-    elif cfg['shock_over_model'] and not cfg['conehead'] and cfg['store_electron_concentration']:
-        full_list = basic_list + shock_over_model_list + store_electron_concentration_list
-    elif cfg['shock_over_model'] and cfg['conehead'] and cfg['store_electron_concentration']:
-        full_list = basic_list + conehead_list + shock_over_model_list + store_electron_concentration_list 
-    elif cfg['store_electron_concentration'] and not cfg['conehead'] and not cfg['shock_over_model']:
-        full_list = basic_list + store_electron_concentration_list 
-    else:
-        full_list = basic_list
-    
-    results = {title : [] for title in full_list}
-    
-    # add the list of titles in case we want to use it in future
-    
-    results['full_list'] = full_list
-    
-    #add a list where we can store unsuccesful run numbers for analysis
-    results['unsuccessful_runs'] = []
-    
+    results = build_results_dict(cfg)
+                       
     have_checked_time = False
     
     #now start up the for loops and get running
@@ -648,7 +621,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
                                 cfg['test_number'] = counter
                                 if not have_checked_time:
                                     start_time = time.time()
-                                run_status, results = condition_builder_test_run(cfg, condition_builder_output, results) 
+                                run_status, results = condition_builder_test_run(cfg, results) 
                                 if run_status:
                                     good_counter += 1
                                     if not have_checked_time:
@@ -669,7 +642,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
                             cfg['test_number'] = counter
                             if not have_checked_time:
                                 start_time = time.time()
-                            run_status, results = condition_builder_test_run(cfg, condition_builder_output, results) 
+                            run_status, results = condition_builder_test_run(cfg, results) 
                             if run_status:
                                 good_counter += 1
                                 if not have_checked_time:
@@ -695,7 +668,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
                             cfg['test_number'] = counter
                             if not have_checked_time:
                                 start_time = time.time()
-                            run_status, results = condition_builder_test_run(cfg, condition_builder_output, results) 
+                            run_status, results = condition_builder_test_run(cfg, results) 
                             if run_status:
                                 good_counter += 1
                                 if not have_checked_time:
@@ -713,7 +686,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
                         cfg['test_number'] = counter
                         if not have_checked_time:
                             start_time = time.time()
-                        run_status, results = condition_builder_test_run(cfg, condition_builder_output, results) 
+                        run_status, results = condition_builder_test_run(cfg, results) 
                         if run_status:
                             good_counter += 1
                             if not have_checked_time:
@@ -724,22 +697,16 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
                                 print "If every test takes this long. It will take roughly {0:.2f} hours to perform all {1} tests."\
                                 .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
                                 have_checked_time = True       
-                        
-    condition_builder_output.close()
+    
+    # now that we're done we can dump the results to the results csv 
+    intro_line = "Output of pitot condition building program Version {0}.".format(VERSION_STRING)            
+    results_csv_builder(results, test_name = cfg['original_filename'],  
+                        intro_line = intro_line)
     
     # now analyse results dictionary and print some results to the screen
     # and another external file
     
-    condition_builder_summary_file = open(cfg['original_filename']+'-condition-builder-summary.txt',"w")
-    # print a line explaining the results
-    summary_line_1 = "# Summary of pitot condition building program output."
-    condition_builder_summary_file.write(summary_line_1 + '\n')
-    summary_line_2 = "# Summary performed using Version {0} of the condition building program.".format(VERSION_STRING)
-    condition_builder_summary_file.write(summary_line_2 + '\n')
-    
-    condition_builder_summary_builder(cfg, results, condition_builder_summary_file)
-    
-    condition_builder_summary_file.close()    
+    condition_builder_summary_builder(cfg, results) 
     
     return
                                 

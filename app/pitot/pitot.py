@@ -187,6 +187,9 @@ available to me as part of cfpylib inside the cfcfd code collection.
         where a lot of work was discussed in terms of pressure ratios.
     31-Oct-2014:
         Finally updated the intro stuff here so it is correct.
+    28-Dec-2014:
+        Updated a lot of the condition builder and contamination analysis code,
+        and also added a differing diluent analysis tool for gas giant conditions.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -214,7 +217,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "5-Dec-2014"
+VERSION_STRING = "28-Dec-2014"
 
 DEBUG_PITOT = False
 

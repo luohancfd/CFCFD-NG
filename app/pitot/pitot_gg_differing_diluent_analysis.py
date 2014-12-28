@@ -1,18 +1,17 @@
 #! /usr/bin/env python
 """
-pitot_contamination_analysis.py: pitot air contamination analysing tool
+pitot_gg_differing_diluent_analysis.py: pitot gas giant differing diluent tool
 
-This file with take a normal pitot input file with two variables added, one 
-list or array telling it what range of air contamination to analyse,
-and another telling it whether those values are by volume (mole fraction)
-or by mass (mass fraction). If the second variable is not supplied, it will
-default to volume as pitot generally uses everything by volume.
+I got sick of manually analysing gas giant calculations with a differing amount 
+of He or Ne diluent so I figured I should make a new version of air contamination
+tool that was instead focused on gas giant analysis. Here it is. Started in a 
+Starbucks at Stuttgart train station.
 
 This is basically a cut down version of the pitot condition building program
 (pitot_condition_builder.py) and it prints data to the screen and a text file
 in a similar way. 
 
-Chris James (c.james4@uq.edu.au) - 12/09/14
+Chris James (c.james4@uq.edu.au) - 23/12/14
 
 """
 
@@ -27,41 +26,35 @@ from pitot_input_utils import *
 
 def check_new_inputs(cfg):
     """Takes the input file and checks that the extra inputs required for the
-       condition builder are working..
+       gas giant diluent analysis are working..
     
-    Returns the checked over input file and will tell the bigger program to 
-    bail out if it finds an issue.
+       Returns the checked over input file and will tell the bigger program to 
+      bail out if it finds an issue.
     
     """
     
-    print "Starting check of condition builder specific inputs."
+    print "Starting check of gas giant differing diluent analysis specific inputs."
         
-    if 'air_contamination_list' not in cfg:
-        print "You have not specified an 'air_contamination_list'. Bailing out."
+    if 'diluent_percentage_list' not in cfg:
+        print "You have not specified an 'diluent_percentage_list'. Bailing out."
         cfg['bad_input'] = True
         
-    if 'air_contamination_inputUnits' not in cfg:
-        print "'air_contamination_inputUnits' not in cfg."
+    if 'diluent_inputUnits' not in cfg:
+        print "'diluent_inputUnits' not in cfg."
         print "Setting it to 'moles'."
-        cfg['air_contamination_inputUnits']
+        cfg['diluent_inputUnits'] = 'moles'
         
-    if 'normalise_results_by' not in cfg:
-        print "'normalise_results_by' not in cfg."
-        print "Setting it to 'first value'."
-        cfg['normalise_results_by'] = 'first value'   
-        
-    # add an extra check to make sure that the inputUnits match between the contamination
-    # and the test gas if the test gas is custom. I think it's pretty stupid
-    # and confusing if they aren't the same
-    
-    if cfg['test_gas'] == 'custom' and cfg['air_contamination_inputUnits'] != cfg['test_gas_inputUnits']:
-        print "'air_contamination_inputUnits' = {0} and 'test_gas_inputUnits' = {1}."\
-        .format(cfg['air_contamination_inputUnits'], cfg['test_gas_inputUnits'])
-        print "This isn't the smartest idea. Bailing out."
+    if 'diluent' not in cfg:
+        print "'diluent' not in cfg. You need a diluent. Bailing out."
         cfg['bad_input'] = True
         
     if 'store_electron_concentration' not in cfg:
         cfg['store_electron_concentration'] = False
+        
+    if 'normalise_results_by' not in cfg:
+        print "'normalise_results_by' not in cfg."
+        print "Setting it to 'first value'."
+        cfg['normalise_results_by'] = 'first value'     
                 
     if cfg['bad_input']: #bail out here if you end up having issues with your input
         print "Config failed check. Bailing out now."
@@ -77,7 +70,7 @@ def calculate_number_of_test_runs(cfg):
     """Function that uses a simple function to calculate the amount of test
        runs that the program has to perform.
     """
-    return len(cfg['air_contamination_list'])
+    return len(cfg['diluent_percentage_list'])
     
 def start_message(cfg):
     """Function that takes the cfg file and prints a start message for the
@@ -89,14 +82,14 @@ def start_message(cfg):
     print '-'*60    
     print "{0} tests will be run.".format(cfg['number_of_test_runs'])
     
-    if cfg['air_contamination_inputUnits'] == 'moles':
-        print "Air contamination will be tested from {0} - {1} % in increments of {2} as a mole fraction."\
-        .format(cfg['air_contamination_list'][0], cfg['air_contamination_list'][-1], 
-                cfg['air_contamination_list'][1] - cfg['air_contamination_list'][0])
-    elif cfg['air_contamination_inputUnits'] == 'massf':
-        print "Air contamination will be tested from {0} - {1} % in increments of {2} as a massf fraction."\
-        .format(cfg['air_contamination_list'][0], cfg['air_contamination_list'][-1], 
-                cfg['air_contamination_list'][1] - cfg['air_contamination_list'][0])
+    if cfg['diluent_inputUnits'] == 'moles':
+        print "differing amounts of {0} diluent will be tested from {1} - {2} % in increments of {3} as a mole fraction."\
+        .format(cfg['diluent'], cfg['diluent_percentage_list'][0], cfg['diluent_percentage_list'][-1], 
+                cfg['diluent_percentage_list'][1] - cfg['diluent_percentage_list'][0])
+    elif cfg['diluent_inputUnits'] == 'massf':
+        print "differing amounts of {0} diluent will be tested from {1} - {2} % in increments of {3} as a mass fraction."\
+        .format(cfg['diluent'], cfg['diluent_percentage_list'][0], cfg['diluent_percentage_list'][-1], 
+                cfg['diluent_percentage_list'][1] - cfg['diluent_percentage_list'][0])
             
     return cfg
     
@@ -111,16 +104,17 @@ def build_results_dict(cfg):
     # dictionary to store the data. the list is tailored to the test we're running
     
     full_list = []
-    if cfg['secondary']:
-        basic_list = ['test number','air contamination','psd1','p1','p5','Vsd',
+    
+    if cfg['secondary']:    
+        basic_list = ['test number','diluent percentage','psd1','p1','p5','Vsd',
                       'Vs1', 'Vs2', 'Ht','u_eq', 'rho1', 'gamma1', 'R1', 'MW1',
                       'p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2',
                       'p6','T6','rho6','V6','M6','p7','T7','rho7','V7','M7']
     else:
-       basic_list = ['test number','air contamination','p1','p5','Vs1', 'Vs2', 
-                     'Ht','u_eq', 'rho1', 'gamma1', 'R1', 'MW1',
-                     'p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2',
-                     'p6','T6','rho6','V6','M6','p7','T7','rho7','V7','M7']        
+        basic_list = ['test number','diluent percentage','p1','p5',
+                      'Vs1', 'Vs2', 'Ht','u_eq','rho1', 'gamma1', 'R1', 'MW1',
+                      'p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2',
+                      'p6','T6','rho6','V6','M6','p7','T7','rho7','V7','M7']
     full_list += basic_list
     
     if cfg['nozzle']:
@@ -149,7 +143,7 @@ def build_results_dict(cfg):
     
     return results
     
-def contamination_analysis_test_run(cfg, results):
+def gg_differing_diluent_analysis_test_run(cfg, results):
     """Function that takes the fully built config dictionary
        and the text file that is being used for the program output
        and does the test run then adds a line to the output file.
@@ -168,8 +162,8 @@ def contamination_analysis_test_run(cfg, results):
     
     print '-'*60
     print "Running test {0} of {1}.".format(cfg['test_number'], cfg['number_of_test_runs'])
-    print "Current level of air contamination is {0} % (by {1})."\
-         .format(cfg['contamination_percentage'], cfg['air_contamination_inputUnits'])
+    print "Current level of {0} diluent is {1} % (by {2})."\
+         .format(cfg['diluent'], cfg['diluent_percentage'], cfg['diluent_inputUnits'])
     try:
         cfg, states, V, M = run_pitot(cfg = cfg)
     except Exception:
@@ -219,7 +213,7 @@ def results_csv_builder(results, test_name = 'pitot_run',  intro_line = None):
     """
     
     # open a file to start saving results
-    condition_builder_output = open(test_name + '-contamination-analysis.csv',"w")  #csv_output file creation
+    condition_builder_output = open(test_name + '-gg-differing-diluent-analysis.csv',"w")  #csv_output file creation
     
     # print a line explaining the results if the user gives it
     if intro_line:
@@ -233,6 +227,7 @@ def results_csv_builder(results, test_name = 'pitot_run',  intro_line = None):
             intro_line += "{0},".format(value)
         else: #don't put the comma if it's the last value
             intro_line += "{0}".format(value)
+        
     condition_builder_output.write(intro_line + '\n')
     
     # now we need to go through every test run and print the data.
@@ -255,7 +250,7 @@ def results_csv_builder(results, test_name = 'pitot_run',  intro_line = None):
 
     condition_builder_output.close()              
                                   
-    return 
+    return
     
 def normalised_results_csv_builder(results, test_name = 'pitot_run',  
                                    intro_line = None, normalised_by = 'first value'):
@@ -269,7 +264,7 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
     """
     
     # open a file to start saving results
-    condition_builder_output = open(test_name + '-contamination-analysis-normalised.csv',"w")  #csv_output file creation
+    condition_builder_output = open(test_name + '-gg-differing-diluent-analysis-normalised.csv',"w")  #csv_output file creation
     
     # print a line explaining the results if the user gives it
     if intro_line:
@@ -283,18 +278,16 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
     intro_line = '#'
     for value in results['full_list']:
         if value != results['full_list'][-1]:
-            # 'test number' and 'air contamination' will not be normalised, 
+            # 'test number' and 'diluent percentage' will not be normalised, 
             # so don't add the normalised part for them
-            if value in ['test number', 'air contamination']:
+            if value in ['test number', 'diluent percentage']:
                 intro_line += "{0},".format(value)
             else:
                 intro_line += "{0} normalised,".format(value)
-            intro_line += "{0} normalised,".format(value)
         else: #don't put the comma if it's the last value
             intro_line += "{0} normalised".format(value)
         
     condition_builder_output.write(intro_line + '\n')
-    print intro_line
     
     # now we need to go through every test run and print the data.
     # we'll use 'full_list' to guide our way through
@@ -318,16 +311,12 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
     for i in range(0, number_of_test_runs, 1):
         output_line = ''
         for value in results['full_list']:
-            print value, results[value][i], normalising_value_dict[value]
             if value != results['full_list'][-1]:
-                # don't normalise 'test number' or 'air contamination'
-                if value in ['test number', 'air contamination']:
-                    print hello
+                # don't normalise 'test number' or 'diluent percentage'
+                if value in ['test number', 'diluent percentage']:
                     output_line += "{0},".format(results[value][i])
                 else:
-                    print yo
                     output_line += "{0},".format(results[value][i]/normalising_value_dict[value])
-                output_line += "{0},".format(results[value][i]/normalising_value_dict[value])
             else: #don't put the comma if it's the last value in the csv
                 output_line += "{0}".format(results[value][i]/normalising_value_dict[value])
         
@@ -343,7 +332,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     """ 
     
     results['test number'].append(cfg['test_number'])
-    results['air contamination'].append(cfg['contamination_percentage'])
+    results['diluent percentage'].append(cfg['diluent_percentage'])
     if cfg['secondary']:
         results['psd1'].append(cfg['psd1'])
     results['p1'].append(cfg['p1']) 
@@ -375,6 +364,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     results['a2'].append(states['s2'].a)
     results['gamma2'].append(states['s2'].gam)
     results['R2'].append(states['s2'].R)
+    
     if cfg['Ht2']:
         results['Ht2'].append(cfg['Ht2']/10**6)
     else:
@@ -392,7 +382,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
         results['rho7'].append(states['s7'].rho)
         results['V7'].append(V['s7'])
         results['M7'].append(M['s7'])
-  
+    
     if cfg['nozzle']:
         results['arearatio'].append(cfg['area_ratio'])
         results['p8'].append(states['s8'].p)
@@ -431,7 +421,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
         
     return results
     
-def contamination_analysis_summary(cfg, results):
+def gg_differing_diluent_analysis_summary(cfg, results):
     """Function that takes the config dictionary and results dictionary 
        made throughout the running of the program and prints a summary of 
        the run to the screen and to a summary text file
@@ -440,25 +430,26 @@ def contamination_analysis_summary(cfg, results):
     print '-'*60
     print "Printing summary to screen and to a text document."
     
-    contamination_analysis_summary_file = open(cfg['original_filename']+'-contamination-analysis-summary.txt',"w")
-    # print a line explaining the results
-    summary_line_1 = "# Summary of pitot contamination analysis program output."
-    contamination_analysis_summary_file.write(summary_line_1 + '\n')
+    gg_d_d_analysis_summary_file = open(cfg['original_filename']+'-gg-differing-diluent-analysis-summary.txt',"w")
+    
+    # print lines explaining the results
+    summary_line_1 = "# Summary of pitot gas giant different diluent analysis program output."
+    gg_d_d_analysis_summary_file.write(summary_line_1 + '\n')
     print summary_line_1
     summary_line_2 = "# Summary performed using Version {0} of the contamination analysis program.".format(VERSION_STRING)
-    contamination_analysis_summary_file.write(summary_line_2 + '\n')
+    gg_d_d_analysis_summary_file.write(summary_line_2 + '\n')
     print summary_line_2
     
     summary_line_3 = "{0} tests ran. {1} ({2:.1f}%) were successful."\
         .format(cfg['number_of_test_runs'], len(results['test number']),
         float(len(results['test number']))/float(cfg['number_of_test_runs'])*100.0)
     print summary_line_3
-    contamination_analysis_summary_file.write(summary_line_3 + '\n')  
+    gg_d_d_analysis_summary_file.write(summary_line_3 + '\n')
 
     if results['unsuccessful_runs']: 
         summary_line_4 = "Unsucessful runs were run numbers {0}.".format(results['unsuccessful_runs'])
         print summary_line_4
-        gg_d_d_analysis_summary_file.write(summary_line_4 + '\n')         
+        gg_d_d_analysis_summary_file.write(summary_line_4 + '\n')          
 
     for variable in results['full_list']:
         # first check it's not a variable that doesn't need to be summarised
@@ -489,18 +480,18 @@ def contamination_analysis_summary(cfg, results):
                     summary_line = "Variable {0} varies from {1:.1f} - {2:.1f}."\
                     .format(variable, min_value, max_value)
                 print summary_line
-                contamination_analysis_summary_file.write(summary_line + '\n')
+                gg_d_d_analysis_summary_file.write(summary_line + '\n')
                 
-    contamination_analysis_summary_file.close()    
+    gg_d_d_analysis_summary_file.close()   
                 
     return
             
-def run_pitot_contamination_analysis(cfg = {}, config_file = None):
+def run_pitot_gg_differing_diluent_analysis(cfg = {}, config_file = None):
     """
     
-    Chris James (c.james4@uq.edu.au) 12/09/14
+    Chris James (c.james4@uq.edu.au) 23/12/14
     
-    run_pitot_contamination_analysis(dict) - > depends
+    run_pitot_gg_differing_diluent_analysis(dict) - > depends
     
     """
     
@@ -510,6 +501,14 @@ def run_pitot_contamination_analysis(cfg = {}, config_file = None):
     
     if config_file:
         cfg = config_loader(config_file)
+    
+    # set our test gas to custom here and give it a dummy test gas
+    # inputUnits and test gas input to pass the input test
+    
+    cfg['test_gas'] = 'custom'
+    cfg['test_gas_inputUnits'] = 'moles'
+    cfg['test_gas_composition'] = {'H2':1.0}
+    
         
     #----------------- check inputs ----------------------------------------
     
@@ -524,8 +523,7 @@ def run_pitot_contamination_analysis(cfg = {}, config_file = None):
     
     import copy
     cfg['original_filename'] = copy.copy(cfg['filename'])
-    cfg['original_test_gas'] = copy.copy(cfg['test_gas'])
-    
+   
     counter = 0
     good_counter = 0
     
@@ -541,59 +539,29 @@ def run_pitot_contamination_analysis(cfg = {}, config_file = None):
     
     #now start up the for loops and get running    
     
-    for contamination_percentage in cfg['air_contamination_list']:
-        # need to extract our original test gas here and then we
-        # need to set a custom test gas and then work out how much
-        # we need to adjust the original values by to fit in with
-        # the amount of contamination
+    for diluent_percentage in cfg['diluent_percentage_list']:
+        # need to work out what diluent we're using and whether we're using
+        # mole or mass fractions, then get this going
         
-        cfg['contamination_percentage'] = contamination_percentage
-        percentage_not_air = 100.0 - contamination_percentage
+        cfg['diluent_percentage'] = diluent_percentage
+        percentage_not_diluent = 100.0 - diluent_percentage
+        diluent = cfg['diluent']
         
-        # this is easy if the original test gas was already custom
-        if contamination_percentage > 0.0: #obviously don't do anything special when the percentage is 0
-            if cfg['original_test_gas'] == 'custom':
-                if cfg['test_gas_inputUnits'] == 'moles' and cfg['air_contamination_inputUnits'] == 'moles' or \
-                cfg['test_gas_inputUnits'] == 'massf' and cfg['air_contamination_inputUnits'] == 'massf':
-                    for species in cfg['test_gas_composition'].keys():
-                        cfg['test_gas_composition'][species] = cfg['test_gas_composition'][species]*percentage_not_air
-                    # if air was already in the mix, just increase the amount
-                    if 'Air' in cfg['test_gas_composition'].keys():
-                        cfg['test_gas_composition']['Air'] = cfg['test_gas_composition']['Air'] + contamination_percentage / 100.0
-                    # if not, add the air
-                    else:
-                        cfg['test_gas_composition']['Air'] = contamination_percentage / 100.0              
-            else: #noncustom test gas
-                from pitot_input_utils import make_test_gas
-                if cfg['air_contamination_inputUnits'] == 'moles':
-                    original_test_gas, not_needed = make_test_gas(cfg['original_test_gas'], outputUnits='moles')
-                elif cfg['air_contamination_inputUnits'] == 'massf':
-                    original_test_gas, not_needed = make_test_gas(cfg['original_test_gas'], outputUnits='massf')
-                # need to set a gas state here to make it output the species at room temperature and pressure
-                # (we could have just used the input values but then we douldn't get the
-                # change from moles to massf if we want that)
-                original_test_gas.set_pT(101300.0, 300.0)
-                # now set our current test gas to custom and populate a reactants
-                # dictionary for the custom test gas
-                cfg['test_gas'] = 'custom'
-                cfg['test_gas_inputUnits'] = cfg['air_contamination_inputUnits']
-                cfg['test_gas_composition'] = {}
-                # as we set the output units of our custom gas to the units of our
-                # air contamination no annoying conversion has to be done here
-                for species in original_test_gas.species.keys():
-                    cfg['test_gas_composition'][species] = original_test_gas.species[species]*percentage_not_air
-                # if air was already in the mix, just increase the amount
-                if 'Air' in original_test_gas.species.keys():
-                    cfg['test_gas_composition']['Air'] = original_test_gas.species['Air'] + contamination_percentage 
-                # if not, add the air
-                else:
-                    cfg['test_gas_composition']['Air'] = contamination_percentage   
+        cfg['test_gas_inputUnits'] = cfg['diluent_inputUnits']
+        
+        # this is easy as it's just pure H2
+        if diluent_percentage == 0.0: #obviously don't do anything special when the percentage is 0
+            cfg['test_gas_composition'] = {'H2':1.0}    
+        else:
+            # now we just have to make a custom test gas with what we want
+            cfg['test_gas_composition'] = {'H2':percentage_not_diluent/100.0, 
+                                           diluent:diluent_percentage/100.0} 
 
         counter += 1
         cfg['test_number'] = counter
         if not have_checked_time:
             start_time = time.time()
-        run_status, results = contamination_analysis_test_run(cfg, results) 
+        run_status, results = gg_differing_diluent_analysis_test_run(cfg, results) 
         if run_status:
             good_counter += 1
             if not have_checked_time:
@@ -606,19 +574,20 @@ def run_pitot_contamination_analysis(cfg = {}, config_file = None):
                 have_checked_time = True
 
     # now that we're done we can dump the results to the results csv 
-    intro_line = "Output of pitot contamination analysis program Version {0}.".format(VERSION_STRING)            
+    intro_line = "Output of pitot gas giant differing diluent analysis program Version {0} with {1} diluent."\
+                 .format(VERSION_STRING, cfg['diluent'])            
     results_csv_builder(results, test_name = cfg['original_filename'],  
                         intro_line = intro_line)
                         
     #and a normalised csv also
     normalised_results_csv_builder(results, test_name = cfg['original_filename'],  
                         intro_line = intro_line, 
-                        normalised_by = cfg['normalise_results_by'])   
+                        normalised_by = cfg['normalise_results_by'])                        
     
     # now analyse results dictionary and print some results to the screen
     # and another external file
     
-    contamination_analysis_summary(cfg, results)
+    gg_differing_diluent_analysis_summary(cfg, results) 
     
     return
                                 
@@ -634,7 +603,7 @@ def main():
     opt, args = op.parse_args()
     config_file = opt.config_file
            
-    run_pitot_contamination_analysis(cfg = {}, config_file = config_file)
+    run_pitot_gg_differing_diluent_analysis(cfg = {}, config_file = config_file)
     
     return
     
@@ -642,7 +611,7 @@ def main():
 
 if __name__ == '__main__':
     if len(sys.argv) <= 1:
-        print "pitot_contamination_analysis.py - Pitot Equilibrium expansion tube simulator air contamination analysis tool"
+        print "pitot_gg_differing_diluent_analysis.py - Pitot Equilibrium expansion tube simulator gg differing amounts of diluent analysis tool"
         print "start with --help for help with inputs"
         
     else:

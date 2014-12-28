@@ -537,7 +537,7 @@ def shock_tube_calculation(cfg, states, V, M):
             states['s2_total'] = total_condition(states['s2'], V['s2'])
             print 'The total enthalpy (Ht) at state 2 is {0:<.5g} MJ/kg (H2 - h1).'\
             .format((states['s2_total'].h - states['s1'].h)/1.0e6) #(take away the initial enthalpy in state 1 to get the change)
-        
+            cfg['Ht2'] = states['s2_total'].h - states['s1'].h
         
     if cfg['state2_no_ions']:
         # Turn with ions back on so it will be on for other states based on s7
