@@ -15,7 +15,7 @@ Chris James (c.james4@uq.edu.au) - 23/12/14
 
 """
 
-VERSION_STRING = "28-Dec-2014"
+VERSION_STRING = "29-Dec-2014"
 
 from pitot_condition_builder import stream_tee
 
@@ -109,11 +109,13 @@ def build_results_dict(cfg):
         basic_list = ['test number','diluent percentage','psd1','p1','p5','Vsd',
                       'Vs1', 'Vs2', 'Ht','u_eq', 'rho1', 'gamma1', 'R1', 'MW1',
                       'p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2',
+                      's2 %H2', 's2 %H', 's2 %{0}'.format(cfg['diluent']),'s2 %H+', 's2 %e-',
                       'p6','T6','rho6','V6','M6','p7','T7','rho7','V7','M7']
     else:
         basic_list = ['test number','diluent percentage','p1','p5',
                       'Vs1', 'Vs2', 'Ht','u_eq','rho1', 'gamma1', 'R1', 'MW1',
                       'p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2',
+                      's2 %H2', 's2 %H', 's2 %{0}'.format(cfg['diluent']),'s2 %H+', 's2 %e-',
                       'p6','T6','rho6','V6','M6','p7','T7','rho7','V7','M7']
     full_list += basic_list
     
@@ -124,7 +126,10 @@ def build_results_dict(cfg):
          conehead_list = ['p10c','T10c','rho10c','V10c']
          full_list += conehead_list
     if cfg['shock_over_model']:
-        shock_over_model_list = ['p10f','T10f','rho10f','V10f','p10e','T10e','rho10e','V10e']
+        shock_over_model_list = ['p10f','T10f','rho10f','V10f',
+                                 'p10e','T10e','rho10e','V10e',
+                                 's10e %H2', 's10e %H', 's10e %{0}'.format(cfg['diluent']),
+                                 's10e %H+','s10e %e-','s10e %{0}+'.format(cfg['diluent'])]
         full_list += shock_over_model_list
     if cfg['store_electron_concentration']:     
         store_electron_concentration_list = ['s2ec','s7ec','s8ec','s10ec']
@@ -137,6 +142,11 @@ def build_results_dict(cfg):
     # add the list of titles in case we want to use it in future
     
     results['full_list'] = full_list
+    
+    # and I would like to also store the diluent so we can access it when 
+    # outputting results later on
+    
+    results['diluent'] = cfg['diluent']
     
     #add a list where we can store unsuccesful run numbers for analysis
     results['unsuccessful_runs'] = []
@@ -167,19 +177,8 @@ def gg_differing_diluent_analysis_test_run(cfg, results):
     try:
         cfg, states, V, M = run_pitot(cfg = cfg)
     except Exception:
-        cfg['state7_no_ions'] = True
-        # need to remove Vs values from the dictionary or it will bail out
-        # on the next run            
-        if cfg['secondary']: cfg.pop('Vsd') 
-        cfg.pop('Vs1'); cfg.pop('Vs2')        
-        print "Original test failed, trying again with 'state7_no_ions' turned on."
-        try:
-            cfg, states, V, M = run_pitot(cfg = cfg)
-        except Exception:
-            # need to remove Vs values from the dictionary or it will bail out
-            # on the next run            
-            print "Test {0} failed. Result will not be printed to csv output.".format(cfg['test_number'])
-            condition_status = False
+         print "Test {0} failed. Result will not be printed to csv output.".format(cfg['test_number'])
+         condition_status = False
     if cfg['secondary'] and cfg['Vsd'] > cfg['Vs1']:
         print "Vsd is faster than Vs1, condition cannot be simulated by Pitot properly."
         print "Test {0} is considered failed, and result will not be printed to csv output.".format(cfg['test_number'])
@@ -274,18 +273,27 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
     normalised_intro_line = "# all variables normalised by {0}".format(normalised_by)
     condition_builder_output.write(normalised_intro_line + '\n')
     
+    # 'test number' and 'diluent percentage' and the species concentrations
+    # will not be normalised
+    normalise_exceptions = ['test number', 'diluent percentage', 
+                            's2 %H2', 's2 %H', 's2 %{0}'.format(results['diluent']), 
+                            's2 %H+', 's2 %e-', 's10e %H2', 's10e %H', 
+                            's10e %{0}'.format(results['diluent']), 's10e %H+',
+                            's10e %e-','s10e %{0}+'.format(results['diluent'])]
+    
     #now we'll make the code build us the second intro line
     intro_line = '#'
     for value in results['full_list']:
         if value != results['full_list'][-1]:
-            # 'test number' and 'diluent percentage' will not be normalised, 
-            # so don't add the normalised part for them
-            if value in ['test number', 'diluent percentage']:
+            if value in normalise_exceptions:
                 intro_line += "{0},".format(value)
             else:
                 intro_line += "{0} normalised,".format(value)
         else: #don't put the comma if it's the last value
-            intro_line += "{0} normalised".format(value)
+            if value in normalise_exceptions:
+                intro_line += "{0}".format(value)
+            else:
+                intro_line += "{0} normalised".format(value)
         
     condition_builder_output.write(intro_line + '\n')
     
@@ -312,13 +320,19 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
         output_line = ''
         for value in results['full_list']:
             if value != results['full_list'][-1]:
-                # don't normalise 'test number' or 'diluent percentage'
-                if value in ['test number', 'diluent percentage']:
+                # don't normalise selected exceptions, or values that are not numbers
+                # or a value that is not a number
+                if value in normalise_exceptions or \
+                not isinstance(results[value][i], (int, float)):
                     output_line += "{0},".format(results[value][i])
                 else:
                     output_line += "{0},".format(results[value][i]/normalising_value_dict[value])
             else: #don't put the comma if it's the last value in the csv
-                output_line += "{0}".format(results[value][i]/normalising_value_dict[value])
+                if value in normalise_exceptions or \
+                not isinstance(results[value][i], (int, float)):
+                    output_line += "{0},".format(results[value][i])
+                else:  # only normalise if the value is a number
+                    output_line += "{0}".format(results[value][i]/normalising_value_dict[value])
         
         condition_builder_output.write(output_line + '\n')  
 
@@ -364,6 +378,11 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     results['a2'].append(states['s2'].a)
     results['gamma2'].append(states['s2'].gam)
     results['R2'].append(states['s2'].R)
+    for value in ['H2', 'H', cfg['diluent'], 'H+', 'e-']:
+        if value in states['s2'].species.keys():
+            results['s2 %{0}'.format(value)].append(states['s2'].species[value])
+        else:
+            results['s2 %{0}'.format(value)].append(0.0)
     
     if cfg['Ht2']:
         results['Ht2'].append(cfg['Ht2']/10**6)
@@ -413,11 +432,18 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
             results['T10e'].append(states['s10e'].T)
             results['rho10e'].append(states['s10e'].rho)
             results['V10e'].append(V['s10e'])
+            for value in ['H2', 'H', cfg['diluent'], 'H+', 'e-',cfg['diluent']+'+']:
+                if value in states['s10e'].species.keys():
+                    results['s10e %{0}'.format(value)].append(states['s10e'].species[value])
+                else:
+                    results['s10e %{0}'.format(value)].append(0.0)
         else:
             results['p10e'].append('did not solve')
             results['T10e'].append('did not solve')
             results['rho10e'].append('did not solve')
             results['V10e'].append('did not solve')  
+            for value in ['H2', 'H', cfg['diluent'], 'H+', 'e-',cfg['diluent']+'+']:
+                results['s10e %{0}'.format(value)].append('did not solve')
         
     return results
     

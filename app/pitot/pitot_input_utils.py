@@ -446,18 +446,25 @@ def start_message(cfg, states):
     test to the screen before the run starts.
     """
     
-    if PRINT_STATUS: print "Let's get started, shall we:"
-    if PRINT_STATUS and not cfg['facility'] == 'custom': 
-        print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_gas'])
-    if PRINT_STATUS and cfg['facility'] == 'custom': 
-        print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_composition']) 
     if PRINT_STATUS: 
+        print "Let's get started, shall we:"
+        if not cfg['facility'] == 'custom': 
+            print "Facility is {0}. Driver condition is {1}.".format(cfg['facility'], cfg['piston'])
+            print "Driver gas is {0}.".format(cfg['driver_gas'])
+        if cfg['facility'] == 'custom': 
+            print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_composition'])
+        print "Driver burst conditions are p4 = {0} Pa, T4 = {1} K, M_throat = {2}."\
+              .format(cfg['p4'], cfg['T4'], cfg['M_throat'])
+        
         if cfg['solver'] == 'eq':
-            test_gas_used = 'Selected test gas is {0} (gamma = {1}, R = {2}, {3}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R,states['s1'].reactants)
+            test_gas_used = 'Selected test gas is {0} (gamma = {1}, R = {2}, {3} by {4}).'\
+            .format(cfg['test_gas'],states['s1'].gam,states['s1'].R,
+                    states['s1'].reactants, states['s1'].outputUnits)
         elif cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq':
-            test_gas_used = 'Selected test gas is {0} (gamma = {1}, R = {2}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
+            test_gas_used = 'Selected test gas is {0} (gamma = {1}, R = {2}).'\
+            .format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
         print test_gas_used
-    if PRINT_STATUS: 
+
         if 'Vsd' in cfg and cfg['secondary']:
             print 'Selected Vsd = {0} m/s'.format(cfg['Vsd'])
         if 'Vs1' in cfg:
@@ -489,12 +496,17 @@ def state_builder(cfg):
     #unsteady expansion, this was based on calcs done by RGM
 
     primary_driver_x2 = {'He:1.0':[Gas({'He':1.0},inputUnits='moles'),2.15],
-                       'He:0.80,Ar:0.20':[Gas({'He':0.8,'Ar':0.2},inputUnits='moles'),1],
-                        'He:0.90,Ar:0.10':[Gas({'He':0.9,'Ar':0.1},inputUnits='moles'),1.59],
-                        'He:0.85,Ar:0.15':[Gas({'He':0.85,'Ar':0.15},inputUnits='moles'),1.385],
-                        'He:0.825,Ar:0.175':[Gas({'He':0.825,'Ar':0.175},inputUnits='moles'),1.256]                   }
+                       'He:0.80,Ar:0.20':[Gas({'He':0.8,'Ar':0.2},inputUnits='moles',
+                                              outputUnits='moles'),1],
+                        'He:0.90,Ar:0.10':[Gas({'He':0.9,'Ar':0.1},inputUnits='moles',
+                                               outputUnits='moles'),1.59],
+                        'He:0.85,Ar:0.15':[Gas({'He':0.85,'Ar':0.15},inputUnits='moles',
+                                               outputUnits='moles'),1.385],
+                        'He:0.825,Ar:0.175':[Gas({'He':0.825,'Ar':0.175},inputUnits='moles',
+                                                 outputUnits='moles'),1.256]                   }
                         
-    primary_driver_x3 = dict([('He:0.60,Ar:0.40',[Gas({'He':0.6,'Ar':0.4},inputUnits='moles'),2.23])])
+    primary_driver_x3 = dict([('He:0.60,Ar:0.40',[Gas({'He':0.6,'Ar':0.4},inputUnits='moles',
+                                                      outputUnits='moles'),2.23])])
     
     #here the states are made as CEA2 gas states, and then the ideal gam and MW are pulled out if required   
     #and the gas objects are then redefined to be perfect gas
@@ -512,20 +524,22 @@ def state_builder(cfg):
             #This is the tuned driver condition designed by David Gildfind in his PhD.
             #This corresponds to the 2mm steel diaphragm condition usually used.
             states['s4']=primary_driver_x2[cfg['driver_gas']][0].clone()
-            p4 = 2.79e7; T4 = 2700.0 #Pa, K
-            states['s4'].set_pT(p4,T4)
+            cfg['p4'] = 2.79e7; cfg['T4'] = 2700.0 #Pa, K
+            states['s4'].set_pT(cfg['p4'],cfg['T4'])
             V['s4']=0.0
             M['s4']=0.0
             M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
+            cfg['M_throat'] = M['s3s']
         elif cfg['piston'] == 'ostp':
             #this is the first attempt at designing a single stage piston driver for X2.
             #Completed by Michael Scott as part of his PhD.
             states['s4']=primary_driver_x2['He:1.0'][0].clone()
-            p4 = 15.5e6; T4 = 2500.0 #Pa, K
-            states['s4'].set_pT(p4,T4)
+            cfg['p4'] = 15.5e6; cfg['T4'] = 2500.0 #Pa, K
+            states['s4'].set_pT(cfg['p4'],cfg['T4'])
             V['s4']=0.0
             M['s4']=0.0
             M['s3s'] = 1.0
+            cfg['M_throat'] = M['s3s']
         elif cfg['piston'] == 'lwp-2.5mm-isentropic':
             #This is the condition from David Gildfind's PhD where the lwp
             # is used with a 2.5 mm steel diaphragm. Condition is based off an
@@ -534,30 +548,33 @@ def state_builder(cfg):
              driver_T = 300.0 #driver temperature, K
              states['primary_driver_fill'] = primary_driver_x2[cfg['driver_gas']][0].clone()
              states['primary_driver_fill'].set_pT(driver_p, driver_T)
-             p4 = 35700000 #primary driver burst pressure, Pa 
-             T4 = states['primary_driver_fill'].T*\
-             (p4/states['primary_driver_fill'].p)**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
+             cfg['p4'] = 35700000 #primary driver burst pressure, Pa 
+             cfg['T4'] = states['primary_driver_fill'].T*\
+             (cfg['p4']/states['primary_driver_fill'].p)**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
              states['s4'] = states['primary_driver_fill'].clone()
-             states['s4'].set_pT(p4,T4)
+             states['s4'].set_pT(cfg['p4'],cfg['T4'])
              V['s4']=0.0
              M['s4']=0.0
              M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
+             cfg['M_throat'] = M['s3s']
         elif cfg['piston'] == 'lwp-2.5mm':
             # This is the same as above, but based on numbers in Dave's PhD's tables
             states['s4']=primary_driver_x2[cfg['driver_gas']][0].clone()
-            p4 = 35.7e6; T4 = 3077.0 #Pa, K
-            states['s4'].set_pT(p4,T4)
+            cfg['p4'] = 35.7e6; cfg['T4'] = 3077.0 #Pa, K
+            states['s4'].set_pT(cfg['p4'],cfg['T4'])
             V['s4']=0.0
             M['s4']=0.0
             M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
+            cfg['M_throat'] = M['s3s']
         elif cfg['piston'] == 'lwp-1.2mm':
             # This is the same as above, but based on numbers in Dave's PhD's tables
             states['s4']=primary_driver_x2[cfg['driver_gas']][0].clone()
-            p4 = 15.5e6; T4 = 1993.0 #Pa, K
-            states['s4'].set_pT(p4,T4)
+            cfg['p4'] = 15.5e6; cfg['T4'] = 1993.0 #Pa, K
+            states['s4'].set_pT(cfg['p4'],cfg['T4'])
             V['s4']=0.0
             M['s4']=0.0
             M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
+            cfg['M_throat'] = M['s3s']
         elif 'lwp-2mm-new-paper': 
             #This is the condition from the first secondary driver paper
             # by Gildfind and James
@@ -566,30 +583,28 @@ def state_builder(cfg):
             states['s4']=primary_driver_x2[cfg['driver_gas']][0].clone()
             if cfg['driver_gas'] == 'He:0.80,Ar:0.20':
                 # from table 2 of the paper
-                p4 = 23.9e6; T4 = 2747.0 #Pa, K
+                cfg['p4'] = 23.9e6; cfg['T4'] = 2747.0 #Pa, K
             elif cfg['driver_gas'] == 'He:1.0':
                 # from table 3 of the paper
-                p4 = 27.4e6; T4 = 2903.0 #Pa, K
+                cfg['p4'] = 27.4e6; cfg['T4'] = 2903.0 #Pa, K
             else:
                 print "This driver condition only works with 100% He and 80% He driver conditions."
                 print "Bailing out."
                 raise Exception, "pitot_input_utils.state_builder() Incorrect driver combination." 
-            states['s4'].set_pT(p4,T4)
+            states['s4'].set_pT(cfg['p4'],cfg['T4'])
             V['s4']=0.0
             M['s4']=0.0
             M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
-        
-        print "p4 = {0} Pa, T4 = {1} K.".format(p4, T4)
+            cfg['M_throat'] = M['s3s']
 
     elif cfg['facility'] == 'x3':
         states['s4']=primary_driver_x3[cfg['driver_gas']][0].clone()
-        p4 = 2.79e7; T4 = 2700.0 #Pa, K
-        states['s4'].set_pT(p4,T4)
+        cfg['p4'] = 2.79e7; cfg['T4'] = 2700.0 #Pa, K
+        states['s4'].set_pT(cfg['p4'],cfg['T4'])
         V['s4']=0.0
         M['s4']=0.0
         M['s3s']=primary_driver_x3[cfg['driver_gas']][1]
-        
-        print "p4 = {0} Pa, T4 = {1} K.".format(p4, T4)
+        cfg['M_throat'] = M['s3s']
         
     elif cfg['facility'] == 'custom':
         # set driver fill condition
@@ -598,30 +613,30 @@ def state_builder(cfg):
             # if T4 and p4 are set, cut the crap and just set the burst condition
             print "Driver burst conditions have been specified, building burst state."
             print "p4 = {0} Pa, T4 = {1} K.".format(cfg['p4'], cfg['T4'])
-            p4 = cfg['p4']; T4 = cfg['T4']
-            states['s4'] = Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'])
+            states['s4'] = Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'],
+                               outputUnits=cfg['driver_inputUnits'])
             states['s4'].set_pT(cfg['p4'],cfg['T4'])
         else:
             print "Custom driver fill condition is {0} Pa, {1} K.".format(cfg['driver_p'], cfg['driver_T'])
-            states['primary_driver_fill']=Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'])
+            states['primary_driver_fill']=Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'],
+                                              outputUnits=cfg['driver_inputUnits'])
             states['primary_driver_fill'].set_pT(cfg['driver_p'],cfg['driver_T'])
             # now do the compression to state 4
             # If both p4 and compression ratio are set, code will use p4
             if 'p4' in cfg:
                 print "Performing isentropic compression from driver fill condition to {0} Pa.".format(cfg['p4'])
-                p4 = cfg['p4'] #Pa
-                T4 = states['primary_driver_fill'].T*\
+                cfg['T4'] = states['primary_driver_fill'].T*\
                 (cfg['p4']/states['primary_driver_fill'].p)**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
-                print "p4 = {0} Pa, T4 = {1} K.".format(p4, T4)
+                print "p4 = {0} Pa, T4 = {1} K.".format(cfg['p4'], cfg['T4'])
             else:
                 print "Performing isentropic compression from driver fill condition over compression ratio of {0}.".format(cfg['compression_ratio'])
                 cfg['pressure_ratio'] = cfg['compression_ratio']**states['primary_driver_fill'].gam #pressure ratio is compression ratio to the power of gamma
-                p4 = states['primary_driver_fill'].p*cfg['pressure_ratio'] #Pa
-                T4 = states['primary_driver_fill'].T*\
+                cfg['p4'] = states['primary_driver_fill'].p*cfg['pressure_ratio'] #Pa
+                cfg['T4'] = states['primary_driver_fill'].T*\
                 (cfg['pressure_ratio'])**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
-                print "p4 = {0} Pa, T4 = {1} K.".format(p4, T4)
-            states['s4'] =  states['primary_driver_fill'].clone()
-            states['s4'].set_pT(p4,T4)
+                print "p4 = {0} Pa, T4 = {1} K.".format(cfg['p4'], cfg['T4'])
+            states['s4'] = states['primary_driver_fill'].clone()
+            states['s4'].set_pT(cfg['p4'],cfg['T4'])
         V['s4']=0.0
         M['s4']=0.0
         M['s3s'] = cfg['M_throat']    
@@ -629,7 +644,7 @@ def state_builder(cfg):
     if cfg['solver'] == 'pg': #make perfect gas object, and then re-set the state
         states['s4']=pg.Gas(Mmass=states['s4'].Mmass,
                                     gamma=states['s4'].gam, name='s4')
-        states['s4'].set_pT(p4,T4)
+        states['s4'].set_pT(cfg['p4'],cfg['T4'])
     
     #state3s is driver gas after steady expansion at the throat between 
     #the primary driver and the next section
@@ -655,7 +670,7 @@ def state_builder(cfg):
     #start with shock tube and acc tube, start with atmospheric p and T
 
     if cfg['secondary']: #state sd1 is pure He secondary driver (if used)
-        states['sd1'] =  Gas({'He':1.0,},outputUnits='moles')
+        states['sd1'] =  Gas({'He':1.0,},outputUnits='moles', inputUnits = 'moles')
         if 'psd1' not in cfg: #set atmospheric state if a pressure was not specified
             cfg['psd1'] = cfg['p0']
         states['sd1'].set_pT(cfg['psd1'],cfg['T0'])
@@ -672,7 +687,7 @@ def state_builder(cfg):
             print "'test_gas_with_ions' variable not set. Setting to boolean True."
             cfg['test_gas_with_ions'] = True
         states['s1'] = Gas(cfg['test_gas_composition'],inputUnits=cfg['test_gas_inputUnits'],
-                        with_ions=cfg['test_gas_with_ions'])
+                        outputUnits=cfg['test_gas_inputUnits'], with_ions=cfg['test_gas_with_ions'])
         states['s1'].set_pT(float(cfg['p1']),cfg['T0'])
         cfg['gas_guess'] = None
     else:

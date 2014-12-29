@@ -16,7 +16,7 @@ Chris James (c.james4@uq.edu.au) - 12/09/14
 
 """
 
-VERSION_STRING = "28-Dec-2014"
+VERSION_STRING = "29-Dec-2014"
 
 from pitot_condition_builder import stream_tee
 
@@ -172,20 +172,10 @@ def contamination_analysis_test_run(cfg, results):
          .format(cfg['contamination_percentage'], cfg['air_contamination_inputUnits'])
     try:
         cfg, states, V, M = run_pitot(cfg = cfg)
-    except Exception:
-        cfg['state7_no_ions'] = True
-        # need to remove Vs values from the dictionary or it will bail out
-        # on the next run            
-        if cfg['secondary']: cfg.pop('Vsd') 
-        cfg.pop('Vs1'); cfg.pop('Vs2')        
-        print "Original test failed, trying again with 'state7_no_ions' turned on."
-        try:
-            cfg, states, V, M = run_pitot(cfg = cfg)
-        except Exception:
-            # need to remove Vs values from the dictionary or it will bail out
-            # on the next run            
-            print "Test {0} failed. Result will not be printed to csv output.".format(cfg['test_number'])
-            condition_status = False
+    except Exception:      
+        print "Test {0} failed. Result will not be printed to csv output.".format(cfg['test_number'])
+        condition_status = False
+
     if cfg['secondary'] and cfg['Vsd'] > cfg['Vs1']:
         print "Vsd is faster than Vs1, condition cannot be simulated by Pitot properly."
         print "Test {0} is considered failed, and result will not be printed to csv output.".format(cfg['test_number'])
@@ -289,12 +279,10 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
                 intro_line += "{0},".format(value)
             else:
                 intro_line += "{0} normalised,".format(value)
-            intro_line += "{0} normalised,".format(value)
         else: #don't put the comma if it's the last value
             intro_line += "{0} normalised".format(value)
         
     condition_builder_output.write(intro_line + '\n')
-    print intro_line
     
     # now we need to go through every test run and print the data.
     # we'll use 'full_list' to guide our way through
@@ -318,18 +306,20 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
     for i in range(0, number_of_test_runs, 1):
         output_line = ''
         for value in results['full_list']:
-            print value, results[value][i], normalising_value_dict[value]
             if value != results['full_list'][-1]:
                 # don't normalise 'test number' or 'air contamination'
-                if value in ['test number', 'air contamination']:
-                    print hello
+                # or a value that is not a number
+                if value in ['test number', 'air contamination'] or \
+                not isinstance(results[value][i], (int, float)):
                     output_line += "{0},".format(results[value][i])
                 else:
-                    print yo
                     output_line += "{0},".format(results[value][i]/normalising_value_dict[value])
-                output_line += "{0},".format(results[value][i]/normalising_value_dict[value])
             else: #don't put the comma if it's the last value in the csv
-                output_line += "{0}".format(results[value][i]/normalising_value_dict[value])
+                if isinstance(results[value][i], (int, float)): 
+                    # only normalise if the value is a number
+                    output_line += "{0}".format(results[value][i]/normalising_value_dict[value])
+                else:
+                    output_line += "{0},".format(results[value][i])
         
         condition_builder_output.write(output_line + '\n')  
 
