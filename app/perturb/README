@@ -1,0 +1,6 @@
+Luke D. 01-01-2015 
+
+The files in this folder are currently a work in progress.
+
+I intend to rewrite nenzfr_perturbed.py, nenzfr_sensitivity.py and nenzfr_RSA.py 
+so that they can be used for any python-based script (including eilmer).
