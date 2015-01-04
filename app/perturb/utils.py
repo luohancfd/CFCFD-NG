@@ -1,5 +1,6 @@
 """
-perturb_utils.py -- Small untility functions needed by the main program.
+utils.py -- Small untility functions needed by the perturb and
+   sensitivity programs.
 
 .. Author: Luke Doherty (luke.doherty@eng.ox.ac.uk)
            Osney Thermofluids Laboratory
@@ -138,17 +139,11 @@ def write_case_summary(varList,caseDict,caseString,newfile):
     A short function to write the values of the perturbed variables 
     for the current case to a summary file.
     """
-    # Define some dictionaries with the formating of each of the possible 
-    # perturbed variables
-    formatDict = {'p1':'{0:>13.5g}', 'T1':'{0:>10.5g}', 'Vs':'{0:>11.5g}',
-                  'pe':'{0:>15.6g}', 'Tw':'{0:>10.5g}', 'BLTrans':'{0:>10.5g}',
-                  'TurbVisRatio':'{0:>14.5g}', 'TurbInten':'{0:>11.5g}',
-                  'CoreRadiusFraction':'{0:>20.5g}'}
-    titleFormatDict = {'p1':'{0:{fill}>13}', 'T1':'{0:{fill}>10}',
-                       'Vs':'{0:{fill}>11}', 'pe':'{0:{fill}>15}',
-                       'Tw':'{0:{fill}>10}', 'BLTrans':'{0:{fill}>10}',
-                       'TurbVisRatio':'{0:{fill}>14}', 'TurbInten':'{0:{fill}>11}',
-                       'CoreRadiusFraction':'{0:{fill}>20}'}
+    # Define some format strings
+    l = max( max([len(k) for k in varList]), 15 ) 
+    dataFormat = '{0:>'+str(l)+'.6g}'
+    titleFormat = '{0:{fill}>'+str(l)+'}'
+     
     # For the first time, we create a new file and write the header information.
     # Each following case is appended to the existing file.
     if newfile == 1:
@@ -156,11 +151,11 @@ def write_case_summary(varList,caseDict,caseString,newfile):
         # Write title line
         fout.write('{0:>7}'.format('#'))
         for k in tuple(varList):
-            fout.write(titleFormatDict[k].format(k,fill=''))
+            fout.write(titleFormat.format(k,fill=''))
         fout.write('\n')
         # Underline the title
         for k in varList:
-            fout.write(titleFormatDict[k].format('-',fill='-'))
+            fout.write(titleFormat.format('-',fill='-'))
         fout.write('{0:->7}'.format('-'))
         fout.write('\n')
     else:
@@ -168,9 +163,37 @@ def write_case_summary(varList,caseDict,caseString,newfile):
     # Now write out the data for the current case
     fout.write('{0:>7}'.format(caseString))
     for k in varList:
-        fout.write(formatDict[k].format(caseDict[k]))
+        fout.write(dataFormat.format(caseDict[k]))
     fout.write('\n')
     fout.close()
+
+def read_case_summary(FileToRead=None):
+    """
+    Reads the file "perturbation_cases.dat" to determine which variables
+    have been perturbed and values for the perturbed variables for each
+    case consituting the sensitivity calculation.
+
+    :returns: perturbedVariables - a list of variable names
+            : DictOfCases - a dictionary with the case names as keys
+                            and the values of each perturbed variable.
+    """
+    if FileToRead is None:
+        fp = open('perturbation_cases.dat','r')
+    else:
+        fp = open(FileToRead,'r')
+
+    varList = fp.readline().strip().split(" ")
+    perturbedVariables = [k for k in varList if k!="#" and k!=""]
+    fp.readline()
+    DictOfCases = {}
+    for line in fp.readlines():
+        caseData = line.strip().split(" ")
+        caseName = caseData[0]
+        DictOfCases[caseName] = [float(k) for k in caseData \
+                                 if k!=caseName and k!=""]
+    fp.close()
+    return perturbedVariables, DictOfCases
+
 
 def write_case_config(caseDict):
     """Short function that writes a file summarising the values of

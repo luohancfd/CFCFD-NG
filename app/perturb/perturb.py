@@ -21,8 +21,8 @@ import sys, os, gzip
 import optparse
 from numpy import array, mean, logical_and, zeros
 from perturb_input_utils import perturb_input_checker
-from perturb_utils import run_command, set_case_running, set_perturbed_values,\
-                          write_case_config#, write_case_summary
+from utils import run_command, set_case_running, set_perturbed_values,\
+                          write_case_config, write_case_summary
 import copy
 E3BIN = os.path.expandvars("$HOME/e3bin")
 sys.path.append(E3BIN)
@@ -59,7 +59,7 @@ def run_perturb(cfg):
         # Run the nominal case and write the values of the perturbed variables
         # to a summary file
         set_case_running(caseString, caseDict, textString)
-        #write_case_summary(cfg['variablesToPerturb'],caseDict,caseString,1)
+        write_case_summary(cfg['variablesToPerturb'],caseDict,caseString,1)
         #
         # Now run all the perturbed conditions
         for k in range(len(cfg['variablesToPerturb'])):
@@ -76,8 +76,8 @@ def run_perturb(cfg):
                     # Run the current case
                     set_case_running(caseString, caseDict, textString)
                     # Write current case to the summary file
-                    #write_case_summary(cfg['variablesToPerturb'],caseDict,\
-                    #                   caseString,0)
+                    write_case_summary(cfg['variablesToPerturb'],caseDict,\
+                                       caseString,0)
     #
     else: # Perturbing to create a Response Surface
         # Currently we can only fit a response surface through
@@ -113,7 +113,7 @@ def run_perturb(cfg):
                                  "; "+var2+"="+str(perturbedDict[var2][0])
         write_case_config(caseDict)
         set_case_running(caseString, caseDict, textString)
-        #write_case_summary(cfg['variablesToPerturb'], caseDict, caseString, 1)
+        write_case_summary(cfg['variablesToPerturb'], caseDict, caseString, 1)
         #
         # Now run all other cases
         for case in casesToRun:
@@ -127,7 +127,7 @@ def run_perturb(cfg):
                 caseDict[var2] = perturbedDict[var2][case[1]]
                 #
                 set_case_running(caseString, caseDict, textString)
-                #write_case_summary(cfg['variablesToPerturb'], caseDict, caseString, 0)
+                write_case_summary(cfg['variablesToPerturb'], caseDict, caseString, 0)
     #
     return
 
