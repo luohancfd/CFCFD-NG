@@ -956,7 +956,7 @@ int BoundaryCondition::write_surface_data( string filename, double sim_time )
 		 fprintf(fp, "%20.12e %20.12e %20.12e ", 
 			 IFace->pos.x, IFace->pos.y, IFace->pos.z);
 		 fprintf(fp, "%20.12e %20.12e %20.12e %20.12e ", 
-			 IFace->fs->gas->T[0], IFace->fs->vel.x, IFace->fs->vel.y, IFace->fs->vel.z);
+			 IFace->fs->gas->T[0], IFace->ivel.x, IFace->ivel.y, IFace->ivel.z);
 		 fprintf(fp, "%20.12e %20.12e %20.12e \n", 
 		    	 IFace->fs->tke, IFace->fs->omega, IFace->F->mass );
 		} // end i loop

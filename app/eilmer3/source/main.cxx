@@ -1153,7 +1153,7 @@ int write_solution_data(std::string tindxstring)
     }
 
     // Compute, store and write surface data, if viscous simulation
-    if ( with_surface_files && G.viscous ) {
+    if ( with_surface_files ) {
         ensure_directory_is_present("surf"); // includes Barrier
 	foldername = "surf/"+tindxstring;
 	ensure_directory_is_present(foldername); // includes Barrier
