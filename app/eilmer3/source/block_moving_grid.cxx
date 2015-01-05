@@ -227,34 +227,27 @@ int Block::set_gcl_interface_properties(size_t dimensions, size_t gtl, double dt
 ///
 int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 {
-    // global_data &G = *get_global_data_ptr();
     size_t i, j, k;
     FV_Vertex *vtx1, *vtx2;
     FV_Interface *IFace;
-    // Vector3 vpm1, vpm2;
-    // double xA, xB, yA, yB;
-    size_t tl_old = 0;
+    Vector3 pos1, pos2, temp;
     k = kmin;
     for (j = jmin; j <= jmax; ++j) {
 	for (i = imin; i <= imax+1; ++i) {
 	    vtx1 = get_vtx(i,j,k);
 	    vtx2 = get_vtx(i,j+1,k);
-	    IFace = get_ifi(i,j,k);   
-	    // vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
-	    // vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
-	    // IFace->pos = 0.5 * (vpm1 + vpm2);
-	    IFace->ivel = 0.5 * (vtx1->pos[gtl] + vtx2->pos[gtl] - 
-	    			vtx1->pos[tl_old] - vtx2->pos[tl_old]) / dt;		
-            // xA = vpm1.x;
-	    // yA = vpm1.y;
-            // xB = vpm2.x;
-	    // yB = vpm2.y;	 
-	    // Interface area at midpoint.   
-	    // IFace->area[gtl] = sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA)); 
-	    // if ( G.axisymmetric ) {
-	    // 	IFace->Ybar = 0.5 * (yA + yB);
-            //     IFace->area[gtl] *= IFace->Ybar;
-            // }
+	    IFace = get_ifi(i,j,k);   	
+	    pos1 = vtx1->pos[gtl] - vtx2->pos[0];
+	    pos2 = vtx2->pos[gtl] - vtx1->pos[0];
+	    // Use effective edge velocity
+	    // Reference: D. Ambrosi, L. Gasparini and L. Vigenano
+	    // Full Potential and Euler solutios for transonic unsteady flow
+	    // Aeronautical Journal November 1994
+	    // Eqn 25
+	    temp = 0.5 * cross( pos1, pos2 ) / ( dt * IFace->area[gtl] );
+	    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+	    IFace->ivel.x = temp.z;	    
+	    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);	    				
 	}
     }
     for (j = jmin; j <= jmax+1; ++j) {
@@ -262,21 +255,12 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 	    vtx1 = get_vtx(i,j,k);
 	    vtx2 = get_vtx(i+1,j,k);
 	    IFace = get_ifj(i,j,k);
-	    // vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
-	    // vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
-	    // IFace->pos = 0.5 * (vpm1 + vpm2);
-	    IFace->ivel = 0.5 * (vtx1->pos[gtl] + vtx2->pos[gtl] - 
-	    			vtx1->pos[tl_old] - vtx2->pos[tl_old]) / dt;			
-            // xA = vpm2.x;
-	    // yA = vpm2.y;
-            // xB = vpm1.x;
-	    // yB = vpm1.y;
-	    // Interface area at midpoint.   
-	    // IFace->area[gtl] = sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA)); 
-	    // if ( G.axisymmetric ) {
-	    // 	IFace->Ybar = 0.5 * (yA + yB);
-            //     IFace->area[gtl] *= IFace->Ybar;
-            // }
+	    pos1 = vtx2->pos[gtl] - vtx1->pos[0];
+	    pos2 = vtx1->pos[gtl] - vtx2->pos[0];
+	    temp = 0.5 * cross( pos1, pos2 ) / ( dt * IFace->area[gtl] );
+	    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+	    IFace->ivel.x = temp.z;
+	    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);	  						
 	}
     }
     return SUCCESS;

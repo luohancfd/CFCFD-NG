@@ -1698,36 +1698,36 @@ int FV_Cell::stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega
     double gamma_1 = 1.0;
     double vr = volume[0] / volume[1];
 
-    U1.mass = vr * (U0.mass + dt * gamma_1 * dUdt0.mass);
-    U1.momentum.x = vr * (U0.momentum.x + dt * gamma_1 * dUdt0.momentum.x);
-    U1.momentum.y = vr * (U0.momentum.y + dt * gamma_1 * dUdt0.momentum.y);
-    U1.momentum.z = vr * (U0.momentum.z + dt * gamma_1 * dUdt0.momentum.z);
+    U1.mass = vr * U0.mass + dt * gamma_1 * dUdt0.mass;
+    U1.momentum.x = vr * U0.momentum.x + dt * gamma_1 * dUdt0.momentum.x;
+    U1.momentum.y = vr * U0.momentum.y + dt * gamma_1 * dUdt0.momentum.y;
+    U1.momentum.z = vr * U0.momentum.z + dt * gamma_1 * dUdt0.momentum.z;
     if ( G.MHD ) {
 	// Magnetic field
-	U1.B.x = vr * (U0.B.x + dt * gamma_1 * dUdt0.B.x);
-	U1.B.y = vr * (U0.B.y + dt * gamma_1 * dUdt0.B.y);
-	U1.B.z = vr * (U0.B.z + dt * gamma_1 * dUdt0.B.z);
+	U1.B.x = vr * U0.B.x + dt * gamma_1 * dUdt0.B.x;
+	U1.B.y = vr * U0.B.y + dt * gamma_1 * dUdt0.B.y;
+	U1.B.z = vr * U0.B.z + dt * gamma_1 * dUdt0.B.z;
 	// divergence cleaning
-	U1.psi = vr * (U0.psi + dt * gamma_1 * dUdt0.psi);
+	U1.psi = vr * U0.psi + dt * gamma_1 * dUdt0.psi;
 	U1.psi  *= get_divergence_damping(dt*gamma_1);
     }
-    U1.total_energy = vr * (U0.total_energy + dt * gamma_1 * dUdt0.total_energy);
+    U1.total_energy = vr * U0.total_energy + dt * gamma_1 * dUdt0.total_energy;
     if ( with_k_omega ) {
-	U1.tke = vr * (U0.tke + dt * gamma_1 * dUdt0.tke);
+	U1.tke = vr * U0.tke + dt * gamma_1 * dUdt0.tke;
 	U1.tke = max(U1.tke, 0.0);
-	U1.omega = vr * (U0.omega + dt * gamma_1 * dUdt0.omega);
+	U1.omega = vr * U0.omega + dt * gamma_1 * dUdt0.omega;
 	U1.omega = max(U1.omega, U0.mass);
     } else {
 	U1.tke = U0.tke;
 	U1.omega = U0.omega;
     }
     for ( size_t isp = 0; isp < U1.massf.size(); ++isp ) {
-	U1.massf[isp] = vr * (U0.massf[isp] + dt * gamma_1 * dUdt0.massf[isp]);
+	U1.massf[isp] = vr * U0.massf[isp] + dt * gamma_1 * dUdt0.massf[isp];
     }
     // We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
     // Instead we get this from the conservation of total energy
     for ( size_t imode = 1; imode < U1.energies.size(); ++imode ) {
-	U1.energies[imode] = vr * (U0.energies[imode] + dt * gamma_1 * dUdt0.energies[imode]);
+	U1.energies[imode] = vr * U0.energies[imode] + dt * gamma_1 * dUdt0.energies[imode];
     }
     return SUCCESS;
 } // end of stage_1_update_for_flow_on_moving_grid()
@@ -1743,46 +1743,44 @@ int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega
     ConservedQuantities &U2 = *(U[2]);
     double gamma_2 = 0.5;
     double gamma_1 = 0.5;
-    double v_old = volume[0];
-    double vol_inv = 1.0 / volume[2];
-    gamma_1 *= volume[0]; gamma_2 *= volume[1]; // Roll-in the volumes for convenience below. 
+    double vr = volume[0] / volume[2];
     
-    U2.mass = vol_inv * (v_old * U0.mass + dt * (gamma_1 * dUdt0.mass + gamma_2 * dUdt1.mass));
-    U2.momentum.x = vol_inv * (v_old * U0.momentum.x + 
-			       dt * (gamma_1 * dUdt0.momentum.x + gamma_2 * dUdt1.momentum.x));
-    U2.momentum.y = vol_inv * (v_old * U0.momentum.y + 
-			       dt * (gamma_1 * dUdt0.momentum.y + gamma_2 * dUdt1.momentum.y));
-    U2.momentum.z = vol_inv * (v_old * U0.momentum.z + 
-			       dt * (gamma_1 * dUdt0.momentum.z + gamma_2 * dUdt1.momentum.z));
+    U2.mass = vr * U0.mass + dt * (gamma_1 * dUdt0.mass + gamma_2 * dUdt1.mass);
+    U2.momentum.x = vr * U0.momentum.x + 
+			       dt * (gamma_1 * dUdt0.momentum.x + gamma_2 * dUdt1.momentum.x);
+    U2.momentum.y = vr * U0.momentum.y + 
+			       dt * (gamma_1 * dUdt0.momentum.y + gamma_2 * dUdt1.momentum.y);
+    U2.momentum.z = vr * U0.momentum.z + 
+			       dt * (gamma_1 * dUdt0.momentum.z + gamma_2 * dUdt1.momentum.z);
     if ( G.MHD ) {
 	// Magnetic field
-	U2.B.x = vol_inv * (v_old * U0.B.x + dt * (gamma_1 * dUdt0.B.x + gamma_2 * dUdt1.B.x));
-	U2.B.y = vol_inv * (v_old * U0.B.y + dt * (gamma_1 * dUdt0.B.y + gamma_2 * dUdt1.B.y));
-	U2.B.z = vol_inv * (v_old * U0.B.z + dt * (gamma_1 * dUdt0.B.z + gamma_2 * dUdt1.B.z));
+	U2.B.x = vr * U0.B.x + dt * (gamma_1 * dUdt0.B.x + gamma_2 * dUdt1.B.x);
+	U2.B.y = vr * U0.B.y + dt * (gamma_1 * dUdt0.B.y + gamma_2 * dUdt1.B.y);
+	U2.B.z = vr * U0.B.z + dt * (gamma_1 * dUdt0.B.z + gamma_2 * dUdt1.B.z);
 	// divergence cleaning
-	U2.psi = vol_inv * (v_old * U0.psi + dt * (gamma_1 * dUdt0.psi + gamma_2 * dUdt1.psi));
+	U2.psi = vr * U0.psi + dt * (gamma_1 * dUdt0.psi + gamma_2 * dUdt1.psi);
 	U2.psi *= get_divergence_damping(dt);
     }
-    U2.total_energy = vol_inv * (v_old * U0.total_energy + 
-				 dt * (gamma_1 * dUdt0.total_energy + gamma_2 * dUdt1.total_energy));
+    U2.total_energy = vr * U0.total_energy + 
+				 dt * (gamma_1 * dUdt0.total_energy + gamma_2 * dUdt1.total_energy);
     if ( with_k_omega ) {
-	U2.tke = vol_inv * (v_old * U0.tke + dt * (gamma_1 * dUdt0.tke + gamma_2 * dUdt1.tke));
+	U2.tke = vr * U0.tke + dt * (gamma_1 * dUdt0.tke + gamma_2 * dUdt1.tke);
 	U2.tke = max(U2.tke, 0.0);
-	U2.omega = vol_inv * (v_old * U0.omega + dt * (gamma_1 * dUdt0.omega + gamma_2 * dUdt1.omega));
+	U2.omega = vr * U0.omega + dt * (gamma_1 * dUdt0.omega + gamma_2 * dUdt1.omega);
 	U2.omega = max(U2.omega, U0.mass);
     } else {
-	U2.tke = vol_inv * (v_old * U0.tke);
-	U2.omega = vol_inv * (v_old * U0.omega);
+	U2.tke = vr * U0.tke;
+	U2.omega = vr * U0.omega;
     }
     for ( size_t isp = 0; isp < U2.massf.size(); ++isp ) {
-	U2.massf[isp] = vol_inv * (v_old * U0.massf[isp] +
-				   dt * (gamma_1 * dUdt0.massf[isp] + gamma_2 * dUdt1.massf[isp]));
+	U2.massf[isp] = vr * U0.massf[isp] +
+				   dt * (gamma_1 * dUdt0.massf[isp] + gamma_2 * dUdt1.massf[isp]);
     }
     // We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
     // Instead we get this from the conservation of total energy
     for ( size_t imode = 1; imode < U2.energies.size(); ++imode ) {
-	U2.energies[imode] = vol_inv * (v_old * U0.energies[imode] +
-					dt * (gamma_1 * dUdt0.energies[imode] + gamma_2 * dUdt1.energies[imode]));
+	U2.energies[imode] = vr * U0.energies[imode] +
+					dt * (gamma_1 * dUdt0.energies[imode] + gamma_2 * dUdt1.energies[imode]);
     }
     return SUCCESS;
 } // end of stage_2_update_for_flow_on_moving_grid()
