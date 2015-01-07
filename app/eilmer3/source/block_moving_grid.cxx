@@ -50,15 +50,11 @@ int Block::predict_vertex_positions(size_t dimensions, double dt)
 /// Stage 2 of 2.
 int Block::correct_vertex_positions(size_t dimensions, double dt)
 {
-    const double th = 0.5;
-    const double th_inv = 0.5;
-    size_t tl_old = 0;
     size_t krangemax = ( dimensions == 2 ) ? kmax : kmax+1;
     for ( size_t k = kmin; k <= krangemax; ++k ) {
 	for ( size_t j = jmin; j <= jmax+1; ++j ) {
 	    for ( size_t i = imin; i <= imax+1; ++i ) {
 		FV_Vertex *vtx = get_vtx(i,j,k);
-		vtx->pos[2] = vtx->pos[tl_old] + dt * (th_inv * vtx->vel[0] + th * vtx->vel[1]);
 		vtx->pos[2] = vtx->pos[1];
 	    }
 	}
@@ -271,85 +267,104 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
 {
     size_t i, j, k;
-    FV_Vertex *vtx1, *vtx2, *vtx3, *vtx4;
+    Vector3 p0, p1, p2, p3, p4, p5, p6, p7;
+    Vector3 pmN, pmE, pmS, pmW, pmT, pmB;
+    Vector3 centroid;
+    double facial_vi;    
     FV_Interface *IFace;
-    // Vector3 vpm1, vpm2, vpm3, vpm4, p1, p2, p3, p4;
-    size_t tl_old = 0;
     for (k = kmin; k <= kmax; ++k) {
 	for (j = jmin; j <= jmax; ++j) {
 	    for (i = imin; i <= imax+1; ++i) {
-		vtx1 = get_vtx(i,j,k);
-		vtx2 = get_vtx(i,j+1,k);
-		vtx3 = get_vtx(i,j,k+1);
-		vtx4 = get_vtx(i,j+1,k+1);
-		IFace = get_ifi(i,j,k);   
-		// vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
-		// vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
-		// vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
-		// vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
-		// IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
-		IFace->ivel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
-				     vtx3->pos[gtl] + vtx4->pos[gtl] - 
-				     vtx1->pos[tl_old] - vtx2->pos[tl_old] - 
-				     vtx3->pos[tl_old] - vtx4->pos[tl_old]) / dt;
-		// p1 = vpm1;
-		// p4 = vpm2;
-		// p2 = vpm3;
-		// p3 = vpm4;
-		// Interface area at midpoint.
-		// IFace->area[gtl] = vabs(0.25 * cross(p2-p1+p3-p4, p4-p1+p3-p2)); 
+		p0 = get_vtx(i,j,k)->pos[0];
+		p1 = get_vtx(i,j+1,k)->pos[0];
+		p2 = get_vtx(i,j+1,k+1)->pos[0];
+		p3 = get_vtx(i,j,k+1)->pos[0];
+		p4 = get_vtx(i,j,k)->pos[gtl];
+		p5 = get_vtx(i,j+1,k)->pos[gtl];
+		p6 = get_vtx(i,j+1,k+1)->pos[gtl];
+		p7 = get_vtx(i,j,k+1)->pos[gtl];
+		centroid = 0.125 * (p0+p1+p2+p3+p4+p5+p6+p7);
+                pmN = 0.25*(p3+p2+p6+p7);
+                pmE = 0.25*(p1+p2+p6+p5);
+                pmS = 0.25*(p0+p1+p5+p4);
+                pmW = 0.25*(p0+p3+p7+p4);
+                pmT = 0.25*(p4+p5+p6+p7);
+                pmB = 0.25*(p0+p1+p2+p3);
+                facial_vi = 0.0;
+                facial_vi += tetragonal_dipyramid(p6, p7, p3, p2, pmN, centroid);
+                facial_vi += tetragonal_dipyramid(p5, p6, p2, p1, pmE, centroid);
+                facial_vi += tetragonal_dipyramid(p4, p5, p1, p0, pmS, centroid);
+                facial_vi += tetragonal_dipyramid(p7, p4, p0, p3, pmW, centroid);
+                facial_vi += tetragonal_dipyramid(p7, p6, p5, p4, pmT, centroid);
+                facial_vi += tetragonal_dipyramid(p0, p1, p2, p3, pmB, centroid);               		
+		IFace = get_ifi(i,j,k);
+                IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+	        IFace->ivel.x = facial_vi / ( dt * IFace->area[gtl] );	
+	        IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
 	    }
 	}
     }
     for (k = kmin; k <= kmax; ++k) {
 	for (j = jmin; j <= jmax+1; ++j) {
 	    for (i = imin; i <= imax; ++i) {
-		vtx1 = get_vtx(i,j,k);
-		vtx2 = get_vtx(i+1,j,k);
-		vtx3 = get_vtx(i,j,k+1);
-		vtx4 = get_vtx(i+1,j,k+1);
+		p0 = get_vtx(i,j,k)->pos[0];
+		p1 = get_vtx(i,j,k+1)->pos[0];
+		p2 = get_vtx(i+1,j,k+1)->pos[0];
+		p3 = get_vtx(i+1,j,k)->pos[0];
+		p4 = get_vtx(i,j,k)->pos[gtl];
+		p5 = get_vtx(i,j,k+1)->pos[gtl];
+		p6 = get_vtx(i+1,j,k+1)->pos[gtl];
+		p7 = get_vtx(i+1,j,k)->pos[gtl];
+		centroid = 0.125 * (p0+p1+p2+p3+p4+p5+p6+p7);
+                Vector3 pmN = 0.25*(p3+p2+p6+p7);
+                Vector3 pmE = 0.25*(p1+p2+p6+p5);
+                Vector3 pmS = 0.25*(p0+p1+p5+p4);
+                Vector3 pmW = 0.25*(p0+p3+p7+p4);
+                Vector3 pmT = 0.25*(p4+p5+p6+p7);
+                Vector3 pmB = 0.25*(p0+p1+p2+p3);
+                facial_vi = 0.0;
+                facial_vi += tetragonal_dipyramid(p6, p7, p3, p2, pmN, centroid);
+                facial_vi += tetragonal_dipyramid(p5, p6, p2, p1, pmE, centroid);
+                facial_vi += tetragonal_dipyramid(p4, p5, p1, p0, pmS, centroid);
+                facial_vi += tetragonal_dipyramid(p7, p4, p0, p3, pmW, centroid);
+                facial_vi += tetragonal_dipyramid(p7, p6, p5, p4, pmT, centroid);
+                facial_vi += tetragonal_dipyramid(p0, p1, p2, p3, pmB, centroid);                   		
 		IFace = get_ifj(i,j,k);
-		// vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
-		// vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
-		// vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
-		// vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
-		// IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
-		IFace->ivel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
-				     vtx3->pos[gtl] + vtx4->pos[gtl] - 
-				     vtx1->pos[tl_old] - vtx2->pos[tl_old] - 
-				     vtx3->pos[tl_old] - vtx4->pos[tl_old]) / dt;
-		// p1 = vpm1;
-		// p4 = vpm2;
-		// p2 = vpm3;
-		// p3 = vpm4;
-		// Interface area at midpoint.		
-		// IFace->area[gtl] = vabs(0.25 * cross(p2-p1+p3-p4, p4-p1+p3-p2)); 
+                IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+	        IFace->ivel.x = facial_vi / ( dt * IFace->area[gtl] );	
+	        IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2); 
 	    }
 	}
     }
     for (k = kmin; k <= kmax+1; ++k) {
 	for (j = jmin; j <= jmax; ++j) {
 	    for (i = imin; i <= imax; ++i) {
-		vtx1 = get_vtx(i,j,k);
-		vtx2 = get_vtx(i+1,j,k);
-		vtx3 = get_vtx(i,j+1,k);
-		vtx4 = get_vtx(i+1,j+1,k);
+		p0 = get_vtx(i,j,k)->pos[0];
+		p1 = get_vtx(i+1,j,k)->pos[0];
+		p2 = get_vtx(i+1,j+1,k)->pos[0];
+		p3 = get_vtx(i,j+1,k)->pos[0];
+		p4 = get_vtx(i,j,k)->pos[gtl];
+		p5 = get_vtx(i+1,j,k)->pos[gtl];
+		p6 = get_vtx(i+1,j+1,k)->pos[gtl];
+		p7 = get_vtx(i,j+1,k)->pos[gtl];
+		centroid = 0.125 * (p0+p1+p2+p3+p4+p5+p6+p7);
+                pmN = 0.25*(p3+p2+p6+p7);
+                pmE = 0.25*(p1+p2+p6+p5);
+                pmS = 0.25*(p0+p1+p5+p4);
+                pmW = 0.25*(p0+p3+p7+p4);
+                pmT = 0.25*(p4+p5+p6+p7);
+                pmB = 0.25*(p0+p1+p2+p3);
+                facial_vi = 0.0;
+                facial_vi += tetragonal_dipyramid(p6, p7, p3, p2, pmN, centroid);
+                facial_vi += tetragonal_dipyramid(p5, p6, p2, p1, pmE, centroid);
+                facial_vi += tetragonal_dipyramid(p4, p5, p1, p0, pmS, centroid);
+                facial_vi += tetragonal_dipyramid(p7, p4, p0, p3, pmW, centroid);
+                facial_vi += tetragonal_dipyramid(p7, p6, p5, p4, pmT, centroid);
+                facial_vi += tetragonal_dipyramid(p0, p1, p2, p3, pmB, centroid);              		
 		IFace = get_ifk(i,j,k);
-		// vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
-		// vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
-		// vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
-		// vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
-		// IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
-		IFace->ivel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
-				     vtx3->pos[gtl] + vtx4->pos[gtl] - 
-				     vtx1->pos[tl_old] - vtx2->pos[tl_old] - 
-				     vtx3->pos[tl_old] - vtx4->pos[tl_old]) / dt;
-		// p1 = vpm1;
-		// p4 = vpm2;
-		// p2 = vpm3;
-		// p3 = vpm4;
-		// Interface area at midpoint.		
-		// IFace->area[gtl] = vabs(0.25 * cross(p2-p1+p3-p4, p4-p1+p3-p2)); 
+                IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+	        IFace->ivel.x = facial_vi / ( dt * IFace->area[gtl] );	
+	        IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
 	    }
 	}
     }
@@ -428,4 +443,19 @@ int Block::set_interface_velocities3D(size_t gtl)
 	}
     }
     return SUCCESS;
+}
+
+// Helper's function
+double tetragonal_dipyramid(const Vector3 &p0, const Vector3 &p1, 
+				   const Vector3 &p2, const Vector3 &p3, 
+				   const Vector3 &pb, const Vector3 &pc)
+// Directly copied from geom.cxx by ignoring negative volume
+// J. Grandy (1997) Efficient Computation of Volume of Hexahedral Cells UCRL-ID-128886.
+// Base of each dipyramid is specified clockwise from the outside.
+// pc is apex
+// pb is barycentre of base quad.
+// base quad p0->p1->p2->p3->p0 counterclockwise when looking from pc toward base.
+{
+    double volume = dot(pc-pb, cross(p1-p0+p2-p3, p3-p0+p2-p1)) / 12.0;
+    return volume;
 }

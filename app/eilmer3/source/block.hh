@@ -220,6 +220,9 @@ int locate_cell(double x, double y, double z,
 double velocity_weighting_factor(FV_Interface &IFace, Vector3 &vp);
 int calc_boundary_vertex_velocity(std::vector<FV_Interface *> &IFaceList,
 				  FV_Vertex &vtx, Vector3 trv, size_t gtl);
+double tetragonal_dipyramid(const Vector3 &p0, const Vector3 &p1, 
+			    const Vector3 &p2, const Vector3 &p3, 
+		            const Vector3 &pb, const Vector3 &pc);				  
 
 
 /** Indexing of the data in 2D.
