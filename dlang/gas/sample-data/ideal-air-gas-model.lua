@@ -1,4 +1,6 @@
-ideal_gas = {
+model = "Ideal_gas"
+
+Ideal_gas = {
   species_name = 'air',
   Mmass = 0.02896,
   gamma = 1.4,

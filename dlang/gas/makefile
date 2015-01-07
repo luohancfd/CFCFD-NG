@@ -13,7 +13,9 @@ GAS_MODEL_FILES := ${GAS_DIR}/gasmodel.d \
 	${GAS_DIR}/diffusion/sutherland_visc.d \
 	${GAS_DIR}/diffusion/therm_cond.d \
 	${GAS_DIR}/diffusion/sutherland_therm_cond.d
-LUALIBPATH := ../../extern/lua-5.1.4/lib
+LUA := ../../extern/lua-5.1.4
+LIBLUA := $(LUA)/lib/liblua.a
+LIBLUAPATH := $(LUA)/lib
 LUAD_DIR := ../extern/LuaD
 LUAD_FILES := $(LUAD_DIR)/luad/*.d \
 	$(LUAD_DIR)/luad/c/*.d \
@@ -26,9 +28,12 @@ clean:
 	- rm *.o
 	- rm ${DEMO_PROGRAMS}
 
-gasmodel_demo: gasmodel_demo.d ${GAS_MODEL_FILES}
-	dmd -unittest -g gasmodel_demo.d ${GAS_MODEL_FILES} ${LUAD_FILES} -L-L$(LUALIBPATH) -L-llua -L-ldl
+$(LIBLUA):
+	cd $(LUA); make linux local
 
-idealgas_demo: idealgas_demo.d ${GAS_MODEL_FILES}
-	dmd -unittest -g idealgas_demo.d ${GAS_MODEL_FILES} ${LUAD_FILES} -L-L$(LUALIBPATH) -L-llua -L-ldl
+gasmodel_demo: gasmodel_demo.d ${GAS_MODEL_FILES} $(LIBLUA)
+	dmd -unittest -g gasmodel_demo.d ${GAS_MODEL_FILES} ${LUAD_FILES} -L-L$(LIBLUAPATH) -L-llua -L-ldl
+
+idealgas_demo: idealgas_demo.d ${GAS_MODEL_FILES} $(LIBLUA)
+	dmd -unittest -g idealgas_demo.d ${GAS_MODEL_FILES} ${LUAD_FILES} -L-L$(LIBLUAPATH) -L-llua -L-ldl
 

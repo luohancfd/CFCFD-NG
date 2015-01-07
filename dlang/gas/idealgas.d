@@ -177,7 +177,6 @@ IdealGas init_ideal_gas(ref LuaTable t)
 	    exit(1);
 	}
     }
-
     auto gm = new IdealGas(species_name, params);
     return gm;
 }
@@ -206,7 +205,7 @@ unittest {
     auto lua = new LuaState;
     lua.openLibs();
     lua.doFile("sample-data/ideal-air-gas-model.lua");
-    auto t = lua.get!LuaTable("ideal_gas");
+    auto t = lua.get!LuaTable("Ideal_gas");
     gm = init_ideal_gas(t);
     assert(approxEqual(gm.R(gd), 287.086), "gas constant");
     assert(gm.n_modes == 1, "number of energy modes");

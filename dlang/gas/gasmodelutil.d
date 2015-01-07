@@ -12,27 +12,55 @@ import gasmodel;
 import idealgas;
 import std.file;
 import std.stdio;
-import std.json;
 import luad.all;
+import std.c.stdlib : exit;
 
 /**
  * We get the instructions for setting up the GasModel object
- * from the JSON file.  The first item should be a model name
+ * from a Lua file.  The first item should be a model name
  * which we use to select the specific GasModel class.
- * When constructing a specific object we pass the name of the 
- * same JSON file through to the class so that it may pick out
- * it's specific parameters.
+ * We should then find a table in the file that corresponds
+ * to the model name. We will get this table and construct
+ * a specific object based on that table. An init() function
+ * associated with each class will know how to pick out the
+ * specific parameters of interest.
  * As new GasModel classes are added to the collection, just 
  * add a new case to the switch statement below.
  */
-GasModel init_gas_model(in char[] file_name="gas-model.json") {
-    auto text = cast(string) read(file_name);
-    auto items = parseJSON(text);
-    string gas_model_name = items["model"].str;
+GasModel init_gas_model(in string file_name="gas-model.lua") {
+    auto lua  = new LuaState;
+    lua.openLibs();
+    try { 
+        lua.doFile(file_name);
+    } catch (Exception e) {
+        writeln("ERROR: in function init_gas_model() in gasmodelutil.d");
+        writeln("ERROR: There was a problem parsing the input file: ", file_name);
+	writeln("ERROR: There could be a Lua syntax error OR the file might not exist.");
+	writeln("ERROR: Quitting at this point.");
+ 	exit(1);
+    }
+    string gas_model_name;
+    try {
+    	gas_model_name = lua.get!string("model");
+    } catch (Exception e) {
+        writeln("ERROR: in function init_gas_model() in gasmodelutil.d");
+        writeln("ERROR: There was a problem reading the 'model' name" );
+	writeln("ERROR: in the gas model input Lua file.");
+	writeln("ERROR: Quitting at this point.");
+        exit(1);
+    }
+    LuaTable t;
+    try {
+        t = lua.get!LuaTable(gas_model_name);
+    } catch (Exception e) {
+        writeln("ERROR: in function init_gas_model() in gasmodelutil.d");
+        writeln("ERROR: There was a problem finding the table named '", gas_model_name, "'");
+	writeln("ERROR: in the gas model input Lua file.");
+    }
     GasModel gm;
     switch ( gas_model_name ) {
     case "Ideal_gas":
-	gm = new IdealGas();
+	gm = init_ideal_gas(t);
 	break;
     default:
 	gm = new IdealGas();
@@ -43,11 +71,7 @@ GasModel init_gas_model(in char[] file_name="gas-model.json") {
 
 unittest {
     import std.math;
-    auto lua = new LuaState;
-    lua.openLibs();
-    lua.doFile("sample-data/ideal-air-gas-model.lua");
-    auto t = lua.get!LuaTable("ideal_gas");
-    auto gm = init_ideal_gas(t);
+    auto gm = init_gas_model("sample-data/ideal-air-gas-model.lua");
     auto gd = GasState(gm, 100.0e3, 300.0);
     assert(approxEqual(gm.R(gd), 287.086), "gas constant");
     assert(gm.n_modes == 1, "number of energy modes");
