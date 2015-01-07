@@ -13,6 +13,7 @@ import idealgas;
 import std.file;
 import std.stdio;
 import std.json;
+import luad.all;
 
 /**
  * We get the instructions for setting up the GasModel object
@@ -31,10 +32,10 @@ GasModel init_gas_model(in char[] file_name="gas-model.json") {
     GasModel gm;
     switch ( gas_model_name ) {
     case "Ideal_gas":
-	gm = new IdealGas(file_name);
+	gm = new IdealGas();
 	break;
     default:
-	gm = new IdealGas("");
+	gm = new IdealGas();
     }
     return gm;
 }
@@ -42,7 +43,11 @@ GasModel init_gas_model(in char[] file_name="gas-model.json") {
 
 unittest {
     import std.math;
-    auto gm = init_gas_model("sample-data/ideal-air-gas-model.json");
+    auto lua = new LuaState;
+    lua.openLibs();
+    lua.doFile("sample-data/ideal-air-gas-model.lua");
+    auto t = lua.get!LuaTable("ideal_gas");
+    auto gm = init_ideal_gas(t);
     auto gd = GasState(gm, 100.0e3, 300.0);
     assert(approxEqual(gm.R(gd), 287.086), "gas constant");
     assert(gm.n_modes == 1, "number of energy modes");

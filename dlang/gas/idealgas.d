@@ -17,6 +17,8 @@ import std.stdio;
 import std.file;
 import std.json;
 import std.conv;
+import luad.all;
+import std.c.stdlib : exit;
 
 class IdealGas: GasModel {
 public:
@@ -26,28 +28,28 @@ public:
 	_n_modes = 1;
 	_species_names ~= "ideal air";
     }
-    this(in char[] file_name) {
-	// writefln("Read my parameters from the gas-model file: %s", file_name);
+    this(in string species_name, in double[string] params) {
 	this();
-	if (file_name.length > 0) {
-	    auto text = cast(string) read(file_name);
-	    auto items = parseJSON(text);
-	    _species_names ~= items["name"].str;
-	    _Mmass = items["M"].floating;
-	    _gamma = items["gamma"].floating;
-	    _Cv = R_universal/_Mmass / (_gamma - 1.0);
-	    _Cp = R_universal/_Mmass * _gamma/(_gamma - 1.0);
-	    // Reference values for entropy
-	    _s1 = items["s1"].floating;
-	    _T1 = items["T1"].floating;
-	    _p1 = items["p1"].floating;
-	    // Molecular transport coefficent constants.
-	    _mu_ref = items["mu_ref"].floating;
-	    _T_ref = items["T_ref"].floating;
-	    _S_mu = items["S_mu"].floating;
-	    _k_ref = items["k_ref"].floating;
-	    _S_k = items["S_k"].floating;
-	}
+	// The species name was set to 'ideal air' by default.
+	// Let's overwrite that here.
+	_species_names[0] = species_name;
+	// Now, pull out the remaining numeric value parameters.
+	_Mmass = params["Mmass"];
+	_gamma = params["gamma"];
+	// Reference values for entropy
+	_s1 = params["s1"];
+	_T1 = params["T1"];
+	_p1 = params["p1"];
+	// Molecular transport coefficent constants.
+	_mu_ref = params["mu_ref"];
+	_T_ref = params["T_ref"];
+	_S_mu = params["S_mu"];
+	_k_ref = params["k_ref"];
+	_S_k = params["S_k"];
+	// Compute derived parameters
+	_Rgas = R_universal/_Mmass;
+	_Cv = _Rgas / (_gamma - 1.0);
+	_Cp = _Rgas*_gamma/(_gamma - 1.0);
     }
 
     override string toString() const
@@ -158,6 +160,27 @@ private:
 
 } // end class Ideal_gas
 
+IdealGas init_ideal_gas(ref LuaTable t)
+{
+    auto species_name = t.get!string("species_name");
+    string[10] plist = ["Mmass", "gamma",
+			"s1", "T1", "p1",
+			"mu_ref", "T_ref", "S_mu", "k_ref", "S_k"];
+    double[string] params;
+    foreach (p; plist) {
+	try {
+	    params[p] = t.get!double(p);
+	} catch (Exception e) {
+	    writeln("ERROR: There was a problem reading the value for ", p);
+	    writeln("ERROR: when initialising the ideal gas model.");
+	    writeln("ERROR: Quitting at this point.");
+	    exit(1);
+	}
+    }
+
+    auto gm = new IdealGas(species_name, params);
+    return gm;
+}
 
 unittest {
     import std.stdio;
@@ -179,4 +202,26 @@ unittest {
     gm.update_trans_coeffs(gd);
     assert(approxEqual(gd.mu, 1.84691e-05), "viscosity");
     assert(approxEqual(gd.k[0], 0.0262449), "conductivity");
+
+    auto lua = new LuaState;
+    lua.openLibs();
+    lua.doFile("sample-data/ideal-air-gas-model.lua");
+    auto t = lua.get!LuaTable("ideal_gas");
+    gm = init_ideal_gas(t);
+    assert(approxEqual(gm.R(gd), 287.086), "gas constant");
+    assert(gm.n_modes == 1, "number of energy modes");
+    assert(gm.n_species == 1, "number of species");
+    assert(approxEqual(gd.p, 1.0e5), "pressure");
+    assert(approxEqual(gd.T[0], 300.0), "static temperature");
+    assert(approxEqual(gd.massf[0], 1.0), "massf[0]");
+
+    gm.update_thermo_from_pT(gd);
+    gm.update_sound_speed(gd);
+    assert(approxEqual(gd.rho, 1.16109), "density");
+    assert(approxEqual(gd.e[0], 215314.0), "internal energy");
+    assert(approxEqual(gd.a, 347.241), "density");
+    gm.update_trans_coeffs(gd);
+    assert(approxEqual(gd.mu, 1.84691e-05), "viscosity");
+    assert(approxEqual(gd.k[0], 0.0262449), "conductivity");
+
 }
