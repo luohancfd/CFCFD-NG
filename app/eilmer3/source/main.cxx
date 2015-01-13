@@ -929,6 +929,7 @@ int add_udf_velocity_for_vtx( Block *bdp, size_t gtl)
                 lua_pushnumber(L, vtx->pos[0].x); lua_setfield(L, -2, "x");
                 lua_pushnumber(L, vtx->pos[0].y); lua_setfield(L, -2, "y");
                 lua_pushnumber(L, vtx->pos[0].z); lua_setfield(L, -2, "z");
+                lua_pushnumber(L, G.sim_time); lua_setfield(L, -2, "t");                
                 lua_pushinteger(L, bdp->id); lua_setfield(L, -2, "bdp_id");
                 
                 int number_args = 1; // table of {i,j,k,bdp_id}
@@ -2230,6 +2231,29 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	//  Preparation for the first-stage of inviscid gas-dynamic flow update.
 	++attempt_number;
 	step_status_flag = 0;
+	
+	// Grid-movement is done after a specified point in time.
+	// As Paul Petrie-repar suggested
+        // The edge length (2D) or interface area (3D), interface velocity, normal vector
+        // should be remained as the same as level 0 for both stages of the pc
+	if ( G.sim_time >= G.t_moving ) {
+	    for ( Block *bdp : G.my_blocks ) {
+	        if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
+	            add_udf_velocity_for_vtx(bdp, 0);
+	            add_udf_velocity_for_vtx(bdp, 1);
+	        } else { // mainly for shock fitting
+		    bdp->set_geometry_velocities(G.dimensions, 0);
+		}
+	    }
+            G.t_moving = G.sim_time + G.dt_moving;
+	}
+	// predict new vertex positions
+	for ( Block *bdp : G.my_blocks ) {
+            bdp->predict_vertex_positions(G.dimensions, G.dt_global);
+	    bdp->compute_primary_cell_geometric_data(G.dimensions, 1); // for start of next stage
+	    bdp->set_gcl_interface_properties(G.dimensions, 1, G.dt_global);		
+	}	
+	
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( !bdp->active ) continue;
 	    bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
@@ -2275,29 +2299,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( !bdp->active ) continue;
 	    for ( FV_Cell *cp: bdp->active_cells ) cp->Q_rE_rad_save = cp->Q_rE_rad;
-	}	
-
-	// Grid-movement is done after a specified point in time.
-	// As Paul Petrie-repar suggested
-        // The edge length (2D) or interface area (3D), interface velocity, normal vector
-        // should be remained as the same as level 0 for both stages of the pc
-	if ( G.sim_time >= G.t_moving ) {
-	    for ( Block *bdp : G.my_blocks ) {
-	        if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
-	            add_udf_velocity_for_vtx(bdp, 0);
-	            add_udf_velocity_for_vtx(bdp, 1);
-	        } else { // mainly for shock fitting
-		    bdp->set_geometry_velocities(G.dimensions, 0);
-		}
-	    }
-            G.t_moving = G.sim_time + G.dt_moving;
-	}	
-	// predict new vertex positions
-	for ( Block *bdp : G.my_blocks ) {
-            bdp->predict_vertex_positions(G.dimensions, G.dt_global);
-	    bdp->compute_primary_cell_geometric_data(G.dimensions, 1); // for start of next stage
-	    bdp->set_gcl_interface_properties(G.dimensions, 1, G.dt_global);		
-	}				
+	}					
 
 	// First-stage of inviscid gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
@@ -2313,6 +2315,26 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	} // end of for *bdp...
 
 	// Preparation for second-stage of gas-dynamic update.
+	
+        /*
+	if ( G.sim_time >= G.t_moving ) {
+	    for ( Block *bdp : G.my_blocks ) {
+	        if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
+	            add_udf_velocity_for_vtx(bdp, 0);
+	            add_udf_velocity_for_vtx(bdp, 1);
+	        } else { // mainly for shock fitting
+		    bdp->set_geometry_velocities(G.dimensions, 1);
+                }
+	    }
+	    G.t_moving = G.sim_time + G.dt_moving;
+	}
+	*/
+	for ( Block *bdp : G.my_blocks ) {
+	    bdp->correct_vertex_positions(G.dimensions, G.dt_global);
+	    bdp->compute_primary_cell_geometric_data(G.dimensions, 2);
+	    bdp->set_gcl_interface_properties(G.dimensions, 2, G.dt_global);	
+	}
+		
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( !bdp->active ) continue;
 	    bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
@@ -2344,25 +2366,6 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    }
 	}
 #       endif
-
-        /*
-	if ( G.sim_time >= G.t_moving ) {
-	    for ( Block *bdp : G.my_blocks ) {
-	        if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
-	            add_udf_velocity_for_vtx(bdp, 0);
-	            add_udf_velocity_for_vtx(bdp, 1);
-	        } else { // mainly for shock fitting
-		    bdp->set_geometry_velocities(G.dimensions, 1);
-                }
-	    }
-	    G.t_moving = G.sim_time + G.dt_moving;
-	}
-	*/
-	for ( Block *bdp : G.my_blocks ) {
-	    bdp->correct_vertex_positions(G.dimensions, G.dt_global);
-	    bdp->compute_primary_cell_geometric_data(G.dimensions, 2);
-	    bdp->set_gcl_interface_properties(G.dimensions, 2, G.dt_global);	
-	}
 		
 	// Second-stage of inviscid gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {

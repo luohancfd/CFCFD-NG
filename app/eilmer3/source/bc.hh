@@ -85,7 +85,9 @@ std::string get_subsonic_in_direction_name(subsonic_in_direction_t dir);
 inline int reflect_normal_velocity(FV_Cell *cell, FV_Interface *IFace)
 {
     cell->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
-    cell->fs->vel.x = -(cell->fs->vel.x);
+    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);    
+    cell->fs->vel.x = -(cell->fs->vel.x) + 2.0*IFace->ivel.x;
+    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);    
     cell->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
     return SUCCESS;
 }
