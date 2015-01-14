@@ -18,6 +18,7 @@ import std.file;
 import std.json;
 import std.conv;
 import luad.all;
+import lua_service;
 import std.c.stdlib : exit;
 
 class IdealGas: GasModel {
@@ -160,23 +161,14 @@ private:
 
 } // end class Ideal_gas
 
-IdealGas init_ideal_gas(ref LuaTable t)
+IdealGas createIdealGas(ref LuaTable t)
 {
     auto species_name = t.get!string("species_name");
     string[10] plist = ["Mmass", "gamma",
 			"s1", "T1", "p1",
 			"mu_ref", "T_ref", "S_mu", "k_ref", "S_k"];
     double[string] params;
-    foreach (p; plist) {
-	try {
-	    params[p] = t.get!double(p);
-	} catch (Exception e) {
-	    writeln("ERROR: There was a problem reading the value for ", p);
-	    writeln("ERROR: when initialising the ideal gas model.");
-	    writeln("ERROR: Quitting at this point.");
-	    exit(1);
-	}
-    }
+    getValues(t, plist, params, "IdealGas");
     auto gm = new IdealGas(species_name, params);
     return gm;
 }
@@ -206,7 +198,7 @@ unittest {
     lua.openLibs();
     lua.doFile("sample-data/ideal-air-gas-model.lua");
     auto t = lua.get!LuaTable("Ideal_gas");
-    gm = init_ideal_gas(t);
+    gm = createIdealGas(t);
     assert(approxEqual(gm.R(gd), 287.086), "gas constant");
     assert(gm.n_modes == 1, "number of energy modes");
     assert(gm.n_species == 1, "number of species");

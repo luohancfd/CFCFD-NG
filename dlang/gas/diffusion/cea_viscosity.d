@@ -9,6 +9,11 @@
 import gasmodel;
 import viscosity;
 import std.math;
+import luad.all;
+import lua_service;
+import std.c.stdlib : exit;
+import std.stdio;
+import std.string;
 
 struct CEAViscCurve
 {
@@ -95,7 +100,7 @@ public:
 	    }
 	}
 	// We should not reach this point.
-	throw new Exception("CEAViscosity:eval -- we should never reach this point.");
+	throw new Exception("CEAViscosity:eval() -- we should never reach this point.");
     }
 
 private:
@@ -104,12 +109,48 @@ private:
     double _T_highest;
 }
 
+CEAViscosity createCEAViscosity(ref LuaTable t)
+{
+    string[6] plist = ["T_lower", "T_upper", "A", "B", "C", "D"];
+    double[string] params;
+    auto nseg = t.get!int("nsegments");
+    CEAViscCurve[] curves;
+    foreach ( i; 0..nseg ) {
+	auto key = format("segment%d", i);
+	auto seg_t = t.get!LuaTable(key);
+	try {
+	    getValues(seg_t, plist, params, key);
+	}
+	catch ( Exception e ) {
+	    writeln("ERROR: There was a problem reading in a value");
+	    writeln("ERROR: when initialising a CEAViscosity object");
+	    writeln("ERROR: in function 'createCEAViscosity'.");
+	    writeln("ERROR: Exception message is:\n");
+	    writeln(e.msg);
+	    exit(1);
+	}
+	curves ~= CEAViscCurve(params);
+    }
+    return new CEAViscosity(curves);
+}
+
 unittest
 {
-    /// First, let's test the CeaViscCurve on its own.
+    /// First, let's test the CEAViscCurve on its own.
     double[string] params = ["T_lower":200.0, "T_upper":1000.0,
 			     "A":0.62526577, "B":-0.31779652e2,
 			     "C":-0.1640798e4, "D":0.17454992e01];
     auto ceaCurve = CEAViscCurve(params);
     assert(approxEqual(3.8818e-5, ceaCurve.eval(900.0)));
+
+    /// Next, let's test the creation and functionality
+    /// of a CEAViscosity object.
+    auto lua = new LuaState;
+    lua.openLibs();
+    lua.doFile("sample-data/O2-viscosity.lua");
+    auto t = lua.get!LuaTable("cea");
+    auto o2CEA = createCEAViscosity(t);
+    auto Q = GasState(1, 1);
+    Q.T[0] = 1500.0;
+    assert(approxEqual(6.407851e-05, o2CEA.eval(Q)));
 }

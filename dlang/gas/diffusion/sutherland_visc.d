@@ -10,6 +10,7 @@
 import std.math;
 import gasmodel;
 import viscosity;
+import luad.all;
 
 /++
   Compute the viscosity using Sutherland's expression.
@@ -68,7 +69,15 @@ private:
     double _mu_ref;
     double _S;
 }
- 
+
+SutherlandViscosity createSutherlandViscosity(ref LuaTable t)
+{
+    auto T_ref = t.get!double("T_ref");
+    auto mu_ref = t.get!double("mu_ref");
+    auto S = t.get!double("S");
+    return new SutherlandViscosity(T_ref, mu_ref, S);
+}
+
 unittest {
     double T = 300.0;
     double T_ref = 273.0; 
@@ -79,6 +88,14 @@ unittest {
     auto vm = new SutherlandViscosity(T_ref, mu_ref, S);
     auto gd = GasState(1, 1);
     gd.T[0] = 300.0;
+    vm.update_viscosity(gd);
+    assert(approxEqual(gd.mu, 1.84691e-05));
+
+    auto lua = new LuaState;
+    lua.openLibs();
+    lua.doFile("sample-data/O2-viscosity.lua");
+    auto t = lua.get!LuaTable("Sutherland");
+    vm = createSutherlandViscosity(t);
     vm.update_viscosity(gd);
     assert(approxEqual(gd.mu, 1.84691e-05));
 }

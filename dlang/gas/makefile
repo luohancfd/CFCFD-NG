@@ -13,6 +13,10 @@ GAS_MODEL_FILES := ${GAS_DIR}/gasmodel.d \
 	${GAS_DIR}/diffusion/sutherland_visc.d \
 	${GAS_DIR}/diffusion/therm_cond.d \
 	${GAS_DIR}/diffusion/sutherland_therm_cond.d
+
+UTIL_DIR := ../util
+UTIL_FILES := $(UTIL_DIR)/lua_service.d
+
 LUA := ../../extern/lua-5.1.4
 LIBLUA := $(LUA)/lib/liblua.a
 LIBLUAPATH := $(LUA)/lib
@@ -34,6 +38,6 @@ $(LIBLUA):
 gasmodel_demo: gasmodel_demo.d ${GAS_MODEL_FILES} $(LIBLUA)
 	dmd -unittest -g gasmodel_demo.d ${GAS_MODEL_FILES} ${LUAD_FILES} -L-L$(LIBLUAPATH) -L-llua -L-ldl
 
-idealgas_demo: idealgas_demo.d ${GAS_MODEL_FILES} $(LIBLUA)
-	dmd -unittest -g idealgas_demo.d ${GAS_MODEL_FILES} ${LUAD_FILES} -L-L$(LIBLUAPATH) -L-llua -L-ldl
+idealgas_demo: idealgas_demo.d ${GAS_MODEL_FILES} $(UTIL_FILES) $(LIBLUA)
+	dmd -unittest -g idealgas_demo.d ${GAS_MODEL_FILES} $(UTIL_FILES) ${LUAD_FILES} -L-L$(LIBLUAPATH) -L-llua -L-ldl
 

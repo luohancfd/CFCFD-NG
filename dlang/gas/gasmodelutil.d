@@ -56,11 +56,12 @@ GasModel init_gas_model(in string file_name="gas-model.lua") {
         writeln("ERROR: in function init_gas_model() in gasmodelutil.d");
         writeln("ERROR: There was a problem finding the table named '", gas_model_name, "'");
 	writeln("ERROR: in the gas model input Lua file.");
+	throw e;
     }
     GasModel gm;
     switch ( gas_model_name ) {
     case "Ideal_gas":
-	gm = init_ideal_gas(t);
+	gm = createIdealGas(t);
 	break;
     default:
 	gm = new IdealGas();
