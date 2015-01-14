@@ -79,7 +79,7 @@ public:
     }
     override void update_thermo_from_rhoe(ref GasState Q) const
     {
-	assert(Q.T.length == 1, "incorrect length of temperature array");
+	assert(Q.e.length == 1, "incorrect length of energy array");
 	Q.T[0] = calperfectgasEOS.temperature(Q.e[0], _Cv, 0.0);
 	Q.p = pressure(Q.rho, Q.T[0], _Rgas);
     }

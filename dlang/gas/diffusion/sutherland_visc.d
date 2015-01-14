@@ -59,8 +59,8 @@ public:
       Compute the viscosity assuming that temperature is
       up-to-date in GasState Q.
     +/
-    override void update_viscosity(ref GasState Q) {
-	Q.mu = sutherland_viscosity(Q.T[0], _T_ref, _mu_ref, _S);
+    override double eval(in GasState Q) {
+	return sutherland_viscosity(Q.T[0], _T_ref, _mu_ref, _S);
     }
 
 private:

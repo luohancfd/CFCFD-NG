@@ -53,13 +53,12 @@ public:
 	return new WilkeMixingViscosity(this);
     }
 
-    override void update_viscosity(ref GasState Q) {
+    override double eval(in GasState Q) {
 	// 1. Evaluate the mole fractions
 	massf2molef(Q.massf, _MW, _x);
 	// 2. Calculate the component viscosities
 	for ( auto i = 0; i < Q.massf.length; ++i ) {
-	    _vms[i].update_viscosity(Q);
-	    _mu[i] = Q.mu;
+	    _mu[i] =  _vms[i].eval(Q);
 	}
 	// 3. Calculate interaction potentials
 	for ( auto i = 0; i < Q.massf.length; ++i ) {
@@ -81,7 +80,7 @@ public:
 	    }
 	    mu += _mu[i]*_x[i]/sum;
 	}
-	Q.mu = mu;
+	return mu;
     }
 
 private:
