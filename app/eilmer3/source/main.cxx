@@ -2231,7 +2231,6 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	//  Preparation for the first-stage of inviscid gas-dynamic flow update.
 	++attempt_number;
 	step_status_flag = 0;
-	
 	// Grid-movement is done after a specified point in time.
 	// As Paul Petrie-repar suggested
         // The edge length (2D) or interface area (3D), interface velocity, normal vector
@@ -2253,7 +2252,6 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    bdp->compute_primary_cell_geometric_data(G.dimensions, 1); // for start of next stage
 	    bdp->set_gcl_interface_properties(G.dimensions, 1, G.dt_global);		
 	}	
-	
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( !bdp->active ) continue;
 	    bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
@@ -2300,22 +2298,34 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    if ( !bdp->active ) continue;
 	    for ( FV_Cell *cp: bdp->active_cells ) cp->Q_rE_rad_save = cp->Q_rE_rad;
 	}					
-
-	// First-stage of inviscid gas-dynamic update.
+	// First-stage of gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( !bdp->active ) continue;
 	    bdp->inviscid_flux( G.dimensions );
+            if ( G.viscous && !G.separate_update_for_viscous_terms ) {
+		apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
+		apply_viscous_moving_wall_bc(*bdp, G.sim_time, G.dimensions);
+		if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
+		if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 1); else viscous_derivatives_3D(bdp, 1); 
+		    estimate_turbulence_viscosity(&G, bdp);
+		if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
+	    } // end if ( G.viscous )	    
 	    for ( FV_Cell *cp: bdp->active_cells ) {
+		// Radiation transport was calculated once before staged update; recover saved value.
+		cp->Q_rE_rad = cp->Q_rE_rad_save; 	    
 		cp->add_inviscid_source_vector(1, bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 ) add_udf_source_vector_for_cell(cp, 1, G.sim_time);
+		if ( G.viscous && !G.separate_update_for_viscous_terms ) {
+		    cp->add_viscous_source_vector(with_k_omega && !G.separate_update_for_k_omega_source);
+		}		
 		cp->time_derivatives(1, 0, G.dimensions, with_k_omega);
 		cp->stage_1_update_for_flow_on_moving_grid(G.dt_global, with_k_omega);
 		cp->decode_conserved(1, 1, bdp->omegaz, with_k_omega);
 	    } // end for *cp
 	} // end of for *bdp...
 
+        G.sim_time = t0 + 1.0*dt;
 	// Preparation for second-stage of gas-dynamic update.
-	
         /*
 	if ( G.sim_time >= G.t_moving ) {
 	    for ( Block *bdp : G.my_blocks ) {
@@ -2334,7 +2344,6 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    bdp->compute_primary_cell_geometric_data(G.dimensions, 2);
 	    bdp->set_gcl_interface_properties(G.dimensions, 2, G.dt_global);	
 	}
-		
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( !bdp->active ) continue;
 	    bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
@@ -2366,16 +2375,26 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    }
 	}
 #       endif
-		
-	// Second-stage of inviscid gas-dynamic update.
+	// Second-stage of gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( !bdp->active ) continue;
 	    bdp->inviscid_flux( G.dimensions );
+            if ( G.viscous && !G.separate_update_for_viscous_terms ) {
+		apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
+		apply_viscous_moving_wall_bc(*bdp, G.sim_time, G.dimensions);		
+		if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 1);
+		if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 2); else viscous_derivatives_3D(bdp, 2); 
+		    estimate_turbulence_viscosity(&G, bdp);
+		if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
+	    } // end if ( G.viscous )	    
 	    for ( FV_Cell *cp: bdp->active_cells ) {
 		// Radiation transport was calculated once before staged update; recover saved value.
 		cp->Q_rE_rad = cp->Q_rE_rad_save; 
 		cp->add_inviscid_source_vector(1, bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 ) add_udf_source_vector_for_cell(cp, 2, G.sim_time);
+		if ( G.viscous && !G.separate_update_for_viscous_terms ) {
+		    cp->add_viscous_source_vector(with_k_omega && !G.separate_update_for_k_omega_source);
+		}		
 		cp->time_derivatives(2, 1, G.dimensions, with_k_omega);
 		cp->stage_2_update_for_flow_on_moving_grid(G.dt_global, with_k_omega);
 		cp->decode_conserved(2, 2, bdp->omegaz, with_k_omega);

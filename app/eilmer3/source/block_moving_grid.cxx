@@ -227,6 +227,8 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
     FV_Vertex *vtx1, *vtx2;
     FV_Interface *IFace;
     Vector3 pos1, pos2, temp;
+    Vector3 averaged_ivel;
+    
     k = kmin;
     for (j = jmin; j <= jmax; ++j) {
 	for (i = imin; i <= imax+1; ++i) {
@@ -235,6 +237,7 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 	    IFace = get_ifi(i,j,k);   	
 	    pos1 = vtx1->pos[gtl] - vtx2->pos[0];
 	    pos2 = vtx2->pos[gtl] - vtx1->pos[0];
+	    averaged_ivel = (vtx1->vel[0] + vtx2->vel[0]) / 2.0;
 	    // Use effective edge velocity
 	    // Reference: D. Ambrosi, L. Gasparini and L. Vigenano
 	    // Full Potential and Euler solutios for transonic unsteady flow
@@ -242,7 +245,11 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 	    // Eqn 25
 	    temp = 0.5 * cross( pos1, pos2 ) / ( dt * IFace->area[gtl] );
 	    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
-	    IFace->ivel.x = temp.z;	    
+	    averaged_ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+	    IFace->ivel.x = temp.z;
+	    IFace->ivel.y = averaged_ivel.y;
+	    IFace->ivel.z = averaged_ivel.z;
+	    averaged_ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);	    
 	    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);	    				
 	}
     }
@@ -253,9 +260,14 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 	    IFace = get_ifj(i,j,k);
 	    pos1 = vtx2->pos[gtl] - vtx1->pos[0];
 	    pos2 = vtx1->pos[gtl] - vtx2->pos[0];
+	    averaged_ivel = (vtx1->vel[0] + vtx2->vel[0]) / 2.0;	    
 	    temp = 0.5 * cross( pos1, pos2 ) / ( dt * IFace->area[gtl] );
 	    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+	    averaged_ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);	    
 	    IFace->ivel.x = temp.z;
+	    IFace->ivel.y = averaged_ivel.y;
+	    IFace->ivel.z = averaged_ivel.z;	    
+	    averaged_ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);	    
 	    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);	  						
 	}
     }
@@ -272,9 +284,17 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
     Vector3 centroid;
     double facial_vi;    
     FV_Interface *IFace;
+    Vector3 averaged_ivel;
+    FV_Vertex *vtx1, *vtx2, *vtx3, *vtx4;
+        
     for (k = kmin; k <= kmax; ++k) {
 	for (j = jmin; j <= jmax; ++j) {
 	    for (i = imin; i <= imax+1; ++i) {
+	    	vtx1 = get_vtx(i,j,k);
+		vtx2 = get_vtx(i,j+1,k);
+		vtx3 = get_vtx(i,j,k+1);
+		vtx4 = get_vtx(i,j+1,k+1);
+                averaged_ivel = (vtx1->vel[0] + vtx2->vel[0] + vtx3->vel[0] + vtx4->vel[0]) / 4.0;		
 		p0 = get_vtx(i,j,k)->pos[0];
 		p1 = get_vtx(i,j+1,k)->pos[0];
 		p2 = get_vtx(i,j+1,k+1)->pos[0];
@@ -282,7 +302,7 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
 		p4 = get_vtx(i,j,k)->pos[gtl];
 		p5 = get_vtx(i,j+1,k)->pos[gtl];
 		p6 = get_vtx(i,j+1,k+1)->pos[gtl];
-		p7 = get_vtx(i,j,k+1)->pos[gtl];
+		p7 = get_vtx(i,j,k+1)->pos[gtl];		
 		centroid = 0.125 * (p0+p1+p2+p3+p4+p5+p6+p7);
                 pmN = 0.25*(p3+p2+p6+p7);
                 pmE = 0.25*(p1+p2+p6+p5);
@@ -299,7 +319,11 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
                 facial_vi += tetragonal_dipyramid(p0, p1, p2, p3, pmB, centroid);               		
 		IFace = get_ifi(i,j,k);
                 IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+                averaged_ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
 	        IFace->ivel.x = facial_vi / ( dt * IFace->area[gtl] );	
+	        IFace->ivel.x = averaged_ivel.y;
+	        IFace->ivel.z = averaged_ivel.z;	        
+                averaged_ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);	        
 	        IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
 	    }
 	}
@@ -307,6 +331,11 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
     for (k = kmin; k <= kmax; ++k) {
 	for (j = jmin; j <= jmax+1; ++j) {
 	    for (i = imin; i <= imax; ++i) {
+	    	vtx1 = get_vtx(i,j,k);
+		vtx2 = get_vtx(i,j,k+1);
+		vtx3 = get_vtx(i+1,j,k);
+		vtx4 = get_vtx(i+1,j,k+1);
+                averaged_ivel = (vtx1->vel[0] + vtx2->vel[0] + vtx3->vel[0] + vtx4->vel[0]) / 4.0;		
 		p0 = get_vtx(i,j,k)->pos[0];
 		p1 = get_vtx(i,j,k+1)->pos[0];
 		p2 = get_vtx(i+1,j,k+1)->pos[0];
@@ -331,14 +360,23 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
                 facial_vi += tetragonal_dipyramid(p0, p1, p2, p3, pmB, centroid);                   		
 		IFace = get_ifj(i,j,k);
                 IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+                averaged_ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
 	        IFace->ivel.x = facial_vi / ( dt * IFace->area[gtl] );	
-	        IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2); 
+	        IFace->ivel.x = averaged_ivel.y;
+	        IFace->ivel.z = averaged_ivel.z;	        
+                averaged_ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);	        
+	        IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
 	    }
 	}
     }
     for (k = kmin; k <= kmax+1; ++k) {
 	for (j = jmin; j <= jmax; ++j) {
 	    for (i = imin; i <= imax; ++i) {
+	    	vtx1 = get_vtx(i,j,k);
+		vtx2 = get_vtx(i+1,j,k);
+		vtx3 = get_vtx(i,j+1,k);
+		vtx4 = get_vtx(i+1,j+1,k);
+                averaged_ivel = (vtx1->vel[0] + vtx2->vel[0] + vtx3->vel[0] + vtx4->vel[0]) / 4.0;		
 		p0 = get_vtx(i,j,k)->pos[0];
 		p1 = get_vtx(i+1,j,k)->pos[0];
 		p2 = get_vtx(i+1,j+1,k)->pos[0];
@@ -363,7 +401,11 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
                 facial_vi += tetragonal_dipyramid(p0, p1, p2, p3, pmB, centroid);              		
 		IFace = get_ifk(i,j,k);
                 IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+                averaged_ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
 	        IFace->ivel.x = facial_vi / ( dt * IFace->area[gtl] );	
+	        IFace->ivel.x = averaged_ivel.y;
+	        IFace->ivel.z = averaged_ivel.z;	        
+                averaged_ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);	        
 	        IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
 	    }
 	}
