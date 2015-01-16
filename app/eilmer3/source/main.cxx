@@ -2351,7 +2351,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	}
 #       ifdef _MPI
 	MPI_Barrier( MPI_COMM_WORLD );
-	mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
+	mpi_exchange_boundary_data(COPY_FLOW_STATE, 1);
 	// Separate exchange of interface data to avoid message collisions.
 #       else
 	for ( Block *bdp : G.my_blocks ) {
@@ -2451,6 +2451,7 @@ int gasdynamic_separate_explicit_viscous_increment()
 	bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
 	for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
+	apply_viscous_moving_wall_bc(*bdp, G.sim_time, G.dimensions);
 	if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
 	if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 	estimate_turbulence_viscosity(&G, bdp);
