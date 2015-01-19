@@ -103,9 +103,27 @@ def secondary_driver_calculation(cfg, states, V, M):
             print "Using custom limits for Vsd secant solver."
             print "('Vsd_lower' = {0} m/s and 'Vsd_upper' = {1} m/s)".\
                   format(cfg['Vsd_lower'], cfg['Vsd_upper'])
+        cfg['secondary_driver_secant_tol'] = 1.0e-5
         cfg['Vsd'] = secant(error_in_velocity_s3s_to_sd3_driver_expansion_shock_speed_iterator, 
                             cfg['Vsd_guess_1'], cfg['Vsd_guess_2'], 
-                            tol=1.0e-5,limits=[cfg['Vsd_lower'], cfg['Vsd_upper']])
+                            tol=cfg['secondary_driver_secant_tol'],
+                            limits=[cfg['Vsd_lower'], cfg['Vsd_upper']],
+                            max_iterations = 100)
+                            
+        if cfg['Vsd'] == 'FAIL':
+            print "Secant solver failed to settle on a Vs2 value after 100 iterations."
+            print "Dropping tolerance from {0} to {1} and trying again..."\
+                  .format(cfg['secondary_driver_secant_tol'], cfg['secondary_driver_secant_tol']*10.0)
+            cfg['secondary_driver_secant_tol'] = cfg['secondary_driver_secant_tol'] * 10.0
+            cfg['Vsd'] = secant(error_in_velocity_s3s_to_sd3_driver_expansion_shock_speed_iterator, 
+                                cfg['Vsd_guess_1'], cfg['Vsd_guess_2'], 
+                                tol=cfg['secondary_driver_secant_tol'],
+                                limits=[cfg['Vsd_lower'], cfg['Vsd_upper']],
+                                max_iterations = 100)
+            if cfg['Vsd'] == 'FAIL':
+                print "This still isn't working. Bailing out."
+                raise Exception, "pitot_flow_functions.shock_tube_calculation() Run of pitot has failed in the secondary driver calculation."                              
+                            
         if PRINT_STATUS: 
             print '-'*60
             print "From secant solve: Vsd = {0} m/s".format(cfg['Vsd'])
@@ -846,7 +864,8 @@ def nozzle_expansion(cfg, states, V, M):
         except Exception as e:
             print "Error {0}".format(str(e))
             raise Exception, "pitot_flow_functions.nozzle_expansion(): Run of pitot failed in the nozzle expansion calculation."
-            
+    
+    print "state 8: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s8'].p, states['s8'].T)        
     if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
         print 'species in state8 at equilibrium:'               
         print '{0}'.format(states['s8'].species)
