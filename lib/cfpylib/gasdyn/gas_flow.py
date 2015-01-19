@@ -387,7 +387,14 @@ def steady_flow_with_area_change(state1, V1, A2_over_A1):
     if M1 > 1.0:
         if A2_over_A1 > 1.0:
             # For a supersonic expansion, we might start at the high Mach number end.
-            p2p1_guess_1 = 0.001
+            if state1.p >= 2000.0:
+                p2p1_guess_1 = 0.001
+            elif state1.p >= 100.0: 
+                # we may not want to drop so low if our starting pressure is very low to start with
+                # Chris James 19/1/15
+                p2p1_guess_1 = 0.01
+            else: # and go even less if the pressure is very low
+                p2p1_guess_1 = 0.1
             p2p1_guess_2 = 1.01 * p2p1_guess_1
         else:
             # For a supersonic compression, we probably can't go far in area ratio.
@@ -412,6 +419,8 @@ def steady_flow_with_area_change(state1, V1, A2_over_A1):
         """
         # print "p2/p1=", p2p1
         state2 = state1.clone()
+        print "p7 = {0}.".format(state1.p)
+        print "p8 = {0}.".format(p2p1 * state1.p)
         state2.set_ps(p2p1 * state1.p, state1.s)
         h2 = state2.p/state2.rho + state2.e
         V2 = math.sqrt(2*(H1 - h2))
@@ -450,11 +459,12 @@ def finite_wave_dp(characteristic, V1, state1, p2, steps=100):
     dp = (p2 - state1.p)/steps
     # I'm putting stuff in here that will make the function use more steps 
     # if p2 < dp, to prevent an overshoot into -ve pressure. (Chris James)
-    while p2 < dp:
-        steps *= 2
+    while p2 < abs(dp):
+        steps *= 1.1
+        steps = int(steps)
         dp = (p2 - state1.p)/steps
     p = p1+0.5*dp   # effectively mid-point of next step
-    state2.set_ps(p, s1)
+    state2.set_ps(p, s1)        
     for i in range(steps):
         rhoa = state2.rho * state2.a
         if characteristic == 'cminus':

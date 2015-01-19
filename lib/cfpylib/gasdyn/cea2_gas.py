@@ -513,7 +513,7 @@ class Gas(object):
         if dodgyCount > 1:
             print "Cannot evaluate species fractions"
             print "because there are too many dodgy values"
-            sys.exit(-1)
+            raise RuntimeError, 'cea2_gas.scan_cea2_dot_out_file(): Cannot evaluate species fractions, too many dodgy values'
         # but we can recover one missing value.
         if dodgyCount == 1:
             self.species[dodgySpecies] = 1.0 - sumFractions
