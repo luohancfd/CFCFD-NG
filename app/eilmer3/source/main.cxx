@@ -929,7 +929,8 @@ int add_udf_velocity_for_vtx( Block *bdp, size_t gtl)
                 lua_pushnumber(L, vtx->pos[0].x); lua_setfield(L, -2, "x");
                 lua_pushnumber(L, vtx->pos[0].y); lua_setfield(L, -2, "y");
                 lua_pushnumber(L, vtx->pos[0].z); lua_setfield(L, -2, "z");
-                lua_pushnumber(L, G.sim_time); lua_setfield(L, -2, "t");                
+                lua_pushnumber(L, G.sim_time); lua_setfield(L, -2, "t"); 
+                lua_pushnumber(L, G.dt_global); lua_setfield(L, -2, "dt");                                
                 lua_pushinteger(L, bdp->id); lua_setfield(L, -2, "bdp_id");
                 
                 int number_args = 1; // table of {i,j,k,bdp_id}
@@ -2260,12 +2261,12 @@ int gasdynamic_increment_with_moving_grid(double dt)
 #       ifdef _MPI
         // Before we try to exchange data, everyone's data should be up-to-date.
 	MPI_Barrier( MPI_COMM_WORLD );
-	mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
+	mpi_exchange_boundary_data(COPY_FLOW_STATE, 1);
 	// Separate exchange of interface data to avoid message collisions.
 #       else
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active ) {
-		exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
+		exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 1);
 	    }
 	}
 #       endif
@@ -2282,11 +2283,11 @@ int gasdynamic_increment_with_moving_grid(double dt)
         // Before we try to exchange data, everyone's data should be up-to-date.
 	// Separate exchange of interface data to avoid message collisions.
 	MPI_Barrier( MPI_COMM_WORLD );
-	mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0);
+	mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 1);
 #       else
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active ) {
-		exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 0);
+		exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 1);
 	    }
 	}
 #       endif
@@ -2351,12 +2352,12 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	}
 #       ifdef _MPI
 	MPI_Barrier( MPI_COMM_WORLD );
-	mpi_exchange_boundary_data(COPY_FLOW_STATE, 1);
+	mpi_exchange_boundary_data(COPY_FLOW_STATE, 2);
 	// Separate exchange of interface data to avoid message collisions.
 #       else
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active ) {
-		exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 1);
+		exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 2);
 	    }
 	}
 #       endif
@@ -2367,11 +2368,11 @@ int gasdynamic_increment_with_moving_grid(double dt)
         // Before we try to exchange data, everyone's data should be up-to-date.
 	// Separate exchange of interface data to avoid message collisions.
 	MPI_Barrier( MPI_COMM_WORLD );
-	mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0);
+	mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 2);
 #       else
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active ) {
-		exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 1);
+		exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 2);
 	    }
 	}
 #       endif

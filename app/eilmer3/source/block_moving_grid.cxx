@@ -321,7 +321,7 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
                 IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
                 averaged_ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
 	        IFace->ivel.x = facial_vi / ( dt * IFace->area[gtl] );	
-	        IFace->ivel.x = averaged_ivel.y;
+	        IFace->ivel.y = averaged_ivel.y;
 	        IFace->ivel.z = averaged_ivel.z;	        
                 averaged_ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);	        
 	        IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
@@ -362,7 +362,7 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
                 IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
                 averaged_ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
 	        IFace->ivel.x = facial_vi / ( dt * IFace->area[gtl] );	
-	        IFace->ivel.x = averaged_ivel.y;
+	        IFace->ivel.y = averaged_ivel.y;
 	        IFace->ivel.z = averaged_ivel.z;	        
                 averaged_ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);	        
 	        IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
@@ -403,7 +403,7 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
                 IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
                 averaged_ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
 	        IFace->ivel.x = facial_vi / ( dt * IFace->area[gtl] );	
-	        IFace->ivel.x = averaged_ivel.y;
+	        IFace->ivel.y = averaged_ivel.y;
 	        IFace->ivel.z = averaged_ivel.z;	        
                 averaged_ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);	        
 	        IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);

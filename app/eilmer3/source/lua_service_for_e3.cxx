@@ -134,6 +134,9 @@ void create_table_for_iface(lua_State *L, FV_Interface &iface, Gas_model &gmodel
     lua_pushnumber(L, iface.pos.y); lua_setfield(L, -2, "y");
     lua_pushnumber(L, iface.pos.z); lua_setfield(L, -2, "z");
     lua_pushnumber(L, iface.length); lua_setfield(L, -2, "length");
+    lua_pushnumber(L, iface.ivel.x); lua_setfield(L, -2, "iu");
+    lua_pushnumber(L, iface.ivel.y); lua_setfield(L, -2, "iv");
+    lua_pushnumber(L, iface.ivel.z); lua_setfield(L, -2, "iw");    
     // Flow state information
     lua_pushnumber(L, fs.gas->p); lua_setfield(L, -2, "p");
     lua_pushnumber(L, fs.gas->rho); lua_setfield(L, -2, "rho"); 
