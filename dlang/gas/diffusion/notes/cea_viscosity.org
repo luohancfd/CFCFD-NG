@@ -10,7 +10,7 @@ The viscosity data for many species have been fit using least-squares to the equ
 This expression gives the viscosity in \mu P.
 Given that 1 P = 0.1 kg/(m.s), the result of this
 expression is converted to S.I. units by multiplying by 1.0e-7.
-The implementation of this expression is here: [[file:../cea_viscosity.d::41]]
+The implementation of this expression is here: [[file:../cea_viscosity.d::46]]
 The coefficients A, B, C, and D are taken from the transport
 property data that accompanies the CEA program, specifically
 from the file =trans.inp= ([[file:../../../../extern/cea2/trans.inp]]).
@@ -93,15 +93,26 @@ of temperature in increments of 100K over the range 100K to 16000K.
 #+END_SRC
 
 #+BEGIN_SRC makefile :tangle makefile
+UTIL_DIR := ../../../util
+UTIL_FILES := $(UTIL_DIR)/lua_service.d
+
+LUA := ../../../../extern/lua-5.1.4
+LIBLUA := $(LUA)/lib/liblua.a
+LIBLUAPATH := $(LUA)/lib
+LUAD_DIR := ../../../extern/LuaD
+LUAD_FILES := $(LUAD_DIR)/luad/*.d \
+	$(LUAD_DIR)/luad/c/*.d \
+	$(LUAD_DIR)/luad/conversions/*.d
+
 plot_O2_visc : plot_O2_visc.d ../cea_viscosity.d ../viscosity.d ../../gasmodel.d
-	dmd plot_O2_visc.d ../cea_viscosity.d ../viscosity.d ../../gasmodel.d -I../ -I../../
+	dmd plot_O2_visc.d ../cea_viscosity.d ../viscosity.d ../../gasmodel.d -I../ -I../../ $(UTIL_FILES) ${LUAD_FILES} -L-L$(LIBLUAPATH) -L-llua -L-ldl
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp :results silent
 (org-babel-tangle)
 #+END_SRC
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC sh :results silent
 make plot_O2_visc
 ./plot_O2_visc
 #+END_SRC

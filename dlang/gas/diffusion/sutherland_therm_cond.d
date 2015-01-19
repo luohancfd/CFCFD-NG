@@ -4,7 +4,6 @@
  * thermal conductivity/
  *
  * Author: Rowan G. and Peter J.
- * Version: 2014-08-19 -- initial cut
  */
 
 import std.math;
@@ -55,14 +54,8 @@ public:
     override SutherlandThermCond dup() const {
 	return new SutherlandThermCond(this);
     }
-    /++
-      Compute the thermal conductivity assuming that temperature is
-      up-to-date in GasState Q.
-    +/
-    override void update_thermal_conductivity(ref GasState Q) {
-	assert(Q.T.length == 1);
-	assert(Q.k.length == 1);
-	Q.k[0] = sutherland_thermal_conductivity(Q.T[0], _T_ref, _k_ref, _S);
+    override double eval(in GasState Q, int imode) {
+	return sutherland_thermal_conductivity(Q.T[imode], _T_ref, _k_ref, _S);
     }
 
 private:

@@ -13,7 +13,9 @@ LUAD_FILES := $(LUAD_DIR)/luad/*.d \
 $(LIBLUA):
 	cd $(LUA); make linux local
 
-unittest: sutherland_visc sutherland_therm_cond wilke_mixing_visc wilke_mixing_therm_cond cea_viscosity
+unittest: sutherland_visc sutherland_therm_cond \
+	wilke_mixing_visc wilke_mixing_therm_cond \
+	cea_viscosity cea_therm_cond
 	./sutherland_visc
 	./sutherland_therm_cond
 	./wilke_mixing_visc
@@ -35,4 +37,7 @@ wilke_mixing_therm_cond : wilke_mixing_therm_cond.d therm_cond.d ../gasmodel.d
 
 cea_viscosity : cea_viscosity.d viscosity.d ../gasmodel.d $(UTIL_FILES) $(LIBLUA)
 	dmd -main -unittest cea_viscosity.d viscosity.d ../gasmodel.d -I../ $(UTIL_FILES) ${LUAD_FILES} -L-L$(LIBLUAPATH) -L-llua -L-ldl
+
+cea_therm_cond : cea_therm_cond.d therm_cond.d ../gasmodel.d $(UTIL_FILES) $(LIBLUA)
+	dmd -main -unittest cea_therm_cond.d therm_cond.d ../gasmodel.d -I../ $(UTIL_FILES) ${LUAD_FILES} -L-L$(LIBLUAPATH) -L-llua -L-ldl
 
