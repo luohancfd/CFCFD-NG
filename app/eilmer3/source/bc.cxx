@@ -760,7 +760,7 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 	cerr << "write_solution(): Could not open " << filename << "; BAILING OUT" << endl;
 	exit( FILE_ERROR );
     }
-    fprintf(fp, "%20.12e\n", sim_time);
+    fprintf(fp, "%20.16e\n", sim_time);
     string var_list = "";
     var_list += "\"index.i\" \"index.j\" \"index.k\" ";
     var_list += "\"pos.x\" \"pos.y\" \"pos.z\" ";
@@ -789,12 +789,12 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 		    // 5. Write heat-flux data for interface to file
 		    fprintf(fp, "%d %d %d ", static_cast<int>(i),
 			    static_cast<int>(j), static_cast<int>(k));
-		    fprintf(fp, "%20.12e %20.12e %20.12e ", 
+		    fprintf(fp, "%20.16e %20.16e %20.16e ", 
 			    IFace->pos.x, IFace->pos.y, IFace->pos.z);
-		    fprintf(fp, "%20.12e %20.12e %20.12e ", 
+		    fprintf(fp, "%20.16e %20.16e %20.16e ", 
 			    q_cond[index], q_diff[index], q_rad[index]);
-		    fprintf(fp, "%20.12e ", IFace->fs->gas->T[0]);
-		    fprintf(fp, "%20.12e %20.12e %20.12e %20.12e \n", 
+		    fprintf(fp, "%20.16e ", IFace->fs->gas->T[0]);
+		    fprintf(fp, "%20.16e %20.16e %20.16e %20.16e \n", 
 		    	    cell->fs->gas->T[0], cell->fs->gas->rho, cell->fs->vel.x, Re_wall );
 		    cell->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
 		} // end i loop
@@ -831,7 +831,7 @@ int BoundaryCondition::write_fstc_heat_flux( string filename, double sim_time )
 	cerr << "write_solution(): Could not open " << filename << "; BAILING OUT" << endl;
 	exit( FILE_ERROR );
     }
-    fprintf(fp, "%20.12e\n", sim_time);
+    fprintf(fp, "%20.16e\n", sim_time);
     string var_list = "";
     var_list += "\"index.i\" \"index.j\" \"index.k\" ";
     var_list += "\"pos.x\" \"pos.y\" \"pos.z\" ";
@@ -995,7 +995,7 @@ int BoundaryCondition::write_vertex_velocities(std::string filename, double sim_
 	cerr << "write_solution(): Could not open " << filename << "; BAILING OUT" << endl;
 	exit( FILE_ERROR );
     }
-    fprintf(fp, "%20.12e\n", sim_time);
+    fprintf(fp, "%20.16e\n", sim_time);
     string var_list = "";
     var_list += "\"index.i\" \"index.j\" \"index.k\" ";
     var_list += "\"pos.x\" \"pos.y\" \"pos.z\" ";
@@ -1036,9 +1036,9 @@ int BoundaryCondition::write_vertex_velocities(std::string filename, double sim_
 		vtx = bd.get_vtx(i,j,k);
 		fprintf(fp, "%d %d %d ", static_cast<int>(i),
 			static_cast<int>(j), static_cast<int>(k));
-		fprintf(fp, "%20.12e %20.12e %20.12e ", vtx->pos[gtl].x,
+		fprintf(fp, "%20.16e %20.16e %20.16e ", vtx->pos[gtl].x,
 			vtx->pos[gtl].y, vtx->pos[gtl].z);
-		fprintf(fp, "%20.12e %20.12e %20.12e \n", vtx->vel[gtl].x,
+		fprintf(fp, "%20.16e %20.16e %20.16e \n", vtx->vel[gtl].x,
 			vtx->vel[gtl].y, vtx->vel[gtl].z);
 	    } // end i loop
 	} // end j loop
@@ -1069,7 +1069,7 @@ int BoundaryCondition::write_surface_data( string filename, double sim_time )
 	cerr << "write_solution(): Could not open " << filename << "; BAILING OUT" << endl;
 	exit( FILE_ERROR );
     }
-    fprintf(fp, "%20.12e\n", sim_time);
+    fprintf(fp, "%20.16e\n", sim_time);
     string var_list = "";
     var_list += "\"index.i\" \"index.j\" \"index.k\" ";
     var_list += "\"pos.x\" \"pos.y\" \"pos.z\" ";
@@ -1086,11 +1086,11 @@ int BoundaryCondition::write_surface_data( string filename, double sim_time )
 		 IFace = cell->iface[which_boundary];		    		    
 		 fprintf(fp, "%d %d %d ", static_cast<int>(i),
 			 static_cast<int>(j), static_cast<int>(k));
-		 fprintf(fp, "%20.12e %20.12e %20.12e ", 
+		 fprintf(fp, "%20.16e %20.16e %20.16e ", 
 			 IFace->pos.x, IFace->pos.y, IFace->pos.z);
-		 fprintf(fp, "%20.12e %20.12e %20.12e %20.12e ", 
+		 fprintf(fp, "%20.16e %20.16e %20.16e %20.16e ", 
 			 IFace->fs->gas->T[0], IFace->fs->vel.x, IFace->fs->vel.y, IFace->fs->vel.z);
-		 fprintf(fp, "%20.12e %20.12e %20.12e \n", 
+		 fprintf(fp, "%20.16e %20.16e %20.16e \n", 
 		    	 IFace->fs->tke, IFace->fs->omega, IFace->F->mass );
 		} // end i loop
 	    } // end j loop

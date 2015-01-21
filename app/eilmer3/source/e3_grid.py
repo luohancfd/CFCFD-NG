@@ -113,7 +113,7 @@ class StructuredGrid(object):
         for k in range(self.nk):
             for j in range(self.nj):
                 for i in range(self.ni):
-                    f.write("%20.12e %20.12e %20.12e\n" % 
+                    f.write("%20.16e %20.16e %20.16e\n" % 
                             (self.x[i,j,k], self.y[i,j,k], self.z[i,j,k]))
         return
 
@@ -277,18 +277,18 @@ class StructuredGrid(object):
         for k in range(self.nk):
             for j in range(self.nj):
                 for i in range(self.ni):
-                    f.write("%20.12e\n" % self.x[i,j,k])
+                    f.write("%20.16e\n" % self.x[i,j,k])
         # Write out all y-coordinates
         for k in range(self.nk):
             for j in range(self.nj):
                 for i in range(self.ni):
-                    f.write("%20.12e\n" % self.y[i,j,k])
+                    f.write("%20.16e\n" % self.y[i,j,k])
         if self.nk > 1:
             # Write out all z-coordinates
             for k in range(self.nk):
                 for j in range(self.nj):
                     for i in range(self.ni):
-                        f.write("%20.12e\n" % self.z[i,j,k])
+                        f.write("%20.16e\n" % self.z[i,j,k])
         return
 
     def read_block_in_VTK_format(self, f, verbosity_level=0):

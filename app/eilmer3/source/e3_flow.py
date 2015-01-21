@@ -324,33 +324,33 @@ def write_cell_data(fp, data, gdata):
     gmodel = get_gas_model_ptr()
     nsp = gmodel.get_number_of_species()
     nmodes = gmodel.get_number_of_modes()
-    fp.write("%20.12e %20.12e %20.12e %20.12e" % 
+    fp.write("%20.16e %20.16e %20.16e %20.16e" % 
              (data['pos.x'], data['pos.y'], data['pos.z'], data['volume']))
-    fp.write(" %20.12e %20.12e %20.12e %20.12e" %
+    fp.write(" %20.16e %20.16e %20.16e %20.16e" %
              (data['rho'], data['vel.x'], data['vel.y'], data['vel.z']))
     if gdata.mhd_flag == 1:
-        fp.write(" %20.12e %20.12e %20.12e %20.12e %20.12e" % (data['B.x'], data['B.y'], data['B.z'], data['psi'], data['divB']))
-    fp.write(" %20.12e %20.12e %20.12e" % (data['p'], data['a'], data['mu'],))
+        fp.write(" %20.16e %20.16e %20.16e %20.16e %20.16e" % (data['B.x'], data['B.y'], data['B.z'], data['psi'], data['divB']))
+    fp.write(" %20.16e %20.16e %20.16e" % (data['p'], data['a'], data['mu'],))
     for imode in range(nmodes):
         try:
-            fp.write(" %20.12e" % data['k[%d]' % imode])
+            fp.write(" %20.16e" % data['k[%d]' % imode])
         except:
-            fp.write(" %20.12e" % data['k[0]']) # -> quick fix for k modes, EJF 14/11/2013
-    fp.write(" %20.12e %20.12e %1d" % (data['mu_t'], data['k_t'], data['S'],))
+            fp.write(" %20.16e" % data['k[0]']) # -> quick fix for k modes, EJF 14/11/2013
+    fp.write(" %20.16e %20.16e %1d" % (data['mu_t'], data['k_t'], data['S'],))
     if gdata.radiation_flag == 1:
-        fp.write(" %20.12e %20.12e %20.12e" % (0.0,0.0,0.0)) # Zero radiation initially.
-    fp.write(" %20.12e %20.12e" % (data['tke'],data['omega']) )
+        fp.write(" %20.16e %20.16e %20.16e" % (0.0,0.0,0.0)) # Zero radiation initially.
+    fp.write(" %20.16e %20.16e" % (data['tke'],data['omega']) )
     for isp in range(nsp):
         specname = gmodel.species_name(isp).replace(' ', '-')
-        fp.write(" %20.12e" % data['massf[%d]-%s' % (isp, specname)])
+        fp.write(" %20.16e" % data['massf[%d]-%s' % (isp, specname)])
     if nsp > 1:
         dt_chem = -1.0
-        fp.write(" %20.12e" % dt_chem)
+        fp.write(" %20.16e" % dt_chem)
     for imode in range(nmodes):
-        fp.write(" %20.12e %20.12e" % (data['e[%d]' % imode], data['T[%d]' % imode],))
+        fp.write(" %20.16e %20.16e" % (data['e[%d]' % imode], data['T[%d]' % imode],))
     if nmodes > 1:
         dt_therm = -1.0
-        fp.write(" %20.12e" % dt_therm)
+        fp.write(" %20.16e" % dt_therm)
     fp.write("\n")
     return
     
@@ -364,10 +364,10 @@ def write_bgk_data(fp, data, gdata):
 
     For Eilmer3 data files, it's all on one line.
     """
-    fp.write("%20.12e %20.12e %20.12e %20.12e" % 
+    fp.write("%20.16e %20.16e %20.16e %20.16e" % 
              (data['pos.x'], data['pos.y'], data['pos.z'], data['volume']))
     for gh in range(gdata.velocity_buckets):
-        fp.write("%20.12e %20.12e" % (data['G[%d]'%gh], data['H[%d]'%gh]))
+        fp.write("%20.16e %20.16e" % (data['G[%d]'%gh], data['H[%d]'%gh]))
     fp.write("\n")
     return
 
@@ -1792,7 +1792,7 @@ def write_plot3d_files(rootName, tindx, nblock, grid, flow, t):
             for k in range(nk):
                 for j in range(nj):
                     for i in range(ni):
-                        fp.write("%20.12e\n" % f.data[c][i,j,k])
+                        fp.write("%20.16e\n" % f.data[c][i,j,k])
     #
     # 2. Write the .nam file
     #    We remove pos.x, pos.y, pos.z from the list of variables
@@ -1821,7 +1821,7 @@ def write_plot3d_files(rootName, tindx, nblock, grid, flow, t):
             for k in range(nk):
                 for j in range(nj):
                     for i in range(ni):
-                        fp.write("%20.12e\n" % uflowz(f.data[var][i,j,k]))
+                        fp.write("%20.16e\n" % uflowz(f.data[var][i,j,k]))
     #
     fp.close()
     return

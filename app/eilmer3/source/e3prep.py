@@ -432,13 +432,13 @@ class GlobalData(object):
     * write_at_step: (int) Update step at which flow field data will be written.
       To distinguish this data set from the regularly written with dt_plot, the index tag
       for this solution is "xxxx".  Leave as the default value 0 to not write such a solution. 
-    * conjugate_ht_flag: (0/1) A flag indicating if the conjugate heat transfer
-      at NORTH wall is active
-    * conjugate_ht_file: (string) A (file) name for the configuration of the wall conduction
-      model if the conjugate heat transfer model is active.
+    * conjugate_ht_flag: (0/1) A flag indicating if the conjugate heat transfer at NORTH wall is active
+    * conjugate_ht_file: (string) A (file) name for the configuration of the wall conduction model
+      if the conjugate heat transfer model is active.
+    * conjugate_ht_coupling: (string) Indicate coupling mode between fluid and solid.
     * wall_update_count: (int) Number of steps to wait before recomputing heat transfer in the
-      wall conduction model. Values greater than 1 give a loosely-coupled approach
-      to the flow solver/ wall solver update.
+      wall conduction model. Values greater than 1 give a loosely-coupled approach to the flow solver/
+      wall solver update.
     """
     count = 0
 
@@ -479,8 +479,9 @@ class GlobalData(object):
                 'udf_file', 'udf_source_vector_flag', \
                 'heat_time_start', 'heat_time_stop', 'heat_factor_increment', \
                 'ignition_time_start', 'ignition_time_stop', \
-                'electric_field_work_flag', 'conjugate_ht_flag', 'conjugate_ht_file', 'wall_update_count', \
-                'radiation_scaling', 'udf_vtx_velocity_flag'
+                'electric_field_work_flag', 'conjugate_ht_flag', 'conjugate_ht_file', \
+                'conjugate_ht_coupling', 'wall_update_count', \
+                'radiation_scaling'
     
     def __init__(self):
         """
@@ -587,6 +588,7 @@ class GlobalData(object):
         self.write_at_step = 0
         self.conjugate_ht_flag = 0
         self.conjugate_ht_file = "dummy_ht_file"
+        self.conjugate_ht_coupling = "QFS_QWS"
         self.wall_update_count = 1
         GlobalData.count += 1
         return
@@ -764,6 +766,7 @@ class GlobalData(object):
         fp.write("electric_field_work_flag = %d\n" % self.electric_field_work_flag)
         fp.write("conjugate_ht_flag = %d\n" % self.conjugate_ht_flag)
         fp.write("conjugate_ht_file = %s\n" % self.conjugate_ht_file)
+        fp.write("conjugate_ht_coupling = %s\n" % self.conjugate_ht_coupling)
         #
         if self.velocity_buckets > 0:
             tstr_x = "vcoords_x ="
@@ -1214,7 +1217,7 @@ class SimplePiston(object):
         Writes the initial (t=0) piston state to an already open file.
         """
         print "Begin write initial piston state: label=", self.label
-        fp.write("%d %20.12e %20.12e %20.12e\n" % (self.pistonId, 0.0, self.x0, self.v0) )
+        fp.write("%d %20.16e %20.16e %20.16e\n" % (self.pistonId, 0.0, self.x0, self.v0) )
         return
 
     def write_to_ini_file(self, fp):

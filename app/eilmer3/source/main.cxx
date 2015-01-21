@@ -52,7 +52,7 @@ extern "C" {
 #include "../../../lib/util/source/time_to_go.h"
 }
 #include "../../../lib/util/source/lua_service.hh"
-#include "../../twc/source/e3con.hh"
+#include "../../wallcon/source/e3conn.hh"
 #include "cell.hh"
 #include "block.hh"
 #include "kernel.hh"
@@ -276,7 +276,7 @@ int main(int argc, char **argv)
     fflush(stdout);
     MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
 #   endif
-    if ( SUCCESS != read_config_parameters(G.base_file_name+".config", master) ) goto Quit; 
+    if ( SUCCESS != read_config_parameters(G.base_file_name+".config", master, start_tindx) ) goto Quit; 
     // Read the time-step control parameters from a separate file.
     // These will also be read at the start of each time step.
 #   ifdef _MPI
@@ -514,9 +514,20 @@ int prepare_to_integrate(size_t start_tindx)
     // Prepare data within the primary finite-volume cells.
     // This includes both geometric data and flow state data.
     bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
-    vector<double> nvxs;
-    vector<double> nvys;
     bool first = true;
+    // NOTE: these are temporary vectors that are only used
+    // in the case that the NORTH boundary is a CONJUGATE_HT_BC.
+    // We need to store this information from each MPI rank
+    // so that we can assemble it globally and pass it on
+    // to some objects for initialisation.
+    // We split open the Vector3 objects because it's easier
+    // to pass around arrays of doubles using MPI functions.
+    vector<double> local_cell_x_pos; // storage of near wall x-pos of local block
+    vector<double> local_cell_y_pos; // storage of near wall y-pos of local block
+    vector<double> local_iface_x_pos; // storage of interface x-pos of local block
+    vector<double> local_iface_y_pos; // storage of interface y-pos of local block
+    vector<double> local_iface_nx; // storage of interface n.x of local block
+    vector<double> local_iface_ny;
     for ( Block *bdp : G.my_blocks ) {
 	bdp->compute_primary_cell_geometric_data(G.dimensions, 0);
 	bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions, 0);
@@ -533,12 +544,17 @@ int prepare_to_integrate(size_t start_tindx)
 	}
 	if ( G.conjugate_ht_active ) {
 	    if ( bdp->bcp[NORTH]->type_code == CONJUGATE_HT ) {
-		// Need to assemble the vertices on the north wall
-		int j = bdp->jmax + 1;
+		// Need to gather some geometric information
+		int j = bdp->jmax;
 		for ( size_t i = bdp->imin; i <= bdp->imax; ++i ) {
-		    FV_Interface *iface = bdp->get_ifj(i, j);
-		    nvxs.push_back(iface->pos.x);
-		    nvys.push_back(iface->pos.y);
+		    FV_Cell *cell = bdp->get_cell(i, j);
+		    local_cell_x_pos.push_back(cell->pos[0].x);
+		    local_cell_y_pos.push_back(cell->pos[0].y);
+		    FV_Interface *iface = bdp->get_ifj(i, j+1);
+		    local_iface_x_pos.push_back(iface->pos.x);
+		    local_iface_y_pos.push_back(iface->pos.y);
+		    local_iface_nx.push_back(iface->n.x);
+		    local_iface_ny.push_back(iface->n.y);
 		}
 	    }
 	}
@@ -588,35 +604,93 @@ int prepare_to_integrate(size_t start_tindx)
     }
 
     if ( G.conjugate_ht_active ) {
-	vector<double> wall_xs, wall_ys;
+	// Need to gather some data for coordination of wall update
+	// at global level
+	vector<double> cell_xs, cell_ys, wall_xs, wall_ys, wall_nxs, wall_nys;
 #       ifdef _MPI
-	// For MPI version, we need to gather vertex values (in x and y(
+	// For MPI version, we need to gather geometric information
 	// from each rank.
-	wall_xs.resize(G.T_wall.size()); wall_ys.resize(G.T_wall.size());
-	// Deal with x values
-	double *pxs = &nvxs[0];
-	double *pwx = &wall_xs[0];
+	// Deal with x positions of near wall cell centres
+	cell_xs.resize(G.T_gas_near_wall.size());
+	double *plcxs = &local_cell_x_pos[0];
+	double *pcxs = &cell_xs[0];
 	int *recvcounts = &(G.recvcounts[0]);
 	int *displs = &(G.displs[0]);
-	MPI_Gatherv(pxs, nvxs.size(), MPI_DOUBLE, pwx, recvcounts, displs,
+	MPI_Gatherv(plcxs, local_cell_x_pos.size(), MPI_DOUBLE, pcxs, recvcounts, displs,
 		    MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	// Deal with y values
-	double *pys = &nvys[0];
-	double *pwy = &wall_ys[0];
-	MPI_Gatherv(pys, nvys.size(), MPI_DOUBLE, pwy, recvcounts, displs,
+	// Deal with y positions of near wall cell centres
+	cell_ys.resize(G.T_gas_near_wall.size());
+	double *plcys = &local_cell_y_pos[0];
+	double *pcys = &cell_ys[0];
+	MPI_Gatherv(plcys, local_cell_y_pos.size(), MPI_DOUBLE, pcys, recvcounts, displs,
+		    MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	// Deal with x positions at wall (interface)
+	wall_xs.resize(G.T_gas_near_wall.size());
+	double *plixs = &local_iface_x_pos[0];
+	double *pixs = &wall_xs[0];
+	MPI_Gatherv(plixs, local_iface_x_pos.size(), MPI_DOUBLE, pixs, recvcounts, displs,
+		    MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	// Deal with y positions at wall (interface)
+	wall_ys.resize(G.T_gas_near_wall.size());
+	double *pliys = &local_iface_y_pos[0];
+	double *piys = &wall_ys[0];
+	MPI_Gatherv(pliys, local_iface_y_pos.size(), MPI_DOUBLE, piys, recvcounts, displs,
+		    MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	// Deal with n.x at wall (interface)
+	wall_nxs.resize(G.T_gas_near_wall.size());
+	double *plinxs = &local_iface_nx[0];
+	double *pinxs = &wall_nxs[0];
+	MPI_Gatherv(plinxs, local_iface_nx.size(), MPI_DOUBLE, pinxs, recvcounts, displs,
+		    MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	// Deal with n.y at wall (interface)
+	wall_nys.resize(G.T_gas_near_wall.size());
+	double *plinys = &local_iface_ny[0];
+	double *pinys = &wall_nys[0];
+	MPI_Gatherv(plinys, local_iface_ny.size(), MPI_DOUBLE, pinys, recvcounts, displs,
 		    MPI_DOUBLE, 0, MPI_COMM_WORLD);
 	MPI_Barrier(MPI_COMM_WORLD);
 #       else
-        // In shared memory, nvxs and nvys should have the values
-	// to put in wall_xs and wall_ys directly.
-	wall_xs = nvxs;
-	wall_ys = nvys;
+        // In shared memory, the local storage vectors should have
+	// all the values needed.
+	cell_xs = local_cell_x_pos;
+	cell_ys = local_cell_y_pos;
+	wall_xs = local_iface_x_pos;
+	wall_ys = local_iface_y_pos;
+	wall_nxs = local_iface_nx;
+	wall_nys = local_iface_ny;
 #       endif
-	if ( master ) { 
-	    // Now on rank0, we can assemble a vector of vertices
-	    initialise_wall_node_positions(*(G.wm), wall_xs, wall_ys);
-	    // At this point we can write out the initial solution.
-	    write_soln(*(G.wm), G.sim_time, 0);
+	if ( master ) {
+	    // Also, assemble and initialise the conjugate interface object
+	    vector<Vector3> gas_cell_pos, solid_cell_pos, iface_pos, iface_normal;
+	    gas_cell_pos.resize(cell_xs.size());
+	    iface_pos.resize(cell_xs.size());
+	    iface_normal.resize(cell_xs.size());
+	    for ( size_t i = 0; i < cell_xs.size(); ++i ) {
+		gas_cell_pos[i].x = cell_xs[i];
+		gas_cell_pos[i].y = cell_ys[i];
+		iface_pos[i].x = wall_xs[i];
+		iface_pos[i].y = wall_ys[i];
+		iface_normal[i].x = wall_nxs[i];
+		iface_normal[i].y = wall_nys[i];
+	    }
+	    // Ask wall model to give its cell centre positions for
+	    // the adjacent cells to the coupled interface
+	    get_near_wall_solid_cell_pos(*(G.wm), solid_cell_pos);
+	    if ( solid_cell_pos.size() != gas_cell_pos.size() ) {
+		cout << "Error matching cells in gas and solid domains\n";
+		cout << "for the conjugate heat transfer model.\n";
+		cout << "number of solid cells: " << solid_cell_pos.size() << endl;
+		cout << "number of gas cells: " << gas_cell_pos.size() << endl;
+		cout << "Bailing out!\n";
+		exit(FAILURE);
+	    }
+	    // Initialise interface object
+	    G.conj_ht_iface = new Conjugate_HT_Interface(gas_cell_pos, solid_cell_pos, 
+							 iface_pos, iface_normal);
+	    // Ask wall model to write a solution to file if this is the initial solution
+	    if ( start_tindx == 0 )
+		write_solution(*(G.wm), G.sim_time, start_tindx);
+	    
 	}
     }
 
@@ -1519,37 +1593,55 @@ int integrate_in_time(double target_time)
 	MPI_Barrier(MPI_COMM_WORLD);
 #       endif
 	if ( G.conjugate_ht_active && ((G.step/G.wall_update_count)*G.wall_update_count == G.step) ) {
-	    int flag = gather_wall_fluxes(G);
+	    int flag = gather_near_wall_gas_data(G);
 	    if ( flag != SUCCESS ) {
-		cout << "Error gathering energy fluxes at wall from all ranks.\n";
+		cout << "Error gathering temperatures and thermal conductivities near the wall from all ranks.\n";
 		cout << "Bailing out!\n";
 		exit(FAILURE);
 	    }
-	    // Now only master has properly updated q vector
+	    // Now only master has properly updated T and q vector of near wall temperatures in gas
+	    // so we'll only do our work on the master.
 	    if ( master ) {
-		flag = update_temperatures_from_fluxes(*(G.wm), G.dt_acc, G.q_wall, G.T_wall);
+		// Compute fluxes at interface between gas and solid.
+		// 1. Gather temperatures and thermal conductivities from solid
+		flag = gather_near_wall_solid_data(*(G.wm), G.T_solid_near_wall, G.k_solid_near_wall);
 		if ( flag != SUCCESS ) {
-		    cout << "Error computing new temperature at wall in wall conduction model.\n";
+		    cout << "Error retrieving near wall temperatures from wall conduction solver.\n";
 		    cout << "Bailing out!\n";
 		    exit(FAILURE);
 		}
+		// 2. Given the temperatures, find the interface flux
+		flag = G.conj_ht_iface->compute_flux(G.T_gas_near_wall, G.k_gas_near_wall,
+						     G.T_solid_near_wall, G.k_solid_near_wall, 
+						     G.q_wall, G.T_wall);	//Changed by JB 02-08-14
+		if ( flag != SUCCESS ) {
+		    cout << "Error computing interface fluxes at gas/solid interface.\n";
+		    cout << "Bailing out!\n";
+		    exit(FAILURE);
+		}
+		// 3. Now do the wall update
+		if ( G.dt_acc == 0.0 ) {
+		    // Just started but need to do update.
+		    G.dt_acc = G.dt_global;
+		}
+		flag = update_state(*(G.wm), G.dt_acc, G.q_wall, G.T_wall); //Changed by JB 02-08-14
 		// Reset dt_acc to 0.0
 		G.dt_acc = 0.0;
 	    }
 #           ifdef _MPI
 	    // For MPI version:
-	    // Now broadcast the temperatures so that every rank
+	    // Now broadcast the fluxes so that every rank
 	    // has an update copy of the vector.
 	    MPI_Barrier(MPI_COMM_WORLD);
-	    flag = broadcast_wall_temperatures(G);
+	    flag = broadcast_wall_values(G);
 	    if ( flag != SUCCESS ) {
-		cout << "Error broadcasting the updated wall temperatures to all ranks.\n";
+		cout << "Error broadcasting the updated wall values to all ranks.\n";
 		cout << "Bailing out!\n";
 		exit(FAILURE);
 	    }
 #           endif
 	    // For shared memory version:
-	    // In shared memory version, G.T_wall is up-to-date globally
+	    // In shared memory version, G.q_wall is up-to-date globally
 	    // and available for all blocks.
 	}
 	// 2a.
@@ -1710,7 +1802,7 @@ int integrate_in_time(double target_time)
 	    sprintf( tindxcstr, "t%04d", static_cast<int>(output_counter) ); // C string
 	    write_solution_data(tindxcstr);
 	    if ( G.conjugate_ht_active && master ) {
-		write_soln(*(G.wm), G.sim_time, static_cast<int>(output_counter));
+		write_solution(*(G.wm), G.sim_time, static_cast<int>(output_counter));
 	    }
 	    output_just_written = true;
             G.t_plot += G.dt_plot;
@@ -1934,6 +2026,11 @@ int finalize_simulation( void )
 	}
 	sprintf( tindxcstr, "t%04d", static_cast<int>(output_counter) ); // C string
 	write_solution_data(tindxcstr);
+
+	if ( G.conjugate_ht_active && master ) {
+	    write_solution(*(G.wm), G.sim_time, static_cast<int>(output_counter));
+	}
+
 	output_just_written = true;
 	G.t_plot += G.dt_plot;
     }

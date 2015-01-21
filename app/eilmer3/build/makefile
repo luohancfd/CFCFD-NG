@@ -98,8 +98,8 @@ LIBLUA          := $(LUA)/lib/liblua.a
 LUA_INCLUDE_DIR := $(LUA)/include
 ZLIB            := ../../../extern/zlib-1.2.3
 LIBZLIB         := $(ZLIB)/libz.a
-TWC             := ../../twc
-LIBTWC          := ../../twc/build/libtwc.a
+WALLCON         := ../../wallcon
+LIBWALLCON      := ../../wallcon/build/libwallcon.a
 
 #------------------------------------------------------------
 
@@ -272,7 +272,7 @@ clean :
 	- cd $(UTIL)/iniparser; make clean
 	- cd $(LUA); make clean
 	- cd $(RAD)/build; make clean
-	- cd $(TWC)/build; make clean
+	- cd $(WALLCON)/build; make clean
 
 tarfile :
 	- cd $(HOME); mv eilmer3.tar.gz eilmer3.tar.gz.old
@@ -333,8 +333,8 @@ $(LIBINIPARSER):
 $(LIBUTIL):
 	cd $(UTIL)/build; make TARGET=$(TARGET) OPT=$(OPT) build_new
 
-$(LIBTWC):
-	cd $(TWC)/build; make TARGET=$(TARGET) OPT=$(OPT) build_new
+$(LIBWALLCON):
+	cd $(WALLCON)/build; make TARGET=$(TARGET) OPT=$(OPT) build_new
 
 # Assume linux
 PLAT := linux
@@ -476,27 +476,27 @@ e3console.tcl: $(SRC)/e3console.tcl
 
 e3shared.exe : e3shared.o $(LIBE3) $(E3_OBJECTS_NO_MPI) $(LIBGAS) $(LIBRAD) \
 		$(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
-		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
+		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBWALLCON)
 	$(CXXLINK) $(PCA) $(LFLAG) e3shared.o \
 		$(LIBE3) $(E3_OBJECTS_NO_MPI) $(LIBGAS) $(LIBRAD) \
-		$(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
-		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB) \
+		$(LIBUTIL) $(LIBGEOM2) \
+		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBWALLCON) $(LIBNM) $(LLIB) \
 		-o e3shared.exe
 
 e3mpi.exe : e3mpi.o $(LIBE3) $(E3_OBJECTS_MPI) \
 		$(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
-		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
+		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBWALLCON)
 	$(CXXLINK) $(PCA) $(LFLAG) e3mpi.o $(LIBE3) $(E3_OBJECTS_MPI) \
-		$(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
-		$(LIBINIPARSER) $(LMPI) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB) \
+		$(LIBGAS) $(LIBRAD) $(LIBUTIL) $(LIBGEOM2) \
+		$(LIBINIPARSER) $(LMPI) $(LIBLUA) $(LIBZLIB) $(LIBWALLCON) $(LIBNM) $(LLIB) \
 		-o e3mpi.exe
 
 e3rad.exe : e3rad.o $(LIBE3) $(E3_OBJECTS_NO_MPI) \
 		$(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
-		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
+		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBWALLCON)
 	$(CXXLINK) $(PCA) $(LFLAG) e3rad.o $(LIBE3) $(E3_OBJECTS_NO_MPI) \
-		$(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
-		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB) \
+		$(LIBGAS) $(LIBRAD) $(LIBUTIL) $(LIBGEOM2) \
+		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBWALLCON) $(LIBNM) $(LLIB) \
 		-o e3rad.exe
 
 #---------------------------------------------------------------------

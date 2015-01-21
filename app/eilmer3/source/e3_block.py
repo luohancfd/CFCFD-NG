@@ -1005,12 +1005,12 @@ class Block(object):
             if verbosity_level > 0: print "   using ExistingSolution:", self.fill_condition.rootName
         elif callable(self.fill_condition):
             if verbosity_level > 0: print "   using user-defined Python function:", self.fill_condition.__name__
-        fp.write("%20.12e\n" % gdata.t0)
+        fp.write("%20.16e\n" % gdata.t0)
         fp.write("%s\n" % quoted_string(variable_list_for_cell(gdata)))
         fp.write("%d %d %d\n" % (self.nni, self.nnj, self.nnk)) # number of cells in each dir
         
         if fb:
-            fb.write("%20.12e\n" % gdata.t0)
+            fb.write("%20.16e\n" % gdata.t0)
             fb.write("%s\n" % quoted_string(bgk_list_for_cell(gdata)))
             fb.write("%d %d %d\n" % (self.nni, self.nnj, self.nnk)) # number of cells in each dir
             

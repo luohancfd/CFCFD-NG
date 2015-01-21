@@ -13,7 +13,7 @@
 #include "../../../lib/gas/models/gas-model.hh"
 #include "../../../lib/gas/kinetics/reaction-update.hh"
 #include "../../../lib/gas/kinetics/energy-exchange-update.hh"
-#include "../../twc/source/e3con.hh"
+#include "../../wallcon/source/e3conn.hh"
 #include "c-flow-condition.hh"
 #include "flux_calc.hh"
 #include "cell.hh"
@@ -21,6 +21,7 @@
 #include "piston.hh"
 #include "radiation_transport.hh"
 #include "conj-ht-interface.hh"
+#include "cht_coupling_enum.hh"
 
 //-------------------------------------------------------------------
 
@@ -302,11 +303,17 @@ struct global_data
 
     // variables related to a wall model for conjugate heat transfer
     bool conjugate_ht_active; // if true, enables the conjugate heat transfer computation at a wall
+    cht_coupling_t cht_coupling; // coupling mode between flow solver and wall solver
     size_t wall_update_count; // no. steps to take before updating wall values (for loosely-coupled approach)
     double dt_acc; // Timestep for wall-update when accumulating many steps of flow solver
     Wall_model *wm;
-    std::vector<double> T_wall;
+    Conjugate_HT_Interface *conj_ht_iface;
+    std::vector<double> T_gas_near_wall;
+    std::vector<double> k_gas_near_wall;
+    std::vector<double> T_solid_near_wall;
+    std::vector<double> k_solid_near_wall;
     std::vector<double> q_wall;
+    std::vector<double> T_wall;
     std::vector<int> recvcounts;
     std::vector<int> displs;
 };

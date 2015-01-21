@@ -194,10 +194,10 @@ int Block::write_grid(std::string filename, double sim_time, size_t dimensions,
 	    for ( size_t i = imin; i <= imax+1; ++i ) {
 		vtx = get_vtx(i,j,k);
 		if (zip_file) {
-		    gzprintf(zfp, "%20.12e %20.12e %20.12e\n", vtx->pos[gtl].x,
+		    gzprintf(zfp, "%20.16e %20.16e %20.16e\n", vtx->pos[gtl].x,
 			     vtx->pos[gtl].y, vtx->pos[gtl].z);
 		} else {
-		    fprintf(fp, "%20.12e %20.12e %20.12e\n", vtx->pos[gtl].x,
+		    fprintf(fp, "%20.16e %20.16e %20.16e\n", vtx->pos[gtl].x,
 			    vtx->pos[gtl].y, vtx->pos[gtl].z);
 		}
 	    } // i-loop
@@ -334,7 +334,7 @@ int Block::write_solution(std::string filename, double sim_time, size_t dimensio
 	    cerr << "write_solution(): Could not open " << filename << "; BAILING OUT" << endl;
 	    exit( FILE_ERROR );
 	}
-	gzprintf(zfp, "%20.12e\n", sim_time);
+	gzprintf(zfp, "%20.16e\n", sim_time);
 	gzprintf(zfp, "%s\n", variable_list_for_cell().c_str());
 	gzprintf(zfp, "%d %d %d\n", static_cast<int>(nni), static_cast<int>(nnj),
 		 static_cast<int>(nnk));
@@ -344,7 +344,7 @@ int Block::write_solution(std::string filename, double sim_time, size_t dimensio
 	    cerr << "write_solution(): Could not open " << filename << "; BAILING OUT" << endl;
 	    exit( FILE_ERROR );
 	}
-	fprintf(fp, "%20.12e\n", sim_time);
+	fprintf(fp, "%20.16e\n", sim_time);
 	fprintf(fp, "%s\n", variable_list_for_cell().c_str());
 	fprintf(fp, "%d %d %d\n", static_cast<int>(nni), static_cast<int>(nnj),
 		static_cast<int>(nnk));

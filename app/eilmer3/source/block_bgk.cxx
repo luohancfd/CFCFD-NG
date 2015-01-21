@@ -151,7 +151,7 @@ int Block::write_BGK( std::string filename, double sim_time, size_t dimensions, 
 	    cerr << "write_BGK(): Could not open " << filename << "; BAILING OUT" << endl;
 	    exit( FILE_ERROR );
 	}
-	gzprintf(zfp, "%20.12e\n", sim_time);
+	gzprintf(zfp, "%20.16e\n", sim_time);
 	gzprintf(zfp,"\"pos.x\" \"pos.y\" \"pos.z\" \"volume\"");
 	for (size_t ii = 0; ii < get_velocity_buckets(); ++ii) {
 	    gzprintf(zfp," \"G[%d]\" \"H[%d]\"", static_cast<int>(ii), static_cast<int>(ii));
@@ -163,7 +163,7 @@ int Block::write_BGK( std::string filename, double sim_time, size_t dimensions, 
 	    cerr << "write_BGK(): Could not open " << filename << "; BAILING OUT" << endl;
 	    exit( FILE_ERROR );
 	}
-	fprintf(fp, "%20.12e\n", sim_time);
+	fprintf(fp, "%20.16e\n", sim_time);
 	fprintf(fp,"\"pos.x\" \"pos.y\" \"pos.z\" \"volume\"");
 	
 	for (size_t ii = 0; ii < get_velocity_buckets(); ++ii) {

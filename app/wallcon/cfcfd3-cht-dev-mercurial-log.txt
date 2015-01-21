@@ -1,0 +1,1006 @@
+changeset:   1695:3729ca8c7e75
+tag:         tip
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Wed Oct 29 01:52:43 2014 +1000
+files:       app/wallcon/source/bc_timevarying.cxx app/wallcon/source/bc_timevarying.hh app/wallcon/source/initialise.cxx app/wallcon/source/solid_bc.hh
+description:
+wallcon time varying bc
+
+
+changeset:   1694:729b64e017b0
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Mon Oct 27 13:19:06 2014 +1000
+files:       app/wallcon/build/makefile app/wallcon/source/bc_timevarying.cxx app/wallcon/source/bc_timevarying.hh app/wallcon/source/useful_funcs.cxx app/wallcon/source/useful_funcs.hh
+description:
+wallcon: time vary flux and temp bc reader
+
+
+changeset:   1693:15260ae00f59
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Mon Oct 27 10:51:25 2014 +1000
+files:       app/wallcon/source/initialise.cxx
+description:
+wallcon: cleaning up print outs
+
+
+changeset:   1692:df44231d40cf
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri Oct 24 14:31:29 2014 +1000
+files:       app/wallcon/source/bc_timevarying_q.cxx
+description:
+wallcon: correction to time varying bc
+
+
+changeset:   1691:349317d338a1
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu Oct 23 14:48:56 2014 +1000
+files:       app/wallcon/build/makefile app/wallcon/source/bc_timevarying_q.cxx app/wallcon/source/bc_timevarying_q.hh app/wallcon/source/bc_userdef_q.cxx app/wallcon/source/initialise.cxx app/wallcon/source/solid_bc.hh
+description:
+wallcon: add of specific bc for time varying
+
+
+changeset:   1690:d5fd6d1ccaa8
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu Oct 23 12:36:25 2014 +1000
+files:       app/wallcon/source/bc_userdef_q.cxx app/wallcon/source/bc_userdef_t.cxx app/wallcon/source/main.cxx app/wallcon/source/useful_funcs.cxx app/wallcon/source/useful_funcs.hh
+description:
+wallcon: implementing time varying flux conditions
+
+
+changeset:   1689:b8850eff4c16
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu Oct 16 22:29:33 2014 +1000
+files:       validation-dev/wallcon-mms-temporal/control/add-wall-to-vtk-files.py validation-dev/wallcon-mms-temporal/control/add-wall-to-vtk-files.py~ validation-dev/wallcon-mms-temporal/control/analytic_solution.py validation-dev/wallcon-mms-temporal/control/analytic_solution.py~ validation-dev/wallcon-mms-temporal/control/b0000.t0028 validation-dev/wallcon-mms-temporal/control/case.py validation-dev/wallcon-mms-temporal/control/convert_num_to_prefill.py validation-dev/wallcon-mms-temporal/control/evaluate_error.py validation-dev/wallcon-mms-temporal/control/evaluate_error.py~ validation-dev/wallcon-mms-temporal/control/make_solid_source_terms.py validation-dev/wallcon-mms-temporal/control/make_solid_source_terms.py~ validation-dev/wallcon-mms-temporal/control/make_source_terms.py validation-dev/wallcon-mms-temporal/control/mms-solid.py validation-dev/wallcon-mms-temporal/control/post_simulation.sh validation-dev/wallcon-mms-temporal/control/prefill-terms.dat validation-dev/wallcon-mms-temporal/control/prep_simulation.sh validation-dev/wallcon-mms-temporal/control/prep_simulation.sh~ validation-dev/wallcon-mms-temporal/control/run_simulation.sh validation-dev/wallcon-mms-temporal/control/solid.config validation-dev/wallcon-mms-temporal/control/solid.config~
+description:
+wallcon:Validation example of temporal
+
+
+changeset:   1688:020791a21c9e
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu Oct 16 22:21:29 2014 +1000
+files:       app/wallcon/build/makefile app/wallcon/source/bc_userdef_t.cxx app/wallcon/source/bc_userdef_t.hh app/wallcon/source/initialise.cxx app/wallcon/source/main.cxx app/wallcon/source/solid_block.cxx app/wallcon/source/solid_block.hh app/wallcon/source/space_update.cxx
+description:
+wallcon: Stand alone time varying source tersm and bcs
+
+
+changeset:   1687:169452709485
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Wed Oct 08 12:37:30 2014 +1100
+files:       app/wallcon/source/space_update.cxx
+description:
+wallcon: cleaning update_scheme printing
+
+
+changeset:   1686:3de9f4617003
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Wed Oct 08 11:26:16 2014 +1000
+files:       app/eilmer3/source/init.cxx
+description:
+eilmer3: Correctly use swtich statement by adding breaks.
+
+
+changeset:   1685:bcd1c3aa82b4
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Wed Oct 08 11:49:09 2014 +1100
+files:       app/wallcon/source/initialise.cxx
+description:
+wallcon update
+
+
+changeset:   1684:2bf32219bcfb
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Wed Oct 08 11:36:01 2014 +1100
+files:       app/wallcon/source/e3conn.cxx app/wallcon/source/space_update.cxx
+description:
+wallcon printing update scheme
+
+
+changeset:   1683:e67586bc9448
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Wed Oct 08 09:11:16 2014 +1000
+files:       app/eilmer3/source/init.cxx app/wallcon/source/e3conn.cxx app/wallcon/source/e3conn.hh
+description:
+eilmer3/wallcon: Eilmer now passes time update scheme information.
+
+
+changeset:   1682:e2fcf638d5d5
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Tue Oct 07 22:11:20 2014 +1100
+files:       app/wallcon/source/e3conn.cxx app/wallcon/source/e3conn.hh app/wallcon/source/initialise.cxx app/wallcon/source/main.cxx app/wallcon/source/solid_block.cxx app/wallcon/source/solid_block.hh app/wallcon/source/solid_cell.cxx app/wallcon/source/solid_cell.hh app/wallcon/source/space_update.cxx
+description:
+Stand alone predictor corrector
+
+
+changeset:   1681:d7d5050e9e75
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Tue Sep 23 21:32:02 2014 +1000
+files:       app/wallcon/source/bc_fixed_q.cxx app/wallcon/source/bc_fixed_t.cxx
+description:
+wallcon: Anisotropic T boundary conditions
+
+
+changeset:   1680:0708b3f68ded
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu Sep 11 22:05:19 2014 +1000
+files:       app/wallcon/source/bc_adiabatic.cxx app/wallcon/source/bc_adiabatic.hh app/wallcon/source/bc_conv_rad.cxx app/wallcon/source/bc_conv_rad.hh app/wallcon/source/bc_convection.cxx app/wallcon/source/bc_convection.hh app/wallcon/source/bc_e3connection.cxx app/wallcon/source/bc_e3connection.hh app/wallcon/source/bc_fixed_q.cxx app/wallcon/source/bc_fixed_q.hh app/wallcon/source/bc_fixed_t.cxx app/wallcon/source/bc_fixed_t.hh app/wallcon/source/bc_radiation.cxx app/wallcon/source/bc_radiation.hh app/wallcon/source/bc_userdef_q.cxx app/wallcon/source/bc_userdef_q.hh app/wallcon/source/bc_userdef_t.cxx app/wallcon/source/bc_userdef_t.hh
+description:
+wallcon: Remove old boundary conditions
+
+
+changeset:   1679:5a06376f1538
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu Sep 11 21:56:47 2014 +1000
+files:       app/wallcon/source/main.cxx app/wallcon/source/solid_block.cxx app/wallcon/source/solid_cell.cxx app/wallcon/source/solid_cell.hh app/wallcon/source/space_update.cxx
+description:
+wallcon: Update to anisotropic for non-orthogonal grids
+
+
+changeset:   1678:9a0e365148f5
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu Sep 11 18:53:14 2014 +1000
+files:       app/wallcon/source/e3conn.cxx app/wallcon/source/e3conn.hh app/wallcon/source/initialise.cxx
+description:
+wallcon: Eilmer now controls tindx restarts
+
+
+changeset:   1677:ab43d145ffb0
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Thu Sep 11 15:16:15 2014 +1000
+files:       app/eilmer3/source/init.cxx app/eilmer3/source/init.hh app/eilmer3/source/main.cxx app/wallcon/source/e3conn.cxx app/wallcon/source/e3conn.hh
+description:
+eilmer3/wallcon: Eilmer now passes starting tindx to wallcon.
+
+
+changeset:   1676:194617f755e5
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu Sep 11 12:39:23 2014 +1000
+files:       app/wallcon/source/e3conn.cxx app/wallcon/source/initialise.cxx
+description:
+wallcon: Clean up output from retart debugging
+
+
+changeset:   1675:67069448d3d5
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Thu Sep 11 10:47:34 2014 +1000
+files:       app/eilmer3/source/main.cxx
+description:
+eilmer3: Fixed first-step problem for passing dt to Wall solver.
+
+
+changeset:   1674:eed3199dbe56
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu Sep 11 08:27:38 2014 +1000
+files:       app/wallcon/source/initialise.cxx
+description:
+wallcon: Boundary conditions tested
+
+
+changeset:   1673:dbb322c9e49a
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Wed Sep 10 18:38:48 2014 +1000
+files:       app/wallcon/source/bc_adiabatic.cxx app/wallcon/source/bc_adiabatic.hh app/wallcon/source/bc_conv_rad.cxx app/wallcon/source/bc_conv_rad.hh app/wallcon/source/bc_convection.cxx app/wallcon/source/bc_convection.hh app/wallcon/source/bc_e3connection.cxx app/wallcon/source/bc_e3connection.hh app/wallcon/source/bc_fixed_q.cxx app/wallcon/source/bc_fixed_q.hh app/wallcon/source/bc_fixed_t.cxx app/wallcon/source/bc_fixed_t.hh app/wallcon/source/bc_radiation.cxx app/wallcon/source/bc_radiation.hh app/wallcon/source/bc_userdef_q.cxx app/wallcon/source/bc_userdef_q.hh app/wallcon/source/bc_userdef_t.cxx app/wallcon/source/bc_userdef_t.hh app/wallcon/source/initialise.cxx app/wallcon/source/solid_bc.hh app/wallcon/source/solid_block.hh app/wallcon/source/space_update.cxx
+description:
+wallcon: Changed boundary coditions to loop locally
+
+
+changeset:   1672:a0175b44e236
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Mon Sep 08 14:36:02 2014 +1000
+files:       app/eilmer3/source/main.cxx
+description:
+eilmer3: Fixed memory bug in MPI conjugate ht implementation.
+
+I had forgotten to initialise the size of some temporary
+working vectors that are used to store some information
+needed by the ConjugateHTInterface object at initialisation.
+
+
+changeset:   1671:0edd59f3991d
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Wed Sep 03 17:02:38 2014 +1000
+files:       app/wallcon/source/bc_adiabatic.cxx app/wallcon/source/bc_fixed_t.cxx app/wallcon/source/initialise.cxx app/wallcon/source/solid_block.cxx app/wallcon/source/solid_cell.cxx app/wallcon/source/solid_cell.hh app/wallcon/source/space_update.cxx
+description:
+wallcon: Anistrpoic implemenation boundary conditions not fully functional
+
+
+changeset:   1670:6f72234e43ad
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Wed Sep 03 15:38:33 2014 +1000
+files:       validation-dev/wallcon-manual.txt
+description:
+Update wallcon manual
+
+
+changeset:   1669:1c8c20a6b387
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Wed Sep 03 15:31:28 2014 +1000
+files:       app/wallcon/source/bc_adiabatic.cxx app/wallcon/source/bc_adiabatic.hh app/wallcon/source/bc_fixed_t.cxx app/wallcon/source/bc_fixed_t.hh app/wallcon/source/initialise.cxx app/wallcon/source/initialise.hh app/wallcon/source/solid_bc.hh app/wallcon/source/solid_block.cxx app/wallcon/source/solid_block.hh app/wallcon/source/solid_cell.cxx app/wallcon/source/solid_cell.hh app/wallcon/source/space_update.cxx
+description:
+Revoke polymorphic anisotropy classes. Changed initialisation to get rid of materials.
+
+
+changeset:   1668:aa2569678019
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Tue Sep 02 23:08:43 2014 +1000
+files:       app/wallcon/source/e3conn.cxx
+description:
+Minor update to bring inline
+
+
+changeset:   1667:aefa2996c7be
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Tue Sep 02 22:55:11 2014 +1000
+files:       app/wallcon/source/bc_e3connection.hh app/wallcon/source/e3conn.cxx app/wallcon/source/initialise.cxx
+description:
+Fixing e3connection_type_flag in e3conn.cxx and initialise.cxx
+
+
+changeset:   1666:a9094346bb38
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Tue Sep 02 22:24:12 2014 +1000
+files:       app/wallcon/build/add-wall-to-vtk-files.py app/wallcon/build/f.m app/wallcon/build/g.m app/wallcon/build/plotting.m app/wallcon/build/prep-simulation.sh app/wallcon/build/run-simulation.sh app/wallcon/build/solid.config app/wallcon/build/solid/grid/b0 app/wallcon/source/e3conn.cxx app/wallcon/source/initialise.cxx app/wallcon/source/main.cxx
+description:
+wallcon side of different cht_coupling methods.
+
+
+changeset:   1665:d93836c03f35
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Mon Sep 01 22:17:58 2014 +1000
+files:       app/eilmer3/source/e3prep.py app/wallcon/build/makefile
+description:
+eilmer3/wallcon: Final touches on coupling combinations.
+
+Added conjugate_ht_coupling option in e3prep.py
+
+Fixed bug in wallcon makefile.
+
+
+changeset:   1664:6f8fc7393247
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Mon Sep 01 22:04:24 2014 +1000
+files:       app/eilmer3/source/cht_coupling_enum.hh
+description:
+eilmer3: Add new cht_coupling_enum.hh header file.
+
+
+changeset:   1663:143ea5b60504
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Mon Sep 01 22:02:27 2014 +1000
+files:       app/eilmer3/source/bc_conjugate_ht.cxx app/eilmer3/source/conj-ht-interface.cxx app/eilmer3/source/conj-ht-interface.hh app/eilmer3/source/init.cxx app/eilmer3/source/init.hh app/eilmer3/source/kernel.hh app/eilmer3/source/main.cxx app/eilmer3/source/visc.cxx app/wallcon/source/e3conn.cxx app/wallcon/source/e3conn.hh
+description:
+eilmer2/wallcon: Now allow four combinations of fluid/wall interaction.
+
+In this update, the flow solver can be used in one of four modes:
+
+1. Temperature specified at flow wall, temperature specified at solid wall
+2. Temperature specified at flow wall, flux specified at solid wall
+3. Flux specified at flow wall, temperature specified at solid wall
+4. Flux specified at flow wall, flux specified at solid wall
+
+
+changeset:   1662:3d56ee1561b2
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Mon Sep 01 20:59:16 2014 +1000
+files:       app/wallcon/source/solid_block.hh
+description:
+Made virtual member functions for previous commit
+
+
+changeset:   1661:241b704e2c2f
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Mon Sep 01 19:56:56 2014 +1000
+files:       app/wallcon/source/bc_adiabatic.cxx app/wallcon/source/bc_adiabatic.hh app/wallcon/source/bc_fixed_t.cxx app/wallcon/source/bc_fixed_t.hh app/wallcon/source/solid_bc.hh app/wallcon/source/solid_block.cxx app/wallcon/source/solid_block.hh app/wallcon/source/space_update.cxx validation-dev/wallcon-mms/README~
+description:
+wallcon: Initial add of anisotropic cell, block and bc_adiabatic and bc_fixed_t.
+
+This added functionality is done using overloaded member functions which has not yet been tested.
+
+
+changeset:   1660:0f1b26313c9c
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Mon Aug 25 19:52:47 2014 +1000
+files:       validation-dev/eilmer-mms/mms-fluid-only-8x8/add-wall-to-vtk-files.py validation-dev/eilmer-mms/mms-fluid-only-8x8/analytic_solution.py validation-dev/eilmer-mms/mms-fluid-only-8x8/case.txt validation-dev/eilmer-mms/mms-fluid-only-8x8/cht-fluid-only-mms.py validation-dev/eilmer-mms/mms-fluid-only-8x8/constant-k.lua validation-dev/eilmer-mms/mms-fluid-only-8x8/evaluate_error.py validation-dev/eilmer-mms/mms-fluid-only-8x8/extract-norms.awk validation-dev/eilmer-mms/mms-fluid-only-8x8/extract-times.awk validation-dev/eilmer-mms/mms-fluid-only-8x8/f90_to_lua.py validation-dev/eilmer-mms/mms-fluid-only-8x8/make_solid_source_terms.py validation-dev/eilmer-mms/mms-fluid-only-8x8/make_source_terms.py validation-dev/eilmer-mms/mms-fluid-only-8x8/post_simulation.sh validation-dev/eilmer-mms/mms-fluid-only-8x8/prep_simulation.sh validation-dev/eilmer-mms/mms-fluid-only-8x8/run_simulation.sh validation-dev/eilmer-mms/mms-fluid-only-8x8/solid.config validation-dev/eilmer-mms/mms-fluid-only-8x8/udf-bc.lua validation-dev/eilmer-mms/mms-fluid-only-8x8/udf-source-template.lua validation-dev/eilmer-mms/mms-fluid-only-8x8/udf-source.lua
+description:
+Add of fluid only mms run files
+
+
+changeset:   1659:454c62ec48f3
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Mon Aug 25 19:08:32 2014 +1000
+files:       validation-dev/cht-mms/cht-mms-8x8/add-wall-to-vtk-files.py validation-dev/cht-mms/cht-mms-8x8/analytic_solution.py validation-dev/cht-mms/cht-mms-8x8/case.txt validation-dev/cht-mms/cht-mms-8x8/conj-coupled.py validation-dev/cht-mms/cht-mms-8x8/constant-k.lua validation-dev/cht-mms/cht-mms-8x8/evaluate_error.py validation-dev/cht-mms/cht-mms-8x8/extract-norms.awk validation-dev/cht-mms/cht-mms-8x8/extract-times.awk validation-dev/cht-mms/cht-mms-8x8/f90_to_lua.py validation-dev/cht-mms/cht-mms-8x8/make_solid_source_terms.py validation-dev/cht-mms/cht-mms-8x8/make_source_terms.py validation-dev/cht-mms/cht-mms-8x8/post_simulation.sh validation-dev/cht-mms/cht-mms-8x8/prep_simulation.sh validation-dev/cht-mms/cht-mms-8x8/run_simulation.sh validation-dev/cht-mms/cht-mms-8x8/solid.config validation-dev/cht-mms/cht-mms-8x8/udf-bc.lua validation-dev/cht-mms/cht-mms-8x8/udf-source-template.lua
+description:
+Add of cht-mms-8x8 example files
+
+
+changeset:   1658:79bf9053b016
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Sat Aug 23 16:11:18 2014 +1000
+files:       app/wallcon/source/bc_e3connection.cxx app/wallcon/source/solid_cell.cxx app/wallcon/source/solid_cell.hh
+description:
+Add anisotropic cell eliminate warning
+
+
+changeset:   1657:07323b0532dd
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Sat Aug 23 13:02:23 2014 +1000
+files:       app/wallcon/source/initialise.cxx app/wallcon/source/useful_funcs.cxx
+description:
+wallcon:String pasrsing in iniitialise.cxx
+
+
+changeset:   1656:909b33b924bb
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Sat Aug 23 10:36:43 2014 +1000
+files:       app/wallcon/build/makefile app/wallcon/source/initialise.cxx app/wallcon/source/initialise.hh app/wallcon/source/useful_funcs.cxx app/wallcon/source/useful_funcs.hh
+description:
+Add of useful_funcs
+
+
+changeset:   1655:e70356ef2c21
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri Aug 22 19:52:00 2014 +1000
+files:       validation-dev/wallcon-manual.txt~ validation-dev/wallcon-mms/10/add-wall-to-vtk-files.py validation-dev/wallcon-mms/10/analytic_solution.py validation-dev/wallcon-mms/10/evaluate_error.py validation-dev/wallcon-mms/10/gridsize.py validation-dev/wallcon-mms/10/gridsize.py~ validation-dev/wallcon-mms/10/make_solid_source_terms.py validation-dev/wallcon-mms/10/mms.py validation-dev/wallcon-mms/10/post_simulation.sh validation-dev/wallcon-mms/10/prep-simulation.sh validation-dev/wallcon-mms/10/run-simulation.sh validation-dev/wallcon-mms/10/solid.config validation-dev/wallcon-mms/10/solid.config~ validation-dev/wallcon-mms/6/add-wall-to-vtk-files.py validation-dev/wallcon-mms/6/analytic_solution.py validation-dev/wallcon-mms/6/evaluate_error.py validation-dev/wallcon-mms/6/gridsize.py validation-dev/wallcon-mms/6/make_solid_source_terms.py validation-dev/wallcon-mms/6/mms.py validation-dev/wallcon-mms/6/post_simulation.sh validation-dev/wallcon-mms/6/prep-simulation.sh validation-dev/wallcon-mms/6/run-simulation.sh validation-dev/wallcon-mms/6/solid.config validation-dev/wallcon-mms/6/solid.config~ validation-dev/wallcon-mms/7/add-wall-to-vtk-files.py validation-dev/wallcon-mms/7/analytic_solution.py validation-dev/wallcon-mms/7/evaluate_error.py validation-dev/wallcon-mms/7/gridsize.py validation-dev/wallcon-mms/7/gridsize.py~ validation-dev/wallcon-mms/7/make_solid_source_terms.py validation-dev/wallcon-mms/7/mms.py validation-dev/wallcon-mms/7/post_simulation.sh validation-dev/wallcon-mms/7/prep-simulation.sh validation-dev/wallcon-mms/7/run-simulation.sh validation-dev/wallcon-mms/7/solid.config validation-dev/wallcon-mms/7/solid.config~ validation-dev/wallcon-mms/8/add-wall-to-vtk-files.py validation-dev/wallcon-mms/8/analytic_solution.py validation-dev/wallcon-mms/8/evaluate_error.py validation-dev/wallcon-mms/8/gridsize.py validation-dev/wallcon-mms/8/gridsize.py~ validation-dev/wallcon-mms/8/make_solid_source_terms.py validation-dev/wallcon-mms/8/mms.py validation-dev/wallcon-mms/8/post_simulation.sh validation-dev/wallcon-mms/8/prep-simulation.sh validation-dev/wallcon-mms/8/run-simulation.sh validation-dev/wallcon-mms/8/solid.config validation-dev/wallcon-mms/8/solid.config~ validation-dev/wallcon-mms/9/add-wall-to-vtk-files.py validation-dev/wallcon-mms/9/analytic_solution.py validation-dev/wallcon-mms/9/control/add-wall-to-vtk-files.py validation-dev/wallcon-mms/9/control/analytic_solution.py validation-dev/wallcon-mms/9/control/evaluate_error.py validation-dev/wallcon-mms/9/control/gridsize.py validation-dev/wallcon-mms/9/control/make_solid_source_terms.py validation-dev/wallcon-mms/9/control/mms.py validation-dev/wallcon-mms/9/control/post_simulation.sh validation-dev/wallcon-mms/9/control/prep-simulation.sh validation-dev/wallcon-mms/9/control/run-simulation.sh validation-dev/wallcon-mms/9/control/solid.config validation-dev/wallcon-mms/9/evaluate_error.py validation-dev/wallcon-mms/9/gridsize.py validation-dev/wallcon-mms/9/gridsize.py~ validation-dev/wallcon-mms/9/make_solid_source_terms.py validation-dev/wallcon-mms/9/mms.py validation-dev/wallcon-mms/9/post_simulation.sh validation-dev/wallcon-mms/9/prep-simulation.sh validation-dev/wallcon-mms/9/run-simulation.sh validation-dev/wallcon-mms/9/solid.config validation-dev/wallcon-mms/9/solid.config~ validation-dev/wallcon-mms/README validation-dev/wallcon-mms/plot_error.py
+description:
+Add of more wallcon mms verification.
+
+
+changeset:   1654:a29f62617d2c
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri Aug 22 19:10:53 2014 +1000
+files:       validation-dev/wallcon-manual.txt
+description:
+Added a short manual for wallcon
+
+
+changeset:   1653:8625e92b1351
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri Aug 22 17:50:17 2014 +1000
+files:       app/wallcon/source/output.cxx validation-dev/wallcon-mms/1/add-wall-to-vtk-files.py validation-dev/wallcon-mms/1/analytic_solution.py validation-dev/wallcon-mms/1/evaluate_error.py validation-dev/wallcon-mms/1/gridsize.py validation-dev/wallcon-mms/1/make_solid_source_terms.py validation-dev/wallcon-mms/1/mms.py validation-dev/wallcon-mms/1/post_simulation.sh validation-dev/wallcon-mms/1/prep-simulation.sh validation-dev/wallcon-mms/1/run-simulation.sh validation-dev/wallcon-mms/1/solid.config validation-dev/wallcon-mms/2/add-wall-to-vtk-files.py validation-dev/wallcon-mms/2/analytic_solution.py validation-dev/wallcon-mms/2/evaluate_error.py validation-dev/wallcon-mms/2/gridsize.py validation-dev/wallcon-mms/2/gridsize.py~ validation-dev/wallcon-mms/2/make_solid_source_terms.py validation-dev/wallcon-mms/2/mms.py validation-dev/wallcon-mms/2/post_simulation.sh validation-dev/wallcon-mms/2/prep-simulation.sh validation-dev/wallcon-mms/2/run-simulation.sh validation-dev/wallcon-mms/2/solid.config validation-dev/wallcon-mms/3/add-wall-to-vtk-files.py validation-dev/wallcon-mms/3/analytic_solution.py validation-dev/wallcon-mms/3/evaluate_error.py validation-dev/wallcon-mms/3/gridsize.py validation-dev/wallcon-mms/3/gridsize.py~ validation-dev/wallcon-mms/3/make_solid_source_terms.py validation-dev/wallcon-mms/3/mms.py validation-dev/wallcon-mms/3/post_simulation.sh validation-dev/wallcon-mms/3/prep-simulation.sh validation-dev/wallcon-mms/3/run-simulation.sh validation-dev/wallcon-mms/3/solid.config validation-dev/wallcon-mms/4/add-wall-to-vtk-files.py validation-dev/wallcon-mms/4/analytic_solution.py validation-dev/wallcon-mms/4/control/add-wall-to-vtk-files.py validation-dev/wallcon-mms/4/control/analytic_solution.py validation-dev/wallcon-mms/4/control/evaluate_error.py validation-dev/wallcon-mms/4/control/gridsize.py validation-dev/wallcon-mms/4/control/make_solid_source_terms.py validation-dev/wallcon-mms/4/control/mms.py validation-dev/wallcon-mms/4/control/post_simulation.sh validation-dev/wallcon-mms/4/control/prep-simulation.sh validation-dev/wallcon-mms/4/control/run-simulation.sh validation-dev/wallcon-mms/4/control/solid.config validation-dev/wallcon-mms/4/evaluate_error.py validation-dev/wallcon-mms/4/gridsize.py validation-dev/wallcon-mms/4/gridsize.py~ validation-dev/wallcon-mms/4/make_solid_source_terms.py validation-dev/wallcon-mms/4/mms.py validation-dev/wallcon-mms/4/post_simulation.sh validation-dev/wallcon-mms/4/prep-simulation.sh validation-dev/wallcon-mms/4/run-simulation.sh validation-dev/wallcon-mms/4/solid.config validation-dev/wallcon-mms/5/add-wall-to-vtk-files.py validation-dev/wallcon-mms/5/analytic_solution.py validation-dev/wallcon-mms/5/evaluate_error.py validation-dev/wallcon-mms/5/gridsize.py validation-dev/wallcon-mms/5/gridsize.py~ validation-dev/wallcon-mms/5/make_solid_source_terms.py validation-dev/wallcon-mms/5/mms.py validation-dev/wallcon-mms/5/post_simulation.sh validation-dev/wallcon-mms/5/prep-simulation.sh validation-dev/wallcon-mms/5/run-simulation.sh validation-dev/wallcon-mms/5/solid.config validation-dev/wallcon-mms/README validation-dev/wallcon-mms/README~ validation-dev/wallcon-mms/control/add-wall-to-vtk-files.py validation-dev/wallcon-mms/control/analytic_solution.py validation-dev/wallcon-mms/control/evaluate_error.py validation-dev/wallcon-mms/control/gridsize.py validation-dev/wallcon-mms/control/make_solid_source_terms.py validation-dev/wallcon-mms/control/mms.py validation-dev/wallcon-mms/control/post_simulation.sh validation-dev/wallcon-mms/control/prep-simulation.sh validation-dev/wallcon-mms/control/run-simulation.sh validation-dev/wallcon-mms/control/solid.config
+description:
+wallcon-mms mms verification run files
+
+
+changeset:   1652:ca3349fbd07b
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Thu Aug 21 16:54:50 2014 +1000
+files:       app/eilmer3/source/bc.cxx app/eilmer3/source/block_bgk.cxx app/eilmer3/source/block_io.cxx app/eilmer3/source/cell.cxx app/eilmer3/source/e3_block.py app/eilmer3/source/e3_flow.py app/eilmer3/source/e3_grid.py app/eilmer3/source/e3prep.py
+description:
+eilmer3: Write out all flow and grid values with 16 significant figures.
+
+
+changeset:   1651:f65d35445073
+user:        Anand V <anandv@uq.edu.au>
+date:        Thu Aug 21 17:59:28 2014 +1000
+files:       validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/T-norm.output validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/Tnorm.data validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/Tnorm.tmp validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/e3shared.log validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/error_analysis.dat validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/make_source_terms.py validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/make_source_terms.py~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/mms.control~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/mms.finish validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/mms.times validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/rho-norm.output validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/solid.config validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/solid.config~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/times.tmp validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/udf-source.lua
+description:
+Found a bug in the make_source_terms.py
+
+
+changeset:   1650:b32e343b147a
+user:        Anand V <anandv@uq.edu.au>
+date:        Thu Aug 21 14:24:40 2014 +1000
+files:       validation-dev/cht-mms/Check_Noslip_InterfaceMatch_v2.nb
+description:
+Mathematica script to view T, Twall in 2D
+
+
+changeset:   1649:949805927d7c
+user:        Anand V <anandv@uq.edu.au>
+date:        Thu Aug 21 13:59:44 2014 +1000
+files:       app/eilmer3/source/conj-ht-interface.cxx app/wallcon/source/e3conn.cxx examples/eilmer3/2D/cht-mms/analytic_solution.py examples/eilmer3/2D/cht-mms/cht-mms.py examples/eilmer3/2D/cht-mms/post_simulation.sh examples/eilmer3/2D/cht-mms/udf-bc.lua validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/T-norm.output validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/T_compare.dat validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/Tnorm.data validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/Tnorm.tmp validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/add-wall-to-vtk-files.py validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/add-wall-to-vtk-files.py~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/analytic_solution.py validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/analytic_solution.pyc validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/analytic_solution.py~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/block_labels.list validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/case.txt validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/case.txt~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/compile-norms.sh validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/e3shared.log validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/east-T.dat validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/error_analysis.dat validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/evaluate_error.py validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/extract-norms.awk validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/extract-times.awk validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/f90_to_lua.py validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/make_error_plots.sh validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/make_solid_source_terms.py validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/make_solid_source_terms.py~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/make_source_terms.py validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/make_source_terms.py~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/mms-distorted.py validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/mms-regular.py validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/mms-stretched.py validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/mms.config validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/mms.control validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/mms.control~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/mms.finish validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/mms.py validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/mms.py~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/mms.test validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/mms.times validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/north-T.dat validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/post_simulation.sh validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/post_simulation.sh~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/prefill-terms.dat validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/prep_simulation.sh validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/prep_simulation.sh~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/rho-norm.output validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/rhonorm.data validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/rhonorm.tmp validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/run_simulation.sh validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/solid-source-terms.dat validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/solid.config validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/solid.config~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/times.tmp validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/udf-bc.lua validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/udf-bc.lua~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/udf-source-template.lua validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/udf-source.lua validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/very-viscous-air.lua validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/very-viscous-air.lua~ validation-dev/cht-mms/coupled8_pTswap_uv0_DEBUG/west-T.dat
+description:
+Added a validation case for coupled conjugate heat transfer on a 8 x 8 grid:
+
+
+changeset:   1648:926b92abe007
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu Aug 21 13:33:09 2014 +1000
+files:       validation-dev/cht-mms/README
+description:
+cht: Add of REAME for validation
+
+
+changeset:   1647:27a631050788
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu Aug 21 13:21:51 2014 +1000
+files:       app/wallcon/source/initialise.cxx
+description:
+eilmer: Add of validation directories
+
+
+changeset:   1646:4d0158cc62cd
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Thu Aug 21 10:52:11 2014 +1000
+files:       app/eilmer3/source/main.cxx
+description:
+eilmer3: Fixed bug related to restarting coupled (gas/solid) simulations.
+
+On initialisation of the wall solver, eilmer was instructing the wall solver
+to write a solution at tindx = 0, even in the case of restarts. Now the
+initial solution is only written when tindx = 0.
+
+
+changeset:   1645:48cc9cc5f192
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Wed Aug 20 18:06:28 2014 +1000
+files:       app/wallcon/build/makefile app/wallcon/source/e3conn.cxx app/wallcon/source/initialise.cxx app/wallcon/source/initialise.hh app/wallcon/source/main.cxx app/wallcon/source/output.cxx
+description:
+wallcon: Change restart to require tindx otherwise 0 by default. Noted greater than numerical error on restart
+
+
+changeset:   1644:8e6adc4ee6c1
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Sun Aug 03 20:41:53 2014 +1000
+files:       app/wallcon/source/bc_e3connection.cxx
+description:
+wallcon: Cleaning up print functions after last commit.
+
+
+changeset:   1643:52096a101fab
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Sun Aug 03 20:34:55 2014 +1000
+files:       app/wallcon/source/bc_e3connection.cxx app/wallcon/source/e3conn.cxx app/wallcon/source/initialise.cxx
+description:
+wallcon: Bug fix in e3conn.cxx
+
+BC_E3CONNECTION vector was moved out of if statment to stop destructing first entry in connection vector.
+
+
+changeset:   1642:b71b6fe65d84
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Sat Aug 02 13:25:02 2014 +1000
+files:       app/eilmer3/source/conj-ht-interface.cxx app/eilmer3/source/conj-ht-interface.hh app/eilmer3/source/kernel.hh app/eilmer3/source/main.cxx app/wallcon/source/e3conn.cxx app/wallcon/source/e3conn.hh examples/eilmer3/2D/conj-heat-transfer/cht-passing-wall-temperature/add-wall-to-vtk-files.py examples/eilmer3/2D/conj-heat-transfer/cht-passing-wall-temperature/cht.py examples/eilmer3/2D/conj-heat-transfer/cht-passing-wall-temperature/post-simulation.sh examples/eilmer3/2D/conj-heat-transfer/cht-passing-wall-temperature/prep-simulation.sh examples/eilmer3/2D/conj-heat-transfer/cht-passing-wall-temperature/run-simulation.sh examples/eilmer3/2D/conj-heat-transfer/cht-passing-wall-temperature/solid.config
+description:
+Eilmer: Modifications to global data to pass temperature as well as flux to wall model.
+
+Eilmer:Added T_wall vecotr object to global data in kernel.hh. Modified conj-ht-transfer to pass flux and T_wall to wall model. Wallcon: Modified e3con.cxx to accept T_wall from eilmer and pass to bc_e3connection if BC_E3CONNECTION_TEMPERATRE flag set in solid.config.
+
+
+changeset:   1641:b8039c069c0c
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Mon Jul 28 16:01:53 2014 +1000
+files:       app/wallcon/source/bc_e3connection.cxx app/wallcon/source/bc_e3connection.hh app/wallcon/source/e3conn.cxx app/wallcon/source/initialise.cxx app/wallcon/source/solid_bc.hh app/wallcon/source/solid_block.cxx app/wallcon/source/solid_block.hh
+description:
+wallcon: Prepare to allow accepting temperatures from Eilmer3 for connection.
+
+Created vector object as Solidblock member for connection type flag. Modified bc_e3connection to accept temperature vector from eilmer if/when connection type flage changed.
+
+
+changeset:   1640:4ebdab099fff
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri Jul 25 13:44:45 2014 +1000
+files:       app/wallcon/source/initialise.cxx
+description:
+wallcon: Clean up print out .
+
+
+changeset:   1639:0d4bd39d6627
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri Jul 25 13:43:04 2014 +1000
+files:       app/wallcon/source/initialise.cxx
+description:
+wallcon: Bug fix in last commit of initialise state from file.
+
+Deleted premature return statment in initialise.cxx above read_initial_state_from_file().
+
+
+changeset:   1638:3002477eb5d7
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri Jul 25 13:16:18 2014 +1000
+files:       app/wallcon/source/e3conn.cxx app/wallcon/source/initialise.cxx examples/wallcon/2D/initialise-state-from-file/add-wall-to-vtk-files.py examples/wallcon/2D/initialise-state-from-file/analytic_solution.py examples/wallcon/2D/initialise-state-from-file/cht-mms.py examples/wallcon/2D/initialise-state-from-file/constant-k-air.lua examples/wallcon/2D/initialise-state-from-file/evaluate_error.py examples/wallcon/2D/initialise-state-from-file/make_solid_source_terms.py examples/wallcon/2D/initialise-state-from-file/make_source_terms.py examples/wallcon/2D/initialise-state-from-file/post-simulation.sh examples/wallcon/2D/initialise-state-from-file/prep-simulation.sh examples/wallcon/2D/initialise-state-from-file/run-simulation.sh examples/wallcon/2D/initialise-state-from-file/solid.config examples/wallcon/2D/initialise-state-from-file/udf-source-template.lua
+description:
+wallcon: Add ability to initialise block state (temp and energy) from a file.
+
+Example in examples/wallcon/2D/initialise-state-from-file
+
+
+changeset:   1637:02dea76b6b40
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri Jul 18 14:53:22 2014 +1000
+files:       app/wallcon/source/initialise.cxx
+description:
+wallcon: Correct typo in initialise.cxx for_intel compilation.
+
+
+changeset:   1636:2b5543af40a4
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Fri Jul 18 09:25:18 2014 +1000
+files:       examples/eilmer3/2D/cht-mms/analytic_solution.py
+description:
+eilmer3/examples: Changed k_g value to 100.0
+
+
+changeset:   1635:523fbd14171d
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Wed Jul 16 09:17:09 2014 +1000
+files:       examples/wallcon/2D/wallcon-mms/add-wall-to-vtk-files.py examples/wallcon/2D/wallcon-mms/analytic_solution.py examples/wallcon/2D/wallcon-mms/cht-mms.py examples/wallcon/2D/wallcon-mms/constant-k-air.lua examples/wallcon/2D/wallcon-mms/evaluate_error.py examples/wallcon/2D/wallcon-mms/make_solid_source_terms.py examples/wallcon/2D/wallcon-mms/make_source_terms.py examples/wallcon/2D/wallcon-mms/post-simulation.sh examples/wallcon/2D/wallcon-mms/prep-simulation.sh examples/wallcon/2D/wallcon-mms/run-simulation.sh examples/wallcon/2D/wallcon-mms/solid.config examples/wallcon/2D/wallcon-mms/udf-source-template.lua
+description:
+wallcon: Re-add wallcon-mms in examples.
+
+
+changeset:   1634:3b29e3ebded7
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Wed Jul 16 09:12:14 2014 +1000
+files:       examples/wallcon/2D/wallcon-mms/post-simulation.sh examples/wallcon/2D/wallcon-mms/run-simulation.sh
+description:
+wallcon: examples
+
+
+changeset:   1633:140d6b51bf80
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Wed Jul 16 09:09:35 2014 +1000
+files:       app/wallcon/source/e3conn.cxx app/wallcon/source/e3conn.hh app/wallcon/source/initialise.cxx app/wallcon/source/initialise.hh
+description:
+wallcon: Refactor of initialise and e3conn.
+
+
+changeset:   1632:58bb284171cd
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Tue Jul 15 11:07:48 2014 +1000
+files:       app/wallcon/source/bc_adiabatic.cxx app/wallcon/source/bc_adiabatic.hh app/wallcon/source/bc_conv_rad.cxx app/wallcon/source/bc_conv_rad.hh app/wallcon/source/bc_convection.cxx app/wallcon/source/bc_convection.hh app/wallcon/source/bc_e3connection.cxx app/wallcon/source/bc_e3connection.hh app/wallcon/source/bc_fixed_q.cxx app/wallcon/source/bc_fixed_q.hh app/wallcon/source/bc_fixed_t.cxx app/wallcon/source/bc_fixed_t.hh app/wallcon/source/bc_radiation.cxx app/wallcon/source/bc_radiation.hh app/wallcon/source/bc_userdef_q.cxx app/wallcon/source/bc_userdef_q.hh app/wallcon/source/bc_userdef_t.cxx app/wallcon/source/bc_userdef_t.hh
+description:
+wallcon: Refactor of boundary conditions.
+
+
+changeset:   1631:2d397bea13f3
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Tue Jul 15 09:54:30 2014 +1000
+files:       app/wallcon/build/makefile app/wallcon/source/e3conn.cxx app/wallcon/source/grid.cxx app/wallcon/source/grid.hh app/wallcon/source/initialise.cxx app/wallcon/source/initialise.hh app/wallcon/source/main.cxx app/wallcon/source/output.cxx app/wallcon/source/output.hh app/wallcon/source/plotting.cxx app/wallcon/source/plotting.hh
+description:
+wallcon: Refactoring.
+
+Moved grid to intialise. Moved plotting to output.
+
+
+changeset:   1630:e84ae2236901
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Tue Jul 15 08:10:18 2014 +1000
+files:       app/wallcon/source/initialise.cxx
+description:
+wallcon: Update to initialise from t=0 by default. Initialise from last by request.
+
+
+changeset:   1629:1552d64d73ee
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Mon Jul 14 17:34:39 2014 +1000
+files:       app/wallcon/source/e3conn.cxx app/wallcon/source/e3conn.hh app/wallcon/source/initialise.cxx app/wallcon/source/initialise.hh app/wallcon/source/main.cxx
+description:
+wallcon: Run from the last time step by default.
+
+
+changeset:   1628:952f0bc0d9fd
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Mon Jul 14 12:20:07 2014 +1000
+files:       app/wallcon/source/main.cxx app/wallcon/source/plotting.cxx examples/eilmer3/2D/conj-heat-transfer/cht/add-wall-to-vtk-files.py examples/eilmer3/2D/conj-heat-transfer/cht/cht.py examples/eilmer3/2D/conj-heat-transfer/cht/post-simulation.sh examples/eilmer3/2D/conj-heat-transfer/cht/prep-simulation.sh examples/eilmer3/2D/conj-heat-transfer/cht/run-simulation.sh examples/eilmer3/2D/conj-heat-transfer/cht/solid.config
+description:
+eilmer3: Add of ~/example/eilmer3/2D/conj-heat-transfer/cht
+
+
+changeset:   1627:6c00ec037b04
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Mon Jul 14 11:04:22 2014 +1000
+files:       examples/wallcon/2D/wallcon-mms/add-wall-to-vtk-files.py examples/wallcon/2D/wallcon-mms/analytic_solution.py examples/wallcon/2D/wallcon-mms/analytic_solution.pyc examples/wallcon/2D/wallcon-mms/cht-mms.py examples/wallcon/2D/wallcon-mms/cht-mms.py~ examples/wallcon/2D/wallcon-mms/cht-mms.svg examples/wallcon/2D/wallcon-mms/constant-k-air.lua examples/wallcon/2D/wallcon-mms/evaluate_error.py examples/wallcon/2D/wallcon-mms/evaluate_error.py~ examples/wallcon/2D/wallcon-mms/make_solid_source_terms.py examples/wallcon/2D/wallcon-mms/make_solid_source_terms.py~ examples/wallcon/2D/wallcon-mms/make_source_terms.py examples/wallcon/2D/wallcon-mms/plot_analytic_solution.py examples/wallcon/2D/wallcon-mms/post-simulaion.sh examples/wallcon/2D/wallcon-mms/post-simulation.sh examples/wallcon/2D/wallcon-mms/prep-simulation.sh examples/wallcon/2D/wallcon-mms/prep-simulation.sh~ examples/wallcon/2D/wallcon-mms/run-simulation.sh examples/wallcon/2D/wallcon-mms/solid.config examples/wallcon/2D/wallcon-mms/solid.config~ examples/wallcon/2D/wallcon-mms/udf-source-template.lua
+description:
+wallcon: update to mms example
+
+
+changeset:   1626:6d36d1f91b39
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri Jul 11 16:44:58 2014 +1000
+files:       app/wallcon/source/plotting.cxx examples/wallcon/2D/wallcon-mms/add-wall-to-vtk-files.py examples/wallcon/2D/wallcon-mms/analytic_solution.py examples/wallcon/2D/wallcon-mms/analytic_solution.pyc examples/wallcon/2D/wallcon-mms/cht-mms.py examples/wallcon/2D/wallcon-mms/cht-mms.py~ examples/wallcon/2D/wallcon-mms/cht-mms.svg examples/wallcon/2D/wallcon-mms/constant-k-air.lua examples/wallcon/2D/wallcon-mms/evaluate_error.py examples/wallcon/2D/wallcon-mms/evaluate_error.py~ examples/wallcon/2D/wallcon-mms/make_solid_source_terms.py examples/wallcon/2D/wallcon-mms/make_solid_source_terms.py~ examples/wallcon/2D/wallcon-mms/make_source_terms.py examples/wallcon/2D/wallcon-mms/plot_analytic_solution.py examples/wallcon/2D/wallcon-mms/post-simulaion.sh examples/wallcon/2D/wallcon-mms/prep-simulation.sh examples/wallcon/2D/wallcon-mms/prep-simulation.sh~ examples/wallcon/2D/wallcon-mms/run-simulation.sh examples/wallcon/2D/wallcon-mms/solid.config examples/wallcon/2D/wallcon-mms/solid.config~ examples/wallcon/2D/wallcon-mms/udf-source-template.lua
+description:
+wallcon: Add of wallcon method of manufactured solutions example.
+
+
+changeset:   1625:5dc99d8c0844
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri Jul 04 13:03:23 2014 +1000
+files:       app/wallcon/source/initialise.cxx
+description:
+wallcon: Added capability to read source terms.
+
+
+changeset:   1624:ab9db12e3d86
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu Jul 03 17:00:58 2014 +1000
+files:       app/wallcon/build/makefile app/wallcon/source/bc_userdef_t.cxx app/wallcon/source/bc_userdef_t.hh app/wallcon/source/initialise.cxx app/wallcon/source/initialise.hh app/wallcon/source/main.cxx app/wallcon/source/solid_bc.hh
+description:
+wallcon: Changes to initialisation. Addition of vector definied T bc.
+
+User now required to define global time control variables in config file for standalone runs.
+
+
+changeset:   1623:a236e01e6103
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu Jul 03 14:46:00 2014 +1000
+files:       app/wallcon/source/main.cxx
+description:
+wallcon: Minor fix to printing solution tindx in main.cxx
+
+
+changeset:   1622:6ecd14ce165e
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Tue Jul 01 09:46:30 2014 +1000
+files:       app/wallcon/source/initialise.cxx app/wallcon/source/plotting.cxx examples/wallcon/2D/fixed_flux_and_convection/README examples/wallcon/2D/fixed_flux_and_convection/add-wall-to-vtk-files.py examples/wallcon/2D/fixed_flux_and_convection/solid.config examples/wallcon/2D/fixed_flux_and_convection/solid/grid/b0 examples/wallcon/2D/fixed_flux_and_convection/solid/grid/cell_grid.dat examples/wallcon/2D/fixed_temp/add-wall-to-vtk-files.py examples/wallcon/2D/fixed_temp/solid.config examples/wallcon/2D/fixed_temp/solid/grid/b0 examples/wallcon/2D/fixed_temp/solid/grid/cell_grid.dat
+description:
+wallcon: Add of example files for wallcon. Minor updates to source.
+
+First pass attemt ad adding source terms.
+
+
+changeset:   1621:14ffd0752258
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Thu Jun 12 10:20:54 2014 +1000
+files:       app/wallcon/build/makefile
+description:
+wallcon: Added an install target for stand_alone program to makefile
+
+
+changeset:   1620:01c0db9b67f3
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Thu Jun 12 10:11:07 2014 +1000
+files:       examples/eilmer3/2D/cht-mms/analytic_solution.py examples/eilmer3/2D/cht-mms/make_solid_source_terms.py examples/eilmer3/2D/cht-mms/make_source_terms.py
+description:
+eilmer3/examples: Updated make_solid_source_terms.py to use real energy equation.
+
+This is still just some initial passes on this work. More edits to come.
+
+
+changeset:   1619:a229b33886a9
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Wed Jun 11 23:10:39 2014 +1000
+files:       app/eilmer3/source/conj-ht-interface.cxx
+description:
+eilmer3: Fixed conj-ht-interface.cxx to compile for MPI.
+
+
+changeset:   1618:97440680bc1f
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Wed Jun 11 23:09:44 2014 +1000
+files:       examples/eilmer3/2D/cht-mms/analytic_solution.py examples/eilmer3/2D/cht-mms/cht-mms.py examples/eilmer3/2D/cht-mms/constant-k-air.lua examples/eilmer3/2D/cht-mms/make_solid_source_terms.py examples/eilmer3/2D/cht-mms/make_source_terms.py examples/eilmer3/2D/cht-mms/post_simulation.sh examples/eilmer3/2D/cht-mms/prep_simulation.sh examples/eilmer3/2D/cht-mms/udf-bc.lua examples/eilmer3/2D/cht-mms/udf-source-template.lua
+description:
+Eilmer3/examples: Added first pass of manufactured solution for conjugate heat transfer testing.
+
+This commit is an initial placeholder. Justin Beri and I have some work to do yet
+on using this case as verification for our CHT coupling implementation.
+
+
+changeset:   1617:f2260cbdb361
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Tue Jun 03 00:14:50 2014 +1000
+files:       app/wallcon/build/solid.config app/wallcon/source/plotting.cxx app/wallcon/source/solid_cell.cxx app/wallcon/source/solid_cell.hh app/wallcon/source/space_update.cxx
+description:
+wallcon: Change to solid_cell to accomodate source term.
+
+Source term read-in not yet implemented.
+
+
+changeset:   1616:2b047afcd76e
+parent:      1615:f5b64de80f91
+parent:      1613:bc996c3c3bc1
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri May 30 15:07:21 2014 +1000
+files:       examples/eilmer3/2D/conj-heat-transfer/cht.py examples/eilmer3/2D/conj-heat-transfer/prep-simulation.sh examples/eilmer3/2D/conj-heat-transfer/run-simulation.sh examples/eilmer3/2D/conj-heat-transfer/solid.config
+description:
+wallcon: To merge
+
+
+changeset:   1615:f5b64de80f91
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri May 30 14:55:56 2014 +1000
+files:       app/wallcon/build/add-wall-to-vtk-files.py
+description:
+wallcon: Modify py script for vtk output
+
+
+changeset:   1614:bd01914ab9f5
+parent:      1612:d7df589a7f01
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri May 30 00:06:01 2014 +1000
+files:       app/wallcon/build/add-wall-to-vtk-files.py app/wallcon/source/main.cxx app/wallcon/source/plotting.cxx app/wallcon/source/plotting.hh
+description:
+wallcon: Add ability to create solid only vtu files to py script. Add solid.times dict for stand alone.
+
+
+changeset:   1613:bc996c3c3bc1
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Fri May 30 09:18:58 2014 +1000
+files:       examples/eilmer3/2D/conj-heat-transfer/cht.py examples/eilmer3/2D/conj-heat-transfer/multi-block-shared/cht.py examples/eilmer3/2D/conj-heat-transfer/multi-block-shared/prep-simulation.sh examples/eilmer3/2D/conj-heat-transfer/multi-block-shared/run-simulation.sh examples/eilmer3/2D/conj-heat-transfer/multi-block-shared/solid.config examples/eilmer3/2D/conj-heat-transfer/prep-simulation.sh examples/eilmer3/2D/conj-heat-transfer/run-simulation.sh examples/eilmer3/2D/conj-heat-transfer/single-block-shared/cht.py examples/eilmer3/2D/conj-heat-transfer/single-block-shared/prep-simulation.sh examples/eilmer3/2D/conj-heat-transfer/single-block-shared/run-simulation.sh examples/eilmer3/2D/conj-heat-transfer/single-block-shared/solid.config examples/eilmer3/2D/conj-heat-transfer/solid.config
+description:
+eilmer3/examples: Split conj-heat-transfer example into 3 sub examples.
+
+
+changeset:   1612:d7df589a7f01
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu May 29 20:00:09 2014 +1000
+files:       app/eilmer3/source/main.cxx
+description:
+eilmer: Added write final solution for conj_heat in main
+
+
+changeset:   1611:12178bacd252
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu May 29 17:43:58 2014 +1000
+files:       app/wallcon/build/add-wall-to-vtk-files.py app/wallcon/build/prep-simulation.sh app/wallcon/build/run-simulation.sh app/wallcon/source/e3conn.cxx app/wallcon/source/plotting.cxx app/wallcon/source/plotting.hh
+description:
+wallcon: Update of ouput format, add prep, run and vtk scripts to repo.
+
+
+changeset:   1610:500bb318c8a3
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu May 29 14:12:40 2014 +1000
+files:       app/wallcon/build/plotting.m app/wallcon/build/solid.config app/wallcon/build/solid/grid/b0 app/wallcon/source/e3conn.cxx app/wallcon/source/main.cxx app/wallcon/source/plotting.cxx app/wallcon/source/plotting.hh
+description:
+wallcon: Changes to precision of temperature output.
+
+
+changeset:   1609:75fe6be87df2
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Thu May 29 12:19:45 2014 +1000
+files:       examples/eilmer3/2D/conj-heat-transfer/prep-simulation.sh
+description:
+eilmer/examples: Remove solid domain from block_labels list so that it's ignored by e3post.py
+
+
+changeset:   1608:352753ab85cd
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Sun May 25 16:46:52 2014 +1000
+files:       app/wallcon/build/f.m app/wallcon/build/g.m app/wallcon/build/plotting.m app/wallcon/build/solid.config app/wallcon/source/bc_conv_rad.cxx app/wallcon/source/main.cxx
+description:
+wallcon: Commit of combined radiation and convection. Also matlab analytical solutions.
+
+Commit of bc_conv_rad.cxx after PJ fixed bug in lib/nm/source/ridder.cxx. Upload 1D analytical solutions to repo. These will be revomed at a later date.
+
+
+changeset:   1607:8176599e0352
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Sun May 25 12:32:03 2014 +1000
+files:       lib/nm/source/ridder.cxx
+description:
+nm: Recommit of Peter's ridder typo fix in cht development branch.
+
+Presently we are working on different development branches for
+the conjugate heat transfer work. The only easy way to get
+Peter's change of ridder.cxx was to copy it in directly. This
+avoided merging and creating a nightmare of nonlinear history
+later on.  When we do eventually rebase and push, this identical
+commit to r 1582 will turn up. I don't know what to do about that --
+have to learn more mercurial.
+
+
+changeset:   1606:9251aff1653b
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri May 23 16:51:56 2014 +1000
+files:       app/wallcon/build/plotting.m app/wallcon/build/solid.config app/wallcon/source/bc_adiabatic.hh app/wallcon/source/bc_conv_rad.cxx app/wallcon/source/bc_conv_rad.hh app/wallcon/source/bc_convection.cxx app/wallcon/source/bc_convection.hh app/wallcon/source/bc_e3connection.cxx app/wallcon/source/bc_e3connection.hh app/wallcon/source/bc_fixed_t.cxx app/wallcon/source/bc_radiation.cxx app/wallcon/source/bc_userdef_q.hh app/wallcon/source/e3conn.cxx app/wallcon/source/grid.cxx app/wallcon/source/initialise.cxx app/wallcon/source/main.cxx app/wallcon/source/plotting.cxx app/wallcon/source/solid_bc.hh app/wallcon/source/solid_block.cxx app/wallcon/source/solid_block.hh app/wallcon/source/solid_cell.cxx app/wallcon/source/space_update.cxx
+description:
+wallcon: Fix to indent formatting in srcq
+
+
+changeset:   1605:f5468b8bf7d6
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Fri May 23 15:51:43 2014 +1000
+files:       app/eilmer3/build/makefile
+description:
+eilmer3: Same fix as previous in makefile, this time for e3rad.exe
+
+
+changeset:   1604:7b06840a392b
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Fri May 23 15:08:31 2014 +1000
+files:       app/eilmer3/build/makefile
+description:
+eilmer3: Changed order of static library listing in executable linking to satisfy dependencies.
+
+
+changeset:   1603:8d0d54f94b4b
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri May 23 14:52:09 2014 +1000
+files:       app/wallcon/source/bc_conv_rad.cxx
+description:
+wallcon: pushed conv_rad.cxx
+
+
+changeset:   1602:9ad26dfefc5a
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri May 23 14:46:11 2014 +1000
+files:       app/wallcon/source/bc_conv_rad.hh app/wallcon/source/bc_radiation.cxx app/wallcon/source/main.cxx
+description:
+wallcon: Pushed missing bc_conv_rad.hh
+
+
+changeset:   1601:5a3d4a2d52ba
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri May 23 13:52:33 2014 +1000
+files:       app/wallcon/build/makefile app/wallcon/build/solid.config app/wallcon/source/initialise.cxx app/wallcon/source/main.cxx app/wallcon/source/solid_bc.hh
+description:
+wallcon: Bug identified, eilmer3 non-compile due to ridder solve in bc_radiationa and bc_conv_rad. Bug idedtified, bc_cov_rad riddr returns nan.
+
+
+changeset:   1600:dd1d7359d6ba
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri May 23 11:05:26 2014 +1000
+files:       app/wallcon/build/plotting.m app/wallcon/build/solid.config app/wallcon/source/main.cxx app/wallcon/source/space_update.cxx
+description:
+wallcon:Bug fix.
+
+Bug noted causing asymmetric behaviour for west wall. Bug found in space_update, boundary secondary interfaces for west wall was using east cell interface to update. Modified. Asymmetric behaviour no longer observed.
+
+
+changeset:   1599:94d0a61084af
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu May 22 23:42:55 2014 +1000
+files:       app/wallcon/build/plotting.m app/wallcon/build/solid.config app/wallcon/build/solid/grid/cell_grid.dat app/wallcon/source/bc_convection.cxx app/wallcon/source/bc_e3connection.cxx app/wallcon/source/bc_fixed_q.cxx app/wallcon/source/bc_fixed_t.cxx app/wallcon/source/bc_userdef_q.cxx app/wallcon/source/main.cxx app/wallcon/source/plotting.cxx app/wallcon/source/space_update.cxx
+description:
+wallcon: Bugs identified in SW and NW corner.
+
+Asymetry in temperature. Unlikley due to truncation error as large on second iteration.
+
+
+changeset:   1598:00ed38a5bd5f
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu May 22 19:03:07 2014 +1000
+files:       app/wallcon/build/solid.config app/wallcon/source/space_update.cxx
+description:
+wallcon: Modified matlab plotting script. commented out header from plotting.
+
+
+changeset:   1597:392a6c42a511
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu May 22 18:41:19 2014 +1000
+files:       app/wallcon/build/makefile app/wallcon/build/solid.config app/wallcon/source/bc_radiation.cxx app/wallcon/source/bc_radiation.hh app/wallcon/source/initialise.cxx app/wallcon/source/plotting.cxx app/wallcon/source/solid_bc.hh
+description:
+wallcon: Implementation of radiative boundary condtion.
+
+
+changeset:   1596:81d179ae44d4
+user:        Delphine Francois <d.francois@uq.edu.au>
+date:        Thu May 22 16:51:07 2014 +1000
+files:       app/eilmer3/source/conj-ht-interface.cxx
+description:
+eilmer3: flux equilibrium at the interface improved by projection on the normal direction
+
+
+changeset:   1595:7794ba13ab8b
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu May 22 16:42:36 2014 +1000
+files:       app/wallcon/build/makefile app/wallcon/build/solid.config app/wallcon/source/bc_userdef_q.cxx app/wallcon/source/bc_userdef_q.hh app/wallcon/source/initialise.cxx app/wallcon/source/main.cxx app/wallcon/source/plotting.cxx app/wallcon/source/solid_bc.hh examples/eilmer3/2D/conj-heat-transfer/solid.config
+description:
+wallcon: Added user defined flux boundary condition. Increased output information.
+
+
+changeset:   1594:aac6523ccb69
+user:        Delphine Francois <d.francois@uq.edu.au>
+date:        Wed May 21 10:46:03 2014 +1000
+files:       app/wallcon/source/initialise.cxx
+description:
+wallcon: bug fix in initialise for old compiler version
+
+
+changeset:   1593:3d2a2c0f7366
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Tue May 20 11:08:06 2014 +1000
+files:       app/wallcon/source/e3conn.cxx app/wallcon/source/main.cxx
+description:
+wallcon: Minor updates to stand alone version to comply with previous commit.
+
+
+changeset:   1592:f50341a13657
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Mon May 19 22:31:04 2014 +1000
+files:       app/eilmer3/source/main.cxx app/wallcon/source/initialise.cxx examples/eilmer3/2D/conj-heat-transfer/cht.py examples/eilmer3/2D/conj-heat-transfer/prep-simulation.sh examples/eilmer3/2D/conj-heat-transfer/run-simulation.sh examples/eilmer3/2D/conj-heat-transfer/solid.config
+description:
+eilmer3/wallcon: First pass debug of eilmer/wallcon code coupling.
+
+I fixed a memory bug in the eilmer initialisation of the storage vectors
+for the interface problem.
+
+Also, I had a simplified test problem with a preparation script
+and run script.
+
+
+changeset:   1591:bbe4d10720b0
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Mon May 19 22:21:13 2014 +1000
+files:       app/wallcon/source/bc_adiabatic.hh app/wallcon/source/bc_convection.hh app/wallcon/source/bc_e3connection.hh app/wallcon/source/bc_fixed_q.hh app/wallcon/source/bc_fixed_t.hh app/wallcon/source/boundarycondition.hh app/wallcon/source/e3conn.cxx app/wallcon/source/initialise.cxx app/wallcon/source/solid_bc.hh app/wallcon/source/solid_block.hh app/wallcon/source/space_update.cxx
+description:
+wallcon: Changed BoundaryCondition class to SolidBoundaryCondition class.
+
+There was an internal name clash between eilmer's boundary conditions
+and the wallcon ones. This lead to a strange memory error because wallcon
+was trying to use objects that were eilmer boundary conditions.
+
+While I was at it, I changed a bit of formatting and removed a couple
+of compiler warnings.
+
+
+changeset:   1590:36ec94cc3cfb
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Mon May 19 14:48:05 2014 +1000
+files:       app/wallcon/build/makefile app/wallcon/build/plotting.m app/wallcon/build/solid.config app/wallcon/build/solid/grid/cell_grid.dat app/wallcon/source/bc_adiabatic.cxx app/wallcon/source/bc_adiabatic.hh app/wallcon/source/bc_convection.cxx app/wallcon/source/bc_convection.hh app/wallcon/source/bc_e3connection.cxx app/wallcon/source/bc_e3connection.hh app/wallcon/source/bc_fixed_q.cxx app/wallcon/source/bc_fixed_q.hh app/wallcon/source/bc_fixed_t.cxx app/wallcon/source/bc_fixed_t.hh app/wallcon/source/boundarycondition.hh app/wallcon/source/e3conn.cxx app/wallcon/source/initialise.cxx app/wallcon/source/main.cxx app/wallcon/source/plotting.cxx app/wallcon/source/space_update.cxx
+description:
+wallcon: Implementation of eilmer3 connection to wallcon added.
+
+This commits bc_e3connection which allows connection to eilmer3 via e3conn. It also updates the way in which wallconn implements boundary conditions. Specifically, changed from a cell by cell basis to the boundary condition recieving the location of the cell and using the block pointer to apply condition.
+
+
+changeset:   1589:33e8c29ce5bf
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Mon May 19 11:32:00 2014 +1000
+files:       app/wallcon/build/makefile app/wallcon/build/solid.config app/wallcon/build/solid/grid/b0 app/wallcon/source/initialise.cxx app/wallcon/source/initialise.hh
+description:
+wallcon: Commit initialise.cxx and initialise.hh to repo.
+
+This initialises a solid block and fixes a bug to do with memory allocation.`
+
+
+changeset:   1588:040fba6f1986
+user:        Delphine Francois <d.francois@uq.edu.au>
+date:        Fri May 16 16:02:35 2014 +1000
+files:       app/eilmer3/source/conj-ht-interface.cxx
+description:
+eilmer3: Some efficiency improvements in conjugate interface flux calculations.
+
+
+changeset:   1587:aee8d8992322
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Fri May 16 15:30:59 2014 +1000
+files:       app/wallcon/build/makefile app/wallcon/source/e3conn.cxx app/wallcon/source/e3conn.hh app/wallcon/source/main.cxx app/wallcon/source/plotting.cxx app/wallcon/source/solid_block.cxx app/wallcon/source/solid_cell.cxx
+description:
+wallconn: Added stand-alone build to makefile and continued development on connection code.
+
+Changed initialisation of SolidBlock to pointer type.
+
+
+changeset:   1586:b9a1e016d428
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Thu May 15 15:20:41 2014 +1000
+files:       app/eilmer3/source/conj-ht-interface.cxx
+description:
+eilmer3: At this point, eilmer3 and wallcon compile cleanly.
+
+Note, the implementation in Justin's wallcon code still needs
+fleshing out.
+
+
+changeset:   1585:47bedef7b9af
+user:        Justin Beri <justin.beri@uqconnect.edu.au>
+date:        Thu May 15 14:58:40 2014 +1000
+files:       app/wallcon/source/boundarycondition.cxx app/wallcon/source/boundarycondition.hh app/wallcon/source/grid.cxx app/wallcon/source/grid.hh app/wallcon/source/main.cxx app/wallcon/source/plotting.cxx app/wallcon/source/plotting.hh app/wallcon/source/solid_block.cxx app/wallcon/source/solid_block.hh
+description:
+wallcon: Initial commit on eilmer connection work.
+
+
+changeset:   1584:53ec42490771
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Thu May 15 14:32:19 2014 +1000
+files:       app/eilmer3/source/conj-ht-interface.cxx
+description:
+eilmer3: Added Delphine's implementation of interface flux code.
+
+On behalf of Delphine Francois, I have committed her code that
+computes the interface flux between a solid and gas boundary
+based on nearyby temperature information. This fills out the function
+stubs that I created in an earlier revision.
+
+
+changeset:   1583:df498c8d0b2b
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Mon May 12 09:19:37 2014 +1000
+files:       app/eilmer3/source/conj-ht-interface.cxx app/eilmer3/source/conj-ht-interface.hh app/eilmer3/source/kernel.hh app/eilmer3/source/main.cxx app/wallcon/source/e3conn.cxx app/wallcon/source/e3conn.hh
+description:
+eilmer3/wallcon: Added gathering/passing of thermal conductivities to interface code.
+
+
+changeset:   1582:505f76fb3051
+user:        Rowan J. Gollan <r.gollan@uq.edu.au>
+date:        Sat May 10 11:48:44 2014 +1000
+files:       app/eilmer3/build/makefile app/eilmer3/source/bc_conjugate_ht.cxx app/eilmer3/source/conj-ht-interface.cxx app/eilmer3/source/conj-ht-interface.hh app/eilmer3/source/init.cxx app/eilmer3/source/kernel.cxx app/eilmer3/source/kernel.hh app/eilmer3/source/main.cxx app/twc/build/makefile app/twc/source/adv.cxx app/twc/source/adv.hh app/twc/source/conjugateHeatUtil.cxx app/twc/source/conjugateHeatUtil.hh app/twc/source/e3con.cxx app/twc/source/e3con.hh app/twc/source/eilmer-practice.cxx app/twc/source/init.cxx app/twc/source/init.hh app/twc/source/main.cxx app/twc/source/main.hh app/wallcon/build/makefile app/wallcon/source/bc_adiabatic.cxx app/wallcon/source/bc_adiabatic.hh app/wallcon/source/bc_convection.cxx app/wallcon/source/bc_convection.hh app/wallcon/source/bc_fixed_q.cxx app/wallcon/source/bc_fixed_q.hh app/wallcon/source/bc_fixed_t.cxx app/wallcon/source/bc_fixed_t.hh app/wallcon/source/boundarycondition.cxx app/wallcon/source/boundarycondition.hh app/wallcon/source/e3conn.cxx app/wallcon/source/e3conn.hh app/wallcon/source/grid.cxx app/wallcon/source/grid.hh app/wallcon/source/main.cxx app/wallcon/source/plotting.cxx app/wallcon/source/plotting.hh app/wallcon/source/solid_block.cxx app/wallcon/source/solid_block.hh app/wallcon/source/solid_cell.cxx app/wallcon/source/solid_cell.hh app/wallcon/source/space_update.cxx
+description:
+eilmer3/wallconn: Added Justin Beri's wall conduction solver.
+
+This commit compiles cleanly, but the coupled wall
+solver is not functional yet. The links to Jarred Clifford's
+version of the wall model have been removed to avoid
+confusion.
+
+

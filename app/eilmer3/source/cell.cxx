@@ -1071,7 +1071,7 @@ std::string FV_Cell::write_values_to_string() const
     // The new format for Elmer3 puts everything onto one line.
     ostringstream ost;
     ost.setf(ios_base::scientific);
-    ost.precision(12);
+    ost.precision(16);
     ost << pos[0].x << " " << pos[0].y << " " << pos[0].z // Note grid-level 0.
 	<< " " << volume[0] << " " <<  fs->gas->rho
 	<< " " << fs->vel.x << " " << fs->vel.y << " " << fs->vel.z;
@@ -1131,7 +1131,7 @@ std::string FV_Cell::write_BGK_to_string() const
     // The new format for Elmer3 puts everything onto one line.
     ostringstream ost;
     ost.setf(ios_base::scientific);
-    ost.precision(12);
+    ost.precision(16);
     // Note that grid-level is zero.
     ost << pos[0].x << " " << pos[0].y << " " << pos[0].z << " " << volume[0];
     // BGK discrete samples of velocity distribution function

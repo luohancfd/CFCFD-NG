@@ -23,7 +23,7 @@
 #include "../../../lib/util/source/config_parser.hh"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
-#include "../../twc/source/e3con.hh"
+#include "../../wallcon/source/e3conn.hh"
 #include "block.hh"
 #include "kernel.hh"
 #include "cell.hh"
@@ -180,6 +180,18 @@ int init_available_bcs_map()
     available_bcs.insert(name_bc_t("jump_wall",JUMP_WALL));
     return SUCCESS;
 }
+
+std::map<std::string,cht_coupling_t> available_cht_coupling;
+int init_available_cht_coupling_map()
+{
+    typedef std::pair<std::string,cht_coupling_t> name_cht_coupling_t;
+    available_cht_coupling.insert(name_cht_coupling_t("TFS_TWS", TFS_TWS));
+    available_cht_coupling.insert(name_cht_coupling_t("TFS_QWS", TFS_QWS));
+    available_cht_coupling.insert(name_cht_coupling_t("QFS_TWS", QFS_TWS));
+    available_cht_coupling.insert(name_cht_coupling_t("QFS_QWS", QFS_QWS));
+
+    return SUCCESS;
+}
  
 /*-----------------------------------------------------------------*/
 
@@ -190,8 +202,9 @@ int init_available_bcs_map()
 ///
 /// \param filename : name of the INI parameter file
 /// \param master: flag to indicate that this process is master
+/// \param start_tindx : integer to indicate which time index to begin from
 ///
-int read_config_parameters(const string filename, bool master)
+int read_config_parameters(const string filename, bool master, int start_tindx)
 {
     global_data &G = *get_global_data_ptr();
     size_t jb;
@@ -200,6 +213,7 @@ int read_config_parameters(const string filename, bool master)
     init_available_interpolators_map();
     init_available_turbulence_models_map();
     init_available_bcs_map();
+    init_available_cht_coupling_map();
 
     // Default values for some configuration variables.
     G.dimensions = 2;
@@ -712,6 +726,11 @@ int read_config_parameters(const string filename, bool master)
 
     dict.parse_int("global_data", "conjugate_ht_flag", i_value, 0);
     G.conjugate_ht_active = i_value;
+    dict.parse_string("global_data", "conjugate_ht_coupling", s_value, "QFS_QWS");
+    if ( available_cht_coupling.find(s_value) == available_cht_coupling.end() ) {
+	throw std::runtime_error(std::string("Requested cht_coupling not available: ") + s_value);
+    }
+    G.cht_coupling = available_cht_coupling[s_value];
     dict.parse_string("global_data", "conjugate_ht_file", s_value, "dummy_ht_file");
     if ( G.conjugate_ht_active ) {
 	if ( !G.viscous ) {
@@ -719,10 +738,11 @@ int read_config_parameters(const string filename, bool master)
 	    cout << "WARNING: but the viscous flag is not set.\n";
 	    cout << "WARNING: No heat fluxes will be computed at wall.\n";
 	}
-    	G.wm = initialise_wall_model(s_value);
+    	G.wm = initialise_wall_model(s_value, G.cht_coupling, start_tindx);
     }
     if ( G.verbosity_level >= 2 ) {
 	cout << "conjugate_ht_flag = " << G.conjugate_ht_active << endl;
+	cout << "conjugate_ht_coupling = " << G.cht_coupling << endl;
 	cout << "conjugate_ht_file = " << s_value << endl;
     }
     // Now, for the individual block configuration.
@@ -754,6 +774,16 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	throw std::runtime_error(std::string("Requested update-scheme not available: ") + s_value);
     }
     set_gasdynamic_update_scheme(available_schemes[s_value]);
+    if ( G.conjugate_ht_active ) {
+	// Translate our enumerated schemes to Justin's integers
+	switch ( available_schemes[s_value] ) {
+	case EULER_UPDATE: set_wallcon_time_update_scheme(*(G.wm), 0); break;
+	case PC_UPDATE: set_wallcon_time_update_scheme(*(G.wm), 1); break;
+	    // For all higher-order timestepping, just ask wallcon
+	    // to use predictor-corrector
+	default: set_wallcon_time_update_scheme(*(G.wm), 1);
+	} 
+    }
     // To keep backward compatibility with old simulation files,
     // read Torder if it exists and set the equivalent update scheme.
     dict.parse_int("control_data", "t_order", i_value, 0);

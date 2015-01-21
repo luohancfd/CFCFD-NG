@@ -11,7 +11,7 @@ ConjugateHeatTransferBC(Block *bdp, int which_boundary)
     global_data &G = *(get_global_data_ptr());
     if ( !G.conjugate_ht_active ) {
 	cout << "ERROR: The conjugate heat transfer modelling is NOT active.\n";
-	cout << "ERROR: Yet, a ConjugateHT boundary condition hace been selected.\n";
+	cout << "ERROR: Yet, a ConjugateHT boundary condition face been selected.\n";
 	cout << "Bailing out!\n";
 	exit(BAD_INPUT_ERROR);
     }
@@ -74,7 +74,8 @@ int
 ConjugateHeatTransferBC::
 apply_viscous(double t)
 {
-    // This mostly looks like the fixed-temperature boundary condition.
+    // This mostly looks like the fixed-temperature boundary condition
+    // in terms of implementing no-slip velocity
     // What differs is that the temperature values at the
     // interface are supplied by the wall model.
     size_t i, j, k;
@@ -87,7 +88,7 @@ apply_viscous(double t)
     // ONLY IMPLEMENTED FOR NORTH BOUNDARY
     j = bd.jmax;
     for (k = bd.kmin; k <= bd.kmax; ++k) {
-	int iT = G.displs[bd.id];
+	int w_idx = G.displs[bd.id];
 	for (i = bd.imin; i <= bd.imax; ++i) {
 	    cell = bd.get_cell(i,j,k);
 	    IFace = cell->iface[NORTH];
@@ -99,10 +100,17 @@ apply_viscous(double t)
 	    if (bd.bcp[NORTH]->wc_bc != NON_CATALYTIC) {
 		cw->apply(*(cell->fs->gas), fs.gas->massf);
 	    }
-	    for ( size_t imode = 0; imode < nmodes; ++imode ) {
-		fs.gas->T[imode] = G.T_wall[iT];
+	    if ( G.cht_coupling == TFS_TWS || G.cht_coupling == QFS_TWS ) {
+		// Set the temperature from the global vector of wall temperatures.
+		for ( size_t imode = 0; imode < nmodes; ++imode ) {
+		    fs.gas->T[imode] = G.T_wall[w_idx];
+		}
 	    }
-	    ++iT;
+	    else {
+		// Get energy flux from global vector of wall fluxes
+		IFace->F->total_energy += G.q_wall[w_idx];
+	    }
+	    ++w_idx;
 	} // end i loop
     } // for k
     return SUCCESS;

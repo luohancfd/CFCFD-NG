@@ -413,7 +413,8 @@ int viscous_flux_2D(Block *A)
             F.momentum.x -= tau_xx * nx + tau_xy * ny;
             F.momentum.y -= tau_xy * nx + tau_yy * ny;
 	    if ( j == A->jmax+1 && ( A->bcp[NORTH]->type_code == USER_DEFINED_ENERGY_FLUX ||
-				     A->bcp[NORTH]->type_code == CONJUGATE_HT) ) {
+				     ( (A->bcp[NORTH]->type_code == CONJUGATE_HT) &&
+				       ( (G.cht_coupling == TFS_QWS) || (G.cht_coupling == QFS_QWS) ) ) ) ) {
 		// Retain the flux set by the b.c. by doing nothing.
 		; // Do nothing statement
 	    }
