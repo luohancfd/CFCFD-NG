@@ -66,7 +66,7 @@ TEST_EXECUTABLES := user-defined-gas-model-test.x \
 # 	perfect-gas-EOS-test.x \
 # 	noble-abel-gas-EOS-test.x \
 
-TOOL_EXECUTABLES := gasfile gasmodel.py
+TOOL_EXECUTABLES := gasfile reac-lua2txt gasmodel.py
 ifeq ($(CEA2_EXISTS), true)
   TOOL_EXECUTABLES += build-cea-lut.py cea2 thermo.inp trans.inp
   CEA2_MSG := "CEA2 has been included in the build."
@@ -889,6 +889,10 @@ lex_elems.lua : $(KINETICS)/lex_elems.lua
 gasfile : $(TOOLS)/gasfile.lua
 	cp $(TOOLS)/gasfile.lua gasfile
 	chmod +x gasfile
+
+reac-lua2txt : $(TOOLS)/reac-lua2txt.lua
+	cp $(TOOLS)/reac-lua2txt.lua reac-lua2txt
+	chmod +x reac-lua2txt
 
 build-cea-lut.py : $(TOOLS)/build-cea-lut.py
 	cp $(TOOLS)/build-cea-lut.py .
