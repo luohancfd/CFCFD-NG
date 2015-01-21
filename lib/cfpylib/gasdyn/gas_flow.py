@@ -419,8 +419,6 @@ def steady_flow_with_area_change(state1, V1, A2_over_A1):
         """
         # print "p2/p1=", p2p1
         state2 = state1.clone()
-        print "p7 = {0}.".format(state1.p)
-        print "p8 = {0}.".format(p2p1 * state1.p)
         state2.set_ps(p2p1 * state1.p, state1.s)
         h2 = state2.p/state2.rho + state2.e
         V2 = math.sqrt(2*(H1 - h2))
