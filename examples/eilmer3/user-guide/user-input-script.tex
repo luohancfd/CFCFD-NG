@@ -1732,6 +1732,18 @@ for finite-volume cells that fall outside of all regions defined as a \texttt{Tu
 If there a no such defined regions, all of the flowfield may have nonzero turbulence viscosity.
 
 \medskip
+An effective method to trigger chemical reactions is to use\\
+\texttt{IgnitionZone(Ti, point0, point1, label="")}\index{IgnitionZone}\\
+A high temperature \verb!Ti! (in K, e.g. a value at 2000 is proved to ignite
+the methane/air combustion effectively) is specified within the \texttt{IgnitionZone}s
+only to evaluate the Arrhenius reaction rates while without affecting
+the gas temperature in the flow filed. This zone is in effect between
+\verb!gdata.ignition_time_start! (default value is 0) and \verb!gdata.ignition_time_stop!
+and then ``switching-off'' subsequently. In this manner, the reaction rates
+within the zone is artificially inflated, which is able to ignite reactions
+in a short time.
+
+\medskip
 As well as being identified by their cell indices when defining a block,
 history points can be located by their Cartesian coordinates using:\\
 \texttt{HistoryLocation(x, y, z=0.0, i\_offset=0, j\_offset=0, k\_offset=0, label="")}\index{HistoryLocation} \\
