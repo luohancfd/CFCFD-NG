@@ -481,7 +481,7 @@ class GlobalData(object):
                 'ignition_time_start', 'ignition_time_stop', \
                 'electric_field_work_flag', 'conjugate_ht_flag', 'conjugate_ht_file', \
                 'conjugate_ht_coupling', 'wall_update_count', \
-                'radiation_scaling'
+                'radiation_scaling', 'udf_vtx_velocity_flag'
     
     def __init__(self):
         """
