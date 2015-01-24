@@ -12,7 +12,7 @@ import std.string;
 import std.conv;
 import fvcore;
 import geom;
-import gasmodel;
+import gas;
 
 class FVVertex {
 public:

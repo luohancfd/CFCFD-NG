@@ -5,7 +5,7 @@
 // and MBCNS workbook 2005/Apr page 36 for new index labels
  
 import std.math;
-import gasmodel;
+import gas;
 import fvcore;
 import globalconfig;
 import flowstate;

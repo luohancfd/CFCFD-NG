@@ -5,7 +5,7 @@ module globalconfig;
 
 import std.conv;
 import geom;
-import gasmodel;
+import gas;
 import fvcore;
 
 enum

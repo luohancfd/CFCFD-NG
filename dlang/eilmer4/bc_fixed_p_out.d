@@ -7,7 +7,7 @@
 // [TODO] implement the high-order reconstruction, as per ExtrapolateOutBC.
 // Peter J. 2014-07-26
 
-import gasmodel;
+import gas;
 import fvcore;
 import fvinterface;
 import fvcell;

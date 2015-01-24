@@ -15,7 +15,7 @@ import std.format;
 import std.stdio;
 import std.math;
 import geom;
-import gasmodel;
+import gas;
 import fvcore;
 import flowstate;
 import conservedquantities;

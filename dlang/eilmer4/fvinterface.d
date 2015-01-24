@@ -11,7 +11,7 @@ module fvinterface;
 
 import std.conv;
 import geom;
-import gasmodel;
+import gas;
 import fvcore;
 import flowstate;
 import conservedquantities;

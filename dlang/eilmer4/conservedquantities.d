@@ -11,7 +11,7 @@ module conservedquantities;
 import std.string;
 import std.conv;
 import geom;
-import gasmodel;
+import gas;
 
 class ConservedQuantities {
 public:

@@ -17,7 +17,7 @@ import std.array;
 import std.math;
 import gzip;
 import geom;
-import gasmodel;
+import gas;
 import globalconfig;
 import fvcore;
 import fvvertex;

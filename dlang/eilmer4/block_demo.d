@@ -4,7 +4,7 @@
 
 import std.stdio;
 import geom;
-import gasmodelutil;
+import gas;
 import globalconfig;
 import flowstate;
 import sblock;
@@ -12,7 +12,7 @@ import sblock;
 void main()
 {
     writeln("Block demo, structured blocks only for now...");
-    GlobalConfig.gmodel = init_gas_model("sample-data/ideal-air-gas-model.json");
+    GlobalConfig.gmodel = init_gas_model("sample-data/ideal-air-gas-model.lua");
     GlobalConfig.verbosity_level = 2;
     auto flow = new FlowState(GlobalConfig.gmodel, 100.0e3, [300.0,], Vector3(1.0,0.0,0.0));
     writeln("flow=", flow);

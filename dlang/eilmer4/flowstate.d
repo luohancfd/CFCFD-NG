@@ -11,8 +11,7 @@ module flowstate;
 import std.string;
 import std.conv;
 import geom;
-import gasmodel;
-import gasmodelutil;
+import gas;
 
 class FlowState {
 public:
