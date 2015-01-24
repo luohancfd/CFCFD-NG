@@ -8,7 +8,8 @@
  * Version: 2014-06-22, first cut, exploring the options.
  */
 
-module gasmodel;
+module gas.gas_model;
+
 import std.conv;
 import std.math;
 import std.stdio;

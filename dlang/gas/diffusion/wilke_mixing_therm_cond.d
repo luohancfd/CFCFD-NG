@@ -18,9 +18,11 @@
  * Version: 2014-09-08 -- initial cut
  */
 
+module gas.diffusion.wilke_mixing_therm_cond;
+
 import std.math;
-import gasmodel;
-import therm_cond;
+import gas.gas_model;
+import gas.diffusion.therm_cond;
 
 class WilkeMixingThermCond : ThermalConductivity {
 public:

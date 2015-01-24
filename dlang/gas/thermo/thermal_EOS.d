@@ -20,7 +20,9 @@
  * Version: 2014-08-14 -- initial cut at building an interface
  */
 
-import gasmodel;
+module gas.thermo.thermal_EOS;
+
+import gas.gas_model;
 
 /++
   ThermalEOS defines the services provided by a thermal equation

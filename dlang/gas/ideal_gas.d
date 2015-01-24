@@ -6,12 +6,13 @@
  * Version: 2014-06-22: initial cut, to explore options.
  */
 
-module idealgas;
-import gasmodel;
-import perfectgasEOS;
-import calperfectgasEOS;
-import sutherland_visc;
-import sutherland_therm_cond;
+module gas.ideal_gas;
+
+import gas.gas_model;
+import perf_gas_EOS = gas.thermo.perf_gas_EOS;
+import cal_perf_gas_EOS = gas.thermo.cal_perf_gas_EOS;
+import gas.diffusion.sutherland_viscosity;
+import gas.diffusion.sutherland_therm_cond;
 import std.math;
 import std.stdio;
 import std.file;
@@ -75,14 +76,14 @@ public:
     override void update_thermo_from_pT(ref GasState Q) const 
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
-	Q.rho = density(Q.p, Q.T[0], _Rgas);
-	Q.e[0] = energy(Q.T[0], _Cv, 0.0);
+	Q.rho = perf_gas_EOS.density(Q.p, Q.T[0], _Rgas);
+	Q.e[0] = cal_perf_gas_EOS.energy(Q.T[0], _Cv, 0.0);
     }
     override void update_thermo_from_rhoe(ref GasState Q) const
     {
 	assert(Q.e.length == 1, "incorrect length of energy array");
-	Q.T[0] = calperfectgasEOS.temperature(Q.e[0], _Cv, 0.0);
-	Q.p = pressure(Q.rho, Q.T[0], _Rgas);
+	Q.T[0] = cal_perf_gas_EOS.temperature(Q.e[0], _Cv, 0.0);
+	Q.p = perf_gas_EOS.pressure(Q.rho, Q.T[0], _Rgas);
     }
     override void update_thermo_from_rhoT(ref GasState Q) const
     {

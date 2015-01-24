@@ -9,8 +9,10 @@
  * Version: 2014-08-18 -- first cut
  */
 
-import gasmodel;
-import caloricEOS;
+module gas.thermo.cal_perf_gas_EOS;
+
+import gas.gas_model;
+import gas.thermo.caloric_EOS;
 
 /++
   Compute the energy of a calorically perfect gas.

@@ -6,7 +6,9 @@
  * Version: 2014-08-19 -- initial cut
  */
 
-import gasmodel;
+module gas.diffusion.viscosity;
+
+import gas.gas_model;
 
 interface Viscosity {
     Viscosity dup() const;

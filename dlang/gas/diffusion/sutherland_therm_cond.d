@@ -6,9 +6,11 @@
  * Author: Rowan G. and Peter J.
  */
 
+module gas.diffusion.sutherland_therm_cond;
+
 import std.math;
-import gasmodel;
-import therm_cond;
+import gas.gas_model;
+import gas.diffusion.therm_cond;
 
 /++
   Compute the thermal conductivity using Sutherland's expression.

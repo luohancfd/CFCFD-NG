@@ -18,9 +18,11 @@
  * Version: 2014-09-08 -- initial cut
  */
 
+module gas.diffusion.wilke_mixing_viscosity;
+
 import std.math;
-import gasmodel;
-import viscosity;
+import gas.gas_model;
+import gas.diffusion.viscosity;
 
 class WilkeMixingViscosity : Viscosity {
 public:

@@ -13,7 +13,8 @@
  * Version: 2014-08-18 -- initial cut at building the interface
  */
 
-import gasmodel;
+module gas.thermo.caloric_EOS;
+import gas.gas_model;
 
 /++
   CaloricEOS defines the services provied by a caloric equation

@@ -6,8 +6,10 @@
  * Version: 2015-01-19
  */
 
-import gasmodel;
-import therm_cond;
+module gas.diffusion.cea_therm_cond;
+
+import gas.gas_model;
+import gas.diffusion.therm_cond;
 import std.math;
 import luad.all;
 import lua_service;

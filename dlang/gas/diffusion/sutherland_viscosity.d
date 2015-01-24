@@ -7,9 +7,11 @@
  * Version: 2014-08-19 -- initial cut
  */
 
+module gas.diffusion.sutherland_viscosity;
+
 import std.math;
-import gasmodel;
-import viscosity;
+import gas.gas_model;
+import gas.diffusion.viscosity;
 import luad.all;
 
 /++

@@ -15,8 +15,10 @@
  * Version: 2014-08-14 -- first cut
  */
 
-import gasmodel;
-import thermalEOS;
+module gas.thermo.perf_gas_EOS;
+
+import gas.gas_model;
+import gas.thermo.thermal_EOS;
 
 /++
   Compute the pressure of a perfect gas.

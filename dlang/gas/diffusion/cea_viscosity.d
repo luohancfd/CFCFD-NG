@@ -6,8 +6,10 @@
  * Version: 2015-01-13
  */
 
-import gasmodel;
-import viscosity;
+module gas.diffusion.cea_viscosity;
+
+import gas.gas_model;
+import gas.diffusion.viscosity;
 import std.math;
 import luad.all;
 import lua_service;

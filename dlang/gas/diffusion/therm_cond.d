@@ -6,7 +6,9 @@
  * Version: 2014-08-19 -- initial cut
  */
 
-import gasmodel;
+module gas.diffusion.therm_cond;
+
+import gas.gas_model;
 
 interface ThermalConductivity {
     ThermalConductivity dup() const;

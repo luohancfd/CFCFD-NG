@@ -8,9 +8,9 @@
  * Version: 2014-09-07 -- first cut
  */
 
-import gasmodel;
-import thermalEOS;
-import perfectgasEOS;
+import gas.gas_model;
+import gas.thermo.thermal_EOS;
+import gas.thermo.perf_gas_EOS;
 
 /++
  PerfectGasMixEOS is a thermal equation of state.

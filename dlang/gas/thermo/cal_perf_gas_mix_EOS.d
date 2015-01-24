@@ -10,9 +10,11 @@
  * Version: 2014-09-07 -- first cut
  */
 
-import gasmodel;
-import caloricEOS;
-import calperfectgasEOS;
+module gas.thermo.cal_perf_gas_mix_EOS;
+
+import gas.gas_model;
+import gas.thermo.caloric_EOS;
+import gas.thermo.cal_perf_gas_EOS;
 
 /++
   CaloricallyPerfectGasMixEOS is a caloric equation of state.
