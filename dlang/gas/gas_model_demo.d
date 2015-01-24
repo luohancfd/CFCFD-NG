@@ -1,13 +1,13 @@
 /**
- * gasmodel_demo.d
+ * gas_model_demo.d
  *
  * Author: Peter J.
  * Version: 2014-06-22
  */
 
 import std.stdio;
-import gasmodel;
-import gasmodelutil;
+import gas.gas_model;
+import gas.gas_model_util;
 
 void main() {
     writeln("Begin demonstration of using the gasmodel and Gas_data classes...");

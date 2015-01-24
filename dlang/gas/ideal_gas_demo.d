@@ -6,8 +6,8 @@
  */
 
 import std.stdio;
-import gasmodel;
-import idealgas;
+import gas.gas_model;
+import gas.ideal_gas;
 
 void main() {
     writeln("Begin demonstration of using the IdealGas and GasState classes...");

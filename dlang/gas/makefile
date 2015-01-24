@@ -1,13 +1,13 @@
 # makefile for the gas module
 
-DFLAGS := -w
-
-DEMO_PROGRAMS := gasmodel_demo idealgas_demo
+DEMO_PROGRAMS := gas_model_demo ideal_gas_demo
 
 UTIL_DIR := ../util
 UTIL_FILES := $(UTIL_DIR)/lua_service.d
 
 LUA := ../../extern/lua-5.1.4
+LIBLUA := $(LUA)/lib/liblua.a
+LIBLUAPATH := $(LUA)/lib
 LUAD_DIR := ../extern/LuaD
 LUAD_FILES := $(LUAD_DIR)/luad/*.d \
 	$(LUAD_DIR)/luad/c/*.d \
@@ -16,6 +16,7 @@ LUAD_FILES := $(LUAD_DIR)/luad/*.d \
 GAS_MODEL_FILES := \
 	package.d \
 	gas_model.d \
+	gas_model_util.d \
 	ideal_gas.d 
 
 THERMO_FILES := \
@@ -37,20 +38,25 @@ DIFFUSION_FILES := \
 	diffusion/wilke_mixing_viscosity.d
 
 GAS_PACKAGE_FILES := $(GAS_MODEL_FILES) $(THERMO_FILES) $(DIFFUSION_FILES)
+DFLAGS := -w 
+DLINKFLAGS := -w -I../ -I../util -L-L$(LIBLUAPATH) -L-llua -L-ldl
 
-lib: $(GAS_PACKAGE_FILES) $(LUAD_FILES) $(UTIL_FILES)
+
+libgas.a : $(GAS_PACKAGE_FILES) $(LUAD_FILES) $(UTIL_FILES)
 	dmd -lib $(GAS_PACKAGE_FILES) $(LUAD_FILES) $(UTIL_FILES) -oflibgas $(DFLAGS)
 
 demo: ${DEMO_PROGRAMS}
 	echo "Demo programs built."
 
 clean:
-	- rm *.o
 	- rm ${DEMO_PROGRAMS}
 
-gasmodel_demo: gasmodel_demo.d ${GAS_MODEL_FILES} $(LIBLUA)
-	dmd -unittest -g gasmodel_demo.d ${GAS_MODEL_FILES} ${LUAD_FILES} -L-L$(LIBLUAPATH) -L-llua -L-ldl
+$(LIBLUA):
+	cd $(LUA); make linux local
 
-idealgas_demo: idealgas_demo.d ${GAS_MODEL_FILES} $(UTIL_FILES) $(LIBLUA)
-	dmd -unittest -g idealgas_demo.d ${GAS_MODEL_FILES} $(UTIL_FILES) ${LUAD_FILES} -L-L$(LIBLUAPATH) -L-llua -L-ldl
+gas_model_demo: gas_model_demo.d libgas.a $(LUAD_FILES) $(UTIL_FILES) $(LIBLUA)
+	dmd -g gas_model_demo.d libgas.a $(LUAD_FILES) $(DLINKFLAGS)
+
+ideal_gas_demo: ideal_gas_demo.d libgas.a $(LUAD_FILES) $(LIBLUA)
+	dmd -g ideal_gas_demo.d libgas.a $(LUAD_FILES) $(DLINKFLAGS)
 

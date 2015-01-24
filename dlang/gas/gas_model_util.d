@@ -6,10 +6,10 @@
  * Version: 2014-06-22, first cut, exploring the options.
  */
 
-module gasmodelutil;
+module gas.gas_model_util;
 
-import gasmodel;
-import idealgas;
+import gas.gas_model;
+import gas.ideal_gas;
 import std.file;
 import std.stdio;
 import luad.all;
