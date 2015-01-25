@@ -25,6 +25,23 @@ void getValues(T)(LuaTable t, in string[] keys, out T[string] values, string tab
     }
 }
 
+void getArray(T)(LuaTable t, out T[] values, string tabName)
+{
+    auto len = t.length;
+    values.length = len;
+    try {
+	foreach ( i; 1..len+1 ) {
+	    // Placed in i-1 because of 0-offset, 1-offset difference
+	    // between D and Lua.
+	    values[i-1] = t.get!T(i);
+	}
+    }
+    catch ( Exception e ) {
+	string msg = format("There was a problem looping over table: %s. An array of values was expected.\n", tabName);
+	throw new Exception(msg);
+    }
+}
+
 unittest
 {
     auto lua = new LuaState;
