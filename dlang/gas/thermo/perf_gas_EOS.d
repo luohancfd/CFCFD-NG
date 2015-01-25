@@ -1,5 +1,5 @@
 /**
- * perfectgasEOS.d
+ * perf_gas_EOS.d
  * Implements the perfect gas equation of state.
  * This module provides simple functions for the
  * the p-v-T behaviour of a perfect gas. It also

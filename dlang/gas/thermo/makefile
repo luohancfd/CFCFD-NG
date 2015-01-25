@@ -1,16 +1,28 @@
-# makefile for the gas module
 
-unittest: perfectgasEOS calperfectgasEOS perfectgasmixEOS calperfectgasmixEOS
+UTIL_DIR := ../../util
+UTIL_FILES := $(UTIL_DIR)/lua_service.d
 
-perfectgasEOS : perfectgasEOS.d thermalEOS.d ../gasmodel.d
-	dmd -main -unittest perfectgasEOS.d thermalEOS.d ../gasmodel.d -I../
+LUA := ../../../extern/lua-5.1.4
+LIBLUA := $(LUA)/lib/liblua.a
+LIBLUAPATH := $(LUA)/lib
+LUAD_DIR := ../../extern/LuaD
+LUAD_FILES := $(LUAD_DIR)/luad/*.d \
+	$(LUAD_DIR)/luad/c/*.d \
+	$(LUAD_DIR)/luad/conversions/*.d
 
-calperfectgasEOS : calperfectgasEOS.d caloricEOS.d ../gasmodel.d
-	dmd -main -unittest calperfectgasEOS.d caloricEOS.d ../gasmodel.d -I../
+GAS_DIR := ..
+LIBGAS := ${GAS_DIR}/libgas.a
 
-perfectgasmixEOS : perfectgasmixEOS.d perfectgasEOS.d thermalEOS.d ../gasmodel.d
-	dmd -main -unittest perfectgasmixEOS.d perfectgasEOS.d thermalEOS.d ../gasmodel.d -I../
+DLINKFLAGS :=  -w -L-L${LIBLUAPATH} -L-llua -L-ldl
 
-calperfectgasmixEOS : calperfectgasmixEOS.d calperfectgasEOS.d caloricEOS.d ../gasmodel.d
-	dmd -main -unittest calperfectgasmixEOS.d calperfectgasEOS.d caloricEOS.d ../gasmodel.d -I../
+unittest: cea_thermo_curves
+	./cea_thermo_curves
 
+${LIBGAS}:
+	cd ${GAS_DIR}; make libgas.a
+
+${LIBLUA}:
+	cd ${LUA_DIR}; make linux local
+
+cea_thermo_curves : cea_thermo_curves.d $(LIBGAS) $(LIBLUA)
+	dmd -main -unittest cea_thermo_curves.d $(LIBGAS) $(LUAD_FILES) -I../../ -I$(UTIL_DIR) $(DLINKFLAGS)
