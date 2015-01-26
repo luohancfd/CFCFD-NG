@@ -1,5 +1,5 @@
 /**
- * calperfectgasEOS.d
+ * cal_perf_gas_mix_EOS.d
  * Implements a calorically perfect gas mixture equation
  * of state. In this model, the specific heats
  * at constant pressure (Cp) and constant volume (Cv)
@@ -24,7 +24,8 @@ import gas.thermo.cal_perf_gas_EOS;
 +/
 class CaloricallyPerfectGasMixEOS : CaloricEOS {
 public:
-    this(double[] Cv, double[] e0) {
+    this(double[] Cv, double[] e0)
+    {
 	_Cv = Cv.dup;
 	_e0 = e0.dup;
     }

@@ -5,6 +5,9 @@ DEMO_PROGRAMS := gas_model_demo ideal_gas_demo
 UTIL_DIR := ../util
 UTIL_FILES := $(UTIL_DIR)/lua_service.d
 
+NM_DIR := ../nm
+NM_FILES := $(NM_DIR)/ridder.d
+
 LUA := ../../extern/lua-5.1.4
 LIBLUA := $(LUA)/lib/liblua.a
 LIBLUAPATH := $(LUA)/lib
@@ -17,15 +20,18 @@ GAS_MODEL_FILES := \
 	package.d \
 	gas_model.d \
 	gas_model_util.d \
-	ideal_gas.d 
+	ideal_gas.d \
+	physical_constants.d
 
 THERMO_FILES := \
 	thermo/caloric_EOS.d \
 	thermo/cal_perf_gas_EOS.d \
 	thermo/cal_perf_gas_mix_EOS.d \
+	thermo/cea_thermo_curves.d \
 	thermo/perf_gas_EOS.d \
 	thermo/perf_gas_mix_EOS.d \
-	thermo/thermal_EOS.d
+	thermo/thermal_EOS.d \
+	thermo/therm_perf_gas_mix_EOS.d
 
 DIFFUSION_FILES := \
 	diffusion/cea_therm_cond.d \
@@ -42,8 +48,8 @@ DFLAGS := -w
 DLINKFLAGS := -w -I../ -I../util -L-L$(LIBLUAPATH) -L-llua -L-ldl
 
 
-libgas.a : $(GAS_PACKAGE_FILES) $(LUAD_FILES) $(UTIL_FILES)
-	dmd -lib $(GAS_PACKAGE_FILES) $(LUAD_FILES) $(UTIL_FILES) -oflibgas $(DFLAGS)
+libgas.a : $(GAS_PACKAGE_FILES) $(LUAD_FILES) $(UTIL_FILES) $(NM_FILES)
+	dmd -lib $(GAS_PACKAGE_FILES) $(LUAD_FILES) $(UTIL_FILES) $(NM_FILES) -oflibgas $(DFLAGS)
 
 demo: ${DEMO_PROGRAMS}
 	echo "Demo programs built."

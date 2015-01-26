@@ -2,6 +2,9 @@
 UTIL_DIR := ../../util
 UTIL_FILES := $(UTIL_DIR)/lua_service.d
 
+NM_DIR := ../../nm
+NM_FILES := $(NM_DIR)/ridder.d
+
 LUA := ../../../extern/lua-5.1.4
 LIBLUA := $(LUA)/lib/liblua.a
 LIBLUAPATH := $(LUA)/lib
@@ -15,8 +18,9 @@ LIBGAS := ${GAS_DIR}/libgas.a
 
 DLINKFLAGS :=  -w -L-L${LIBLUAPATH} -L-llua -L-ldl
 
-unittest: cea_thermo_curves
+unittest: cea_thermo_curves therm_perf_gas_mix_EOS
 	./cea_thermo_curves
+	./therm_perf_gas_mix_EOS
 
 ${LIBGAS}:
 	cd ${GAS_DIR}; make libgas.a
@@ -26,3 +30,6 @@ ${LIBLUA}:
 
 cea_thermo_curves : cea_thermo_curves.d $(LIBGAS) $(LIBLUA)
 	dmd -main -unittest cea_thermo_curves.d $(LIBGAS) $(LUAD_FILES) -I../../ -I$(UTIL_DIR) $(DLINKFLAGS)
+
+therm_perf_gas_mix_EOS : therm_perf_gas_mix_EOS.d $(LIBGAS) $(LIBLUA) $(NM_FILES)
+	dmd -main -unittest therm_perf_gas_mix_EOS.d $(LIBGAS) $(LUAD_FILES) $(NM_FILES) -I../../ -I$(UTIL_DIR) $(DLINKFLAGS)

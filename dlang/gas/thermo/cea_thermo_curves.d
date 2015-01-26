@@ -27,7 +27,7 @@ public:
     {
 	a = a.dup;
     }
-    double eval_Cp(double T)
+    double eval_Cp(double T) const
     {
 	if ( T < T_lower ) 
 	    throw new Exception("temperature value lower than T_lower in CEAThermoCurve.eval_Cp()");
@@ -37,7 +37,7 @@ public:
 	Cp_on_R += a[4]*T*T + a[5]*T*T*T + a[6]*T*T*T*T;
 	return R*Cp_on_R;
     }
-    double eval_h(double T)
+    double eval_h(double T) const
     {
 	if ( T < T_lower ) 
 	    throw new Exception("temperature value lower than T_lower in CEAThermoCurve.eval_h()");
@@ -47,7 +47,7 @@ public:
 	h_on_RT +=  a[4]*T*T/3.0 + a[5]*T*T*T/4.0 + a[6]*T*T*T*T/5.0 + a[7]/T;
 	return R*T*h_on_RT;
     }
-    double eval_s(double T)
+    double eval_s(double T) const
     {
 	if ( T < T_lower ) 
 	    throw new Exception("temperature value lower than T_lower in CEAThermoCurve.eval_s()");
@@ -89,7 +89,7 @@ public:
     {
 	return new CEAThermo(this);
     }
-    double eval_Cp(double T)
+    double eval_Cp(double T) const
     {
 	/* We don't try to any fancy extrapolation
 	   off the ends of the curves. Beyond the range
@@ -110,7 +110,7 @@ public:
 	// We should never reach this point.
 	throw new Exception("CEAThermo.eval_Cp(): we should never have reached this point.");
     }
-    double eval_h(double T)
+    double eval_h(double T) const
     {
 	/* We don't try any fancy extrapolation beyond the limits
 	   of the curves. We will simply take Cp as constant and
@@ -137,7 +137,7 @@ public:
 	// We should never reach this point.
 	throw new Exception("CEAThermo.eval_h(): we should never have reached this point.");
     }
-    double eval_s(double T)
+    double eval_s(double T) const
     {
 	/* We don't try any fancy extrapolation beyond the limits
 	   of the curves. We will simply take Cp as constant and

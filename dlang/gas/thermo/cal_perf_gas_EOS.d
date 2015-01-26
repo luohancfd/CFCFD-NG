@@ -1,5 +1,5 @@
 /**
- * calperfectgasEOS.d
+ * cal_perf_gas_EOS.d
  * Implements a calorically perfect gas equation
  * of state. In this model, the specific heats
  * at constant pressure (Cp) and constant volume (Cv)
