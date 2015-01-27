@@ -84,6 +84,9 @@ public:
 	    msg ~= format("The final values are: T1 = %12.6f and T2 = %12.6f\n", T1, T2);
 	    throw new Exception(msg);
 	}
+
+	if ( T1 < T_MIN )
+	    T1 = T_MIN;
 	
 	try {
 	    Q.T[0] = solve!zeroFun(T1, T2, TOL);
@@ -111,7 +114,7 @@ ThermallyPerfectGasMixEOS createThermallyPerfectGasMixEOS(string[] species, ref 
     CEAThermo[] curves;
     foreach ( isp, s; species ) {
 	double M = lua.get!double(s, "M");
-	R[isp] = R_univ/lua.get!double(s, "M");
+	R[isp] = R_universal/lua.get!double(s, "M");
 	auto t = lua.get!LuaTable(s, "cea_thermo");
 	curves ~= createCEAThermo(t, R[isp]);
     }

@@ -16,8 +16,10 @@ import std.stdio;
 import std.range;
 import std.algorithm;
 
-immutable double R_universal = 8.314; // J/mole.K
+import gas.physical_constants;
+
 immutable double SMALL_MOLE_FRACTION = 1.0e-15;
+immutable double T_MIN = 20.0; 
 
 class GasModel {
 public:

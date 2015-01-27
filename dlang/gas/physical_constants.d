@@ -10,5 +10,5 @@
 module gas.physical_constants;
 
 ///Universal gas constant (S.I. units)
-immutable R_univ = 8.31451; // J/(mol.K) -- Tipler (1991)
+immutable R_universal = 8.31451; // J/(mol.K) -- Tipler (1991)
 
