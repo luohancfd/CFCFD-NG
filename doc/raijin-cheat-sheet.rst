@@ -59,6 +59,12 @@ Compile eilmer::
 Note that the default (and recommended) MPI environment is openmpi.
 This version has been compiled with the intel compiler, that's why we load the intel compiler above.
 
+UPDATE: 28-Jan-2015
+If the warning that's issued when compiling block_io.cxx bothers you,
+it can be suppressed by ignoring that particular warning:
+
+  > OMPI_CXXFLAGS=-wd823 make TARGET=for_openmpi install
+
 Submitting a job
 ----------------
 
