@@ -33,7 +33,7 @@ std::vector<double> read_time_varying_bc(std::string boundary, std::string dir, 
     std::string line;
 
     //Set the path
-    filename = dir + "/" + boundary + "/" +std::to_string(iteration) ;
+    filename = dir + "/" + boundary + "/" +std::to_string(static_cast<long long>(iteration)) ;
 
     //Read file with terms
 	std::ifstream user_file( filename.c_str() );
@@ -57,7 +57,7 @@ std::vector<double> read_time_varying_bc2(std::string bc_type, std::string bound
     std::string line;
 
     //Set the path
-    filename = dir + "/" + boundary + "/" +std::to_string(iteration) + "/" + bc_type ;
+    filename = dir + "/" + boundary + "/" +std::to_string(static_cast<long long>(iteration)) + "/" + bc_type ;
 
     //Read file with terms
 	std::ifstream user_file( filename.c_str() );
