@@ -171,7 +171,7 @@ private:
     CEAThermoCurve[] _curves;
 }
 
-CEAThermo createCEAThermo(ref LuaTable t, double R)
+CEAThermo createCEAThermo(LuaTable t, double R)
 {
     auto nseg = t.get!int("nsegments");
     CEAThermoCurve[] curves;

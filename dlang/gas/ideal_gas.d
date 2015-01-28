@@ -9,6 +9,7 @@
 module gas.ideal_gas;
 
 import gas.gas_model;
+import gas.physical_constants;
 import perf_gas_EOS = gas.thermo.perf_gas_EOS;
 import cal_perf_gas_EOS = gas.thermo.cal_perf_gas_EOS;
 import gas.diffusion.sutherland_viscosity;
@@ -97,7 +98,7 @@ public:
     {
 	throw new Exception("not implemented");
     }
-    override void update_thermo_from_hs(ref GasState Q, double s) const
+    override void update_thermo_from_hs(ref GasState Q, double h, double s) const
     {
 	throw new Exception("not implemented");
     }
@@ -105,7 +106,7 @@ public:
     {
 	Q.a = sqrt(_gamma * _Rgas * Q.T[0]);
     }
-    override void update_trans_coeffs(ref GasState Q) const
+    override void update_trans_coeffs(ref GasState Q)
     {
 	assert(Q.T.length == 1, "incorrect number of modes");
 	assert(Q.k.length == 1, "incorrect number of modes");

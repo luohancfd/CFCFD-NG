@@ -12,6 +12,14 @@ import std.stdio;
 import std.string;
 import luad.all;
 
+LuaState initLuaState(string fname)
+{
+    auto lua = new LuaState();
+    lua.openLibs();
+    lua.doFile(fname);
+    return lua;
+}
+
 void getValues(T)(LuaTable t, in string[] keys, out T[string] values, string tabName)
 {
     foreach ( k; keys ) {
@@ -83,7 +91,7 @@ unittest
     assert(vals2["B"] == -15);
     assert(vals2["C"] == 2);
 
-    /// Test 6. Expect an exit ception when we go for an invalid key.
+    /// Test 6. Expect an exit exception when we go for an invalid key.
     keys3[0] = "AA";
     try {
 	getValues(t, keys3, vals, "test6");

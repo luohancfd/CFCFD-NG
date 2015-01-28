@@ -72,7 +72,7 @@ private:
     double _S;
 }
 
-SutherlandViscosity createSutherlandViscosity(ref LuaTable t)
+SutherlandViscosity createSutherlandViscosity(LuaTable t)
 {
     auto T_ref = t.get!double("T_ref");
     auto mu_ref = t.get!double("mu_ref");

@@ -108,7 +108,7 @@ private:
     double _T_highest;
 }
 
-CEAThermalConductivity createCEAThermalConductivity(ref LuaTable t)
+CEAThermalConductivity createCEAThermalConductivity(LuaTable t)
 {
     string[6] plist = ["T_lower", "T_upper", "A", "B", "C", "D"];
     double[string] params;

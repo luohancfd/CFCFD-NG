@@ -1,6 +1,7 @@
 # makefile for the gas module
 
 DEMO_PROGRAMS := gas_model_demo ideal_gas_demo
+UNITTEST_FILES := therm_perf_gas
 
 UTIL_DIR := ../util
 UTIL_FILES := $(UTIL_DIR)/lua_service.d
@@ -21,7 +22,8 @@ GAS_MODEL_FILES := \
 	gas_model.d \
 	gas_model_util.d \
 	ideal_gas.d \
-	physical_constants.d
+	physical_constants.d \
+	therm_perf_gas.d
 
 THERMO_FILES := \
 	thermo/caloric_EOS.d \
@@ -66,3 +68,5 @@ gas_model_demo: gas_model_demo.d libgas.a $(LUAD_FILES) $(UTIL_FILES) $(LIBLUA)
 ideal_gas_demo: ideal_gas_demo.d libgas.a $(LUAD_FILES) $(LIBLUA)
 	dmd -g ideal_gas_demo.d libgas.a $(LUAD_FILES) $(DLINKFLAGS)
 
+therm_perf_gas : therm_perf_gas.d libgas.a $(LUAD_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
+	dmd -main -unittest therm_perf_gas.d libgas.a $(LUAD_FILES) $(NM_FILES) $(DLINKFLAGS)

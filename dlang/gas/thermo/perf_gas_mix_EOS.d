@@ -8,6 +8,8 @@
  * Version: 2014-09-07 -- first cut
  */
 
+module gas.thermo.perf_gas_mix_EOS;
+
 import gas.gas_model;
 import gas.thermo.thermal_EOS;
 import gas.thermo.perf_gas_EOS;

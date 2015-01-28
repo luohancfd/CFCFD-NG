@@ -33,9 +33,9 @@ public:
     const void update_thermo_from_rhoT(ref GasState Q) {}
     const void update_thermo_from_rhop(ref GasState Q) {}
     const void update_thermo_from_ps(ref GasState Q, double s) {}
-    const void update_thermo_from_hs(ref GasState Q, double s) {}
+    const void update_thermo_from_hs(ref GasState Q, double h, double s) {}
     const void update_sound_speed(ref GasState Q) {}
-    const void update_trans_coeffs(ref GasState Q) {}
+    void update_trans_coeffs(ref GasState Q) {}
     // const void update_diff_coeffs(ref GasState Q) {}
 
     // Methods to be overridden.
@@ -84,7 +84,7 @@ public:
 	k.length = n_modes;
     }
 
-    this(in GasModel gm, in double p_init, in double[] T_init, 
+    this(GasModel gm, in double p_init, in double[] T_init, 
 	 in double[] massf_init=[1.0,], in double quality_init=1.0,
 	 in double sigma_init=0.0)
     {
@@ -115,7 +115,7 @@ public:
 	gm.update_trans_coeffs(this);
     }
 
-    this(in GasModel gm, in double p_init, in double T_init, 
+    this(GasModel gm, in double p_init, in double T_init, 
 	 in double[] massf_init=[1.0,], in double quality_init=1.0,
 	 in double sigma_init=0.0)
     {
@@ -169,7 +169,7 @@ public:
     }
 
     // Note that we must not send the current object in the others list as well.
-    void copy_average_values_from(in GasState[] others, in GasModel gm) 
+    void copy_average_values_from(in GasState[] others, GasModel gm) 
     {
 	size_t n = others.length;
 	if (n == 0) throw new Error("Need to average from a nonempty array.");

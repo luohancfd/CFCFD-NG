@@ -56,6 +56,7 @@ public:
     }
 
     override double eval(in GasState Q) {
+
 	// 1. Evaluate the mole fractions
 	massf2molef(Q.massf, _MW, _x);
 	// 2. Calculate the component viscosities
