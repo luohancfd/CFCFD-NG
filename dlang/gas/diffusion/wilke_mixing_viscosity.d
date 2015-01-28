@@ -44,18 +44,18 @@ public:
 	    _vms ~= v.dup;
 	}
 	_MW = src._MW.dup;
-	_x = src._x.dup;
-	_mu = src._mu.dup;
-	_phi.length = src._phi.length;
-	foreach (i; 0 .. src._phi.length) {
-	    _phi[i] = src._phi[i].dup;
+	_x.length = _MW.length;
+	_mu.length = _MW.length;
+	_phi.length = _MW.length;
+	foreach (ref p; _phi) {
+	    p.length = _MW.length;
 	}
     }
     override WilkeMixingViscosity dup() const {
 	return new WilkeMixingViscosity(this);
     }
 
-    override double eval(in GasState Q) {
+    override double eval(in GasState Q) const {
 
 	// 1. Evaluate the mole fractions
 	massf2molef(Q.massf, _MW, _x);
@@ -86,17 +86,17 @@ public:
 	return mu;
     }
 
+    // Working array space
+    static double[] _x;
+    static double[] _mu;
+    static double[][] _phi;
 private:
     Viscosity[] _vms; // component viscosity models
     double[] _MW; // component molecular weights
-    // Working array space
-    double[] _x;
-    double[] _mu;
-    double[][] _phi;
 }
 
 unittest {
-    import sutherland_visc;
+    import gas.diffusion.sutherland_viscosity;
     // Placeholder test. Redo with CEA curves.
     double T = 300.0;
     auto vm_N2 = new SutherlandViscosity(273.0, 1.663e-5, 107.0);

@@ -62,7 +62,7 @@ public:
       Compute the viscosity assuming that temperature is
       up-to-date in GasState Q.
     +/
-    override double eval(in GasState Q) {
+    override double eval(in GasState Q) const {
 	return sutherland_viscosity(Q.T[0], _T_ref, _mu_ref, _S);
     }
 

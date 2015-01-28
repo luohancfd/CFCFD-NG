@@ -25,6 +25,11 @@ import gas.gas_model;
 import gas.diffusion.therm_cond;
 
 class WilkeMixingThermCond : ThermalConductivity {
+    // Working array space
+    static double[] _x;
+    static double[] _k;
+    static double[][] _phi;
+
 public:
     this(in ThermalConductivity[] tcms, in double[] MW) {
 	assert(tcms.length == MW.length);
@@ -44,18 +49,18 @@ public:
 	    _tcms ~= tcm.dup;
 	}
 	_MW = src._MW.dup;
-	_x = src._x.dup;
-	_k = src._k.dup;
-	_phi.length = src._phi.length;
-	foreach (i; 0 .. src._phi.length) {
-	    _phi[i] = src._phi[i].dup;
+	_x.length = _MW.length;
+	_k.length = _MW.length;
+	_phi.length = _MW.length;
+	foreach ( ref p; _phi) {
+	    p.length = _MW.length;
 	}
     }
     override WilkeMixingThermCond dup() const {
 	return new WilkeMixingThermCond(this);
     }
 
-    override double eval(in GasState Q, int imode) {
+    override double eval(in GasState Q, int imode) const {
 	// 1. Evaluate the mole fractions
 	massf2molef(Q.massf, _MW, _x);
 	// 2. Calculate the component viscosities
@@ -88,15 +93,11 @@ public:
 private:
     ThermalConductivity[] _tcms; // component viscosity models
     double[] _MW; // component molecular weights
-    // Working array space
-    double[] _x;
-    double[] _k;
-    double[][] _phi;
 }
 
 unittest {
     import std.stdio;
-    import sutherland_therm_cond;
+    import gas.diffusion.sutherland_therm_cond;
     // Placeholder test. Redo with CEA curves.
     double T = 300.0;
     auto tcm_N2 = new SutherlandThermCond(273.0, 0.0242, 150.0);

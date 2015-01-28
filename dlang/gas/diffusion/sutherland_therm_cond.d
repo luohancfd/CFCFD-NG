@@ -56,7 +56,7 @@ public:
     override SutherlandThermCond dup() const {
 	return new SutherlandThermCond(this);
     }
-    override double eval(in GasState Q, int imode) {
+    override double eval(in GasState Q, int imode) const {
 	return sutherland_thermal_conductivity(Q.T[imode], _T_ref, _k_ref, _S);
     }
 

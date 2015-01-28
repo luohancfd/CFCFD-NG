@@ -12,11 +12,11 @@ import gas.gas_model;
 
 interface ThermalConductivity {
     ThermalConductivity dup() const;
-    final void update_thermal_conductivity(ref GasState Q)
+    final void update_thermal_conductivity(ref GasState Q) const
     {
 	for ( auto imode = 0; imode < Q.T.length; ++imode) {
 	    Q.k[imode] = eval(Q, imode);
 	}
     }
-    double eval(in GasState Q, int imode);
+    double eval(in GasState Q, int imode) const;
 }

@@ -39,7 +39,7 @@ public:
 	D = params["D"];
     }
 
-    double eval(double T)
+    double eval(double T) const
     {
 	if ( T < T_lower )
 	    throw new Exception("temperature value lower than T_lower in CEAThermCondCurve:eval()");
@@ -82,7 +82,7 @@ public:
     {
 	return new CEAThermalConductivity(this);
     }
-    override double eval(in GasState Q, int imode)
+    override double eval(in GasState Q, int imode) const
     {
 	double T = Q.T[imode];
 	// At the limits of the curve, extrapolate value as a constant.

@@ -106,7 +106,7 @@ public:
     {
 	Q.a = sqrt(_gamma * _Rgas * Q.T[0]);
     }
-    override void update_trans_coeffs(ref GasState Q)
+    override void update_trans_coeffs(ref GasState Q) const
     {
 	assert(Q.T.length == 1, "incorrect number of modes");
 	assert(Q.k.length == 1, "incorrect number of modes");

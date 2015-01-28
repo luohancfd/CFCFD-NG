@@ -39,7 +39,7 @@ public:
 	D = params["D"];
     }
 
-    double eval(double T)
+    double eval(double T) const
     {
 	if ( T < T_lower )
 	    throw new Exception("temperature value lower than T_lower in CeaViscCurve:eval()");
@@ -85,7 +85,7 @@ public:
     {
 	return new CEAViscosity(this);
     }
-    override double eval(in GasState Q)
+    override double eval(in GasState Q) const
     {
 	double T = Q.T[0];
 	// At the limits of the curve, extrapolate value as a constant.

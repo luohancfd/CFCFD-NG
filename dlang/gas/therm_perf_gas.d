@@ -222,7 +222,7 @@ public:
     {
 	throw new Exception("not implemented");
     }
-    override void update_trans_coeffs(ref GasState Q)
+    override void update_trans_coeffs(ref GasState Q) const
     {
 	assert(Q.T.length == 1, "incorrect number of modes");
 	assert(Q.k.length == 1, "incorrect number of modes");
