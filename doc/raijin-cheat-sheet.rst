@@ -22,6 +22,9 @@ that load the intel compilers::
 
   #module load intel-fc
   #module load intel-cc
+  
+The lines might be at ``.login`` and ``.profile`` files as well,
+so check these files and comment out the lines if possible.
 
 Eilmer needs newer versions of the intel compilers and these lines would load the default versions.
 
