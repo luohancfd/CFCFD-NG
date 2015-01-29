@@ -6,8 +6,6 @@
 --   20-Mar-2009 :- first put into production
 --
 
-module(..., package.seeall)
-
 require 'reac'
 
 local validate_reaction = reac.validate_reaction
