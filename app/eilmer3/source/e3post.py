@@ -1388,12 +1388,19 @@ if __name__ == '__main__':
                                 uoDict.has_key("--binary-format"))
         #
         if uoDict.has_key("--OpenFoam"):
+            configFileName = rootName + ".config" 
+            cp = ConfigParser.ConfigParser()
+            cp.read(configFileName)
+            axisymmetric_flag = cp.get("global_data", "axisymmetric_flag")
             if verbosity_level > 0:
-                print "writing OpenFoam grid"
+                print "writing OpenFoam grid, 2-D or 3-D"
+                if axisymmetric_flag == 1:
+                    print "creating axisymmetric OpenFoam grid"
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
-            write_OpenFoam_files(rootName, nblock, grid, flow)
-        #
+            write_OpenFoam_files(rootName, nblock, grid, flow, axisymmetric_flag)
+            raw_input()
+        # 
         if uoDict.has_key("--tecplot"):
             if verbosity_level > 0:
                 print "Assemble Tecplot file for t=", times_dict[tindx]

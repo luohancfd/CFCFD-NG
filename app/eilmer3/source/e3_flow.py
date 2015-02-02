@@ -324,33 +324,33 @@ def write_cell_data(fp, data, gdata):
     gmodel = get_gas_model_ptr()
     nsp = gmodel.get_number_of_species()
     nmodes = gmodel.get_number_of_modes()
-    fp.write("%20.16e %20.16e %20.16e %20.16e" % 
+    fp.write("%20.12e %20.12e %20.12e %20.12e" % 
              (data['pos.x'], data['pos.y'], data['pos.z'], data['volume']))
-    fp.write(" %20.16e %20.16e %20.16e %20.16e" %
+    fp.write(" %20.12e %20.12e %20.12e %20.12e" %
              (data['rho'], data['vel.x'], data['vel.y'], data['vel.z']))
     if gdata.mhd_flag == 1:
-        fp.write(" %20.16e %20.16e %20.16e %20.16e %20.16e" % (data['B.x'], data['B.y'], data['B.z'], data['psi'], data['divB']))
-    fp.write(" %20.16e %20.16e %20.16e" % (data['p'], data['a'], data['mu'],))
+        fp.write(" %20.12e %20.12e %20.12e %20.12e %20.12e" % (data['B.x'], data['B.y'], data['B.z'], data['psi'], data['divB']))
+    fp.write(" %20.12e %20.12e %20.12e" % (data['p'], data['a'], data['mu'],))
     for imode in range(nmodes):
         try:
-            fp.write(" %20.16e" % data['k[%d]' % imode])
+            fp.write(" %20.12e" % data['k[%d]' % imode])
         except:
-            fp.write(" %20.16e" % data['k[0]']) # -> quick fix for k modes, EJF 14/11/2013
-    fp.write(" %20.16e %20.16e %1d" % (data['mu_t'], data['k_t'], data['S'],))
+            fp.write(" %20.12e" % data['k[0]']) # -> quick fix for k modes, EJF 14/11/2013
+    fp.write(" %20.12e %20.12e %1d" % (data['mu_t'], data['k_t'], data['S'],))
     if gdata.radiation_flag == 1:
-        fp.write(" %20.16e %20.16e %20.16e" % (0.0,0.0,0.0)) # Zero radiation initially.
-    fp.write(" %20.16e %20.16e" % (data['tke'],data['omega']) )
+        fp.write(" %20.12e %20.12e %20.12e" % (0.0,0.0,0.0)) # Zero radiation initially.
+    fp.write(" %20.12e %20.12e" % (data['tke'],data['omega']) )
     for isp in range(nsp):
         specname = gmodel.species_name(isp).replace(' ', '-')
-        fp.write(" %20.16e" % data['massf[%d]-%s' % (isp, specname)])
+        fp.write(" %20.12e" % data['massf[%d]-%s' % (isp, specname)])
     if nsp > 1:
         dt_chem = -1.0
-        fp.write(" %20.16e" % dt_chem)
+        fp.write(" %20.12e" % dt_chem)
     for imode in range(nmodes):
-        fp.write(" %20.16e %20.16e" % (data['e[%d]' % imode], data['T[%d]' % imode],))
+        fp.write(" %20.12e %20.12e" % (data['e[%d]' % imode], data['T[%d]' % imode],))
     if nmodes > 1:
         dt_therm = -1.0
-        fp.write(" %20.16e" % dt_therm)
+        fp.write(" %20.12e" % dt_therm)
     fp.write("\n")
     return
     
@@ -364,10 +364,10 @@ def write_bgk_data(fp, data, gdata):
 
     For Eilmer3 data files, it's all on one line.
     """
-    fp.write("%20.16e %20.16e %20.16e %20.16e" % 
+    fp.write("%20.12e %20.12e %20.12e %20.12e" % 
              (data['pos.x'], data['pos.y'], data['pos.z'], data['volume']))
     for gh in range(gdata.velocity_buckets):
-        fp.write("%20.16e %20.16e" % (data['G[%d]'%gh], data['H[%d]'%gh]))
+        fp.write("%20.12e %20.12e" % (data['G[%d]'%gh], data['H[%d]'%gh]))
     fp.write("\n")
     return
 
@@ -1333,12 +1333,14 @@ def write_general_OpenFoam_bottom(fp):
     fp.write("// ************************************************************************* //\n")
     return
 
-def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, jb, grid, flow):
+def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, jb, grid, flow, axi_flag):
     """
     Write the OpenFoam format data from a single block 
     as an unstructured grid of finite-volume cells.
-    Since OpenFoam only accept 3D grid, this tool
-    only works for 3D grid from Eilmer
+    Since OpenFoam only accept 3D grid, this tool can be operated in the following 3 modes:
+    a) 3D grid from Eilmer --> 3D foam grid
+    b) 2D grid from Eilmer --> 3D foam grid with width 0.001 meter
+    c) 2D axi-symmetric grid from Eilmer --> 3D foam grid with angle +/-0.04 radians
     
     :param fp0: reference to the file object: points
     :param fp1: reference to the file object: faces
@@ -1347,6 +1349,7 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, jb, grid, flow):
     :param fp4: reference to the file object: boundary
     :param grid: single-block grid of vertices
     :param flow: single-block of cell-centre flow data
+    :param axi_flag: integr
     """
     nio = grid.ni; njo = grid.nj; nko = grid.nk
     nif = flow.ni; njf = flow.nj; nkf = flow.nk
@@ -1452,9 +1455,18 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, jb, grid, flow):
         for j in range(njo):
             for i in range(nio):
                 if two_D:
-                    x,y,z = uflowz(grid.x[i,j,0]), uflowz(grid.y[i,j,0]), uflowz(grid.z[i,j,0])
-                    if k == 1:
-                        z = z_set[1]
+                    if axi_flag:
+                        x,y,z = uflowz(grid.x[i,j,0]), uflowz(grid.y[i,j,0]), uflowz(grid.z[i,j,0])
+                        if k == 0:
+                            y = y * 0.99920010666097792 # = cos(0.04)
+                            z = y * -0.039989334186634161 # = sin(0.04)
+                        else:
+                            y = y * 0.99920010666097792 # = cos(0.04)
+                            z = y * 0.039989334186634161 # = sin(0.04)
+                    else:
+                        x,y,z = uflowz(grid.x[i,j,0]), uflowz(grid.y[i,j,0]), uflowz(grid.z[i,j,0])
+                        if k == 1:
+                            z = z_set[1]
                 else:
                     x,y,z = uflowz(grid.x[i,j,k]), uflowz(grid.y[i,j,k]), uflowz(grid.z[i,j,k])
                 fp0.write("(%e %e %e)\n" % (x,y,z))
@@ -1620,14 +1632,15 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, jb, grid, flow):
     fp4.write("    }\n")
     return
 
-def write_OpenFoam_files(rootName, nblock, grid, flow):
+def write_OpenFoam_files(rootName, nblock, grid, flow, axi_flag):
     """
-    Writes the grid files for OpenFoam.
+    Writes the grid files for OpenFoam, support 2-D and 3-D cases.
 
     :param rootName: specific file names are built by adding bits to this name
     :param nblock: integer
     :param grid: list of StructuredGrid objects
     :param flow: list of StructuredGridFlow objects
+    :param axi_flag: integer
     """
     plotPath = "foam"
     if not os.access(plotPath, os.F_OK):
@@ -1659,7 +1672,7 @@ def write_OpenFoam_files(rootName, nblock, grid, flow):
         write_general_OpenFoam_header(OFFile3)
         write_general_OpenFoam_header(OFFile4)
         #
-        write_OpenFoam_unstructured_file(OFFile0, OFFile1, OFFile2, OFFile3, OFFile4, jb, grid[jb], flow[jb])
+        write_OpenFoam_unstructured_file(OFFile0, OFFile1, OFFile2, OFFile3, OFFile4, jb, grid[jb], flow[jb], axi_flag)
         #
         write_general_OpenFoam_bottom(OFFile0)
         write_general_OpenFoam_bottom(OFFile1)
@@ -1792,7 +1805,7 @@ def write_plot3d_files(rootName, tindx, nblock, grid, flow, t):
             for k in range(nk):
                 for j in range(nj):
                     for i in range(ni):
-                        fp.write("%20.16e\n" % f.data[c][i,j,k])
+                        fp.write("%20.12e\n" % f.data[c][i,j,k])
     #
     # 2. Write the .nam file
     #    We remove pos.x, pos.y, pos.z from the list of variables
@@ -1821,7 +1834,7 @@ def write_plot3d_files(rootName, tindx, nblock, grid, flow, t):
             for k in range(nk):
                 for j in range(nj):
                     for i in range(ni):
-                        fp.write("%20.16e\n" % uflowz(f.data[var][i,j,k]))
+                        fp.write("%20.12e\n" % uflowz(f.data[var][i,j,k]))
     #
     fp.close()
     return
