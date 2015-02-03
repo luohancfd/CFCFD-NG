@@ -1,21 +1,26 @@
 #!/usr/bin/env python
 """
 Function to automatically convert e3prep output to OpenFoam mesh.
-script performes the following tasks:
-- combines the individual blocks into a single unstructured OpenFoam mesh
-- stitch internal faces
-- combine front and back faces (Top and Bottom in the e3prep blocks) to form an empty front and rear patch 
-- combine individual boundaries into patches. The following boundaries are recognised and will be grouped automatically:
-    - OF_inlet_1
-    - OF_inlet_2
-    - OF_outlet_1
-    - OF_outlet_2
-    - OF_wall_1
-    - OF_wall_2
-    - Anything else will retain name and be set as "patch"
+Can perform following 3 mesh conversions:
+    - 2D Eilmer to equivalent 2D OpenFoam mesh
+    - 2D Eilmer axisymetric, to equivalent OpenFoam axisymmetric mesh
+    - 3D Eilmer to equivalent 3D OpenFoam mesh
 
+The script performs the following tasks:
+1) check appropriate OpenFoam File Structure exits
+2) execute e3post.py --openFoam to generate individual unstructured OF meshes for each Eilmer block. These meshes are stored in /foam/bxxxx corresponding to respective blocks 
+3) combines the individual blocks into a single unstructured OpenFoam mesh
+4) stitch internal faces
+5) for 2D combine front and back faces of mesh (Top and Bottom in the e3prep blocks) to form "empty" or "wedge" type pacthes
+6) group boundaries defined in job.py based on the respective names. The following boundary names are recognised (replace XX by 01, 02, 03, 04, 05,06, 07, 08, 09, 10):
+    - OF_inlet_XX
+    - OF_outlet_XX
+    - OF_wall_XX
+    - OF_symmetry_XX
+    - Anything else will retain its name and be set as "patch". Duplicate names may cause errors.
+7) optionally a /0/p and /0/U file containing pressure and velocity boundary conditions is created.
 
-Author: ingo jahn 04/09/2014
+Author: Ingo Jahn 03/02/2015
 """
 
 import os as os
@@ -49,21 +54,26 @@ def get_folders():
         case_name = str2[n-1]
     return root_dir, case_dir, start_dir, case_name 
 
-def check_case_structure(case_dir):
-    print 'Checking if correct OpenFOAM case structure exists'
+def check_case_structure(case_dir,root_dir):
+    print 'Checking if correct OpenFOAM case structure exists \n'
     flag = 0
     if os.path.exists(case_dir+'/0') is not True:
         flag = 1
-        print 'Error: Missing /0 directory'
+        print "Missing /0 directory"
     if os.path.exists(case_dir+'/system') is not True:
         flag = 1
-        print 'Error: Missing /system directory'
+        print"Missing /system directory"
     if os.path.exists(case_dir+'/constant') is not True:
         flag = 1
-        print 'Error: Missing /constant directory'
+        print "Missing /constant directory"
+
     if os.path.exists(case_dir+'/constant/polyMesh') is not True:
         flag = 1
-        print 'Error: Missing /constant/polyMesh directory'
+        print "Missing /constant/polyMesh directory"
+    if os.path.exists(root_dir+'/slave_mesh') is True:
+        flag = 1 
+        print "Folder ../slave_mesh/ already exists \n Delete this folder and try again"
+    print'\n'
     return flag
 
 
@@ -93,6 +103,12 @@ def get_job_config_data(job):
             temp = line.split()
             dimensions = int(temp[2])
             break   
+    # differentiate between axisymmetric and 2-D cases
+    for line in f:
+        if "axisymmetric_flag" in line:
+            temp = line.split()
+            axisymmetric_flag = int(temp[2])
+            break 
     # find number of blocks
     for line in f:
         if "nblock" in line:
@@ -180,7 +196,7 @@ def get_job_config_data(job):
                 else:
                     Label[block][face] = "EMPTY"
     f.close()
-    return (nblock, dimensions, other_block, other_face, Label)
+    return (nblock, dimensions, axisymmetric_flag, other_block, other_face, Label)
 
 
 def find_boundary_info(fp,block,face,lookup):
@@ -249,6 +265,26 @@ def write_createPatch_header(fp):
     fp.write("(\n")
     return
 
+def write_collapseDict_header(fp):
+    #
+    # ------------------- writing files now -----------------------------
+    # points
+    fp.write("    class       dictionary;\n")
+    fp.write("    object      collapseDict;\n")
+    fp.write("}\n")
+    fp.write("// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n")
+    fp.write("\n")
+    fp.write("collapseEdgesCoeffs\n")
+    fp.write("{\n")
+    fp.write("// Edges shorter than this absolute value will be merged\n")
+    fp.write("    minimumEdgeLength   1e-10;\n")
+    fp.write("\n")
+    fp.write("// The maximum angle between two edges that share a point attached to\n")
+    fp.write("// no other edges\n")
+    fp.write("maximumMergeAngle   5;\n")
+    return
+
+
 def write_p_header(fp):
     #
     # ------------------- writing files now -----------------------------
@@ -304,6 +340,8 @@ def write_p_Boundary(fp,bname,btype):
         fp.write("        type   zeroGradient; \n")
     elif btype == "empty":
         fp.write("        type   empty; \n")
+    elif btype == "wedge":
+        fp.write("        type   wedge; \n")
     elif btype == "symmetry":
         fp.write("        type   symmetry; \n")
     elif btype == "fixedValue":
@@ -321,6 +359,8 @@ def write_U_Boundary(fp,bname,btype):
         fp.write("        type   zeroGradient; \n")
     elif btype == "empty":
         fp.write("        type   empty; \n")
+    elif btype == "wedge":
+        fp.write("        type   wedge; \n")
     elif btype == "symmetry":
         fp.write("        type   symmetry; \n")
     elif btype == "fixedValue":
@@ -344,10 +384,13 @@ def combine_faces(case_dir,start_dir,patch_str,patch_name,patch_type):
     print "createPatchDict has been written. \n"
     # execute createPatch
     os.chdir(case_dir)
-    os.system('createPatch -overwrite')
+    flag = os.system('createPatch -overwrite')
     # move back to starting_directory
     os.chdir(start_dir) 
-    print ("The following boundaries" +patch_str+ " have been combined to form Patch: " +patch_name+ " with the type: " + patch_type)
+    if flag == 0:
+        print ("The following boundaries" +patch_str+ " have been combined to form Patch: " +patch_name+ " with the type: " + patch_type)
+    else:
+        raise MyError("Problem during execution of createPaatch.")
     return 
 
 def check_for_undefined_faces(case_dir,nblock):
@@ -373,7 +416,7 @@ def check_for_undefined_faces(case_dir,nblock):
 def check_for_undefined_labels(patch_Label):
     A = [item for sublist in patch_Label for item in sublist]
     A = set(A)
-    String = ['EMPTY']
+    String = ['EMPTY', 'Centreline']
     for i in range(10):
         String.append("OF_inlet_"+'%02d' % i)
         String.append("OF_outlet_"+'%02d' % i)
@@ -384,6 +427,28 @@ def check_for_undefined_labels(patch_Label):
     return list(A.difference(String))
 
 
+def collapse_faces(case_dir,start_dir):
+    fn = "collapseDict"
+    fn = os.path.join((case_dir+ '/system'), fn)
+    OFFile0 = open(fn, "wb")
+    
+    write_general_OpenFoam_header(OFFile0)
+    write_collapseDict_header(OFFile0)
+    write_general_OpenFoam_bottom_curly(OFFile0)
+    OFFile0.close()
+    print "collapseDict has been written. \n"
+    # execute createPatch
+    os.chdir(case_dir)
+    flag = os.system('collapseEdges -overwrite')
+    # move back to starting_directory
+    os.chdir(start_dir) 
+    if flag == 0:
+        print ("Aligned edges have been collapsed")
+    else:
+        raise MyError("Problem during execution of collapseEdges.")
+
+    return flag
+
 class MyError(Exception):
     def __init__(self, value):
         self.value = value
@@ -392,6 +457,9 @@ class MyError(Exception):
 
 
 def main(uoDict):
+    # create string to collect warning messages
+    warn_str = "\n"
+
     # main file to be executed 
     jobName = uoDict.get("--job", "test")
 
@@ -403,17 +471,19 @@ def main(uoDict):
     root_dir, case_dir, start_dir, case_name  = get_folders()
 
     # check that correct directory structure exists
-    dir_flag = check_case_structure(case_dir)
+    dir_flag = check_case_structure(case_dir, root_dir)
     if dir_flag == 1:
-        raise MyError('ERROR: Incorrect Directory Structure. e3preToFoam must be run inside an OpenFoam case with appropriate sub-directories. \n See error message above and create missing folders or copy from existing case.')
+        raise MyError('ERROR: Incorrect Directory Structure. e3preToFoam must be run inside an OpenFoam case with appropriate sub-directories. \nSee error message above and create missing folders or copy from existing case. \nOnce folders have been created, re-run.')
 
-   
     # change into e3prep directory    
     os.chdir((case_dir+'/e3prep'))
 
     # get data from job.config
-    nblock, dimensions, other_block, other_face, patch_Label = get_job_config_data(jobName)
+    nblock, dimensions, axisymmetric_flag, other_block, other_face, patch_Label = get_job_config_data(jobName)
 
+    # check that combination of diemnsions and axi-symetric flag is appropriate
+    if not (((dimensions == 2 or dimensions == 3) and axisymmetric_flag == 0) or (dimensions == 2 and axisymmetric_flag == 1)):
+        raise MyError('ERROR: Combination of dimensions and axisymmetric_flag is not supported')
     # run e3post to generate /foam folder containing meshes for respective block
     os.system(("e3post.py --job=" + jobName + " --OpenFoam"))
 
@@ -439,16 +509,16 @@ def main(uoDict):
         # execute mergeMeshes command
         os.chdir(root_dir)
         flag = os.system('mergeMeshes -overwrite ' + case_name + ' slave_mesh') 
-        if flag != 0:
-            print  'Error with mergeMeshes. \n try running of230 to load OpenFOAM module'
+        if flag == 0:
+            print ('Block ' + '%04d' % block + ' and ' + '%04d' % (block+1) + ' have been merged.')
+        else:
             sh.rmtree(root_dir+'/slave_mesh') # removing slave_mesh directory before exiting
             os.chdir(start_dir)
-            sys.exit(1)
-
-        print ('Block ' + '%04d' % block + ' and ' + '%04d' % (block+1) + ' have been merged.')   
+            raise MyError('Error with mergeMeshes. \n Try running of230 to load OpenFOAM module')
+   
         # remove polyMesh from slave_mesh
         sh.rmtree(root_dir+'/slave_mesh/constant/polyMesh')
-
+  
     # remove slave_mesh
     sh.rmtree(root_dir+'/slave_mesh')
     # move back to starting_directory
@@ -456,6 +526,10 @@ def main(uoDict):
 
     print "Merging of meshes complete. \n \n "
 
+    # Remove faces with zero area, positioned along centreline
+    if axisymmetric_flag == 1:
+        print "Removing zero Area faces along centreline. \n"
+        flag = collapse_faces(case_dir,start_dir)
 
     #identify number of block connections
     interfaces = len(other_block[np.where(other_block != -1)]) # counts 2 x internal connections, as seen by other blocks
@@ -469,7 +543,7 @@ def main(uoDict):
             if len(block) == 0:
                 break
 
-            print (block,face)
+            # print (block,face)
             o_block = other_block[block[0],face[0]]
             o_face = other_face[block[0],face[0]]
 
@@ -478,38 +552,79 @@ def main(uoDict):
         
             # print (current_facename,other_facename)
 
-            # overwrite matcing face in other block
+            # overwrite matching face in other block
             other_block[o_block,o_face] = -1
             other_face[o_block,o_face] = -1
             other_block[block[0],face[0]] = -1
     
             # execute stitchMesh command
             os.chdir(case_dir)
-            os.system('stitchMesh -overwrite -perfect ' + current_facename + ' ' + other_facename) 
-
-            print ('Face ' + current_facename + ' and ' + other_facename + ' have been stitched.')   
-
+            flag = os.system('stitchMesh -overwrite -perfect ' + current_facename + ' ' + other_facename) 
             # move back to starting_directory
-            os.chdir(start_dir)        
-
-            # print (other_block, other_face)
+            os.chdir(start_dir)  
+            if flag == 0:
+                print ('Face ' + current_facename + ' and ' + other_facename + ' have been stitched.')   
+            else:
+                raise MyError('Error with stitchMesh.')
 
         # move /0 directory back
         sh.move((case_dir + '/temp'), case_dir + '/0')    
 
     print "Stitching of internal Faces complete. \n \n"
 
+    # Group all boundaries with Centreline label as corresponding patch
+    if axisymmetric_flag == 1:
+        name = "Centreline"
+        cent_str = ""
+        for block in range(nblock):
+            L_block = patch_Label[block]
+            #print L_block
+            ind = [n for n, s in enumerate(L_block) if name in s]
+
+            if ind != []:
+                for n in ind:
+                    if n == 0:
+                        cent_str = (cent_str + ' n' +'%04d' % block) 
+                    if n == 1:
+                        cent_str = (cent_str + ' e' +'%04d' % block) 
+                    if n == 2:
+                        cent_str = (cent_str + ' s' +'%04d' % block) 
+                    if n == 3:
+                        cent_str = (cent_str + ' w' +'%04d' % block) 
+                    if n == 4:
+                        cent_str = (cent_str + ' t' +'%04d' % block) 
+                    if n == 5:
+                        cent_str = (cent_str + ' b' +'%04d' % block) 
+        print cent_str
+        if cent_str != "":
+            combine_faces(case_dir,start_dir,cent_str,name,'empty')
+
     # do automatic patch combination
-    # top and bottom faces
+    # top and bottom faces 
     if dimensions == 2:
-        patch_str = ' '
-        for i in range(nblock):
-            patch_str = (patch_str+' b'+ '%04d' % i + ' t' + '%04d' % i)
-        patch_name = 'FrontBack'
-        patch_type = 'empty'
-
-        combine_faces(case_dir,start_dir,patch_str,patch_name,patch_type)
-
+        if axisymmetric_flag == 0:
+            # crete empty FrontBack patch 
+            patch_str = ' '
+            for i in range(nblock):
+                patch_str = (patch_str+' b'+ '%04d' % i + ' t' + '%04d' % i)
+            patch_name = 'FrontBack'
+            patch_type = 'empty'
+            combine_faces(case_dir,start_dir,patch_str,patch_name,patch_type)
+        elif axisymmetric_flag == 1:
+            # create pair of wedge patches
+            patch_str = ' '
+            for i in range(nblock):
+                patch_str = (patch_str+' b'+ '%04d' % i)
+            patch_name = 'Back'
+            patch_type = 'wedge'
+            combine_faces(case_dir,start_dir,patch_str,patch_name,patch_type)            
+            patch_str = ' '
+            for i in range(nblock):
+                patch_str = (patch_str+' t'+ '%04d' % i)
+            patch_name = 'Front'
+            patch_type = 'wedge'
+            combine_faces(case_dir,start_dir,patch_str,patch_name,patch_type)  
+        
     # combine patches, based on block label.
     # Following labels are supported: 
     # OF_inlet_00, OF_inlet_01, OF_inlet_02 (up to 09)
@@ -614,33 +729,15 @@ def main(uoDict):
             combine_faces(case_dir,start_dir,sym_str,sym_n,'symmetry')
             N_list_sym.append(sym_n)
 
-
-    # Re-order numbering of faces/cells for numerical efficiency
-    # execute renumberMesh
-    os.chdir(case_dir)
-    os.system('renumberMesh -overwrite')
-    # move back to starting_directory
-    os.chdir(start_dir) 
-    
-
     # check if there are patches remaining that havent been defined. 
     String1 = check_for_undefined_faces(case_dir,nblock)
     String2 = check_for_undefined_labels(patch_Label) 
 
     if not(String1 == []):
-        print 'WARNING: Not all external boundaries were defined in e3prep'
-        print 'Check these faces: ', String1    
-        print "\n \n"
+        warn_str = warn_str + 'WARNING: Not all external boundaries were defined in e3prep \n' + 'Check these faces: ' + String1 + '\n'
 
     if not(String2 == []):
-        print 'WARNING: labels used to define boundary faces do not follow standard OF_names'
-        print 'Check these labels: ', String2    
-        print "\n \n"
-
-    print "\n \n"
-    print "The multi-block mesh created by e3prep.py has been converted into a single Polymesh for use with OpenFoam."
-    print "\n \n"
-
+        warn_str = warn_str + 'WARNING: labels used to define boundary faces do not follow standard OF_names \n' + 'Check these labels: ' + String2 + '\n'
 
     # Option to create template entries for /0.
     if uoDict.has_key("--create_0"): 
@@ -648,11 +745,11 @@ def main(uoDict):
         # check if /0/p file exists
         if os.path.isfile(case_dir+'/0/'+'p') == 1:
             sh.copyfile(case_dir+'/0/'+'p', case_dir+'/0/'+'p.bak')
-            print "WARNING: Existing copy of /0/p has been copied to /0/p.bak"
+            warn_str = warn_str + "WARNING: Existing copy of /0/p has been copied to /0/p.bak \n"
         # check if /0/U file exists
         if os.path.isfile(case_dir+'/0/'+'U') == 1:
             sh.copyfile(case_dir+'/0/'+'U', case_dir+'/0/'+'U.bak')
-            print "WARNING: Existing copy of /0/U has been copied to /0/U.bak"
+            warn_str = warn_str + "WARNING: Existing copy of /0/U has been copied to /0/U.bak \n"
  
         # U and p template are created. The others can be duplicated form these
         file_name = "p"
@@ -662,8 +759,6 @@ def main(uoDict):
         write_general_OpenFoam_header(OFFile0)
         write_p_header(OFFile0)
 
-        if dimensions == 2:
-            write_p_Boundary(OFFile0,'FrontBack','empty')
         for n in range(len(N_list_in)):
             write_p_Boundary(OFFile0,N_list_in[n],'zeroGradient')
         for n in range(len(N_list_out)):
@@ -672,6 +767,13 @@ def main(uoDict):
             write_p_Boundary(OFFile0,N_list_wall[n],'zeroGradient')
         for n in range(len(N_list_sym)):
             write_p_Boundary(OFFile0,N_list_sym[n],'symmetry')
+        if dimensions == 2:
+            if axisymmetric_flag == 0:
+                write_p_Boundary(OFFile0,'FrontBack','empty')
+            else:
+                write_p_Boundary(OFFile0,'Front','wedge')
+                write_p_Boundary(OFFile0,'Back','wedge')
+                write_p_Boundary(OFFile0,'Centreline','empty')
 
         write_general_OpenFoam_bottom_curly(OFFile0)
         OFFile0.close()
@@ -683,8 +785,6 @@ def main(uoDict):
     
         write_general_OpenFoam_header(OFFile0)
         write_U_header(OFFile0)
-        if dimensions == 2:
-            write_U_Boundary(OFFile0,'FrontBack','empty')
         for n in range(len(N_list_in)):
             write_U_Boundary(OFFile0,N_list_in[n],'fixedValue')
         for n in range(len(N_list_out)):
@@ -693,11 +793,29 @@ def main(uoDict):
             write_U_Boundary(OFFile0,N_list_wall[n],'zeroGradient')
         for n in range(len(N_list_sym)):
             write_U_Boundary(OFFile0,N_list_sym[n],'symmetry')
+        if dimensions == 2:
+            if axisymmetric_flag == 0:
+                write_U_Boundary(OFFile0,'FrontBack','empty')
+            else:
+                write_U_Boundary(OFFile0,'Front','wedge')
+                write_U_Boundary(OFFile0,'Back','wedge')
+                write_U_Boundary(OFFile0,'Centreline','empty')
 
         write_general_OpenFoam_bottom_curly(OFFile0)
         OFFile0.close()
         print "/0/U has been written. \n"
 
+
+    # Re-order numbering of faces/cells for numerical efficiency
+    # execute renumberMesh
+    os.chdir(case_dir)
+    flag = os.system('renumberMesh -overwrite')
+    # move back to starting_directory
+    os.chdir(start_dir) 
+    if flag != 0:
+        raise MyError("Problem during execution of renumberMesh.")
+
+    print warn_str
 
 if __name__ == "__main__":
     userOptions = getopt(sys.argv[1:], shortOptions, longOptions)
@@ -709,7 +827,11 @@ if __name__ == "__main__":
     
     try:
         main(uoDict)
+        print "\n \n"
+        print "SUCESS: The multi-block mesh created by e3prep.py has been converted into a single Polymesh for use with OpenFoam."
+        print "\n \n"
     except MyError as e:
-        print "This run of e3prepToFoam.py has gone bad. \n"
+        print "This run of e3prepToFoam.py has gone bad."
         print e.value
+        sys.exit(1)
 

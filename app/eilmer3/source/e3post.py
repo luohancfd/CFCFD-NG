@@ -1399,7 +1399,6 @@ if __name__ == '__main__':
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             write_OpenFoam_files(rootName, nblock, grid, flow, axisymmetric_flag)
-            raw_input()
         # 
         if uoDict.has_key("--tecplot"):
             if verbosity_level > 0:
