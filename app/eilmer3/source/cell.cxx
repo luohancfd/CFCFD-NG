@@ -493,6 +493,7 @@ int FV_Interface::copy_values_from(const FV_Interface &src, int type_of_copy)
 	 type_of_copy == COPY_CELL_LENGTHS ) {
 	pos.x = src.pos.x; pos.y = src.pos.y; pos.z = src.pos.z;
 	vel.x = src.vel.x; vel.y = src.vel.y; vel.z = src.vel.z;
+	ivel.x = src.ivel.x; ivel.y = src.ivel.y; ivel.z = src.ivel.z;	
 	n.x = src.n.x; n.y = src.n.y; n.z = src.n.z;
 	t1.x = src.t1.x; t1.y = src.t1.y; t1.z = src.t1.z;
 	t2.x = src.t2.x; t2.y = src.t2.y; t2.z = src.t2.z;

@@ -2337,7 +2337,6 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    for ( Block *bdp : G.my_blocks ) {
 	        if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
 	            add_udf_velocity_for_vtx(bdp, 0);
-	            add_udf_velocity_for_vtx(bdp, 1);
 	        } else { // mainly for shock fitting
 		    bdp->set_geometry_velocities(G.dimensions, 0);
 		}
@@ -2424,19 +2423,6 @@ int gasdynamic_increment_with_moving_grid(double dt)
 
         G.sim_time = t0 + 1.0*dt;
 	// Preparation for second-stage of gas-dynamic update.
-        /*
-	if ( G.sim_time >= G.t_moving ) {
-	    for ( Block *bdp : G.my_blocks ) {
-	        if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
-	            add_udf_velocity_for_vtx(bdp, 0);
-	            add_udf_velocity_for_vtx(bdp, 1);
-	        } else { // mainly for shock fitting
-		    bdp->set_geometry_velocities(G.dimensions, 1);
-                }
-	    }
-	    G.t_moving = G.sim_time + G.dt_moving;
-	}
-	*/
 	for ( Block *bdp : G.my_blocks ) {
 	    bdp->correct_vertex_positions(G.dimensions, G.dt_global);
 	    bdp->compute_primary_cell_geometric_data(G.dimensions, 2);
