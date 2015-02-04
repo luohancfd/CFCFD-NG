@@ -1,6 +1,6 @@
 % cone20-simple.tex
 
-\section{Mach 1.5 flow over a 20-degree cone -- Simple boundaries}
+\section{Mach 1.5 flow over a 20-degree cone}
 \label{cone20-simple-sec}
 %
 Let's start with a simple-to-imagine flow of ideal air over a sharp-nose of a supersonic projectile.
@@ -31,8 +31,7 @@ since the simulation demands few computational resources (in both memory and run
 it is useful for checking that the simulation and
 plotting programs have been built and installed correctly.
 
-
-\subsection{Input script (.py)}\index{boundary conditions!set\_BC!example of use}
+\section{The simulation}
 %
 To build our simulation, we abstract the boxed region from Figure\,\ref{cone20-flight-fig}
 and consider the axisymmetric flow of an ideal, inviscid gas over a sharp-nosed cone 
@@ -50,10 +49,6 @@ The constraint of axisymmetry implies zero angle of incidence for the original 3
 \label{cone20-geometry-fig}
 \end{figure}
 
-\noindent\topbar
-\lstinputlisting[language={}]{../2D/cone20-simple/cone20.py}
-\bottombar
-
 \medskip
 Despite Figure\,\ref{cone20-flight-fig} being a good motivator for this simulation,
 the free-stream conditions of $p_{\infty} = 95.84$\,kPa, $T_{\infty} = 1103$\,K
@@ -61,6 +56,14 @@ and $u_{\infty} = 1000$\,m/s are actually related to the shock-over-ramp test pr
 in the original ICASE Report\,\cite{jacobs_91d} and are set to give a Mach number of 1.5.
 It is left as an exercise for the reader to run a simulation at Maccoll's value of
 Mach number and check that the simulation closely matches the shadowgraph image.
+
+
+\subsection{Input script (.py)}\index{boundary conditions!set\_BC!example of use}
+%
+
+\noindent\topbar
+\lstinputlisting[language={}]{../2D/cone20-simple/cone20.py}
+\bottombar
 
 
 \subsection{Running the simulation}
@@ -86,7 +89,7 @@ a template for your own simulation shell scripts.
 \lstinputlisting[language={}]{../2D/cone20-simple/cone20_run.sh}
 \bottombar
 
-\subsection{Results and Postprocessing}
+\section{Results and Postprocessing}
 %
 Figure\,\ref{cone20-low-res-fig} shows the flow field 5\,milliseconds after flow start.
 This has been long enough for the flow to reach a steady state, with the shock being essentially straight.
@@ -228,7 +231,7 @@ for the simulation.
 \label{cone20-axial-force-fig}
 \end{figure}
 
-\subsection{Accessing the field data for specialized postprocessing}
+\section{Accessing the field data for specialized postprocessing}
 %
 Beyond the usual slice-and-dice type of postprocessing that is provided by \verb!e3post.py!, 
 it may be useful to do specialized calculations on the flow data.
@@ -277,7 +280,7 @@ in the middle of the script.
 \lstinputlisting[language={}]{../2D/cone20-simple/estimate_shock_angle.py}
 \bottombar
 
-\subsection{Grid convergence}
+\section{Grid convergence}
 %
 Determining a single value for some parameter is only part of the complete job.
 Usually, you must provide some guide as to the reliability of that value and
@@ -336,15 +339,23 @@ it looks at though we can get as close as we wish.
  \label{cone20-grid-convergence-fig}
 \end{figure}
 
+\section{Parametric modelling}
+%
+Let's rework the simulation as a 2D flow and make use of the parametric capabilities of the 
+Python input script...
 
-\subsection{Notes}
+\textbf{TODO} fill in the description of the cone20-parametric exercise.
+
+
+\section{Notes}
 \begin{itemize}
 \item Remember that long-format command-line options start with two dashes.
       For example \texttt{--job=cone20}.
       These double dashes are a little hard to distinguish in the shell
       scripts.
 
-\item Run time is approximately 17 seconds for 862 steps on a computer with 
+\item Run time for the simple cone20 simulation 
+      is approximately 17 seconds for 862 steps on a computer with 
       an AMD Phenom II X4 840, 800\,MHz processor.
       Of course, the shared-memory code does not make use of the other 4 processor cores,
       however, there is an MPI version of the code that can.

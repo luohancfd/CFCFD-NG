@@ -43,10 +43,10 @@
 
 \title{
     The Eilmer3 Code: User Guide and Example Book\\
-    2014b Edition
+    2015 Edition
 }
 \author{
-    Mechanical Engineering Report 2014/05\\
+    Mechanical Engineering Report 2015/0x\\
     P. A. Jacobs\thanks{Queensland Geothermal Energy Centre of Excellence, The University of Queensland, Brisbane, Australia.} 
     ~ R. J. Gollan\thanks{Centre for Hypersonics, The University of Queensland, Brisbane, Australia.}
     ~ and
@@ -140,9 +140,13 @@ scripts for that example.
 \cleardoublepage
 \baselineskip = 1.5pc
 
-\part{User guide}
+\part{Introduction}
 
-\section{Introduction}
+\section{Compressible flow simulation}
+%
+Something here...
+
+\section{The Eilmer3 code}
 %
 Eilmer3 is an integrated collection of programs for the simulation of transient,
 compressible flow in two and three dimensions.
@@ -183,6 +187,9 @@ which covers the gas-dynamic formulation and the basic thermochemistry component
 
 \clearpage
 %------------------------------------------------------------------
+
+\part{User guide}
+
 \section{Building and installing the programs}
 %
 The core solver and its modules are mainly written in C/C++ for speed and the benefits of compile time checking. 
@@ -217,20 +224,8 @@ for a brief introduction to working on the command line.
 % The examples...
 \cleardoublepage
 
-\part{Examples for 2D flow}
+\part{A tutorial example}
 %
-These examples are graded from simple geometry specification and gas model specification
-to more complex.
-Initially, simple box regions and single-species ideal gas models are used, followed by
-examples with curved boundaries, equilibrium gas models and, also, 
-multi-species thermally-perfect gases with finite-rate chemical kinetics.
-The Rutowski simulation (Sec.\ref{sec:rutowski}) is probably the most sophisticated example
-with respect to phemonological models.
-It exercises just about every capability the code has, 
-including radiation energy exchange and thermal nonequilibrium,
-in a simulation of a radiating flow of argon over a sphere.
-
-\medskip
 The first example, of ideal, inviscid flow over a cone (Sec.\,\ref{cone20-simple-sec}), 
 is a simple flow situation but the description provided here goes into fair detail 
 on setting up the simulation and then on extracting interesting flow quantities 
@@ -246,9 +241,24 @@ The input script for the heat-transfer to a sphere (Sec,\,\ref{sphere-heat-trans
 for example, being written as a template script and a top-level 
 coordinating script that runs the simulation a number of times with better grid resolution.
 
-% 2D examples
 \include{cone20-simple}
 \cleardoublepage
+
+
+\part{Examples for 2D flow}
+%
+These examples are graded from simple geometry specification and gas model specification
+to more complex.
+Initially, simple box regions and single-species ideal gas models are used, followed by
+examples with curved boundaries, equilibrium gas models and, also, 
+multi-species thermally-perfect gases with finite-rate chemical kinetics.
+The Rutowski simulation (Sec.\ref{sec:rutowski}) is probably the most sophisticated example
+with respect to phemonological models.
+It exercises just about every capability the code has, 
+including radiation energy exchange and thermal nonequilibrium,
+in a simulation of a radiating flow of argon over a sphere.
+
+% 2D examples
 \include{hakkinen-SWLBLI}
 \cleardoublepage
 \include{axi-cylinder}
