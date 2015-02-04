@@ -189,7 +189,7 @@ class BoundaryCondition(object):
                 'assume_ideal', 'mdot', 'Twall_i', 'Twall_f', 't_i', 't_f', 'emissivity', \
                 'sigma_jump', 'r_omega', 'centre', 'v_trans', 'Twall_flag', \
                 'reorient_vector_quantities', 'Rmatrix', \
-                'mass_flux', 'p_init', 'relax_factor', \
+                'mass_flux', 'p_init', 'relax_factor', 'p0_min', 'p0_max', \
                 'direction_type', 'direction_vector', 'direction_alpha', 'direction_beta', \
                 'ghost_cell_trans_fn', 'I_turb', 'u_turb_lam', 'T_non', 'starting_blk', \
                 'no_blk', 'label'
@@ -227,6 +227,8 @@ class BoundaryCondition(object):
                  mass_flux=0.0,
                  p_init=100.0e3,
                  relax_factor=0.05,
+                 p0_min=0.25e5,
+                 p0_max=2.0e5,
                  direction_type="normal",
                  direction_vector=[1.0, 0.0, 0.0],
                  direction_alpha=0.0,
@@ -298,6 +300,8 @@ class BoundaryCondition(object):
         :param p_init: initial pressure (in Pa) at the mass-flux-out boundary
         :param relax_factor: relaxation factor for adjustment of the actual pressure applied
             to the ghost-cells of the mass-flux-out boundary or the subsonic-in boundary
+        :param p0_min: minimum stagnation pressure for the mass-flux controlled subsonic-in boundary
+        :param p0_max: maximum stagnation pressure for the mass-flux controlled subsonic-in boundary
         :param direction_type: "normal" (default) is to have the inflow velocity
             locally-normal to the subsonic-in boundary.
             "uniform" has the inflow velocity aligned with direction_vector
@@ -362,6 +366,8 @@ class BoundaryCondition(object):
         self.mass_flux = mass_flux
         self.p_init = p_init
         self.relax_factor = relax_factor
+        self.p0_min = p0_min
+        self.p0_max = p0_max
         self.direction_type = direction_type
         assert (type(direction_vector) is list) and (len(direction_vector) == 3)
         self.direction_vector = [direction_vector[0], direction_vector[1], direction_vector[2]]
@@ -412,6 +418,8 @@ class BoundaryCondition(object):
         str_rep += ", mass_flux=%g" % self.mass_flux
         str_rep += ", p_init=%g" % self.p_init
         str_rep += ", relax_factor=%g" % self.relax_factor
+        str_rep += ", p0_min=%g" % self.p0_min
+        str_rep += ", p0_max=%g" % self.p0_max
         str_rep += ", direction_type=\"%s\"" % self.direction_type
         str_rep += ", direction_vector=[%g, %g, %g]" % \
             (self.direction_vector[0], self.direction_vector[1], self.direction_vector[2])
@@ -462,6 +470,8 @@ class BoundaryCondition(object):
                                  mass_flux=self.mass_flux,
                                  p_init=self.p_init,
                                  relax_factor=self.relax_factor,
+                                 p0_min=self.p0_min,
+                                 p0_max=self.p0_max,
                                  direction_type=self.direction_type,
                                  direction_vector=copy.copy(self.direction_vector),
                                  direction_alpha=self.direction_alpha,
@@ -734,6 +744,7 @@ class SubsonicInBC(BoundaryCondition):
     assume_ideal==0: use generalized stepping, down from stagnation to get conditions.
     """
     def __init__(self, inflow_condition, mass_flux=0.0, relax_factor=0.05, 
+                 p0_min=None, p0_max=None,
                  direction_type="normal", direction_vector=[1.0,0.0,0.0],
                  direction_alpha=0.0, direction_beta=0.0,
                  assume_ideal=False, label=""):
@@ -745,6 +756,12 @@ class SubsonicInBC(BoundaryCondition):
         :param mass_flux: required inflow mass-flux per unit area (in kg/s/m**2)
             Set to 0.0 (default) if you don't wish to specify a value.
         :param relax_factor: under-relaxation is advised.
+        :param p0_min: minimum allowed total pressure (in Pa)
+            If a value is not supplied, a value of 0.25 times 
+            the inflow_condition pressure is computed.
+        :param p0_max: maximim allowed total pressure (in Pa)
+            If a value is not supplied, a value of 2.0 times 
+            the inflow_condition pressure is computed.
         :param direction_type: "normal" (default) is to have the inflow velocity
             locally-normal to the boundary.
             "uniform" has the inflow velocity aligned with direction_vector
@@ -769,24 +786,32 @@ class SubsonicInBC(BoundaryCondition):
         The flow is assumed to enter the domain in a direction the is locally-normal
         to the boundary.
         """
+        if p0_min is None:
+            p0_min = inflow_condition.flow.gas.p * 0.25
+        if p0_max is None:
+            p0_max = inflow_condition.flow.gas.p * 2.0
         BoundaryCondition.__init__(self, type_of_BC=SUBSONIC_IN,
             inflow_condition=inflow_condition, mass_flux=mass_flux, relax_factor=relax_factor,
+            p0_min=p0_min, p0_max=p0_max,
             direction_type=direction_type, direction_vector=direction_vector,
             direction_alpha=direction_alpha, direction_beta=direction_beta,
             assume_ideal=assume_ideal, label=label)
         return
     def __str__(self):
         return "SubsonicInBC(inflow_condition=%s, mass_flux=%g, relax_factor=%g, " \
+            "p0_min=%g, p0_max=%g, " \
             "direction_type=\"%s\", direction_vector=[%g,%g,%g], " \
             "direction_alpha=%g, direction_beta=%g, " \
             "assume_ideal=%s, label=\"%s\")" % \
             (self.inflow_condition, self.mass_flux, self.relax_factor,
+             self.p0_min, self.p0_max,
              self.direction_type, self.direction_vector[0], self.direction_vector[1],
              self.direction_vector[2], self.direction_alpha, self.direction_beta,
              self.assume_ideal, self.label)
     def __copy__(self):
         return SubsonicInBC(inflow_condition=self.inflow_condition,
                             mass_flux=self.mass_flux, relax_factor=self.relax_factor,
+                            p0_min=self.p0_min, p0_max=self.p0_max,
                             direction_type=self.direction_type,
                             direction_vector=self.direction_vector,
                             direction_alpha=self.direction_alpha,

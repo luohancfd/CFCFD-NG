@@ -1512,9 +1512,10 @@ Available boundary condition classes include:\index{boundary conditions!list of 
       This limitation is specified via the accommodation coefficient, \verb!sigma!.
       As for the \verb!FixedTBC!, we need to set \verb!gdata.viscous_flag = 1! (see Section~\ref{sec:sim-control-parameters}, Viscous effects) 
       to make this boundary condition effective.
-    \item \verb!SubsonicInBC(stagnation_condition, mass_flux=0.0, relax_factor=0.05, !\\
+    \item \verb!SubsonicInBC(stagnation_condition, !\\
+      \verb!mass_flux=0.0, relax_factor=0.05, p0_min=None, p0_max=None, !\\
       \verb!direction_type='normal', direction_vector=[1.0,0.0,0.0],!\\
-      \verb!direction_alpha=0.0, direction_beta=0.0,label='')!\index{boundary conditions!SubsonicInBC} \\
+      \verb!direction_alpha=0.0, direction_beta=0.0, label='')!\index{boundary conditions!SubsonicInBC} \\
       The flow is assumed subsonic and we specify the stagnation pressure and temperature and 
       a velocity \emph{direction} at the boundary. 
       When applied at each time step, the average local pressure across the block boundary
@@ -1524,10 +1525,14 @@ Available boundary condition classes include:\index{boundary conditions!list of 
       \verb!'uniform'! in direction and aligned with \verb!direction_vector!, 
       \verb!'radial'! in through a cylindrical surface using flow angles \verb!direction_alpha! and \verb!direction_beta!,
       or \verb!'axial'! in through a circular surface using the same flow angles.
-      For the case with a nonzero value specified for \verb!mass_flux!, the current mass flux (per unit area)
-      across the block face is computed and the nominal stagnation pressure is incremented 
+      For the case with a nonzero value specified for \verb!mass_flux!, 
+      the current mass flux (per unit area) across the block face 
+      is computed and the nominal stagnation pressure is incremented 
       such that the mass flux across the boundary relaxes toward the specified value.
       The value for \verb!relax_factor! adjusts the rate of convergence for this feedback mechanism.
+      If this process drives the stagnation pressure to unreasonably small or large values
+      while the flow is settling, you may set the limits \verb!p0_min! and \verb!p0_max! 
+      to indicate what is physically realizable for your modelling situation.
       Also note, that for multi-temperature simulations, all of the temperatures
       are set to the 0th entry in the temperature array. 
       This should usually be a reasonable physical approximation because this boundary condition

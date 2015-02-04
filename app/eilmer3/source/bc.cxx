@@ -1240,6 +1240,8 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     double mass_flux = 0.0;
     double p_init = 100.0e3;
     double relax_factor = 0.05;
+    double p0_min = 0.25e5;
+    double p0_max = 2.0e5;
     std::vector<double> direction_vector(3, 0.0);
     double direction_alpha = 0.0;
     double direction_beta = 0.0;
@@ -1344,6 +1346,8 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);
 	dict.parse_double(section, "mass_flux", mass_flux, 0.0);
 	dict.parse_double(section, "relax_factor", relax_factor, 0.05);
+	dict.parse_double(section, "p0_min", p0_min, 0.25e5);
+	dict.parse_double(section, "p0_max", p0_max, 2.0e5);
 	dict.parse_string(section, "direction_type", value_string, "normal");
 	dict.parse_vector_of_doubles(section, "direction_vector", direction_vector,
 				     std::vector<double>(3,0.0));
@@ -1351,7 +1355,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	dict.parse_double(section, "direction_beta", direction_beta, 0.0);
 	dict.parse_boolean(section, "assume_ideal", assume_ideal, false);
 	newBC = new SubsonicInBC(bdp, which_boundary, inflow_condition_id,
-				 mass_flux, relax_factor,
+				 mass_flux, relax_factor, p0_min, p0_max,
 				 available_inflow_directions[value_string],
 				 direction_vector, direction_alpha, direction_beta,
 				 assume_ideal);

@@ -28,6 +28,7 @@ void SubsonicInBC::setup_stagnation_condition()
 
 SubsonicInBC::SubsonicInBC(Block *bdp, int which_boundary, int inflow_condition_id_,
 			   double mass_flux_, double relax_factor_,
+			   double p0_min_, double p0_max_,
 			   subsonic_in_direction_t direction_type_,
 			   std::vector<double> direction_vector_,
 			   double direction_alpha_, double direction_beta_,
@@ -36,6 +37,8 @@ SubsonicInBC::SubsonicInBC(Block *bdp, int which_boundary, int inflow_condition_
       inflow_condition_id(inflow_condition_id_),
       mass_flux(mass_flux_),
       relax_factor(relax_factor_),
+      p0_min(p0_min_),
+      p0_max(p0_max_),
       direction_type(direction_type_),
       direction_vector(direction_vector_),
       direction_alpha(direction_alpha_),
@@ -65,6 +68,8 @@ SubsonicInBC::SubsonicInBC(Block *bdp, int which_boundary, int inflow_condition_
     cout << "    h0= " << h0 << " J/kg" << endl;
     cout << "    mass_flux= " << mass_flux << " kg/s/m**2" << endl;
     cout << "    relax_factor= " << relax_factor << endl;
+    cout << "    p0_min= " << p0_min << " Pa" << endl;
+    cout << "    p0_max= " << p0_max << " Pa" << endl;
     cout << "    direction_type= " << get_subsonic_in_direction_name(direction_type) << endl;
     cout << "    direction_vector= (" << direction_vector[0] << ", " << direction_vector[1]
 	 << ", " << direction_vector[2] << ")" << endl;
@@ -78,6 +83,8 @@ SubsonicInBC::SubsonicInBC(const SubsonicInBC &bc)
       inflow_condition_id(bc.inflow_condition_id),
       mass_flux(bc.mass_flux),
       relax_factor(bc.relax_factor),
+      p0_min(bc.p0_min),
+      p0_max(bc.p0_max),
       direction_type(bc.direction_type),
       direction_vector(bc.direction_vector),
       direction_alpha(bc.direction_alpha),
@@ -91,6 +98,7 @@ SubsonicInBC::SubsonicInBC(const SubsonicInBC &bc)
 SubsonicInBC::SubsonicInBC()
     : BoundaryCondition(0, 0, SUBSONIC_IN), 
       inflow_condition_id(0), mass_flux(0.0), relax_factor(0.05), 
+      p0_min(0.25e5), p0_max(2.0e5),
       direction_type(SUBSONIC_IN_NORMAL),
       direction_vector(std::vector<double>(3, 0.0)),
       direction_alpha(0.0),
@@ -109,6 +117,8 @@ SubsonicInBC & SubsonicInBC::operator=(const SubsonicInBC &bc)
 	inflow_condition_id = bc.inflow_condition_id;
 	mass_flux = bc.mass_flux;
 	relax_factor = bc.relax_factor;
+	p0_min = bc.p0_min;
+	p0_max = bc.p0_max;
 	use_ideal_gas_relations = bc.use_ideal_gas_relations;
 	gstagp = bc.gstagp;
 	direction_type = bc.direction_type;
@@ -128,6 +138,8 @@ void SubsonicInBC::print_info(std::string lead_in)
     cout << lead_in << "inflow_condition_id= " << inflow_condition_id << endl;
     cout << lead_in << "mass_flux= " << mass_flux << endl;
     cout << lead_in << "relax_factor= " << relax_factor << endl;
+    cout << lead_in << "p0_min= " << p0_min << endl;
+    cout << lead_in << "p0_max= " << p0_max << endl;
     cout << lead_in << "direction_type= " 
 	 << get_subsonic_in_direction_name(direction_type) << endl;
     cout << lead_in << "direction_vector= [" << direction_vector[0]
@@ -176,6 +188,8 @@ int SubsonicInBC::apply_convective(double t)
 	    // Adjust the pressure to better achieve the specified mass flux.
 	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
 	    gstagp.gas->p *= 1.0 + dp_over_p;
+	    gstagp.gas->p = max(gstagp.gas->p, p0_min);
+	    gstagp.gas->p = min(gstagp.gas->p, p0_max);
 	    setup_stagnation_condition();
 	}
 	speed = subsonic_inflow_properties(gstagp, gsp, p);
@@ -239,6 +253,8 @@ int SubsonicInBC::apply_convective(double t)
 	    // Adjust the pressure to better achieve the specified mass flux.
 	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
 	    gstagp.gas->p *= 1.0 + dp_over_p;
+	    gstagp.gas->p = max(gstagp.gas->p, p0_min);
+	    gstagp.gas->p = min(gstagp.gas->p, p0_max);
 	    setup_stagnation_condition();
 	}
 	speed = subsonic_inflow_properties(gstagp, gsp, p);
@@ -302,6 +318,8 @@ int SubsonicInBC::apply_convective(double t)
 	    // Adjust the pressure to better achieve the specified mass flux.
 	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
 	    gstagp.gas->p *= 1.0 + dp_over_p;
+	    gstagp.gas->p = max(gstagp.gas->p, p0_min);
+	    gstagp.gas->p = min(gstagp.gas->p, p0_max);
 	    setup_stagnation_condition();
 	}
 	speed = subsonic_inflow_properties(gstagp, gsp, p);
@@ -365,6 +383,8 @@ int SubsonicInBC::apply_convective(double t)
 	    // Adjust the pressure to better achieve the specified mass flux.
 	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
 	    gstagp.gas->p *= 1.0 + dp_over_p;
+	    gstagp.gas->p = max(gstagp.gas->p, p0_min);
+	    gstagp.gas->p = min(gstagp.gas->p, p0_max);
 	    setup_stagnation_condition();
 #           if 0
 	    // Some debug... PJ 25-Feb-2014
@@ -448,6 +468,8 @@ int SubsonicInBC::apply_convective(double t)
 	    // Adjust the pressure to better achieve the specified mass flux.
 	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
 	    gstagp.gas->p *= 1.0 + dp_over_p;
+	    gstagp.gas->p = max(gstagp.gas->p, p0_min);
+	    gstagp.gas->p = min(gstagp.gas->p, p0_max);
 	    setup_stagnation_condition();
 	}
 	speed = subsonic_inflow_properties(gstagp, gsp, p);
@@ -511,6 +533,8 @@ int SubsonicInBC::apply_convective(double t)
 	    // Adjust the pressure to better achieve the specified mass flux.
 	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
 	    gstagp.gas->p *= 1.0 + dp_over_p;
+	    gstagp.gas->p = max(gstagp.gas->p, p0_min);
+	    gstagp.gas->p = min(gstagp.gas->p, p0_max);
 	    setup_stagnation_condition();
 	}
 	speed = subsonic_inflow_properties(gstagp, gsp, p);

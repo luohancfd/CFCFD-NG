@@ -546,6 +546,7 @@ class Block(object):
                assume_ideal=0, mdot=None, emissivity=None, sigma_jump=1.0,
                Twall_i=None, Twall_f=None, t_i=None, t_f=None,
                mass_flux=0.0, p_init=100.0e3, relax_factor=0.05,
+               p0_min=None, p0_max=None,
                direction_type="normal", direction_vector=[1.0,0.0,0.0],
                direction_alpha=0.0, direction_beta=0.0,
                ghost_cell_trans_fn=lambda x, y, z: (x, y, z),
@@ -633,8 +634,13 @@ class Block(object):
         if type_of_BC == FIXED_T:
             newbc = FixedTBC(Twall, label=label)
         if type_of_BC == SUBSONIC_IN:
+            if p0_min is None:
+                p0_min = inflow_condition.flow.gas.p * 0.25
+            if p0_max is None:
+                p0_max = inflow_condition.flow.gas.p * 2.0
             newbc = SubsonicInBC(inflow_condition, 
                                  mass_flux=mass_flux, relax_factor=relax_factor,
+                                 p0_min=p0_min, p0_max=p0_max,
                                  direction_type=direction_type,
                                  direction_vector=direction_vector,
                                  direction_alpha=direction_alpha,
@@ -811,6 +817,8 @@ class Block(object):
             fp.write("mass_flux = %e\n" % bc.mass_flux)
             fp.write("p_init = %e\n" % bc.p_init)
             fp.write("relax_factor = %e\n" % bc.relax_factor)
+            fp.write("p0_min = %e\n" % bc.p0_min)
+            fp.write("p0_max = %e\n" % bc.p0_max)
             fp.write("direction_type = %s\n" % bc.direction_type)
             fp.write("direction_vector = %e %e %e\n" % 
                      (bc.direction_vector[0], bc.direction_vector[1], bc.direction_vector[2]))
@@ -945,6 +953,8 @@ class Block(object):
             fp.write('        "mass_flux": %e,\n' % bc.mass_flux)
             fp.write('        "p_init": %e,\n' % bc.p_init)
             fp.write('        "relax_factor": %e,\n' % bc.relax_factor)
+            fp.write('        "p0_min": %e,\n' % bc.p0_min)
+            fp.write('        "p0_max": %e,\n' % bc.p0_max)
             fp.write('        "direction_type": "%s",\n' % bc.direction_type)
             fp.write('        "direction_vector": [%e, %e, %e],\n' % 
                      (bc.direction_vector[0], bc.direction_vector[1], bc.direction_vector[2]))
