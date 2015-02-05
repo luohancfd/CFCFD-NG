@@ -1,6 +1,8 @@
 # makefile for Eilmer3
 # Builds all of the demonstration programs.
 
+PROGRAMS := e4shared
+
 DEMO_PROGRAMS := globalconfig_demo flowstate_demo fv_demo block_demo
 
 BC_FILES := bc.d \
@@ -36,13 +38,24 @@ LUAD_FILES := ${LUAD_DIR}/luad/*.d \
 DFLAGS := -unittest -gc -wi
 DLINKFLAGS :=  -w -L-L${LIBLUAPATH} -L-llua -L-ldl
 
+INSTALL_DIR ?= $(HOME)/e3bin
+REVISION_STRING := $(shell hg identify --id --num --branch --tags)
+
+default: ${PROGRAMS}
+	@echo "Source code revision string $(REVISION_STRING)"
+	@echo "Eilmer4 simulation code built."
+
 demo: ${DEMO_PROGRAMS}
-	echo "Demo codes built."
+	@echo "Source code revision string $(REVISION_STRING)"
+	@echo "Demo codes built."
 
 clean:
 	- rm *.o
-	- rm ${DEMO_PROGRAMS}
+	- rm ${DEMO_PROGRAMS} ${PROGRAMS}
 	- rm test-grid.txt.gz test-flow.txt.gz
+	- rm e4_main_with_rev_string.d
+	- cd ${LUA_DIR}; make clean
+	- cd ${GAS_DIR}; make clean; rm libgas.a
 
 ${LIBGAS}:
 	cd ${GAS_DIR}; make libgas.a
@@ -85,3 +98,19 @@ block_demo: block_demo.d \
 		globalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
 		${BC_FILES} ${GEOM_FILES} ${LIBGAS} ${LUAD_FILES} ${GZIP_FILES}
+
+e4shared: e4_main.d e4_core.d \
+	block.d sblock.d ublock.d \
+	fvcore.d fvcell.d fvvertex.d fvinterface.d \
+	conservedquantities.d flowstate.d globalconfig.d globaldata.d \
+	block.d sblock.d ublock.d \
+	${BC_FILES} ${GEOM_FILES} ${LIBGAS} ${LIBLUA} ${GZIP_FILES}
+	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' e4_main.d > e4_main_with_rev_string.d
+	dmd ${DLINKFLAGS} -I${GEOM_DIR} -I${UTIL_DIR} -I${GZIP_DIR} -I../ \
+		e4_main_with_rev_string.d e4_core.d \
+		fvcore.d fvcell.d fvvertex.d fvinterface.d \
+		conservedquantities.d flowstate.d \
+		globalconfig.d globaldata.d \
+		block.d sblock.d ublock.d \
+		${BC_FILES} ${GEOM_FILES} ${LIBGAS} ${LUAD_FILES} ${GZIP_FILES}
+	mv e4_main_with_rev_string e4shared

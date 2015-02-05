@@ -3,7 +3,7 @@
  * Thermally perfect gas mix model for use in the CFD codes.
  *
  * Author: Rowan G. and Peter J.
- * First code: 27-Jan-2016
+ * First code: 27-Jan-2015
  */
 
 module gas.therm_perf_gas;
