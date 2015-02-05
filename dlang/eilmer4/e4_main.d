@@ -58,20 +58,21 @@ void main(string[] args)
 	exit(0);
     }
     if (runFlag) {
-	if ( jobName.length == 0 ) {
+	if (jobName.length == 0) {
 	    writeln("Need to specify a job name.");
 	    write(msg);
 	    exit(1);
 	}
 	GlobalConfig.base_file_name = jobName;
-	if ( verbosityLevel > 0 ) {
-	    writeln("jobName: ", jobName);
-	    writeln("tindxStart: ", tindxStart);
-	    writeln("maxWallClock: ", maxWallClock);
+	if (verbosityLevel > 0) {
+	    writeln("Begin simulation with command-line arguments.");
+	    writeln("  jobName: ", jobName);
+	    writeln("  tindxStart: ", tindxStart);
+	    writeln("  maxWallClock: ", maxWallClock);
+	    writeln("  verbosityLevel: ", verbosityLevel);
 	}
 	GlobalConfig.verbosity_level = verbosityLevel;
 	
-	writeln("Begin simulation...");
 	double sim_time = init_simulation();
 	writeln("starting simulation time= ", sim_time);
 	sim_time = integrate_in_time(sim_time);

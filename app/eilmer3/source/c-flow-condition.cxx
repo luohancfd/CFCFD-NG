@@ -200,7 +200,7 @@ string CFlowCondition::write_to_json_str( int indx ) const
     ost << "    \"omega\": " << omega << "," << endl;
     ost << "    \"mu_t\": " << mu_t << "," << endl;
     ost << "    \"k_t\": " << k_t << "," << endl;
-    ost << "    \"S\": " << S << "," << endl;
+    ost << "    \"S\": " << S << endl; // Careful not to add a trailing comma.
     ost << "}," << endl;
     return ost.str();
 }

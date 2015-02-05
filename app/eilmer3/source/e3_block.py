@@ -865,6 +865,14 @@ class Block(object):
         Writes the information to the specified file-object in .ini format.
         """
         def my_json_bool(bvalue): return "true" if bvalue else "false" 
+        def my_json_float_array(myarray):
+            json_str = "["
+            n = len(myarray)
+            for j in range(n):
+                json_str += "%21.16e" % myarray[j]
+                if j < n-1: json_str += ", "
+            json_str += "]"
+            return json_str
         #
         fp.write('\n"block_%d": {\n' % self.blkId)
         fp.write('    "label": "%s",\n' % self.label)
@@ -897,7 +905,7 @@ class Block(object):
                     fp.write('    "monitor-cell-%d": [%d, %d],\n' % 
                              (count,mcell[0],mcell[1]))
                 count += 1
-        if len(transient_profile_faces):
+        if len(self.transient_profile_faces):
             fp.write('    "transient_profile_faces": [')
             for item in self.transient_profile_faces:
                 fp.write(' "%s",' % item)
@@ -971,30 +979,25 @@ class Block(object):
                 # I think that this neighbour-vtx list is redundant, PJ.
                 fp.write('        "neighbour-vtx": [')
                 for ivtx in range(8):
-                    fp.write("%d, " % self.neighbour_vertex_list[iface][ivtx])
-                fp.write('],\n'); # TODO fix trailing comma
+                    fp.write("%d" % self.neighbour_vertex_list[iface][ivtx])
+                    if ivtx < 7: fp.write(", ")
+                fp.write('],\n');
             #
             wbc = self.wc_bc_list[iface]
             fp.write('        "wcbc": %d,\n' % wbc.type_of_WCBC )
             if wbc.input_file != None:
                 fp.write('        "wcbc_input_file": "%s",\n' % wbc.input_file )
-            fp.write('        "f_wall": [')
-            for val in wbc.f_wall:
-                fp.write("%.6e, " % val ) # TODO fix trailing comma
-            fp.write('],\n')
+            fp.write('        "f_wall": %s,\n' % my_json_float_array(wbc.f_wall))
             fp.write('        "Twall_i": %e,\n' % bc.Twall_i)
             fp.write('        "Twall_f": %e,\n' % bc.Twall_f)
             fp.write('        "t_i": %e,\n' % bc.t_i)
             fp.write('        "t_f": %e,\n' % bc.t_f)
             fp.write('        "I_turb": %e,\n' % bc.I_turb)
-            fp.write('        "u_turb_lam": %e\n' % bc.u_turb_lam)
-            fp.write('       "T_non": [')
-            for i in range(len(bc.T_non)):
-                fp.write(('%e, ') % (bc.T_non[i]))
-            fp.write('],\n')
-            fp.write('        "starting_blk": %d\n' % bc.starting_blk)
-            fp.write('        "no_blk": [%e, %e, %e],\n' % 
-                     (bc.no_blk[0], bc.no_blk[1], bc.no_blk[2]))
+            fp.write('        "u_turb_lam": %e,\n' % bc.u_turb_lam)
+            fp.write('        "T_non": %s,\n' % my_json_float_array(bc.T_non))
+            fp.write('        "starting_blk": %d,\n' % bc.starting_blk)
+            fp.write('        "no_blk": [%e, %e, %e]\n' % 
+                     (bc.no_blk[0], bc.no_blk[1], bc.no_blk[2])) # avoid trailing comma
             fp.write('    },\n') # end of bc description
         fp.write('    "end_of_faces_for_block": %d\n' % self.blkId) # dummy entry
         fp.write('},\n') # end of block description, assume more JSON elements follow

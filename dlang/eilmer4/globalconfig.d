@@ -14,8 +14,6 @@ import std.stdio;
 import geom;
 import gas;
 import fvcore;
-import flowstate;
-import sblock;
 
 enum
     tm_none = 0,
@@ -257,10 +255,4 @@ final class GlobalConfig {
     static double filter_next_time;
     static double filter_mu;
     static int filter_npass;
-
-    // Flow condition array for use in boundary conditions.
-    static FlowState[] flow_state;
-
-    // Storage for the actual blocks of flow data.
-    static SBlock[] blk_data;
 } // end class GlobalConfig
