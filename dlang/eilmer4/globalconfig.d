@@ -15,12 +15,28 @@ import geom;
 import gas;
 import fvcore;
 
-enum
-    tm_none = 0,
-    tm_baldwin_lomax = 1,
-    tm_k_omega = 2,
-    tm_spalart_allmaras = 3;
-string[] turbulence_model_names = ["none", "baldwin_lomax", "k_omega", "spalart_allmaras"];
+// Symbolic names for turbulence models.
+enum TurbulenceModel { none, baldwin_lomax, k_omega, spalart_allmaras }
+string turbulence_model_name(TurbulenceModel i)
+{
+    final switch (i) {
+    case TurbulenceModel.none: return "none";
+    case TurbulenceModel.baldwin_lomax: return "baldwin_lomax";
+    case TurbulenceModel.k_omega: return "k_omega";
+    case TurbulenceModel.spalart_allmaras: return "spalart_allmaras";
+    }
+} // end turbulence_model_name()
+
+TurbulenceModel turbulence_model_from_name(string name)
+{
+    switch (name) {
+    case "none": return TurbulenceModel.none;
+    case "baldwin_lomax": return TurbulenceModel.baldwin_lomax;
+    case "k_omega": return TurbulenceModel.k_omega;
+    case "spalart_allmaras": return TurbulenceModel.spalart_allmaras;
+    default: return TurbulenceModel.none;
+    }
+} // end turbulence_model_from_name()
 
 class BlockZone {
     Vector3 _p0;
@@ -99,7 +115,7 @@ final class GlobalConfig {
     // The Schmidt number when using the constant Schmidt number diffusion model
     static double diffusion_schmidt = 0.7;
 
-    static int turbulence_model = tm_none;
+    static TurbulenceModel turbulence_model = TurbulenceModel.none;
     static double turbulence_prandtl = 0.89;
     static double turbulence_schmidt = 0.75;
     static double max_mu_t_factor = 300.0;
@@ -146,6 +162,7 @@ final class GlobalConfig {
     // Chemical equilibrium simulations (via Look-Up Table) does not use this
     // chemical update function call.
     static bool reacting = false;
+    // TODO static ReactingScheme reaction_update = ReactingScheme.none;
 
     // With this flag on, finite-rate evolution of the vibrational energies 
     // (and in turn the total energy) is computed.
@@ -233,7 +250,7 @@ final class GlobalConfig {
     static size_t write_at_step;   // update step at which to write a solution, 0=don't do it
     static double t_his;           // time to write next sample
     static double dt_plot;         // interval for writing soln
-    static double dt_his;          // interval for writing sample
+    static double dt_history;      // interval for writing sample
 
     static double cfl_target;      // target CFL (worst case)
     static size_t cfl_count;       // check CFL occasionally

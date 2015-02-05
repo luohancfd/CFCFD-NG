@@ -346,7 +346,7 @@ public:
     void encode_conserved(int gtl, int ftl, double omegaz) 
     {
 	ConservedQuantities myU = U[ftl];
-	bool with_k_omega = (GlobalConfig.turbulence_model == tm_k_omega);
+	bool with_k_omega = (GlobalConfig.turbulence_model == TurbulenceModel.k_omega);
 
 	myU.mass = fs.gas.rho;
 	// X-, Y- and Z-momentum per unit volume.
@@ -403,7 +403,7 @@ public:
     {
 	ConservedQuantities myU = U[ftl];
 	auto gmodel = GlobalConfig.gmodel;
-	bool with_k_omega = (GlobalConfig.turbulence_model == tm_k_omega);
+	bool with_k_omega = (GlobalConfig.turbulence_model == TurbulenceModel.k_omega);
 	double e, ke, dinv, rE, me;
 	// Mass / unit volume = Density
 	double rho = myU.mass;
@@ -975,7 +975,7 @@ public:
 
     double signal_frequency() const
     {
-	bool with_k_omega = (GlobalConfig.turbulence_model == tm_k_omega && 
+	bool with_k_omega = (GlobalConfig.turbulence_model == TurbulenceModel.k_omega && 
 			     !GlobalConfig.separate_update_for_k_omega_source);
 	double signal;
 	double un_N, un_E, un_T, u_mag;
@@ -1134,7 +1134,7 @@ public:
 
     void turbulence_viscosity_k_omega() 
     {
-	if ( GlobalConfig.turbulence_model != tm_k_omega ) {
+	if ( GlobalConfig.turbulence_model != TurbulenceModel.k_omega ) {
 	    // [TODO] may have to do something better if another turbulence model is active.
 	    fs.mu_t = 0.0;
 	    fs.k_t = 0.0;
@@ -1304,7 +1304,7 @@ public:
     //           All "fs->tke" and "fs->omega" instances are replaced with tke and omega.
     // Jul 2014: Port to D by PJ
     {
-	if ( GlobalConfig.turbulence_model != tm_k_omega ) {
+	if ( GlobalConfig.turbulence_model != TurbulenceModel.k_omega ) {
 	    // [TODO] may need to do something better is another turbulence model is active.
 	    Q_rtke = 0.0;
 	    Q_romega = 0.0;

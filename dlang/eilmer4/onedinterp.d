@@ -180,7 +180,7 @@ void one_d_interp_both(in FVInterface IFace,
 	    one_d_interp_both_scalar(cL1.fs.B.z, cL0.fs.B.z, cR0.fs.B.z, cR1.fs.B.z,
 				     Lft.B.refz, Rght.B.refz);
 	}
-	if ( GlobalConfig.turbulence_model == tm_k_omega ) {
+	if ( GlobalConfig.turbulence_model == TurbulenceModel.k_omega ) {
 	    one_d_interp_both_scalar(cL1.fs.tke, cL0.fs.tke, cR0.fs.tke, cR1.fs.tke,
 				     Lft.tke, Rght.tke);
 	    one_d_interp_both_scalar(cL1.fs.omega, cL0.fs.omega, cR0.fs.omega, cR1.fs.omega,
@@ -320,7 +320,7 @@ void one_d_interp_left(in FVInterface IFace,
 	    one_d_interp_left_scalar(cL1.fs.B.y, cL0.fs.B.y, cR0.fs.B.y, Lft.B.refy);
 	    one_d_interp_left_scalar(cL1.fs.B.z, cL0.fs.B.z, cR0.fs.B.z, Lft.B.refz);
 	}
-	if ( GlobalConfig.turbulence_model == tm_k_omega ) {
+	if ( GlobalConfig.turbulence_model == TurbulenceModel.k_omega ) {
 	    one_d_interp_left_scalar(cL1.fs.tke, cL0.fs.tke, cR0.fs.tke, Lft.tke);
 	    one_d_interp_left_scalar(cL1.fs.omega, cL0.fs.omega, cR0.fs.omega, Lft.omega);
 	}
@@ -432,7 +432,7 @@ void one_d_interp_right(in FVInterface IFace,
 	    one_d_interp_right_scalar(cL0.fs.B.y, cR0.fs.B.y, cR1.fs.B.y, Rght.B.refy);
 	    one_d_interp_right_scalar(cL0.fs.B.z, cR0.fs.B.z, cR1.fs.B.z, Rght.B.refz);
 	}
-	if ( GlobalConfig.turbulence_model == tm_k_omega ) {
+	if ( GlobalConfig.turbulence_model == TurbulenceModel.k_omega ) {
 	    one_d_interp_right_scalar(cL0.fs.tke, cR0.fs.tke, cR1.fs.tke, Rght.tke);
 	    one_d_interp_right_scalar(cL0.fs.omega, cR0.fs.omega, cR1.fs.omega, Rght.omega);
 	}

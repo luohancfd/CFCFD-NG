@@ -274,7 +274,7 @@ public:
 	    total_cells_in_turbulent_zones += (cell.in_turbulent_zone ? 1: 0);
 	    total_cells += 1;
 	} // foreach cell
-	if ( GlobalConfig.turbulence_model != tm_none && 
+	if ( GlobalConfig.turbulence_model != TurbulenceModel.none && 
 	     GlobalConfig.verbosity_level >= 2 ) {
 	    writeln("identify_turbulent_zones(): block ", id,
 		    " cells inside zones = ", total_cells_in_turbulent_zones, 
