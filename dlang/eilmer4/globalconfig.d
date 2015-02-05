@@ -81,7 +81,7 @@ final class GlobalConfig {
     static double viscous_factor = 1.0;
     // The amount by which to increment the viscous factor during soft-start.
     static double viscous_factor_increment = 0.01;
-    static double viscous_time_delay = 0.0;
+    static double viscous_delay = 0.0;
 
     // When the diffusion is calculated is treated as part of the viscous calculation:
     //   false for neglecting multicomponent diffusion, 

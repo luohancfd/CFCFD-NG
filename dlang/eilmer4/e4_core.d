@@ -10,6 +10,7 @@ import std.json;
 import std.file;
 import std.conv;
 
+import json_helper;
 import geom;
 import gas;
 import globalconfig;
@@ -26,21 +27,36 @@ static SBlock[] blk_data;
 
 //-----------------------------------------------------------------------------------------
 
-int getJSONint(JSONValue jsonData, string key, int defaultValue)
+void read_control_file()
 {
-    int value;
+    if (GlobalConfig.verbosity_level > 1) writeln("read_control_file()");
+    string fileName = GlobalConfig.base_file_name ~ ".control";
+    string content;
     try {
-	value = to!int(jsonData["nblock"].integer);
+        content = readText(fileName);
     } catch (Exception e) {
-	value = defaultValue;
+	writeln("Failed to read control file: ", fileName);
+	exit(1);
     }
-    return value;
-} // end getJSONint()
+    JSONValue jsonData;
+    try {
+	jsonData = parseJSON!string(content);
+    } catch (Exception e) {
+	writeln("Failed to parse JSON from control file: ", fileName);
+	exit(1);
+    }
+    GlobalConfig.Xorder = getJSONint(jsonData, "x_order", 2);
+    if (GlobalConfig.verbosity_level > 1) {
+	writeln("  Xorder: ", GlobalConfig.Xorder);
+    }
+} // end read_control_file()
+
 
 double init_simulation()
 {
     if (GlobalConfig.verbosity_level > 0) writeln("Begin init_simulation...");
 
+    if (GlobalConfig.verbosity_level > 1) writeln("Read config file.");
     string fileName = GlobalConfig.base_file_name ~ ".config";
     string content;
     try {
@@ -60,11 +76,20 @@ double init_simulation()
     string gasModelFile = jsonData["gas_model_file"].str;
     GlobalConfig.nBlocks = getJSONint(jsonData, "nblock", 0);
     GlobalConfig.dimensions = getJSONint(jsonData, "dimensions", 2);
+    GlobalConfig.axisymmetric = getJSONbool(jsonData, "axisymmetric_flag", false);
+    GlobalConfig.viscous = getJSONbool(jsonData, "viscous_flag", false);
+    GlobalConfig.viscous = getJSONbool(jsonData, "viscous_flag", false);
+    GlobalConfig.viscous_delay = getJSONdouble(jsonData, "viscous_delay", 0.0);
+    GlobalConfig.viscous_factor_increment = getJSONdouble(jsonData, "viscous_factor_increment", 0.01);
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  title: ", GlobalConfig.title);
 	writeln("  gasModelFile: ", gasModelFile);
 	writeln("  nBlocks: ", GlobalConfig.nBlocks);
 	writeln("  dimensions: ", GlobalConfig.dimensions);
+	writeln("  axisymmetric: ", GlobalConfig.axisymmetric);
+	writeln("  viscous: ", GlobalConfig.viscous);
+	writeln("  viscous_delay: ", GlobalConfig.viscous_delay);
+	writeln("  viscous_factor_increment: ", GlobalConfig.viscous_factor_increment);
     }
     GlobalConfig.gmodel = init_gas_model(gasModelFile);
 
@@ -90,6 +115,7 @@ double init_simulation()
 double integrate_in_time(double sim_time)
 {
     writeln("Integrate in time.");
+    read_control_file(); // every step
     writeln("TODO fill in the REAL details.");
     writeln("Done integrate_in_time.");
     return sim_time;
