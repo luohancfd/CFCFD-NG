@@ -9,6 +9,8 @@ import std.stdio;
 import std.json;
 import std.file;
 import std.conv;
+import std.array;
+import std.format;
 
 import json_helper;
 import geom;
@@ -27,6 +29,167 @@ static FlowState[] flow_state;
 static SBlock[] blk_data;
 
 //-----------------------------------------------------------------------------------------
+
+void read_config_file()
+{
+    if (GlobalConfig.verbosity_level > 1) writeln("Read config file.");
+    string fileName = GlobalConfig.base_file_name ~ ".config";
+    string content;
+    try {
+        content = readText(fileName);
+    } catch (Exception e) {
+	writeln("Failed to read config file: ", fileName);
+	exit(1);
+    }
+    JSONValue jsonData;
+    try {
+	jsonData = parseJSON!string(content);
+    } catch (Exception e) {
+	writeln("Failed to parse JSON from config file: ", fileName);
+	exit(1);
+    }
+
+    GlobalConfig.title = jsonData["title"].str;
+    string gasModelFile = jsonData["gas_model_file"].str;
+    GlobalConfig.gmodel = init_gas_model(gasModelFile);
+    if (GlobalConfig.verbosity_level > 1) {
+	writeln("  title: ", GlobalConfig.title);
+	writeln("  gasModelFile: ", gasModelFile);
+    }
+
+    GlobalConfig.dimensions = getJSONint(jsonData, "dimensions", 2);
+    GlobalConfig.axisymmetric = getJSONbool(jsonData, "axisymmetric_flag", false);
+    GlobalConfig.viscous = getJSONbool(jsonData, "viscous_flag", false);
+    GlobalConfig.viscous_delay = getJSONdouble(jsonData, "viscous_delay", 0.0);
+    GlobalConfig.viscous_factor_increment = 
+	getJSONdouble(jsonData, "viscous_factor_increment", 0.01);
+    try {
+	string name = jsonData["turbulence_model"].str;
+	GlobalConfig.turbulence_model = turbulence_model_from_name(name);
+    } catch (Exception e) {
+	GlobalConfig.turbulence_model = TurbulenceModel.none;
+    }
+    GlobalConfig.turbulence_prandtl =
+	getJSONdouble(jsonData, "turbulence_prandtl_number", 0.89);
+    GlobalConfig.turbulence_schmidt =
+	getJSONdouble(jsonData, "turbulence_schmidt_number", 0.75);
+    GlobalConfig.max_mu_t_factor = getJSONdouble(jsonData, "max_mu_t_factor", 300.0);
+    GlobalConfig.transient_mu_t_factor = getJSONdouble(jsonData, "transient_mu_t_factor", 1.0);
+    if (GlobalConfig.verbosity_level > 1) {
+	writeln("  dimensions: ", GlobalConfig.dimensions);
+	writeln("  axisymmetric: ", GlobalConfig.axisymmetric);
+	writeln("  viscous: ", GlobalConfig.viscous);
+	writeln("  viscous_delay: ", GlobalConfig.viscous_delay);
+	writeln("  viscous_factor_increment: ", GlobalConfig.viscous_factor_increment);
+	writeln("  turbulence_model: ", turbulence_model_name(GlobalConfig.turbulence_model));
+	writeln("  turbulence_prandtl: ", GlobalConfig.turbulence_prandtl);
+	writeln("  turbulence_schmidt: ", GlobalConfig.turbulence_schmidt);
+	writeln("  max_mu_t_factor: ", GlobalConfig.max_mu_t_factor);
+	writeln("  transient_mu_t_factor: ", GlobalConfig.transient_mu_t_factor);
+    }
+
+    GlobalConfig.moving_grid = getJSONbool(jsonData, "moving_grid_flag", false);
+    GlobalConfig.write_vertex_velocities = 
+	getJSONbool(jsonData, "write_vertex_velocities_flag", false);
+    GlobalConfig.compression_tolerance = 
+	getJSONdouble(jsonData, "compression_tolerance", -0.30);
+    try {
+	string name = jsonData["interpolation_type"].str;
+	GlobalConfig.thermo_interpolator = thermo_interpolator_from_name(name);
+    } catch (Exception e) {
+	GlobalConfig.thermo_interpolator = InterpolateOption.rhoe;
+    }
+    GlobalConfig.apply_limiter = getJSONbool(jsonData, "apply_limiter_flag", true);
+    GlobalConfig.extrema_clipping = getJSONbool(jsonData, "extreme_clipping_flag", true);
+    GlobalConfig.interpolate_in_local_frame = 
+	getJSONbool(jsonData, "interpolate_in_local_frame", true);
+    try {
+	string name = jsonData["flux_calc"].str;
+	GlobalConfig.flux_calculator = fluxcalc_from_name(name);
+    } catch (Exception e) {
+	GlobalConfig.flux_calculator = FluxCalculator.adaptive;
+    }
+    GlobalConfig.shear_tolerance = getJSONdouble(jsonData, "shear_tolerance", 0.20);
+    GlobalConfig.M_inf = getJSONdouble(jsonData, "M_inf", 0.01);
+    if (GlobalConfig.verbosity_level > 1) {
+	writeln("  moving_grid: ", GlobalConfig.moving_grid);
+	writeln("  write_vertex_velocities: ", GlobalConfig.write_vertex_velocities);
+	writeln("  compression_tolerance: ", GlobalConfig.compression_tolerance);
+	writeln("  thermo_interpolator: ",
+		thermo_interpolator_name(GlobalConfig.thermo_interpolator));
+	writeln("  apply_limiter: ", GlobalConfig.apply_limiter);
+	writeln("  extrema_clipping: ", GlobalConfig.extrema_clipping);
+	writeln("  interpolate_in_local_frame: ", GlobalConfig.interpolate_in_local_frame);
+	writeln("  flux_calculator: ", fluxcalc_name(GlobalConfig.flux_calculator));
+	writeln("  shear_tolerance: ", GlobalConfig.shear_tolerance);
+	writeln("  M_inf: ", GlobalConfig.M_inf);
+    }
+
+    GlobalConfig.reacting = getJSONbool(jsonData, "reacting_flag", false);
+    // TODO GlobalConfig.reaction_update
+    if (GlobalConfig.verbosity_level > 1) {
+	writeln("  reacting: ", GlobalConfig.reacting);
+    }
+
+    GlobalConfig.control_count = getJSONint(jsonData, "control_count", 10);
+    GlobalConfig.adjust_invalid_cell_data =
+	getJSONbool(jsonData, "adjust_invalid_cell_data", false);
+    GlobalConfig.max_invalid_cells = getJSONint(jsonData, "max_invalid_cells", 0);
+    if (GlobalConfig.verbosity_level > 1) {
+	writeln("  control_count: ", GlobalConfig.control_count);
+	writeln("  adjust_invalid_cell_data: ", GlobalConfig.adjust_invalid_cell_data);
+	writeln("  max_invalid_cells: ", GlobalConfig.max_invalid_cells);
+    }
+
+    int nflow = getJSONint(jsonData, "nflow", 0);
+    foreach (size_t i; 0 .. nflow) {
+	auto json_flow_data = jsonData["flow_" ~ to!string(i)];
+	double p = getJSONdouble(json_flow_data, "p", 100.0e3);
+	double T[] = getJSONdoublearray(json_flow_data, "T", [300.0,]);
+	double u = getJSONdouble(json_flow_data, "u", 0.0);
+	double v = getJSONdouble(json_flow_data, "v", 0.0);
+	double w = getJSONdouble(json_flow_data, "w", 0.0);
+	Vector3 vel = Vector3(u,v,w);
+	double[] massf = getJSONdoublearray(json_flow_data, "massf", [1.0,]);
+	double quality = 1.0;
+	double Bx = getJSONdouble(json_flow_data, "Bx", 0.0);
+	double By = getJSONdouble(json_flow_data, "By", 0.0);
+	double Bz = getJSONdouble(json_flow_data, "Bz", 0.0);
+	Vector3 B = Vector3(Bx,By,Bz);
+	double tke = getJSONdouble(json_flow_data, "tke", 0.0);
+	double omega = getJSONdouble(json_flow_data, "omega", 1.0);
+	double mu_t = getJSONdouble(json_flow_data, "mu_t", 0.0);
+	double k_t = getJSONdouble(json_flow_data, "k_t", 0.0);
+	int S = getJSONint(json_flow_data, "S", 0);
+	flow_state ~= new FlowState(GlobalConfig.gmodel, p, T, vel,  massf,
+				    quality, B, tke, omega, mu_t, k_t, S);
+	if (GlobalConfig.verbosity_level > 1) {
+	    writeln("flow[", i, "]=", flow_state[i]);
+	}
+    }
+
+    GlobalConfig.nBlocks = getJSONint(jsonData, "nblock", 0);
+    if (GlobalConfig.verbosity_level > 1) {
+	writeln("  nBlocks: ", GlobalConfig.nBlocks);
+    }
+    foreach (size_t i; 0 .. GlobalConfig.nBlocks) {
+	int id = i; // For now, use a 1-to-1 mapping.
+	auto json_blk_data = jsonData["block_" ~ to!string(i)];
+	string label = json_blk_data["label"].str;
+	int nicell = getJSONint(json_blk_data, "nni", 0);
+	int njcell = getJSONint(json_blk_data, "nnj", 0);
+	int nkcell = getJSONint(json_blk_data, "nnk", 0);
+	blk_data ~= new SBlock(id, nicell, njcell, nkcell);
+	// TODO read other block parameters and boundary conditions
+	if (GlobalConfig.verbosity_level > 1) {
+	    writeln("  Block id: ", id, " label=", label);
+	    writeln("  SBlock data: ", blk_data[i]);
+	}
+    }
+
+    // TODO -- still have other entries such as nheatzone, nreactionzone, ...
+} // end read_config_file()
+
 
 void read_control_file()
 {
@@ -88,126 +251,26 @@ void read_control_file()
 } // end read_control_file()
 
 
-double init_simulation()
+double init_simulation(int tindx)
 {
     if (GlobalConfig.verbosity_level > 0) writeln("Begin init_simulation...");
-
-    if (GlobalConfig.verbosity_level > 1) writeln("Read config file.");
-    string fileName = GlobalConfig.base_file_name ~ ".config";
-    string content;
-    try {
-        content = readText(fileName);
-    } catch (Exception e) {
-	writeln("Failed to read config file: ", fileName);
-	exit(1);
-    }
-    JSONValue jsonData;
-    try {
-	jsonData = parseJSON!string(content);
-    } catch (Exception e) {
-	writeln("Failed to parse JSON from config file: ", fileName);
-	exit(1);
-    }
-
-    GlobalConfig.title = jsonData["title"].str;
-    string gasModelFile = jsonData["gas_model_file"].str;
-    GlobalConfig.gmodel = init_gas_model(gasModelFile);
-    if (GlobalConfig.verbosity_level > 1) {
-	writeln("  title: ", GlobalConfig.title);
-	writeln("  gasModelFile: ", gasModelFile);
-    }
-
-    GlobalConfig.nBlocks = getJSONint(jsonData, "nblock", 0);
-    GlobalConfig.dimensions = getJSONint(jsonData, "dimensions", 2);
-    GlobalConfig.axisymmetric = getJSONbool(jsonData, "axisymmetric_flag", false);
-    GlobalConfig.viscous = getJSONbool(jsonData, "viscous_flag", false);
-    GlobalConfig.viscous_delay = getJSONdouble(jsonData, "viscous_delay", 0.0);
-    GlobalConfig.viscous_factor_increment = 
-	getJSONdouble(jsonData, "viscous_factor_increment", 0.01);
-    try {
-	string name = jsonData["turbulence_model"].str;
-	GlobalConfig.turbulence_model = turbulence_model_from_name(name);
-    } catch (Exception e) {
-	GlobalConfig.turbulence_model = TurbulenceModel.none;
-    }
-    GlobalConfig.turbulence_prandtl =
-	getJSONdouble(jsonData, "turbulence_prandtl_number", 0.89);
-    GlobalConfig.turbulence_schmidt =
-	getJSONdouble(jsonData, "turbulence_schmidt_number", 0.75);
-    GlobalConfig.max_mu_t_factor = getJSONdouble(jsonData, "max_mu_t_factor", 300.0);
-    GlobalConfig.transient_mu_t_factor = getJSONdouble(jsonData, "transient_mu_t_factor", 1.0);
-    if (GlobalConfig.verbosity_level > 1) {
-	writeln("  nBlocks: ", GlobalConfig.nBlocks);
-	writeln("  dimensions: ", GlobalConfig.dimensions);
-	writeln("  axisymmetric: ", GlobalConfig.axisymmetric);
-	writeln("  viscous: ", GlobalConfig.viscous);
-	writeln("  viscous_delay: ", GlobalConfig.viscous_delay);
-	writeln("  viscous_factor_increment: ", GlobalConfig.viscous_factor_increment);
-	writeln("  turbulence_model: ", turbulence_model_name(GlobalConfig.turbulence_model));
-	writeln("  turbulence_prandtl: ", GlobalConfig.turbulence_prandtl);
-	writeln("  turbulence_schmidt: ", GlobalConfig.turbulence_schmidt);
-	writeln("  max_mu_t_factor: ", GlobalConfig.max_mu_t_factor);
-	writeln("  transient_mu_t_factor: ", GlobalConfig.transient_mu_t_factor);
-    }
-
-    GlobalConfig.moving_grid = getJSONbool(jsonData, "moving_grid_flag", false);
-    GlobalConfig.write_vertex_velocities = 
-	getJSONbool(jsonData, "write_vertex_velocities_flag", false);
-    GlobalConfig.compression_tolerance = 
-	getJSONdouble(jsonData, "compression_tolerance", -0.30);
-    try {
-	string name = jsonData["interpolation_type"].str;
-	GlobalConfig.thermo_interpolator = thermo_interpolator_from_name(name);
-    } catch (Exception e) {
-	GlobalConfig.thermo_interpolator = InterpolateOption.rhoe;
-    }
-    GlobalConfig.apply_limiter = getJSONbool(jsonData, "apply_limiter_flag", true);
-    GlobalConfig.extrema_clipping = getJSONbool(jsonData, "extreme_clipping_flag", true);
-    GlobalConfig.interpolate_in_local_frame = 
-	getJSONbool(jsonData, "interpolate_in_local_frame", true);
-    try {
-	string name = jsonData["flux_calc"].str;
-	GlobalConfig.flux_calculator = fluxcalc_from_name(name);
-    } catch (Exception e) {
-	GlobalConfig.flux_calculator = FluxCalculator.adaptive;
-    }
-    GlobalConfig.shear_tolerance = getJSONdouble(jsonData, "shear_tolerance", 0.20);
-    GlobalConfig.M_inf = getJSONdouble(jsonData, "M_inf", 0.01);
-    if (GlobalConfig.verbosity_level > 1) {
-	writeln("  moving_grid: ", GlobalConfig.moving_grid);
-	writeln("  write_vertex_velocities: ", GlobalConfig.write_vertex_velocities);
-	writeln("  compression_tolerance: ", GlobalConfig.compression_tolerance);
-	writeln("  thermo_interpolator: ",
-		thermo_interpolator_name(GlobalConfig.thermo_interpolator));
-	writeln("  apply_limiter: ", GlobalConfig.apply_limiter);
-	writeln("  extrema_clipping: ", GlobalConfig.extrema_clipping);
-	writeln("  interpolate_in_local_frame: ", GlobalConfig.interpolate_in_local_frame);
-	writeln("  flux_calculator: ", fluxcalc_name(GlobalConfig.flux_calculator));
-	writeln("  shear_tolerance: ", GlobalConfig.shear_tolerance);
-	writeln("  M_inf: ", GlobalConfig.M_inf);
-    }
-
-    GlobalConfig.reacting = getJSONbool(jsonData, "reacting_flag", false);
-    // TODO GlobalConfig.reaction_update
-    if (GlobalConfig.verbosity_level > 1) {
-	writeln("  reacting: ", GlobalConfig.reacting);
-    }
-
-    writeln("TODO -------- fill in the REAL details ------------");
-    flow_state ~= new FlowState(GlobalConfig.gmodel, 100.0e3, [300.0,],
-				Vector3(1.0,0.0,0.0));
-    writeln("flow=", flow_state[0]);
+    read_config_file();
     double sim_time;
-    blk_data ~= new SBlock(1, "sample-data/sample-block.json");
     foreach (ref myblk; blk_data) {
 	myblk.assemble_arrays();
 	myblk.bind_faces_and_vertices_to_cells();
 	writeln("myblk=", myblk);
-	myblk.read_grid("sample-data/cone20.grid.b0000.t0000.gz", 0);
-	myblk.write_grid("test-grid.txt.gz", 0.0);
-	sim_time = myblk.read_solution("sample-data/cone20.flow.b0000.t0000.gz");
+	auto writer = appender!string();
+	formattedWrite(writer, "grid/t%04d/%s.grid.b%04d.t%04d.gz",
+		       tindx, GlobalConfig.base_file_name, myblk.id, tindx);
+	auto fileName = writer.data();
+	myblk.read_grid(fileName, 0);
+	writer = appender!string();
+	formattedWrite(writer, "flow/t%04d/%s.flow.b%04d.t%04d.gz",
+		       tindx, GlobalConfig.base_file_name, myblk.id, tindx);
+	fileName = writer.data();
+	sim_time = myblk.read_solution(fileName);
     }
-
     if (GlobalConfig.verbosity_level > 0) writeln("Done init_simulation.");
     return sim_time;
 } // end init_simulation()

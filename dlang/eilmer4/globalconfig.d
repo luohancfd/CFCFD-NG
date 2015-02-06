@@ -248,7 +248,7 @@ final class GlobalConfig {
 
     static double t_plot;          // time to write next soln
     static size_t write_at_step;   // update step at which to write a solution, 0=don't do it
-    static double t_his;           // time to write next sample
+    static double t_history;       // time to write next sample
     static double dt_plot;         // interval for writing soln
     static double dt_history;      // interval for writing sample
 

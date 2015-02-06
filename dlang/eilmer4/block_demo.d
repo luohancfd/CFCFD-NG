@@ -17,7 +17,7 @@ void main()
     auto flow = new FlowState(GlobalConfig.gmodel, 100.0e3, [300.0,], Vector3(1.0,0.0,0.0));
     writeln("flow=", flow);
 
-    auto blk = new SBlock(1, "sample-data/sample-block.json");
+    auto blk = new SBlock(1, 10, 40, 1);
     blk.assemble_arrays();
     blk.bind_faces_and_vertices_to_cells();
     writeln("blk=", blk);

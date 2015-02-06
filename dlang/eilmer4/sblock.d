@@ -64,18 +64,13 @@ private:
     FVInterface[] _sifk;
 
 public:
-    this(int id, in char[] file_name)
+    this(int id, in size_t nicell, size_t njcell, size_t nkcell)
     // Need to create blocks in the context of the GlobalConfig.
     {
 	this.id = id;
-	if ( file_name.length == 0 ) {
-	    throw new Error("We need a file from which to read the block parameters.");
-	}
-	auto text = cast(string) read(file_name);
-	auto items = parseJSON(text);
-	nicell = to!size_t(items["nicell"].integer);
-	njcell = to!size_t(items["njcell"].integer);
-	nkcell = to!size_t(items["nkcell"].integer);
+	this.nicell = nicell;
+	this.njcell = njcell;
+	this.nkcell = nkcell;
 	_nidim = nicell + 2 * nghost;
 	_njdim = njcell + 2 * nghost;
 	// Indices, in each grid direction for the active cells.

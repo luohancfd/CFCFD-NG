@@ -10,6 +10,8 @@ module json_helper;
 import std.json;
 import std.conv;
 
+// TODO: lots of repetition here, use templates.
+
 int getJSONint(JSONValue jsonData, string key, int defaultValue)
 {
     int value;
@@ -42,3 +44,31 @@ bool getJSONbool(JSONValue jsonData, string key, bool defaultValue)
     }
     return value;
 } // end getJSONbool()
+
+int[] getJSONintarray(JSONValue jsonData, string key, int[] defaultValue)
+{
+    int value[];
+    try {
+	auto json_values = jsonData[key].array;
+	foreach (json_val; json_values) {
+	    value ~= to!int(json_val.integer);
+	}
+    } catch (Exception e) {
+	value = defaultValue;
+    }
+    return value;
+} // end getJSONintarray()
+
+double[] getJSONdoublearray(JSONValue jsonData, string key, double[] defaultValue)
+{
+    double value[];
+    try {
+	auto json_values = jsonData[key].array;
+	foreach (json_val; json_values) {
+	    value ~= to!double(json_val.floating);
+	}
+    } catch (Exception e) {
+	value = defaultValue;
+    }
+    return value;
+} // end getJSONdoublearray()

@@ -73,7 +73,7 @@ void main(string[] args)
 	}
 	GlobalConfig.verbosity_level = verbosityLevel;
 	
-	double sim_time = init_simulation();
+	double sim_time = init_simulation(tindxStart);
 	writeln("starting simulation time= ", sim_time);
 	sim_time = integrate_in_time(sim_time);
 	finalize_simulation(sim_time);
