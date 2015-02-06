@@ -155,7 +155,7 @@ int Block::write_grid(std::string filename, double sim_time, size_t dimensions,
     string str;
     size_t krangemax;
     global_data &G = *get_global_data_ptr();
-    if ( G.verbosity_level >= 1 && id == 0 ) {
+    if ( G.verbosity_level >= 1 && id == 0 && G.flow_induced_moving == 0 ) {
 	// Just one block to announce that the writing has started.
 	printf("write_grid(): At t = %e, start block = %d.\n", sim_time, static_cast<int>(id));
     }
@@ -323,7 +323,7 @@ int Block::write_solution(std::string filename, double sim_time, size_t dimensio
     gzFile zfp;
     string str;
     global_data &G = *get_global_data_ptr();
-    if ( G.verbosity_level >= 1 && id == 0 ) {
+    if ( G.verbosity_level >= 1 && id == 0 && G.flow_induced_moving == 0 ) {
 	printf("write_solution(): At t = %e, start block = %d.\n",
 	       sim_time, static_cast<int>(id));
     }

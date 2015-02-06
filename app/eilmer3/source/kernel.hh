@@ -174,6 +174,7 @@ struct global_data
     double shock_fitting_speed_factor;
     bool moving_grid;
     bool write_vertex_velocities;
+    bool flow_induced_moving;    
 
     /// Set the tolerance in relative velocity change for the shock detector.
     /// This value is expected to be a negative number (for compression)
@@ -195,7 +196,7 @@ struct global_data
     double t_his;           /* time to write next sample  */
     double t_fstc;          /* time to write next fluid-structure exchange data*/
     double t_moving;        /* time to next adapt new vertex velocity    */
-    double dt_moving;       /* interval for running setting vertex velocity for moving grid  */
+    double dt_moving;       /* interval for running setting vertex velocity for moving grid  */   
     double dt_plot;         /* interval for writing soln  */
     double dt_his;          /* interval for writing sample */
     double dt_fstc;         /* interval for writing next f-s exchange data*/

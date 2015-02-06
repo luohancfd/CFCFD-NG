@@ -460,12 +460,14 @@ int read_config_parameters(const string filename, bool master, int start_tindx)
     dict.parse_double("global_data", "shock_fitting_speed_factor", G.shock_fitting_speed_factor, 1.0);
     dict.parse_boolean("global_data", "moving_grid_flag", G.moving_grid, false);
     dict.parse_boolean("global_data", "write_vertex_velocities_flag", G.write_vertex_velocities, false);
+    dict.parse_boolean("global_data", "flow_induced_moving_flag", G.flow_induced_moving, false);    
     if ( G.verbosity_level >= 2 ) {
 	cout << "shock_fitting_flag = " << G.shock_fitting << endl;
 	cout << "shock_fitting_decay_flag = " << G.shock_fitting_decay << endl;
 	cout << "shock_fitting_speed_factor = " << G.shock_fitting_speed_factor << endl;
 	cout << "moving_grid_flag = " << G.moving_grid << endl;
 	cout << "write_vertex_velocities_flag = " << G.write_vertex_velocities << endl;
+	cout << "flow_induced_moving_flag = " << G.flow_induced_moving << endl;	
     }
 
     // 2013-apr-23 New specification scheme for turbulence models.
@@ -821,7 +823,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	throw runtime_error("ERROR: radiation_update_frequency needs to be larger than or equal to 0.");
     }
     dict.parse_double("control_data", "tolerance_in_T", G.tolerance_in_T, 100.0);
-    dict.parse_boolean("control_data", "halt_on_large_flow_change", G.halt_on_large_flow_change, false);
+    dict.parse_boolean("control_data", "halt_on_large_flow_change", G.halt_on_large_flow_change, false);   
     if ( first_time && G.verbosity_level >= 2 ) {
 	cout << "Time-step control parameters:" << endl;
 	cout << "    x_order = " << G.Xorder << endl;

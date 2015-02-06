@@ -438,7 +438,8 @@ class GlobalData(object):
     * conjugate_ht_coupling: (string) Indicate coupling mode between fluid and solid.
     * wall_update_count: (int) Number of steps to wait before recomputing heat transfer in the
       wall conduction model. Values greater than 1 give a loosely-coupled approach to the flow solver/
-      wall solver update.
+      wall solver update. 
+    * flow_induced_moving_flag: (0/1) Set to 1 to activate functions that allow flow induced grid movement.        
     """
     count = 0
 
@@ -481,7 +482,7 @@ class GlobalData(object):
                 'ignition_time_start', 'ignition_time_stop', \
                 'electric_field_work_flag', 'conjugate_ht_flag', 'conjugate_ht_file', \
                 'conjugate_ht_coupling', 'wall_update_count', \
-                'radiation_scaling', 'udf_vtx_velocity_flag'
+                'radiation_scaling', 'udf_vtx_velocity_flag', 'flow_induced_moving_flag'
     
     def __init__(self):
         """
@@ -590,6 +591,7 @@ class GlobalData(object):
         self.conjugate_ht_file = "dummy_ht_file"
         self.conjugate_ht_coupling = "QFS_QWS"
         self.wall_update_count = 1
+        self.flow_induced_moving_flag = 0        
         GlobalData.count += 1
         return
 
@@ -688,7 +690,7 @@ class GlobalData(object):
         fp.write('"wall_update_count": %d,\n' % self.wall_update_count)
         fp.write('"halt_now": 0,\n'); # presumably, we want the simulation to proceed
         fp.write('"halt_on_large_flow_change": %s,\n' % my_json_bool(self.halt_on_large_flow_change))
-        fp.write('"tolerance_in_T": %g\n' % self.tolerance_in_T) # no comma on last one
+        fp.write('"tolerance_in_T": %g\n' % self.tolerance_in_T) # no comma on last one      
         fp.write('}\n')
         return
 
@@ -766,7 +768,8 @@ class GlobalData(object):
         fp.write("electric_field_work_flag = %d\n" % self.electric_field_work_flag)
         fp.write("conjugate_ht_flag = %d\n" % self.conjugate_ht_flag)
         fp.write("conjugate_ht_file = %s\n" % self.conjugate_ht_file)
-        fp.write("conjugate_ht_coupling = %s\n" % self.conjugate_ht_coupling)
+        fp.write("conjugate_ht_coupling = %s\n" % self.conjugate_ht_coupling)  
+        fp.write("flow_induced_moving_flag = %d\n" % self.flow_induced_moving_flag)              
         #
         if self.velocity_buckets > 0:
             tstr_x = "vcoords_x ="
@@ -859,6 +862,7 @@ class GlobalData(object):
                  my_json_bool(self.electric_field_work_flag))
         fp.write('"conjugate_ht_flag": %s,\n' % my_json_bool(self.conjugate_ht_flag))
         fp.write('"conjugate_ht_file": "%s",\n' % self.conjugate_ht_file)
+        fp.write('"flow_induced_moving_flag": %s,\n' % my_json_bool(self.flow_induced_moving_flag))            
         #
         if self.velocity_buckets > 0:
             # TODO: it's probably cleaner to use json.dumps for writing the arrays.

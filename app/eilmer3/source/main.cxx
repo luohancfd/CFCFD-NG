@@ -1249,6 +1249,40 @@ int write_solution_data(std::string tindxstring)
     return SUCCESS;
 } // end write_solution_data()
 
+int write_temp_solution_data()
+// This function only for flow induced moving grid.
+{
+    global_data &G = *get_global_data_ptr();
+    char jbcstr[10];
+    ensure_directory_is_present("temp");
+    std::string foldername = "temp/flow";
+    std::string jbstring, filename;
+    ensure_directory_is_present(foldername); // includes Barrier
+    for ( Block *bdp : G.my_blocks ) {
+	sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr; 
+	filename = foldername+"/"+ G.base_file_name+".flow"+jbstring;
+	bdp->write_solution(filename, G.sim_time, G.dimensions, zip_files);
+    }
+
+    foldername = "temp/grid";
+    ensure_directory_is_present(foldername); // includes Barrier
+    for ( Block *bdp : G.my_blocks ) {
+	sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr; 
+	filename = foldername+"/"+ G.base_file_name+".grid"+jbstring;
+	bdp->write_grid(filename, G.sim_time, G.dimensions, zip_files);
+    }
+    
+    FILE *tempfile;
+    std::string tempname = "temp/control.dat";    
+    tempfile = fopen(tempname.c_str(), "w");
+    fprintf(tempfile, "# Control parameters from the simulation\n");
+    fprintf(tempfile, "# simulation time, time step\n");    
+    fprintf(tempfile, "%20.12e %20.12e\n", G.sim_time, G.dt_global);
+    fclose(tempfile);       
+
+    return SUCCESS;
+} // end write_temp_solution_data()
+
 int integrate_in_time(double target_time)
 {
     global_data &G = *get_global_data_ptr();
@@ -1282,7 +1316,6 @@ int integrate_in_time(double target_time)
     // The next time for output...
     G.t_plot = G.sim_time + G.dt_plot;
     G.t_his = G.sim_time + G.dt_his;
-    //G.t_moving = G.sim_time + G.dt_moving;
     G.t_moving = 0.0;
     
     // Flags to indicate that the saved output is fresh.
@@ -2333,7 +2366,17 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	// As Paul Petrie-repar suggested
         // The edge length (2D) or interface area (3D), interface velocity, normal vector
         // should be remained as the same as level 0 for both stages of the pc
-	if ( G.sim_time >= G.t_moving ) {
+        // The default gird movement strategy is set by equations, the more complex way
+        // is flow induced moving grid, which vextex moving velocity will be defined
+        // the external code 
+	if ( G.sim_time >= G.t_moving ) { 
+	    if ( G.flow_induced_moving ) { // flow induced grid movement
+	        write_temp_solution_data();
+	        int external_result = system("./flow_induced_moving.sh");
+	        if ( external_result !=0 ) { 
+	            printf( "Error: check the external code for flow induced moving grid\n");
+	        }
+	    }
 	    for ( Block *bdp : G.my_blocks ) {
 	        if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
 	            add_udf_velocity_for_vtx(bdp, 0);
@@ -2401,7 +2444,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    bdp->inviscid_flux( G.dimensions );
             if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 		apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
-		apply_viscous_moving_wall_bc(*bdp, G.sim_time, G.dimensions);
+		//apply_viscous_moving_wall_bc(*bdp, G.sim_time, G.dimensions);
 		if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
 		if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 1); else viscous_derivatives_3D(bdp, 1); 
 		    estimate_turbulence_viscosity(&G, bdp);
@@ -2465,7 +2508,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    bdp->inviscid_flux( G.dimensions );
             if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 		apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
-		apply_viscous_moving_wall_bc(*bdp, G.sim_time, G.dimensions);		
+		//apply_viscous_moving_wall_bc(*bdp, G.sim_time, G.dimensions);		
 		if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 1);
 		if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 2); else viscous_derivatives_3D(bdp, 2); 
 		    estimate_turbulence_viscosity(&G, bdp);
@@ -2535,7 +2578,7 @@ int gasdynamic_separate_explicit_viscous_increment()
 	bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
 	for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
-	apply_viscous_moving_wall_bc(*bdp, G.sim_time, G.dimensions);
+	//apply_viscous_moving_wall_bc(*bdp, G.sim_time, G.dimensions);
 	if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
 	if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 	estimate_turbulence_viscosity(&G, bdp);
