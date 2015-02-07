@@ -6,6 +6,7 @@
 import std.conv;
 
 import bc;
+import sblock;
 
 class FullFaceExchangeBC: BoundaryCondition {
 public:
@@ -13,9 +14,16 @@ public:
     int neighbour_face;
     int neighbour_orientation;
 
-    this()
+    this(ref SBlock blk_, int which_boundary_, 
+	 int other_block, int other_face, int orient)
     {
+	blk = blk_;
+	which_boundary = which_boundary_;
 	type_code = BCCode.full_face_exchange;
+	is_wall = false;
+	neighbour_block = other_block;
+	neighbour_face = other_face;
+	neighbour_orientation = orient;
     }
 
     override string toString() const
@@ -31,12 +39,12 @@ public:
 
     override void apply_convective(double t)
     {
-	throw new Error("Not implemented yet.");
+	throw new Error("TODO Not implemented yet.");
     } // end apply_convective
 
     override void apply_viscous(double t)
     {
-	throw new Error("Not implemented yet.");
+	throw new Error("TODO Not implemented yet.");
     }  // end apply_viscous
 
 } // end class FullFaceExchangeBC

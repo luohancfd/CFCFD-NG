@@ -78,7 +78,7 @@ class BoundaryCondition {
     // Presently, there are a lot of assumptions built in that are specific for structured-grid blocks.
 public:
     // Location of the boundary condition.
-    SBlock blk;         // reference to the structured-grid block to which this BC is applied
+    SBlock blk; // reference to the structured-grid block to which this BC is applied
     int which_boundary; // identity/index of the relevant boundary
 
     // Nature of the boundary condition that may be checked 

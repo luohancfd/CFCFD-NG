@@ -6,6 +6,7 @@
 import std.conv;
 
 import bc;
+import sblock;
 
 class MappedCellExchangeBC: BoundaryCondition {
 public:
@@ -19,11 +20,11 @@ public:
     int[][][] incoming_mapped_cells; 
     int[][][] outgoing_mapped_cells;
 
-    this()
+    this(ref SBlock blk_, int which_boundary_)
     {
+	blk = blk_;
+	which_boundary = which_boundary_;
 	type_code = BCCode.mapped_cell;
-	this.which_boundary = which_boundary;
-	blk.bc[which_boundary] = this;
     }
 
     override string toString() const

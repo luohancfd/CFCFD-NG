@@ -20,13 +20,13 @@ class ExtrapolateOutBC: BoundaryCondition {
 public:
     int x_order = 0; // default to lowest order
 
-    this(ref SBlock blk, int which_boundary, int x_order=0) 
+    this(ref SBlock blk_, int which_boundary_, int x_order_=0) 
     {
+	blk = blk_;
+	which_boundary = which_boundary_;
 	type_code = BCCode.extrapolate_out;
 	is_wall = false;
-	this.x_order = x_order;
-	this.which_boundary = which_boundary;
-	blk.bc[which_boundary] = this;
+	x_order = x_order_;
     }
 
     override string toString() const

@@ -12,6 +12,17 @@ import std.conv;
 
 // TODO: lots of repetition here, use templates.
 
+string getJSONstring(JSONValue jsonData, string key, string defaultValue)
+{
+    string value;
+    try {
+	value = to!string(jsonData[key].str);
+    } catch (Exception e) {
+	value = defaultValue;
+    }
+    return value;
+} // end getJSONstring()
+
 int getJSONint(JSONValue jsonData, string key, int defaultValue)
 {
     int value;

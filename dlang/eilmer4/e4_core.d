@@ -63,22 +63,24 @@ BoundaryCondition make_BC_from_json(JSONValue json_data, ref SBlock blk, int i)
     BoundaryCondition new_bc;
     switch (toLower(bc_name)) {
     case "sup_in":
-	// TODO // need to pass reference to the condition
-	// or put the flow_condition data and block data into globaldata.d
-	int inflow_condition_id = 0; 
+	int inflow_condition_id = getJSONint(json_data, "inflow_condition_id", 0);
 	new_bc = new SupersonicInBC(blk, i, inflow_condition_id);
 	break;
     case "slip_wall":
 	new_bc = new SlipWallBC(blk, i);
 	break;
     case "extrapolate_out":
-	new_bc = new ExtrapolateOutBC(blk, i);
+	int x_order = getJSONint(json_data, "x_order", 0);
+	new_bc = new ExtrapolateOutBC(blk, i, x_order);
 	break;
     case "adjacent":
-        // "other_block": -1,
-        // "other_face": "none",
-        // "neighbour_orientation": 0,
- 	new_bc = new FullFaceExchangeBC();
+	int other_block = getJSONint(json_data, "other_block", -1);
+	string other_face_name = getJSONstring(json_data, "other_face", "none");
+	int neighbour_orientation = getJSONint(json_data, "neighbour_orientation", 0);
+ 	new_bc = new FullFaceExchangeBC(blk, i,
+					other_block,
+					face_index(other_face_name),
+					neighbour_orientation);
 	break;
     default:
 	new_bc = new SlipWallBC(blk, i);
@@ -92,7 +94,7 @@ void make_Block_from_json(int id, JSONValue json_data)
     int njcell = getJSONint(json_data, "nnj", 0);
     int nkcell = getJSONint(json_data, "nnk", 0);
     SBlock blk = new SBlock(id, nicell, njcell, nkcell);
-    blk.label = json_data["label"].str;
+    blk.label = getJSONstring(json_data, "label", "");
     blk.active = getJSONbool(json_data, "active", true);
     blk.omegaz = getJSONdouble(json_data, "omegaz", 0.0);
     foreach (i; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {

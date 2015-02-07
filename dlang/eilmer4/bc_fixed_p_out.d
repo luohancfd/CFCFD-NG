@@ -25,17 +25,17 @@ public:
     bool use_Tout = false;
     int x_order = 0; // default to lowest order
 
-    this(ref SBlock blk, int which_boundary, double Pout, double Tout,
+    this(ref SBlock blk_, int which_boundary_, double Pout, double Tout,
 	 bool use_Tout=false, int x_order=0) 
     {
+	blk = blk_;
+	which_boundary = which_boundary_;
 	type_code = BCCode.fixed_p_out;
 	is_wall = false;
 	this.Pout = Pout;
 	this.Tout = Tout;
 	this.use_Tout = use_Tout;
 	this.x_order = x_order;
-	this.which_boundary = which_boundary;
-	blk.bc[which_boundary] = this;
     }
 
     override string toString() const

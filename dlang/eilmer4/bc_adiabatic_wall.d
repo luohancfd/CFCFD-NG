@@ -16,13 +16,13 @@ import bc_menter_correction;
 
 class AdiabaticWallBC: BoundaryCondition {
 
-    this(ref SBlock blk, int which_boundary, double emissivity=0.0) 
+    this(ref SBlock blk_, int which_boundary_, double emissivity=0.0) 
     {
+	blk = blk_;
+	which_boundary = which_boundary_;
 	type_code = BCCode.adiabatic_wall;
 	is_wall = true;
 	this.emissivity = emissivity;
-	this.which_boundary = which_boundary;
-	blk.bc[which_boundary] = this;
     }
 
     override string toString() const
