@@ -3,6 +3,8 @@
 // Solid-wall which allows the fluid to slip along it with no shear stress.
 // Peter J. 2014-07-26
 
+import std.conv;
+
 import bc;
 import block;
 import sblock;
@@ -16,6 +18,15 @@ class SlipWallBC: BoundaryCondition {
 	this.emissivity = emissivity;
 	this.which_boundary = which_boundary;
 	blk.bc[which_boundary] = this;
+    }
+
+    override string toString() const
+    {
+	char[] repr;
+	repr ~= "SlipWallBC(";
+	repr ~= "emissivity=" ~ to!string(emissivity);
+	repr ~= ")";
+	return to!string(repr);
     }
 
     // Let the base class implementations do the work.

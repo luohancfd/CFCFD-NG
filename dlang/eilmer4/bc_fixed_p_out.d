@@ -7,6 +7,8 @@
 // [TODO] implement the high-order reconstruction, as per ExtrapolateOutBC.
 // Peter J. 2014-07-26
 
+import std.conv;
+
 import gas;
 import fvcore;
 import fvinterface;
@@ -34,6 +36,18 @@ public:
 	this.x_order = x_order;
 	this.which_boundary = which_boundary;
 	blk.bc[which_boundary] = this;
+    }
+
+    override string toString() const
+    {
+	char[] repr;
+	repr ~= "FixedPOutBC(";
+	repr ~= "Pout=" ~ to!string(Pout);
+	repr ~= ", Tout=" ~ to!string(Tout);
+	repr ~= ", use_Tout=" ~ to!string(use_Tout);
+	repr ~= ", x_order=" ~ to!string(x_order);
+	repr ~= ")";
+	return to!string(repr);
     }
 
     override void apply_convective(double t)

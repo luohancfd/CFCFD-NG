@@ -3,6 +3,8 @@
 // Acquire ghost cell flow data from cells that have been individually mapped.
 // Peter J. 2014-07-26
 
+import std.conv;
+
 import bc;
 
 class MappedCellExchangeBC: BoundaryCondition {
@@ -22,6 +24,15 @@ public:
 	type_code = BCCode.mapped_cell;
 	this.which_boundary = which_boundary;
 	blk.bc[which_boundary] = this;
+    }
+
+    override string toString() const
+    {
+	char[] repr;
+	repr ~= "FullFaceExchangeBC(";
+	repr ~= "mapped_cells=" ~ to!string(mapped_cells);
+	repr ~= ")";
+	return to!string(repr);
     }
 
     override void apply_convective(double t)

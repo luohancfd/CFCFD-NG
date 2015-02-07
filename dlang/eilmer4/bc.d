@@ -90,6 +90,15 @@ public:
     bool sets_visc_flux_directly = false;
     double emissivity = 0.0;
 
+    override string toString() const
+    {
+	char[] repr;
+	repr ~= "BoundaryCondition(";
+	repr ~= "type_code=" ~ to!string(type_code);
+	repr ~= ")";
+	return to!string(repr);
+    }
+
     void apply_convective(double t)
     {
 	// The default convective boundary condition is to reflect

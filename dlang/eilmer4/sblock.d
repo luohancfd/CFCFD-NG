@@ -39,6 +39,7 @@ public:
     size_t kmin, kmax;
     size_t[] hicell, hjcell, hkcell; // locations of sample cells for history record
     size_t[] micell, mjcell, mkcell; // locations of monitor cells
+    BoundaryCondition bc[6];
 
 private:
     // Total number of cells in each direction for this block.
@@ -99,9 +100,17 @@ public:
 	char[] repr;
 	repr ~= "SBlock(";
 	repr ~= "id=" ~ to!string(id);
+	repr ~= " label=\"" ~ label ~ "\"";
+	repr ~= ", active=" ~ to!string(active);
+	repr ~= ", omegaz=" ~ to!string(omegaz);
 	repr ~= ", nicell=" ~ to!string(nicell);
 	repr ~= ", njcell=" ~ to!string(njcell);
 	repr ~= ", nkcell=" ~ to!string(nkcell);
+	repr ~= ", bc=[";
+	foreach (i; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
+	    repr ~= to!string(bc[i]) ~ ",";
+	}
+	repr ~= "]";
 	repr ~= ")";
 	return to!string(repr);
     }

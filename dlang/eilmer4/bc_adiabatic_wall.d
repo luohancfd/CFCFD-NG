@@ -3,6 +3,8 @@
 // Solid-wall with no-slip velocity and zero-temperature-gradient.
 // Peter J. 2014-07-26
 
+import std.conv;
+
 import fvcore;
 import flowstate;
 import fvinterface;
@@ -21,6 +23,15 @@ class AdiabaticWallBC: BoundaryCondition {
 	this.emissivity = emissivity;
 	this.which_boundary = which_boundary;
 	blk.bc[which_boundary] = this;
+    }
+
+    override string toString() const
+    {
+	char[] repr;
+	repr ~= "AdiabaticWallBC(";
+	repr ~= "emissivity=" ~ to!string(emissivity);
+	repr ~= ")";
+	return to!string(repr);
     }
 
     // Let the base class implementation do the work.

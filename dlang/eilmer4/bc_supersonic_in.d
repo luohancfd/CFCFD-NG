@@ -5,6 +5,8 @@
 //
 // Peter J. 2014-07-26
 
+import std.conv;
+
 import fvcore;
 import flowstate;
 import fvinterface;
@@ -25,6 +27,15 @@ public:
 	this.inflow_condition_id = inflow_condition_id;
 	this.which_boundary = which_boundary;
 	blk.bc[which_boundary] = this;
+    }
+
+    override string toString() const
+    {
+	char[] repr;
+	repr ~= "SupersonicInBC(";
+	repr ~= "inflow_condition_id=" ~ to!string(inflow_condition_id);
+	repr ~= ")";
+	return to!string(repr);
     }
 
     override void apply_convective(double t)

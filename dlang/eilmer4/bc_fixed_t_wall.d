@@ -1,7 +1,9 @@
-// bc_fixed_t__wall.d
+// bc_fixed_t_wall.d
 //
 // Solid-wall with no-slip velocity and specified temperature.
 // Peter J. 2014-07-26
+
+import std.conv;
 
 import fvcore;
 import flowstate;
@@ -25,6 +27,16 @@ public:
 	this.emissivity = emissivity;
 	this.which_boundary = which_boundary;
 	blk.bc[which_boundary] = this;
+    }
+
+    override string toString() const
+    {
+	char[] repr;
+	repr ~= "SlipWallBC(";
+	repr ~= "Twall=" ~ to!string(Twall);
+	repr ~= ", emissivity=" ~ to!string(emissivity);
+	repr ~= ")";
+	return to!string(repr);
     }
 
     // Let the base class implementation do the work.

@@ -17,6 +17,7 @@ enum
 class Block {
 public:
     int id; // block identifier: assumed to be the same as the block number.
+    string label;
     bool active; // if true, block participates in the time integration
     double omegaz; // Angular velocity (in rad/s) of the rotating frame.
                    // There is only one component, about the z-axis.
