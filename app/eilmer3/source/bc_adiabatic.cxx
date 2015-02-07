@@ -58,6 +58,7 @@ int AdiabaticBC::apply_viscous(double t)
     FV_Cell *cell;
     FV_Interface *IFace;
     Block & bd = *bdp;
+    global_data &G = *get_global_data_ptr();     
 
     switch ( which_boundary ) {
     case NORTH:
@@ -69,6 +70,14 @@ int AdiabaticBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
+		if ( G.moving_grid ) {
+		    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		    fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);		    
+		    fs.vel.y = IFace->ivel.y;
+		    fs.vel.z = IFace->ivel.z;
+                    fs.vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);		    
+                    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+                }			
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 	    } // end i loop
@@ -83,6 +92,14 @@ int AdiabaticBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
+		if ( G.moving_grid ) {
+		    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		    fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);		    
+		    fs.vel.y = IFace->ivel.y;
+		    fs.vel.z = IFace->ivel.z;
+                    fs.vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);		    
+                    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+                }		
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 	    } // end j loop
@@ -97,6 +114,14 @@ int AdiabaticBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
+		if ( G.moving_grid ) {
+		    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		    fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);		    
+		    fs.vel.y = IFace->ivel.y;
+		    fs.vel.z = IFace->ivel.z;
+                    fs.vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);		    
+                    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+                }			
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 	    } // end i loop
@@ -111,6 +136,14 @@ int AdiabaticBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
+		if ( G.moving_grid ) {
+		    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		    fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);		    
+		    fs.vel.y = IFace->ivel.y;
+		    fs.vel.z = IFace->ivel.z;
+                    fs.vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);		    
+                    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+                }			
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 	    } // end j loop
@@ -125,6 +158,14 @@ int AdiabaticBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
+		if ( G.moving_grid ) {
+		    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		    fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);		    
+		    fs.vel.y = IFace->ivel.y;
+		    fs.vel.z = IFace->ivel.z;
+                    fs.vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);		    
+                    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+                }			
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 	    } // end j loop
@@ -139,6 +180,14 @@ int AdiabaticBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
+		if ( G.moving_grid ) {
+		    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		    fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);		    
+		    fs.vel.y = IFace->ivel.y;
+		    fs.vel.z = IFace->ivel.z;
+                    fs.vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);		    
+                    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+                }			
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 	    } // end j loop

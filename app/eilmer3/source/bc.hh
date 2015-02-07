@@ -109,7 +109,6 @@ inline int reflect_normal_magnetic_field(FV_Cell *cell, FV_Interface *IFace)
 
 int apply_convective_bc( Block &bd, double t, size_t dimensions );
 int apply_viscous_bc( Block &bd, double t, size_t dimensions );
-int apply_viscous_moving_wall_bc( Block &bd, double t, size_t dimensions );
 
 class CatalyticWallBC; // forward declaration needed below
 
@@ -168,8 +167,7 @@ public:
     virtual void print_info(std::string lead_in);
 
     virtual int apply_convective(double t); // reflect normal velocity
-    virtual int apply_viscous(double t);  // does nothing
-    virtual int apply_viscous_moving_wall(double t);  // apply viscous flux to accout for moving solid wall    
+    virtual int apply_viscous(double t);  // does nothing   
 
     bool is_wall()
     { return is_wall_flag; }

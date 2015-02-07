@@ -60,6 +60,7 @@ int FixedTBC::apply_viscous(double t)
     FV_Interface *IFace;
     size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
     Block & bd = *bdp;
+    global_data &G = *get_global_data_ptr();    
 
     switch ( which_boundary ) {
     case NORTH:
@@ -71,6 +72,14 @@ int FixedTBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
+		if ( G.moving_grid ) {
+		    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		    fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);		    
+		    fs.vel.y = IFace->ivel.y;
+		    fs.vel.z = IFace->ivel.z;
+                    fs.vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);		    
+                    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+                }
 		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		// [TODO] should we re-evaluate the thermo and transport coeffs?
 		fs.tke = 0.0;
@@ -90,6 +99,14 @@ int FixedTBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
+		if ( G.moving_grid ) {
+		    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		    fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);		    
+		    fs.vel.y = IFace->ivel.y;
+		    fs.vel.z = IFace->ivel.z;
+                    fs.vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);		    
+                    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+                }		
 		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
@@ -108,6 +125,14 @@ int FixedTBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
+		if ( G.moving_grid ) {
+		    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		    fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);		    
+		    fs.vel.y = IFace->ivel.y;
+		    fs.vel.z = IFace->ivel.z;
+                    fs.vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);		    
+                    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+                }		
 		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
@@ -126,6 +151,14 @@ int FixedTBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
+		if ( G.moving_grid ) {
+		    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		    fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);		    
+		    fs.vel.y = IFace->ivel.y;
+		    fs.vel.z = IFace->ivel.z;
+                    fs.vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);		    
+                    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+                }		
 		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
@@ -144,6 +177,14 @@ int FixedTBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
+		if ( G.moving_grid ) {
+		    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		    fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);		    
+		    fs.vel.y = IFace->ivel.y;
+		    fs.vel.z = IFace->ivel.z;
+                    fs.vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);		    
+                    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+                }		
 		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
@@ -162,6 +203,14 @@ int FixedTBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
+		if ( G.moving_grid ) {
+		    IFace->ivel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		    fs.vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);		    
+		    fs.vel.y = IFace->ivel.y;
+		    fs.vel.z = IFace->ivel.z;
+                    fs.vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);		    
+                    IFace->ivel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+                }		
 		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
