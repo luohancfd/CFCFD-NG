@@ -18,6 +18,7 @@ import geom;
 import gas;
 import fvcore;
 import globalconfig;
+import globaldata;
 import flowstate;
 import sblock;
 import bc;
@@ -31,12 +32,6 @@ import bc_full_face_exchange;
 import bc_mapped_cell_exchange;
 
 //-----------------------------------------------------------------------------------------
-
-// Flow condition array for use in boundary conditions.
-static FlowState[] flow_state;
-
-// Storage for the actual blocks of flow data.
-static SBlock[] blk_data;
 
 void make_flow_state_from_json(JSONValue json_data)
 {
@@ -57,8 +52,8 @@ void make_flow_state_from_json(JSONValue json_data)
     double mu_t = getJSONdouble(json_data, "mu_t", 0.0);
     double k_t = getJSONdouble(json_data, "k_t", 0.0);
     int S = getJSONint(json_data, "S", 0);
-    flow_state ~= new FlowState(GlobalConfig.gmodel, p, T, vel,  massf,
-				quality, B, tke, omega, mu_t, k_t, S);
+    myFlowStates ~= new FlowState(GlobalConfig.gmodel, p, T, vel,  massf,
+				  quality, B, tke, omega, mu_t, k_t, S);
 } // end make_flow_state_from_json()
 
 BoundaryCondition make_BC_from_json(JSONValue json_data, ref SBlock blk, int i)
@@ -103,7 +98,8 @@ void make_Block_from_json(int id, JSONValue json_data)
     foreach (i; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
 	blk.bc[i] = make_BC_from_json(json_data["face_" ~ face_name[i]], blk, i);
     }
-    blk_data ~= blk;
+    allBlocks ~= blk;
+    myBlocks ~= blk; // Just make a copy, until we have to deal with MPI.
 } // end make_Block_from_json()
 
 //-----------------------------------------------------------------------------------------
@@ -219,7 +215,7 @@ void read_config_file()
     foreach (i; 0 .. nflow) {
 	make_flow_state_from_json(jsonData["flow_" ~ to!string(i)]);
 	if (GlobalConfig.verbosity_level > 1) {
-	    writeln("  flow[", i, "]=", flow_state[i]);
+	    writeln("  flow[", i, "]=", myFlowStates[i]);
 	}
     }
     // Now, configure blocks that make up the flow domain.
@@ -230,7 +226,7 @@ void read_config_file()
     foreach (i; 0 .. GlobalConfig.nBlocks) {
 	make_Block_from_json(i, jsonData["block_" ~ to!string(i)]);
 	if (GlobalConfig.verbosity_level > 1) {
-	    writeln("  Block[", i, "]:", blk_data[i]);
+	    writeln("  Block[", i, "]:", allBlocks[i]);
 	}
     }
     // TODO -- still have other entries such as nheatzone, nreactionzone, ...
@@ -302,7 +298,7 @@ double init_simulation(int tindx)
     if (GlobalConfig.verbosity_level > 0) writeln("Begin init_simulation...");
     read_config_file();
     double sim_time;
-    foreach (ref myblk; blk_data) {
+    foreach (ref myblk; myBlocks) {
 	myblk.assemble_arrays();
 	myblk.bind_faces_and_vertices_to_cells();
 	writeln("myblk=", myblk);
@@ -334,7 +330,7 @@ void finalize_simulation(double sim_time)
 {
     writeln("Finalize the simulation.");
     writeln("TODO fill in the REAL details.");
-    foreach (ref myblk; blk_data) {
+    foreach (ref myblk; myBlocks) {
 	myblk.write_solution("test-flow.txt.gz", 1.0);
     }
     writeln("Done finalize_simulation.");
