@@ -49,12 +49,12 @@ class AdiabaticWallBC: BoundaryCondition {
 	FVInterface IFace;
 
 	final switch ( which_boundary ) {
-	case north:
+	case Face.north:
 	    j = blk.jmax;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (i = blk.imin; i <= blk.imax; ++i) {
 		    cell = blk.get_cell(i,j,k);
-		    IFace = cell.iface[north];
+		    IFace = cell.iface[Face.north];
 		    FlowState fs = IFace.fs;
 		    fs.copy_values_from(cell.fs);
 		    fs.vel.refx = 0.0; fs.vel.refy = 0.0; fs.vel.refz = 0.0;
@@ -63,12 +63,12 @@ class AdiabaticWallBC: BoundaryCondition {
 		} // end i loop
 	    } // end for k
 	    break;
-	case east:
+	case Face.east:
 	    i = blk.imax;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    cell = blk.get_cell(i,j,k);
-		    IFace = cell.iface[east];
+		    IFace = cell.iface[Face.east];
 		    FlowState fs = IFace.fs;
 		    fs.copy_values_from(cell.fs);
 		    fs.vel.refx = 0.0; fs.vel.refy = 0.0; fs.vel.refz = 0.0;
@@ -77,12 +77,12 @@ class AdiabaticWallBC: BoundaryCondition {
 		} // end j loop
 	    } // end for k
 	    break;
-	case south:
+	case Face.south:
 	    j = blk.jmin;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (i = blk.imin; i <= blk.imax; ++i) {
 		    cell = blk.get_cell(i,j,k);
-		    IFace = cell.iface[south];
+		    IFace = cell.iface[Face.south];
 		    FlowState fs = IFace.fs;
 		    fs.copy_values_from(cell.fs);
 		    fs.vel.refx = 0.0; fs.vel.refy = 0.0; fs.vel.refz = 0.0;
@@ -91,12 +91,12 @@ class AdiabaticWallBC: BoundaryCondition {
 		} // end i loop
 	    } // end for k
 	    break;
-	case west:
+	case Face.west:
 	    i = blk.imin;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    cell = blk.get_cell(i,j,k);
-		    IFace = cell.iface[west];
+		    IFace = cell.iface[Face.west];
 		    FlowState fs = IFace.fs;
 		    fs.copy_values_from(cell.fs);
 		    fs.vel.refx = 0.0; fs.vel.refy = 0.0; fs.vel.refz = 0.0;
@@ -105,12 +105,12 @@ class AdiabaticWallBC: BoundaryCondition {
 		} // end j loop
 	    } // end for k
 	    break;
-	case top:
+	case Face.top:
 	    k = blk.kmax;
 	    for (i = blk.imin; i <= blk.imax; ++i) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    cell = blk.get_cell(i,j,k);
-		    IFace = cell.iface[top];
+		    IFace = cell.iface[Face.top];
 		    FlowState fs = IFace.fs;
 		    fs.copy_values_from(cell.fs);
 		    fs.vel.refx = 0.0; fs.vel.refy = 0.0; fs.vel.refz = 0.0;
@@ -119,12 +119,12 @@ class AdiabaticWallBC: BoundaryCondition {
 		} // end j loop
 	    } // end for i
 	    break;
-	case bottom:
+	case Face.bottom:
 	    k = blk.kmin;
 	    for (i = blk.imin; i <= blk.imax; ++i) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    cell = blk.get_cell(i,j,k);
-		    IFace = cell.iface[bottom];
+		    IFace = cell.iface[Face.bottom];
 		    FlowState fs = IFace.fs;
 		    fs.copy_values_from(cell.fs);
 		    fs.vel.refx = 0.0; fs.vel.refy = 0.0; fs.vel.refz = 0.0;

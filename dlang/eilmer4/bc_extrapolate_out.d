@@ -51,7 +51,7 @@ public:
 	size_t nmodes = gmodel.n_modes;
 
 	final switch ( which_boundary ) {
-	case north:
+	case Face.north:
 	    j = blk.jmax;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (i = blk.imin; i <= blk.imax; ++i) {
@@ -124,7 +124,7 @@ public:
 		} // end i loop
 	    } // for k
 	    break;
-	case east:
+	case Face.east:
 	    i = blk.imax;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
@@ -196,7 +196,7 @@ public:
 		} // end j loop
 	    } // for k
 	    break;
-	case south:
+	case Face.south:
 	    j = blk.jmin;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (i = blk.imin; i <= blk.imax; ++i) {
@@ -268,7 +268,7 @@ public:
 		} // end i loop
 	    } // for k
 	    break;
-	case west:
+	case Face.west:
 	    i = blk.imin;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
@@ -341,7 +341,7 @@ public:
 		} // end j loop
 	    } // for k
 	    break;
-	case top:
+	case Face.top:
 	    k = blk.kmax;
 	    for (i = blk.imin; i <= blk.imax; ++i) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
@@ -414,7 +414,7 @@ public:
 		} // end j loop
 	    } // for i
 	    break;
-	case bottom:
+	case Face.bottom:
 	    k = blk.kmin;
 	    for (i = blk.imin; i <= blk.imax; ++i) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {

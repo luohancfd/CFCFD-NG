@@ -47,7 +47,7 @@ void apply_menter_boundary_correction(SBlock blk, size_t ftl)
     //         Do not apply Menter boundary correction if we are in a laminar region.
 
     // north boundary
-    if ( blk.bc[north].is_wall && blk.bc[north].type_code != BCCode.slip_wall ) {
+    if ( blk.bc[Face.north].is_wall && blk.bc[Face.north].type_code != BCCode.slip_wall ) {
         // Use the smaller value of either half the number of cells in 
         // the j-direction or the specified nominal_layer_depth. 
         layer_depth = min(blk.njcell/2, nominal_layer_depth);
@@ -66,7 +66,7 @@ void apply_menter_boundary_correction(SBlock blk, size_t ftl)
     }
 
     // south boundary
-    if ( blk.bc[south].is_wall && blk.bc[south].type_code != BCCode.slip_wall ) {
+    if ( blk.bc[Face.south].is_wall && blk.bc[Face.south].type_code != BCCode.slip_wall ) {
         // Use the smaller value of either half the number of cells in 
         // the j-direction or the specified nominal_layer_depth. 
         layer_depth = min(blk.njcell/2, nominal_layer_depth);
@@ -85,7 +85,7 @@ void apply_menter_boundary_correction(SBlock blk, size_t ftl)
     }
 
     // east boundary
-    if ( blk.bc[east].is_wall && blk.bc[east].type_code != BCCode.slip_wall ) {
+    if ( blk.bc[Face.east].is_wall && blk.bc[Face.east].type_code != BCCode.slip_wall ) {
         // Use the smaller value of either half the number of cells in 
         // the i-direction or the specified nominal_layer_depth. 
         layer_depth = min(blk.nicell/2, nominal_layer_depth);
@@ -104,7 +104,7 @@ void apply_menter_boundary_correction(SBlock blk, size_t ftl)
     }
 
     // west boundary
-    if ( blk.bc[west].is_wall && blk.bc[west].type_code != BCCode.slip_wall ) {
+    if ( blk.bc[Face.west].is_wall && blk.bc[Face.west].type_code != BCCode.slip_wall ) {
         // Use the smaller value of either half the number of cells in 
         // the i-direction or the specified nominal_layer_depth. 
         layer_depth = min(blk.nicell/2, nominal_layer_depth);
@@ -124,7 +124,7 @@ void apply_menter_boundary_correction(SBlock blk, size_t ftl)
 
     if ( GlobalConfig.dimensions == 3 ) {
 	// top boundary
-	if ( blk.bc[top].is_wall && blk.bc[top].type_code != BCCode.slip_wall ) {
+	if ( blk.bc[Face.top].is_wall && blk.bc[Face.top].type_code != BCCode.slip_wall ) {
         // Use the smaller value of either half the number of cells in 
         // the k-direction or the specified nominal_layer_depth. 
         layer_depth = min(blk.nkcell/2, nominal_layer_depth);
@@ -143,7 +143,7 @@ void apply_menter_boundary_correction(SBlock blk, size_t ftl)
 	}
         
 	// bottom boundary
-	if ( blk.bc[bottom].is_wall && blk.bc[bottom].type_code != BCCode.slip_wall ) {
+	if ( blk.bc[Face.bottom].is_wall && blk.bc[Face.bottom].type_code != BCCode.slip_wall ) {
         // Use the smaller value of either half the number of cells in 
         // the k-direction or the specified nominal_layer_depth. 
         layer_depth = min(blk.nkcell/2, nominal_layer_depth);
@@ -168,52 +168,52 @@ void apply_menter_boundary_correction(SBlock blk, size_t ftl)
     //         been corrected at other boundaries.
 
     // north boundary
-    if ( blk.bc[north].type_code == BCCode.slip_wall || 
-	 blk.bc[north].type_code == BCCode.extrapolate_out ) {
+    if ( blk.bc[Face.north].type_code == BCCode.slip_wall || 
+	 blk.bc[Face.north].type_code == BCCode.extrapolate_out ) {
 	for ( i = blk.imin; i <= blk.imax; ++i ) {
             for ( k = blk.kmin; k <= blk.kmax; ++k ) {
 	        j = blk.jmax;
                 cell = blk.get_cell(i,j,k);
-	        IFace = cell.iface[north];
+	        IFace = cell.iface[Face.north];
 		IFace.fs.omega = cell.fs.omega;
             } // k-loop
 	} // i-loop
     }
 
     // south boundary
-    if ( blk.bc[south].type_code == BCCode.slip_wall ||
-	 blk.bc[south].type_code == BCCode.extrapolate_out ) {
+    if ( blk.bc[Face.south].type_code == BCCode.slip_wall ||
+	 blk.bc[Face.south].type_code == BCCode.extrapolate_out ) {
 	for ( i = blk.imin; i <= blk.imax; ++i ) {
             for ( k = blk.kmin; k <= blk.kmax; ++k ) {
 		j = blk.jmin;
 		cell = blk.get_cell(i,j,k);
-		IFace = cell.iface[south];
+		IFace = cell.iface[Face.south];
 		IFace.fs.omega = cell.fs.omega;
 	    } // k-loop
 	} // i-loop
     }
 
     // east boundary
-    if ( blk.bc[east].type_code == BCCode.slip_wall ||
-	 blk.bc[east].type_code == BCCode.extrapolate_out ) {
+    if ( blk.bc[Face.east].type_code == BCCode.slip_wall ||
+	 blk.bc[Face.east].type_code == BCCode.extrapolate_out ) {
 	for ( j = blk.jmin; j <= blk.jmax; ++j ) {
             for ( k = blk.kmin; k <= blk.kmax; ++k ) {
 	        i = blk.imax;
 	        cell = blk.get_cell(i,j,k);
-	        IFace = cell.iface[east];
+	        IFace = cell.iface[Face.east];
 		IFace.fs.omega = cell.fs.omega;
             } // k-loop
 	} // j-loop
     }
 
     // west boundary
-    if ( blk.bc[west].type_code == BCCode.slip_wall ||
-	 blk.bc[west].type_code == BCCode.extrapolate_out ) {
+    if ( blk.bc[Face.west].type_code == BCCode.slip_wall ||
+	 blk.bc[Face.west].type_code == BCCode.extrapolate_out ) {
 	for (j = blk.jmin; j <= blk.jmax; ++j) {
             for ( k = blk.kmin; k <= blk.kmax; ++k ) {
 	        i = blk.imin;
 	        cell = blk.get_cell(i,j,k);
-	        IFace = cell.iface[west];
+	        IFace = cell.iface[Face.west];
 		IFace.fs.omega = cell.fs.omega;
             } // k-loop
 	} // j-loop
@@ -221,26 +221,26 @@ void apply_menter_boundary_correction(SBlock blk, size_t ftl)
 
     if ( GlobalConfig.dimensions == 3 ) {
 	// top boundary
-	if ( blk.bc[top].type_code == BCCode.slip_wall ||
-	     blk.bc[top].type_code == BCCode.extrapolate_out ) {
+	if ( blk.bc[Face.top].type_code == BCCode.slip_wall ||
+	     blk.bc[Face.top].type_code == BCCode.extrapolate_out ) {
 	    for ( i = blk.imin; i <= blk.imax; ++i ) {
 		for ( j = blk.jmin; j <= blk.jmax; ++j ) {
 		    k = blk.kmax;
 		    cell = blk.get_cell(i,j,k);
-		    IFace = cell.iface[top];
+		    IFace = cell.iface[Face.top];
 		    IFace.fs.omega = cell.fs.omega;
 		} // j-loop
 	    } // i-loop
 	}
         
 	// bottom boundary
-	if ( blk.bc[bottom].type_code == BCCode.slip_wall ||
-	     blk.bc[bottom].type_code == BCCode.extrapolate_out ) {
+	if ( blk.bc[Face.bottom].type_code == BCCode.slip_wall ||
+	     blk.bc[Face.bottom].type_code == BCCode.extrapolate_out ) {
 	    for ( i = blk.imin; i <= blk.imax; ++i ) {
 		for ( j = blk.jmin; j <= blk.jmax; ++j ) {
 		    k = blk.kmin;
 		    cell = blk.get_cell(i,j,k);
-		    IFace = cell.iface[bottom];
+		    IFace = cell.iface[Face.bottom];
 		    IFace.fs.omega = cell.fs.omega;
 		} // j-loop
 	    } // i-loop

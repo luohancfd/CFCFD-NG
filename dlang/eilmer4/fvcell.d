@@ -510,12 +510,12 @@ public:
     //       2: End of stage-2.
     // dimensions : number of space dimensions (2 or 3)
     {
-	FVInterface IFn = iface[north];
-	FVInterface IFe = iface[east];
-	FVInterface IFs = iface[south];
-	FVInterface IFw = iface[west];
-	FVInterface IFt = iface[top];
-	FVInterface IFb = iface[bottom];
+	FVInterface IFn = iface[Face.north];
+	FVInterface IFe = iface[Face.east];
+	FVInterface IFs = iface[Face.south];
+	FVInterface IFw = iface[Face.west];
+	FVInterface IFt = iface[Face.top];
+	FVInterface IFb = iface[Face.bottom];
 	// Cell volume (inverted).
 	double vol_inv = 1.0 / volume[gtl];
 	double integral;
@@ -988,9 +988,9 @@ public:
 	double gam_eff;
 	int statusf;
 	auto gmodel = GlobalConfig.gmodel;
-	const FVInterface north_face = iface[north];
-	const FVInterface east_face = iface[east];
-	const FVInterface top_face = iface[top];
+	const FVInterface north_face = iface[Face.north];
+	const FVInterface east_face = iface[Face.east];
+	const FVInterface top_face = iface[Face.top];
 	// Get the local normal velocities by rotating the
 	// local frame of reference.
 	// Also, compute the velocity magnitude and
@@ -1473,10 +1473,10 @@ public:
 	    double dudx = mixin(avg_over_vtx_2D("grad_vel[0][0]"));
 	    double dvdy = mixin(avg_over_vtx_2D("grad_vel[1][1]"));
 	    double mu = 
-		0.25 * (iface[east].fs.gas.mu + iface[west].fs.gas.mu +
-			iface[north].fs.gas.mu + iface[south].fs.gas.mu) +
-		0.25 * (iface[east].fs.mu_t + iface[west].fs.mu_t +
-			iface[north].fs.mu_t + iface[south].fs.mu_t);
+		0.25 * (iface[Face.east].fs.gas.mu + iface[Face.west].fs.gas.mu +
+			iface[Face.north].fs.gas.mu + iface[Face.south].fs.gas.mu) +
+		0.25 * (iface[Face.east].fs.mu_t + iface[Face.west].fs.mu_t +
+			iface[Face.north].fs.mu_t + iface[Face.south].fs.mu_t);
 	    mu *= GlobalConfig.viscous_factor;
 	    double lmbda = -2.0/3.0 * mu;
 	    double tau_00 = 2.0 * mu * v_over_y + lmbda * (dudx + dvdy + v_over_y);
@@ -1527,11 +1527,11 @@ public:
 	gm.update_thermo_from_rhoT(IFace.fs.gas); // Note that we adjust IFace here.
 	double a_wall = IFace.fs.gas.a;
 	double cell_width = 0.0;
-	if ( which_boundary == east || which_boundary == west )
+	if ( which_boundary == Face.east || which_boundary == Face.west )
 	    cell_width = iLength;
-	else if ( which_boundary == north || which_boundary == south )
+	else if ( which_boundary == Face.north || which_boundary == Face.south )
 	    cell_width = jLength;
-	else if ( which_boundary == top || which_boundary == bottom )
+	else if ( which_boundary == Face.top || which_boundary == Face.bottom )
 	    cell_width = kLength;
 	double Re_wall = IFace.fs.gas.rho * a_wall * cell_width / IFace.fs.gas.mu;
 	return Re_wall;

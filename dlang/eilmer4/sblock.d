@@ -491,7 +491,7 @@ public:
 		for ( size_t j = jmin-1; j <= jmax; ++j ) {
 		    auto cL = get_cell(i,j,k);
 		    auto cR = get_cell(i,j+1,k);
-		    auto IFace = cL.iface[north];
+		    auto IFace = cL.iface[Face.north];
 		    uL = cL.fs.vel.x * IFace.n.x + cL.fs.vel.y * IFace.n.y + cL.fs.vel.z * IFace.n.z;
 		    uR = cR.fs.vel.x * IFace.n.x + cR.fs.vel.y * IFace.n.y + cR.fs.vel.z * IFace.n.z;
 		    aL = cL.fs.gas.a;
@@ -512,7 +512,7 @@ public:
 		for ( size_t j = jmin; j <= jmax; ++j ) {
 		    auto cL = get_cell(i,j,k);
 		    auto cR = get_cell(i+1,j,k);
-		    auto IFace = cL.iface[east];
+		    auto IFace = cL.iface[Face.east];
 		    uL = cL.fs.vel.x * IFace.n.x + cL.fs.vel.y * IFace.n.y + cL.fs.vel.z * IFace.n.z;
 		    uR = cR.fs.vel.x * IFace.n.x + cR.fs.vel.y * IFace.n.y + cR.fs.vel.z * IFace.n.z;
 		    aL = cL.fs.gas.a;
@@ -533,7 +533,7 @@ public:
 		    for ( size_t k = kmin-1; k <= kmax; ++k ) {
 			auto cL = get_cell(i,j,k);
 			auto cR = get_cell(i,j,k+1);
-			auto IFace = cL.iface[top];
+			auto IFace = cL.iface[Face.top];
 			uL = cL.fs.vel.x * IFace.n.x + cL.fs.vel.y * IFace.n.y + cL.fs.vel.z * IFace.n.z;
 			uR = cR.fs.vel.x * IFace.n.x + cR.fs.vel.y * IFace.n.y + cR.fs.vel.z * IFace.n.z;
 			aL = cL.fs.gas.a;
@@ -554,10 +554,10 @@ public:
 	    for ( size_t i = imin; i <= imax; ++i ) {
 		for ( size_t j = jmin; j <= jmax; ++j ) {
 		    auto cell = get_cell(i,j,k);
-		    cell.fs.S = cell.iface[east].fs.S || cell.iface[west].fs.S ||
-			cell.iface[north].fs.S || cell.iface[south].fs.S ||
+		    cell.fs.S = cell.iface[Face.east].fs.S || cell.iface[Face.west].fs.S ||
+			cell.iface[Face.north].fs.S || cell.iface[Face.south].fs.S ||
 			( GlobalConfig.dimensions == 3 && 
-			  (cell.iface[bottom].fs.S || cell.iface[top].fs.S) );
+			  (cell.iface[Face.bottom].fs.S || cell.iface[Face.top].fs.S) );
 		} // j loop
 	    } // i loop
 	} // for k
@@ -784,35 +784,35 @@ public:
 	    // straight to the bounding walls.
 	    // North
 	    face_at_wall = get_ifj(i,jmax+1,k);
-	    dist[north] = abs(cell.pos[gtl] - face_at_wall.pos);
-	    cell_at_wall[north] = get_cell(i,jmax,k);
-	    half_width[north] = abs(cell_at_wall[north].pos[gtl] - face_at_wall.pos);
+	    dist[Face.north] = abs(cell.pos[gtl] - face_at_wall.pos);
+	    cell_at_wall[Face.north] = get_cell(i,jmax,k);
+	    half_width[Face.north] = abs(cell_at_wall[Face.north].pos[gtl] - face_at_wall.pos);
 	    // East
 	    face_at_wall = get_ifi(imax+1,j,k);
-	    dist[east] = abs(cell.pos[gtl] - face_at_wall.pos);
-	    cell_at_wall[east] = get_cell(imax,j,k);
-	    half_width[east] = abs(cell_at_wall[east].pos[gtl] - face_at_wall.pos);
+	    dist[Face.east] = abs(cell.pos[gtl] - face_at_wall.pos);
+	    cell_at_wall[Face.east] = get_cell(imax,j,k);
+	    half_width[Face.east] = abs(cell_at_wall[Face.east].pos[gtl] - face_at_wall.pos);
 	    // South
 	    face_at_wall = get_ifj(i,jmin,k);
-	    dist[south] = abs(cell.pos[gtl] - face_at_wall.pos);
-	    cell_at_wall[south] = get_cell(i,jmin,k);
-	    half_width[south] = abs(cell_at_wall[south].pos[gtl] - face_at_wall.pos);
+	    dist[Face.south] = abs(cell.pos[gtl] - face_at_wall.pos);
+	    cell_at_wall[Face.south] = get_cell(i,jmin,k);
+	    half_width[Face.south] = abs(cell_at_wall[Face.south].pos[gtl] - face_at_wall.pos);
 	    // West
 	    face_at_wall = get_ifi(imin,j,k);
-	    dist[west] = abs(cell.pos[gtl] - face_at_wall.pos);
-	    cell_at_wall[west] = get_cell(imin,j,k);
-	    half_width[west] = abs(cell_at_wall[west].pos[gtl] - face_at_wall.pos);
+	    dist[Face.west] = abs(cell.pos[gtl] - face_at_wall.pos);
+	    cell_at_wall[Face.west] = get_cell(imin,j,k);
+	    half_width[Face.west] = abs(cell_at_wall[Face.west].pos[gtl] - face_at_wall.pos);
 	    if ( GlobalConfig.dimensions == 3 ) {
 		// Top
 		face_at_wall = get_ifk(i,j,kmax+1);
-		dist[top] = abs(cell.pos[gtl] - face_at_wall.pos);
-		cell_at_wall[top] = get_cell(i,j,kmax);
-		half_width[top] = abs(cell_at_wall[top].pos[gtl] - face_at_wall.pos);
+		dist[Face.top] = abs(cell.pos[gtl] - face_at_wall.pos);
+		cell_at_wall[Face.top] = get_cell(i,j,kmax);
+		half_width[Face.top] = abs(cell_at_wall[Face.top].pos[gtl] - face_at_wall.pos);
 		// Bottom
 		face_at_wall = get_ifk(i,j,kmin);
-		dist[bottom] = abs(cell.pos[gtl] - face_at_wall.pos);
-		cell_at_wall[bottom] = get_cell(i,j,kmin);
-		half_width[bottom] = abs(cell_at_wall[bottom].pos[gtl] - face_at_wall.pos);
+		dist[Face.bottom] = abs(cell.pos[gtl] - face_at_wall.pos);
+		cell_at_wall[Face.bottom] = get_cell(i,j,kmin);
+		half_width[Face.bottom] = abs(cell_at_wall[Face.bottom].pos[gtl] - face_at_wall.pos);
 	    }
 
 	    // Step 2: Just in case there are no real walls for this block...
@@ -1899,25 +1899,25 @@ public:
 
     override void apply_convective_bc(double t)
     {
-	bc[north].apply_convective(t);
-	bc[east].apply_convective(t);
-	bc[south].apply_convective(t);
-	bc[west].apply_convective(t);
+	bc[Face.north].apply_convective(t);
+	bc[Face.east].apply_convective(t);
+	bc[Face.south].apply_convective(t);
+	bc[Face.west].apply_convective(t);
 	if ( GlobalConfig.dimensions == 3 ) {
-	    bc[top].apply_convective(t);
-	    bc[bottom].apply_convective(t);
+	    bc[Face.top].apply_convective(t);
+	    bc[Face.bottom].apply_convective(t);
 	}
     } // end apply_convective_bc()
 
     override void apply_viscous_bc(double t)
     {
-	bc[north].apply_viscous(t);
-	bc[east].apply_viscous(t);
-	bc[south].apply_viscous(t);
-	bc[west].apply_viscous(t);
+	bc[Face.north].apply_viscous(t);
+	bc[Face.east].apply_viscous(t);
+	bc[Face.south].apply_viscous(t);
+	bc[Face.west].apply_viscous(t);
 	if ( GlobalConfig.dimensions == 3 ) {
-	    bc[top].apply_viscous(t);
-	    bc[bottom].apply_viscous(t);
+	    bc[Face.top].apply_viscous(t);
+	    bc[Face.bottom].apply_viscous(t);
 	}
     } // end apply_convective_bc
 

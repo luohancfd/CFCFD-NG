@@ -12,24 +12,25 @@ import std.conv;
 
 // Symbolic names and indices for the cells' faces.
 // The names of the faces of the structured-grid blocks will be the same.
-enum
+enum Face {
     north = 0,
     east = 1,
     south = 2,
     west = 3,
     top = 4,
-    bottom = 5;
+    bottom = 5
+}
 
 string[] face_name = [ "north", "east", "south", "west", "top", "bottom" ];
 uint face_index(string name)
 {
     switch ( name ) {
-    case "north": return north;
-    case "east": return east;
-    case "south": return south;
-    case "west": return west;
-    case "top": return top;
-    case "bottom": return bottom;
+    case "north": return Face.north;
+    case "east": return Face.east;
+    case "south": return Face.south;
+    case "west": return Face.west;
+    case "top": return Face.top;
+    case "bottom": return Face.bottom;
     default:
 	throw new Error(text("Invalid face name:", name));
     }

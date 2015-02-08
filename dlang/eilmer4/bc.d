@@ -110,13 +110,13 @@ public:
 	auto opt = CopyDataOption.flow;
 
 	final switch ( which_boundary ) {
-	case north:
+	case Face.north:
 	    j = blk.jmax;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (i = blk.imin; i <= blk.imax; ++i) {
 		    // ghost cell 1.
 		    src_cell = blk.get_cell(i,j,k);
-		    IFace = src_cell.iface[north];
+		    IFace = src_cell.iface[Face.north];
 		    dest_cell = blk.get_cell(i,j+1,k);
 		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
@@ -134,13 +134,13 @@ public:
 		} // end i loop
 	    } // for k
 	    break;
-	case east:
+	case Face.east:
 	    i = blk.imax;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    // ghost cell 1.
 		    src_cell = blk.get_cell(i,j,k);
-		    IFace = src_cell.iface[east];
+		    IFace = src_cell.iface[Face.east];
 		    dest_cell = blk.get_cell(i+1,j,k);
 		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
@@ -158,13 +158,13 @@ public:
 		} // end j loop
 	    } // for k
 	    break;
-	case south:
+	case Face.south:
 	    j = blk.jmin;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (i = blk.imin; i <= blk.imax; ++i) {
 		    // ghost cell 1.
 		    src_cell = blk.get_cell(i,j,k);
-		    IFace = src_cell.iface[south];
+		    IFace = src_cell.iface[Face.south];
 		    dest_cell = blk.get_cell(i,j-1,k);
 		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
@@ -182,13 +182,13 @@ public:
 		} // end i loop
 	    } // for k
 	    break;
-	case west:
+	case Face.west:
 	    i = blk.imin;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    // ghost cell 1.
 		    src_cell = blk.get_cell(i,j,k);
-		    IFace = src_cell.iface[west];
+		    IFace = src_cell.iface[Face.west];
 		    dest_cell = blk.get_cell(i-1,j,k);
 		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
@@ -206,13 +206,13 @@ public:
 		} // end j loop
 	    } // for k
 	    break;
-	case top:
+	case Face.top:
 	    k = blk.kmax;
 	    for (i = blk.imin; i <= blk.imax; ++i) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    // ghost cell 1.
 		    src_cell = blk.get_cell(i,j,k);
-		    IFace = src_cell.iface[top];
+		    IFace = src_cell.iface[Face.top];
 		    dest_cell = blk.get_cell(i,j,k+1);
 		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);
@@ -230,13 +230,13 @@ public:
 		} // end j loop
 	    } // for i
 	    break;
-	case bottom:
+	case Face.bottom:
 	    k = blk.kmin;
 	    for (i = blk.imin; i <= blk.imax; ++i) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    // ghost cell 1.
 		    src_cell = blk.get_cell(i,j,k);
-		    IFace = src_cell.iface[bottom];
+		    IFace = src_cell.iface[Face.bottom];
 		    dest_cell = blk.get_cell(i,j,k-1);
 		    dest_cell.copy_values_from(src_cell, opt);
 		    reflect_normal_velocity(dest_cell, IFace);

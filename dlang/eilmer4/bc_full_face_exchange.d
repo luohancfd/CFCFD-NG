@@ -39,6 +39,7 @@ public:
 
     override void apply_convective(double t)
     {
+	copy_into_east(blk, blk, 0, 0); // test call of function below
 	throw new Error("TODO Not implemented yet.");
     } // end apply_convective
 
@@ -48,3 +49,9 @@ public:
     }  // end apply_viscous
 
 } // end class FullFaceExchangeBC
+
+
+void copy_into_east(ref SBlock bp, ref SBlock bp_src, 
+		    int type_of_copy, size_t gtl)
+{
+}
