@@ -93,7 +93,7 @@ GasdynamicUpdate update_scheme_from_name(string name)
 
 
 // [TODO] think about the following...
-enum CopyDataOption { all, flow, grid, cell_lengths_only }
+enum CopyDataOption { all, minimal_flow, all_flow, grid, cell_lengths_only }
 
 // n_time_levels is used to size the time-derivative vectors.
 enum

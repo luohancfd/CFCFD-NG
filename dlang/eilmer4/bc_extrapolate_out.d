@@ -117,9 +117,9 @@ public:
 			// Zero-order extrapolation
 			src_cell = blk.get_cell(i,j,k);
 			dest_cell = blk.get_cell(i,j+1,k);
-			dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+			dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 			dest_cell = blk.get_cell(i,j+2,k);
-			dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+			dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    } 
 		} // end i loop
 	    } // for k
@@ -189,9 +189,9 @@ public:
 		    else {
 			src_cell = blk.get_cell(i,j,k);
 			dest_cell = blk.get_cell(i+1,j,k);
-			dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+			dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 			dest_cell = blk.get_cell(i+2,j,k);
-			dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+			dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    }
 		} // end j loop
 	    } // for k
@@ -261,9 +261,9 @@ public:
 		    else {
 			src_cell = blk.get_cell(i,j,k);
 			dest_cell = blk.get_cell(i,j-1,k);
-			dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+			dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 			dest_cell = blk.get_cell(i,j-2,k);
-			dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+			dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    }
 		} // end i loop
 	    } // for k
@@ -334,9 +334,9 @@ public:
 			// Zero-order extrapolation
 			src_cell = blk.get_cell(i,j,k);
 			dest_cell = blk.get_cell(i-1,j,k);
-			dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+			dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 			dest_cell = blk.get_cell(i-2,j,k);
-			dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+			dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    }
 		} // end j loop
 	    } // for k
@@ -407,9 +407,9 @@ public:
 			// Zero-order extrapolation
 			src_cell = blk.get_cell(i,j,k);
 			dest_cell = blk.get_cell(i,j,k+1);
-			dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+			dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 			dest_cell = blk.get_cell(i,j,k+2);
-			dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+			dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    }
 		} // end j loop
 	    } // for i
@@ -479,9 +479,9 @@ public:
 		    else {
 			src_cell = blk.get_cell(i,j,k);
 			dest_cell = blk.get_cell(i,j,k-1);
-			dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+			dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 			dest_cell = blk.get_cell(i,j,k-2);
-			dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+			dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    }
 		} // end j loop
 	    } // for i

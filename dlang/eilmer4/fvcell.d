@@ -93,7 +93,10 @@ public:
     void copy_values_from(in FVCell other, int type_of_copy)
     {
 	switch ( type_of_copy ) {
-	case CopyDataOption.flow:
+	case CopyDataOption.minimal_flow:
+	    fs.copy_values_from(other.fs);
+	    break;
+	case CopyDataOption.all_flow:
 	    fs.copy_values_from(other.fs);
 	    Q.copy_values_from(other.Q);
 	    foreach(i; 0 .. n_time_levels) {

@@ -60,7 +60,8 @@ public:
     void copy_values_from(in FVInterface other, uint type_of_copy)
     {
 	switch ( type_of_copy ) {
-	case CopyDataOption.flow:
+	case CopyDataOption.minimal_flow:
+	case CopyDataOption.all_flow:
 	    fs.copy_values_from(other.fs);
 	    F.copy_values_from(other.F);
 	    break;

@@ -5,6 +5,10 @@
 
 import std.conv;
 
+import globalconfig;
+import globaldata;
+import fvcore;
+import fvcell;
 import bc;
 import sblock;
 
@@ -39,19 +43,15 @@ public:
 
     override void apply_convective(double t)
     {
-	copy_into_east(blk, blk, 0, 0); // test call of function below
-	throw new Error("TODO Not implemented yet.");
-    } // end apply_convective
+	blk.copy_into_ghost_cells(which_boundary, 
+				  allBlocks[neighbour_block], neighbour_face, neighbour_orientation,
+				  CopyDataOption.minimal_flow, true);
+    }
 
     override void apply_viscous(double t)
     {
-	throw new Error("TODO Not implemented yet.");
-    }  // end apply_viscous
+	// do nothing
+    }
 
 } // end class FullFaceExchangeBC
 
-
-void copy_into_east(ref SBlock bp, ref SBlock bp_src, 
-		    int type_of_copy, size_t gtl)
-{
-}

@@ -1074,7 +1074,7 @@ int copy_into_top_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t
 		if ( orientation == 0 ) {
 		    j_src = bp_src->nnj - i - 1; k_src = j;
 		} else if ( orientation == 1 ) {
-		    j_src = bp->nnj - j - 1; k_src = bp_src->nnk - i - 1;
+		    j_src = bp_src->nnj - j - 1; k_src = bp_src->nnk - i - 1;
 		} else if ( orientation == 2 ) {
 		    j_src = i; k_src = bp_src->nnk - j - 1;
 		} else if ( orientation == 3 ) {

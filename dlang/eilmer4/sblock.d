@@ -1921,6 +1921,731 @@ public:
 	}
     } // end apply_convective_bc
 
+
+    void copy_into_ghost_cells(int dest_face,
+			       ref SBlock src_blk, int src_face, int src_orientation,
+			       int type_of_copy, bool with_encode)
+    {
+	size_t i_dest, i_src, j_dest, j_src, k_dest, k_src, i, j, k;
+	FVCell src, dest;
+	int gtl = 0; // Do the encode only for grid-time-level zero.
+
+	// Although complicated, the 3D code should work for the 2D simulation,
+	// however, there is only one orientation for connected blocks in 2D.
+	// TODO: check this assertion for all cases.
+	if (GlobalConfig.dimensions == 2) src_orientation = 0;
+
+	final switch (dest_face) {
+	case Face.north:
+	    j_dest = jmax;  // index of the north-most plane of active cells
+	    for (i = 0; i < nicell; ++i) {
+		i_dest = i + imin;
+		for (k = 0; k < nkcell; ++k) {
+		    k_dest = k + kmin;
+		    final switch (src_face) {
+		    case Face.north:
+			final switch (src_orientation) {
+			case 0: i_src = src_blk.nicell - i - 1; k_src = k; break;
+			case 1: i_src = k; k_src = i; break;
+			case 2: i_src = i; k_src = src_blk.nkcell - k - 1; break;
+			case 3: i_src = src_blk.nicell - k - 1; k_src = src_blk.nkcell - i - 1;
+			} // end switch (src_orientation)
+			j_src = src_blk.jmax; 
+			i_src += src_blk.imin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest+1,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src-1,k_src);
+			dest = get_cell(i_dest,j_dest+2,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.east:
+			final switch (src_orientation) {
+			case 0: j_src = i; k_src = k; break;
+			case 1: j_src = src_blk.njcell - k - 1; k_src = i; break;
+			case 2: j_src = src_blk.njcell - i - 1; k_src = src_blk.nkcell - k - 1; break;
+			case 3: j_src = k; k_src = src_blk.nkcell - i - 1;
+			} // end switch (src_orientation)
+			i_src = src_blk.imax; 
+			j_src += src_blk.jmin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest+1,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src-1,j_src,k_src);
+			dest = get_cell(i_dest,j_dest+2,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.south:
+			final switch (src_orientation) {
+			case 0: i_src = i; k_src = k; break;
+			case 1: i_src = k; k_src = src_blk.nkcell - i - 1; break;
+			case 2: i_src = src_blk.nicell - i - 1; k_src = src_blk.nkcell - k - 1; break;
+			case 3: i_src = src_blk.nicell - k - 1; k_src = i;
+			} // end switch (src_orientation)
+			j_src = src_blk.jmin; 
+			i_src += src_blk.imin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest+1,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src+1,k_src);
+			dest = get_cell(i_dest,j_dest+2,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.west:
+			final switch (src_orientation) {
+			case 0: j_src = src_blk.njcell - i - 1; k_src = k; break;
+			case 1: j_src = k; k_src = i; break;
+			case 2: j_src = i; k_src = src_blk.nkcell - k - 1; break;
+			case 3: j_src = src_blk.njcell - k - 1; k_src = src_blk.nkcell - i - 1;
+			} // end switch (src_orientation)
+			i_src = src_blk.imin; 
+			j_src += src_blk.jmin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest+1,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src+1,j_src,k_src);
+			dest = get_cell(i_dest,j_dest+2,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.top:
+			final switch (src_orientation) {
+			case 0: i_src = i; j_src = k; break;
+			case 1: i_src = src_blk.nicell - k - 1; j_src = i; break;
+			case 2: i_src = src_blk.nicell - i - 1; j_src = src_blk.njcell - k - 1; break;
+			case 3: i_src = k; j_src = src_blk.njcell - i - 1;
+			} // end switch (src_orientation)
+			k_src = src_blk.kmax; 
+			i_src += src_blk.imin; j_src += src_blk.jmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest+1,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src,k_src-1);
+			dest = get_cell(i_dest,j_dest+2,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.bottom:
+			final switch (src_orientation) {
+			case 0: i_src = src_blk.nicell - i - 1; j_src = k; break;
+			case 1: i_src = k; j_src = i; break;
+			case 2: i_src = src_blk.nicell - i - 1; j_src = src_blk.njcell - k - 1; break;
+			case 3: i_src = src_blk.nicell - k - 1; j_src = src_blk.njcell - i - 1;
+			} // end switch (src_orientation)
+			k_src = src_blk.kmin; 
+			i_src += src_blk.imin; j_src += src_blk.jmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest+1,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src,k_src+1);
+			dest = get_cell(i_dest,j_dest+2,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+		    } // end switch (src_face)
+		} // k loop
+	    } // i loop
+	    break;
+	case Face.east:
+	    i_dest = imax;  // index of the east-most plane of active cells
+	    for (j = 0; j < njcell; ++j) {
+		j_dest = j + jmin;
+		for (k = 0; k < nkcell; ++k) {
+		    k_dest = k + kmin;
+		    final switch (src_face) {
+		    case Face.north:
+			final switch (src_orientation) {
+			case 0: i_src = j; k_src = k; break;
+			case 1: i_src = k; k_src = src_blk.nkcell - j - 1; break;
+			case 2: i_src = src_blk.nicell - j - 1; k_src = src_blk.nkcell - k - 1; break;
+			case 3: i_src = src_blk.nicell - k - 1; k_src = j;
+			} // end switch (src_orientation)
+			j_src = src_blk.jmax; 
+			i_src += src_blk.imin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest+1,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src-1,k_src);
+			dest = get_cell(i_dest+2,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.east:
+			final switch (src_orientation) {
+			case 0: j_src = src_blk.njcell - j - 1; k_src = k; break;
+			case 1: j_src = src_blk.njcell - k - 1; k_src = src_blk.nkcell - j - 1; break;
+			case 2: j_src = src_blk.njcell - j - 1; k_src = src_blk.nkcell - k - 1; break;
+			case 3: j_src = j; k_src = src_blk.nkcell - k - 1;
+			}
+			i_src = src_blk.imax; 
+			j_src += src_blk.jmin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest+1,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src-1,j_src,k_src);
+			dest = get_cell(i_dest+2,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.south:
+			final switch (src_orientation) {
+			case 0: i_src = src_blk.nicell - j - 1; k_src = k; break;
+			case 1: i_src = src_blk.nicell - k - 1; k_src = src_blk.nkcell - j - 1; break;
+			case 2: i_src = j; k_src = src_blk.nkcell - k - 1; break;
+			case 3: i_src = k; k_src = j;
+			}
+			j_src = src_blk.jmin; 
+			i_src += src_blk.imin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest+1,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src+1,k_src);
+			dest = get_cell(i_dest+2,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.west:
+			final switch (src_orientation) {
+			case 0: j_src = j; k_src = k; break;
+			case 1: j_src = k; k_src = src_blk.nkcell - j - 1; break;
+			case 2: j_src = src_blk.njcell - j - 1; k_src = src_blk.nkcell - k - 1; break;
+			case 3: j_src = src_blk.njcell - k - 1; k_src = j;
+			}
+			i_src = src_blk.imin; 
+			j_src += src_blk.jmin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest+1,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src+1,j_src,k_src);
+			dest = get_cell(i_dest+2,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.top:
+			final switch (src_orientation) {
+			case 0: i_src = src_blk.nicell - j - 1; j_src = k; break;
+			case 1: i_src = src_blk.nicell - k - 1; j_src = src_blk.njcell - j - 1; break;
+			case 2: i_src = j; j_src = src_blk.njcell - k - 1; break;
+			case 3: i_src = k; j_src = j;
+			}
+			k_src = src_blk.kmax; 
+			i_src += src_blk.imin; j_src += src_blk.jmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest+1,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src+1,k_src-1);
+			dest = get_cell(i_dest+2,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.bottom:
+			final switch (src_orientation) {
+			case 0: i_src = j; j_src = k; break;
+			case 1: i_src = k; j_src = src_blk.njcell - j - 1; break;
+			case 2: i_src = src_blk.nicell - j - 1; j_src = src_blk.njcell - k - 1; break;
+			case 3: i_src = k; j_src = j;
+			}
+			k_src = src_blk.kmin; 
+			i_src += src_blk.imin; j_src += src_blk.jmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest+1,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src+1,k_src+1);
+			dest = get_cell(i_dest+2,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+		    } // end switch (src_face)
+		} // k loop
+	    } // j loop
+	    break;
+	case Face.south:
+	    j_dest = jmin;  // index of the south-most plane of active cells
+	    for (i = 0; i < nicell; ++i) {
+		i_dest = i + imin;
+		for (k = 0; k < nkcell; ++k) {
+		    k_dest = k + kmin;
+		    final switch (src_face) {
+		    case Face.north:
+			final switch (src_orientation) {
+			case 0: i_src = i; k_src = k; break;
+			case 1: i_src = src_blk.nicell - k - 1; k_src = i; break;
+			case 2: i_src = src_blk.nicell - i - 1; k_src = src_blk.nkcell - k - 1; break;
+			case 3: i_src = k; k_src = src_blk.nkcell - i - 1;
+			} // end switch (src_orientation)
+			j_src = src_blk.jmax; 
+			i_src += src_blk.imin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest-1,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src-1,k_src);
+			dest = get_cell(i_dest,j_dest-2,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.east:
+			final switch (src_orientation) {
+			case 0: j_src = src_blk.njcell - i - 1; k_src = k; break;
+			case 1: j_src = src_blk.njcell - k - 1; k_src = src_blk.nkcell - i - 1; break;
+			case 2: j_src = i; k_src = src_blk.nkcell - k - 1; break;
+			case 3: j_src = k; k_src = i;
+			} // end switch (src_orientation)
+			i_src = src_blk.imax; 
+			j_src += src_blk.jmin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest-1,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src-1,j_src,k_src);
+			dest = get_cell(i_dest,j_dest-2,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.south:
+			final switch (src_orientation) {
+			case 0: i_src = src_blk.nicell - i - 1; k_src = k; break;
+			case 1: i_src = src_blk.nicell - k - 1; k_src = src_blk.nkcell - i - 1; break;
+			case 2: i_src = i; k_src = src_blk.nkcell - k - 1; break;
+			case 3: i_src = k; k_src = i;
+			} // end switch (src_orientation)
+			j_src = src_blk.jmin; 
+			i_src += src_blk.imin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest-1,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src+1,k_src);
+			dest = get_cell(i_dest,j_dest-2,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.west:
+			final switch (src_orientation) {
+			case 0: j_src = i; k_src = k; break;
+			case 1: j_src = k; k_src = src_blk.nkcell - i - 1; break;
+			case 2: j_src = src_blk.njcell - i - 1; k_src = src_blk.nkcell - k - 1; break;
+			case 3: j_src = src_blk.njcell - k - 1; k_src = i;
+			} // end switch (src_orientation)
+			i_src = src_blk.imin; 
+			j_src += src_blk.jmin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest-1,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src+1,j_src,k_src);
+			dest = get_cell(i_dest,j_dest-2,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.top:
+			final switch (src_orientation) {
+			case 0: i_src = src_blk.nicell - i - 1; j_src = k; break;
+			case 1: i_src = src_blk.nicell - k - 1; j_src = src_blk.njcell - i - 1; break;
+			case 2: i_src = src_blk.nicell - i - 1; j_src = src_blk.njcell - k - 1; break;
+			case 3: i_src = k; j_src = i;
+			} // end switch (src_orientation)
+			k_src = src_blk.kmax; 
+			i_src += src_blk.imin; j_src += src_blk.jmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest-1,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src,k_src-1);
+			dest = get_cell(i_dest,j_dest-2,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.bottom:
+			final switch (src_orientation) {
+			case 0: i_src = i; j_src = k; break;
+			case 1: i_src = k; j_src = src_blk.njcell - i - 1; break;
+			case 2: i_src = src_blk.nicell - i - 1; j_src = src_blk.njcell - k - 1; break;
+			case 3: i_src = src_blk.nicell - k - 1; j_src = i;
+			} // end switch (src_orientation)
+			k_src = src_blk.kmin; 
+			i_src += src_blk.imin; j_src += src_blk.jmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest-1,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src,k_src+1);
+			dest = get_cell(i_dest,j_dest-2,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+		    } // end switch (src_face)
+		} // k loop
+	    } // j loop
+	    break;
+	case Face.west:
+	    i_dest = imin;  // index of the west-most plane of active cells
+	    for (j = 0; j < njcell; ++j) {
+		j_dest = j + jmin;
+		for (k = 0; k < nkcell; ++k) {
+		    k_dest = k + kmin;
+		    final switch (src_face) {
+		    case Face.north:
+			final switch (src_orientation) {
+			case 0: i_src = src_blk.nicell - j - 1; k_src = k; break;
+			case 1: i_src = k; k_src = j; break;
+			case 2: i_src = j; k_src = src_blk.nkcell - k - 1; break;
+			case 3: i_src = src_blk.nicell - k - 1; k_src = src_blk.nkcell - j - 1;
+			} // end switch (src_orientation)
+			j_src = src_blk.jmax; 
+			i_src += src_blk.imin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest-1,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src-1,k_src);
+			dest = get_cell(i_dest-2,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.east:
+			final switch (src_orientation) {
+			case 0: j_src = j; k_src = k; break;
+			case 1: j_src = src_blk.njcell - k - 1; k_src = j; break;
+			case 2: j_src = src_blk.njcell - j - 1; k_src = src_blk.nkcell - k - 1; break;
+			case 3: j_src = k; k_src = src_blk.nkcell - j - 1;
+			} // end switch (src_orientation)
+			i_src = src_blk.imax; 
+			j_src += src_blk.jmin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest-1,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src-1,j_src,k_src);
+			dest = get_cell(i_dest-2,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.south:
+			final switch (src_orientation) {
+			case 0: i_src = j; k_src = k; break;
+			case 1: i_src = src_blk.nicell - k - 1; k_src = j; break;
+			case 2: i_src = src_blk.nicell - j - 1; k_src = src_blk.nkcell - k - 1; break;
+			case 3: i_src = k; k_src = src_blk.nkcell - j - 1;
+			} // end switch (src_orientation)
+			j_src = src_blk.jmin; 
+			i_src += src_blk.imin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest-1,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src+1,k_src);
+			dest = get_cell(i_dest-2,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.west:
+			final switch (src_orientation) {
+			case 0: j_src = src_blk.njcell - j - 1; k_src = src_blk.nkcell - k - 1; break;
+			case 1: j_src = k; k_src = j; break;
+			case 2: j_src = j; k_src = src_blk.nkcell - k - 1; break;
+			case 3: j_src = src_blk.njcell - k - 1; k_src = src_blk.nkcell - j - 1;
+			} // end switch (src_orientation)
+			i_src = src_blk.imin; 
+			j_src += src_blk.jmin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest-1,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src+1,j_src,k_src);
+			dest = get_cell(i_dest-2,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.top:
+			final switch (src_orientation) {
+			case 0: i_src = j; j_src = k; break;
+			case 1: i_src = src_blk.nicell - k - 1; j_src = j; break;
+			case 2: i_src = src_blk.nicell - j - 1; j_src = src_blk.njcell - k - 1; break;
+			case 3: i_src = k; j_src = src_blk.njcell - j - 1;
+			} // end switch (src_orientation)
+			k_src = src_blk.kmax; 
+			i_src += src_blk.imin; j_src += src_blk.jmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest-1,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src,k_src-1);
+			dest = get_cell(i_dest-2,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.bottom:
+			final switch (src_orientation) {
+			case 0: i_src = src_blk.nicell - j - 1; j_src = k; break;
+			case 1: i_src = k; j_src = j; break;
+			case 2: i_src = j; j_src = src_blk.njcell - k - 1; break;
+			case 3: i_src = src_blk.nicell - k - 1; j_src = src_blk.njcell - j - 1;
+			} // end switch (src_orientation)
+			k_src = src_blk.kmin; 
+			i_src += src_blk.imin; j_src += src_blk.jmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest-1,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src,k_src+1);
+			dest = get_cell(i_dest-2,j_dest,k_dest);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+		    } // end switch (src_face)
+		} // k loop
+	    } // j loop
+	    break;
+	case Face.top:
+	    k_dest = kmax;  // index of the top-most plane of active cells
+	    for (j = 0; j < njcell; ++j) {
+		j_dest = j + jmin;
+		for (i = 0; i < nicell; ++i) {
+		    i_dest = i + imin;
+		    final switch (src_face) {
+		    case Face.north:
+			final switch (src_orientation) {
+			case 0: i_src = i; k_src = j; break;
+			case 1: i_src = j; k_src = src_blk.nkcell - i - 1; break;
+			case 2: i_src = src_blk.nicell - i - 1; k_src = src_blk.nkcell - j - 1; break;
+			case 3: i_src = src_blk.nicell - j - 1; k_src = i;
+			} // end switch (src_orientation)
+			j_src = src_blk.jmax; 
+			i_src += src_blk.imin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest+1);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src-1,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest+2);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.east:
+			final switch (src_orientation) {
+			case 0: j_src = src_blk.njcell - i - 1; k_src = j; break;
+			case 1: j_src = src_blk.njcell - j - 1; k_src = src_blk.nkcell - i - 1; break;
+			case 2: j_src = i; k_src = src_blk.nkcell - j - 1; break;
+			case 3: j_src = j; k_src = i;
+			} // end switch (src_orientation)
+			i_src = src_blk.imax; 
+			j_src += src_blk.jmin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest+1);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src-1,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest+2);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.south:
+			final switch (src_orientation) {
+			case 0: i_src = src_blk.nicell - i - 1; k_src = j; break;
+			case 1: i_src = src_blk.nicell - j - 1; k_src = src_blk.nkcell - i - 1; break;
+			case 2: i_src = i; k_src = src_blk.nkcell - j - 1; break;
+			case 3: i_src = j; k_src = i;
+			} // end switch (src_orientation)
+			j_src = src_blk.jmin; 
+			i_src += src_blk.imin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest+1);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src+1,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest+2);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.west:
+			final switch (src_orientation) {
+			case 0: j_src = i; k_src = j; break;
+			case 1: j_src = j; k_src = src_blk.nkcell - i - 1; break;
+			case 2: j_src = src_blk.njcell - i - 1; k_src = src_blk.nkcell - j - 1; break;
+			case 3: j_src = src_blk.njcell - j - 1; k_src = i;
+			} // end switch (src_orientation)
+			i_src = src_blk.imin; 
+			j_src += src_blk.jmin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest+1);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src+1,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest+2);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.top:
+			final switch (src_orientation) {
+			case 0: i_src = src_blk.nicell - i - 1; j_src = j; break;
+			case 1: i_src = j; j_src = src_blk.njcell - i - 1; break;
+			case 2: i_src = i; j_src = src_blk.njcell - j - 1; break;
+			case 3: i_src = j; j_src = i;
+			} // end switch (src_orientation)
+			k_src = src_blk.kmax; 
+			i_src += src_blk.imin; j_src += src_blk.jmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest+1);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src,k_src-1);
+			dest = get_cell(i_dest,j_dest,k_dest+2);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.bottom:
+			final switch (src_orientation) {
+			case 0: i_src = i; j_src = j; break;
+			case 1: i_src = j; j_src = src_blk.njcell - i - 1; break;
+			case 2: i_src = src_blk.nicell - i - 1; j_src = src_blk.njcell - j - 1; break;
+			case 3: i_src = src_blk.nicell - j - 1; j_src = i;
+			} // end switch (src_orientation)
+			k_src = src_blk.kmin; 
+			i_src += src_blk.imin; j_src += src_blk.jmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest+1);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src,k_src+1);
+			dest = get_cell(i_dest,j_dest,k_dest+2);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+		    } // end switch (src_face)
+		} // i loop
+	    } // j loop
+	    break;
+	case Face.bottom:
+	    k_dest = kmin;  // index of the bottom-most plane of active cells
+	    for (j = 0; j < njcell; ++j) {
+		j_dest = j + jmin;
+		for (i = 0; i < nicell; ++i) {
+		    i_dest = i + imin;
+		    final switch (src_face) {
+		    case Face.north:
+			final switch (src_orientation) {
+			case 0: i_src = src_blk.nicell - i - 1; k_src = j; break;
+			case 1: i_src = j; k_src = i; break;
+			case 2: i_src = i; k_src = src_blk.nkcell - j - 1; break;
+			case 3: i_src = src_blk.nicell - j - 1; k_src = src_blk.nkcell - i - 1;
+			} // end switch (src_orientation)
+			j_src = src_blk.jmax; 
+			i_src += src_blk.imin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest-1);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src-1,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest-2);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.east:
+			final switch (src_orientation) {
+			case 0: j_src = i; k_src = j; break;
+			case 1: j_src = src_blk.njcell - j - 1; k_src = i; break;
+			case 2: j_src = src_blk.njcell - i - 1; k_src = src_blk.nkcell - j - 1; break;
+			case 3: j_src = j; k_src = src_blk.nkcell - i - 1;
+			} // end switch (src_orientation)
+			i_src = src_blk.imax; 
+			j_src += src_blk.jmin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest-1);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src-1,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest-2);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.south:
+			final switch (src_orientation) {
+			case 0: i_src = src_blk.nicell - i - 1; k_src = j; break;
+			case 1: i_src = src_blk.nicell - j - 1; k_src = i; break;
+			case 2: i_src = src_blk.nicell - i - 1; k_src = src_blk.nkcell - j - 1; break;
+			case 3: i_src = j; k_src = src_blk.nkcell - i - 1;
+			} // end switch (src_orientation)
+			j_src = src_blk.jmin; 
+			i_src += src_blk.imin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest-1);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src+1,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest-2);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.west:
+			final switch (src_orientation) {
+			case 0: j_src = src_blk.njcell - i - 1; k_src = j; break;
+			case 1: j_src = j; k_src = i; break;
+			case 2: j_src = i; k_src = src_blk.nkcell - j - 1; break;
+			case 3: j_src = src_blk.njcell - j - 1; k_src = src_blk.nkcell - i - 1;
+			} // end switch (src_orientation)
+			i_src = src_blk.imin; 
+			j_src += src_blk.jmin; k_src += src_blk.kmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest-1);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src+1,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest-2);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.top:
+			final switch (src_orientation) {
+			case 0: i_src = i; j_src = j; break;
+			case 1: i_src = src_blk.nicell - j - 1; j_src = i; break;
+			case 2: i_src = src_blk.nicell - i - 1; j_src = src_blk.njcell - j - 1; break;
+			case 3: i_src = j; j_src = src_blk.njcell - i - 1;
+			} // end switch (src_orientation)
+			k_src = src_blk.kmax; 
+			i_src += src_blk.imin; j_src += src_blk.jmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest-1);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src,k_src-1);
+			dest = get_cell(i_dest,j_dest,k_dest-2);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			break;
+		    case Face.bottom:
+			final switch (src_orientation) {
+			case 0: i_src = src_blk.nicell - i - 1; j_src = j; break;
+			case 1: i_src = j; j_src = i; break;
+			case 2: i_src = i; j_src = src_blk.njcell - j - 1; break;
+			case 3: i_src = src_blk.nicell - j - 1; j_src = src_blk.njcell - i - 1;
+			} // end switch (src_orientation)
+			k_src = src_blk.kmin; 
+			i_src += src_blk.imin; j_src += src_blk.jmin;
+			src = src_blk.get_cell(i_src,j_src,k_src);
+			dest = get_cell(i_dest,j_dest,k_dest-1);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+			src = src_blk.get_cell(i_src,j_src,k_src+1);
+			dest = get_cell(i_dest,j_dest,k_dest-2);
+			dest.copy_values_from(src, type_of_copy);
+			if (with_encode) dest.encode_conserved(gtl, 0, omegaz);
+		    } // end switch (src_face)
+		} // i loop
+	    } // j loop
+	}
+    } // end copy_to_ghost_cells()
+
 } // end class SBlock
 
 

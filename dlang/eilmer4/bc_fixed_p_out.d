@@ -66,12 +66,12 @@ public:
 		for (i = blk.imin; i <= blk.imax; ++i) {
 		    src_cell = blk.get_cell(i,j,k);
 		    dest_cell = blk.get_cell(i,j+1,k);
-		    dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+		    dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    dest_cell.fs.gas.p = Pout;
 		    if ( use_Tout ) foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
 		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
 		    dest_cell = blk.get_cell(i,j+2,k);
-		    dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+		    dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    dest_cell.fs.gas.p = Pout;
 		    if ( use_Tout ) foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
 		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
@@ -84,12 +84,12 @@ public:
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    src_cell = blk.get_cell(i,j,k);
 		    dest_cell = blk.get_cell(i+1,j,k);
-		    dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+		    dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    dest_cell.fs.gas.p = Pout;
 		    if ( use_Tout ) foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
 		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
 		    dest_cell = blk.get_cell(i+2,j,k);
-		    dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+		    dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    dest_cell.fs.gas.p = Pout;
 		    if ( use_Tout ) foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
 		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
@@ -102,12 +102,12 @@ public:
 		for (i = blk.imin; i <= blk.imax; ++i) {
 		    src_cell = blk.get_cell(i,j,k);
 		    dest_cell = blk.get_cell(i,j-1,k);
-		    dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+		    dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    dest_cell.fs.gas.p = Pout;
 		    if ( use_Tout ) foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
 		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
 		    dest_cell = blk.get_cell(i,j-2,k);
-		    dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+		    dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    dest_cell.fs.gas.p = Pout;
 		    if ( use_Tout ) foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
 		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
@@ -120,12 +120,12 @@ public:
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    src_cell = blk.get_cell(i,j,k);
 		    dest_cell = blk.get_cell(i-1,j,k);
-		    dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+		    dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    dest_cell.fs.gas.p = Pout;
 		    if ( use_Tout ) foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
 		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
 		    dest_cell = blk.get_cell(i-2,j,k);
-		    dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+		    dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    dest_cell.fs.gas.p = Pout;
 		    if ( use_Tout ) foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
 		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
@@ -138,12 +138,12 @@ public:
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    src_cell = blk.get_cell(i,j,k);
 		    dest_cell = blk.get_cell(i,j,k+1);
-		    dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+		    dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    dest_cell.fs.gas.p = Pout;
 		    if ( use_Tout ) foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
 		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
 		    dest_cell = blk.get_cell(i,j,k+2);
-		    dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+		    dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    dest_cell.fs.gas.p = Pout;
 		    if ( use_Tout ) foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
 		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
@@ -156,12 +156,12 @@ public:
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    src_cell = blk.get_cell(i,j,k);
 		    dest_cell = blk.get_cell(i,j,k-1);
-		    dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+		    dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    dest_cell.fs.gas.p = Pout;
 		    if ( use_Tout ) foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
 		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
 		    dest_cell = blk.get_cell(i,j,k-2);
-		    dest_cell.copy_values_from(src_cell, CopyDataOption.flow);
+		    dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
 		    dest_cell.fs.gas.p = Pout;
 		    if ( use_Tout ) foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
 		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);

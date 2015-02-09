@@ -107,7 +107,7 @@ public:
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
 	FVInterface IFace;
-	auto opt = CopyDataOption.flow;
+	auto opt = CopyDataOption.minimal_flow;
 
 	final switch ( which_boundary ) {
 	case Face.north:
