@@ -477,7 +477,7 @@ class QssStep : public OdeStep {
 public:
     /// \brief Normal constructor
     QssStep( const std::string name, int ndim, int max_correctors=4,
-	     double qss_eps1=1.0e-3, double delta=1.0e-10 );
+	     double eps1=1.0e-3, double c=2.0, double delta=1.0e-10 );
     
     /// \brief Copy constructor
     QssStep( const QssStep &q );
@@ -496,7 +496,8 @@ public:
 
 private:
     int max_correctors_;
-    double qss_eps1_;
+    double eps1_;
+    double eps2_;
     double delta_;
     // Some working arrays for the model
     std::vector<double> p0_;

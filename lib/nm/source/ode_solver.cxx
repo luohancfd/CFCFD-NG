@@ -46,7 +46,7 @@ OdeSolver::OdeSolver( const string name, int ndim, const string step_name,
 	step_ = new EulerStep("euler", ndim);
     }
     else if( step_name == "qss" ) {
-	step_ = new QssStep("qss", ndim, 10, 1.0e-3, 1.0e-10 );
+	step_ = new QssStep("qss", ndim, 10, 1.0e-3, 2.0, 1.0e-10 );
     }
     else if( step_name == "rkf" ) {
 	step_ = new RKFStep( "rkf", ndim, 1.0e-9);

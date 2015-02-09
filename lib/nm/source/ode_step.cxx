@@ -8,6 +8,7 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -831,11 +832,40 @@ DP853Step::advance(OdeSystem &ode, const vector<double> &yin,
 /// \version 21-Feb-2006
 ///
 QssStep::QssStep( const string name, int ndim, int max_correctors,
-		  double qss_eps1, double delta )
+		  double eps1, double c, double delta )
 
     : OdeStep( name, ndim ), max_correctors_( max_correctors ),
-      qss_eps1_( qss_eps1 ), delta_( delta )
+      eps1_( eps1 ), delta_( delta )
 {
+    eps2_ = eps1/c;
+    // An ugly hack added on 09-Feb-2015
+    // I want a way to override the default values for the alpha-QSS
+    // numerics. However, I do not want to adjust all of the higher level
+    // input code. Particularly as the code that supports Eilmer3 is going
+    // into maintenance mode. I don't feel it's worth chaning the input
+    // and accompanying documentation at this stage.
+    ifstream fin("override-alpha-qss-default-values.txt");
+    if ( fin.is_open() ) {
+	cout << "WARNING: File 'override-alpha-qss-default-values.txt' is detected in working directory.\n";
+	cout << "WARNING: The contents of this file will be used to override the normal defaults.\n";
+	string line;
+	getline(fin, line);
+	eps1_ = stod(line);
+	cout << "WARNING: eps1 = " << eps1_ << endl;
+	getline(fin, line);
+	double c = stod(line);
+	cout << "WARNING: c = " << c << endl;
+	eps2_ = eps1_/c;
+	getline(fin, line);
+	delta_ = stod(line);
+	cout << "WARNING: delta= " << delta_ << endl;
+	getline(fin, line);
+	max_correctors_ = stoi(line);
+	cout << "WARNING: max_correctors= " << max_correctors_ << endl;
+	fin.close();
+    }
+    
+
     p0_.resize(ndim);
     q0_.resize(ndim);
     L0_.resize(ndim);
@@ -858,7 +888,7 @@ QssStep::QssStep( const string name, int ndim, int max_correctors,
 ///
 QssStep::QssStep( const QssStep &q )
     : OdeStep( q.name_, q.ndim_ ), max_correctors_( q.max_correctors_ ),
-      qss_eps1_( q.qss_eps1_ ), delta_(q.delta_)
+      eps1_( q.eps1_ ), eps2_( q.eps2_ ), delta_(q.delta_)
 {
     p0_.resize(ndim_);
     q0_.resize(ndim_);
@@ -999,15 +1029,15 @@ bool QssStep::test_converged( const vector<double> &y_c, const vector<double> &y
     int flag = 0;
     double test = 0.0;
     for( int i = 0; i < ndim_; ++i ) {
-	//	cout << "i= " << i << endl;
+	//cout << "i= " << i << endl;
 	if( y_c[i] < ZERO_EPS )
 	    continue;
 	test = fabs(y_c[i] - y_p[i]);
-	//	cout << "test= " << test << endl;
-	//	cout << "val= " << qss_eps1_ * (y_c[i] + delta_) << endl;
+	//cout << "test= " << test << endl;
+	//cout << "val= " << eps1_ * (y_c[i] + delta_) << endl;
 	// +delta from Qureshi and Prosser (2007)
-	if( test >= (qss_eps1_ * (y_c[i] + delta_)) ) {
-	    //	    cout << "NEW: failed.\n";
+	if( test >= (eps1_ * (y_c[i] + delta_)) ) {
+	    //cout << "NEW: failed.\n";
 	    ++flag;
 	}
     }
@@ -1028,7 +1058,7 @@ double QssStep::step_suggest( double h, const vector<double> &y_c,
     for( int i = 0; i < ndim_; ++i ) {
 	if( y_c[i] < ZERO_EPS )
 	    continue;
-	test = fabs( y_c[i] - y_p[i]) / (qss_eps1_ * (y_c[i] + delta_));
+	test = fabs( y_c[i] - y_p[i]) / (eps2_*(y_c[i]+ delta_));
 	if( test > sigma ) {
 	    sigma = test;
 	}
