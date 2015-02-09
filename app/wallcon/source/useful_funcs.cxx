@@ -29,15 +29,15 @@ std::vector<std::string> strip_string(std::string &line){
 
 std::vector<double> read_time_varying_bc(std::string boundary, std::string dir, int iteration){
     std::vector<double> terms;
-    std::string filename;
+    char filename[132];
     std::vector<double> user_q;
     std::string line;
 
     //Set the path
-    filename = dir + "/" + boundary + "/" +std::to_string(static_cast<long long>(iteration)) ;
+    sprintf(filename, "%s/%s/%d", dir.c_str(), boundary.c_str(), iteration);
 
     //Read file with terms
-	std::ifstream user_file( filename.c_str() );
+	std::ifstream user_file( filename );
     if (!(user_file.is_open())){
 	std::cout << "wallcon read_time_varying_bc in bc_userdef_t failed to open file at pat "<< filename << std::endl;
 	exit(1);
@@ -53,15 +53,15 @@ std::vector<double> read_time_varying_bc(std::string boundary, std::string dir, 
 
 std::vector<double> read_time_varying_bc2(std::string bc_type, std::string boundary, std::string dir, int iteration){
     std::vector<double> terms;
-    std::string filename;
+    char filename[132];
     std::vector<double> user_q;
     std::string line;
 
     //Set the path
-    filename = dir + "/" + boundary + "/" +std::to_string(static_cast<long long>(iteration)) + "/" + bc_type ;
+    sprintf(filename, "%s/%s/%d/%s", dir.c_str(), boundary.c_str(), iteration, bc_type.c_str());
 
     //Read file with terms
-	std::ifstream user_file( filename.c_str() );
+	std::ifstream user_file( filename );
     if (!(user_file.is_open())){
 	std::cout << "wallcon read_time_varying_bc in bc_userdef_t failed to open file at pat "<< filename << std::endl;
 	exit(1);
