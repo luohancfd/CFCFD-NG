@@ -26,6 +26,7 @@ void create_table_for_iface(lua_State *L, FV_Interface &iface, Gas_model &gmodel
 int luafn_sample_i_face(lua_State *L);
 int luafn_sample_j_face(lua_State *L);
 int luafn_sample_k_face(lua_State *L);
+int luafn_sample_vtx(lua_State *L);
 int luafn_locate_cell(lua_State *L);
 int luafn_create_empty_gas_table(lua_State *L);
 int luafn_eval_thermo_state_pT(lua_State *L);

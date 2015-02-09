@@ -215,6 +215,23 @@ int luafn_sample_k_face(lua_State *L)
     return 1; // Just the one table is left on Lua stack
 }
 
+int luafn_sample_vtx(lua_State *L)
+{
+    // Get arguments from stack.
+    size_t jb = static_cast<size_t>(lua_tointeger(L, 1));
+    size_t i = static_cast<size_t>(lua_tointeger(L, 2));
+    size_t j = static_cast<size_t>(lua_tointeger(L, 3));
+    size_t k = static_cast<size_t>(lua_tointeger(L, 4));
+
+    Block *bdp= get_block_data_ptr(jb);
+    FV_Vertex *vtx = bdp->get_vtx(i,j,k);
+    
+    lua_newtable(L); // creates a table that is now at the TOS
+    lua_pushnumber(L, vtx->pos[0].x); lua_setfield(L, -2, "x");
+    lua_pushnumber(L, vtx->pos[0].y); lua_setfield(L, -2, "y");
+    lua_pushnumber(L, vtx->pos[0].z); lua_setfield(L, -2, "z");    
+    return 1; // Just the one table is left on Lua stack
+}
 
 int luafn_locate_cell(lua_State *L)
 {
@@ -704,6 +721,8 @@ int register_luafns(lua_State *L)
     lua_setglobal(L, "sample_j_face");
     lua_pushcfunction(L, luafn_sample_k_face);
     lua_setglobal(L, "sample_k_face");
+    lua_pushcfunction(L, luafn_sample_vtx);
+    lua_setglobal(L, "sample_vtx");    
     lua_pushcfunction(L, luafn_locate_cell);
     lua_setglobal(L, "locate_cell");
     lua_pushcfunction(L, luafn_create_empty_gas_table);
