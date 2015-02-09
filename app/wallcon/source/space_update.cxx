@@ -3,6 +3,7 @@
 
 #include "solid_block.hh"
 #include "solid_bc.hh"
+#include <cstdlib>
 
 
 //Use boundary conditions and cell temps to get fluxes

@@ -13,6 +13,7 @@
 #include <vector>
 #include <cmath>
 #include <iomanip>
+#include <cstdlib>
 
 int set_block_boundary(SolidBlock &blk, std::string line_in) {
     //Parse line_in and create memory in block for valid boundary condition types.

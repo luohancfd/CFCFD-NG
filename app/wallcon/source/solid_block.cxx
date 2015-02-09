@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include "solid_block.hh"
+#include <cstdlib>
 
 using namespace std;
 

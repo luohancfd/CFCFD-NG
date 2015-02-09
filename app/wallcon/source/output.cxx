@@ -13,7 +13,8 @@
 #include <string>
 #include <sstream>
 #include <sys/stat.h>
-#include <iomanip>   
+#include <iomanip>
+#include <cstdlib>   
 
 
 #include "output.hh"

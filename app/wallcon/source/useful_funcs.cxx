@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <fstream> //class to read from files
 #include <string>
+#include <cstdlib>
 
 
 

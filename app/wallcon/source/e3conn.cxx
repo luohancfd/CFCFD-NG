@@ -12,6 +12,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <cstdlib>
 
 Wall_model* initialise_wall_model(std::string fname, cht_coupling_t cht_coupling, int start_tindx)
 {

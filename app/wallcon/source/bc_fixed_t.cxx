@@ -2,6 +2,7 @@
 #include <math.h>
 #include "bc_fixed_t.hh"
 #include "solid_cell.hh"
+#include <cstdlib>
 
 
 BC_FIXED_T::BC_FIXED_T(double Twall)

@@ -1683,7 +1683,7 @@ int integrate_in_time(double target_time)
 	switch ( G.implicit_mode ) {
 	case 0: // explicit update of convective terms and, maybe, the viscous terms
 	    if ( G.moving_grid ) 
-		break_loop2, finished_time_stepping = gasdynamic_increment_with_moving_grid(G.dt_global);
+		break_loop2 = gasdynamic_increment_with_moving_grid(G.dt_global, finished_time_stepping);
 	    else
 		break_loop2 = gasdynamic_explicit_increment_with_fixed_grid(G.dt_global);
 	    break;
@@ -2340,14 +2340,13 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 } // end gasdynamic_inviscid_increment_with_fixed_grid()
 
 
-int gasdynamic_increment_with_moving_grid(double dt)
+int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_stepping)
 // We have implemented only the simplest consistent two-stage update scheme. 
 {
     global_data &G = *get_global_data_ptr();
     bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     int step_status_flag;
     using std::swap;
-    bool exit_program;
 
     // FIX-ME moving grid: this is a work/refactoring in progress... PJ
     // 25-Mar-2103 except for superficial changes, it is the same as 
@@ -2374,8 +2373,8 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    if ( G.flow_induced_moving ) { // flow induced grid movement
 	        write_temp_solution_data();
 	        int external_result = system("./flow_induced_moving.sh");
-	        if ( external_result != 0 ) { 
- 	            exit_program = true;
+	        if ( external_result != 0 ) {
+	            finished_time_stepping = true; 
 	            printf( "Error: check the external code for flow induced moving grid\n");
 	        }
 	    }
@@ -2561,7 +2560,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
     }
 
     G.sim_time = t0 + dt;
-    return step_status_flag, exit_program;
+    return step_status_flag;
 } // end gasdynamic_inviscid_increment_with_moving_grid()
 
 
