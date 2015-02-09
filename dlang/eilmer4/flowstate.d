@@ -10,6 +10,8 @@ module flowstate;
 
 import std.string;
 import std.conv;
+import std.json;
+import json_helper;
 import geom;
 import gas;
 
@@ -41,8 +43,6 @@ public:
 	S = S_init;
     }
 
-    this() {} // makes no sense to define the data in the absence of a model
-
     this(in FlowState other, in GasModel gm)
     {
 	gas = GasState(gm, other.gas.p, other.gas.T, other.gas.massf, other.gas.quality); 
@@ -54,6 +54,30 @@ public:
 	k_t = other.k_t;
 	S = other.S;
     }
+
+    this(in JSONValue json_data, in GasModel gm)
+    {
+	double p = getJSONdouble(json_data, "p", 100.0e3);
+	double T[] = getJSONdoublearray(json_data, "T", [300.0,]);
+	double[] massf = getJSONdoublearray(json_data, "massf", [1.0,]);
+	double quality = 1.0;
+	gas = GasState(gm, p, T, massf, quality);
+	double u = getJSONdouble(json_data, "u", 0.0);
+	double v = getJSONdouble(json_data, "v", 0.0);
+	double w = getJSONdouble(json_data, "w", 0.0);
+	vel = Vector3(u,v,w);
+	double Bx = getJSONdouble(json_data, "Bx", 0.0);
+	double By = getJSONdouble(json_data, "By", 0.0);
+	double Bz = getJSONdouble(json_data, "Bz", 0.0);
+	B = Vector3(Bx,By,Bz);
+	tke = getJSONdouble(json_data, "tke", 0.0);
+	omega = getJSONdouble(json_data, "omega", 1.0);
+	mu_t = getJSONdouble(json_data, "mu_t", 0.0);
+	k_t = getJSONdouble(json_data, "k_t", 0.0);
+	S = getJSONint(json_data, "S", 0);
+    }
+
+    this() {} // makes no sense to define the data in the absence of a model
 
     void copy_values_from(in FlowState other)
     {

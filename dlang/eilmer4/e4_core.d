@@ -22,87 +22,6 @@ import globaldata;
 import flowstate;
 import sblock;
 import bc;
-import bc_slip_wall;
-import bc_supersonic_in;
-import bc_extrapolate_out;
-import bc_fixed_p_out;
-import bc_fixed_t_wall;
-import bc_adiabatic_wall;
-import bc_full_face_exchange;
-import bc_mapped_cell_exchange;
-
-//-----------------------------------------------------------------------------------------
-
-void make_flow_state_from_json(JSONValue json_data)
-{
-    double p = getJSONdouble(json_data, "p", 100.0e3);
-    double T[] = getJSONdoublearray(json_data, "T", [300.0,]);
-    double u = getJSONdouble(json_data, "u", 0.0);
-    double v = getJSONdouble(json_data, "v", 0.0);
-    double w = getJSONdouble(json_data, "w", 0.0);
-    Vector3 vel = Vector3(u,v,w);
-    double[] massf = getJSONdoublearray(json_data, "massf", [1.0,]);
-    double quality = 1.0;
-    double Bx = getJSONdouble(json_data, "Bx", 0.0);
-    double By = getJSONdouble(json_data, "By", 0.0);
-    double Bz = getJSONdouble(json_data, "Bz", 0.0);
-    Vector3 B = Vector3(Bx,By,Bz);
-    double tke = getJSONdouble(json_data, "tke", 0.0);
-    double omega = getJSONdouble(json_data, "omega", 1.0);
-    double mu_t = getJSONdouble(json_data, "mu_t", 0.0);
-    double k_t = getJSONdouble(json_data, "k_t", 0.0);
-    int S = getJSONint(json_data, "S", 0);
-    myFlowStates ~= new FlowState(GlobalConfig.gmodel, p, T, vel,  massf,
-				  quality, B, tke, omega, mu_t, k_t, S);
-} // end make_flow_state_from_json()
-
-BoundaryCondition make_BC_from_json(JSONValue json_data, ref SBlock blk, int i)
-{
-    writeln("    BC for block: ", blk.id, ", face: ", face_name[i]);
-    string bc_name = json_data["bc"].str;
-    BoundaryCondition new_bc;
-    switch (toLower(bc_name)) {
-    case "sup_in":
-	int inflow_condition_id = getJSONint(json_data, "inflow_condition_id", 0);
-	new_bc = new SupersonicInBC(blk, i, inflow_condition_id);
-	break;
-    case "slip_wall":
-	new_bc = new SlipWallBC(blk, i);
-	break;
-    case "extrapolate_out":
-	int x_order = getJSONint(json_data, "x_order", 0);
-	new_bc = new ExtrapolateOutBC(blk, i, x_order);
-	break;
-    case "adjacent":
-	int other_block = getJSONint(json_data, "other_block", -1);
-	string other_face_name = getJSONstring(json_data, "other_face", "none");
-	int neighbour_orientation = getJSONint(json_data, "neighbour_orientation", 0);
- 	new_bc = new FullFaceExchangeBC(blk, i,
-					other_block,
-					face_index(other_face_name),
-					neighbour_orientation);
-	break;
-    default:
-	new_bc = new SlipWallBC(blk, i);
-    }
-    return new_bc;
-} // end make_BC_from_json()
-
-void make_Block_from_json(int id, JSONValue json_data)
-{
-    int nicell = getJSONint(json_data, "nni", 0);
-    int njcell = getJSONint(json_data, "nnj", 0);
-    int nkcell = getJSONint(json_data, "nnk", 0);
-    SBlock blk = new SBlock(id, nicell, njcell, nkcell);
-    blk.label = getJSONstring(json_data, "label", "");
-    blk.active = getJSONbool(json_data, "active", true);
-    blk.omegaz = getJSONdouble(json_data, "omegaz", 0.0);
-    foreach (i; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
-	blk.bc[i] = make_BC_from_json(json_data["face_" ~ face_name[i]], blk, i);
-    }
-    allBlocks ~= blk;
-    myBlocks ~= blk; // Just make a copy, until we have to deal with MPI.
-} // end make_Block_from_json()
 
 //-----------------------------------------------------------------------------------------
 
@@ -215,21 +134,17 @@ void read_config_file()
     // Configure flow conditions, for use in boundary conditions.
     int nflow = getJSONint(jsonData, "nflow", 0);
     foreach (i; 0 .. nflow) {
-	make_flow_state_from_json(jsonData["flow_" ~ to!string(i)]);
-	if (GlobalConfig.verbosity_level > 1) {
-	    writeln("  flow[", i, "]=", myFlowStates[i]);
-	}
+	myFlowStates ~= new FlowState(jsonData["flow_" ~ to!string(i)], GlobalConfig.gmodel);
+	if (GlobalConfig.verbosity_level > 1) { writeln("  flow[", i, "]: ", myFlowStates[i]); }
     }
     // Now, configure blocks that make up the flow domain.
     GlobalConfig.nBlocks = getJSONint(jsonData, "nblock", 0);
-    if (GlobalConfig.verbosity_level > 1) {
-	writeln("  nBlocks: ", GlobalConfig.nBlocks);
-    }
+    if (GlobalConfig.verbosity_level > 1) { writeln("  nBlocks: ", GlobalConfig.nBlocks); }
     foreach (i; 0 .. GlobalConfig.nBlocks) {
-	make_Block_from_json(i, jsonData["block_" ~ to!string(i)]);
-	if (GlobalConfig.verbosity_level > 1) {
-	    writeln("  Block[", i, "]:", allBlocks[i]);
-	}
+	auto blk = new SBlock(i, jsonData["block_" ~ to!string(i)]);
+	allBlocks ~= blk;
+	myBlocks ~= blk; // Just make a copy, until we have to deal with MPI.
+	if (GlobalConfig.verbosity_level > 1) { writeln("  Block[", i, "]: ", myBlocks[i]); }
     }
     // TODO -- still have other entries such as nheatzone, nreactionzone, ...
 } // end read_config_file()
@@ -294,6 +209,7 @@ void read_control_file()
     }
 } // end read_control_file()
 
+//-----------------------------------------------------------------------------------------
 
 double init_simulation(int tindx)
 {

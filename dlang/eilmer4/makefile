@@ -68,21 +68,22 @@ globalconfig_demo: globalconfig_demo.d globalconfig.d fvcore.d ${GEOM_FILES} ${L
 		globalconfig_demo.d globalconfig.d fvcore.d \
 		${GEOM_FILES} ${LIBGAS} ${LUAD_FILES}  
 
-flowstate_demo: flowstate_demo.d flowstate.d fvcore.d \
+flowstate_demo: flowstate_demo.d flowstate.d fvcore.d json_helper.d \
 	${GEOM_FILES} ${LIBGAS} ${LIBLUA}
 	dmd ${DLINKFLAGS} -g -I${GEOM_DIR} -I${UTIL_DIR} -I../ \
-		flowstate_demo.d fvcore.d flowstate.d \
+		flowstate_demo.d fvcore.d flowstate.d json_helper.d \
 		${GEOM_FILES} ${LIBGAS} ${LUAD_FILES} 
 
 fv_demo: fv_demo.d fvcore.d fvcell.d fvvertex.d fvinterface.d onedinterp.d fluxcalc.d \
 	conservedquantities.d flowstate.d globalconfig.d globaldata.d \
-	block.d sblock.d ublock.d \
+	block.d sblock.d ublock.d json_helper.d \
 	${BC_FILES} ${GEOM_FILES} ${LIBGAS} ${LIBLUA} ${GZIP_FILES}
 	dmd ${DLINKFLAGS} -g -I${UTIL_DIR} -I${GEOM_DIR} -I${GZIP_DIR} -I../ \
 		fv_demo.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		conservedquantities.d flowstate.d onedinterp.d fluxcalc.d \
 		globalconfig.d globaldata.d block.d sblock.d ublock.d \
+		json_helper.d \
 		${BC_FILES} ${GEOM_FILES} ${LIBGAS} ${LUAD_FILES} ${GZIP_FILES} 
 
 block_demo: block_demo.d \
@@ -90,6 +91,7 @@ block_demo: block_demo.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d \
 	conservedquantities.d flowstate.d globalconfig.d globaldata.d \
 	block.d sblock.d ublock.d \
+	json_helper.d \
 	${BC_FILES} ${GEOM_FILES} ${LIBGAS} ${LIBLUA} ${GZIP_FILES}
 	dmd ${DLINKFLAGS} -I${GEOM_DIR} -I${UTIL_DIR} -I${GZIP_DIR} -I../ \
 		block_demo.d \
@@ -97,6 +99,7 @@ block_demo: block_demo.d \
 		conservedquantities.d flowstate.d \
 		globalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
+		json_helper.d \
 		${BC_FILES} ${GEOM_FILES} ${LIBGAS} ${LUAD_FILES} ${GZIP_FILES}
 
 e4shared: e4_main.d e4_core.d json_helper.d \

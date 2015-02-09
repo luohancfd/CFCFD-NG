@@ -15,6 +15,8 @@ import std.format;
 import std.string;
 import std.array;
 import std.math;
+import std.json;
+import json_helper;
 import gzip;
 import geom;
 import gas;
@@ -65,13 +67,34 @@ private:
     FVInterface[] _sifk;
 
 public:
-    this(int id, in size_t nicell, size_t njcell, size_t nkcell)
-    // Need to create blocks in the context of the GlobalConfig.
+    this(int id, size_t nicell, size_t njcell, size_t nkcell)
     {
 	this.id = id;
 	this.nicell = nicell;
 	this.njcell = njcell;
 	this.nkcell = nkcell;
+	fill_in_other_size_data();
+    } // end constructor
+
+    this(in int id, in JSONValue json_data)
+    {
+	this.id = id;
+	nicell = getJSONint(json_data, "nni", 0);
+	njcell = getJSONint(json_data, "nnj", 0);
+	nkcell = getJSONint(json_data, "nnk", 0);
+	fill_in_other_size_data();
+	SBlock blk = new SBlock(id, nicell, njcell, nkcell);
+	label = getJSONstring(json_data, "label", "");
+	active = getJSONbool(json_data, "active", true);
+	omegaz = getJSONdouble(json_data, "omegaz", 0.0);
+	foreach (i; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
+	    bc[i] = make_BC_from_json(json_data["face_" ~ face_name[i]], blk, i);
+	}
+    } // end constructor from json
+
+    void fill_in_other_size_data()
+    // Helper function for the constructor
+    {
 	_nidim = nicell + 2 * nghost;
 	_njdim = njcell + 2 * nghost;
 	// Indices, in each grid direction for the active cells.
@@ -93,7 +116,7 @@ public:
 	    _nkdim = nkcell + 2 * nghost;
 	    kmin = nghost; kmax = kmin + nkcell - 1;
 	}
-    } // end constructor
+    } // end fill_in_other_size_data()
 
     override string toString() const
     {

@@ -4,6 +4,10 @@
 // Peter J. 2014-07-20 first cut.
 
 import std.conv;
+import std.json;
+import std.stdio;
+import std.string;
+import json_helper;
 import geom;
 import fvcore;
 import globalconfig;
@@ -11,6 +15,14 @@ import fvinterface;
 import fvcell;
 import block;
 import sblock;
+import bc_slip_wall;
+import bc_supersonic_in;
+import bc_extrapolate_out;
+import bc_fixed_p_out;
+import bc_fixed_t_wall;
+import bc_adiabatic_wall;
+import bc_full_face_exchange;
+import bc_mapped_cell_exchange;
 
 enum BCCode 
 { 
@@ -260,3 +272,35 @@ public:
     void apply_viscous(double t) {}  // does nothing
 
 } // end class BoundaryCondition
+
+
+BoundaryCondition make_BC_from_json(in JSONValue json_data, ref SBlock blk, int i)
+{
+    string bc_name = json_data["bc"].str;
+    BoundaryCondition new_bc;
+    switch (toLower(bc_name)) {
+    case "sup_in":
+	int inflow_condition_id = getJSONint(json_data, "inflow_condition_id", 0);
+	new_bc = new SupersonicInBC(blk, i, inflow_condition_id);
+	break;
+    case "slip_wall":
+	new_bc = new SlipWallBC(blk, i);
+	break;
+    case "extrapolate_out":
+	int x_order = getJSONint(json_data, "x_order", 0);
+	new_bc = new ExtrapolateOutBC(blk, i, x_order);
+	break;
+    case "adjacent":
+	int other_block = getJSONint(json_data, "other_block", -1);
+	string other_face_name = getJSONstring(json_data, "other_face", "none");
+	int neighbour_orientation = getJSONint(json_data, "neighbour_orientation", 0);
+ 	new_bc = new FullFaceExchangeBC(blk, i,
+					other_block,
+					face_index(other_face_name),
+					neighbour_orientation);
+	break;
+    default:
+	new_bc = new SlipWallBC(blk, i);
+    }
+    return new_bc;
+} // end make_BC_from_json()
