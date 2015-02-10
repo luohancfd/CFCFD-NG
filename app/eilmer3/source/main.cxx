@@ -707,7 +707,7 @@ int prepare_to_integrate(size_t start_tindx)
     for ( Block *bdp : G.my_blocks ) {
         exchange_shared_boundary_data(bdp->id, COPY_CELL_LENGTHS, 0);
     }
-    copy_mapped_cell_data_via_shmem(COPY_FLOW_STATE, 0);
+    copy_mapped_cell_data_via_shmem(COPY_CELL_LENGTHS, 0);
 #   endif
 
     // Start up the Lua interpreter and load the external file
