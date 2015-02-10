@@ -102,7 +102,7 @@ block_demo: block_demo.d \
 		json_helper.d \
 		${BC_FILES} ${GEOM_FILES} ${LIBGAS} ${LUAD_FILES} ${GZIP_FILES}
 
-e4shared: e4_main.d e4_core.d json_helper.d \
+e4shared: e4_main.d e4_core.d readconfig.d json_helper.d \
 	block.d sblock.d ublock.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d \
 	conservedquantities.d flowstate.d globalconfig.d globaldata.d \
@@ -110,7 +110,7 @@ e4shared: e4_main.d e4_core.d json_helper.d \
 	${BC_FILES} ${GEOM_FILES} ${LIBGAS} ${LIBLUA} ${GZIP_FILES}
 	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' e4_main.d > e4_main_with_rev_string.d
 	dmd ${DLINKFLAGS} -I${GEOM_DIR} -I${UTIL_DIR} -I${GZIP_DIR} -I../ \
-		e4_main_with_rev_string.d e4_core.d json_helper.d \
+		e4_main_with_rev_string.d e4_core.d readconfig.d json_helper.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		conservedquantities.d flowstate.d \
 		globalconfig.d globaldata.d \
