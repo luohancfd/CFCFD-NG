@@ -4,6 +4,7 @@
 // Peter J. 2014-07-26
 
 import std.conv;
+import std.stdio;
 
 import globalconfig;
 import globaldata;

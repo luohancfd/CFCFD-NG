@@ -7,12 +7,10 @@
 
 import std.stdio;
 import std.getopt;
-
 import geom;
 import gas;
 import globalconfig;
 import e4_core;
-
 
 void main(string[] args)
 {

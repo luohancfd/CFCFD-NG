@@ -156,10 +156,7 @@ public:
 	return [i, j, k];
     }
 
-    ref FVCell get_cell(size_t i, size_t j, size_t k=0) {
-	write("  debug get_cell() i=", i, " j= ", j, " k= ", k);
-	writeln(" nidim=", _nidim, " njdim= ", _njdim, " nkdim= ", _nkdim);
-	return _ctr[to_global_index(i,j,k)]; }
+    ref FVCell get_cell(size_t i, size_t j, size_t k=0) { return _ctr[to_global_index(i,j,k)]; }
     ref FVInterface get_ifi(size_t i, size_t j, size_t k=0) { return _ifi[to_global_index(i,j,k)]; }
     ref FVInterface get_ifj(size_t i, size_t j, size_t k=0) { return _ifj[to_global_index(i,j,k)]; }
     ref FVInterface get_ifk(size_t i, size_t j, size_t k=0) { return _ifk[to_global_index(i,j,k)]; }
@@ -1956,12 +1953,14 @@ public:
 	FVCell src0, dest0, src1, dest1;
 	int gtl = 0; // Do the encode only for grid-time-level zero.
 
-	writeln("debug copy_into_ghost_cells():");
-	writeln("  debug this block.id= ", this.id);
-	writeln("  debug src_blk.id= ", src_blk.id);
-	writeln("  debug destination_face= ", destination_face);
-	writeln("  debug src_face= ", src_face);
-	writeln("  debug src_orientation= ", src_orientation);
+	// writeln("debug copy_into_ghost_cells():");
+	// writeln("  debug this block.id= ", this.id);
+	// writeln("  debug try to pick up a local cell"); src0 = get_cell(imin, jmin); // fails
+	// writeln("  debug src_blk.id= ", src_blk.id);
+	// writeln("  debug try to pick up a source-block cell"); src1 = src_blk.get_cell(src_blk.imin, src_blk.jmin); // works OK
+	// writeln("  debug destination_face= ", destination_face);
+	// writeln("  debug src_face= ", src_face);
+	// writeln("  debug src_orientation= ", src_orientation);
 
 	void copy_pair_of_cells(const FVCell src0, FVCell dest0, 
 				const FVCell src1, FVCell dest1,
@@ -2020,8 +2019,6 @@ public:
 		i_dest = imax;  // index of the east-most plane of active cells
 		for (j = 0; j < njcell; ++j) {
 		    j_dest = j + jmin;
-		    writeln("  debug into east i_dest= ", i_dest, " j_dest= ", j_dest);
-		    writeln("  debug into east imin= ", imin, " imax= ", imax, " jmin=", jmin, " jmax= ", jmax);
 		    switch (src_face) {
 		    case Face.north:
 			i_src = j + src_blk.imin;
@@ -2044,10 +2041,6 @@ public:
 		    case Face.west:
 			j_src = j + src_blk.jmin;
 			i_src = src_blk.imin; 
-			writeln("  debug from west src_imin= ", src_blk.imin, 
-				" src_imax= ", src_blk.imax, " src_jmin=", src_blk.jmin,
-				" src_jmax= ", src_blk.jmax);
-			writeln("  debug east<-west i_src= ", i_src, " j_src= ", j_src);
 			src0 = src_blk.get_cell(i_src,j_src);
 			src1 = src_blk.get_cell(i_src+1,j_src);
 			break;

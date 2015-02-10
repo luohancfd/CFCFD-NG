@@ -142,7 +142,9 @@ void read_config_file()
 	auto blk = new SBlock(i, jsonData["block_" ~ to!string(i)]);
 	allBlocks ~= blk;
 	myBlocks ~= blk; // Just make a copy, until we have to deal with MPI.
-	if (GlobalConfig.verbosity_level > 1) { writeln("  Block[", i, "]: ", myBlocks[i]); }
+	if (GlobalConfig.verbosity_level > 1) {
+	    writeln("  Block[", i, "]: ", myBlocks[i]);
+	}
     }
     // TODO -- still have other entries such as nheatzone, nreactionzone, ...
 } // end read_config_file()
