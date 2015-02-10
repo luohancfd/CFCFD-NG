@@ -44,7 +44,8 @@ public:
     override void apply_convective(double t)
     {
 	blk.copy_into_ghost_cells(which_boundary, 
-				  allBlocks[neighbour_block], neighbour_face, neighbour_orientation,
+				  allBlocks[neighbour_block],
+				  neighbour_face, neighbour_orientation,
 				  CopyDataOption.minimal_flow, true);
     }
 
@@ -53,5 +54,12 @@ public:
 	// do nothing
     }
 
+    override void do_copy_into_boundary()
+    {
+	blk.copy_into_ghost_cells(which_boundary, 
+				  allBlocks[neighbour_block],
+				  neighbour_face, neighbour_orientation,
+				  CopyDataOption.all, true);
+    }
 } // end class FullFaceExchangeBC
 

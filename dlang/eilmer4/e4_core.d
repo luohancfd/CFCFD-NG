@@ -22,10 +22,13 @@ import flowstate;
 import sblock;
 import bc;
 
+static int current_tindx = 0;
+
 double init_simulation(int tindx)
 {
-    if (GlobalConfig.verbosity_level > 0) writeln("Begin init_simulation...");
+    if (GlobalConfig.verbosity_level > 0) writeln("Begin init_simulation()...");
     read_config_file();
+    current_tindx = tindx;
     double sim_time;
     foreach (ref myblk; myBlocks) {
 	myblk.assemble_arrays();
@@ -42,16 +45,42 @@ double init_simulation(int tindx)
 	fileName = writer.data();
 	sim_time = myblk.read_solution(fileName);
     }
-    if (GlobalConfig.verbosity_level > 0) writeln("Done init_simulation.");
+    foreach (ref myblk; myBlocks) {
+	myblk.compute_primary_cell_geometric_data(0);
+	myblk.compute_distance_to_nearest_wall_for_all_cells(0);
+	myblk.compute_secondary_cell_geometric_data(0);
+	myblk.identify_reaction_zones(0);
+	myblk.identify_turbulent_zones(0);
+	foreach (ref cell; myblk.active_cells) {
+	    cell.encode_conserved(0, 0, myblk.omegaz);
+	    // Even though the following call appears redundant at this point,
+	    // fills in some gas properties such as Prandtl number that is
+	    // needed for both the cfd_check and the BLomax turbulence model.
+	    cell.decode_conserved(0, 0, myblk.omegaz);
+	}
+    }
+    exchange_shared_boundary_data();
+    if (GlobalConfig.verbosity_level > 0) writeln("Done init_simulation().");
     return sim_time;
 } // end init_simulation()
+
+void exchange_shared_boundary_data()
+{
+    foreach (ref myblk; myBlocks) {
+	foreach (face; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
+	    if (myblk.bc[face].type_code  == BCCode.full_face_exchange) {
+		myblk.bc[face].do_copy_into_boundary();
+	    }
+	} // end foreach face
+    } // end foreach myblk
+} // end exchange_shared_boundary_data()
 
 double integrate_in_time(double sim_time)
 {
     writeln("Integrate in time.");
     read_control_file(); // every step
     writeln("TODO fill in the REAL details.");
-    writeln("Done integrate_in_time.");
+    writeln("Done integrate_in_time().");
     return sim_time;
 } // end integrate_in_time()
 

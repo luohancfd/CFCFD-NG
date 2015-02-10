@@ -271,6 +271,11 @@ public:
 
     void apply_viscous(double t) {}  // does nothing
 
+    void do_copy_into_boundary()
+    {
+	// Do nothing in this base class.
+	// Meant only for FullFaceExchangeBC and MappedCellExchangeBC.
+    }
 } // end class BoundaryCondition
 
 

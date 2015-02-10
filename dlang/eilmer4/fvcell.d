@@ -82,6 +82,7 @@ public:
 	id = id_init;
 	pos.length = n_time_levels;
 	volume.length = n_time_levels;
+	areaxy.length = n_time_levels;
 	fs = new FlowState(gm, 100.0e3, [300.0,], Vector3(0.0,0.0,0.0));
 	foreach(i; 0 .. n_time_levels) {
 	    U ~= new ConservedQuantities(gm);
