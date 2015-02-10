@@ -444,7 +444,7 @@ public:
 	} // for cell
     } // end compute_residuals()
 
-    override void determine_time_step_size()
+    override void determine_time_step_size(double dt_current)
     // Compute the local time step limit for all cells in the block.
     // The overall time step is limited by the worst-case cell.
     {
@@ -465,7 +465,7 @@ public:
 	bool first = true;
 	foreach(FVCell cell; active_cells) {
 	    signal = cell.signal_frequency();
-	    cfl_local = GlobalConfig.dt_global * signal; // Current (Local) CFL number
+	    cfl_local = dt_current * signal; // Current (Local) CFL number
 	    dt_local = GlobalConfig.cfl_target / signal; // Recommend a time step size.
 	    if ( first ) {
 		cfl_min = cfl_local;

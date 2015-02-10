@@ -193,7 +193,6 @@ final class GlobalConfig {
     static double T_frozen_energy; // temperature (in K) below which energy exchanges are skipped
     static BlockZone[] reaction_zones;
 
-    static int step;                // iteration count
     static int max_step;            // iteration limit
     static int t_level;             // time level within update
     static int halt_now = 0;        // flag for premature halt
@@ -218,11 +217,8 @@ final class GlobalConfig {
     /// is adjusted to make it reasonable.
     static bool adjust_invalid_cell_data = false;
 
-    static double sim_time = 0.0;  // present simulation time, tracked by code
     static double max_time;        // final solution time, s, set by user
     static double dt_init;         // initial time step set by user
-    static double dt_global;       // simulation time step determined by code
-    static double dt_allow;        // allowable global time step determined by code
     static double cfl_value = 0.5; // target CFL number (worst case) set by user
     static bool stringent_cfl = false; 
     // If true, assume the worst with respect to cell geometry and wave speed.
@@ -246,9 +242,7 @@ final class GlobalConfig {
     static bool separate_update_for_viscous_terms = false;
     static bool separate_update_for_k_omega_source = false;
 
-    static double t_plot;          // time to write next soln
     static size_t write_at_step;   // update step at which to write a solution, 0=don't do it
-    static double t_history;       // time to write next sample
     static double dt_plot;         // interval for writing soln
     static double dt_history;      // interval for writing sample
 

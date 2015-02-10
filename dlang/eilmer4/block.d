@@ -40,7 +40,7 @@ public:
     int count_invalid_cells(int gtl) { return 0; }
     void init_residuals() {}
     void compute_residuals(int gtl) {}
-    void determine_time_step_size() {}
+    void determine_time_step_size(double dt_current) {}
     void detect_shock_points() {}
     void compute_primary_cell_geometric_data(int gtl) {}
     void compute_distance_to_nearest_wall_for_all_cells(int gtl) {}

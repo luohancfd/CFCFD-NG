@@ -73,7 +73,7 @@ void main(string[] args)
 	
 	double sim_time = init_simulation(tindxStart);
 	writeln("starting simulation time= ", sim_time);
-	sim_time = integrate_in_time(sim_time);
+	sim_time = integrate_in_time(GlobalConfig.max_time, maxWallClock);
 	finalize_simulation(sim_time);
     }
     writeln("Done.");
