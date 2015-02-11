@@ -57,10 +57,12 @@ public:
 
     override void do_copy_into_boundary()
     {
-	blk.copy_into_ghost_cells(which_boundary, 
-				  allBlocks[neighbour_block],
-				  neighbour_face, neighbour_orientation,
-				  CopyDataOption.all, true);
+	// TODO Check me!  This is a work-around.
+	// We should be able to directly reference the BCs block as blk.
+	allBlocks[blk.id].copy_into_ghost_cells(which_boundary, 
+						allBlocks[neighbour_block],
+						neighbour_face, neighbour_orientation,
+						CopyDataOption.all, true);
     }
 } // end class FullFaceExchangeBC
 

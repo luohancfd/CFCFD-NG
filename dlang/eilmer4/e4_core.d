@@ -86,14 +86,9 @@ void exchange_shared_boundary_data()
     foreach (ref myblk; myBlocks) {
 	foreach (face; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
 	    if (myblk.bc[face].type_code == BCCode.full_face_exchange) {
-		// auto src1 = myblk.get_cell(myblk.imin, myblk.jmin); // debug -- works
-		// myblk.bc[face].do_copy_into_boundary(); // original -- fails
-		// auto src2 = myblk.bc[face].blk.get_cell(myblk.imin, myblk.jmin); // debug -- fails
+		myblk.bc[face].do_copy_into_boundary();
 	    }
 	} // end foreach face
-	// debug -- manual exchange works fine 2015-02-10
-	if (myblk.id == 0) myblk.copy_into_ghost_cells(1, myBlocks[1], 3, 0, CopyDataOption.all, false);
-	if (myblk.id == 1) myblk.copy_into_ghost_cells(1, myBlocks[0], 1, 0, CopyDataOption.all, false);
     } // end foreach myblk
 } // end exchange_shared_boundary_data()
 
