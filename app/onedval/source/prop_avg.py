@@ -13,7 +13,7 @@ from math import sqrt, pow
 from cfpylib.geom.minimal_geometry import Vector, dot
 from gaspy import Gas_data, set_massf, PC_P_atm
 from cfpylib.nm.zero_solvers import secant
-from scipy.optimize import minimize
+from scipy.optimize import minimize, brute
 from numpy import median
 from copy import copy
 
@@ -301,8 +301,15 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
         print "rho_min= ", rho_min, " rho_max= ", rho_max, " computed rho= ", rho
         print "T_min= ", T_min, " T_max= ", T_max, " computed T= ", T
         print "u_min= ", u_min, " u_max= ", u_max, " computed u= ", u
-        print "Bailing out!"
-        sys.exit(1)
+        result.success = False
+        # We need a new initial guess
+        aw_props = area_weighted_avg(cells, ['rho', 'p', 'T', 'u', 'v', 'w', 'M'], var_map)
+        u = sqrt(aw_props['u']**2 + aw_props['v']**2 + aw_props['w']**2)
+        rho = aw_props['rho']
+        Q.rho = rho
+        Q.p = p
+        gmodel.eval_thermo_state_rhop(Q)
+        T = Q.T[0]
 
     if not result.success:
         for i in range(N_RETRIES):
@@ -319,13 +326,25 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
                 print "rho_min= ", rho_min, " rho_max= ", rho_max, " computed rho= ", rho
                 print "T_min= ", T_min, " T_max= ", T_max, " computed T= ", T
                 flag = 'failed'
+                result.success = False
             if result.success:
                 break
     
     if not result.success:
-        print "After %d retries, the optimiser did not converge." % N_RETRIES
-        print "Just using the best guess at the end of iterations."
-        print "rho= ", rho, " T= ", T, " u= ", u
+        # We'll set this as a failed state and the user can decide whether
+        # to keep it or not by using the 'skip_bad_slices' option.
+        flag = 'failed'
+        # Now use the brute force search
+        print "The Nelder-Mead optimiser has run into troubles."
+        print "Now we'll use a brute force approach in the region of the"
+        print "median values."
+        delta = 0.15
+        rho_l = (1.0 - delta)*rho_mid; rho_h = (1.0+delta)*rho_mid
+        T_l = (1.0 - delta)*T_mid; T_h = (1.0+delta)*T_mid
+        u_l = (1.0-delta)*u_mid; u_h = (1.0+delta)*u_mid
+        x0 = brute(f_to_minimize, ((rho_l, rho_h), (T_l, T_h), (u_l, u_h)))
+        flag = 'success'
+        rho, T, u = x0
        
     Q.rho = rho; Q.T[0] = T
     gmodel.eval_thermo_state_rhoT(Q)
