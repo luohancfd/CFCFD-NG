@@ -1,5 +1,5 @@
-# makefile for Eilmer3
-# Builds all of the demonstration programs.
+# makefile for Eilmer4
+# Builds main simulation program by default.
 
 PROGRAMS := e4shared
 

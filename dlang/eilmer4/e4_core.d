@@ -12,6 +12,7 @@ import std.array;
 import std.format;
 import std.string;
 import std.algorithm;
+import std.file;
 
 import geom;
 import gas;
@@ -36,16 +37,39 @@ static double t_history;     // time to write next sample
 static bool history_just_written = true;
 static int wall_clock_at_start = 0; // seconds
 
-string make_path_name(string file_type)(int blk_id, int tindx)
+//----------------------------------------------------------------------------
+
+string make_path_name(string mytype)(int tindx)
+// Build a pathname for "grid" and "flow" subdirectories.
+// These directories are "labelled" with time index.
+{
+    auto writer = appender!string();
+    formattedWrite(writer, "%s/t%04d", mytype, tindx);
+    return writer.data();
+}
+
+string make_file_name(string mytype)(int blk_id, int tindx)
 // Build a pathname for "grid" and "flow" files which are stored in
 // subdirectories and labelled with the block id and time index counters.
 {
     auto writer = appender!string();
     formattedWrite(writer, "%s/t%04d/%s.%s.b%04d.t%04d.gz",
-		   file_type, tindx, GlobalConfig.base_file_name,
-		   file_type, blk_id, tindx);
+		   mytype, tindx, GlobalConfig.base_file_name,
+		   mytype, blk_id, tindx);
     return writer.data();
 }
+
+void ensure_directory_is_present(string dir_name)
+{
+    if (exists(dir_name) && isDir(dir_name)) return;
+    try {
+	mkdirRecurse(dir_name);
+    } catch (FileException e) {
+	throw new Error(text("Failed to ensure directory is present: ", dir_name));
+    }
+}
+
+//----------------------------------------------------------------------------
 
 double init_simulation(int tindx)
 {
@@ -59,8 +83,8 @@ double init_simulation(int tindx)
 	myblk.assemble_arrays();
 	myblk.bind_faces_and_vertices_to_cells();
 	writeln("myblk=", myblk);
-	myblk.read_grid(make_path_name!"grid"(myblk.id, tindx), 0);
-	sim_time = myblk.read_solution(make_path_name!"flow"(myblk.id, tindx));
+	myblk.read_grid(make_file_name!"grid"(myblk.id, tindx), 0);
+	sim_time = myblk.read_solution(make_file_name!"flow"(myblk.id, tindx));
     }
     foreach (ref myblk; myBlocks) {
 	myblk.compute_primary_cell_geometric_data(0);
@@ -145,9 +169,9 @@ double integrate_in_time(double target_time, int maxWallClock)
         // 4. (Occasionally) Write out an intermediate solution
         if ( (sim_time >= t_plot) && !output_just_written ) {
 	    ++current_tindx;
-	    ensure_directory_is_present("something");
+	    ensure_directory_is_present(make_path_name!"flow"(current_tindx));
 	    foreach (ref myblk; myBlocks) {
-		auto file_name = make_path_name!"flow"(myblk.id, current_tindx);
+		auto file_name = make_file_name!"flow"(myblk.id, current_tindx);
 		myblk.write_solution(file_name, sim_time);
 	    }
 	    output_just_written = true;
@@ -206,9 +230,9 @@ void finalize_simulation(double sim_time)
     if (GlobalConfig.verbosity_level > 0) writeln("Finalize the simulation.");
     if (!output_just_written) {
 	++current_tindx;
-	ensure_directory_is_present("something");
+	ensure_directory_is_present(make_path_name!"flow"(current_tindx));
 	foreach (ref myblk; myBlocks) {
-	    auto file_name = make_path_name!"flow"(myblk.id, current_tindx);
+	    auto file_name = make_file_name!"flow"(myblk.id, current_tindx);
 	    myblk.write_solution(file_name, sim_time);
 	}
     }
@@ -216,11 +240,6 @@ void finalize_simulation(double sim_time)
 } // end finalize_simulation()
 
 //----------------------------------------------------------------------------
-
-void ensure_directory_is_present(string path)
-{
-    writeln("TODO implelemt ensure_directory_is_present");
-}
 
 void gasdynamic_explicit_increment_with_fixed_grid()
 {
