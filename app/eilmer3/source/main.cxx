@@ -2369,6 +2369,22 @@ int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_steppin
         // The default gird movement strategy is set by equations, the more complex way
         // is flow induced moving grid, which vextex moving velocity will be defined
         // the external code 
+        if ( G.flow_induced_moving ) {
+            for ( Block *bdp : G.my_blocks ) {
+                if ( !bdp->active ) continue;
+                size_t krangemax = ( G.dimensions == 2 ) ? bdp->kmax : bdp->kmax+1;
+                for ( size_t k = bdp->kmin; k <= krangemax; ++k ) {
+	            for ( size_t j = bdp->jmin; j <= bdp->jmax+1; ++j ) {
+	                for ( size_t i = bdp->imin; i <= bdp->imax+1; ++i ) {
+	                    FV_Vertex *vtx = bdp->get_vtx(i,j,k);
+	                    vtx->vel[0].x = 0.0;
+	                    vtx->vel[0].y = 0.0;
+	                    vtx->vel[0].z = 0.0;
+	                }
+	            }
+                }
+            } // end for (Block
+        } // end if        
 	if ( G.sim_time >= G.t_moving ) { 
 	    if ( G.flow_induced_moving ) { // flow induced grid movement
 	        write_temp_solution_data();
@@ -2558,7 +2574,7 @@ int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_steppin
 	    cp->copy_grid_level_to_level(2, 0);
 	}
     }
-
+    
     G.sim_time = t0 + dt;
     return step_status_flag;
 } // end gasdynamic_inviscid_increment_with_moving_grid()
