@@ -257,35 +257,64 @@ void gasdynamic_explicit_increment_with_fixed_grid()
     case GasdynamicUpdate.tvd_rk3: c2 = 1.0; c3 = 0.5; break;
     case GasdynamicUpdate.denman_rk3: c2 = 1.0; c3 = 0.5; break; 
     }
-    bool step_has_failed;
-    int attempt_number = 0;
-    do {
-	// Preparation for the predictor-stage of inviscid gas-dynamic flow update.
-	++attempt_number;
-	step_has_failed = false;
+    // Preparation for the predictor-stage of inviscid gas-dynamic flow update.
+    foreach (blk; myBlocks) {
+	if (!blk.active) continue;
+	blk.clear_fluxes_of_conserved_quantities();
+	foreach (cell; blk.active_cells) cell.clear_source_vector();
+    }
+    foreach (blk; myBlocks) {
+	if (blk.active) {
+	    blk.apply_convective_bc(sim_time);
+	    // We've put this detector step here because it needs the ghost-cell data
+	    // to be current, as it should be just after a call to apply_convective_bc().
+	    if (GlobalConfig.flux_calculator == FluxCalculator.adaptive)
+		blk.detect_shock_points();
+	}
+    }
+    // First-stage of gas-dynamic update.
+    int t_level = 0; // within the overall convective-update
+    foreach (blk; myBlocks) {
+	if (!blk.active) continue;
+	blk.convective_flux();
+	if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
+	    blk.apply_viscous_bc(sim_time);
+	    if (GlobalConfig.turbulence_model == TurbulenceModel.k_omega)
+		blk.apply_menter_boundary_correction(0);
+	    blk.viscous_derivatives(0); 
+	    blk.estimate_turbulence_viscosity();
+	    blk.viscous_flux();
+	} // end if viscous
+	foreach (cell; blk.active_cells) {
+	    cell.add_inviscid_source_vector(0, blk.omegaz);
+	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
+		cell.add_viscous_source_vector(with_k_omega);
+	    }
+	    cell.time_derivatives(0, 0, GlobalConfig.dimensions, with_k_omega);
+	    bool force_euler = false;
+	    cell.stage_1_update_for_flow_on_fixed_grid(dt_global, force_euler, with_k_omega);
+	    cell.decode_conserved(0, 1, blk.omegaz);
+	} // end foreach cell
+    } // end foreach blk
+    //
+    if ( number_of_stages_for_update_scheme(GlobalConfig.gasdynamic_update_scheme) >= 2 ) {
+	// Preparation for second-stage of gas-dynamic update.
+	sim_time = t0 + c2 * dt_global;
 	foreach (blk; myBlocks) {
-	    if (!blk.active) continue;
+	    if (!blk.active ) continue;
 	    blk.clear_fluxes_of_conserved_quantities();
 	    foreach (cell; blk.active_cells) cell.clear_source_vector();
 	}
-	foreach (blk; myBlocks) {
-	    if (blk.active) {
-		blk.apply_convective_bc(sim_time);
-		// We've put this detector step here because it needs the ghost-cell data
-		// to be current, as it should be just after a call to apply_convective_bc().
-		if (GlobalConfig.flux_calculator == FluxCalculator.adaptive)
-		    blk.detect_shock_points();
-	    }
-	}
-	// First-stage of gas-dynamic update.
-	int t_level = 0; // within the overall convective-update
+	// Second stage of gas-dynamic update.
+	t_level = 1;
 	foreach (blk; myBlocks) {
 	    if (!blk.active) continue;
+	    blk.apply_convective_bc(sim_time);
 	    blk.convective_flux();
 	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 		blk.apply_viscous_bc(sim_time);
 		if (GlobalConfig.turbulence_model == TurbulenceModel.k_omega)
-		    blk.apply_menter_boundary_correction(0);
+		    blk.apply_menter_boundary_correction(1);
 		blk.viscous_derivatives(0); 
 		blk.estimate_turbulence_viscosity();
 		blk.viscous_flux();
@@ -295,107 +324,48 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 		    cell.add_viscous_source_vector(with_k_omega);
 		}
-		cell.time_derivatives(0, 0, GlobalConfig.dimensions, with_k_omega);
+		cell.time_derivatives(0, 1, GlobalConfig.dimensions, with_k_omega);
 		bool force_euler = false;
-		cell.stage_1_update_for_flow_on_fixed_grid(dt_global, force_euler, with_k_omega);
-		cell.decode_conserved(0, 1, blk.omegaz);
+		cell.stage_2_update_for_flow_on_fixed_grid(dt_global, with_k_omega);
+		cell.decode_conserved(0, 2, blk.omegaz);
 	    } // end foreach cell
 	} // end foreach blk
-
-	if ( number_of_stages_for_update_scheme(GlobalConfig.gasdynamic_update_scheme) >= 2 ) {
-	    // Preparation for second-stage of gas-dynamic update.
-	    sim_time = t0 + c2 * dt_global;
-	    foreach (blk; myBlocks) {
-		if (!blk.active ) continue;
-		blk.clear_fluxes_of_conserved_quantities();
-		foreach (cell; blk.active_cells) cell.clear_source_vector();
-	    }
-	    // Second stage of gas-dynamic update.
-	    t_level = 1;
-	    foreach (blk; myBlocks) {
-		if (!blk.active) continue;
-		blk.apply_convective_bc(sim_time);
-		blk.convective_flux();
-		if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-		    blk.apply_viscous_bc(sim_time);
-		    if (GlobalConfig.turbulence_model == TurbulenceModel.k_omega)
-			blk.apply_menter_boundary_correction(1);
-		    blk.viscous_derivatives(0); 
-		    blk.estimate_turbulence_viscosity();
-		    blk.viscous_flux();
-		} // end if viscous
-		foreach (cell; blk.active_cells) {
-		    cell.add_inviscid_source_vector(0, blk.omegaz);
-		    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-			cell.add_viscous_source_vector(with_k_omega);
-		    }
-		    cell.time_derivatives(0, 1, GlobalConfig.dimensions, with_k_omega);
-		    bool force_euler = false;
-		    cell.stage_2_update_for_flow_on_fixed_grid(dt_global, with_k_omega);
-		    cell.decode_conserved(0, 2, blk.omegaz);
-		} // end foreach cell
-	    } // end foreach blk
-	} // end if number_of_stages_for_update_scheme >= 2 
-
-	if ( number_of_stages_for_update_scheme(GlobalConfig.gasdynamic_update_scheme) >= 3 ) {
-	    // Preparation for third stage of gasdynamic update.
-	    sim_time = t0 + c3 * dt_global;
-	    foreach (blk; myBlocks) {
-		if (!blk.active ) continue;
-		blk.clear_fluxes_of_conserved_quantities();
-		foreach (cell; blk.active_cells) cell.clear_source_vector();
-	    }
-	    t_level = 2;
-	    foreach (blk; myBlocks) {
-		if (!blk.active) continue;
-		blk.apply_convective_bc(sim_time);
-		blk.convective_flux();
-		if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-		    blk.apply_viscous_bc(sim_time);
-		    if (GlobalConfig.turbulence_model == TurbulenceModel.k_omega)
-			blk.apply_menter_boundary_correction(2);
-		    blk.viscous_derivatives(0); 
-		    blk.estimate_turbulence_viscosity();
-		    blk.viscous_flux();
-		} // end if viscous
-		foreach (cell; blk.active_cells) {
-		    cell.add_inviscid_source_vector(0, blk.omegaz);
-		    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-			cell.add_viscous_source_vector(with_k_omega);
-		    }
-		    cell.time_derivatives(0, 2, GlobalConfig.dimensions, with_k_omega);
-		    bool force_euler = false;
-		    cell.stage_2_update_for_flow_on_fixed_grid(dt_global, with_k_omega);
-		    cell.decode_conserved(0, 3, blk.omegaz);
-		} // end foreach cell
-	    } // end foreach blk
-	} // end if number_of_stages_for_update_scheme >= 3
-   
-	// Check the record of bad cells and if any cells are bad, 
-	// fail this attempt at taking a step,
-	// set everything back to the initial state and
-	// reduce the time step for the next attempt.
-	int most_bad_cells = 0;
+    } // end if number_of_stages_for_update_scheme >= 2 
+    //
+    if ( number_of_stages_for_update_scheme(GlobalConfig.gasdynamic_update_scheme) >= 3 ) {
+	// Preparation for third stage of gasdynamic update.
+	sim_time = t0 + c3 * dt_global;
+	foreach (blk; myBlocks) {
+	    if (!blk.active ) continue;
+	    blk.clear_fluxes_of_conserved_quantities();
+	    foreach (cell; blk.active_cells) cell.clear_source_vector();
+	}
+	t_level = 2;
 	foreach (blk; myBlocks) {
 	    if (!blk.active) continue;
-	    most_bad_cells += blk.count_invalid_cells(0);
-	}
-	step_has_failed = (most_bad_cells > 0);
-	if (step_has_failed) {
-	    dt_global *= GlobalConfig.dt_reduction_factor;
-	    writeln("gasdynamic_explicit_increment_with_fixed_grid(): Step attempt ",
-		    attempt_number, " failed: reducing dt to ", dt_global);
-	    foreach (blk; myBlocks) {
-		if (!blk.active) continue;
-		foreach (cell; blk.active_cells) { cell.decode_conserved(0, 0, blk.omegaz); }
-	    } // end foreach blk
-	} // end if step_has_failed
-
-    } while (attempt_number < 3 && step_has_failed);
-    if (step_has_failed) {
-	throw new Error(text("gasdynamic_explicit_increment_with_fixed_grid(): " ~
-			     "failed to take a step"));
-    }
+	    blk.apply_convective_bc(sim_time);
+	    blk.convective_flux();
+	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
+		blk.apply_viscous_bc(sim_time);
+		if (GlobalConfig.turbulence_model == TurbulenceModel.k_omega)
+		    blk.apply_menter_boundary_correction(2);
+		blk.viscous_derivatives(0); 
+		blk.estimate_turbulence_viscosity();
+		blk.viscous_flux();
+	    } // end if viscous
+	    foreach (cell; blk.active_cells) {
+		cell.add_inviscid_source_vector(0, blk.omegaz);
+		if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
+		    cell.add_viscous_source_vector(with_k_omega);
+		}
+		cell.time_derivatives(0, 2, GlobalConfig.dimensions, with_k_omega);
+		bool force_euler = false;
+		cell.stage_2_update_for_flow_on_fixed_grid(dt_global, with_k_omega);
+		cell.decode_conserved(0, 3, blk.omegaz);
+	    } // end foreach cell
+	} // end foreach blk
+    } // end if number_of_stages_for_update_scheme >= 3
+    //
     // Get the end conserved data into U[0] for next step.
     size_t end_indx = 2;
     final switch (GlobalConfig.gasdynamic_update_scheme) {
@@ -412,7 +382,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    swap(cell.U[0], cell.U[end_indx]);
 	}
     } // end foreach blk
-
+    //
     // Finally, update the globally know simulation time for the whole step.
     sim_time = t0 + dt_global;
 } // end gasdynamic_explicit_increment_with_fixed_grid()
