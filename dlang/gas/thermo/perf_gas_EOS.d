@@ -35,7 +35,7 @@ import util.msg_service;
 
 pure double pressure(double rho, double T, double R)
 in {
-    assert(rho > 0.0, brokenPreCondition("pressure", __LINE__, __FILE__));
+    assert(rho > 0.0, brokenPreCondition("density", __LINE__, __FILE__));
     assert(T > 0.0, brokenPreCondition("temperature", __LINE__, __FILE__));
     assert(R > 0.0, brokenPreCondition("gas constant", __LINE__, __FILE__));
 }
