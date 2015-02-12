@@ -19,11 +19,11 @@ public:
     int neighbour_face;
     int neighbour_orientation;
 
-    this(ref SBlock blk_, int which_boundary_, 
+    this(int id, int boundary, 
 	 int other_block, int other_face, int orient)
     {
-	blk = blk_;
-	which_boundary = which_boundary_;
+	blk_id = id;
+	which_boundary = boundary;
 	type_code = BCCode.full_face_exchange;
 	is_wall = false;
 	neighbour_block = other_block;
@@ -44,6 +44,7 @@ public:
 
     override void apply_convective(double t)
     {
+	auto blk = allBlocks[blk_id];
 	blk.copy_into_ghost_cells(which_boundary, 
 				  allBlocks[neighbour_block],
 				  neighbour_face, neighbour_orientation,
@@ -59,10 +60,11 @@ public:
     {
 	// TODO Check me!  This is a work-around.
 	// We should be able to directly reference the BCs block as blk.
-	allBlocks[blk.id].copy_into_ghost_cells(which_boundary, 
-						allBlocks[neighbour_block],
-						neighbour_face, neighbour_orientation,
-						CopyDataOption.all, true);
+	auto blk = allBlocks[blk_id];
+	blk.copy_into_ghost_cells(which_boundary, 
+				  allBlocks[neighbour_block],
+				  neighbour_face, neighbour_orientation,
+				  CopyDataOption.all, true);
     }
 } // end class FullFaceExchangeBC
 

@@ -518,8 +518,11 @@ public:
 	FVInterface IFe = iface[Face.east];
 	FVInterface IFs = iface[Face.south];
 	FVInterface IFw = iface[Face.west];
-	FVInterface IFt = iface[Face.top];
-	FVInterface IFb = iface[Face.bottom];
+	FVInterface IFt, IFb;
+	if (dimensions == 3) {
+	    IFt = iface[Face.top];
+	    IFb = iface[Face.bottom];
+	}
 	// Cell volume (inverted).
 	double vol_inv = 1.0 / volume[gtl];
 	double integral;

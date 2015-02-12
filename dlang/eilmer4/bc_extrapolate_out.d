@@ -15,15 +15,16 @@ import bc;
 import block;
 import sblock;
 import globalconfig;
+import globaldata;
 
 class ExtrapolateOutBC: BoundaryCondition {
 public:
     int x_order = 0; // default to lowest order
 
-    this(ref SBlock blk_, int which_boundary_, int x_order_=0) 
+    this(int id, int boundary, int x_order_=0) 
     {
-	blk = blk_;
-	which_boundary = which_boundary_;
+	blk_id = id;
+	which_boundary = boundary;
 	type_code = BCCode.extrapolate_out;
 	is_wall = false;
 	x_order = x_order_;
@@ -49,8 +50,9 @@ public:
 	auto gmodel = GlobalConfig.gmodel;
 	size_t nsp = gmodel.n_species;
 	size_t nmodes = gmodel.n_modes;
+	auto blk = allBlocks[blk_id];
 
-	final switch ( which_boundary ) {
+	final switch (which_boundary) {
 	case Face.north:
 	    j = blk.jmax;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {

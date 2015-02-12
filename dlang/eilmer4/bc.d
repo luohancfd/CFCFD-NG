@@ -11,6 +11,7 @@ import json_helper;
 import geom;
 import fvcore;
 import globalconfig;
+import globaldata;
 import fvinterface;
 import fvcell;
 import block;
@@ -90,7 +91,7 @@ class BoundaryCondition {
     // Presently, there are a lot of assumptions built in that are specific for structured-grid blocks.
 public:
     // Location of the boundary condition.
-    SBlock blk; // reference to the structured-grid block to which this BC is applied
+    int blk_id; // index of the structured-grid block to which this BC is applied
     int which_boundary; // identity/index of the relevant boundary
 
     // Nature of the boundary condition that may be checked 
@@ -119,9 +120,10 @@ public:
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
 	FVInterface IFace;
-	auto opt = CopyDataOption.minimal_flow;
+	auto copy_opt = CopyDataOption.minimal_flow;
+	auto blk = allBlocks[blk_id];
 
-	final switch ( which_boundary ) {
+	final switch (which_boundary) {
 	case Face.north:
 	    j = blk.jmax;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
@@ -130,7 +132,7 @@ public:
 		    src_cell = blk.get_cell(i,j,k);
 		    IFace = src_cell.iface[Face.north];
 		    dest_cell = blk.get_cell(i,j+1,k);
-		    dest_cell.copy_values_from(src_cell, opt);
+		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -138,7 +140,7 @@ public:
 		    // ghost cell 2.
 		    src_cell = blk.get_cell(i,j-1,k);
 		    dest_cell = blk.get_cell(i,j+2,k);
-		    dest_cell.copy_values_from(src_cell, opt);
+		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -154,7 +156,7 @@ public:
 		    src_cell = blk.get_cell(i,j,k);
 		    IFace = src_cell.iface[Face.east];
 		    dest_cell = blk.get_cell(i+1,j,k);
-		    dest_cell.copy_values_from(src_cell, opt);
+		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -162,7 +164,7 @@ public:
 		    // ghost cell 2.
 		    src_cell = blk.get_cell(i-1,j,k);
 		    dest_cell = blk.get_cell(i+2,j,k);
-		    dest_cell.copy_values_from(src_cell, opt);
+		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -178,7 +180,7 @@ public:
 		    src_cell = blk.get_cell(i,j,k);
 		    IFace = src_cell.iface[Face.south];
 		    dest_cell = blk.get_cell(i,j-1,k);
-		    dest_cell.copy_values_from(src_cell, opt);
+		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -186,7 +188,7 @@ public:
 		    // ghost cell 2.
 		    src_cell = blk.get_cell(i,j+1,k);
 		    dest_cell = blk.get_cell(i,j-2,k);
-		    dest_cell.copy_values_from(src_cell, opt);
+		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -202,7 +204,7 @@ public:
 		    src_cell = blk.get_cell(i,j,k);
 		    IFace = src_cell.iface[Face.west];
 		    dest_cell = blk.get_cell(i-1,j,k);
-		    dest_cell.copy_values_from(src_cell, opt);
+		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -210,7 +212,7 @@ public:
 		    // ghost cell 2.
 		    src_cell = blk.get_cell(i+1,j,k);
 		    dest_cell = blk.get_cell(i-2,j,k);
-		    dest_cell.copy_values_from(src_cell, opt);
+		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -226,7 +228,7 @@ public:
 		    src_cell = blk.get_cell(i,j,k);
 		    IFace = src_cell.iface[Face.top];
 		    dest_cell = blk.get_cell(i,j,k+1);
-		    dest_cell.copy_values_from(src_cell, opt);
+		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -234,7 +236,7 @@ public:
 		    // ghost cell 2.
 		    src_cell = blk.get_cell(i,j,k-1);
 		    dest_cell = blk.get_cell(i,j,k+2);
-		    dest_cell.copy_values_from(src_cell, opt);
+		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -250,7 +252,7 @@ public:
 		    src_cell = blk.get_cell(i,j,k);
 		    IFace = src_cell.iface[Face.bottom];
 		    dest_cell = blk.get_cell(i,j,k-1);
-		    dest_cell.copy_values_from(src_cell, opt);
+		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -258,7 +260,7 @@ public:
 		    // ghost cell 2.
 		    src_cell = blk.get_cell(i,j,k+1);
 		    dest_cell = blk.get_cell(i,j,k-2);
-		    dest_cell.copy_values_from(src_cell, opt);
+		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
 		    if ( GlobalConfig.MHD ) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
@@ -279,33 +281,33 @@ public:
 } // end class BoundaryCondition
 
 
-BoundaryCondition make_BC_from_json(in JSONValue json_data, ref SBlock blk, int i)
+BoundaryCondition make_BC_from_json(in JSONValue json_data, int blk_id, int boundary)
 {
     string bc_name = json_data["bc"].str;
     BoundaryCondition new_bc;
     switch (toLower(bc_name)) {
     case "sup_in":
 	int inflow_condition_id = getJSONint(json_data, "inflow_condition_id", 0);
-	new_bc = new SupersonicInBC(blk, i, inflow_condition_id);
+	new_bc = new SupersonicInBC(blk_id, boundary, inflow_condition_id);
 	break;
     case "slip_wall":
-	new_bc = new SlipWallBC(blk, i);
+	new_bc = new SlipWallBC(blk_id, boundary);
 	break;
     case "extrapolate_out":
 	int x_order = getJSONint(json_data, "x_order", 0);
-	new_bc = new ExtrapolateOutBC(blk, i, x_order);
+	new_bc = new ExtrapolateOutBC(blk_id, boundary, x_order);
 	break;
     case "adjacent":
 	int other_block = getJSONint(json_data, "other_block", -1);
 	string other_face_name = getJSONstring(json_data, "other_face", "none");
 	int neighbour_orientation = getJSONint(json_data, "neighbour_orientation", 0);
- 	new_bc = new FullFaceExchangeBC(blk, i,
+ 	new_bc = new FullFaceExchangeBC(blk_id, boundary,
 					other_block,
 					face_index(other_face_name),
 					neighbour_orientation);
 	break;
     default:
-	new_bc = new SlipWallBC(blk, i);
+	new_bc = new SlipWallBC(blk_id, boundary);
     }
     return new_bc;
 } // end make_BC_from_json()

@@ -17,6 +17,7 @@ import bc;
 import block;
 import sblock;
 import globalconfig;
+import globaldata;
 
 class FixedPOutBC: BoundaryCondition {
 public:
@@ -25,11 +26,11 @@ public:
     bool use_Tout = false;
     int x_order = 0; // default to lowest order
 
-    this(ref SBlock blk_, int which_boundary_, double Pout, double Tout,
+    this(int id, int boundary, double Pout, double Tout,
 	 bool use_Tout=false, int x_order=0) 
     {
-	blk = blk_;
-	which_boundary = which_boundary_;
+	blk_id = id;
+	which_boundary = boundary;
 	type_code = BCCode.fixed_p_out;
 	is_wall = false;
 	this.Pout = Pout;
@@ -58,8 +59,9 @@ public:
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
 	auto gmodel = GlobalConfig.gmodel;
+	auto blk = allBlocks[blk_id];
 
-	final switch ( which_boundary ) {
+	final switch (which_boundary) {
 	case Face.north:
 	    j = blk.jmax;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {

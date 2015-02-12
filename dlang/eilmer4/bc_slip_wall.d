@@ -11,10 +11,10 @@ import sblock;
 
 class SlipWallBC: BoundaryCondition {
 
-    this(ref SBlock blk_, int which_boundary_, double emissivity=0.0) 
+    this(int id, int boundary, double emissivity=0.0) 
     {
-	blk = blk_;
-	which_boundary = which_boundary_;
+	blk_id = id;
+	which_boundary = boundary;
 	type_code = BCCode.slip_wall;
 	is_wall = true;
 	this.emissivity = emissivity;

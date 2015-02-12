@@ -85,13 +85,14 @@ public:
 	nicell = getJSONint(json_data, "nni", 0);
 	njcell = getJSONint(json_data, "nnj", 0);
 	nkcell = getJSONint(json_data, "nnk", 0);
+	this(id, nicell, njcell, nkcell);
 	fill_in_other_size_data();
-	SBlock blk = new SBlock(id, nicell, njcell, nkcell);
 	label = getJSONstring(json_data, "label", "");
 	active = getJSONbool(json_data, "active", true);
 	omegaz = getJSONdouble(json_data, "omegaz", 0.0);
-	foreach (i; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
-	    bc[i] = make_BC_from_json(json_data["face_" ~ face_name[i]], blk, i);
+	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
+	    bc[boundary] = make_BC_from_json(json_data["face_" ~ face_name[boundary]],
+					     id, boundary);
 	}
     } // end constructor from json
 
@@ -1920,11 +1921,6 @@ public:
     // to be ported from invs.cxx
     override void convective_flux()
     {
-	throw new Error("[TODO] convective_flux() not implemented yet.");
-    }
-
-    override void viscous_flux()
-    {
 	FVCell cL1, cL0, cR0, cR1;
 	FVInterface IFace;
 	// Maybe the following two FlowState objects should be in the Block object
@@ -2065,6 +2061,11 @@ public:
 	} // i loop
 	return;
     } // end convective_flux()
+
+    override void viscous_flux()
+    {
+	throw new Error("[TODO] viscous_flux() not implemented yet.");
+    } // end viscous_flux()
 
     override void viscous_derivatives(int gtl)
     {

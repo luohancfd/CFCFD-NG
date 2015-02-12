@@ -13,13 +13,14 @@ import bc;
 import block;
 import sblock;
 import bc_menter_correction;
+import globaldata;
 
 class AdiabaticWallBC: BoundaryCondition {
 
-    this(ref SBlock blk_, int which_boundary_, double emissivity=0.0) 
+    this(int id, int boundary, double emissivity=0.0) 
     {
-	blk = blk_;
-	which_boundary = which_boundary_;
+	blk_id = id;
+	which_boundary = boundary;
 	type_code = BCCode.adiabatic_wall;
 	is_wall = true;
 	this.emissivity = emissivity;
@@ -47,8 +48,9 @@ class AdiabaticWallBC: BoundaryCondition {
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
+	auto blk = allBlocks[blk_id];
 
-	final switch ( which_boundary ) {
+	final switch (which_boundary) {
 	case Face.north:
 	    j = blk.jmax;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {

@@ -20,10 +20,10 @@ public:
     int[][][] incoming_mapped_cells; 
     int[][][] outgoing_mapped_cells;
 
-    this(ref SBlock blk_, int which_boundary_)
+    this(int id, int boundary)
     {
-	blk = blk_;
-	which_boundary = which_boundary_;
+	blk_id = id;
+	which_boundary = boundary;
 	type_code = BCCode.mapped_cell;
     }
 

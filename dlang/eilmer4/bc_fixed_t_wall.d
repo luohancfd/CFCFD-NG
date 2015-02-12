@@ -14,15 +14,16 @@ import block;
 import sblock;
 import bc_menter_correction;
 import globalconfig;
+import globaldata;
 
 class FixedTWallBC: BoundaryCondition {
 public:
     double Twall;
 
-    this(ref SBlock blk_, int which_boundary_, double Twall, double emissivity=0.0) 
+    this(int id, int boundary, double Twall, double emissivity=0.0) 
     {
-	blk = blk_;
-	which_boundary = which_boundary_;
+	blk_id = id;
+	which_boundary = boundary;
 	type_code = BCCode.fixed_t_wall;
 	is_wall = true;
 	this.Twall = Twall;
@@ -53,8 +54,9 @@ public:
 	FVCell cell;
 	FVInterface IFace;
 	auto gmodel = GlobalConfig.gmodel;
+	auto blk = allBlocks[blk_id];
 
-	final switch ( which_boundary ) {
+	final switch (which_boundary) {
 	case Face.north:
 	    j = blk.jmax;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
@@ -149,4 +151,4 @@ public:
 	    break;
 	} // end switch which_boundary
     } // end apply_viscous()
-} // end class SlipWallBC
+} // end class FixedTWallBC

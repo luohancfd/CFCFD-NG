@@ -20,10 +20,10 @@ class SupersonicInBC: BoundaryCondition {
 public:
     int inflow_condition_id = 0;
 
-    this(ref SBlock blk_, int which_boundary_, int inflow_condition_id=0) 
+    this(int id, int boundary, int inflow_condition_id=0) 
     {
-	blk = blk_;
-	which_boundary = which_boundary_;
+	blk_id = id;
+	which_boundary = boundary;
 	type_code = BCCode.supersonic_in;
 	is_wall = false;
 	this.inflow_condition_id = inflow_condition_id;
@@ -47,8 +47,9 @@ public:
 	FVCell src_cell, dest_cell;
 	FVInterface dest_face;
 	FlowState fstate = myFlowStates[inflow_condition_id];
+	auto blk = allBlocks[blk_id];
 
-	final switch ( which_boundary ) {
+	final switch (which_boundary) {
 	case Face.north:
 	    j = blk.jmax;
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {

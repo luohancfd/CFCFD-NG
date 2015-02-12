@@ -34,7 +34,7 @@ double ideal_omega(in FVCell cell)
     return ideal_omega_at_wall(cell) * (d0 * d0) / ((d0 + d) * (d0 + d));
 }
 
-void apply_menter_boundary_correction(SBlock blk, size_t ftl)
+void apply_menter_boundary_correction(ref SBlock blk, size_t ftl)
 {
     size_t i, j, k;
     size_t layer_depth;
