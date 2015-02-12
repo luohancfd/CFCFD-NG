@@ -55,6 +55,18 @@ public:
 	S = other.S;
     }
 
+    this(in GasModel gm)
+    {
+	gas = GasState(gm, 100.0e3, [300.0,], [1.0,], 1.0); 
+	vel = Vector3(0.0,0.0,0.0);
+	B = Vector3(0.0,0.0,0.0);
+	tke = 0.0;
+	omega = 1.0;
+	mu_t = 0.0;
+	k_t = 0.0;
+	S = 0;
+    }
+
     this(in JSONValue json_data, in GasModel gm)
     {
 	double p = getJSONdouble(json_data, "p", 100.0e3);
@@ -91,8 +103,24 @@ public:
 	S = other.S;
     }
 
-    // Note that we must not send the current object in the others list as well.
+    void copy_average_values_from(in FlowState fs0, in FlowState fs1)
+    // Avoids memory allocation, it's all in place.
+    {
+	gas.copy_average_values_from(fs0.gas, fs1.gas);
+	vel.refx = 0.5 * (fs0.vel.x + fs1.vel.x);
+	vel.refy = 0.5 * (fs0.vel.y + fs1.vel.y);
+	vel.refz = 0.5 * (fs0.vel.z + fs1.vel.z);
+	B.refx = 0.5 * (fs0.B.x + fs1.B.x);
+	B.refy = 0.5 * (fs0.B.y + fs1.B.y);
+	B.refz = 0.5 * (fs0.B.z + fs1.B.z);
+	tke = 0.5 * (fs0.tke + fs1.tke);
+	omega = 0.5 * (fs0.omega + fs1.omega);
+	mu_t = 0.5 * (fs0.mu_t + fs1.mu_t);
+	k_t = 0.5 * (fs0.k_t + fs1.k_t);
+    }
+
     void copy_average_values_from(in FlowState[] others, in GasModel gm)
+    // Note that we must not send the current object in the others list as well.
     {
 	size_t n = others.length;
 	if (n == 0) throw new Error("Need to average from a nonempty array.");

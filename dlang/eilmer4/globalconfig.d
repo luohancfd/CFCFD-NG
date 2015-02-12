@@ -82,6 +82,33 @@ final class GlobalConfig {
     static int nBlocks; // Number of blocks in the overall simulation.
     static int dimensions = 2; // or 3
     static bool axisymmetric = false;
+
+    // Parameters controlling convective update
+    //
+    static GasdynamicUpdate gasdynamic_update_scheme = GasdynamicUpdate.pc;
+
+    // We might update some properties in with the main convective-terms
+    // time-stepping function or we might choose to update them separately, 
+    // like the chemistry update.
+    static bool separate_update_for_viscous_terms = false;
+    static bool separate_update_for_k_omega_source = false;
+
+    /// When decoding the array of conserved quantities, 
+    /// the temperature or the density may try to go negative.  
+    /// If it does and adjust_invalid_cell_data == true, the cell data
+    /// is adjusted to make it reasonable.
+    static bool adjust_invalid_cell_data = false;
+    // The maximum number of bad cells (per block) 
+    // which will be tolerated without complaint.
+    static int max_invalid_cells = 0;  
+    // If an attempt at a time step fails because of invalid cells,
+    // the time step is re-attempted with a smaller time step.
+    // This reduction factor is somewhat arbitrary and can now be set
+    // by the user's imput script.
+    // A factor of 0.5 would seem to be not enough but a factor of
+    // 0.1 would seem too expensive.  We have settled on a default of 0.2.
+    static double dt_reduction_factor = 0.2; 
+
     // Low order reconstruction (1) uses just the cell-centre data as left- and right-
     // flow properties in the flux calculation.
     // High-order reconstruction (2) adds a correction term to the cell-centre values
@@ -89,6 +116,44 @@ final class GlobalConfig {
     // cell centres.
     static int Xorder = 2; 
 
+    // Default flow-data reconstruction includes interpolation of density 
+    // and internal energy.  Other options for the thermodunamic properties
+    // to be interpolated are pressure+temperature, density+temperature and
+    // density+pressure.
+    static InterpolateOption thermo_interpolator = InterpolateOption.rhoe;
+    static bool apply_limiter = true;
+    static bool extrema_clipping = true;
+    static bool interpolate_in_local_frame = true;
+
+    // Default flux calculator is the adaptive mix of ausmdv and efm.
+    static FluxCalculator flux_calculator = FluxCalculator.adaptive;
+
+    // Set the tolerance to shear when applying the adaptive flux calculator.
+    // We don't want EFM to be applied in situations of significant shear.
+    // The shear value is computed as the tangential-velocity difference across an interface
+    // normalised by the local sound speed.
+    static double shear_tolerance = 0.20;
+
+    // Reference free-stream Mach number, for use in the ausm_plus_up flux calculator.
+    // Choose a value for M_inf that is good for low Mach numbers.
+    // To be strictly correct, we should set this at run time
+    // if an M_inf value is easily defined.
+    static double M_inf = 0.01;
+
+    // Set the tolerance in relative velocity change for the shock detector.
+    // This value is expected to be a negative number (for compression)
+    // and not too large in magnitude.
+    // We have been using a value of -0.05 for years, based on some
+    // early experiments with the sod and cone20 test cases, however,
+    // the values may need to be tuned for other cases, especially where
+    // viscous effects are important.
+    static double compression_tolerance = -0.30;
+
+    static bool moving_grid = false;
+    static bool write_vertex_velocities = false;
+
+    // Parameters controlling viscous/molecular transport
+    //
     static bool viscous = false; 
     // If true, viscous effects are included in the gas-dynamic update.
     // A factor to scale the viscosity in order to achieve a soft start. 
@@ -122,42 +187,8 @@ final class GlobalConfig {
     static double transient_mu_t_factor = 1.0;
     static BlockZone[] turbulent_zones;
 
-    static bool moving_grid = false;
-    static bool write_vertex_velocities = false;
-
-    // Set the tolerance in relative velocity change for the shock detector.
-    // This value is expected to be a negative number (for compression)
-    // and not too large in magnitude.
-    // We have been using a value of -0.05 for years, based on some
-    // early experiments with the sod and cone20 test cases, however,
-    // the values may need to be tuned for other cases, especially where
-    // viscous effects are important.
-    static double compression_tolerance = -0.30;
-
-    // Default flow-data reconstruction includes interpolation of density 
-    // and internal energy.  Other options for the thermodunamic properties
-    // to be interpolated are pressure+temperature, density+temperature and
-    // density+pressure.
-    static InterpolateOption thermo_interpolator = InterpolateOption.rhoe;
-    static bool apply_limiter = true;
-    static bool extrema_clipping = true;
-    static bool interpolate_in_local_frame = true;
-
-    // Default flux calculator is the adaptive mix of ausmdv and efm.
-    static FluxCalculator flux_calculator = FluxCalculator.adaptive;
-
-    // Set the tolerance to shear when applying the adaptive flux calculator.
-    // We don't want EFM to be applied in situations of significant shear.
-    // The shear value is computed as the tangential-velocity difference across an interface
-    // normalised by the local sound speed.
-    static double shear_tolerance = 0.20;
-
-    // Reference free-stream Mach number, for use in the ausm_plus_up flux calculator.
-    // Choose a value for M_inf that is good for low Mach numbers.
-    // To be strictly correct, we should set this at run time
-    // if an M_inf value is easily defined.
-    static double M_inf = 0.01;
-
+    // Parameters controlling thermochemistry
+    //
     // Turning on the reactions activates the chemical update function calls.
     // Chemical equilibrium simulations (via Look-Up Table) does not use this
     // chemical update function call.
@@ -175,6 +206,7 @@ final class GlobalConfig {
     static bool electric_field_work;
 
     // For Daryl Bond and Vince Wheatley's MHD additions.
+    //
     static bool MHD;
 
     // A flag for turning on the BGK non-equilibrium gas solver:
@@ -183,6 +215,8 @@ final class GlobalConfig {
     //   BGK == 2: ON, read in velocity distribution values from "flow" file
     static int BGK = 0;
 
+    // Parameters controlling other simulation options
+    //
     static double ignition_time_start = 0.0;
     static double ignition_time_stop = 0.0;
     static IgnitionZone[] ignition_zones;
@@ -211,12 +245,6 @@ final class GlobalConfig {
     // 3 : plus verbose boundary condition messages
     // 4 : temporary messages for debugging
 
-    /// When decoding the array of conserved quantities, 
-    /// the temperature or the density may try to go negative.  
-    /// If it does and adjust_invalid_cell_data == true, the cell data
-    /// is adjusted to make it reasonable.
-    static bool adjust_invalid_cell_data = false;
-
     static double max_time;        // final solution time, s, set by user
     static double dt_init;         // initial time step set by user
     static double cfl_value = 0.5; // target CFL number (worst case) set by user
@@ -224,23 +252,6 @@ final class GlobalConfig {
     // If true, assume the worst with respect to cell geometry and wave speed.
     static double dt_max; // Maximum allowable time-step, after all other considerations.
     static bool fixed_time_step = false; // set true to fix dt_allow
-
-    static int max_invalid_cells = 0;  
-    // The maximum number of bad cells (per block) 
-    // which will be tolerated without complaint.
-    static double dt_reduction_factor = 0.2; 
-    // If an attempt at a time step fails because of invalid cells,
-    // the time step is re-attempted with a smaller time step.
-    // This reduction factor is somewhat arbitrary and can now be set
-    // by the user's imput script.
-    // A factor of 0.5 would seem to be not enough but a factor of
-    // 0.1 would seem too expensive.  We have settled on a default of 0.2.
-
-    /// We might update some properties in with the main convective-terms
-    /// time-stepping function or we might choose to update them separately, 
-    /// like the chemistry update.
-    static bool separate_update_for_viscous_terms = false;
-    static bool separate_update_for_k_omega_source = false;
 
     static size_t write_at_step;   // update step at which to write a solution, 0=don't do it
     static double dt_plot;         // interval for writing soln

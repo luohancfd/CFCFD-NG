@@ -168,8 +168,25 @@ public:
 	quality = other.quality;
     }
 
-    // Note that we must not send the current object in the others list as well.
+    void copy_average_values_from(in GasState gs0, in GasState gs1) 
+    // Avoids memory allocation, it's all in place.
+    {
+	rho = 0.5 * (gs0.rho + gs1.rho);
+	p = 0.5 * (gs0.p + gs1.p);
+	p_e = 0.5 * (gs0.p_e + gs1.p_e);
+	a = 0.5 * (gs0.a + gs1.a);
+	foreach(i; 0 .. e.length) e[i] = 0.5 * (gs0.e[i] + gs1.e[i]);
+	foreach(i; 0 .. T.length) T[i] = 0.5 * (gs0.T[i] + gs1.T[i]);
+	mu = 0.5 * (gs0.mu + gs1.mu);
+	foreach(i; 0 .. k.length) k[i] = 0.5 * (gs0.k[i] + gs1.k[i]);
+	// D_AB
+	sigma = 0.5 * (gs0.sigma * gs1.sigma);
+	foreach(i; 0 .. massf.length) massf[i] = 0.5 * (gs0.massf[i] * gs1.massf[i]);
+	quality = 0.5 * (gs0.quality + gs1.quality);
+    }
+
     void copy_average_values_from(in GasState[] others, in GasModel gm) 
+    // Note that we must not send the current object in the others list as well.
     {
 	size_t n = others.length;
 	if (n == 0) throw new Error("Need to average from a nonempty array.");

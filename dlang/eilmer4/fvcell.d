@@ -653,7 +653,7 @@ public:
 	// we use this function as an Euler update even when the main
 	// gasdynamic_update_scheme is of higher order.
 	if ( !force_euler ) {
-	    final switch ( gasdynamic_update_scheme ) {
+	    final switch (GlobalConfig.gasdynamic_update_scheme) {
 	    case GasdynamicUpdate.euler:
 	    case GasdynamicUpdate.pc: gamma_1 = 1.0; break;
 	    case GasdynamicUpdate.midpoint: gamma_1 = 0.5; break;
@@ -710,11 +710,11 @@ public:
 	ConservedQuantities dUdt0 = dUdt[0];
 	ConservedQuantities dUdt1 = dUdt[1];
 	ConservedQuantities U_old = U[0];
-	if ( gasdynamic_update_scheme == GasdynamicUpdate.denman_rk3 ) U_old = U[1];
+	if (GlobalConfig.gasdynamic_update_scheme == GasdynamicUpdate.denman_rk3) U_old = U[1];
 	ConservedQuantities U2 = U[2];
 	double gamma_1 = 0.5; // Presume predictor-corrector.
 	double gamma_2 = 0.5;
-	final switch ( gasdynamic_update_scheme ) {
+	final switch (GlobalConfig.gasdynamic_update_scheme) {
 	case GasdynamicUpdate.euler:
 	    throw new Error("Euler update has no second stage.");
 	case GasdynamicUpdate.pc: gamma_1 = 0.5, gamma_2 = 0.5; break;
@@ -761,12 +761,12 @@ public:
 	ConservedQuantities dUdt1 = dUdt[1];
 	ConservedQuantities dUdt2 = dUdt[2];
 	ConservedQuantities U_old = U[0];
-	if ( gasdynamic_update_scheme == GasdynamicUpdate.denman_rk3 ) U_old = U[2];
+	if (GlobalConfig.gasdynamic_update_scheme == GasdynamicUpdate.denman_rk3) U_old = U[2];
 	ConservedQuantities U3 = U[3];
 	double gamma_1 = 1.0/6.0; // presume TVD_RK3 scheme.
 	double gamma_2 = 1.0/6.0;
 	double gamma_3 = 4.0/6.0;
-	final switch ( gasdynamic_update_scheme ) {
+	final switch (GlobalConfig.gasdynamic_update_scheme) {
 	case GasdynamicUpdate.euler:
 	case GasdynamicUpdate.pc:
 	case GasdynamicUpdate.midpoint:

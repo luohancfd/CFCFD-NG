@@ -50,7 +50,11 @@ public:
     double read_solution(string filename) { return 0.0; }
     void write_solution(string filename, double sim_time) {}
     void write_history(string filename, double sim_time, bool write_header=false) {}
-    void inviscid_flux() {}
+    void convective_flux() {}
+    void viscous_flux() {}
+    void viscous_derivatives(int gtl) {}
+    void apply_menter_boundary_correction(int ftl) {}
+    void estimate_turbulence_viscosity() {}
     void apply_convective_bc(double t) {}
     void apply_viscous_bc(double t) {}
 

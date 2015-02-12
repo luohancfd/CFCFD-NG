@@ -46,8 +46,6 @@ enum GasdynamicUpdate {
     denman_rk3
 }
 
-GasdynamicUpdate gasdynamic_update_scheme = GasdynamicUpdate.pc;
-
 string gasdynamic_update_scheme_name(GasdynamicUpdate gdut)
 {
     final switch ( gdut ) {

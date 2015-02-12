@@ -21,10 +21,13 @@ import gzip;
 import geom;
 import gas;
 import globalconfig;
+import flowstate;
+import fluxcalc;
 import fvcore;
 import fvvertex;
 import fvinterface;
 import fvcell;
+import onedinterp;
 import block;
 import bc;
 import bc_slip_wall;
@@ -456,7 +459,7 @@ public:
 	// The following limits allow the simulation of the sod shock tube
 	// to get just a little wobbly around the shock.
 	// Lower values of cfl should be used for a smooth solution.
-	switch ( number_of_stages_for_update_scheme(gasdynamic_update_scheme) ) {
+	switch (number_of_stages_for_update_scheme(GlobalConfig.gasdynamic_update_scheme)) {
 	case 1: cfl_allow = 0.9; break;
 	case 2: cfl_allow = 1.2; break;
 	case 3: cfl_allow = 1.6; break;
@@ -1915,9 +1918,167 @@ public:
     }
 
     // to be ported from invs.cxx
-    override void inviscid_flux()
+    override void convective_flux()
     {
-	throw new Error("[TODO] Not implemented yet.");
+	throw new Error("[TODO] convective_flux() not implemented yet.");
+    }
+
+    override void viscous_flux()
+    {
+	FVCell cL1, cL0, cR0, cR1;
+	FVInterface IFace;
+	// Maybe the following two FlowState objects should be in the Block object
+	// and initialised there so that we don't thrash the memory so much.
+	FlowState Lft = new FlowState(GlobalConfig.gmodel);
+	FlowState Rght = new FlowState(GlobalConfig.gmodel);
+    
+	// ifi interfaces are East-facing interfaces.
+	for ( size_t k = kmin; k <= kmax; ++k ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t i = imin; i <= imax+1; ++i ) {
+		    IFace = get_ifi(i,j,k);
+		    cL1 = get_cell(i-2,j,k);
+		    cL0 = get_cell(i-1,j,k);
+		    cR0 = get_cell(i,j,k);
+		    cR1 = get_cell(i+1,j,k);
+		    // Compute the flux from data on either-side of the interface.
+		    // First, interpolate LEFT and RIGHT interface states from cell-center properties.
+		    if ( (i == imin+1) && (bc[Face.west].ghost_cell_data_available == false) ) {
+			one_d_interp_right(IFace, cL0, cR0, cR1, 
+					   cL0.iLength, cR0.iLength, cR1.iLength,
+					   Lft, Rght);
+		    } else if ( (i == imax) && (bc[Face.east].ghost_cell_data_available == false) ) {
+			one_d_interp_left(IFace, cL1, cL0, cR0, 
+					  cL1.iLength, cL0.iLength, cR0.iLength,
+					  Lft, Rght);
+		    } else { // General symmetric reconstruction.
+			one_d_interp_both(IFace, cL1, cL0, cR0, cR1,
+					  cL1.iLength, cL0.iLength, cR0.iLength, cR1.iLength,
+					  Lft, Rght);
+		    }
+		    // Second, save u, v, w, T for the viscous flux calculation by making a local average.
+		    // The values for u, v and T may be updated subsequently by the interface-flux function.
+		    if ( (i == imin) && (bc[Face.west].ghost_cell_data_available == false) ) {
+			IFace.fs.copy_average_values_from(Rght, Rght);
+		    } else if ( (i == imax+1) && (bc[Face.east].ghost_cell_data_available == false) ) {
+			IFace.fs.copy_average_values_from(Lft, Lft);
+		    } else {
+			IFace.fs.copy_average_values_from(Lft, Rght);
+		    }
+		    // Finally, the flux calculation itself.
+		    if ( (i == imin && bc[Face.west].sets_conv_flux_directly) ||
+			 (i == imax+1 && bc[Face.east].sets_conv_flux_directly) ) {
+			// Retain the b.c. set flux at the boundary by doing nothing here.
+		    } else {
+			compute_interface_flux(Lft, Rght, IFace, omegaz);
+		    }
+		} // i loop
+	    } // j loop
+	} // for k
+
+	// ifj interfaces are North-facing interfaces.
+	for ( size_t k = kmin; k <= kmax; ++k ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
+		for ( size_t j = jmin; j <= jmax+1; ++j ) {
+		    IFace = get_ifj(i,j,k);
+		    cL1 = get_cell(i,j-2,k);
+		    cL0 = get_cell(i,j-1,k);
+		    cR0 = get_cell(i,j,k);
+		    cR1 = get_cell(i,j+1,k);
+		    // Interpolate LEFT and RIGHT interface states from the cell-center properties.
+		    if ( (j == jmin+1) && (bc[Face.south].ghost_cell_data_available == false) ) {
+			one_d_interp_right(IFace, cL0, cR0, cR1, 
+					   cL0.jLength, cR0.jLength, cR1.jLength,
+					   Lft, Rght);
+		    } else if ( (j == jmax) && (bc[Face.north].ghost_cell_data_available == false) ) {
+			one_d_interp_left(IFace, cL1, cL0, cR0, 
+					  cL1.jLength, cL0.jLength, cR0.jLength,
+					  Lft, Rght);
+		    } else { // General symmetric reconstruction.
+			one_d_interp_both(IFace, cL1, cL0, cR0, cR1,
+					  cL1.jLength, cL0.jLength, cR0.jLength, cR1.jLength,
+					  Lft, Rght);
+		    }
+		    // Second, save u, v, w, T for the viscous flux calculation by making a local average.
+		    // The values for u, v and T may be updated subsequently by the interface-flux function.
+		    if ( (j == jmin) && (bc[Face.south].ghost_cell_data_available == false) ) {
+			IFace.fs.copy_average_values_from(Rght, Rght);
+		    } else if ( (j == jmax+1) && (bc[Face.north].ghost_cell_data_available == false) ) {
+			IFace.fs.copy_average_values_from(Lft, Lft);
+		    } else {
+			IFace.fs.copy_average_values_from(Lft, Rght);
+		    }
+		    // Finally, the flux calculation.
+		    if ( (j == jmin && bc[Face.south].sets_conv_flux_directly) ||
+			 (j == jmax+1 && bc[Face.north].sets_conv_flux_directly) ) {
+			// Retain the b.c. flux at the boundary by doing nothing here.
+		    } else {
+			compute_interface_flux(Lft, Rght, IFace, omegaz);
+		    } // end if
+		} // j loop
+	    } // i loop
+	} // for k
+    
+	if (GlobalConfig.dimensions == 2) return;
+    
+	// ifk interfaces are TOP-facing interfaces.
+	for ( size_t i = imin; i <= imax; ++i ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t k = kmin; k <= kmax+1; ++k ) {
+		    IFace = get_ifk(i,j,k);
+		    cL1 = get_cell(i,j,k-2);
+		    cL0 = get_cell(i,j,k-1);
+		    cR0 = get_cell(i,j,k);
+		    cR1 = get_cell(i,j,k+1);
+		    // Interpolate LEFT and RIGHT interface states from the cell-center properties.
+		    if ( (k == kmin+1) && (bc[Face.bottom].ghost_cell_data_available == false) ) {
+			one_d_interp_right(IFace, cL0, cR0, cR1, 
+					   cL0.kLength, cR0.kLength, cR1.kLength,
+					   Lft, Rght);
+		    } else if ( (k == kmax) && (bc[Face.top].ghost_cell_data_available == false) ) {
+			one_d_interp_left(IFace, cL1, cL0, cR0, 
+					  cL1.kLength, cL0.kLength, cR0.kLength,
+					  Lft, Rght);
+		    } else { // General symmetric reconstruction.
+			one_d_interp_both(IFace, cL1, cL0, cR0, cR1,
+					  cL1.kLength, cL0.kLength, cR0.kLength, cR1.kLength,
+					  Lft, Rght);
+		    }
+		    // Second, save u, v, w, T for the viscous flux calculation by making a local average.
+		    // The values for u, v and T may be updated subsequently by the interface-flux function.
+		    if ( (k == kmin) && (bc[Face.bottom].ghost_cell_data_available == false) ) {
+			IFace.fs.copy_average_values_from(Rght, Rght);
+		    } else if ( (k == kmax+1) && (bc[Face.top].ghost_cell_data_available == false) ) {
+			IFace.fs.copy_average_values_from(Lft, Lft);
+		    } else {
+			IFace.fs.copy_average_values_from(Lft, Rght);
+		    }
+		    // Finally, the flux calculation.
+		    if ( (k == kmin && bc[Face.bottom].sets_conv_flux_directly) ||
+			 (k == kmax+1 && bc[Face.top].sets_conv_flux_directly) ) {
+			// Retain the b.c. set flux at the boundary by doing nothing here.
+		    } else {
+			compute_interface_flux(Lft, Rght, IFace, omegaz);
+		    } // end if
+		} // for k 
+	    } // j loop
+	} // i loop
+	return;
+    } // end convective_flux()
+
+    override void viscous_derivatives(int gtl)
+    {
+	throw new Error("[TODO] viscous_derivatives() not implemented yet.");
+    }
+
+    override void apply_menter_boundary_correction(int ftl)
+    {
+	throw new Error("[TODO apply_menter_boundary_correction() not yet implemented.");
+    }
+
+    override void estimate_turbulence_viscosity()
+    {
+	throw new Error("[TODO] estimate_turbulence_viscosity() not implemented yet.");
     }
 
     override void apply_convective_bc(double t)
@@ -1952,16 +2113,7 @@ public:
 	size_t i_dest, i_src, j_dest, j_src, k_dest, k_src, i, j, k;
 	FVCell src0, dest0, src1, dest1;
 	int gtl = 0; // Do the encode only for grid-time-level zero.
-
-	// writeln("debug copy_into_ghost_cells():");
-	// writeln("  debug this block.id= ", this.id);
-	// writeln("  debug try to pick up a local cell"); src0 = get_cell(imin, jmin); // fails
-	// writeln("  debug src_blk.id= ", src_blk.id);
-	// writeln("  debug try to pick up a source-block cell"); src1 = src_blk.get_cell(src_blk.imin, src_blk.jmin); // works OK
-	// writeln("  debug destination_face= ", destination_face);
-	// writeln("  debug src_face= ", src_face);
-	// writeln("  debug src_orientation= ", src_orientation);
-
+	//
 	void copy_pair_of_cells(const FVCell src0, FVCell dest0, 
 				const FVCell src1, FVCell dest1,
 				bool with_encode)
@@ -1971,7 +2123,7 @@ public:
 	    dest1.copy_values_from(src1, type_of_copy);
 	    if (with_encode) dest1.encode_conserved(gtl, 0, omegaz);
 	}
-
+	//
 	if (GlobalConfig.dimensions == 2) {
 	    // Handle the 2D case separately.
 	    switch (destination_face) {
