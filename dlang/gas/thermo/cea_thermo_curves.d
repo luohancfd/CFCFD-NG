@@ -13,7 +13,7 @@ import std.stdio;
 import std.c.stdlib : exit;
 import std.string;
 import luad.all;
-import lua_service;
+import util.lua_service;
 
 struct CEAThermoCurve
 {
@@ -205,6 +205,7 @@ CEAThermo createCEAThermo(LuaTable t, double R)
 
 unittest
 {
+    import util.msg_service;
     // 1. Test a segment (CEAThermoCurve) on its own.
     auto curve = CEAThermoCurve();
     curve.T_lower = 6000.000;
@@ -213,7 +214,7 @@ unittest
     curve.a[0] = 5.475181050e+08; curve.a[1] = -3.107574980e+05; curve.a[2] = 6.916782740e+01;
     curve.a[3] = -6.847988130e-03; curve.a[4] = 3.827572400e-07; curve.a[5] = -1.098367709e-11;
     curve.a[6] = 1.277986024e-16; curve.a[7] = 2.550585618e+06; curve.a[8] = -5.848769753e+02;
-    assert(approxEqual(2022.9958, curve.eval_Cp(7500.0)));
+    assert(approxEqual(2022.9958, curve.eval_Cp(7500.0)), failedUnitTest(__LINE__, __FILE__));
     // 2. Test full curve
     auto lua = new LuaState;
     lua.openLibs();
@@ -221,7 +222,7 @@ unittest
     auto t = lua.get!LuaTable("CEA_coeffs");
     double R = 8.31451/0.0159994;
     auto oThermo = createCEAThermo(t, R);
-    assert(approxEqual(1328.627, oThermo.eval_Cp(500.0)));
-    assert(approxEqual(20030794.683, oThermo.eval_h(3700.0)));
-    assert(approxEqual(14772.717, oThermo.eval_s(10000.0)));
+    assert(approxEqual(1328.627, oThermo.eval_Cp(500.0)), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(20030794.683, oThermo.eval_h(3700.0)), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(14772.717, oThermo.eval_s(10000.0)), failedUnitTest(__LINE__, __FILE__));
 }

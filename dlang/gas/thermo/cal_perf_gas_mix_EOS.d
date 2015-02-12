@@ -15,6 +15,7 @@ module gas.thermo.cal_perf_gas_mix_EOS;
 import gas.gas_model;
 import gas.thermo.caloric_EOS;
 import gas.thermo.cal_perf_gas_EOS;
+import util.msg_service;
 
 /++
   CaloricallyPerfectGasMixEOS is a caloric equation of state.
@@ -34,9 +35,12 @@ public:
       Compute the internal energy assuming that temperature
       is up-to-date in GasState Q.
     +/
-    override void update_energy(ref GasState Q) const {
-	assert(Q.T.length == 1);
-	assert(Q.e.length == 1);
+    override void update_energy(ref GasState Q) const
+    in {
+	assert(Q.T.length == 1, brokenPreCondition("Q.T.length", __LINE__, __FILE__));
+	assert(Q.e.length == 1, brokenPreCondition("Q.e.length", __LINE__, __FILE__));
+    }
+    body {
 	double Cv = mass_average(Q, _Cv);
 	double e0 = mass_average(Q, _e0);
 	Q.e[0] = energy(Q.T[0], Cv, e0);
@@ -45,9 +49,12 @@ public:
     /++ Compute the temperature assuming that the internal energy
      is up-to-date in GasState Q.
     +/
-    override void update_temperature(ref GasState Q) const {
-	assert(Q.T.length == 1);
-	assert(Q.e.length == 1);
+    override void update_temperature(ref GasState Q) const
+    in {
+	assert(Q.T.length == 1, brokenPreCondition("Q.T.length", __LINE__, __FILE__));
+	assert(Q.e.length == 1, brokenPreCondition("Q.e.length", __LINE__, __FILE__));
+    }
+    body {
 	double Cv = mass_average(Q, _Cv);
 	double e0 = mass_average(Q, _e0);
 	Q.T[0] = temperature(Q.e[0], Cv, e0);
@@ -69,9 +76,9 @@ unittest {
     gd.massf[0] = 0.78;
     gd.massf[1] = 0.22;
     cpg.update_energy(gd);
-    assert(approxEqual(gd.e[0], 362260.0));
+    assert(approxEqual(gd.e[0], 362260.0), failedUnitTest(__LINE__, __FILE__));
     gd.e[0] = 362260.0;
     gd.T[0] = 0.0;
     cpg.update_temperature(gd);
-    assert(approxEqual(gd.T[0], 500.0));
+    assert(approxEqual(gd.T[0], 500.0), failedUnitTest(__LINE__, __FILE__));
 }

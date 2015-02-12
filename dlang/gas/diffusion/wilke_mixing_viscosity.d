@@ -23,11 +23,15 @@ module gas.diffusion.wilke_mixing_viscosity;
 import std.math;
 import gas.gas_model;
 import gas.diffusion.viscosity;
+import util.msg_service;
 
 class WilkeMixingViscosity : Viscosity {
 public:
-    this(in Viscosity[] vms, in double[] MW) {
-	assert(vms.length == MW.length);
+    this(in Viscosity[] vms, in double[] MW)
+    in {
+	assert(vms.length == MW.length, brokenPreCondition("vms.length and MW.length", __LINE__, __FILE__));
+    }
+    body {
 	foreach (v; vms) {
 	    _vms ~= v.dup;
 	}
@@ -108,5 +112,5 @@ unittest {
     gd.massf[0] = 0.8;
     gd.massf[1] = 0.2;
     vm.update_viscosity(gd);
-    assert(approxEqual(1.12102e-05, gd.mu));
+    assert(approxEqual(1.12102e-05, gd.mu), failedUnitTest(__LINE__, __FILE__));
 }

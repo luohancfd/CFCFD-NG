@@ -7,6 +7,8 @@
  * Version: 2015-01-14
  */
 
+module util.lua_service;
+
 import std.c.stdlib : exit;
 import std.stdio;
 import std.string;

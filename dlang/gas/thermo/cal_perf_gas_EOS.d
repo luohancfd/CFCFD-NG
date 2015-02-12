@@ -13,6 +13,8 @@ module gas.thermo.cal_perf_gas_EOS;
 
 import gas.gas_model;
 import gas.thermo.caloric_EOS;
+import std.string;
+import util.msg_service;
 
 /++
   Compute the energy of a calorically perfect gas.
@@ -25,9 +27,13 @@ import gas.thermo.caloric_EOS;
   Returns:
      The internal energy in J/kg.
 +/
-pure double energy(double T, double Cv, double e0) {
-    assert(T >= 0.0);
-    assert(Cv > 0.0);
+
+pure double energy(double T, double Cv, double e0)
+in {
+    assert(T >= 0.0, brokenPreCondition("temperature", __LINE__, __FILE__));
+    assert(Cv > 0.0, brokenPreCondition("Cv", __LINE__, __FILE__));
+}
+body{
     double e = Cv*T + e0;
     return e;
 }
@@ -44,8 +50,11 @@ pure double energy(double T, double Cv, double e0) {
      The temperature in K.
 
 +/
-pure double temperature(double e, double Cv, double e0) {
-    assert(Cv > 0.0);
+pure double temperature(double e, double Cv, double e0)
+in {
+    assert(Cv > 0.0, brokenPreCondition("Cv", __LINE__, __FILE__));
+}
+body {
     double T = (e - e0)/Cv;
     return T;
 }
@@ -66,18 +75,24 @@ public:
       Compute the internal energy assuming that temperature
       is up-to-date in GasState Q.
     +/
-    override void update_energy(ref GasState Q) const {
-	assert(Q.T.length == 1);
-	assert(Q.e.length == 1);
+    override void update_energy(ref GasState Q) const
+    in {
+	assert(Q.T.length == 1, brokenPreCondition("Q.T.length", __LINE__, __FILE__));
+	assert(Q.e.length == 1, brokenPreCondition("Q.e.length", __LINE__, __FILE__));
+    }
+    body {
 	Q.e[0] = energy(Q.T[0], _Cv, _e0);
     }
 
     /++ Compute the temperature assuming that the internal energy
      is up-to-date in GasState Q.
     +/
-    override void update_temperature(ref GasState Q) const {
-	assert(Q.T.length == 1);
-	assert(Q.e.length == 1);
+    override void update_temperature(ref GasState Q) const
+    in {
+	assert(Q.T.length == 1, brokenPreCondition("Q.T.length", __LINE__, __FILE__));
+	assert(Q.e.length == 1, brokenPreCondition("Q.e.length", __LINE__, __FILE__));
+    }
+    body {
 	Q.T[0] = temperature(Q.e[0], _Cv, _e0);
     }
 
@@ -90,17 +105,17 @@ unittest {
     import std.math;
     double Cv = 717.0;
     double e0 = 0.0;
-    assert(approxEqual(energy(500.0, Cv, e0), 358500.0));
-    assert(approxEqual(temperature(358500.0, Cv, e0), 500.0));
+    assert(approxEqual(energy(500.0, Cv, e0), 358500.0), failedUnitTest("energy", __LINE__, __FILE__));
+    assert(approxEqual(temperature(358500.0, Cv, e0), 500.0), failedUnitTest("temperature", __LINE__, __FILE__));
 
     auto cpg = new CaloricallyPerfectGasEOS(Cv, e0);
     auto gd = GasState(1, 1);
     gd.T[0] = 500.0;
     gd.e[0] = 0.0;
     cpg.update_energy(gd);
-    assert(approxEqual(gd.e[0], 358500.0));
+    assert(approxEqual(gd.e[0], 358500.0), failedUnitTest("energy", __LINE__, __FILE__));
     gd.e[0] = 358500.0;
     gd.T[0] = 0.0;
-    cpg.update_temperature(gd);
+    cpg.update_temperature(gd, failedUniTest("temperature", __LINE__, __FILE__));
     assert(approxEqual(gd.T[0], 500.0));
 }

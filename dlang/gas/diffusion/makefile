@@ -1,6 +1,7 @@
 # makefile for the diffusion module
 UTIL_DIR := ../../util
-UTIL_FILES := $(UTIL_DIR)/lua_service.d
+UTIL_FILES := $(UTIL_DIR)/lua_service.d \
+	$(UTIL_DIR)/msg_service.d
 
 LUA := ../../../extern/lua-5.1.4
 LIBLUA := $(LUA)/lib/liblua.a
@@ -37,10 +38,10 @@ sutherland_therm_cond : sutherland_therm_cond.d therm_cond.d ../gasmodel.d $(UTI
 	dmd -main -unittest sutherland_therm_cond.d therm_cond.d ../gasmodel.d -I../ $(UTIL_FILES) ${LUAD_FILES} -L-L$(LIBLUAPATH) -L-llua -L-ldl
 
 wilke_mixing_viscosity : wilke_mixing_viscosity.d $(LIBGAS) $(LIBLUA)
-	dmd -main -unittest wilke_mixing_viscosity.d $(LIBGAS) $(LUAD_FILES) -I../../ -I$(UTIL_DIR) $(DLINKFLAGS)
+	dmd -main -unittest wilke_mixing_viscosity.d $(LIBGAS) $(LUAD_FILES) $(UTIL_FILES) -I../../ -I$(UTIL_DIR) $(DLINKFLAGS)
 
 wilke_mixing_therm_cond : wilke_mixing_therm_cond.d $(LIBGAS) $(LIBLUA)
-	dmd -main -unittest wilke_mixing_therm_cond.d $(LIBGAS) $(LIBLUA) -I../../ -I$(UTIL_DIR) $(DLINKFLAGS)
+	dmd -main -unittest wilke_mixing_therm_cond.d $(LIBGAS) $(LUAD_FILES) $(UTIL_FILES) -I../../ -I$(UTIL_DIR) $(DLINKFLAGS)
 
 cea_viscosity : cea_viscosity.d viscosity.d ../gasmodel.d $(UTIL_FILES) $(LIBLUA)
 	dmd -main -unittest cea_viscosity.d viscosity.d ../gasmodel.d -I../ $(UTIL_FILES) ${LUAD_FILES} -L-L$(LIBLUAPATH) -L-llua -L-ldl

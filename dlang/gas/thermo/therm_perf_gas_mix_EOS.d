@@ -27,7 +27,7 @@ import gas.thermo.caloric_EOS;
 import gas.thermo.cea_thermo_curves;
 import ridder;
 import luad.all;
-import lua_service;
+import util.lua_service;
 
 /++
   ThermallyPerfectGasMixEOS is a caloric equation of state.
@@ -124,6 +124,7 @@ ThermallyPerfectGasMixEOS createThermallyPerfectGasMixEOS(string[] species, ref 
 unittest
 {
     import std.math;
+    import util.msg_service;
 
     auto lua = new LuaState;
     lua.openLibs();
@@ -135,14 +136,14 @@ unittest
     Q.massf[0] = 0.2; Q.massf[1] = 0.7; Q.massf[2] = 0.1;
     Q.T[0] = 1000.0;
     tpgm.update_energy(Q);
-    assert(approxEqual(1031849.875, Q.e[0]));
+    assert(approxEqual(1031849.875, Q.e[0]), failedUnitTest(__LINE__, __FILE__));
     // Now set T[0] a little off, say 1500.0.
     // Using Newton iterations, finding a temperature near the
     // CEA polynomial breaks was problematic. Ridder's method
     // should do better.
     Q.T[0] = 1500.0;
     tpgm.update_temperature(Q);
-    assert(approxEqual(1000.0, Q.T[0]));
+    assert(approxEqual(1000.0, Q.T[0]), failedUnitTest(__LINE__, __FILE__));
 }
 
 

@@ -12,7 +12,7 @@ import gas.gas_model;
 import gas.diffusion.viscosity;
 import std.math;
 import luad.all;
-import lua_service;
+import util.lua_service;
 import std.c.stdlib : exit;
 import std.stdio;
 import std.string;
@@ -138,12 +138,13 @@ CEAViscosity createCEAViscosity(LuaTable t)
 
 unittest
 {
+    import util.msg_service;
     /// First, let's test the CEAViscCurve on its own.
     double[string] params = ["T_lower":200.0, "T_upper":1000.0,
 			     "A":0.62526577, "B":-0.31779652e2,
 			     "C":-0.1640798e4, "D":0.17454992e01];
     auto ceaCurve = CEAViscCurve(params);
-    assert(approxEqual(3.8818e-5, ceaCurve.eval(900.0)));
+    assert(approxEqual(3.8818e-5, ceaCurve.eval(900.0)), failedUnitTest(__LINE__, __FILE__));
 
     /// Next, let's test the creation and functionality
     /// of a CEAViscosity object.
@@ -154,5 +155,5 @@ unittest
     auto o2CEA = createCEAViscosity(t);
     auto Q = GasState(1, 1);
     Q.T[0] = 1500.0;
-    assert(approxEqual(6.407851e-05, o2CEA.eval(Q)));
+    assert(approxEqual(6.407851e-05, o2CEA.eval(Q)), failedUnitTest(__LINE__, __FILE__));
 }

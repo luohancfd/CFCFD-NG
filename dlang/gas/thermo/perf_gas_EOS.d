@@ -19,6 +19,7 @@ module gas.thermo.perf_gas_EOS;
 
 import gas.gas_model;
 import gas.thermo.thermal_EOS;
+import util.msg_service;
 
 /++
   Compute the pressure of a perfect gas.
@@ -34,12 +35,12 @@ import gas.thermo.thermal_EOS;
 
 pure double pressure(double rho, double T, double R)
 in {
-    assert(rho > 0.0);
-    assert(T > 0.0);
-    assert(R > 0.0);
+    assert(rho > 0.0, brokenPreCondition("pressure", __LINE__, __FILE__));
+    assert(T > 0.0, brokenPreCondition("temperature", __LINE__, __FILE__));
+    assert(R > 0.0, brokenPreCondition("gas constant", __LINE__, __FILE__));
 }
 out(result){
-    assert(result > 0.0);
+    assert(result > 0.0, brokenPostCondition("pressure", __LINE__, __FILE__));
 }
 body {
     double p = rho*R*T;
@@ -59,12 +60,12 @@ body {
 +/
 pure double density(double p, double T, double R)
 in {
-    assert(p > 0.0);
-    assert(T > 0.0);
-    assert(R > 0.0);
+    assert(p > 0.0, brokenPreCondition("pressure", __LINE__, __FILE__));
+    assert(T > 0.0, brokenPreCondition("temperature", __LINE__, __FILE__));
+    assert(R > 0.0, brokenPreCondition("gas constant", __LINE__, __FILE__));
 }
 out(result) {
-    assert(result > 0.0);
+    assert(result > 0.0, brokenPostCondition("density", __LINE__, __FILE__));
 }
 body {
     double rho = p/(R*T);
@@ -84,12 +85,12 @@ body {
 +/
 pure double temperature(double rho, double p, double R)
 in {
-    assert(rho > 0.0);
-    assert(p > 0.0);
-    assert(R > 0.0);
+    assert(rho > 0.0, brokenPreCondition("density", __LINE__, __FILE__));
+    assert(p > 0.0, brokenPreCondition("pressure", __LINE__, __FILE__));
+    assert(R > 0.0, brokenPreCondition("gas constant", __LINE__, __FILE__));
 }
 out(result){
-    assert(result > 0.0);
+    assert(result > 0.0, brokenPostCondition("temperature", __LINE__, __FILE__));
 }
 body{
     double T = p/(rho*R);
@@ -112,8 +113,11 @@ public:
       Compute the pressure assuming density and temperature
       are up-to-date in GasState Q.
     +/
-    override void update_pressure(ref GasState Q) const {
-	assert(Q.T.length == 1);
+    override void update_pressure(ref GasState Q) const
+    in {
+	assert(Q.T.length == 1, brokenPreCondition("Q.T.length", __LINE__, __FILE__));
+    }
+    body {
 	Q.p = pressure(Q.rho, Q.T[0], _R);
     }
 
@@ -121,8 +125,11 @@ public:
       Compute the density assuming pressure and temperature
       are up-to-date in GasState Q.
     +/
-    override void update_density(ref GasState Q) const {
-	assert(Q.T.length == 1);
+    override void update_density(ref GasState Q) const
+    in {
+	assert(Q.T.length == 1, brokenPreCondition("Q.T.length", __LINE__, __FILE__));
+    }
+    body {
 	Q.rho = density(Q.p, Q.T[0], _R);
     }
 
@@ -130,8 +137,11 @@ public:
       Compute the temperature assuming density and pressure
       are up-to-date in GasState Q.
     +/
-    override void update_temperature(ref GasState Q) const {
-	assert(Q.T.length == 1);
+    override void update_temperature(ref GasState Q) const
+    in {
+	assert(Q.T.length == 1, brokenPreCondition("Q.T.length", __LINE__, __FILE__));
+    }
+    body {
 	Q.T[0] = temperature(Q.rho, Q.p, _R);
     }
 
@@ -142,24 +152,24 @@ private:
 unittest {
     import std.math;
     double R = 287.1;
-    assert(approxEqual(pressure(1.2, 300.0, R), 103356.0));
-    assert(approxEqual(density(103356.0, 300.0, R), 1.2));
-    assert(approxEqual(temperature(1.2, 103356.0, R), 300.0));
+    assert(approxEqual(pressure(1.2, 300.0, R), 103356.0), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(density(103356.0, 300.0, R), 1.2), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(temperature(1.2, 103356.0, R), 300.0), failedUnitTest(__LINE__, __FILE__));
 
     auto pg = new PerfectGasEOS(R);
     auto gd = GasState(1, 1);
     gd.T[0] = 300.0;
     gd.rho = 1.2;
     pg.update_pressure(gd);
-    assert(approxEqual(gd.p, 103356.0));
+    assert(approxEqual(gd.p, 103356.0), failedUnitTest(__LINE__, __FILE__));
     gd.p = 103356.0;
     gd.rho = 0.0;
     pg.update_density(gd);
-    assert(approxEqual(gd.rho, 1.2));
+    assert(approxEqual(gd.rho, 1.2), failedUnitTest(__LINE__, __FILE__));
     gd.rho = 1.2;
     gd.T[0] = 0.0;
     pg.update_temperature(gd);
-    assert(approxEqual(gd.T[0], 300.0));
+    assert(approxEqual(gd.T[0], 300.0), failedUnitTest(__LINE__, __FILE__));
 }
 
 

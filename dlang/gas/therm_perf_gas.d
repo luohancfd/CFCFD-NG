@@ -23,7 +23,7 @@ import std.math;
 import std.stdio;
 import std.string;
 import luad.all;
-import lua_service;
+import util.lua_service;
 import ridder;
 import std.c.stdlib : exit;
 
@@ -278,52 +278,54 @@ private:
 
 unittest 
 {
+    import util.msg_service;
+
     auto gm = new ThermallyPerfectGas("sample-data/therm-perf-5-species-air.lua");
     auto gd = GasState(5, 1);
     gd.p = 1.0e6;
     gd.T[0] = 2000.0;
     gd.massf = [0.2, 0.2, 0.2, 0.2, 0.2];
     gm.update_thermo_from_pT(gd);
-    assert(approxEqual(11801825.6, gd.e[0]));
-    assert(approxEqual(1.2840117, gd.rho));
+    assert(approxEqual(11801825.6, gd.e[0]), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(1.2840117, gd.rho), failedUnitTest(__LINE__, __FILE__));
 
     gd.rho = 2.0;
     gd.e[0] = 14.0e6;
     gm.update_thermo_from_rhoe(gd);
-    assert(approxEqual(3373757.4, gd.p));
-    assert(approxEqual(4331.944, gd.T[0]));
+    assert(approxEqual(3373757.4, gd.p), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(4331.944, gd.T[0]), failedUnitTest(__LINE__, __FILE__));
     
     gd.T[0] = 10000.0;
     gd.rho = 1.5;
     gm.update_thermo_from_rhoT(gd);
-    assert(approxEqual(5841068.3, gd.p));
-    assert(approxEqual(20340105.9, gd.e[0]));
+    assert(approxEqual(5841068.3, gd.p), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(20340105.9, gd.e[0]), failedUnitTest(__LINE__, __FILE__));
 
     gd.rho = 10.0;
     gd.p = 5.0e6;
     gm.update_thermo_from_rhop(gd);
-    assert(approxEqual(11164648.5, gd.e[0]));
-    assert(approxEqual(1284.012, gd.T[0]));
+    assert(approxEqual(11164648.5, gd.e[0]), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(1284.012, gd.T[0]), failedUnitTest(__LINE__, __FILE__));
 
     gd.p = 1.0e6;
     double s = 10000.0;
     gm.update_thermo_from_ps(gd, s);
-    assert(approxEqual(2560.118, gd.T[0]));
-    assert(approxEqual(12313952.52, gd.e[0]));
-    assert(approxEqual(1.00309, gd.rho));
+    assert(approxEqual(2560.118, gd.T[0]), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(12313952.52, gd.e[0]), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(1.00309, gd.rho), failedUnitTest(__LINE__, __FILE__));
 
     s = 11000.0;
     double h = 17.0e6;
     gm.update_thermo_from_hs(gd, h, s);
-    assert(approxEqual(5273.103, gd.T[0]));
-    assert(approxEqual(14946629.7, gd.e[0]));
-    assert(approxEqual(0.4603513, gd.rho));
-    assert(approxEqual(945271.84, gd.p));
+    assert(approxEqual(5273.103, gd.T[0]), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(14946629.7, gd.e[0]), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(0.4603513, gd.rho), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(945271.84, gd.p), failedUnitTest(__LINE__, __FILE__));
 
     gd.T[0] = 4000.0;
     gm.update_trans_coeffs(gd);
-    assert(approxEqual(0.00012591, gd.mu));
-    assert(approxEqual(0.2448263, gd.k[0]));
+    assert(approxEqual(0.00012591, gd.mu), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(0.2448263, gd.k[0]), failedUnitTest(__LINE__, __FILE__));
 
     // TODO: entropy, enthalpy tests.
 }

@@ -23,6 +23,7 @@ module gas.diffusion.wilke_mixing_therm_cond;
 import std.math;
 import gas.gas_model;
 import gas.diffusion.therm_cond;
+import util.msg_service;
 
 class WilkeMixingThermCond : ThermalConductivity {
     // Working array space
@@ -31,8 +32,11 @@ class WilkeMixingThermCond : ThermalConductivity {
     static double[][] _phi;
 
 public:
-    this(in ThermalConductivity[] tcms, in double[] MW) {
-	assert(tcms.length == MW.length);
+    this(in ThermalConductivity[] tcms, in double[] MW)
+    in {
+	assert(tcms.length == MW.length, brokenPreCondition("tcms.length and MW.length", __LINE__, __FILE__));
+    }
+    body {
 	foreach (tcm; tcms) {
 	    _tcms ~= tcm.dup;
 	}
@@ -109,5 +113,5 @@ unittest {
     gd.massf[0] = 0.8;
     gd.massf[1] = 0.2;
     tcm.update_thermal_conductivity(gd);
-    assert(approxEqual(0.0263063, gd.k[0]));
+    assert(approxEqual(0.0263063, gd.k[0]), failedUnitTest(__LINE__, __FILE__));
 }

@@ -20,7 +20,7 @@ import std.file;
 import std.json;
 import std.conv;
 import luad.all;
-import lua_service;
+import util.lua_service;
 import std.c.stdlib : exit;
 
 class IdealGas: GasModel {

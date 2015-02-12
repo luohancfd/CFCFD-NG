@@ -13,6 +13,7 @@ import std.math;
 import gas.gas_model;
 import gas.diffusion.viscosity;
 import luad.all;
+import util.msg_service;
 
 /++
   Compute the viscosity using Sutherland's expression.
@@ -28,12 +29,12 @@ import luad.all;
 +/
 pure double sutherland_viscosity(double T, double T_ref, double mu_ref, double S)
 in {
-    assert(T > 0.0);
-    assert(T_ref > 0.0);
-    assert(mu_ref > 0.0);
+    assert(T > 0.0, brokenPreCondition("temperature", __LINE__, __FILE__));
+    assert(T_ref > 0.0, brokenPreCondition("T_ref", __LINE__, __FILE__));
+    assert(mu_ref > 0.0, brokenPreCondition("mu_ref", __LINE__, __FILE__));
 }
 out(result) {
-    assert(result > 0.0);
+    assert(result > 0.0, brokenPostCondition("viscosity", __LINE__, __FILE__));
 }
 body{
     double mu = mu_ref*sqrt(T/T_ref)*(T/T_ref)*(T_ref + S)/(T + S);
@@ -85,13 +86,13 @@ unittest {
     double T_ref = 273.0; 
     double mu_ref = 1.716e-5;
     double S = 111.0;
-    assert(approxEqual(sutherland_viscosity(T, T_ref, mu_ref, S), 1.84691e-05));
+    assert(approxEqual(sutherland_viscosity(T, T_ref, mu_ref, S), 1.84691e-05), failedUnitTest(__LINE__, __FILE__));
 
     auto vm = new SutherlandViscosity(T_ref, mu_ref, S);
     auto gd = GasState(1, 1);
     gd.T[0] = 300.0;
     vm.update_viscosity(gd);
-    assert(approxEqual(gd.mu, 1.84691e-05));
+    assert(approxEqual(gd.mu, 1.84691e-05), failedUnitTest(__LINE__, __FILE__));
 
     auto lua = new LuaState;
     lua.openLibs();
@@ -99,5 +100,5 @@ unittest {
     auto t = lua.get!LuaTable("Sutherland");
     vm = createSutherlandViscosity(t);
     vm.update_viscosity(gd);
-    assert(approxEqual(gd.mu, 1.84691e-05));
+    assert(approxEqual(gd.mu, 1.84691e-05), failedUnitTest(__LINE__, __FILE__));
 }

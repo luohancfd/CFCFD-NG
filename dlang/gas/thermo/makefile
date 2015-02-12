@@ -1,6 +1,7 @@
 
 UTIL_DIR := ../../util
-UTIL_FILES := $(UTIL_DIR)/lua_service.d
+UTIL_FILES := $(UTIL_DIR)/lua_service.d \
+	$(UTIL_DIR)/msg_service.d
 
 NM_DIR := ../../nm
 NM_FILES := $(NM_DIR)/ridder.d
