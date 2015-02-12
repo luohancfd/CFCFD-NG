@@ -36,7 +36,7 @@ LUAD_FILES := ${LUAD_DIR}/luad/*.d \
 	${LUAD_DIR}/luad/conversions/*.d
 
 DFLAGS := -unittest -gc -wi
-DLINKFLAGS :=  -gc -w -L-L${LIBLUAPATH} -L-llua -L-ldl
+DLINKFLAGS :=  -w -L-L${LIBLUAPATH} -L-llua -L-ldl
 
 INSTALL_DIR ?= $(HOME)/e3bin
 REVISION_STRING := $(shell hg identify --id --num --branch --tags)
