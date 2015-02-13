@@ -25,6 +25,10 @@ public:
 	blk_id = id;
 	which_boundary = boundary;
 	type_code = BCCode.mapped_cell;
+	ghost_cell_data_available = true;
+	sets_conv_flux_directly = false;
+	sets_visc_flux_directly = false;
+	emissivity = 0.0;
     }
 
     override string toString() const

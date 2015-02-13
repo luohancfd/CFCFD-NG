@@ -33,6 +33,10 @@ public:
 	which_boundary = boundary;
 	type_code = BCCode.fixed_p_out;
 	is_wall = false;
+	ghost_cell_data_available = true;
+	sets_conv_flux_directly = false;
+	sets_visc_flux_directly = false;
+	emissivity = 0.0;
 	this.Pout = Pout;
 	this.Tout = Tout;
 	this.use_Tout = use_Tout;

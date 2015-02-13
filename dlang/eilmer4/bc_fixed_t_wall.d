@@ -26,6 +26,9 @@ public:
 	which_boundary = boundary;
 	type_code = BCCode.fixed_t_wall;
 	is_wall = true;
+	ghost_cell_data_available = true;
+	sets_conv_flux_directly = false;
+	sets_visc_flux_directly = false;
 	this.Twall = Twall;
 	this.emissivity = emissivity;
     }

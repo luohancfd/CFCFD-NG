@@ -287,7 +287,7 @@ BoundaryCondition make_BC_from_json(in JSONValue json_data, int blk_id, int boun
     BoundaryCondition new_bc;
     switch (toLower(bc_name)) {
     case "sup_in":
-	int inflow_condition_id = getJSONint(json_data, "inflow_condition_id", 0);
+	int inflow_condition_id = getJSONint(json_data, "inflow_condition", 0);
 	new_bc = new SupersonicInBC(blk_id, boundary, inflow_condition_id);
 	break;
     case "slip_wall":

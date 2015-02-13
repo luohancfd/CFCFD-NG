@@ -6,6 +6,7 @@
 // Peter J. 2014-07-26
 
 import std.conv;
+import std.stdio;
 
 import fvcore;
 import flowstate;
@@ -20,13 +21,17 @@ class SupersonicInBC: BoundaryCondition {
 public:
     int inflow_condition_id = 0;
 
-    this(int id, int boundary, int inflow_condition_id=0) 
+    this(int id, int boundary, int inflow_condition_id_) 
     {
 	blk_id = id;
 	which_boundary = boundary;
 	type_code = BCCode.supersonic_in;
 	is_wall = false;
-	this.inflow_condition_id = inflow_condition_id;
+	ghost_cell_data_available = true;
+	sets_conv_flux_directly = false;
+	sets_visc_flux_directly = false;
+	emissivity = 0.0;
+ 	inflow_condition_id = inflow_condition_id_;
     }
 
     override string toString() const

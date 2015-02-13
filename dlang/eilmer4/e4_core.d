@@ -117,6 +117,13 @@ void exchange_shared_boundary_data()
     } // end foreach myblk
 } // end exchange_shared_boundary_data()
 
+void update_times_file()
+{
+    auto writer = appender!string();
+    formattedWrite(writer, "%04d %e %e\n", current_tindx, sim_time, dt_global);
+    append(GlobalConfig.base_file_name ~ ".times", writer.data);
+}
+
 double integrate_in_time(double target_time, int maxWallClock)
 {
     if (GlobalConfig.verbosity_level > 0) writeln("Integrate in time.");
@@ -179,6 +186,7 @@ double integrate_in_time(double target_time, int maxWallClock)
 		auto file_name = make_file_name!"flow"(myblk.id, current_tindx);
 		myblk.write_solution(file_name, sim_time);
 	    }
+	    update_times_file();
 	    output_just_written = true;
             t_plot += GlobalConfig.dt_plot;
         }
@@ -240,6 +248,7 @@ void finalize_simulation(double sim_time)
 	    auto file_name = make_file_name!"flow"(myblk.id, current_tindx);
 	    myblk.write_solution(file_name, sim_time);
 	}
+	update_times_file();
     }
     if (GlobalConfig.verbosity_level > 0) writeln("Done finalize_simulation.");
 } // end finalize_simulation()
@@ -269,13 +278,12 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	foreach (cell; blk.active_cells) cell.clear_source_vector();
     }
     foreach (blk; myBlocks) {
-	if (blk.active) {
-	    blk.apply_convective_bc(sim_time);
-	    // We've put this detector step here because it needs the ghost-cell data
-	    // to be current, as it should be just after a call to apply_convective_bc().
-	    if (GlobalConfig.flux_calculator == FluxCalculator.adaptive)
-		blk.detect_shock_points();
-	}
+	if (!blk.active) continue;
+	blk.apply_convective_bc(sim_time);
+	// We've put this detector step here because it needs the ghost-cell data
+	// to be current, as it should be just after a call to apply_convective_bc().
+	if (GlobalConfig.flux_calculator == FluxCalculator.adaptive)
+	    blk.detect_shock_points();
     }
     // First-stage of gas-dynamic update.
     int t_level = 0; // within the overall convective-update

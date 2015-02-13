@@ -26,6 +26,10 @@ public:
 	which_boundary = boundary;
 	type_code = BCCode.full_face_exchange;
 	is_wall = false;
+	ghost_cell_data_available = true;
+	sets_conv_flux_directly = false;
+	sets_visc_flux_directly = false;
+	emissivity = 0.0;
 	neighbour_block = other_block;
 	neighbour_face = other_face;
 	neighbour_orientation = orient;

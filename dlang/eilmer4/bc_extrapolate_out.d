@@ -27,6 +27,10 @@ public:
 	which_boundary = boundary;
 	type_code = BCCode.extrapolate_out;
 	is_wall = false;
+	ghost_cell_data_available = true;
+	sets_conv_flux_directly = false;
+	sets_visc_flux_directly = false;
+	emissivity = 0.0;
 	x_order = x_order_;
     }
 
