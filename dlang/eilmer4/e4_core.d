@@ -92,6 +92,7 @@ double init_simulation(int tindx)
 	myblk.compute_secondary_cell_geometric_data(0);
 	myblk.identify_reaction_zones(0);
 	myblk.identify_turbulent_zones(0);
+	myblk.set_grid_velocities(sim_time);
 	foreach (ref cell; myblk.active_cells) {
 	    cell.encode_conserved(0, 0, myblk.omegaz);
 	    // Even though the following call appears redundant at this point,
@@ -147,6 +148,10 @@ double integrate_in_time(double target_time, int maxWallClock)
 	dt_global = GlobalConfig.dt_init; 
 
         // 2. Attempt a time step.
+	foreach (ref myblk; myBlocks) {
+	    myblk.set_grid_velocities(sim_time); 
+	    // [TODO] We will need to attend to moving grid properly.
+	}
 	// 2a.
 	// explicit or implicit update of the convective terms.
 	gasdynamic_explicit_increment_with_fixed_grid();

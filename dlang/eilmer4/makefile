@@ -112,7 +112,7 @@ e4shared: e4_main.d e4_core.d readconfig.d json_helper.d \
 	block.d sblock.d ublock.d \
 	${BC_FILES} ${GEOM_FILES} ${LIBGAS} ${LIBLUA} ${GZIP_FILES}
 	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' e4_main.d > e4_main_with_rev_string.d
-	dmd -gc ${DLINKFLAGS} -I${GEOM_DIR} -I${UTIL_DIR} -I${GZIP_DIR} -I../ \
+	dmd -gc -debug ${DLINKFLAGS} -I${GEOM_DIR} -I${UTIL_DIR} -I${GZIP_DIR} -I../ \
 		e4_main_with_rev_string.d e4_core.d readconfig.d json_helper.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		fluxcalc.d onedinterp.d \

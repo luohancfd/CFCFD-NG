@@ -50,6 +50,7 @@ public:
     double read_solution(string filename) { return 0.0; }
     void write_solution(string filename, double sim_time) {}
     void write_history(string filename, double sim_time, bool write_header=false) {}
+    void set_grid_velocities(double sim_time) {}
     void convective_flux() {}
     void viscous_flux() {}
     void viscous_derivatives(int gtl) {}

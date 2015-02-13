@@ -1918,7 +1918,44 @@ public:
 	throw new Error("[TODO] Not implemented yet.");
     }
 
-    // to be ported from invs.cxx
+    override void set_grid_velocities(double sim_time)
+    // Presently sets the grid velocities at cell interfaces to zero.
+    // [TODO] Insert the moving-grid code some day...
+    {
+	if (GlobalConfig.moving_grid) {
+	    throw new Error("SBlock.set_grid_velocities(): moving grid is not yet implemented.");
+	}
+	// ifi interfaces are East-facing interfaces.
+	for ( size_t k = kmin; k <= kmax; ++k ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t i = imin; i <= imax+1; ++i ) {
+		    auto IFace = get_ifi(i,j,k);
+		    IFace.gvel = Vector3(0.0, 0.0, 0.0);
+		} // i loop
+	    } // j loop
+	} // for k
+	// ifj interfaces are North-facing interfaces.
+	for ( size_t k = kmin; k <= kmax; ++k ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
+		for ( size_t j = jmin; j <= jmax+1; ++j ) {
+		    auto IFace = get_ifj(i,j,k);
+		    IFace.gvel = Vector3(0.0, 0.0, 0.0);
+		} // j loop
+	    } // i loop
+	} // for k
+	if (GlobalConfig.dimensions == 2) return;
+	// ifk interfaces are TOP-facing interfaces.
+	for ( size_t i = imin; i <= imax; ++i ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t k = kmin; k <= kmax+1; ++k ) {
+		    auto IFace = get_ifk(i,j,k);
+		    IFace.gvel = Vector3(0.0, 0.0, 0.0);
+		} // for k 
+	    } // j loop
+	} // i loop
+	return;
+    } // end set_grid_velocities()
+
     override void convective_flux()
     {
 	FVCell cL1, cL0, cR0, cR1;

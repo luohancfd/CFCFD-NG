@@ -5,6 +5,7 @@
 
  * Author: Peter J. and Rowan G.
  * Version: 2014-07-17: initial cut, to explore options.
+ *          2015-02-13: Keep an eye on the future of the moving_grid option.
  */
 
 module fvinterface;
@@ -21,7 +22,7 @@ public:
     size_t id;  // allows us to work out where, in the block, the interface is
     // Geometry
     Vector3 pos;           // position of the (approx) midpoint
-    Vector3 vel;           // face (grid) velocity, m/s
+    Vector3 gvel;          // grid velocity at interface, m/s
     double Ybar;           // Y-coordinate of the mid-point
     double length;         // Interface length in the x,y-plane
     double[] area;         // Area m**2 for each time-level.
@@ -38,6 +39,7 @@ public:
     {
 	id = id_init;
 	area.length = n_time_levels;
+	gvel = Vector3(0.0,0.0,0.0); // default to fixed grid
 	fs = new FlowState(gm, 100.0e3, [300.0,], Vector3(0.0,0.0,0.0));
 	F = new ConservedQuantities(gm);
     }
@@ -46,7 +48,7 @@ public:
     {
 	id = other.id;
 	pos = other.pos;
-	vel = other.vel;
+	gvel = other.gvel;
 	Ybar = other.Ybar;
 	length = other.length;
 	area = other.area.dup;
@@ -67,7 +69,7 @@ public:
 	    break;
 	case CopyDataOption.grid:
 	    pos = other.pos;
-	    vel = other.vel;
+	    gvel = other.gvel;
 	    Ybar = other.Ybar;
 	    length = other.length;
 	    area[] = other.area[];
@@ -79,7 +81,7 @@ public:
 	default:
 	    id = other.id;
 	    pos = other.pos;
-	    vel = other.vel;
+	    gvel = other.gvel;
 	    Ybar = other.Ybar;
 	    length = other.length;
 	    area[] = other.area[];
@@ -102,7 +104,7 @@ public:
 	repr ~= "FVInterface(";
 	repr ~= "id=" ~ to!string(id);
 	repr ~= ", pos=" ~ to!string(pos);
-	repr ~= ", vel=" ~ to!string(vel);
+	repr ~= ", gvel=" ~ to!string(gvel);
 	repr ~= ", Ybar=" ~ to!string(Ybar);
 	repr ~= ", length=" ~ to!string(length);
 	repr ~= ", area=" ~ to!string(area);

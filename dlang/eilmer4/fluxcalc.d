@@ -37,20 +37,18 @@ void compute_interface_flux(ref FlowState Lft, ref FlowState Rght,
  */
 {
     // Transform to interface frame of reference.
-    Lft.vel -= IFace.vel;
-    Rght.vel -= IFace.vel;
-    IFace.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
+    Lft.vel -= IFace.gvel;
+    Rght.vel -= IFace.gvel;
+    IFace.gvel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
     Lft.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
     Rght.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
-
-    // also transform the magnetic field
+    // Also transform the magnetic field
     if ( GlobalConfig.MHD ) {
 	Lft.B.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
         Rght.B.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
     }
-
     // Compute the fluxes in the local frame of the interface.
-    final switch ( GlobalConfig.flux_calculator ) {
+    final switch (GlobalConfig.flux_calculator) {
     case FluxCalculator.efm:
         efmflx(Lft, Rght, IFace);
 	break;
@@ -67,10 +65,8 @@ void compute_interface_flux(ref FlowState Lft, ref FlowState Rght,
         hlle(Lft, Rght, IFace);
 	break;
     } // end switch
-
     ConservedQuantities F = IFace.F;
-
-    if ( omegaz != 0.0 ) {
+    if (omegaz != 0.0) {
 	// Rotating frame.
 	double x = IFace.pos.x;
 	double y = IFace.pos.y;
@@ -80,31 +76,22 @@ void compute_interface_flux(ref FlowState Lft, ref FlowState Rght,
 	// Note that rotating frame velocity u = omegaz * r.
 	F.total_energy -= F.mass * 0.5*omegaz*omegaz*rsq;
     }
-    
     // Transform fluxes back from interface frame of reference to local frame of reference.
     // Flux of Total Energy
-    F.total_energy += 0.5 * F.mass * pow(abs(IFace.vel),2) + dot(F.momentum, IFace.vel);
+    F.total_energy += 0.5 * F.mass * pow(abs(IFace.gvel),2) + dot(F.momentum, IFace.gvel);
     // Flux of momentum
-    F.momentum += F.mass * IFace.vel;
- 
+    F.momentum += F.mass * IFace.gvel;
+    // 
     // Rotate momentum fluxes back to the global frame of reference.
     F.momentum.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
-    // also transform the interface velocities
-    IFace.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
-    // also transform the magnetic field
-    if ( GlobalConfig.MHD ) {
+    // Also, transform the interface (grid) velocity
+    IFace.gvel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
+    // and transform the magnetic field
+    if (GlobalConfig.MHD) {
 	F.B.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
     }
-	
-    debug ( 2 ) {
-	writeln("Interface fluxes");
-	writeln("xyz_mom=", F.momentum);
-	if ( GlobalConfig.MHD ) {
-	    writeln("xyz_B=", F.B);
-	}
-    } // end debug
-    
-}
+    return;
+} // end compute_interface_flux()
 
 void set_flux_vector_in_local_frame(ref ConservedQuantities F, ref FlowState fs)
 {
@@ -136,7 +123,7 @@ void set_flux_vector_in_local_frame(ref ConservedQuantities F, ref FlowState fs)
     for ( size_t imode = 1; imode < F.energies.length; ++imode ) {
 	F.energies[imode] = F.mass * fs.gas.e[imode];
     }
-}
+} // end set_flux_vector_in_local_frame()
 
 void set_flux_vector_in_global_frame(ref FVInterface IFace, ref FlowState fs, 
 				     double omegaz=0.0)
@@ -145,8 +132,8 @@ void set_flux_vector_in_global_frame(ref FVInterface IFace, ref FlowState fs,
     // Record velocity to restore fs at end.
     double vx = fs.vel.x; double vy = fs.vel.y; double vz = fs.vel.z; 
     // Transform to interface frame of reference.
-    fs.vel -= IFace.vel; // Beware: fs.vel is changed here and restored below.
-    IFace.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
+    fs.vel -= IFace.gvel; // Beware: fs.vel is changed here and restored below.
+    IFace.gvel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
     fs.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
     // also transform the magnetic field
     if ( GlobalConfig.MHD ) {
@@ -166,20 +153,20 @@ void set_flux_vector_in_global_frame(ref FVInterface IFace, ref FlowState fs,
 
     // Transform fluxes back from interface frame of reference to local frame of reference.
     /* Flux of Total Energy */
-    F.total_energy += 0.5 * F.mass * pow(abs(IFace.vel),2) + dot(F.momentum, IFace.vel);
+    F.total_energy += 0.5 * F.mass * pow(abs(IFace.gvel),2) + dot(F.momentum, IFace.gvel);
     /* Flux of momentum */
-    F.momentum += F.mass * IFace.vel;
+    F.momentum += F.mass * IFace.gvel;
 
     // Rotate momentum fluxes back to the global frame of reference.
     F.momentum.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
-    // also transform the interface velocities
-    IFace.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);	  
+    // also transform the interface (grid) velocity
+    IFace.gvel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);	  
     // also transform the magnetic field
     if ( GlobalConfig.MHD ) {
 	F.B.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
     }
     fs.vel.refx = vx; fs.vel.refy = vy; fs.vel.refz = vz; // restore fs.vel
-}
+} // end set_flux_vector_in_global_frame()
 
 void ausmdv(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
 // Wada and Liou's flux calculator.

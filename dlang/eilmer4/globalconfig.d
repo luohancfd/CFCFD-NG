@@ -237,13 +237,12 @@ final class GlobalConfig {
     static int print_count; // Number of steps between writing messages to console.
     static int control_count; // Number of steps between rereading .control file.
 
-    static int verbosity_level = 1; 
-    // Messages have a hierarchy:
+    static int verbosity_level = 1;
+    // Messages have a hierarchy:  // [TODO] we are not really abiding by this.
     // 0 : only error messages will be omitted
     // 1 : emit messages that are useful for a long-running job (default)
     // 2 : plus verbose init messages
     // 3 : plus verbose boundary condition messages
-    // 4 : temporary messages for debugging
 
     static double max_time;        // final solution time, s, set by user
     static double dt_init;         // initial time step set by user

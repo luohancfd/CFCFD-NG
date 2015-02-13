@@ -237,12 +237,12 @@ public:
 
     void copy_values_to_buffer(ref double[] buf, int type_of_copy, int gtl) const
     {
-	throw new Error("[TODO] not yet implemented");
+	throw new Error("[TODO] FVCell.copy_values_to_buffer() not yet implemented");
     }
 
     void copy_values_from_buffer(in double buf, int type_of_copy, int gtl) 
     {
-	throw new Error("[TODO] not yet implemented");
+	throw new Error("[TODO] FVCell.copy_values_from_buffer() not yet implemented");
     }
 
     void replace_flow_data_with_average(in FVCell[] others) 
@@ -339,15 +339,17 @@ public:
 
     void scan_BGK_from_string(string bufptr)
     {
-	throw new Error("[TODO] not yet implemented");
+	throw new Error("[TODO] FVCell.scan_BGK_from_string() not yet implemented");
     }
 
     const string write_BGK_to_string()
     {
-	throw new Error("[TODO] not yet implemented");
+	throw new Error("[TODO] FVCell.write_BGK_to_string() not yet implemented");
     }
 
-    void encode_conserved(int gtl, int ftl, double omegaz) 
+    void encode_conserved(int gtl, int ftl, double omegaz)
+    // gtl = grid time level
+    // ftl = flow time level
     {
 	ConservedQuantities myU = U[ftl];
 	bool with_k_omega = (GlobalConfig.turbulence_model == TurbulenceModel.k_omega);
@@ -365,7 +367,7 @@ public:
 	// (specific internal energy + kinetic energy/unit mass).
 	double e = 0.0; foreach(elem; fs.gas.e) e += elem;
 	double ke = 0.5 * (fs.vel.x * fs.vel.x + fs.vel.y * fs.vel.y + fs.vel.z * fs.vel.z);
-	if ( with_k_omega ) {
+	if (with_k_omega) {
 	    myU.tke = fs.gas.rho * fs.tke;
 	    myU.omega = fs.gas.rho * fs.omega;
 	    myU.total_energy = fs.gas.rho * (e + ke + fs.tke);
@@ -374,7 +376,7 @@ public:
 	    myU.omega = fs.gas.rho * 1.0;
 	    myU.total_energy = fs.gas.rho * (e + ke);
 	}
-	if ( GlobalConfig.MHD ) {
+	if (GlobalConfig.MHD) {
 	    double me = 0.5 * (fs.B.x * fs.B.x + fs.B.y * fs.B.y + fs.B.z * fs.B.z);
 	    myU.total_energy += me;
 	}
@@ -387,7 +389,7 @@ public:
 	    myU.energies[imode] = fs.gas.rho * fs.gas.e[imode];
 	}
     
-	if ( omegaz != 0.0 ) {
+	if (omegaz != 0.0) {
 	    // Rotating frame.
 	    // Finally, we adjust the total energy to make rothalpy.
 	    // We do this last because the gas models don't know anything
@@ -401,6 +403,9 @@ public:
 	    // where rotating frame velocity  u = omegaz * r.
 	    myU.total_energy -= rho * 0.5 * omegaz * omegaz * rsq;
 	}
+	assert(U[ftl].mass > 0.0, "invalid density in conserved quantities vector" ~
+	       " when leaving FVCell.encode_conserved().");
+	return;
     } // end encode_conserved()
 
     void decode_conserved(int gtl, int ftl, double omegaz) 
@@ -410,15 +415,17 @@ public:
 	bool with_k_omega = (GlobalConfig.turbulence_model == TurbulenceModel.k_omega);
 	double e, ke, dinv, rE, me;
 	// Mass / unit volume = Density
+	if ( !(myU.mass > 0.0) ) {
+	    writeln("FVCell.decode_conserved(): Density invalid in conserved quantities.");
+	    writeln("  id= ", id, " x= ", pos[gtl].x, " y= ", pos[gtl].y, " z= ", pos[gtl].z);
+	    writeln("  gas= ", fs.gas);
+	    writeln("  U= ", myU);
+	    throw new Error("Bad cell, give up.");
+	}
 	double rho = myU.mass;
 	fs.gas.rho = rho; // This is limited to nonnegative and finite values.
-	if ( rho <= 0.0 ) {
-	    writeln("FVCell.decode_conserved(): Density is below minimum rho= " ,rho);
-	    writeln("id= ", id, " x= ", pos[gtl].x, " y= ", pos[gtl].y, " z= ", pos[gtl].z);
-	    writeln(fs.gas);
-	}
 	dinv = 1.0 / rho;
-	if ( omegaz != 0.0 ) {
+	if (omegaz != 0.0) {
 	    // Rotating frame.
 	    // The conserved quantity is rothalpy so we need to convert
 	    // back to enthalpy to do the rest of the decode.
@@ -445,7 +452,7 @@ public:
 	} else {
 	    me = 0.0;
 	}
-	if ( with_k_omega ) {
+	if (with_k_omega) {
 	    fs.tke = myU.tke * dinv;
 	    fs.omega = myU.omega * dinv;
 	    e = (rE - myU.tke - me) * dinv - ke;
@@ -455,22 +462,30 @@ public:
 	    e = (rE - me) * dinv - ke;
 	}
 	foreach(isp; 0 .. gmodel.n_species) fs.gas.massf[isp] = myU.massf[isp] * dinv; 
-	if ( gmodel.n_species > 1 ) scale_mass_fractions(fs.gas.massf);
+	if (gmodel.n_species > 1) scale_mass_fractions(fs.gas.massf);
 	foreach(imode; 0 .. gmodel.n_modes) fs.gas.e[imode] = myU.energies[imode] * dinv; 
 	// We can recompute e[0] from total energy and component
 	// modes NOT in translation.
-	if ( gmodel.n_modes > 1 ) {
+	if (gmodel.n_modes > 1) {
 	    double e_tmp = 0.0;
 	    foreach(imode; 1 .. gmodel.n_modes) e_tmp += fs.gas.e[imode];
 	    fs.gas.e[0] = e - e_tmp;
 	} else {
 	    fs.gas.e[0] = e;
 	}
-	// Fill out the other variables: P, T, a, and viscous transport coefficients.
-	gmodel.update_thermo_from_rhoe(fs.gas);
-	gmodel.update_sound_speed(fs.gas);
-	if ( GlobalConfig.viscous ) gmodel.update_trans_coeffs(fs.gas);
-	// if ( GlobalConfig.diffusion ) gmodel.update_diff_coeffs(fs.gas);
+	try {
+	    // Fill out the other variables: P, T, a, and viscous transport coefficients.
+	    gmodel.update_thermo_from_rhoe(fs.gas);
+	    gmodel.update_sound_speed(fs.gas);
+	    if (GlobalConfig.viscous) gmodel.update_trans_coeffs(fs.gas);
+	    // if (GlobalConfig.diffusion) gmodel.update_diff_coeffs(fs.gas);
+	} catch (Exception ex) {
+	    writeln("FVCell.decode_conserved(): failed to evaluate thermo properties.");
+	    writeln("  id= ", id, " x= ", pos[gtl].x, " y= ", pos[gtl].y, " z= ", pos[gtl].z);
+	    writeln("  gas= ", fs.gas);
+	    throw new Error("Bad cell, give up.");
+	}
+	return;
     } // end decode_conserved()
 
     bool check_flow_data() const
@@ -478,7 +493,7 @@ public:
 	bool is_data_valid = fs.gas.check_values(true);
 	const double MAXVEL = 30000.0;
 	if (fabs(fs.vel.x) > MAXVEL || fabs(fs.vel.y) > MAXVEL || fabs(fs.vel.z) > MAXVEL) {
-	    writeln("Velocity bad ", fs.vel.x, " ", fs.vel.y, " ", fs.vel.z);
+	    writeln("Velocity too high ", fs.vel.x, " ", fs.vel.y, " ", fs.vel.z);
 	    is_data_valid = false;
 	}
 	if ( !isFinite(fs.tke) ) {
@@ -534,20 +549,20 @@ public:
 	// bottom faces are inward.
 	integral = -IFe.F.mass * IFe.area[gtl] - IFn.F.mass * IFn.area[gtl]
 	    + IFw.F.mass * IFw.area[gtl] + IFs.F.mass * IFs.area[gtl];
-	if ( dimensions == 3 )
+	if (dimensions == 3)
 	    integral += IFb.F.mass * IFb.area[gtl] - IFt.F.mass * IFt.area[gtl];
 	dUdt[ftl].mass = vol_inv * integral + Q.mass;
 
 	// Time-derivative for X-Momentum/unit volume.
 	integral = -IFe.F.momentum.x * IFe.area[gtl] - IFn.F.momentum.x * IFn.area[gtl]
 	    + IFw.F.momentum.x * IFw.area[gtl] + IFs.F.momentum.x * IFs.area[gtl];
-	if ( dimensions == 3 )
+	if (dimensions == 3)
 	    integral += IFb.F.momentum.x * IFb.area[gtl] - IFt.F.momentum.x * IFt.area[gtl];
 	dUdt[ftl].momentum.refx = vol_inv * integral + Q.momentum.x;
 	// Time-derivative for Y-Momentum/unit volume.
 	integral = -IFe.F.momentum.y * IFe.area[gtl] - IFn.F.momentum.y * IFn.area[gtl]
 	    + IFw.F.momentum.y * IFw.area[gtl] + IFs.F.momentum.y * IFs.area[gtl];
-	if ( dimensions == 3 )
+	if (dimensions == 3)
 	    integral += IFb.F.momentum.y * IFb.area[gtl] - IFt.F.momentum.y * IFt.area[gtl];
 	dUdt[ftl].momentum.refy = vol_inv * integral + Q.momentum.y;
     
@@ -557,7 +572,7 @@ public:
 	    integral = -IFe.F.momentum.z * IFe.area[gtl] - IFn.F.momentum.z * IFn.area[gtl]
 		+ IFw.F.momentum.z * IFw.area[gtl] + IFs.F.momentum.z * IFs.area[gtl];
 	}
-	if ( dimensions == 3) {
+	if (dimensions == 3) {
 	    integral += IFb.F.momentum.z * IFb.area[gtl] - IFt.F.momentum.z * IFt.area[gtl];
 	}
 	if ((dimensions == 3) || ( GlobalConfig.MHD )) {
@@ -570,19 +585,19 @@ public:
 	    // Time-derivative for X-Magnetic Field/unit volume.
 	    integral = -IFe.F.B.x * IFe.area[gtl] - IFn.F.B.x * IFn.area[gtl]
 		+ IFw.F.B.x * IFw.area[gtl] + IFs.F.B.x * IFs.area[gtl];
-	    if ( dimensions == 3 )
+	    if (dimensions == 3)
 		integral += IFb.F.B.x * IFb.area[gtl] - IFt.F.B.x * IFt.area[gtl];
 	    dUdt[ftl].B.refx = vol_inv * integral + Q.B.x;
 	    // Time-derivative for Y-Magnetic Field/unit volume.
 	    integral = -IFe.F.B.y * IFe.area[gtl] - IFn.F.B.y * IFn.area[gtl]
 		+ IFw.F.B.y * IFw.area[gtl] + IFs.F.B.y * IFs.area[gtl];
-	    if ( dimensions == 3 )
+	    if (dimensions == 3)
 		integral += IFb.F.B.y * IFb.area[gtl] - IFt.F.B.y * IFt.area[gtl];
 	    dUdt[ftl].B.refy = vol_inv * integral + Q.B.y;
 	    // Time-derivative for Z-Magnetic Field/unit volume.
 	    integral = -IFe.F.B.z * IFe.area[gtl] - IFn.F.B.z * IFn.area[gtl]
 		+ IFw.F.B.z * IFw.area[gtl] + IFs.F.B.z * IFs.area[gtl];
-	    if ( dimensions == 3 ) {
+	    if (dimensions == 3) {
 		integral += IFb.F.B.z * IFb.area[gtl] - IFt.F.B.z * IFt.area[gtl];
 	    }
 	    dUdt[ftl].B.refz = vol_inv * integral + Q.B.z;
@@ -600,16 +615,16 @@ public:
 	    integral += IFb.F.total_energy * IFb.area[gtl] - IFt.F.total_energy * IFt.area[gtl];
 	dUdt[ftl].total_energy = vol_inv * integral + Q.total_energy;
     
-	if ( with_k_omega ) {
+	if (with_k_omega) {
 	    integral = -IFe.F.tke * IFe.area[gtl] - IFn.F.tke * IFn.area[gtl]
 		+ IFw.F.tke * IFw.area[gtl] + IFs.F.tke * IFs.area[gtl];
-	    if ( dimensions == 3 )
+	    if (dimensions == 3)
 		integral += IFb.F.tke * IFb.area[gtl] - IFt.F.tke * IFt.area[gtl];
 	    dUdt[ftl].tke = vol_inv * integral + Q.tke;
 	
 	    integral = -IFe.F.omega * IFe.area[gtl] - IFn.F.omega * IFn.area[gtl]
 		+ IFw.F.omega * IFw.area[gtl] + IFs.F.omega * IFs.area[gtl];
-	    if ( dimensions == 3 )
+	    if (dimensions == 3)
 		integral += IFb.F.omega * IFb.area[gtl] - IFt.F.omega * IFt.area[gtl];
 	    dUdt[ftl].omega = vol_inv * integral + Q.omega;
 	} else {
@@ -640,7 +655,7 @@ public:
 		- IFn.F.energies[imode] * IFn.area[gtl]
 		+ IFw.F.energies[imode] * IFw.area[gtl]
 		+ IFs.F.energies[imode] * IFs.area[gtl];
-	    if ( dimensions == 3 )
+	    if (dimensions == 3)
 		integral += IFb.F.energies[imode] * IFb.area[gtl] - IFt.F.energies[imode] * IFt.area[gtl];
 	    dUdt[ftl].energies[imode] = vol_inv * integral + Q.energies[imode];
 	}
@@ -655,6 +670,7 @@ public:
 	// In some parts of the code (viscous updates, k-omega updates)
 	// we use this function as an Euler update even when the main
 	// gasdynamic_update_scheme is of higher order.
+	// force_euler is set true for these situations.
 	if ( !force_euler ) {
 	    final switch (GlobalConfig.gasdynamic_update_scheme) {
 	    case GasdynamicUpdate.euler:
@@ -680,7 +696,7 @@ public:
 	    U1.B.refz = U0.B.z + dt * gamma_1 * dUdt0.B.z;
 	}
 	U1.total_energy = U0.total_energy + dt * gamma_1 * dUdt0.total_energy;
-	if ( with_k_omega ) {
+	if (with_k_omega) {
 	    U1.tke = U0.tke + dt * gamma_1 * dUdt0.tke;
 	    U1.tke = fmax(U1.tke, 0.0);
 	    U1.omega = U0.omega + dt * gamma_1 * dUdt0.omega;
@@ -786,7 +802,7 @@ public:
 	    dt * (gamma_1*dUdt0.momentum.y + gamma_2*dUdt1.momentum.y + gamma_3*dUdt2.momentum.y);
 	U3.momentum.refz = U_old.momentum.z + 
 	    dt * (gamma_1*dUdt0.momentum.z + gamma_2*dUdt1.momentum.z + gamma_3*dUdt2.momentum.z);
-	if ( GlobalConfig.MHD ) {
+	if (GlobalConfig.MHD) {
 	    // Magnetic field
 	    U3.B.refx = U_old.B.x + dt * (gamma_1*dUdt0.B.x + gamma_2*dUdt1.B.x + gamma_3*dUdt2.B.x);
 	    U3.B.refy = U_old.B.y + dt * (gamma_1*dUdt0.B.y + gamma_2*dUdt1.B.y + gamma_3*dUdt2.B.y);
@@ -794,7 +810,7 @@ public:
 	}
 	U3.total_energy = U_old.total_energy + 
 	    dt * (gamma_1*dUdt0.total_energy + gamma_2*dUdt1.total_energy + gamma_3*dUdt2.total_energy);
-	if ( with_k_omega ) {
+	if (with_k_omega) {
 	    U3.tke = U_old.tke + dt * (gamma_1*dUdt0.tke + gamma_2*dUdt1.tke + gamma_3*dUdt2.tke);
 	    U3.tke = fmax(U3.tke, 0.0);
 	    U3.omega = U_old.omega + dt * (gamma_1*dUdt0.omega + gamma_2*dUdt1.omega + gamma_3*dUdt2.omega);
@@ -828,14 +844,14 @@ public:
 	U1.momentum.refx = vr * (U0.momentum.x + dt * gamma_1 * dUdt0.momentum.x);
 	U1.momentum.refy = vr * (U0.momentum.y + dt * gamma_1 * dUdt0.momentum.y);
 	U1.momentum.refz = vr * (U0.momentum.z + dt * gamma_1 * dUdt0.momentum.z);
-	if ( GlobalConfig.MHD ) {
+	if (GlobalConfig.MHD) {
 	    // Magnetic field
 	    U1.B.refx = vr * (U0.B.x + dt * gamma_1 * dUdt0.B.x);
 	    U1.B.refy = vr * (U0.B.y + dt * gamma_1 * dUdt0.B.y);
 	    U1.B.refz = vr * (U0.B.z + dt * gamma_1 * dUdt0.B.z);
 	}
 	U1.total_energy = vr * (U0.total_energy + dt * gamma_1 * dUdt0.total_energy);
-	if ( with_k_omega ) {
+	if (with_k_omega) {
 	    U1.tke = vr * (U0.tke + dt * gamma_1 * dUdt0.tke);
 	    U1.tke = fmax(U1.tke, 0.0);
 	    U1.omega = vr * (U0.omega + dt * gamma_1 * dUdt0.omega);
