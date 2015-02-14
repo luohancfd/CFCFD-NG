@@ -173,6 +173,7 @@ public:
     int set_interface_velocities2D(size_t gtl);
     int set_vertex_velocities3D(size_t gtl);
     int set_interface_velocities3D(size_t gtl);
+    int clear_vertex_velocities(size_t dimensions);    
     
     // in block_io.cxx
     int read_grid(std::string filename, size_t dimensions,
@@ -189,6 +190,7 @@ public:
 		      bool write_header=false, size_t gtl=0);
     void compute_x_forces(char *text_string, int ibndy, size_t dimensions, size_t gtl=0);
     int print_forces( FILE *fp, double t, size_t dimensions, size_t gtl=0);
+    int read_vertex_velocities(std::string filename, size_t dimensions);    
 
     // in block_bgk.cxx
     int read_BGK(std::string filename, double *sim_time, 

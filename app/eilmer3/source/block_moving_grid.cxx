@@ -501,3 +501,19 @@ double tetragonal_dipyramid(const Vector3 &p0, const Vector3 &p1,
     double volume = dot(pc-pb, cross(p1-p0+p2-p3, p3-p0+p2-p1)) / 12.0;
     return volume;
 }
+
+int Block::clear_vertex_velocities(size_t dimensions)
+{
+    size_t krangemax = ( dimensions == 2 ) ? kmax : kmax+1;
+        for ( size_t k = kmin; k <= krangemax; ++k ) {
+	    for ( size_t j = jmin; j <= jmax+1; ++j ) {
+	        for ( size_t i = imin; i <= imax+1; ++i ) {
+	            FV_Vertex *vtx = get_vtx(i,j,k);
+	            vtx->vel[0].x = 0.0;
+	            vtx->vel[0].y = 0.0;
+	            vtx->vel[0].z = 0.0;
+	        }
+	    }
+        }
+    return SUCCESS;       
+}

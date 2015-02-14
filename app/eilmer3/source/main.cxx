@@ -2347,6 +2347,9 @@ int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_steppin
     bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     int step_status_flag;
     using std::swap;
+    string filename, jbstring;
+    char jbcstr[10];
+    size_t retries = 20;    
 
     // FIX-ME moving grid: this is a work/refactoring in progress... PJ
     // 25-Mar-2103 except for superficial changes, it is the same as 
@@ -2369,40 +2372,47 @@ int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_steppin
         // The default gird movement strategy is set by equations, the more complex way
         // is flow induced moving grid, which vextex moving velocity will be defined
         // the external code 
+        
         if ( G.flow_induced_moving ) {
             for ( Block *bdp : G.my_blocks ) {
-                if ( !bdp->active ) continue;
-                size_t krangemax = ( G.dimensions == 2 ) ? bdp->kmax : bdp->kmax+1;
-                for ( size_t k = bdp->kmin; k <= krangemax; ++k ) {
-	            for ( size_t j = bdp->jmin; j <= bdp->jmax+1; ++j ) {
-	                for ( size_t i = bdp->imin; i <= bdp->imax+1; ++i ) {
-	                    FV_Vertex *vtx = bdp->get_vtx(i,j,k);
-	                    vtx->vel[0].x = 0.0;
-	                    vtx->vel[0].y = 0.0;
-	                    vtx->vel[0].z = 0.0;
-	                }
-	            }
-                }
-            } // end for (Block
+                bdp->clear_vertex_velocities(G.dimensions);
+            }
         } // end if        
+        
 	if ( G.sim_time >= G.t_moving ) { 
 	    if ( G.flow_induced_moving ) { // flow induced grid movement
 	        write_temp_solution_data();
-	        int external_result = system("./flow_induced_moving.sh");
-	        if ( external_result != 0 ) {
+	        if ( system("./flow_induced_moving.sh") != 0 ) {
 	            finished_time_stepping = true; 
 	            printf( "Error: check the external code for flow induced moving grid\n");
 	        }
+	        for ( Block *bdp : G.my_blocks ) {
+	            sprintf( jbcstr, "b%04d", static_cast<int>(bdp->id) );
+	            jbstring = jbcstr;
+	            filename = "temp/"+jbstring;
+	            retries = 20;
+                    while ( retries > 0 && bdp->read_vertex_velocities(filename, G.dimensions) != SUCCESS) {
+                        --retries;
+                        cout << " Error in reading vertex velocities, read again " << endl;
+	                if ( system("./flow_induced_moving.sh") != 0 ) {
+	                    finished_time_stepping = true; 
+	                    printf( "Error: check the external code for flow induced moving grid\n");
+	                }                    
+	            } // end while loop
+                } // end for *bdp
 	    }
-	    for ( Block *bdp : G.my_blocks ) {
-	        if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
-	            add_udf_velocity_for_vtx(bdp, 0);
-	        } else { // mainly for shock fitting
-		    bdp->set_geometry_velocities(G.dimensions, 0);
-		}
-	    }
+	    else { // user-defined grid movement
+	        for ( Block *bdp : G.my_blocks ) {
+	            if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
+	                add_udf_velocity_for_vtx(bdp, 0);
+	            } else { // mainly for shock fitting
+		        bdp->set_geometry_velocities(G.dimensions, 0);
+		    }
+	        }  // end for
+            } 
             G.t_moving = G.sim_time + G.dt_moving;
-	}
+	}		
+        
 	// predict new vertex positions
 	for ( Block *bdp : G.my_blocks ) {
             bdp->predict_vertex_positions(G.dimensions, G.dt_global);
