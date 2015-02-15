@@ -2,7 +2,7 @@
 # Builds main simulation program by default.
 
 # We can specify the LDC2 compiler as DMD=ldmd2 on the command-line
-# when invoking this makefile.
+# when invoking this makefile.  Can also ask for gdc.
 DMD ?= dmd
 
 PROGRAMS := e4shared
@@ -60,80 +60,89 @@ NM_DIR := ../nm
 NM_FILES := $(NM_DIR)/ridder.d
 
 GEOM_DIR := ../geom
-GEOM_FILES := ${GEOM_DIR}/geom.d
+GEOM_FILES := $(GEOM_DIR)/geom.d
 
 GZIP_DIR := ../extern/gzip
-GZIP_FILES := ${GZIP_DIR}/gzip.d
+GZIP_FILES := $(GZIP_DIR)/gzip.d
 
 LUA_DIR := ../../extern/lua-5.1.4
-LIBLUA := ${LUA_DIR}/lib/liblua.a
-LIBLUAPATH := ${LUA_DIR}/lib
+LIBLUA := $(LUA_DIR)/lib/liblua.a
+LIBLUAPATH := $(LUA_DIR)/lib
 LUAD_DIR := ../extern/LuaD
-LUAD_FILES := ${LUAD_DIR}/luad/*.d \
-    ${LUAD_DIR}/luad/c/*.d \
-    ${LUAD_DIR}/luad/conversions/*.d
+LUAD_FILES := $(wildcard $(LUAD_DIR)/luad/*.d) \
+	$(wildcard $(LUAD_DIR)/luad/c/*.d) \
+	$(wildcard $(LUAD_DIR)/luad/conversions/*.d)
 
 INSTALL_DIR ?= $(HOME)/e3bin
 REVISION_STRING := $(shell hg identify --id --num --branch --tags)
 
 ifeq ($(DMD), dmd)
     # DFLAGS := -unittest -gc -wi
-    DFLAGS := -O -release -inline -boundscheck=off -wi
-    DLINKFLAGS :=  -w -L-L${LIBLUAPATH} -L-llua -L-ldl
+    DFLAGS := -w -O -release -inline -boundscheck=off \
+	-I.. -I$(LUAD_DIR) -I$(NM_DIR) -I$(UTIL_DIR) -I$(GEOM_DIR) -I$(GZIP_DIR)
+    OF := -of
+    DLINKFLAGS := -L-L$(LIBLUAPATH) -L-llua -L-ldl
 endif
 ifeq ($(DMD), ldmd2)
-    # DFLAGS := -unittest -gc -wi
-    DFLAGS := -O -release -inline -boundscheck=off -wi
-    DLINKFLAGS :=  -w -L-L${LIBLUAPATH} -L-llua -L-ldl
+    DFLAGS := -w -O -release -inline -boundscheck=off \
+	-I.. -I$(LUAD_DIR) -I$(NM_DIR) -I$(UTIL_DIR) -I$(GEOM_DIR) -I$(GZIP_DIR)
+    OF := -of
+    DLINKFLAGS := -L-L$(LIBLUAPATH) -L-llua -L-ldl
+endif
+ifeq ($(DMD), gdc)
+    DFLAGS := -Wall -O2 -frelease -fno-debug \
+	-I.. -I$(LUAD_DIR) -I$(NM_DIR) -I$(UTIL_DIR) -I$(GEOM_DIR) -I$(GZIP_DIR)
+    OF := -o
+    DLINKFLAGS := -L$(LIBLUAPATH) $(LIBLUA) -ldl
 endif
 
-default: ${PROGRAMS}
+default: $(PROGRAMS)
 	@echo "Source code revision string $(REVISION_STRING)"
 	@echo "Eilmer4 simulation code built."
 
-demo: ${DEMO_PROGRAMS}
+demo: $(DEMO_PROGRAMS)
 	@echo "Source code revision string $(REVISION_STRING)"
 	@echo "Demo codes built."
 
 clean:
 	- rm *.o
-	- rm ${DEMO_PROGRAMS} ${PROGRAMS}
+	- rm $(DEMO_PROGRAMS) $(PROGRAMS)
 	- rm test-grid.txt.gz test-flow.txt.gz
 	- rm -r plot/ flow/ grid/
 	- rm e4_main_with_rev_string.d
-	- cd ${LUA_DIR}; make clean
-	- cd ${GAS_DIR}; make clean; rm libgas.a
+	- cd $(LUA_DIR); make clean
+	- cd $(GAS_DIR); make clean; rm libgas.a
 
-${LIBLUA}:
-	cd ${LUA_DIR}; make linux local
+$(LIBLUA):
+	cd $(LUA_DIR); make linux local
 
 globalconfig_demo: globalconfig_demo.d globalconfig.d fvcore.d \
-	${GEOM_FILES} ${GAS_FILES} ${LIBLUA} $(UTIL_FILES) $(NM_FILES) ${LUAD_FILES}
-	$(DMD) ${DFLAGS} ${DLINKFLAGS} -I${GEOM_DIR} -I${UTIL_DIR} -I../ \
+	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
+	$(DMD) $(DFLAGS) $(OF)globalconfig_demo \
 		globalconfig_demo.d globalconfig.d fvcore.d \
-		${GEOM_FILES} ${GAS_FILES} ${LUAD_FILES} \
-		$(UTIL_FILES) $(NM_FILES)  
+		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) \
+		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)  
 
 flowstate_demo: flowstate_demo.d flowstate.d fvcore.d json_helper.d \
-	${GEOM_FILES} ${GAS_FILES} ${LIBLUA} $(UTIL_FILES) $(NM_FILES) ${LUAD_FILES}
-	$(DMD) ${DFLAGS} ${DLINKFLAGS} -g -I${GEOM_DIR} -I${UTIL_DIR} -I../ \
+	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
+	$(DMD) $(DFLAGS) $(OF)flowstate_demo \
 		flowstate_demo.d fvcore.d flowstate.d json_helper.d \
-		${GEOM_FILES} ${GAS_FILES} ${LUAD_FILES} \
-		$(UTIL_FILES) $(NM_FILES)
+		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) \
+		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
 
 fv_demo: fv_demo.d fvcore.d fvcell.d fvvertex.d fvinterface.d onedinterp.d fluxcalc.d \
 	conservedquantities.d flowstate.d globalconfig.d globaldata.d \
 	block.d sblock.d ublock.d json_helper.d \
-	${BC_FILES} ${GEOM_FILES} ${GAS_FILES} ${LIBLUA} ${GZIP_FILES} \
-	$(UTIL_FILES) $(NM_FILES) ${LUAD_FILES}
-	$(DMD) ${DFLAGS} ${DLINKFLAGS} -g -I${UTIL_DIR} -I${GEOM_DIR} -I${GZIP_DIR} -I../ \
+	$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
+	$(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
+	$(DMD) $(DFLAGS) $(OF)fv_demo \
 		fv_demo.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		conservedquantities.d flowstate.d onedinterp.d fluxcalc.d \
 		globalconfig.d globaldata.d block.d sblock.d ublock.d \
 		json_helper.d \
-		${BC_FILES} ${GEOM_FILES} ${GAS_FILES} ${LUAD_FILES} ${GZIP_FILES} \
-		$(UTIL_FILES) $(NM_FILES)
+		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
+		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
 
 block_demo: block_demo.d \
 	block.d sblock.d ublock.d \
@@ -142,9 +151,9 @@ block_demo: block_demo.d \
 	conservedquantities.d flowstate.d globalconfig.d globaldata.d \
 	block.d sblock.d ublock.d \
 	json_helper.d \
-	${BC_FILES} ${GEOM_FILES} ${GAS_FILES} ${LIBLUA} ${GZIP_FILES} \
-	$(UTIL_FILES) $(NM_FILES) ${LUAD_FILES}
-	$(DMD) ${DFLAGS} ${DLINKFLAGS} -I${GEOM_DIR} -I${UTIL_DIR} -I${GZIP_DIR} -I../ \
+	$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
+	$(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
+	$(DMD) $(DFLAGS) $(OF)block_demo \
 		block_demo.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		fluxcalc.d onedinterp.d \
@@ -152,8 +161,8 @@ block_demo: block_demo.d \
 		globalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
 		json_helper.d \
-		${BC_FILES} ${GEOM_FILES} ${GAS_FILES} ${LUAD_FILES} ${GZIP_FILES} \
-		$(UTIL_FILES) $(NM_FILES)
+		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
+		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
 
 e4shared: e4_main.d e4_core.d readconfig.d json_helper.d \
 	block.d sblock.d ublock.d \
@@ -161,16 +170,15 @@ e4shared: e4_main.d e4_core.d readconfig.d json_helper.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d \
 	conservedquantities.d flowstate.d globalconfig.d globaldata.d \
 	block.d sblock.d ublock.d \
-	${BC_FILES} ${GEOM_FILES} ${GAS_FILES} ${LIBLUA} ${GZIP_FILES} \
-	$(UTIL_FILES) $(NM_FILES) ${LUAD_FILES}
+	$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
+	$(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
 	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' e4_main.d > e4_main_with_rev_string.d
-	$(DMD) ${DFLAGS} ${DLINKFLAGS} -I${GEOM_DIR} -I${UTIL_DIR} -I${GZIP_DIR} -I../ \
+	$(DMD) $(DFLAGS) $(OF)e4shared \
 		e4_main_with_rev_string.d e4_core.d readconfig.d json_helper.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		fluxcalc.d onedinterp.d \
 		conservedquantities.d flowstate.d \
 		globalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
-		${BC_FILES} ${GEOM_FILES} ${GAS_FILES} ${LUAD_FILES} ${GZIP_FILES} \
-		$(UTIL_FILES) $(NM_FILES)
-	mv e4_main_with_rev_string e4shared
+		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
+		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)

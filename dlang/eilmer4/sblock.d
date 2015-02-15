@@ -79,7 +79,7 @@ public:
 	fill_in_other_size_data();
     } // end constructor
 
-    this(in int id, in JSONValue json_data)
+    this(in int id, JSONValue json_data)
     {
 	this.id = id;
 	nicell = getJSONint(json_data, "nni", 0);

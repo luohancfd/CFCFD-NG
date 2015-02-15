@@ -281,7 +281,7 @@ public:
 } // end class BoundaryCondition
 
 
-BoundaryCondition make_BC_from_json(in JSONValue json_data, int blk_id, int boundary)
+BoundaryCondition make_BC_from_json(JSONValue json_data, int blk_id, int boundary)
 {
     string bc_name = json_data["bc"].str;
     BoundaryCondition new_bc;
