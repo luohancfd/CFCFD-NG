@@ -249,19 +249,13 @@ final class GlobalConfig {
     static double cfl_value = 0.5; // target CFL number (worst case) set by user
     static bool stringent_cfl = false; 
     // If true, assume the worst with respect to cell geometry and wave speed.
+    static size_t cfl_count = 10;  // steps between checking time step size
     static double dt_max; // Maximum allowable time-step, after all other considerations.
     static bool fixed_time_step = false; // set true to fix dt_allow
 
     static size_t write_at_step;   // update step at which to write a solution, 0=don't do it
     static double dt_plot;         // interval for writing soln
     static double dt_history;      // interval for writing sample
-
-    static double cfl_target;      // target CFL (worst case)
-    static size_t cfl_count;       // check CFL occasionally
-    static double cfl_min;         // current CFL minimum
-    static double cfl_max;         // current CFL maximum
-    static double cfl_tiny;        // smallest cfl so far
-    static double time_tiny;       // time at which it occurred
 
     static double energy_residual;      // to be monitored for steady state
     static Vector3 energy_residual_loc; // location of largest value

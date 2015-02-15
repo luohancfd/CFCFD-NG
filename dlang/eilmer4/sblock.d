@@ -448,7 +448,7 @@ public:
 	} // for cell
     } // end compute_residuals()
 
-    override void determine_time_step_size(double dt_current)
+    override double determine_time_step_size(double dt_current)
     // Compute the local time step limit for all cells in the block.
     // The overall time step is limited by the worst-case cell.
     {
@@ -456,6 +456,8 @@ public:
 	double cfl_local;
 	double signal;
 	double cfl_allow; // allowable CFL number, t_order dependent
+	double dt_allow;
+	double cfl_min, cfl_max;
 
 	// The following limits allow the simulation of the sod shock tube
 	// to get just a little wobbly around the shock.
@@ -470,7 +472,7 @@ public:
 	foreach(FVCell cell; active_cells) {
 	    signal = cell.signal_frequency();
 	    cfl_local = dt_current * signal; // Current (Local) CFL number
-	    dt_local = GlobalConfig.cfl_target / signal; // Recommend a time step size.
+	    dt_local = GlobalConfig.cfl_value / signal; // Recommend a time step size.
 	    if ( first ) {
 		cfl_min = cfl_local;
 		cfl_max = cfl_local;
@@ -494,6 +496,7 @@ public:
 	    writeln( "    the old-job.finish file for the value of dt at termination.");
 	    throw new Error(text("Bad cfl number encountered cfl_max=", cfl_max));
 	}
+	return dt_allow;
     } // end determine_time_step_size()
 
     override void detect_shock_points()

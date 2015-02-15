@@ -21,8 +21,6 @@ public:
     bool active; // if true, block participates in the time integration
     double omegaz; // Angular velocity (in rad/s) of the rotating frame.
                    // There is only one component, about the z-axis.
-    double dt_allow;            // Allowable time step
-    double cfl_min, cfl_max;    // estimates of CFL number
     double mass_residual, energy_residual; // monitor these for steady state
     Vector3 mass_residual_loc, energy_residual_loc; // locations of worst case
     int hncell;                 // number of sample cells
@@ -40,7 +38,7 @@ public:
     int count_invalid_cells(int gtl) { return 0; }
     void init_residuals() {}
     void compute_residuals(int gtl) {}
-    void determine_time_step_size(double dt_current) {}
+    double determine_time_step_size(double dt_current) { return 0.0; }
     void detect_shock_points() {}
     void compute_primary_cell_geometric_data(int gtl) {}
     void compute_distance_to_nearest_wall_for_all_cells(int gtl) {}

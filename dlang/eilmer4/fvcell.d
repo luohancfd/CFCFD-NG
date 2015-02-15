@@ -1011,38 +1011,34 @@ public:
 	double gam_eff;
 	int statusf;
 	auto gmodel = GlobalConfig.gmodel;
-	const FVInterface north_face = iface[Face.north];
-	const FVInterface east_face = iface[Face.east];
-	const FVInterface top_face = iface[Face.top];
-	// Get the local normal velocities by rotating the
-	// local frame of reference.
-	// Also, compute the velocity magnitude and
-	// recall the minimum length.
-	un_N = fabs(dot(fs.vel, north_face.n));
-	un_E = fabs(dot(fs.vel, east_face.n));
-	if ( GlobalConfig.dimensions == 3 ) {
-	    un_T = fabs(dot(fs.vel, top_face.n));
+	//
+	// Get the local normal velocities by rotating the local frame of reference.
+	// Also, compute the velocity magnitude and recall the minimum length.
+	un_N = fabs(dot(fs.vel, iface[Face.north].n));
+	un_E = fabs(dot(fs.vel, iface[Face.east].n));
+	if (GlobalConfig.dimensions == 3) {
+	    un_T = fabs(dot(fs.vel, iface[Face.top].n));
 	    u_mag = sqrt(fs.vel.x*fs.vel.x + fs.vel.y*fs.vel.y + fs.vel.z*fs.vel.z);
-	}  else {
+	} else {
 	    un_T = 0.0;
 	    u_mag = sqrt(fs.vel.x*fs.vel.x + fs.vel.y*fs.vel.y);
 	}
-	if ( GlobalConfig.MHD ) {
-	    Bn_N = fabs(dot(fs.B, north_face.n));
-	    Bn_E = fabs(dot(fs.B, east_face.n));
+	if (GlobalConfig.MHD) {
+	    Bn_N = fabs(dot(fs.B, iface[Face.north].n));
+	    Bn_E = fabs(dot(fs.B, iface[Face.east].n));
 	    if ( GlobalConfig.dimensions == 3 ) {
-		Bn_T = fabs(dot(fs.B, top_face.n));
+		Bn_T = fabs(dot(fs.B, iface[Face.top].n));
 	    }
 	    u_mag = sqrt(fs.vel.x * fs.vel.x + fs.vel.y * fs.vel.y + fs.vel.z * fs.vel.z);
 	    B_mag = sqrt(fs.B.x * fs.B.x + fs.B.y * fs.B.y + fs.B.z * fs.B.z);
 	}
 	// Check the INVISCID time step limit first,
 	// then add a component to ensure viscous stability.
-	if ( GlobalConfig.stringent_cfl ) {
+	if (GlobalConfig.stringent_cfl) {
 	    // Make the worst case.
-	    if ( GlobalConfig.MHD ) {
+	    if (GlobalConfig.MHD) {
 		ca2 = B_mag*B_mag / fs.gas.rho;
-		cfast = sqrt( ca2 + fs.gas.a * fs.gas.a );
+		cfast = sqrt(ca2 + fs.gas.a * fs.gas.a);
 		signal = (u_mag + cfast) / L_min;
 	    } else {
 		// Hydrodynamics only
@@ -1051,7 +1047,7 @@ public:
 	} else {
 	    // Standard signal speeds along each face.
 	    double signalN, signalE, signalT;
-	    if ( GlobalConfig.MHD ) {
+	    if (GlobalConfig.MHD) {
 		double catang2_N, catang2_E, cfast_N, cfast_E;
 		ca2 = B_mag * B_mag / fs.gas.rho;
 		ca2 = ca2 + fs.gas.a * fs.gas.a;
@@ -1061,7 +1057,7 @@ public:
 		catang2_E = Bn_E * Bn_E / fs.gas.rho;
 		cfast_E = 0.5 * ( ca2 + sqrt( ca2*ca2 - 4.0 * (fs.gas.a * fs.gas.a * catang2_E) ) );
 		cfast_E = sqrt(cfast_E);
-		if ( GlobalConfig.dimensions == 3 ) {
+		if (GlobalConfig.dimensions == 3) {
 		    double catang2_T, cfast_T;
 		    catang2_T = Bn_T * Bn_T / fs.gas.rho;
 		    cfast_T = 0.5 * ( ca2 + sqrt( ca2*ca2 - 4.0 * (fs.gas.a * fs.gas.a * catang2_T) ) );
@@ -1077,7 +1073,7 @@ public:
 		    signalE = (un_E + cfast) / iLength;
 		    signal = fmax(signalN, signalE);
 		}
-	    } else if ( GlobalConfig.dimensions == 3 ) {
+	    } else if (GlobalConfig.dimensions == 3) {
 		// eilmer -- 3D cells
 		signalN = (un_N + fs.gas.a) / jLength;
 		signal = signalN;
@@ -1094,7 +1090,7 @@ public:
 		signal = fmax(signalN, signalE);
 	    }
 	}
-	if ( GlobalConfig.viscous && fs.gas.mu > 10.0e-23) {
+	if (GlobalConfig.viscous && fs.gas.mu > 10.0e-23) {
 	    // Factor for the viscous time limit.
 	    // This factor is not included if viscosity is zero.
 	    // See Swanson, Turkel and White (1991)
@@ -1103,7 +1099,7 @@ public:
 	    double k_total = 0.0;
 	    foreach(i; 0 .. fs.gas.k.length) k_total += fs.gas.k[i];
 	    double Prandtl = fs.gas.mu * gmodel.Cp(fs.gas) / k_total;
-	    if ( GlobalConfig.dimensions == 3 ) {
+	    if (GlobalConfig.dimensions == 3) {
 		signal += 4.0 * GlobalConfig.viscous_factor * (fs.gas.mu + fs.mu_t)
 		    * gam_eff / (Prandtl * fs.gas.rho)
 		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength) + 1.0/(kLength*kLength));
@@ -1113,8 +1109,8 @@ public:
 		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength));
 	    }
 	}
-	if ( with_k_omega == 1 ) {
-	    if ( fs.omega > signal ) signal = fs.omega;
+	if (with_k_omega) {
+	    if (fs.omega > signal) signal = fs.omega;
 	}
 	return signal;
     } // end signal_frequency()

@@ -47,7 +47,8 @@ DIFFUSION_FILES := \
 	diffusion/wilke_mixing_viscosity.d
 
 GAS_PACKAGE_FILES := $(GAS_MODEL_FILES) $(THERMO_FILES) $(DIFFUSION_FILES)
-DFLAGS := -w 
+# DFLAGS := -w
+DFLAGS := -O -release -inline -boundscheck=off -w
 DLINKFLAGS := -w -I../ -I../util -L-L$(LIBLUAPATH) -L-llua -L-ldl
 
 

@@ -13,6 +13,7 @@ import std.format;
 import std.string;
 import std.algorithm;
 import std.file;
+import std.datetime;
 
 import geom;
 import gas;
@@ -35,7 +36,9 @@ static double t_plot;        // time to write next soln
 static bool output_just_written = true;
 static double t_history;     // time to write next sample
 static bool history_just_written = true;
-static int wall_clock_at_start = 0; // seconds
+
+ // For working how long the simulation has been running.
+static SysTime wall_clock_start;
 
 //----------------------------------------------------------------------------
 
@@ -74,7 +77,7 @@ void ensure_directory_is_present(string dir_name)
 double init_simulation(int tindx)
 {
     if (GlobalConfig.verbosity_level > 0) writeln("Begin init_simulation()...");
-    wall_clock_at_start = 0; // TODO read system time in seconds
+    wall_clock_start = Clock.currTime();
     read_config_file();  // most of the configuration is in here
     read_control_file(); // some of the configuration is in here
     current_tindx = tindx;
@@ -136,6 +139,10 @@ double integrate_in_time(double target_time, int maxWallClock)
     history_just_written = true;
     // Overall iteration count.
     step = 0;
+    // When starting a new calculation,
+    // set the global time step to the initial value.
+    dt_global = GlobalConfig.dt_init; 
+    bool do_cfl_check_now = false;
     // Normally, we can terminate upon either reaching 
     // a maximum time or upon reaching a maximum iteration count.
     bool finished_time_stepping = 
@@ -150,9 +157,31 @@ double integrate_in_time(double target_time, int maxWallClock)
 	    read_control_file(); // Reparse the time-step control parameters occasionally.
 	}
 
-	// 1. Set the size of the time step.
-	// TODO: check CFL constrain across blocks.
-	dt_global = GlobalConfig.dt_init; 
+	// 1. Set the size of the time step to be the minimum allowed for any active block.
+	if (!GlobalConfig.fixed_time_step && 
+	    (step/GlobalConfig.cfl_count)*GlobalConfig.cfl_count == step) {
+	    // Check occasionally 
+	    do_cfl_check_now = true;
+	} // end if step == 0
+	if (do_cfl_check_now) {
+	    // Adjust the time step  
+	    double dt_allow = 1.0e9; // Start with too large a guess to ensure it is replaced.
+	    foreach (ref myblk; myBlocks) {
+		if (!myblk.active) continue;
+		dt_allow = min(dt_allow, myblk.determine_time_step_size(dt_global)); 
+	    }
+	    // Change the actual time step, as needed.
+	    if (dt_allow <= dt_global) {
+		// If we need to reduce the time step, do it immediately.
+		dt_global = dt_allow;
+	    } else {
+		// Make the transitions to larger time steps gentle.
+		dt_global = min(dt_global*1.5, dt_allow);
+		// The user may supply, explicitly, a maximum time-step size.
+		dt_global = min(dt_global, GlobalConfig.dt_max);
+	    }
+	    do_cfl_check_now = false;  // we have done our check for now
+	} // end if do_cfl_check_now 
 
         // 2. Attempt a time step.
 	foreach (ref myblk; myBlocks) {
@@ -175,7 +204,15 @@ double integrate_in_time(double target_time, int maxWallClock)
         history_just_written = false;
         if ( (step / GlobalConfig.print_count) * GlobalConfig.print_count == step ) {
             // Print the current time-stepping status.
-	    writeln("Step= ", step, " sim_time=", sim_time);
+	    auto writer = appender!string();
+	    formattedWrite(writer, "Step=%7d t=%10.3e dt=%10.3e ", step, sim_time, dt_global);
+	    long wall_clock_elapsed = (Clock.currTime() - wall_clock_start).total!"seconds"();
+	    double wall_clock_per_step = to!double(wall_clock_elapsed) / step;
+	    double WCtFT = (GlobalConfig.max_time - sim_time) / dt_global * wall_clock_per_step;
+	    double WCtMS = (GlobalConfig.max_step - step) * wall_clock_per_step;
+	    formattedWrite(writer, "WC=%d WCtFT=%.1f WCtMS=%.1f", 
+			   wall_clock_elapsed, WCtFT, WCtMS);
+	    writeln(writer.data);
 	}
 
         // 4. (Occasionally) Write out an intermediate solution
@@ -226,8 +263,8 @@ double integrate_in_time(double target_time, int maxWallClock)
             if (GlobalConfig.verbosity_level >= 1)
 		writeln("Integration stopped: Halt set in control file.");
         }
-	int now = 0; // time(NULL);
-	if (maxWallClock > 0 && (to!int(now - wall_clock_at_start) > maxWallClock)) {
+	auto wall_clock_elapsed = (Clock.currTime() - wall_clock_start).total!"seconds"();
+	if (maxWallClock > 0 && (wall_clock_elapsed > maxWallClock)) {
             finished_time_stepping = true;
             if (GlobalConfig.verbosity_level >= 1)
 		writeln("Integration stopped: reached maximum wall-clock time.");
@@ -250,6 +287,7 @@ void finalize_simulation(double sim_time)
 	}
 	update_times_file();
     }
+    writeln("Step= ", step, " final-t= ", sim_time);
     if (GlobalConfig.verbosity_level > 0) writeln("Done finalize_simulation.");
 } // end finalize_simulation()
 
