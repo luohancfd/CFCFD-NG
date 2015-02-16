@@ -91,11 +91,11 @@ public:
 
     this() {} // makes no sense to define the data in the absence of a model
 
-    void copy_values_from(in FlowState other)
+    @nogc void copy_values_from(in FlowState other)
     {
 	gas.copy_values_from(other.gas);
-	vel = other.vel;
-	B = other.B;
+	vel.refx = other.vel.x; vel.refy = other.vel.y; vel.refz = other.vel.z;
+	B.refx = other.B.x; B.refy = other.B.y; B.refz = other.B.z;
 	tke = other.tke;
 	omega = other.omega;
 	mu_t = other.mu_t;
@@ -103,7 +103,7 @@ public:
 	S = other.S;
     }
 
-    void copy_average_values_from(in FlowState fs0, in FlowState fs1)
+    @nogc void copy_average_values_from(in FlowState fs0, in FlowState fs1)
     // Avoids memory allocation, it's all in place.
     {
 	gas.copy_average_values_from(fs0.gas, fs1.gas);
@@ -117,10 +117,11 @@ public:
 	omega = 0.5 * (fs0.omega + fs1.omega);
 	mu_t = 0.5 * (fs0.mu_t + fs1.mu_t);
 	k_t = 0.5 * (fs0.k_t + fs1.k_t);
-    }
+    } // end copy_average_values_from()
 
     void copy_average_values_from(in FlowState[] others, in GasModel gm)
     // Note that we must not send the current object in the others list as well.
+    // Involves some memory allocation.
     {
 	size_t n = others.length;
 	if (n == 0) throw new Error("Need to average from a nonempty array.");
@@ -143,8 +144,12 @@ public:
 	k_t = 0.0;
 	S = 0; // Remember that shock detector is an integer flag.
 	foreach(other; others) {
-	    vel += other.vel;
-	    B += other.B;
+	    vel.refx += other.vel.x;
+	    vel.refy += other.vel.y;
+	    vel.refz += other.vel.z;
+	    B.refx += other.B.x;
+	    B.refx += other.B.x;
+	    B.refx += other.B.x;
 	    tke += other.tke;
 	    omega += other.omega;
 	    mu_t += other.mu_t;
@@ -158,7 +163,7 @@ public:
 	mu_t /= n;
 	k_t /= n;
 	S = (S > 0) ? 1 : 0;
-    }
+    } // end copy_average_values_from()
 
     override string toString() const
     {

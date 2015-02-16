@@ -13,7 +13,7 @@ import std.math;
 struct Vector3 {
     package double[3] _p;
 
-    this(in double[] p)
+    @nogc this(in double[] p)
     {
 	switch ( p.length ) {
 	case 0: _p[0] = _p[1] = _p[2] = 0.0; break;
@@ -23,19 +23,21 @@ struct Vector3 {
 	}
     }
 
-    this(in double p0, in double p1=0.0, in double p2=0.0)
+    @nogc this(in double p0, in double p1=0.0, in double p2=0.0)
     {
  	_p[0] = p0;
 	_p[1] = p1;
 	_p[2] = p2;
     }
 
-    this(in Vector3 other)
+    @nogc this(in Vector3 other)
     {
 	_p[] = other._p[];
     }
 
-    // Postblit constructor (Alexandrescu Section 7.1.3.4)
+    // Postblit constructor (Alexandrescu Section 7.1.3.4) so that
+    // the copy of the struct can become completely independent of 
+    // its source.
     this(this)
     {
 	_p = _p.dup;
@@ -43,14 +45,14 @@ struct Vector3 {
 
     // For a lot of geometric work, it will be convenient to use
     // x,y,z notation.
-    @property double x() const { return _p[0]; }
-    @property double y() const { return _p[1]; }
-    @property double z() const { return _p[2]; }
+    @nogc @property double x() const { return _p[0]; }
+    @nogc @property double y() const { return _p[1]; }
+    @nogc @property double z() const { return _p[2]; }
     // Note that the following three properties hand out references
     // to the elements, so that we may change their values.
-    @property ref double refx() { return _p[0]; }
-    @property ref double refy() { return _p[1]; }
-    @property ref double refz() { return _p[2]; }
+    @nogc @property ref double refx() { return _p[0]; }
+    @nogc @property ref double refy() { return _p[1]; }
+    @nogc @property ref double refz() { return _p[2]; }
 
     @property Vector3 dup() const
     {

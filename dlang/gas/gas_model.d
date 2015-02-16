@@ -152,23 +152,23 @@ public:
 	k = k.dup;
     }
 
-    void copy_values_from(in GasState other) 
+    @nogc void copy_values_from(ref const(GasState) other) 
     {
 	rho = other.rho;
 	p = other.p;
 	p_e = other.p_e;
 	a = other.a;
-	e = other.e.dup;
-	T = other.T.dup;
+	foreach (i; 0 .. e.length) e[i] = other.e[i];
+	foreach (i; 0 .. T.length) T[i] = other.T[i];
 	mu = other.mu;
-	k = other.k.dup;
+	foreach (i; 0 .. k.length) k[i] = other.k[i];
 	// D_AB
 	sigma = other.sigma;
-	massf = other.massf.dup;
+	foreach (i; 0 .. massf.length) massf[i] = other.massf[i];
 	quality = other.quality;
     }
 
-    void copy_average_values_from(in GasState gs0, in GasState gs1) 
+    @nogc void copy_average_values_from(ref const(GasState) gs0, ref const(GasState) gs1) 
     // Avoids memory allocation, it's all in place.
     {
 	rho = 0.5 * (gs0.rho + gs1.rho);
@@ -313,12 +313,14 @@ void scale_mass_fractions(ref double[] massf, double tolerance=0.0)
 pure double mass_average(in GasState Q, in double[] phi)
 {
     assert(Q.massf.length == phi.length);
+    // [TODO] Rewrite to not allocate memory?
     return reduce!((acc, e) =>  acc + e[0]*e[1])(0.0, zip(Q.massf, phi));
 }
 
 double mixture_molecular_weight(in double[] massf, in double[] MW)
 {
     assert(massf.length == MW.length);
+    // [TODO] Rewrite to not allocate memory?
     double M_inv = reduce!((acc, e) => acc + e[0]/e[1])(0.0, zip(massf, MW));
     return 1.0/M_inv;
 }
@@ -328,9 +330,7 @@ void massf2molef(in double[] massf, in double[] MW, double[] molef)
     assert(massf.length == MW.length);
     assert(massf.length == molef.length);
     double MW_mix = mixture_molecular_weight(massf, MW);
-    for ( auto isp = 0; isp < massf.length; ++isp ) {
-	molef[isp] = massf[isp]*MW_mix/MW[isp];
-    }
+    foreach (i; 0 .. massf.length) molef[i] = massf[i] * MW_mix / MW[i];
 }
 
 unittest {
