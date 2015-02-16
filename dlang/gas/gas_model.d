@@ -23,8 +23,8 @@ immutable double T_MIN = 20.0;
 
 class GasModel {
 public:
-    @property const uint n_species() { return _n_species; }
-    @property const uint n_modes() { return _n_modes; }
+    @nogc @property const uint n_species() { return _n_species; }
+    @nogc @property const uint n_modes() { return _n_modes; }
     const string species_name(int i) { return _species_names[i]; }
 
     // Methods to be overridden.
@@ -310,25 +310,32 @@ void scale_mass_fractions(ref double[] massf, double tolerance=0.0)
     }
 } // end scale_mass_fractions()
 
-pure double mass_average(in GasState Q, in double[] phi)
-{
-    assert(Q.massf.length == phi.length);
-    // [TODO] Rewrite to not allocate memory?
-    return reduce!((acc, e) =>  acc + e[0]*e[1])(0.0, zip(Q.massf, phi));
+@nogc pure double mass_average(in GasState Q, in double[] phi)
+in {
+    assert(Q.massf.length == phi.length, "Inconsistent array lengths.");
+}
+body {
+    double result = 0.0;
+    foreach (i; 0 .. Q.massf.length) result += Q.massf[i] * phi[i];
+    return result;
 }
 
-double mixture_molecular_weight(in double[] massf, in double[] MW)
-{
-    assert(massf.length == MW.length);
-    // [TODO] Rewrite to not allocate memory?
-    double M_inv = reduce!((acc, e) => acc + e[0]/e[1])(0.0, zip(massf, MW));
+@nogc double mixture_molecular_weight(in double[] massf, in double[] MW)
+in {
+    assert(massf.length == MW.length, "Inconsistent array lengths.");
+}
+body {
+    double M_inv = 0.0;
+    foreach (i; 0 .. massf.length) M_inv += massf[i] / MW[i];
     return 1.0/M_inv;
 }
 
-void massf2molef(in double[] massf, in double[] MW, double[] molef)
-{
-    assert(massf.length == MW.length);
-    assert(massf.length == molef.length);
+@nogc void massf2molef(in double[] massf, in double[] MW, double[] molef)
+in {
+    assert(massf.length == MW.length, "Inconsistent array lengths.");
+    assert(massf.length == molef.length, "Inconsistent array lengths.");
+}
+body {
     double MW_mix = mixture_molecular_weight(massf, MW);
     foreach (i; 0 .. massf.length) molef[i] = massf[i] * MW_mix / MW[i];
 }
