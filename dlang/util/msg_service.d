@@ -10,19 +10,24 @@ module util.msg_service;
 
 import std.string;
 
-pure string brokenPreCondition(string variable, int lineNo, string fileName)
+pure string brokenPreCondition(string variable,
+			       size_t lineNo = __LINE__,
+			       string fileName = __FILE__)
 {
     return format("Pre-condition contract broken for %s on line %d in file %s\n",
 		  variable, lineNo, fileName);
 }
 
-pure string brokenPostCondition(string variable, int lineNo, string fileName)
+pure string brokenPostCondition(string variable,
+				size_t lineNo = __LINE__,
+				string fileName = __FILE__)
 {
     return format("Post-condition contract broken for %s on line %d in file %s\n",
 		  variable, lineNo, fileName);
 }
 
-string failedUnitTest(int lineNo, string fileName)
+string failedUnitTest(size_t lineNo = __LINE__,
+		      string fileName = __FILE__)
 {
     return format("Unit test failure on line %d in file %s\n",
 		  lineNo, fileName);

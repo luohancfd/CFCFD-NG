@@ -144,16 +144,14 @@ unittest
 			     "A":0.62526577, "B":-0.31779652e2,
 			     "C":-0.1640798e4, "D":0.17454992e01];
     auto ceaCurve = CEAViscCurve(params);
-    assert(approxEqual(3.8818e-5, ceaCurve.eval(900.0)), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(3.8818e-5, ceaCurve.eval(900.0)), failedUnitTest());
 
     /// Next, let's test the creation and functionality
     /// of a CEAViscosity object.
-    auto lua = new LuaState;
-    lua.openLibs();
-    lua.doFile("sample-data/O2-viscosity.lua");
+    auto lua = initLuaState("sample-data/O2-viscosity.lua");
     auto t = lua.get!LuaTable("cea");
     auto o2CEA = createCEAViscosity(t);
     auto Q = GasState(1, 1);
     Q.T[0] = 1500.0;
-    assert(approxEqual(6.407851e-05, o2CEA.eval(Q)), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(6.407851e-05, o2CEA.eval(Q)), failedUnitTest());
 }

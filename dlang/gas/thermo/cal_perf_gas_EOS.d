@@ -105,17 +105,17 @@ unittest {
     import std.math;
     double Cv = 717.0;
     double e0 = 0.0;
-    assert(approxEqual(energy(500.0, Cv, e0), 358500.0), failedUnitTest("energy", __LINE__, __FILE__));
-    assert(approxEqual(temperature(358500.0, Cv, e0), 500.0), failedUnitTest("temperature", __LINE__, __FILE__));
+    assert(approxEqual(energy(500.0, Cv, e0), 358500.0), failedUnitTest());
+    assert(approxEqual(temperature(358500.0, Cv, e0), 500.0), failedUnitTest());
 
     auto cpg = new CaloricallyPerfectGasEOS(Cv, e0);
     auto gd = GasState(1, 1);
     gd.T[0] = 500.0;
     gd.e[0] = 0.0;
     cpg.update_energy(gd);
-    assert(approxEqual(gd.e[0], 358500.0), failedUnitTest("energy", __LINE__, __FILE__));
+    assert(approxEqual(gd.e[0], 358500.0), failedUnitTest());
     gd.e[0] = 358500.0;
     gd.T[0] = 0.0;
-    cpg.update_temperature(gd, failedUniTest("temperature", __LINE__, __FILE__));
-    assert(approxEqual(gd.T[0], 500.0));
+    cpg.update_temperature(gd);
+    assert(approxEqual(gd.T[0], 500.0), failedUnitTest());
 }
