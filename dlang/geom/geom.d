@@ -195,7 +195,9 @@ struct Vector3 {
      * We assume, without checking, that these vectors do nicely define 
      * such a local system.
      */
-    @nogc void transform_to_local_frame(in Vector3 n, in Vector3 t1, in Vector3 t2)
+    @nogc void transform_to_local_frame(ref const(Vector3) n,
+					ref const(Vector3) t1,
+					ref const(Vector3) t2)
     {
 	double v_x = this.dot(n); // normal component
 	double v_y = this.dot(t1); // tangential component 1
@@ -208,7 +210,9 @@ struct Vector3 {
     /**
      * Rotate v back into the global (xyz) coordinate system.
      */
-    @nogc void transform_to_global_frame(in Vector3 n, in Vector3 t1, in Vector3 t2)
+    @nogc void transform_to_global_frame(ref const(Vector3) n,
+					 ref const(Vector3) t1,
+					 ref const(Vector3) t2)
     {
 	double v_x = _p[0]*n._p[0] + _p[1]*t1._p[0] + _p[2]*t2._p[0]; // global-x
 	double v_y = _p[0]*n._p[1] + _p[1]*t1._p[1] + _p[2]*t2._p[1]; // global-y

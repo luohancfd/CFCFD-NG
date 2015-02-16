@@ -16,17 +16,17 @@ const double epsilon_van_albada = 1.0e-12;
 
 // The following module-level global variables must be set to appropriate values
 // by one_d_interp_prepare() before their use in one_d_interp_scalar().
-double aL0;
-double aR0;
-double lenL0_;
-double lenR0_;
-double two_over_lenL0_plus_lenL1;
-double two_over_lenR0_plus_lenL0;
-double two_over_lenR1_plus_lenR0;
-double two_lenL0_plus_lenL1;
-double two_lenR0_plus_lenR1;
+static double aL0;
+static double aR0;
+static double lenL0_;
+static double lenR0_;
+static double two_over_lenL0_plus_lenL1;
+static double two_over_lenR0_plus_lenL0;
+static double two_over_lenR1_plus_lenR0;
+static double two_lenL0_plus_lenL1;
+static double two_lenR0_plus_lenR1;
 
-void one_d_interp_both_prepare(double lenL1, double lenL0, double lenR0, double lenR1)
+@nogc void one_d_interp_both_prepare(double lenL1, double lenL0, double lenR0, double lenR1)
 // Set up intermediate data that depends only on the cell geometry.
 // It will remain constant when reconstructing the different scalar fields
 // over the same set of cells.
@@ -42,7 +42,7 @@ void one_d_interp_both_prepare(double lenL1, double lenL0, double lenR0, double 
     two_lenR0_plus_lenR1 = (2.0*lenR0 + lenR1);
 } // end one_d_interp_both_prepare()
 
-double clip_to_limits(double q, double A, double B)
+@nogc double clip_to_limits(double q, double A, double B)
 // Returns q if q is between the values A and B, else
 // it returns the closer limit of the range [A,B].
 {
@@ -51,7 +51,7 @@ double clip_to_limits(double q, double A, double B)
     return fmin(upper_limit, fmax(lower_limit, q));
 } // end clip_to_limits()
 
-void one_d_interp_both_scalar(double qL1, double qL0, double qR0, double qR1,
+@nogc void one_d_interp_both_scalar(double qL1, double qL0, double qR0, double qR1,
 			      ref double qL, ref double qR)
 {
     double delLminus, del, delRplus, sL, sR;
@@ -81,7 +81,7 @@ void one_d_interp_both_scalar(double qL1, double qL0, double qR0, double qR1,
     }
 } // end of one_d_interp_both_scalar()
 
-void one_d_interp_left_prepare(double lenL1, double lenL0, double lenR0)
+@nogc void one_d_interp_left_prepare(double lenL1, double lenL0, double lenR0)
 {
     lenL0_ = lenL0;
     lenR0_ = lenR0;
@@ -91,7 +91,7 @@ void one_d_interp_left_prepare(double lenL1, double lenL0, double lenR0)
     two_lenL0_plus_lenL1 = (2.0*lenL0 + lenL1);
 } // end one_d_interp_left_prepare()
 
-void one_d_interp_left_scalar(double qL1, double qL0, double qR0, ref double qL)
+@nogc void one_d_interp_left_scalar(double qL1, double qL0, double qR0, ref double qL)
 {
     double delLminus, del, sL;
     delLminus = (qL0 - qL1) * two_over_lenL0_plus_lenL1;
@@ -108,7 +108,7 @@ void one_d_interp_left_scalar(double qL1, double qL0, double qR0, ref double qL)
     }
 } // end of one_d_interp_left_scalar()
 
-void one_d_interp_right_prepare(double lenL0, double lenR0, double lenR1)
+@nogc void one_d_interp_right_prepare(double lenL0, double lenR0, double lenR1)
 {
     lenL0_ = lenL0;
     lenR0_ = lenR0;
@@ -118,7 +118,7 @@ void one_d_interp_right_prepare(double lenL0, double lenR0, double lenR1)
     two_lenR0_plus_lenR1 = (2.0*lenR0 + lenR1);
 } // end one_d_interp_prepare()
 
-void one_d_interp_right_scalar(double qL0, double qR0, double qR1, ref double qR)
+@nogc void one_d_interp_right_scalar(double qL0, double qR0, double qR1, ref double qR)
 {
     double del, delRplus, sR;
     del = (qR0 - qL0) * two_over_lenR0_plus_lenL0;
@@ -137,6 +137,7 @@ void one_d_interp_right_scalar(double qL0, double qR0, double qR1, ref double qR
 
 //------------------------------------------------------------------------------------
 
+// @nogc // TODO put this annotation back on once the GasModel methods are @nogc
 void one_d_interp_both(in FVInterface IFace,
 		       ref FVCell cL1, ref FVCell cL0, 
 		       ref FVCell cR0, ref FVCell cR1, 
@@ -186,8 +187,10 @@ void one_d_interp_both(in FVInterface IFace,
 	    one_d_interp_both_scalar(cL1.fs.omega, cL0.fs.omega, cR0.fs.omega, cR1.fs.omega,
 				     Lft.omega, Rght.omega);
 	}
-	auto gL1 = cL1.fs.gas; auto gL0 = cL0.fs.gas;
-	auto gR0 = cR0.fs.gas; auto gR1 = cR1.fs.gas;
+	auto gL1 = &(cL1.fs.gas); // Avoid construction of another object.
+	auto gL0 = &(cL0.fs.gas);
+	auto gR0 = &(cR0.fs.gas);
+	auto gR1 = &(cR1.fs.gas);
 	if ( nsp > 1 ) {
 	    // Multiple species.
 	    for ( size_t isp = 0; isp < nsp; ++isp ) {
@@ -289,6 +292,7 @@ void one_d_interp_both(in FVInterface IFace,
     } // end of high-order reconstruction
 } // end one_d_interp_both()
 
+// @nogc // TODO put this annotation back on once the GasModel methods are @nogc
 void one_d_interp_left(in FVInterface IFace,
 		       ref FVCell cL1, ref FVCell cL0, ref FVCell cR0,
 		       in double cL1Length, in double cL0Length, in double cR0Length,
@@ -324,7 +328,7 @@ void one_d_interp_left(in FVInterface IFace,
 	    one_d_interp_left_scalar(cL1.fs.tke, cL0.fs.tke, cR0.fs.tke, Lft.tke);
 	    one_d_interp_left_scalar(cL1.fs.omega, cL0.fs.omega, cR0.fs.omega, Lft.omega);
 	}
-	auto gL1 = cL1.fs.gas; auto gL0 = cL0.fs.gas; auto gR0 = cR0.fs.gas;
+	auto gL1 = &(cL1.fs.gas); auto gL0 = &(cL0.fs.gas); auto gR0 = &(cR0.fs.gas);
 	if ( nsp > 1 ) {
 	    // Multiple species.
 	    for ( size_t isp = 0; isp < nsp; ++isp ) {
@@ -397,6 +401,7 @@ void one_d_interp_left(in FVInterface IFace,
     } // end of high-order reconstruction
 } // end one_d_interp_left()
 
+// @nogc // TODO put this annotation back on once the GasModel methods are @nogc
 void one_d_interp_right(in FVInterface IFace,
 			ref FVCell cL0, ref FVCell cR0, ref FVCell cR1,
 			in double cL0Length, in double cR0Length, in double cR1Length,
@@ -436,7 +441,7 @@ void one_d_interp_right(in FVInterface IFace,
 	    one_d_interp_right_scalar(cL0.fs.tke, cR0.fs.tke, cR1.fs.tke, Rght.tke);
 	    one_d_interp_right_scalar(cL0.fs.omega, cR0.fs.omega, cR1.fs.omega, Rght.omega);
 	}
-	auto gL0 = cL0.fs.gas; auto gR0 = cR0.fs.gas; auto gR1 = cR1.fs.gas;
+	auto gL0 = &(cL0.fs.gas); auto gR0 = &(cR0.fs.gas); auto gR1 = &(cR1.fs.gas);
 	if ( nsp > 1 ) {
 	    // Multiple species.
 	    for ( size_t isp = 0; isp < nsp; ++isp ) {

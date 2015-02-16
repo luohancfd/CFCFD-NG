@@ -220,42 +220,42 @@ public:
 	gm.update_trans_coeffs(this);
     } // end copy_average_values_from()
 
-    bool check_values(bool print_message=true) const
+    @nogc bool check_values(bool print_message=true) const
+    // Have commented out the print statements to ensure @nogc.
     {
 	double RHOMIN = 0.0;
 	double TMIN = 1.0;
 	bool is_data_valid = true;
-
-	if ( !(isFinite(rho)) || rho < 1.01 * RHOMIN ) {
-	    if (print_message) writeln("Density invalid: ", rho);
+	if (!(isFinite(rho)) || rho < 1.01 * RHOMIN) {
+	    // if (print_message) writeln("Density invalid: ", rho);
 	    is_data_valid = false;
 	}
 	auto nmodes = e.length;
 	foreach(imode; 0 .. nmodes) {
-	    if ( !isFinite(T[imode]) || T[imode] < 1.01 * TMIN ) {
-		if ( print_message ) writeln("Temperature[", imode, "] invalid: ", T[imode]);
+	    if (!isFinite(T[imode]) || T[imode] < 1.01 * TMIN) {
+		// if (print_message) writeln("Temperature[", imode, "] invalid: ", T[imode]);
 		is_data_valid = false;
 	    }
 	    if ( !isFinite(e[imode]) ) {
-		if ( print_message ) writeln("Energy[", imode, "] invalid: ", e[imode]);
+		// if (print_message) writeln("Energy[", imode, "] invalid: ", e[imode]);
 		is_data_valid = false;
 	    }
 	}
-	if ( !isFinite(p) ) {
-	    if ( print_message ) writeln("Total pressure invalid: ", p);
+	if (!isFinite(p)) {
+	    // if (print_message) writeln("Total pressure invalid: ", p);
 	    is_data_valid = false;
 	}
-	if ( !isFinite(p_e) ) {
-	    if ( print_message ) writeln("Electron pressure invalid: ", p_e);
+	if (!isFinite(p_e)) {
+	    // if (print_message) writeln("Electron pressure invalid: ", p_e);
 	    is_data_valid = false;
 	}
-	if ( !isFinite(a) ) {
-	    if ( print_message ) writeln("Sound speed invalid: ", a);
+	if (!isFinite(a)) {
+	    // if (print_message) writeln("Sound speed invalid: ", a);
 	    is_data_valid = false;
 	}
 	double f_sum = 0.0; foreach(elem; massf) f_sum += elem;
-	if ( f_sum < 0.99 || f_sum > 1.01 || !isFinite(f_sum) ) {
-	    if ( print_message ) writeln("Mass fraction sum bad: ", f_sum);
+	if (f_sum < 0.99 || f_sum > 1.01 || !isFinite(f_sum)) {
+	    // if (print_message) writeln("Mass fraction sum bad: ", f_sum);
 	    is_data_valid = false;
 	}
 	return is_data_valid;
@@ -287,13 +287,12 @@ public:
 } // end class GasState
 
 
-void scale_mass_fractions(ref double[] massf, double tolerance=0.0)
+@nogc void scale_mass_fractions(ref double[] massf, double tolerance=0.0)
 {
     auto my_nsp = massf.length;
-    if ( my_nsp == 1 ) {
+    if (my_nsp == 1) {
 	// Single species, always expect massf[0]==1.0, so we can take a short-cut.
-	if ( fabs(massf[0] - 1.0) > 0.1 ) 
-	    throw new Error("Single species mass fraction far from 1.0");
+	assert(fabs(massf[0] - 1.0) < 0.1, "Single species mass fraction far from 1.0");
 	massf[0] = 1.0;
     } else {
 	// Multiple species, do the full job.
@@ -302,12 +301,12 @@ void scale_mass_fractions(ref double[] massf, double tolerance=0.0)
 	    massf[isp] = massf[isp] >= 0.0 ? massf[isp] : 0.0;
 	    massf_sum += massf[isp];
 	}
-	if ( fabs(massf_sum - 1.0) > 0.1 )
-	    throw new Error("Sum of species mass fractions far from 1.0");
+	assert(fabs(massf_sum - 1.0) < 0.1, "Sum of species mass fractions far from 1.0");
 	if ( fabs(massf_sum - 1.0) > tolerance ) {
 	    foreach(isp; 0 .. my_nsp) massf[isp] /= massf_sum;
 	}
     }
+    return;
 } // end scale_mass_fractions()
 
 @nogc pure double mass_average(in GasState Q, in double[] phi)
