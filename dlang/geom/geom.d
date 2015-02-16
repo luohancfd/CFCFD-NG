@@ -122,41 +122,41 @@ struct Vector3 {
     }
 
     // Assignment operators. (Alexandrescu Section 7.1.5.1)
-    ref Vector3 opAssign(ref Vector3 rhs)
+    @nogc ref Vector3 opAssign(ref Vector3 rhs)
     {
 	_p[] = rhs._p[];
 	return this;
     }
 
-    ref Vector3 opAssign(Vector3 rhs)
+    @nogc ref Vector3 opAssign(Vector3 rhs)
     {
 	_p[] = rhs._p[];
 	return this;
     }
 
     // Combined assignment operators do change the original object.
-    ref Vector3 opOpAssign(string op)(in Vector3 rhs)
+    @nogc ref Vector3 opOpAssign(string op)(in Vector3 rhs)
 	if (op == "+")
     {
 	this._p[] += rhs._p[];
 	return this;
     }
 
-    ref Vector3 opOpAssign(string op)(in Vector3 rhs)
+    @nogc ref Vector3 opOpAssign(string op)(in Vector3 rhs)
 	if (op == "-")
     {
 	this._p[] -= rhs._p[];
 	return this;
     }
 
-    ref Vector3 opOpAssign(string op)(in double rhs)
+    @nogc ref Vector3 opOpAssign(string op)(in double rhs)
 	if (op == "*")
     {
 	this._p[] *= rhs;
 	return this;
     }
 
-    ref Vector3 opOpAssign(string op)(in double rhs)
+    @nogc ref Vector3 opOpAssign(string op)(in double rhs)
 	if (op == "/")
     {
 	this._p[] /= rhs;
@@ -168,9 +168,9 @@ struct Vector3 {
     /**
      * Scales the vector to unit magnitude.
      */
-    ref Vector3 normalize()
+    @nogc ref Vector3 normalize()
     {
-        double magnitude = abs(this);
+        double magnitude = sqrt(this.dot(this));
 	if ( magnitude > 0.0 ) {
 	    this /= magnitude;
 	} else {
@@ -178,6 +178,12 @@ struct Vector3 {
 	    this._p[0] = this._p[1] = this._p[2] = 0.0;
 	}
 	return this;
+    }
+
+    @nogc double dot(ref const(Vector3) other) const
+    {
+	return this._p[0] * other._p[0] + 
+	    this._p[1] * other._p[1] + this._p[2] * other._p[2];
     }
 
     // Transform functions used to reorient vector values in the CFD codes.
@@ -189,11 +195,11 @@ struct Vector3 {
      * We assume, without checking, that these vectors do nicely define 
      * such a local system.
      */
-    void transform_to_local_frame(in Vector3 n, in Vector3 t1, in Vector3 t2)
+    @nogc void transform_to_local_frame(in Vector3 n, in Vector3 t1, in Vector3 t2)
     {
-	double v_x = dot(this, n); // normal component
-	double v_y = dot(this, t1); // tangential component 1
-	double v_z = dot(this, t2); // tangential component 2
+	double v_x = this.dot(n); // normal component
+	double v_y = this.dot(t1); // tangential component 1
+	double v_z = this.dot(t2); // tangential component 2
 	_p[0] = v_x;
 	_p[1] = v_y;
 	_p[2] = v_z;
@@ -202,7 +208,7 @@ struct Vector3 {
     /**
      * Rotate v back into the global (xyz) coordinate system.
      */
-    void transform_to_global_frame(in Vector3 n, in Vector3 t1, in Vector3 t2)
+    @nogc void transform_to_global_frame(in Vector3 n, in Vector3 t1, in Vector3 t2)
     {
 	double v_x = _p[0]*n._p[0] + _p[1]*t1._p[0] + _p[2]*t2._p[0]; // global-x
 	double v_y = _p[0]*n._p[1] + _p[1]*t1._p[1] + _p[2]*t2._p[1]; // global-y

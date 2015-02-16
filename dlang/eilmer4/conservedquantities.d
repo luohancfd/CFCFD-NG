@@ -44,11 +44,13 @@ public:
 	omega = other.omega;
     }
 
-    void copy_values_from(in ConservedQuantities src)
+    @nogc void copy_values_from(in ConservedQuantities src)
     {
 	mass = src.mass;
-	momentum = src.momentum;
-	B = src.B;
+	momentum.refx = src.momentum.x;
+	momentum.refy = src.momentum.y;
+	momentum.refz = src.momentum.z;
+	B.refx = src.B.x; B.refy = src.B.y; B.refz = src.B.z;
 	total_energy = src.total_energy;
 	massf[] = src.massf[];
 	energies[] = src.energies[];
@@ -56,7 +58,7 @@ public:
 	omega = src.omega;
     }
 
-    void clear_values()
+    @nogc void clear_values()
     {
 	mass = 0.0;
 	momentum.refx = 0.0; momentum.refy = 0.0; momentum.refz = 0.0;

@@ -59,24 +59,47 @@ public:
 	grad_pe = other.grad_pe;
     }
 
-    void copy_values_from(in FVVertex other)
+    @nogc void copy_values_from(ref const(FVVertex) other)
     {
-	if ( !(this is other) ) {
+	if (!(this is other)) {
 	    id = other.id;
-	    pos[] = other.pos[];
-	    vel[] = other.vel[];
+	    foreach (i; 0 .. pos.length) {
+	    	pos[i].refx = other.pos[i].x;
+	    	pos[i].refy = other.pos[i].y;
+	    	pos[i].refz = other.pos[i].z;
+	    }
+	    foreach (i; 0 .. vel.length) {
+		vel[i].refx = other.vel[i].x;
+		vel[i].refy = other.vel[i].y;
+		vel[i].refz = other.vel[i].z;
+	    }
 	    areaxy = other.areaxy;
 	    volume = other.volume;
-	    foreach(i; 0 .. vel.length) grad_vel[i][] = other.grad_vel[i][]; 
-	    grad_T = other.grad_T;
-	    grad_tke = other.grad_tke;
-	    grad_omega = other.grad_omega;
-	    grad_f[] = other.grad_f[];
-	    grad_pe = other.grad_pe;
+	    foreach(i; 0 .. grad_vel.length) {
+		foreach(j; 0 .. grad_vel[i].length)
+		    grad_vel[i][j] = other.grad_vel[i][j];
+	    }
+	    grad_T.refx = other.grad_T.x;
+	    grad_T.refy = other.grad_T.y;
+	    grad_T.refz = other.grad_T.z;
+	    grad_tke.refx = other.grad_tke.x;
+	    grad_tke.refy = other.grad_tke.y;
+	    grad_tke.refz = other.grad_tke.z;
+	    grad_omega.refx = other.grad_omega.x;
+	    grad_omega.refy = other.grad_omega.y;
+	    grad_omega.refz = other.grad_omega.z;
+	    foreach(i; 0 .. grad_f.length) {
+		grad_f[i].refx = other.grad_f[i].x;
+		grad_f[i].refy = other.grad_f[i].y;
+		grad_f[i].refz = other.grad_f[i].z;
+	    }
+	    grad_pe.refx = other.grad_pe.x;
+	    grad_pe.refy = other.grad_pe.y;
+	    grad_pe.refz = other.grad_pe.z;
 	}
-    }
+    } // end copy_values_from()
 
-    void copy_grid_level_to_level(uint from_level, uint to_level)
+    @nogc void copy_grid_level_to_level(uint from_level, uint to_level)
     {
 	pos[to_level] = pos[from_level];
 	vel[to_level] = vel[from_level];
