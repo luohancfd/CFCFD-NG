@@ -78,7 +78,7 @@ REVISION_STRING := $(shell hg identify --id --num --branch --tags)
 
 ifeq ($(DMD), dmd)
     # DFLAGS := -unittest -gc -wi
-    DFLAGS := -w -O -release -inline -boundscheck=off \
+    DFLAGS := -profile -w -O -release -inline -boundscheck=off \
 	-I.. -I$(LUAD_DIR) -I$(NM_DIR) -I$(UTIL_DIR) -I$(GEOM_DIR) -I$(GZIP_DIR)
     OF := -of
     DLINKFLAGS := -L-L$(LIBLUAPATH) -L-llua -L-ldl
@@ -107,7 +107,7 @@ demo: $(DEMO_PROGRAMS)
 clean:
 	- rm *.o
 	- rm $(DEMO_PROGRAMS) $(PROGRAMS)
-	- rm test-grid.txt.gz test-flow.txt.gz
+	- rm test-grid.txt.gz test-flow.txt.gz trace.log trace.def
 	- rm -r plot/ flow/ grid/
 	- rm e4_main_with_rev_string.d
 	- cd $(LUA_DIR); make clean
