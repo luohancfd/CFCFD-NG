@@ -57,7 +57,7 @@ Copy the ``cea2`` source directory to ``cfcfd3/app/extern/``.
 Compile eilmer::
 
   > cd cfcfd3/app/eilmer3/build
-  > make TARGET=for_openmpi install
+  > make TARGET=for_openmpi_intel install
 
 Note that the default (and recommended) MPI environment is openmpi.
 This version has been compiled with the intel compiler, that's why we load the intel compiler above.
