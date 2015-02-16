@@ -439,12 +439,12 @@ unittest {
  *     we need to keep a record of the row permutations
  *     to be passed into the solve function.
  */
-int[2][] decomp(ref Matrix c, double very_small_value=1.0e-16)
+size_t[2][] decomp(ref Matrix c, double very_small_value=1.0e-16)
 {
     if (c.ncols != c.nrows) {
 	throw new Exception("require a square matrix");
     }
-    int[2][] permuteList;
+    size_t[2][] permuteList;
 
     foreach(j; 0 .. c.nrows) {
 	// Select pivot.
@@ -481,7 +481,7 @@ int[2][] decomp(ref Matrix c, double very_small_value=1.0e-16)
  *         on return, these are the solution vectors.
  *     permuteList: list of row-permutation pairs from the first stage.
  */
-void solve(in Matrix c, ref Matrix rhs, in int[2][] permuteList)
+void solve(in Matrix c, ref Matrix rhs, in size_t[2][] permuteList)
 {
     size_t nrows = c.nrows;
     if (rhs.ncols < 1 || rhs.nrows != nrows) {
@@ -501,7 +501,7 @@ void solve(in Matrix c, ref Matrix rhs, in int[2][] permuteList)
     // Back substitution to obtain the solution vector(s).
     foreach(col; 0 .. rhs.ncols) {
 	rhs[nrows-1, col] /= c[nrows-1,nrows-1];
-	for ( int i = nrows-2; i >= 0; --i ) {
+	for (int i = to!int(nrows-2); i >= 0; --i) {
 	    double my_sum = rhs[i,col];
 	    foreach(j; i+1 .. nrows) my_sum -= c[i,j] * rhs[j,col];
 	    rhs[i,col] = my_sum/c[i,i];
@@ -511,7 +511,7 @@ void solve(in Matrix c, ref Matrix rhs, in int[2][] permuteList)
 
 Matrix inverse(in Matrix a)
 {
-    int n = a.nrows;
+    auto n = a.nrows;
     if ( n != a.ncols && n == 0 ) {
 	throw new Exception("matrix should be square and not empty");
     }
