@@ -5,7 +5,8 @@
 DMD ?= dmd
 
 DEMO_PROGRAMS := gas_model_demo ideal_gas_demo
-UNITTEST_FILES := therm_perf_gas
+UNITTEST_FILES := therm_perf_gas_test \
+	ideal_gas_test
 
 UTIL_DIR := ../util
 UTIL_FILES := $(UTIL_DIR)/lua_service.d \
@@ -99,7 +100,12 @@ ideal_gas_demo: ideal_gas_demo.d $(LUAD_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILE
 		$(GAS_FILES) $(LUAD_FILES) $(UTIL_FILES) $(NM_FILES) \
 		$(DLINKFLAGS)
 
-therm_perf_gas : therm_perf_gas.d $(LUAD_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
-	$(DMD) -main -unittest $(DFLAGS) therm_perf_gas.d $(OF)therm_perf_gas_demo \
-		$(GAS_FILES) $(LUAD_FILES) $(UTIL_FILES) $(NM_FILES) \
+ideal_gas_test : ideal_gas.d libgas.a $(LUAD_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
+	$(DMD) -main -unittest $(DFLAGS) ideal_gas.d $(OF)ideal_gas_test \
+		libgas.a $(LUAD_FILES) $(UTIL_FILES) $(NM_FILES) \
+		$(DLINKFLAGS)
+
+therm_perf_gas_test : therm_perf_gas.d $(LUAD_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
+	$(DMD) -main -unittest $(DFLAGS) therm_perf_gas.d $(OF)therm_perf_gas_test \
+		libgas.a $(LUAD_FILES) $(UTIL_FILES) $(NM_FILES) \
 		$(DLINKFLAGS)

@@ -10,8 +10,6 @@ module gas.ideal_gas;
 
 import gas.gas_model;
 import gas.physical_constants;
-import perf_gas_EOS = gas.thermo.perf_gas_EOS;
-import cal_perf_gas_EOS = gas.thermo.cal_perf_gas_EOS;
 import gas.diffusion.sutherland_viscosity;
 import gas.diffusion.sutherland_therm_cond;
 import std.math;
@@ -77,14 +75,14 @@ public:
     override void update_thermo_from_pT(ref GasState Q) const 
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
-	Q.rho = perf_gas_EOS.density(Q.p, Q.T[0], _Rgas);
-	Q.e[0] = cal_perf_gas_EOS.energy(Q.T[0], _Cv, 0.0);
+	Q.rho = Q.p/(Q.T[0]*_Rgas);
+	Q.e[0] = _Cv*Q.T[0];
     }
     override void update_thermo_from_rhoe(ref GasState Q) const
     {
 	assert(Q.e.length == 1, "incorrect length of energy array");
-	Q.T[0] = cal_perf_gas_EOS.temperature(Q.e[0], _Cv, 0.0);
-	Q.p = perf_gas_EOS.pressure(Q.rho, Q.T[0], _Rgas);
+	Q.T[0] = Q.e[0]/_Cv;
+	Q.p = Q.rho*_Rgas*Q.T[0];
     }
     override void update_thermo_from_rhoT(ref GasState Q) const
     {
@@ -104,7 +102,7 @@ public:
     }
     override void update_sound_speed(ref GasState Q) const
     {
-	Q.a = sqrt(_gamma * _Rgas * Q.T[0]);
+	Q.a = sqrt(_gamma*_Rgas*Q.T[0]);
     }
     override void update_trans_coeffs(ref GasState Q) const
     {
@@ -179,7 +177,7 @@ unittest {
     import std.stdio;
     auto gm = new IdealGas();
     assert(gm.species_name(0) == "ideal air", "species name list");
-    auto gd = GasState(gm, 100.0e3, 300.0);
+    auto gd = new GasState(gm, 100.0e3, 300.0);
     assert(approxEqual(gm.R(gd), 287.086), "gas constant");
     assert(gm.n_modes == 1, "number of energy modes");
     assert(gm.n_species == 1, "number of species");
