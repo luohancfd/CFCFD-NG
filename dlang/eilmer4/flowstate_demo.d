@@ -11,7 +11,7 @@ void main()
 {
     writeln("test flowstate module");
     auto gm = init_gas_model("sample-data/ideal-air-gas-model.lua");
-    auto gd = GasState(gm, 100.0e3, 300.0);
+    auto gd = new GasState(gm, 100.0e3, 300.0);
     writefln("R= %s, pressure= %s, temperature= %s", gm.R(gd), gd.p, gd.T[0]);
     gm.update_thermo_from_pT(gd);
     gm.update_sound_speed(gd);

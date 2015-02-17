@@ -33,7 +33,7 @@ public:
 	 in double mu_t_init=0.0, in double k_t_init=0.0,
 	 in int S_init=0)
     {
-	gas = GasState(gm, p_init, T_init, massf_init, quality_init);
+	gas = new GasState(gm, p_init, T_init, massf_init, quality_init);
 	vel = vel_init;
 	B = B_init;
 	tke = tke_init;
@@ -45,7 +45,7 @@ public:
 
     this(in FlowState other, in GasModel gm)
     {
-	gas = GasState(gm, other.gas.p, other.gas.T, other.gas.massf, other.gas.quality); 
+	gas = new GasState(gm, other.gas.p, other.gas.T, other.gas.massf, other.gas.quality); 
 	vel = other.vel;
 	B = other.B;
 	tke = other.tke;
@@ -57,7 +57,7 @@ public:
 
     this(in GasModel gm)
     {
-	gas = GasState(gm, 100.0e3, [300.0,], [1.0,], 1.0); 
+	gas = new GasState(gm, 100.0e3, [300.0,], [1.0,], 1.0); 
 	vel = Vector3(0.0,0.0,0.0);
 	B = Vector3(0.0,0.0,0.0);
 	tke = 0.0;
@@ -73,7 +73,7 @@ public:
 	double T[] = getJSONdoublearray(json_data, "T", [300.0,]);
 	double[] massf = getJSONdoublearray(json_data, "massf", [1.0,]);
 	double quality = 1.0;
-	gas = GasState(gm, p, T, massf, quality);
+	gas = new GasState(gm, p, T, massf, quality);
 	double u = getJSONdouble(json_data, "u", 0.0);
 	double v = getJSONdouble(json_data, "v", 0.0);
 	double w = getJSONdouble(json_data, "w", 0.0);

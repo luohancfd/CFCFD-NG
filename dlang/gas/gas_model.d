@@ -58,7 +58,7 @@ protected:
 }
 
 
-struct GasState {
+class GasState {
 public:
     /// Thermodynamic properties.
     double rho;  /// density, kg/m**3
@@ -143,14 +143,15 @@ public:
 	quality = other.quality;
     }
 
-    // Postblit constructor
-    this(this)
-    {
-	massf = massf.dup;
-	e = e.dup;
-	T = T.dup;
-	k = k.dup;
-    }
+    // Postblit constructor for struct
+    // Not needed for class
+    // this(this)
+    // {
+    // 	massf = massf.dup;
+    // 	e = e.dup;
+    // 	T = T.dup;
+    // 	k = k.dup;
+    // }
 
     @nogc void copy_values_from(ref const(GasState) other) 
     {
@@ -261,7 +262,7 @@ public:
 	return is_data_valid;
     } // end check_values()
 
-    string toString() const
+    override string toString() const
     {
 	char[] repr;
 	repr ~= "GasState(";
