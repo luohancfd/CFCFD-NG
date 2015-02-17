@@ -37,8 +37,8 @@ void compute_interface_flux(ref FlowState Lft, ref FlowState Rght,
  */
 {
     // Transform to interface frame of reference.
-    Lft.vel -= IFace.gvel;
-    Rght.vel -= IFace.gvel;
+    Lft.vel.refx -= IFace.gvel.x; Lft.vel.refy -= IFace.gvel.y; Lft.vel.refz -= IFace.gvel.z;
+    Rght.vel.refx -= IFace.gvel.x; Rght.vel.refy -= IFace.gvel.y; Rght.vel.refz -= IFace.gvel.z;
     IFace.gvel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
     Lft.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
     Rght.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
@@ -78,7 +78,8 @@ void compute_interface_flux(ref FlowState Lft, ref FlowState Rght,
     }
     // Transform fluxes back from interface frame of reference to local frame of reference.
     // Flux of Total Energy
-    F.total_energy += 0.5 * F.mass * pow(abs(IFace.gvel),2) + dot(F.momentum, IFace.gvel);
+    double v_sqr = IFace.gvel.x*IFace.gvel.x + IFace.gvel.y*IFace.gvel.y + IFace.gvel.z*IFace.gvel.z; 
+    F.total_energy += 0.5 * F.mass * v_sqr + F.momentum.dot(IFace.gvel);
     // Flux of momentum
     F.momentum += F.mass * IFace.gvel;
     // 
@@ -93,6 +94,7 @@ void compute_interface_flux(ref FlowState Lft, ref FlowState Rght,
     return;
 } // end compute_interface_flux()
 
+@nogc
 void set_flux_vector_in_local_frame(ref ConservedQuantities F, ref FlowState fs)
 {
     double rho = fs.gas.rho;
@@ -125,6 +127,7 @@ void set_flux_vector_in_local_frame(ref ConservedQuantities F, ref FlowState fs)
     }
 } // end set_flux_vector_in_local_frame()
 
+@nogc
 void set_flux_vector_in_global_frame(ref FVInterface IFace, ref FlowState fs, 
 				     double omegaz=0.0)
 {
@@ -132,7 +135,8 @@ void set_flux_vector_in_global_frame(ref FVInterface IFace, ref FlowState fs,
     // Record velocity to restore fs at end.
     double vx = fs.vel.x; double vy = fs.vel.y; double vz = fs.vel.z; 
     // Transform to interface frame of reference.
-    fs.vel -= IFace.gvel; // Beware: fs.vel is changed here and restored below.
+    // Beware: fs.vel is changed here and restored below.
+    fs.vel.refx -= IFace.gvel.x; fs.vel.refy -= IFace.gvel.y; fs.vel.refz -= IFace.gvel.z; 
     IFace.gvel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
     fs.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
     // also transform the magnetic field
@@ -153,7 +157,8 @@ void set_flux_vector_in_global_frame(ref FVInterface IFace, ref FlowState fs,
 
     // Transform fluxes back from interface frame of reference to local frame of reference.
     /* Flux of Total Energy */
-    F.total_energy += 0.5 * F.mass * pow(abs(IFace.gvel),2) + dot(F.momentum, IFace.gvel);
+    double v_sqr = IFace.gvel.x*IFace.gvel.x + IFace.gvel.y*IFace.gvel.y + IFace.gvel.z*IFace.gvel.z;
+    F.total_energy += 0.5 * F.mass * v_sqr + F.momentum.dot(IFace.gvel);
     /* Flux of momentum */
     F.momentum += F.mass * IFace.gvel;
 
@@ -168,6 +173,7 @@ void set_flux_vector_in_global_frame(ref FVInterface IFace, ref FlowState fs,
     fs.vel.refx = vx; fs.vel.refy = vy; fs.vel.refz = vz; // restore fs.vel
 } // end set_flux_vector_in_global_frame()
 
+@nogc
 void ausmdv(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
 // Wada and Liou's flux calculator.
 // 
@@ -368,6 +374,7 @@ void ausmdv(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
     }
 } // end ausmdv()
 
+
 void efmflx(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
 /** \brief Compute the fluxes across an interface using
  * the Equilibrium Flux	Method of Macrossan & Pullin
@@ -547,6 +554,7 @@ void efmflx(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
     }
 } // end efmflx()
 
+@nogc
 void exxef(double sn, ref double exx, ref double ef)
 /** \brief Compute exp(-x**2) and erf(x) with a polynomial approximation.
  *
@@ -581,6 +589,7 @@ void exxef(double sn, ref double exx, ref double ef)
     ef = copysign(ef1, sn);
 } // end exxef
 
+
 void adaptive_flux(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
 // This adaptive flux calculator uses uses the Equilibrium Flux Method.
 // near shocks and AUSMDV away from shocks, however, we really don't want
@@ -602,6 +611,7 @@ void adaptive_flux(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
     }
 } // end adaptive_flux()
 
+@nogc
 void ausm_plus_up(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
 // Liou's 2006 AUSM+up flux calculator
 //
@@ -623,11 +633,11 @@ void ausm_plus_up(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
 // This code: W. Y. K. Chan & P. A. Jacobs
 {
     // Some helper functions
-    double M1plus(double M) { return 0.5*(M + fabs(M)); }
-    double M1minus(double M) { return 0.5*(M - fabs(M)); }
-    double M2plus(double M) { return 0.25*(M + 1.0)*(M + 1.0); }
-    double M2minus(double M) { return -0.25*(M - 1.0)*(M - 1.0); } 
-    double M4plus(double M, double beta) {
+    @nogc double M1plus(double M) { return 0.5*(M + fabs(M)); }
+    @nogc double M1minus(double M) { return 0.5*(M - fabs(M)); }
+    @nogc double M2plus(double M) { return 0.25*(M + 1.0)*(M + 1.0); }
+    @nogc double M2minus(double M) { return -0.25*(M - 1.0)*(M - 1.0); } 
+    @nogc double M4plus(double M, double beta) {
 	if ( fabs(M) >= 1.0 ) {
 	    return M1plus(M);
 	} else {
@@ -636,7 +646,7 @@ void ausm_plus_up(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
 	    return M2p*(1.0 - 16.0*beta*M2m);
 	}
     }
-    double M4minus(double M, double beta) {
+    @nogc double M4minus(double M, double beta) {
 	if ( fabs(M) >= 1.0 ) {
 	    return M1minus(M);
 	} else {
@@ -645,7 +655,7 @@ void ausm_plus_up(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
 	    return M2m*(1.0 + 16.0*beta*M2p);
 	}
     }
-    double P5plus(double M, double alpha) {
+    @nogc double P5plus(double M, double alpha) {
 	if ( fabs(M) >= 1.0 ) {
 	    return (1.0/M)*M1plus(M);
 	} else {
@@ -654,7 +664,7 @@ void ausm_plus_up(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
 	    return M2p*((2.0 - M) - 16.0*alpha*M*M2m);
 	}
     }
-    double P5minus(double M, double alpha) {
+    @nogc double P5minus(double M, double alpha) {
 	if ( fabs(M) >= 1.0 ) {
 	    return (1.0/M)*M1minus(M);
 	} else {
@@ -827,13 +837,14 @@ void ausm_plus_up(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
     }
 } // end ausm_plus_up()
 
+
 void hlle(in FlowState Lft, in FlowState Rght, ref FVInterface IFace)
 // HLLE fluxes for MHD.
 // From V. Wheatley Matlab implementation
 // Author D. M. Bond
 // Port to D by PJ, 2014-07-24
 {
-    double SAFESQRT(double x) { return (fabs(x)>1.0e-14) ? sqrt(x) : 0.0; }
+    @nogc double SAFESQRT(double x) { return (fabs(x)>1.0e-14) ? sqrt(x) : 0.0; }
     // Unpack the flow-state vectors for either side of the interface.
     // Store in work vectors, those quantities that will be neede later.
     double rL = Lft.gas.rho;

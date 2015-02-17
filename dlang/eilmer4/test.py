@@ -48,7 +48,7 @@ blk_1.bc_list[EAST] = ExtrapolateOutBC(label="outflow-boundary")
 
 # Do a little more setting of global data.
 gdata.max_time = 5.0e-3  # seconds
-gdata.max_step = 50
+gdata.max_step = 3000
 gdata.dt = 1.0e-6
 gdata.cfl = 0.5
 # gdata.dt_max = 10.0e-6
