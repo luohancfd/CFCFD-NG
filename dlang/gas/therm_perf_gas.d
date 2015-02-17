@@ -11,8 +11,8 @@ module gas.therm_perf_gas;
 import gas.gas_model;
 import gas.physical_constants;
 import gas.thermo.cea_thermo_curves;
-import gas.thermo.perf_gas_mix_EOS;
-import gas.thermo.therm_perf_gas_mix_EOS;
+import gas.thermo.perf_gas_mix_eos;
+import gas.thermo.therm_perf_gas_mix_eos;
 import gas.diffusion.viscosity;
 import gas.diffusion.therm_cond;
 import gas.diffusion.cea_viscosity;
@@ -71,25 +71,25 @@ public:
 	return "";
     }
 
-    override void update_thermo_from_pT(ref GasState Q) const 
+    @nogc override void update_thermo_from_pT(ref GasState Q) const 
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	_thermalEOS.update_density(Q);
 	_caloricEOS.update_energy(Q);
     }
-    override void update_thermo_from_rhoe(ref GasState Q) const
+    @nogc override void update_thermo_from_rhoe(ref GasState Q) const
     {
 	assert(Q.e.length == 1, "incorrect length of energy array");
 	_caloricEOS.update_temperature(Q);
 	_thermalEOS.update_pressure(Q);
     }
-    override void update_thermo_from_rhoT(ref GasState Q) const
+    @nogc override void update_thermo_from_rhoT(ref GasState Q) const
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	_caloricEOS.update_energy(Q);
 	_thermalEOS.update_pressure(Q);
     }
-    override void update_thermo_from_rhop(ref GasState Q) const
+    @nogc override void update_thermo_from_rhop(ref GasState Q) const
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	_thermalEOS.update_temperature(Q);
@@ -218,9 +218,9 @@ public:
 	_caloricEOS.update_energy(Q);
 	_thermalEOS.update_density(Q);
     }
-    override void update_sound_speed(ref GasState Q) const
+    @nogc override void update_sound_speed(ref GasState Q) const
     {
-	throw new Exception("not implemented");
+	Q.a = double.init;
     }
     override void update_trans_coeffs(ref GasState Q) const
     {
@@ -281,7 +281,7 @@ unittest
     import util.msg_service;
 
     auto gm = new ThermallyPerfectGas("sample-data/therm-perf-5-species-air.lua");
-    auto gd = GasState(5, 1);
+    auto gd = new GasState(5, 1);
     gd.p = 1.0e6;
     gd.T[0] = 2000.0;
     gd.massf = [0.2, 0.2, 0.2, 0.2, 0.2];

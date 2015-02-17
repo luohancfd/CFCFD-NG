@@ -28,14 +28,14 @@ public:
     const string species_name(int i) { return _species_names[i]; }
 
     // Methods to be overridden.
-    const void update_thermo_from_pT(ref GasState Q) {}
-    const void update_thermo_from_rhoe(ref GasState Q) {}
-    const void update_thermo_from_rhoT(ref GasState Q) {}
-    const void update_thermo_from_rhop(ref GasState Q) {}
-    const void update_thermo_from_ps(ref GasState Q, double s) {}
-    const void update_thermo_from_hs(ref GasState Q, double h, double s) {}
-    const void update_sound_speed(ref GasState Q) {}
-    const void update_trans_coeffs(ref GasState Q) {}
+    @nogc void update_thermo_from_pT(ref GasState Q) const {}
+    @nogc void update_thermo_from_rhoe(ref GasState Q) const {}
+    @nogc void update_thermo_from_rhoT(ref GasState Q) const {}
+    @nogc void update_thermo_from_rhop(ref GasState Q) const {}
+    void update_thermo_from_ps(ref GasState Q, double s) const {}
+    void update_thermo_from_hs(ref GasState Q, double h, double s) const {}
+    @nogc void update_sound_speed(ref GasState Q) const {}
+    void update_trans_coeffs(ref GasState Q) const {}
     // const void update_diff_coeffs(ref GasState Q) {}
 
     // Methods to be overridden.

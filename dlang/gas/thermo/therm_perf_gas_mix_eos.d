@@ -1,5 +1,5 @@
 /**
- * therm_perf_gas_mix_EOS.d 
+ * therm_perf_gas_mix_eos.d 
  * This implements a caloric equation of state
  * relating temperature and internal energy
  * for a mixture of thermally perfect gases.
@@ -16,14 +16,14 @@
  * Author: Rowan G. and Peter J.
  */
 
-module gas.thermo.therm_perf_gas_mix_EOS;
+module gas.thermo.therm_perf_gas_mix_eos;
 
 import std.stdio;
 import std.string;
 import std.c.stdlib : exit;
 import gas.gas_model;
 import gas.physical_constants;
-import gas.thermo.caloric_EOS;
+import gas.thermo.evt_eos;
 import gas.thermo.cea_thermo_curves;
 import ridder;
 import luad.all;
@@ -37,14 +37,14 @@ import util.lua_service;
   The "perfect" nature of the gas means that the energy has no dependence
   on pressure or density.
 +/
-class ThermallyPerfectGasMixEOS : CaloricEOS {
+class ThermallyPerfectGasMixEOS : EVT_EOS {
 public:
     this(double[] R, CEAThermo[] curves)
     {
 	_R = R.dup;
 	_curves = curves.dup;
     }
-    override void update_energy(ref GasState Q) const
+    @nogc override void update_energy(ref GasState Q) const
     {
 	double[] energy = new double[Q.massf.length];
 	foreach ( isp, ref e; energy ) {
@@ -52,7 +52,7 @@ public:
 	}
 	Q.e[0] = mass_average(Q, energy);
     }
-    override void update_temperature(ref GasState Q) const
+    @nogc override void update_temperature(ref GasState Q) const
     {
 	double TOL = 1.0e-6;
 	// The "target" energy is the value we will iterate to find.
@@ -106,6 +106,8 @@ public:
 private:
     double[] _R;
     CEAThermo[] _curves;
+    // Static working arrays
+    static double[] _e;
 }
 
 ThermallyPerfectGasMixEOS createThermallyPerfectGasMixEOS(string[] species, ref LuaState lua)
