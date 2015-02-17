@@ -1272,13 +1272,15 @@ int write_temp_solution_data()
 	bdp->write_grid(filename, G.sim_time, G.dimensions, zip_files);
     }
     
-    FILE *tempfile;
-    std::string tempname = "temp/control.dat";    
-    tempfile = fopen(tempname.c_str(), "w");
-    fprintf(tempfile, "# Control parameters from the simulation\n");
-    fprintf(tempfile, "# simulation time, time step\n");    
-    fprintf(tempfile, "%20.12e %20.12e\n", G.sim_time, G.dt_global);
-    fclose(tempfile);       
+    if ( master ) {
+        FILE *tempfile;
+        std::string tempname = "temp/control.dat";    
+        tempfile = fopen(tempname.c_str(), "w");
+        fprintf(tempfile, "# Control parameters from the simulation\n");
+        fprintf(tempfile, "# simulation time, time step\n");    
+        fprintf(tempfile, "%20.12e %20.12e\n", G.sim_time, G.dt_global);
+        fclose(tempfile);
+    }
 
     return SUCCESS;
 } // end write_temp_solution_data()
@@ -2349,7 +2351,6 @@ int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_steppin
     using std::swap;
     string filename, jbstring;
     char jbcstr[10];
-    size_t retries = 20;    
 
     // FIX-ME moving grid: this is a work/refactoring in progress... PJ
     // 25-Mar-2103 except for superficial changes, it is the same as 
@@ -2382,23 +2383,24 @@ int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_steppin
 	if ( G.sim_time >= G.t_moving ) { 
 	    if ( G.flow_induced_moving ) { // flow induced grid movement
 	        write_temp_solution_data();
-	        if ( system("./flow_induced_moving.sh") != 0 ) {
-	            finished_time_stepping = true; 
-	            printf( "Error: check the external code for flow induced moving grid\n");
+#               ifdef _MPI	        
+	        MPI_Barrier( MPI_COMM_WORLD );
+#               endif	        
+	        if ( master ) {
+	            if ( system("./flow_induced_moving.sh") != 0 ) {
+	                printf( "Error: check the external code for flow induced moving grid.\n");
+	            }
 	        }
+#               ifdef _MPI	        
+	        MPI_Barrier( MPI_COMM_WORLD );
+#               endif	        
 	        for ( Block *bdp : G.my_blocks ) {
 	            sprintf( jbcstr, "b%04d", static_cast<int>(bdp->id) );
 	            jbstring = jbcstr;
 	            filename = "temp/"+jbstring;
-	            retries = 20;
-                    while ( retries > 0 && bdp->read_vertex_velocities(filename, G.dimensions) != SUCCESS) {
-                        --retries;
-                        cout << " Error in reading vertex velocities, read again " << endl;
-	                if ( system("./flow_induced_moving.sh") != 0 ) {
-	                    finished_time_stepping = true; 
-	                    printf( "Error: check the external code for flow induced moving grid\n");
-	                }                    
-	            } // end while loop
+                    if ( bdp->read_vertex_velocities(filename, G.dimensions) != SUCCESS ) {
+                        printf( "Error: check the output vertex velocities.\n");
+	            }
                 } // end for *bdp
 	    }
 	    else { // user-defined grid movement
