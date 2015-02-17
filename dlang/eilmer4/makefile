@@ -27,18 +27,15 @@ GAS_MODEL_FILES := \
 	$(GAS_DIR)/gas_model.d \
 	$(GAS_DIR)/gas_model_util.d \
 	$(GAS_DIR)/ideal_gas.d \
-	$(GAS_DIR)/physical_constants.d
-#	$(GAS_DIR)/therm_perf_gas.d
+	$(GAS_DIR)/physical_constants.d \
+	$(GAS_DIR)/therm_perf_gas.d
 
-#THERMO_FILES := \
-#	$(GAS_DIR)/thermo/caloric_EOS.d \
-#	$(GAS_DIR)/thermo/cal_perf_gas_EOS.d \
-#	$(GAS_DIR)/thermo/cal_perf_gas_mix_EOS.d \
-#	$(GAS_DIR)/thermo/cea_thermo_curves.d \
-#	$(GAS_DIR)/thermo/perf_gas_EOS.d \
-#	$(GAS_DIR)/thermo/perf_gas_mix_EOS.d \
-#	$(GAS_DIR)/thermo/thermal_EOS.d \
-#	$(GAS_DIR)/thermo/therm_perf_gas_mix_EOS.d
+THERMO_FILES := \
+	$(GAS_DIR)/thermo/cea_thermo_curves.d \
+	$(GAS_DIR)/thermo/evt_eos.d \
+	$(GAS_DIR)/thermo/perf_gas_mix_eos.d \
+	$(GAS_DIR)/thermo/pvt_eos.d \
+	$(GAS_DIR)/thermo/therm_perf_gas_mix_eos.d
 
 DIFFUSION_FILES := \
 	$(GAS_DIR)/diffusion/cea_therm_cond.d \
@@ -50,7 +47,7 @@ DIFFUSION_FILES := \
 	$(GAS_DIR)/diffusion/wilke_mixing_therm_cond.d \
 	$(GAS_DIR)/diffusion/wilke_mixing_viscosity.d
 
-GAS_FILES := $(GAS_MODEL_FILES) $(DIFFUSION_FILES)
+GAS_FILES := $(GAS_MODEL_FILES) $(THERMO_FILES) $(DIFFUSION_FILES)
 
 UTIL_DIR := ../util
 UTIL_FILES := $(UTIL_DIR)/lua_service.d \

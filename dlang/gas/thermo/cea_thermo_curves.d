@@ -29,10 +29,12 @@ public:
     }
     double eval_Cp(double T) const
     {
+	
 	if ( T < T_lower ) 
 	    throw new Exception("temperature value lower than T_lower in CEAThermoCurve.eval_Cp()");
 	if ( T > T_upper )
 	    throw new Exception("temperature value greater than T_upper in CEAThermoCurve.eval_Cp()");
+	
 	double Cp_on_R = a[0]/(T*T) + a[1]/T + a[2] + a[3]*T;
 	Cp_on_R += a[4]*T*T + a[5]*T*T*T + a[6]*T*T*T*T;
 	return R*Cp_on_R;
@@ -130,12 +132,15 @@ public:
 	    return h;
 	}
 	// Search for appropriate curve segment and evaluate.
-	foreach ( c; _curves ) {
+	foreach ( ref c; _curves ) {
 	    if ( T >= c.T_lower && T <= c.T_upper )
 		return c.eval_h(T);
 	}
+	assert(0);
+	/* 
 	// We should never reach this point.
 	throw new Exception("CEAThermo.eval_h(): we should never have reached this point.");
+	*/
     }
     double eval_s(double T) const
     {

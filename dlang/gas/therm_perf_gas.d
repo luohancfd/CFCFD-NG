@@ -44,13 +44,13 @@ public:
 	    Mmass[isp] = lua.get!double(_species_names[isp], "M");
 	    _R[isp] = R_universal/Mmass[isp];
 	}
-	// 2. Set the thermal EOS
-	_thermalEOS = new PerfectGasMixEOS(_R);
-	// 3. Set the caloric EOS
+	// 2. Set the p-v-T EOS
+	_pgMixEOS = new PerfectGasMixEOS(_R);
+	// 3. Set the e-v-T EOS (which in this case is an e-T relationship only)
 	foreach ( isp; 0.._n_species ) {
 	    _curves ~= createCEAThermo(lua.get!LuaTable(_species_names[isp], "cea_thermo"), _R[isp]);
 	}
-	_caloricEOS = new ThermallyPerfectGasMixEOS(_R, _curves);
+	_tpgMixEOS = new ThermallyPerfectGasMixEOS(_R, _curves);
 	// 4. Set the viscosity model
 	Viscosity[] vms;
 	foreach ( isp; 0.._n_species ) {
@@ -71,29 +71,29 @@ public:
 	return "";
     }
 
-    @nogc override void update_thermo_from_pT(ref GasState Q) const 
+    override void update_thermo_from_pT(ref GasState Q) const 
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
-	_thermalEOS.update_density(Q);
-	_caloricEOS.update_energy(Q);
+	_pgMixEOS.update_density(Q);
+	_tpgMixEOS.update_energy(Q);
     }
-    @nogc override void update_thermo_from_rhoe(ref GasState Q) const
+    override void update_thermo_from_rhoe(ref GasState Q) const
     {
 	assert(Q.e.length == 1, "incorrect length of energy array");
-	_caloricEOS.update_temperature(Q);
-	_thermalEOS.update_pressure(Q);
+	_tpgMixEOS.update_temperature(Q);
+	_pgMixEOS.update_pressure(Q);
     }
-    @nogc override void update_thermo_from_rhoT(ref GasState Q) const
+    override void update_thermo_from_rhoT(ref GasState Q) const
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
-	_caloricEOS.update_energy(Q);
-	_thermalEOS.update_pressure(Q);
+	_tpgMixEOS.update_energy(Q);
+	_pgMixEOS.update_pressure(Q);
     }
-    @nogc override void update_thermo_from_rhop(ref GasState Q) const
+    override void update_thermo_from_rhop(ref GasState Q) const
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
-	_thermalEOS.update_temperature(Q);
-	_caloricEOS.update_energy(Q);
+	_pgMixEOS.update_temperature(Q);
+	_tpgMixEOS.update_energy(Q);
     }
     override void update_thermo_from_ps(ref GasState Q, double s) const
     {
@@ -133,8 +133,8 @@ public:
 	    msg ~= e.msg;
 	    throw new Exception(msg);
 	}
-	_caloricEOS.update_energy(Q);
-	_thermalEOS.update_density(Q);
+	_tpgMixEOS.update_energy(Q);
+	_pgMixEOS.update_density(Q);
     }
     override void update_thermo_from_hs(ref GasState Q, double h, double s) const
     {
@@ -215,12 +215,12 @@ public:
 	    msg ~= e.msg;
 	    throw new Exception(msg);
 	}
-	_caloricEOS.update_energy(Q);
-	_thermalEOS.update_density(Q);
+	_tpgMixEOS.update_energy(Q);
+	_pgMixEOS.update_density(Q);
     }
-    @nogc override void update_sound_speed(ref GasState Q) const
+    override void update_sound_speed(ref GasState Q) const
     {
-	Q.a = double.init;
+	throw new Exception(format("not implemented: line=%d, file=%d", __LINE__, __FILE__));
     }
     override void update_trans_coeffs(ref GasState Q) const
     {
@@ -269,8 +269,8 @@ public:
 
 private:
     double[] _R;
-    PerfectGasMixEOS _thermalEOS;
-    ThermallyPerfectGasMixEOS _caloricEOS;
+    PerfectGasMixEOS _pgMixEOS;
+    ThermallyPerfectGasMixEOS _tpgMixEOS;
     CEAThermo[] _curves;
     WilkeMixingViscosity _viscModel;
     WilkeMixingThermCond _thermCondModel;
