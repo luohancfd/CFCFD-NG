@@ -12,15 +12,23 @@ import std.math;
 import std.typecons;
 
 import gas;
+import util.msg_service;
+import kinetics.rate_constant;
 /++
  Reaction is an interface specifying the public services
  provided by an object of Reaction type.
 +/
-interface Reaction
+class Reaction
 {
 public:
     @property double k_f() const { return _k_f; }
     @property double k_b() const { return _k_b; }
+    
+    this(in RateConstant forward, in RateConstant backward)
+    {
+	_forward = forward.dup();
+	_backward = backward.dup();
+    }
     
     final void eval_rate_constants(in GasState Q)
     {
@@ -34,8 +42,12 @@ public:
 	_w_b = eval_backward_rate(conc);
     }
 
-    double production(int isp) const;
-    double loss(int isp) const;
+    abstract double production(int isp) const;
+    abstract double loss(int isp) const;
+
+protected:
+    abstract double eval_forward_rate(in double[] conc) const;
+    abstract double eval_backward_rate(in double[] conc) const;
 	    
 private:
     RateConstant _forward, _backward;
@@ -49,8 +61,6 @@ private:
     {
 	return _backward.eval(Q);
     }
-    double eval_forward_rate(in double[] conc) const;
-    double eval_backward_rate(in double[] conc) const;
 }
 
 /++
@@ -64,7 +74,40 @@ private:
 class ElementaryReaction : Reaction
 {
 public:
-    override double production(isp) const
+    this(in RateConstant forward, in RateConstant backward,
+	 int[] reac_spidx, int[] reac_coeffs, int[] prod_spidx, int[] prod_coeffs,
+	 int n_species)
+    {
+	assert(reac_spidx.length == reac_coeffs.length,
+	       brokenPreCondition("reac_spidx and reac_coeffs arrays not of equal length"));
+	assert(prod_spidx.length == prod_coeffs.length,
+	       brokenPreCondition("prod_spdix and prod_coeffs arrays are not of equal length"));
+	super(forward, backward);
+	foreach ( i; 0..reac_spidx.length ) {
+	    _reactants ~= tuple(reac_spidx[i], reac_coeffs[i]);
+	}
+	foreach ( i; 0..prod_spidx.length ) {
+	    _products ~= tuple(prod_spidx[i], prod_coeffs[i]);
+	}
+	foreach ( isp; 0..n_species ) {
+	    int nu1 = 0;
+	    foreach ( ref r; _reactants ) {
+		if ( r[0] == isp ) {
+		    nu1 = r[1];
+		    break;
+		}
+	    }
+	    int nu2 = 0;
+	    foreach ( ref p; _products ) {
+		if ( p[0] == isp ) {
+		    nu2 = p[1];
+		    break;
+		}
+	    }
+	    _nu ~= nu2 - nu1;
+	}
+    }
+    override double production(int isp) const
     {
 	if ( _nu[isp] >  0 )
 	    return _nu[isp]*_w_f;
@@ -74,24 +117,25 @@ public:
 	    return 0.0;
     }
     
-    override double loss(isp) const
+    override double loss(int isp) const
     {
 	if ( _nu[isp] > 0 ) 
 	    return _nu[isp]*_w_b;
 	else if ( _nu[isp] < 0 )
 	    return -_nu[isp]*_w_f;
 	else 
-	    return 0.0
+	    return 0.0;
     }
 
 private:
     Tuple!(int, int)[] _reactants;
     Tuple!(int, int)[] _products;
     int[] _nu;
+protected:
     override double eval_forward_rate(in double[] conc) const
     {
 	double val = _k_f;
-	for ( r; _reactants ) {
+	foreach ( ref r; _reactants ) {
 	    int isp = r[0];
 	    int coeff = r[1];
 	    val *= pow(conc[isp], coeff);
@@ -102,11 +146,29 @@ private:
     override double eval_backward_rate(in double[] conc) const
     {
 	double val = _k_b;
-	for ( p; _products ) {
+	foreach ( ref p; _products ) {
 	    int isp = p[0];
 	    int coeff = p[1];
 	    val *= pow(conc[isp], coeff);
 	}
 	return val;
     }
+}
+
+unittest {
+    // Find rate of forward production for H2 + I2 reaction at 700 K.
+    double[] conc = [4.54, 4.54, 0.0];
+    auto rc = new ArrheniusRateConstant(1.94e14, 0.0, 20620.0);
+    auto gd = new GasState(3, 1);
+    gd.T[0] = 700.0;
+    auto reaction = new ElementaryReaction(rc, rc, [0, 1], [1, 1],
+					   [2], [2], 3);
+    reaction.eval_rate_constants(gd);
+    reaction.eval_rates(conc);
+    assert(approxEqual(0.0, reaction.production(0)), failedUnitTest());
+    assert(approxEqual(0.0, reaction.production(1)), failedUnitTest());
+    assert(approxEqual(1287.8606, reaction.production(2)), failedUnitTest());
+    assert(approxEqual(643.9303, reaction.loss(0)), failedUnitTest());
+    assert(approxEqual(643.9303, reaction.loss(1)), failedUnitTest());
+    assert(approxEqual(0.0, reaction.loss(2)), failedUnitTest());
 }

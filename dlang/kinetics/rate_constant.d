@@ -18,7 +18,8 @@ import gas;
 +/
 
 interface RateConstant {
-    double eval(ref GasState Q) const;
+    RateConstant dup() const;
+    double eval(in GasState Q) const;
 }
 
 /++
@@ -55,7 +56,11 @@ public:
 	_n = t.get!double("n");
 	_C = t.get!double("C");
     }
-    override double eval(ref GasState Q) const
+    ArrheniusRateConstant dup() const
+    {
+	return new ArrheniusRateConstant(_A, _n, _C);
+    }
+    override double eval(in GasState Q) const
     {
 	double T = Q.T[0];
 	return _A*pow(T, _n)*exp(-_C/T);
@@ -68,7 +73,7 @@ unittest {
     import util.msg_service;
     // Test 1. Rate constant for H2 + I2 reaction.
     auto rc = new ArrheniusRateConstant(1.94e14, 0.0, 20620.0);
-    auto gd = GasState(1, 1);
+    auto gd = new GasState(1, 1);
     gd.T[0] = 700.0;
     assert(approxEqual(31.24116, rc.eval(gd)), failedUnitTest());
     // Test 2. Read rate constant parameters for nitrogen dissociation

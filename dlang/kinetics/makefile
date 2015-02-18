@@ -2,7 +2,8 @@
 # Can be used to perform unit tests
 # and build stand-alone programs.
 
-UNITTEST_FILES := rate_constant
+UNITTEST_FILES := rate_constant_test \
+	reaction_test
 
 GAS_DIR := ../gas
 LIBGAS := ${GAS_DIR}/libgas.a
@@ -26,5 +27,7 @@ ${LIBGAS}:
 ${LIBLUA}:
 	cd ${LUA_DIR}; make linux local
 
-rate_constant: rate_constant.d $(LIBGAS) $(LIBLUA) $(LUAD_FILES)
-	dmd $(DFLAGS) rate_constant.d ${LIBGAS} ${LIBLUA} $(LUAD_FILES) $(DLINKFLAGS)
+rate_constant_test: rate_constant.d $(LIBGAS) $(LIBLUA) $(LUAD_FILES)
+	dmd $(DFLAGS) -ofrate_constant_test rate_constant.d ${LIBGAS} ${LIBLUA} $(LUAD_FILES) $(DLINKFLAGS)
+reaction_test: reaction.d $(LIBGAS) $(LIBLUA) $(LUAD_FILES)
+	dmd $(DFLAGS) -ofreaction_test reaction.d rate_constant.d ${LIBGAS} ${LIBLUA} $(LUAD_FILES) $(DLINKFLAGS)
