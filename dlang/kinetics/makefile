@@ -5,6 +5,13 @@
 UNITTEST_FILES := rate_constant_test \
 	reaction_test
 
+UTIL_DIR := ../util
+UTIL_FILES := $(UTIL_DIR)/lua_service.d \
+	$(UTIL_DIR)/msg_service.d
+
+NM_DIR := ../nm
+NM_FILES := $(NM_DIR)/ridder.d
+
 GAS_DIR := ../gas
 LIBGAS := ${GAS_DIR}/libgas.a
 
@@ -15,6 +22,10 @@ LUAD_DIR := ../extern/LuaD
 LUAD_FILES := ${LUAD_DIR}/luad/*.d \
 	${LUAD_DIR}/luad/c/*.d \
 	${LUAD_DIR}/luad/conversions/*.d
+
+KINETICS_FILES := rate_constant.d \
+	reaction.d \
+	reaction_mechanism.d
 
 DFLAGS := -main -unittest -gc -wi -I../ 
 DLINKFLAGS :=  -w -L-L${LIBLUAPATH} -L-llua -L-ldl
@@ -27,7 +38,13 @@ ${LIBGAS}:
 ${LIBLUA}:
 	cd ${LUA_DIR}; make linux local
 
+libkinetics.a : $(KINETICS_FILES) $(GAS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
+	dmd -lib -oflibkinetics.a $(KINETICS_FILES) $(GAS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES) $(DFLAGS)
+
 rate_constant_test: rate_constant.d $(LIBGAS) $(LIBLUA) $(LUAD_FILES)
 	dmd $(DFLAGS) -ofrate_constant_test rate_constant.d ${LIBGAS} ${LIBLUA} $(LUAD_FILES) $(DLINKFLAGS)
 reaction_test: reaction.d $(LIBGAS) $(LIBLUA) $(LUAD_FILES)
 	dmd $(DFLAGS) -ofreaction_test reaction.d rate_constant.d ${LIBGAS} ${LIBLUA} $(LUAD_FILES) $(DLINKFLAGS)
+
+reaction_mechanism_test: reaction_mechanism.d libkinetics.a $(LIBGAS) $(LIBLUA) $(LUAD_FILES)
+	dmd $(DFLAGS) -ofreaction_mechanism_test reaction.d rate_constant.d ${LIBGAS} ${LIBLUA} $(LUAD_FILES) $(DLINKFLAGS)

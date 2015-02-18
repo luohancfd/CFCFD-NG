@@ -23,12 +23,15 @@ class Reaction
 public:
     @property double k_f() const { return _k_f; }
     @property double k_b() const { return _k_b; }
+    @property ref int[] participants() { return _participants; }
     
     this(in RateConstant forward, in RateConstant backward)
     {
 	_forward = forward.dup();
 	_backward = backward.dup();
     }
+
+    abstract Reaction dup() const;
     
     final void eval_rate_constants(in GasState Q)
     {
@@ -53,6 +56,8 @@ private:
     RateConstant _forward, _backward;
     double _k_f, _k_b; // Storage of computed rate constants
     double _w_f, _w_b; // Storage of computed rates of change
+    int [] _participants; // Storage of indices of species that
+                          // participate in this reaction
     double eval_forward_rate_constant(in GasState Q) const
     {
 	return _forward.eval(Q);
@@ -83,12 +88,17 @@ public:
 	assert(prod_spidx.length == prod_coeffs.length,
 	       brokenPreCondition("prod_spdix and prod_coeffs arrays are not of equal length"));
 	super(forward, backward);
+	bool[int] pmap;
 	foreach ( i; 0..reac_spidx.length ) {
 	    _reactants ~= tuple(reac_spidx[i], reac_coeffs[i]);
+	    pmap[reac_spidx[i]] = true;
 	}
 	foreach ( i; 0..prod_spidx.length ) {
 	    _products ~= tuple(prod_spidx[i], prod_coeffs[i]);
+	    pmap[prod_spidx[i]] = true;
 	}
+	_participants = pmap.keys.dup();
+	_participants.sort;
 	foreach ( isp; 0..n_species ) {
 	    int nu1 = 0;
 	    foreach ( ref r; _reactants ) {
@@ -106,6 +116,20 @@ public:
 	    }
 	    _nu ~= nu2 - nu1;
 	}
+    }
+    this(in RateConstant forward, in RateConstant backward, in int[] participants,
+	 in Tuple!(int, int)[] reactants, in Tuple!(int, int)[] products, in int[] nu)
+    {
+	super(forward, backward);
+	_participants = participants.dup();
+	_reactants = reactants.dup();
+	_products = products.dup();
+	_nu = nu.dup();
+    }
+    override ElementaryReaction dup() const
+    {
+	return new ElementaryReaction(_forward, _backward, _participants,
+				      _reactants, _products, _nu);
     }
     override double production(int isp) const
     {
@@ -126,11 +150,6 @@ public:
 	else 
 	    return 0.0;
     }
-
-private:
-    Tuple!(int, int)[] _reactants;
-    Tuple!(int, int)[] _products;
-    int[] _nu;
 protected:
     override double eval_forward_rate(in double[] conc) const
     {
@@ -153,6 +172,11 @@ protected:
 	}
 	return val;
     }
+
+private:
+    Tuple!(int, int)[] _reactants;
+    Tuple!(int, int)[] _products;
+    int[] _nu;
 }
 
 unittest {
