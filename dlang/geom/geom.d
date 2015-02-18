@@ -3,6 +3,12 @@
  *
  * Author: Peter J.
  * Version: 2014-06-16 first cut.
+ *          2015-02-18 Attempt to reduce the number of redundant object copies
+ *          by declaring some of the "in Vector3" parameters as "ref const(Vector3)".
+ *          This has been somewhat successful, however, a few "in" parameters remain
+ *          so that the vector arithmetic is a lot cleaner in the code.
+ *          Effectively this hides the creation of Vector3 temporaries 
+ *          the would otherwise have to appear explicitly in the code.
  */
 module geom;
 
@@ -226,7 +232,8 @@ struct Vector3 {
 
 /**
  * Returns the scalar dot product of two vectors.
- */   
+ */
+@nogc
 double dot(in Vector3 v1, in Vector3 v2)
 {
     double result = 0.0;
@@ -238,6 +245,7 @@ double dot(in Vector3 v1, in Vector3 v2)
 /**
  * Returns magnitude of the vector.
  */
+@nogc
 double abs(in Vector3 v)
 {
     return sqrt(v.dot(v));
@@ -254,6 +262,7 @@ Vector3 unit(in Vector3 v)
 /**
  * Vector cross product.
  */
+@nogc
 Vector3 cross(in Vector3 v1, in Vector3 v2)
 {
     Vector3 v3;
@@ -266,6 +275,7 @@ Vector3 cross(in Vector3 v1, in Vector3 v2)
 /**
  * Returns true is all of the components are approximately equal.
  */
+@nogc
 bool approxEqualVectors(in Vector3 v1, in Vector3 v2)
 {
     return (approxEqual(v1._p[0], v2._p[0]) && 
@@ -340,8 +350,8 @@ double radians(double degrees) { return PI*degrees/180.0; }
 /**
  * Project the point q onto the plane, along the vector qr.
  */
-int project_onto_plane(ref Vector3 q, in Vector3 qr,
-		       in Vector3 a, in Vector3 b, in Vector3 c)
+int project_onto_plane(ref Vector3 q, ref const(Vector3) qr,
+		       ref const(Vector3) a, ref const(Vector3) b, ref const(Vector3) c)
 {
     // See Section 7.2 in
     // J. O'Rourke (1998)
@@ -370,7 +380,7 @@ int project_onto_plane(ref Vector3 q, in Vector3 qr,
 } // end project_onto_plane()
 
 /// Map space so that a neutral plane wraps onto a cylinder of radius H.
-ref Vector3 map_neutral_plane_to_cylinder(ref Vector3 p, double H )
+ref Vector3 map_neutral_plane_to_cylinder(ref Vector3 p, double H)
 {
     // The axis of the hypothetical cylinder coincides with the x-axis thus
     // H is also the distance of the neutral plane above the x-axis.
@@ -385,7 +395,8 @@ ref Vector3 map_neutral_plane_to_cylinder(ref Vector3 p, double H )
     return p;
 }
 
-int inside_triangle(in Vector3 p, in Vector3 a, in Vector3 b, in Vector3 c)
+int inside_triangle(ref const(Vector3) p, ref const(Vector3) a,
+		    ref const(Vector3) b, ref const(Vector3) c)
 {
     Vector3 n = unit(cross(a-c, b-c)); // normal to plane of triangle
     double area1 = 0.5 * dot(cross(p-a, p-b), n); // projected area of triangle pab
@@ -414,8 +425,10 @@ unittest {
     Vector3 myp = Vector3(1.0, 1.0, 1.0);
     map_neutral_plane_to_cylinder(myp, 1.0);
     assert(approxEqualVectors(myp, Vector3(1.0, sin(1.0), cos(1.0))), "cylinder map");
-    assert(inside_triangle(Vector3(0.65, 0.0, 0.0), a, b, c) > 0, "inside triangle");
-    assert(!inside_triangle(Vector3(0.65, -0.1, 0.0), a, b, c), "outside triangle");
+    Vector3 d = Vector3(0.65, 0.0, 0.0);
+    assert(inside_triangle(d, a, b, c) > 0, "inside triangle");
+    Vector3 e = Vector3(0.65, -0.1, 0.0);
+    assert(!inside_triangle(e, a, b, c), "outside triangle");
 }
 
 
@@ -430,7 +443,8 @@ unittest {
  * Resultant normal vector is up, toward you.
  * Assume that all points are in the one plane.
  */
-void quad_properties(in Vector3 p0, in Vector3 p1, in Vector3 p2, in Vector3 p3,
+void quad_properties(ref const(Vector3) p0, ref const(Vector3) p1,
+		     ref const(Vector3) p2, ref const(Vector3) p3,
 		     ref Vector3 centroid,
 		     ref Vector3 n, ref Vector3 t1, ref Vector3 t2,
 		     ref double area,
@@ -457,12 +471,14 @@ void quad_properties(in Vector3 p0, in Vector3 p1, in Vector3 p2, in Vector3 p3,
     }
 } // end quad_properties()
 
-double tetrahedron_volume(in Vector3 p0, in Vector3 p1, in Vector3 p2, in Vector3 p3)
+double tetrahedron_volume(ref const(Vector3) p0, ref const(Vector3) p1,
+			  ref const(Vector3) p2, ref const(Vector3) p3)
 {
     return dot(p3-p0, cross(p1-p0, p2-p0)) / 6.0;
 } // end tetrahedron_volume()
 
-void tetrahedron_properties(in Vector3 p0, in Vector3 p1, in Vector3 p2, in Vector3 p3,
+void tetrahedron_properties(ref const(Vector3) p0, ref const(Vector3) p1,
+			    ref const(Vector3) p2, ref const(Vector3) p3,
 			    ref Vector3 centroid, ref double volume)
 {
     volume = tetrahedron_volume(p0, p1, p2, p3);

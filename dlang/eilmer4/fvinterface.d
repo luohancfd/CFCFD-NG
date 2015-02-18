@@ -59,40 +59,42 @@ public:
 	F = new ConservedQuantities(other.F);
     }
 
+    @nogc
     void copy_values_from(in FVInterface other, uint type_of_copy)
     {
-	switch ( type_of_copy ) {
+	switch (type_of_copy) {
 	case CopyDataOption.minimal_flow:
 	case CopyDataOption.all_flow:
 	    fs.copy_values_from(other.fs);
 	    F.copy_values_from(other.F);
 	    break;
 	case CopyDataOption.grid:
-	    pos = other.pos;
-	    gvel = other.gvel;
+	    pos.refx = other.pos.x; pos.refy = other.pos.y; pos.refz = other.pos.z;
+	    gvel.refx = other.gvel.x; gvel.refy = other.gvel.y; gvel.refz = other.gvel.z;
 	    Ybar = other.Ybar;
 	    length = other.length;
 	    area[] = other.area[];
-	    n = other.n;
-	    t1 = other.t1;
-	    t2 = other.t2;
+	    n.refx = other.n.x; n.refy = other.n.y; n.refz = other.n.z;
+	    t1.refx = other.t1.x; t1.refy = other.t1.y; t1.refz = other.t1.z;
+	    t2.refx = other.t2.x; t2.refy = other.t2.y; t2.refz = other.t2.z;
 	    break;
 	case CopyDataOption.all: 
 	default:
 	    id = other.id;
-	    pos = other.pos;
-	    gvel = other.gvel;
+	    pos.refx = other.pos.x; pos.refy = other.pos.y; pos.refz = other.pos.z;
+	    gvel.refx = other.gvel.x; gvel.refy = other.gvel.y; gvel.refz = other.gvel.z;
 	    Ybar = other.Ybar;
 	    length = other.length;
 	    area[] = other.area[];
-	    n = other.n;
-	    t1 = other.t1;
-	    t2 = other.t2;
+	    n.refx = other.n.x; n.refy = other.n.y; n.refz = other.n.z;
+	    t1.refx = other.t1.x; t1.refy = other.t1.y; t1.refz = other.t1.z;
+	    t2.refx = other.t2.x; t2.refy = other.t2.y; t2.refz = other.t2.z;
 	    fs.copy_values_from(other.fs);
 	    F.copy_values_from(other.F);
 	} // end switch
     }
 
+    @nogc
     void copy_grid_level_to_level(uint from_level, uint to_level)
     {
 	area[to_level] = area[from_level];

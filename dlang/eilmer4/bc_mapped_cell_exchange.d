@@ -42,12 +42,12 @@ public:
 
     override void apply_convective(double t)
     {
-	throw new Error("Not implemented yet.");
+	assert(false, "Not implemented yet.");
     } // end apply_convective
 
     override void apply_viscous(double t)
     {
-	throw new Error("Not implemented yet.");
+	assert(false, "Not implemented yet.");
     }  // end apply_viscous
 
 } // end class MappedCellExchangeBC

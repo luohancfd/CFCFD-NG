@@ -20,6 +20,7 @@ import bc;
 import sblock;
 import globalconfig;
 
+@nogc
 double ideal_omega_at_wall(in FVCell cell)
 {
     auto wall_gas = cell.cell_at_nearest_wall.fs.gas;
@@ -27,6 +28,7 @@ double ideal_omega_at_wall(in FVCell cell)
     return 400.0 * wall_gas.mu / wall_gas.rho / (d0 * d0);
 }
 
+@nogc
 double ideal_omega(in FVCell cell)
 {
     double d0 = cell.half_cell_width_at_wall;
@@ -34,6 +36,7 @@ double ideal_omega(in FVCell cell)
     return ideal_omega_at_wall(cell) * (d0 * d0) / ((d0 + d) * (d0 + d));
 }
 
+@nogc
 void apply_menter_boundary_correction(ref SBlock blk, size_t ftl)
 {
     size_t i, j, k;

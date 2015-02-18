@@ -59,7 +59,8 @@ public:
 	grad_pe = other.grad_pe;
     }
 
-    @nogc void copy_values_from(ref const(FVVertex) other)
+    @nogc 
+    void copy_values_from(ref const(FVVertex) other)
     {
 	if (!(this is other)) {
 	    id = other.id;
@@ -99,7 +100,8 @@ public:
 	}
     } // end copy_values_from()
 
-    @nogc void copy_grid_level_to_level(uint from_level, uint to_level)
+    @nogc 
+    void copy_grid_level_to_level(uint from_level, uint to_level)
     {
 	pos[to_level] = pos[from_level];
 	vel[to_level] = vel[from_level];

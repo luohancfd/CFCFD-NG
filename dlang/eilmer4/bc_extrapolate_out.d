@@ -88,7 +88,9 @@ public:
 			    dest_cell.fs.gas.massf[0] = 1.0;
 			}
 			gmodel.update_thermo_from_rhoe(dest_cell.fs.gas);
-			dest_cell.fs.vel = 2.0*cell_1.fs.vel - cell_2.fs.vel;
+			dest_cell.fs.vel.refx = 2.0*cell_1.fs.vel.x - cell_2.fs.vel.x;
+			dest_cell.fs.vel.refy = 2.0*cell_1.fs.vel.y - cell_2.fs.vel.y;
+			dest_cell.fs.vel.refz = 2.0*cell_1.fs.vel.z - cell_2.fs.vel.z;
 			dest_cell.fs.tke = 2.0*cell_1.fs.tke - cell_2.fs.tke;
 			dest_cell.fs.omega = 2.0*cell_1.fs.omega - cell_2.fs.omega;
 			dest_cell.fs.mu_t = 2.0*cell_1.fs.mu_t - cell_2.fs.mu_t;
@@ -113,7 +115,9 @@ public:
 			    dest_cell.fs.gas.massf[0] = 1.0;
 			}
 			gmodel.update_thermo_from_rhoe(dest_cell.fs.gas);
-			dest_cell.fs.vel = 2.0*cell_1.fs.vel - cell_2.fs.vel;
+			dest_cell.fs.vel.refx = 2.0*cell_1.fs.vel.x - cell_2.fs.vel.x;
+			dest_cell.fs.vel.refy = 2.0*cell_1.fs.vel.y - cell_2.fs.vel.y;
+			dest_cell.fs.vel.refz = 2.0*cell_1.fs.vel.z - cell_2.fs.vel.z;
 			dest_cell.fs.tke = 2.0*cell_1.fs.tke - cell_2.fs.tke;
 			dest_cell.fs.omega = 2.0*cell_1.fs.omega - cell_2.fs.omega;
 			dest_cell.fs.mu_t = 2.0*cell_1.fs.mu_t - cell_2.fs.mu_t;
@@ -161,7 +165,9 @@ public:
 			    dest_cell.fs.gas.massf[0] = 1.0;
 			}
 			gmodel.update_thermo_from_rhoe(dest_cell.fs.gas);
-			dest_cell.fs.vel = 2.0*cell_1.fs.vel - cell_2.fs.vel;
+			dest_cell.fs.vel.refx = 2.0*cell_1.fs.vel.x - cell_2.fs.vel.x;
+			dest_cell.fs.vel.refy = 2.0*cell_1.fs.vel.y - cell_2.fs.vel.y;
+			dest_cell.fs.vel.refz = 2.0*cell_1.fs.vel.z - cell_2.fs.vel.z;
 			dest_cell.fs.tke = 2.0*cell_1.fs.tke - cell_2.fs.tke;
 			dest_cell.fs.omega = 2.0*cell_1.fs.omega - cell_2.fs.omega;
 			dest_cell.fs.mu_t = 2.0*cell_1.fs.mu_t - cell_2.fs.mu_t;
@@ -186,7 +192,9 @@ public:
 			    dest_cell.fs.gas.massf[0] = 1.0;
 			}
 			gmodel.update_thermo_from_rhoe(dest_cell.fs.gas);
-			dest_cell.fs.vel = 2.0*cell_1.fs.vel - cell_2.fs.vel;
+			dest_cell.fs.vel.refx = 2.0*cell_1.fs.vel.x - cell_2.fs.vel.x;
+			dest_cell.fs.vel.refy = 2.0*cell_1.fs.vel.y - cell_2.fs.vel.y;
+			dest_cell.fs.vel.refz = 2.0*cell_1.fs.vel.z - cell_2.fs.vel.z;
 			dest_cell.fs.tke = 2.0*cell_1.fs.tke - cell_2.fs.tke;
 			dest_cell.fs.omega = 2.0*cell_1.fs.omega - cell_2.fs.omega;
 			dest_cell.fs.mu_t = 2.0*cell_1.fs.mu_t - cell_2.fs.mu_t;
@@ -233,7 +241,9 @@ public:
 			    dest_cell.fs.gas.massf[0] = 1.0;
 			}
 			gmodel.update_thermo_from_rhoe(dest_cell.fs.gas);
-			dest_cell.fs.vel = 2.0*cell_1.fs.vel - cell_2.fs.vel;
+			dest_cell.fs.vel.refx = 2.0*cell_1.fs.vel.x - cell_2.fs.vel.x;
+			dest_cell.fs.vel.refy = 2.0*cell_1.fs.vel.y - cell_2.fs.vel.y;
+			dest_cell.fs.vel.refz = 2.0*cell_1.fs.vel.z - cell_2.fs.vel.z;
 			dest_cell.fs.tke = 2.0*cell_1.fs.tke - cell_2.fs.tke;
 			dest_cell.fs.omega = 2.0*cell_1.fs.omega - cell_2.fs.omega;
 			dest_cell.fs.mu_t = 2.0*cell_1.fs.mu_t - cell_2.fs.mu_t;
@@ -258,13 +268,14 @@ public:
 			    dest_cell.fs.gas.massf[0] = 1.0;
 			}
 			gmodel.update_thermo_from_rhoe(dest_cell.fs.gas);
-			dest_cell.fs.vel = 2.0*cell_1.fs.vel - cell_2.fs.vel;
+			dest_cell.fs.vel.refx = 2.0*cell_1.fs.vel.x - cell_2.fs.vel.x;
+			dest_cell.fs.vel.refy = 2.0*cell_1.fs.vel.y - cell_2.fs.vel.y;
+			dest_cell.fs.vel.refz = 2.0*cell_1.fs.vel.z - cell_2.fs.vel.z;
 			dest_cell.fs.tke = 2.0*cell_1.fs.tke - cell_2.fs.tke;
 			dest_cell.fs.omega = 2.0*cell_1.fs.omega - cell_2.fs.omega;
 			dest_cell.fs.mu_t = 2.0*cell_1.fs.mu_t - cell_2.fs.mu_t;
 			dest_cell.fs.k_t = 2.0*cell_1.fs.k_t - cell_2.fs.k_t;
-		    }
-		    else {
+		    } else {
 			src_cell = blk.get_cell(i,j,k);
 			dest_cell = blk.get_cell(i,j-1,k);
 			dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);
@@ -305,7 +316,9 @@ public:
 			    dest_cell.fs.gas.massf[0] = 1.0;
 			}
 			gmodel.update_thermo_from_rhoe(dest_cell.fs.gas);
-			dest_cell.fs.vel = 2.0*cell_1.fs.vel - cell_2.fs.vel;
+			dest_cell.fs.vel.refx = 2.0*cell_1.fs.vel.x - cell_2.fs.vel.x;
+			dest_cell.fs.vel.refy = 2.0*cell_1.fs.vel.y - cell_2.fs.vel.y;
+			dest_cell.fs.vel.refz = 2.0*cell_1.fs.vel.z - cell_2.fs.vel.z;
 			dest_cell.fs.tke = 2.0*cell_1.fs.tke - cell_2.fs.tke;
 			dest_cell.fs.omega = 2.0*cell_1.fs.omega - cell_2.fs.omega;
 			dest_cell.fs.mu_t = 2.0*cell_1.fs.mu_t - cell_2.fs.mu_t;
@@ -330,13 +343,14 @@ public:
 			    dest_cell.fs.gas.massf[0] = 1.0;
 			}
 			gmodel.update_thermo_from_rhoe(dest_cell.fs.gas);
-			dest_cell.fs.vel = 2.0*cell_1.fs.vel - cell_2.fs.vel;
+			dest_cell.fs.vel.refx = 2.0*cell_1.fs.vel.x - cell_2.fs.vel.x;
+			dest_cell.fs.vel.refy = 2.0*cell_1.fs.vel.y - cell_2.fs.vel.y;
+			dest_cell.fs.vel.refz = 2.0*cell_1.fs.vel.z - cell_2.fs.vel.z;
 			dest_cell.fs.tke = 2.0*cell_1.fs.tke - cell_2.fs.tke;
 			dest_cell.fs.omega = 2.0*cell_1.fs.omega - cell_2.fs.omega;
 			dest_cell.fs.mu_t = 2.0*cell_1.fs.mu_t - cell_2.fs.mu_t;
 			dest_cell.fs.k_t = 2.0*cell_1.fs.k_t - cell_2.fs.k_t;
-		    }
-		    else {
+		    } else {
 			// Zero-order extrapolation
 			src_cell = blk.get_cell(i,j,k);
 			dest_cell = blk.get_cell(i-1,j,k);
@@ -378,7 +392,9 @@ public:
 			    dest_cell.fs.gas.massf[0] = 1.0;
 			}
 			gmodel.update_thermo_from_rhoe(dest_cell.fs.gas);
-			dest_cell.fs.vel = 2.0*cell_1.fs.vel - cell_2.fs.vel;
+			dest_cell.fs.vel.refx = 2.0*cell_1.fs.vel.x - cell_2.fs.vel.x;
+			dest_cell.fs.vel.refy = 2.0*cell_1.fs.vel.y - cell_2.fs.vel.y;
+			dest_cell.fs.vel.refz = 2.0*cell_1.fs.vel.z - cell_2.fs.vel.z;
 			dest_cell.fs.tke = 2.0*cell_1.fs.tke - cell_2.fs.tke;
 			dest_cell.fs.omega = 2.0*cell_1.fs.omega - cell_2.fs.omega;
 			dest_cell.fs.mu_t = 2.0*cell_1.fs.mu_t - cell_2.fs.mu_t;
@@ -403,13 +419,14 @@ public:
 			    dest_cell.fs.gas.massf[0] = 1.0;
 			}
 			gmodel.update_thermo_from_rhoe(dest_cell.fs.gas);
-			dest_cell.fs.vel = 2.0*cell_1.fs.vel - cell_2.fs.vel;
+			dest_cell.fs.vel.refx = 2.0*cell_1.fs.vel.x - cell_2.fs.vel.x;
+			dest_cell.fs.vel.refy = 2.0*cell_1.fs.vel.y - cell_2.fs.vel.y;
+			dest_cell.fs.vel.refz = 2.0*cell_1.fs.vel.z - cell_2.fs.vel.z;
 			dest_cell.fs.tke = 2.0*cell_1.fs.tke - cell_2.fs.tke;
 			dest_cell.fs.omega = 2.0*cell_1.fs.omega - cell_2.fs.omega;
 			dest_cell.fs.mu_t = 2.0*cell_1.fs.mu_t - cell_2.fs.mu_t;
 			dest_cell.fs.k_t = 2.0*cell_1.fs.k_t - cell_2.fs.k_t;
-		    }
-		    else {
+		    } else {
 			// Zero-order extrapolation
 			src_cell = blk.get_cell(i,j,k);
 			dest_cell = blk.get_cell(i,j,k+1);
@@ -451,7 +468,9 @@ public:
 			    dest_cell.fs.gas.massf[0] = 1.0;
 			}
 			gmodel.update_thermo_from_rhoe(dest_cell.fs.gas);
-			dest_cell.fs.vel = 2.0*cell_1.fs.vel - cell_2.fs.vel;
+			dest_cell.fs.vel.refx = 2.0*cell_1.fs.vel.x - cell_2.fs.vel.x;
+			dest_cell.fs.vel.refy = 2.0*cell_1.fs.vel.y - cell_2.fs.vel.y;
+			dest_cell.fs.vel.refz = 2.0*cell_1.fs.vel.z - cell_2.fs.vel.z;
 			dest_cell.fs.tke = 2.0*cell_1.fs.tke - cell_2.fs.tke;
 			dest_cell.fs.omega = 2.0*cell_1.fs.omega - cell_2.fs.omega;
 			dest_cell.fs.mu_t = 2.0*cell_1.fs.mu_t - cell_2.fs.mu_t;
@@ -476,13 +495,14 @@ public:
 			    dest_cell.fs.gas.massf[0] = 1.0;
 			}
 			gmodel.update_thermo_from_rhoe(dest_cell.fs.gas);
-			dest_cell.fs.vel = 2.0*cell_1.fs.vel - cell_2.fs.vel;
+			dest_cell.fs.vel.refx = 2.0*cell_1.fs.vel.x - cell_2.fs.vel.x;
+			dest_cell.fs.vel.refy = 2.0*cell_1.fs.vel.y - cell_2.fs.vel.y;
+			dest_cell.fs.vel.refz = 2.0*cell_1.fs.vel.z - cell_2.fs.vel.z;
 			dest_cell.fs.tke = 2.0*cell_1.fs.tke - cell_2.fs.tke;
 			dest_cell.fs.omega = 2.0*cell_1.fs.omega - cell_2.fs.omega;
 			dest_cell.fs.mu_t = 2.0*cell_1.fs.mu_t - cell_2.fs.mu_t;
 			dest_cell.fs.k_t = 2.0*cell_1.fs.k_t - cell_2.fs.k_t;
-		    }
-		    else {
+		    } else {
 			src_cell = blk.get_cell(i,j,k);
 			dest_cell = blk.get_cell(i,j,k-1);
 			dest_cell.copy_values_from(src_cell, CopyDataOption.minimal_flow);

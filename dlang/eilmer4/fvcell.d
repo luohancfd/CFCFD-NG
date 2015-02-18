@@ -91,6 +91,7 @@ public:
 	Q = new ConservedQuantities(gm);
     }
 
+    @nogc
     void copy_values_from(in FVCell other, int type_of_copy)
     {
 	switch ( type_of_copy ) {
@@ -107,7 +108,9 @@ public:
 	    break;
 	case CopyDataOption.grid:
 	    foreach(i; 0 .. n_time_levels) {
-		pos[i] = other.pos[i];
+		pos[i].refx = other.pos[i].x;
+		pos[i].refy = other.pos[i].y;
+		pos[i].refz = other.pos[i].z;
 		volume[i] = other.volume[i];
 		areaxy[i] = other.areaxy[i];
 	    }
@@ -127,7 +130,9 @@ public:
 	    // [TODO] really need to think about what needs to be copied...
 	    id = other.id;
 	    foreach(i; 0 .. n_time_levels) {
-		pos[i] = other.pos[i];
+		pos[i].refx = other.pos[i].x;
+		pos[i].refy = other.pos[i].y;
+		pos[i].refz = other.pos[i].z;
 		volume[i] = other.volume[i];
 		areaxy[i] = other.areaxy[i];
 	    }
@@ -144,6 +149,7 @@ public:
 	} // end switch
     }
 
+    @nogc
     void copy_grid_level_to_level(uint from_level, uint to_level)
     {
 	pos[to_level] = pos[from_level];
@@ -152,10 +158,10 @@ public:
 	// When working over all cells in a block, the following copies
 	// will no doubt do some doubled-up work, but it should be otherwise benign.
 	foreach(ref face; iface) {
-	    if ( face ) face.copy_grid_level_to_level(from_level, to_level);
+	    if (face) face.copy_grid_level_to_level(from_level, to_level);
 	}
 	foreach(ref v; vtx) {
-	    if ( v ) v.copy_grid_level_to_level(from_level, to_level);
+	    if (v) v.copy_grid_level_to_level(from_level, to_level);
 	}
     }
 
@@ -235,14 +241,16 @@ public:
 	} // end dimensions != 2
     } // end point_is_inside()
 
+    @nogc
     void copy_values_to_buffer(ref double[] buf, int type_of_copy, int gtl) const
     {
-	throw new Error("[TODO] FVCell.copy_values_to_buffer() not yet implemented");
+	assert(false, "[TODO] FVCell.copy_values_to_buffer() not yet implemented");
     }
 
+    @nogc
     void copy_values_from_buffer(in double buf, int type_of_copy, int gtl) 
     {
-	throw new Error("[TODO] FVCell.copy_values_from_buffer() not yet implemented");
+	assert(false, "[TODO] FVCell.copy_values_from_buffer() not yet implemented");
     }
 
     void replace_flow_data_with_average(in FVCell[] others) 
@@ -347,6 +355,7 @@ public:
 	throw new Error("[TODO] FVCell.write_BGK_to_string() not yet implemented");
     }
 
+    @nogc
     void encode_conserved(int gtl, int ftl, double omegaz)
     // gtl = grid time level
     // ftl = flow time level
@@ -415,7 +424,7 @@ public:
 	bool with_k_omega = (GlobalConfig.turbulence_model == TurbulenceModel.k_omega);
 	double e, ke, dinv, rE, me;
 	// Mass / unit volume = Density
-	if ( !(myU.mass > 0.0) ) {
+	if (!(myU.mass > 0.0)) {
 	    writeln("FVCell.decode_conserved(): Density invalid in conserved quantities.");
 	    writeln("  id= ", id, " x= ", pos[gtl].x, " y= ", pos[gtl].y, " z= ", pos[gtl].z);
 	    writeln("  gas= ", fs.gas);
@@ -473,18 +482,11 @@ public:
 	} else {
 	    fs.gas.e[0] = e;
 	}
-	try {
-	    // Fill out the other variables: P, T, a, and viscous transport coefficients.
-	    gmodel.update_thermo_from_rhoe(fs.gas);
-	    gmodel.update_sound_speed(fs.gas);
-	    if (GlobalConfig.viscous) gmodel.update_trans_coeffs(fs.gas);
-	    // if (GlobalConfig.diffusion) gmodel.update_diff_coeffs(fs.gas);
-	} catch (Exception ex) {
-	    writeln("FVCell.decode_conserved(): failed to evaluate thermo properties.");
-	    writeln("  id= ", id, " x= ", pos[gtl].x, " y= ", pos[gtl].y, " z= ", pos[gtl].z);
-	    writeln("  gas= ", fs.gas);
-	    throw new Error("Bad cell, give up.");
-	}
+	// Fill out the other variables: P, T, a, and viscous transport coefficients.
+	gmodel.update_thermo_from_rhoe(fs.gas);
+	gmodel.update_sound_speed(fs.gas);
+	if (GlobalConfig.viscous) gmodel.update_trans_coeffs(fs.gas);
+	// if (GlobalConfig.diffusion) gmodel.update_diff_coeffs(fs.gas);
 	return;
     } // end decode_conserved()
 
@@ -520,6 +522,7 @@ public:
 	return is_data_valid;
     } // end check_flow_data()
 
+    @nogc
     void time_derivatives(int gtl, int ftl, int dimensions, bool with_k_omega) 
     // These are the spatial (RHS) terms in the semi-discrete governing equations.
     // gtl : (grid-time-level) flow derivatives are evaluated at this grid level
@@ -601,8 +604,7 @@ public:
 		integral += IFb.F.B.z * IFb.area[gtl] - IFt.F.B.z * IFt.area[gtl];
 	    }
 	    dUdt[ftl].B.refz = vol_inv * integral + Q.B.z;
-	}
-	else {
+	} else {
 	    dUdt[ftl].B.refx = 0.0;
 	    dUdt[ftl].B.refy = 0.0;
 	    dUdt[ftl].B.refz = 0.0;
@@ -661,6 +663,7 @@ public:
 	}
     } // end time_derivatives()
 
+    @nogc
     void stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, bool with_k_omega) 
     {
 	ConservedQuantities dUdt0 = dUdt[0];
@@ -671,7 +674,7 @@ public:
 	// we use this function as an Euler update even when the main
 	// gasdynamic_update_scheme is of higher order.
 	// force_euler is set true for these situations.
-	if ( !force_euler ) {
+	if (!force_euler) {
 	    final switch (GlobalConfig.gasdynamic_update_scheme) {
 	    case GasdynamicUpdate.euler:
 	    case GasdynamicUpdate.pc: gamma_1 = 1.0; break;
@@ -689,7 +692,7 @@ public:
 	U1.momentum.refx = U0.momentum.x + dt * gamma_1 * dUdt0.momentum.x;
 	U1.momentum.refy = U0.momentum.y + dt * gamma_1 * dUdt0.momentum.y;
 	U1.momentum.refz = U0.momentum.z + dt * gamma_1 * dUdt0.momentum.z;
-	if ( GlobalConfig.MHD ) {
+	if (GlobalConfig.MHD) {
 	    // Magnetic field
 	    U1.B.refx = U0.B.x + dt * gamma_1 * dUdt0.B.x;
 	    U1.B.refy = U0.B.y + dt * gamma_1 * dUdt0.B.y;
@@ -722,8 +725,10 @@ public:
 	foreach(imode; 1 .. U1.energies.length) {
 	    U1.energies[imode] = U0.energies[imode] + dt * gamma_1 * dUdt0.energies[imode];
 	}
+	return;
     } // end stage_1_update_for_flow_on_fixed_grid()
 
+    @nogc
     void stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega) 
     {
 	ConservedQuantities dUdt0 = dUdt[0];
@@ -734,8 +739,7 @@ public:
 	double gamma_1 = 0.5; // Presume predictor-corrector.
 	double gamma_2 = 0.5;
 	final switch (GlobalConfig.gasdynamic_update_scheme) {
-	case GasdynamicUpdate.euler:
-	    throw new Error("Euler update has no second stage.");
+	case GasdynamicUpdate.euler: assert(false, "Euler update has no second stage.");
 	case GasdynamicUpdate.pc: gamma_1 = 0.5, gamma_2 = 0.5; break;
 	case GasdynamicUpdate.midpoint: gamma_1 = 0.0; gamma_2 = 1.0; break;
 	case GasdynamicUpdate.classic_rk3: gamma_1 = -1.0; gamma_2 = 2.0; break;
@@ -746,7 +750,7 @@ public:
 	U2.momentum.refx = U_old.momentum.x + dt * (gamma_1 * dUdt0.momentum.x + gamma_2 * dUdt1.momentum.x);
 	U2.momentum.refy = U_old.momentum.y + dt * (gamma_1 * dUdt0.momentum.y + gamma_2 * dUdt1.momentum.y);
 	U2.momentum.refz = U_old.momentum.z + dt * (gamma_1 * dUdt0.momentum.z + gamma_2 * dUdt1.momentum.z);
-	if ( GlobalConfig.MHD ) {
+	if (GlobalConfig.MHD) {
 	    // Magnetic field
 	    U2.B.refx = U_old.B.x + dt * (gamma_1 * dUdt0.B.x + gamma_2 * dUdt1.B.x);
 	    U2.B.refy = U_old.B.y + dt * (gamma_1 * dUdt0.B.y + gamma_2 * dUdt1.B.y);
@@ -772,8 +776,10 @@ public:
 	    U2.energies[imode] = U_old.energies[imode] + 
 		dt * (gamma_1 * dUdt0.energies[imode] + gamma_2 * dUdt1.energies[imode]);
 	}
+	return;
     } // end stage_2_update_for_flow_on_fixed_grid()
 
+    @nogc
     void stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega) 
     {
 	ConservedQuantities dUdt0 = dUdt[0];
@@ -789,7 +795,7 @@ public:
 	case GasdynamicUpdate.euler:
 	case GasdynamicUpdate.pc:
 	case GasdynamicUpdate.midpoint:
-	    throw new Error("Euler PC and midpoint updates have no second stage.");
+	    assert(false, "Euler PC and midpoint updates have no second stage.");
 	case GasdynamicUpdate.classic_rk3: gamma_1 = 1.0/6.0; gamma_2 = 4.0/6.0; gamma_3 = 1.0/6.0; break;
 	case GasdynamicUpdate.tvd_rk3: gamma_1 = 1.0/6.0; gamma_2 = 1.0/6.0; gamma_3 = 4.0/6.0; break;
 	    // FIX-ME: Check that we have Andrew Denman's scheme ported correctly.
@@ -830,8 +836,10 @@ public:
 		dt * (gamma_1*dUdt0.energies[imode] + gamma_2*dUdt1.energies[imode] +
 		      gamma_3*dUdt2.energies[imode]);
 	}
+	return;
     } // end stage_3_update_for_flow_on_fixed_grid()
 
+    @nogc
     void stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega) 
     {
 	ConservedQuantities dUdt0 = dUdt[0];
@@ -868,9 +876,10 @@ public:
 	foreach(imode; 1 .. U1.energies.length) {
 	    U1.energies[imode] = vr * (U0.energies[imode] + dt * gamma_1 * dUdt0.energies[imode]);
 	}
-	throw new Error("[TODO] not yet ready for use");
+	assert(false, "[TODO] not yet ready for use");
     } // end stage_1_update_for_flow_on_moving_grid()
 
+    @nogc
     void stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega) 
     {
 	ConservedQuantities dUdt0 = dUdt[0];
@@ -920,17 +929,17 @@ public:
 					    dt * (gamma_1 * dUdt0.energies[imode] + 
 						  gamma_2 * dUdt1.energies[imode]));
 	}
-	throw new Error("[TODO] not yet ready for use");
+	assert(false, "[TODO] not yet ready for use");
     } // end stage_2_update_for_flow_on_moving_grid()
 
     void chemical_increment(double dt, double T_frozen) 
     // Use the finite-rate chemistry module to update the species fractions
     // and the other thermochemical properties.
     {
-	if ( !fr_reactions_allowed || fs.gas.T[0] <= T_frozen ) return;
+	if (!fr_reactions_allowed || fs.gas.T[0] <= T_frozen) return;
 	auto gmodel = GlobalConfig.gmodel;
 	double T_save = fs.gas.T[0];
-	if ( GlobalConfig.ignition_zone_active ) {
+	if (GlobalConfig.ignition_zone_active) {
 	    // When active, replace gas temperature with an effective ignition temperature
 	    foreach(zone; GlobalConfig.ignition_zones) {
 		if ( zone.is_inside(pos[0], GlobalConfig.dimensions) ) fs.gas.T[0] = zone._Tig; 
@@ -939,7 +948,7 @@ public:
 	try {
 	    // [TODO] auto rupdate = GlobalConfig.reaction_update_scheme;
 	    // [TODO] rupdate.update_state(fs.gas, dt, dt_chem, gmodel);
-	    if ( GlobalConfig.ignition_zone_active ) {
+	    if (GlobalConfig.ignition_zone_active) {
 		// Restore actual gas temperature
 		fs.gas.T[0] = T_save;
 	    }
@@ -956,7 +965,7 @@ public:
 
 	// If we are doing a viscous sim, we'll need to ensure
 	// viscous properties are up-to-date
-	if ( GlobalConfig.viscous ) gmodel.update_trans_coeffs(fs.gas);
+	if (GlobalConfig.viscous) gmodel.update_trans_coeffs(fs.gas);
 	// [TODO] if ( GlobalConfig.diffusion ) gmodel.update_diffusion_coeffs(fs.gas);
 
 	// Finally, we have to manually update the conservation quantities
@@ -965,7 +974,7 @@ public:
 	foreach(isp; 0 .. fs.gas.massf.length)
 	    U[0].massf[isp] = fs.gas.rho * fs.gas.massf[isp];
 
-	throw new Error("[TODO] not yet ready for use");
+	assert(false, "[TODO] not yet ready for use");
     } // end chemical_increment()
 
     void thermal_increment(double dt, double T_frozen_energy) 
@@ -992,8 +1001,7 @@ public:
 	foreach(imode; 0 .. U[0].energies.length) {
 	    U[0].energies[imode] = fs.gas.rho * fs.gas.e[imode];
 	}
-
-	throw new Error("[TODO] not yet ready for use");
+	assert(false, "[TODO] not yet ready for use");
     } // end thermal_increment()
 
     double signal_frequency() const
@@ -1014,20 +1022,20 @@ public:
 	//
 	// Get the local normal velocities by rotating the local frame of reference.
 	// Also, compute the velocity magnitude and recall the minimum length.
-	un_N = fabs(dot(fs.vel, iface[Face.north].n));
-	un_E = fabs(dot(fs.vel, iface[Face.east].n));
+	un_N = fabs(fs.vel.dot(iface[Face.north].n));
+	un_E = fabs(fs.vel.dot(iface[Face.east].n));
 	if (GlobalConfig.dimensions == 3) {
-	    un_T = fabs(dot(fs.vel, iface[Face.top].n));
+	    un_T = fabs(fs.vel.dot(iface[Face.top].n));
 	    u_mag = sqrt(fs.vel.x*fs.vel.x + fs.vel.y*fs.vel.y + fs.vel.z*fs.vel.z);
 	} else {
 	    un_T = 0.0;
 	    u_mag = sqrt(fs.vel.x*fs.vel.x + fs.vel.y*fs.vel.y);
 	}
 	if (GlobalConfig.MHD) {
-	    Bn_N = fabs(dot(fs.B, iface[Face.north].n));
-	    Bn_E = fabs(dot(fs.B, iface[Face.east].n));
-	    if ( GlobalConfig.dimensions == 3 ) {
-		Bn_T = fabs(dot(fs.B, iface[Face.top].n));
+	    Bn_N = fabs(fs.B.dot(iface[Face.north].n));
+	    Bn_E = fabs(fs.B.dot(iface[Face.east].n));
+	    if (GlobalConfig.dimensions == 3) {
+		Bn_T = fabs(fs.B.dot(iface[Face.top].n));
 	    }
 	    u_mag = sqrt(fs.vel.x * fs.vel.x + fs.vel.y * fs.vel.y + fs.vel.z * fs.vel.z);
 	    B_mag = sqrt(fs.B.x * fs.B.x + fs.B.y * fs.B.y + fs.B.z * fs.B.z);
@@ -1310,7 +1318,7 @@ public:
 	} // End of Newton-solve loop for implicit update scheme
     } // end update_k_omega_properties()
 
-
+    @nogc
     void k_omega_time_derivatives(ref double Q_rtke, ref double Q_romega, double tke, double omega) 
     // Compute k-omega source terms.
     //
@@ -1426,6 +1434,7 @@ public:
 	Q_romega = P_W - D_W;
     } // end k_omega_time_derivatives()
 
+    @nogc
     void clear_source_vector() 
     // When doing the gasdynamic update stages, the source vector values
     // are accumulated for the inviscid and then viscous terms, so we 
@@ -1442,6 +1451,7 @@ public:
 	Q_rE_rad = 0.0;
     } // end clear_source_vector()
 
+    @nogc
     void add_inviscid_source_vector(int gtl, double omegaz=0.0) 
     // Add the components of the source vector, Q, for inviscid flow.
     //
@@ -1450,7 +1460,7 @@ public:
     // here rather than in the boundary fluxes.
     // By default, assume 2D-planar, or 3D-Cartesian flow.
     {
-	if ( omegaz != 0.0 ) {
+	if (omegaz != 0.0) {
 	    // Rotating frame.
 	    double rho = fs.gas.rho;
 	    double x = pos[gtl].x;
@@ -1463,7 +1473,7 @@ public:
 	    // There is no contribution to the energy equation in the rotating frame
 	    // because it is implicit in the use of rothalpy as the conserved quantity.
 	}
-	if ( GlobalConfig.axisymmetric ) {
+	if (GlobalConfig.axisymmetric) {
 	    // For axisymmetric flow:
 	    // pressure contribution from the Front and Back (radial) interfaces.
 	    Q.momentum.refy += fs.gas.p * areaxy[gtl] / volume[gtl];
@@ -1474,7 +1484,7 @@ public:
 	// For the energy exchange, see thermal_increment()
 	// Radiation can potentially be removed from both the electronic and
 	// total energy source terms.
-	if ( GlobalConfig.radiation ) {
+	if (GlobalConfig.radiation) {
 	    // Radiative source term should be already calculated
 	    // Add value to total energy
 	    // FIX-ME: - assuming electronic mode is the last in the vector of energies
@@ -1482,11 +1492,13 @@ public:
 	    Q.total_energy += Q_rE_rad;
 	    Q.energies.back() += Q_rE_rad;
 	}
+	return;
     } // end add_inviscid_source_vector()
 
+    @nogc
     void add_viscous_source_vector(bool with_k_omega) 
     {
-	if ( GlobalConfig.axisymmetric ) {
+	if (GlobalConfig.axisymmetric) {
 	    // For viscous, axisymmetric flow:
 	    double v_over_y = fs.vel.y / pos[0].y;
 	    double dudx = mixin(avg_over_vtx_2D("grad_vel[0][0]"));
@@ -1506,7 +1518,7 @@ public:
 	    Q.momentum.refy -= tau_00 * areaxy[0] / volume[0];
 	} // end if ( GlobalConfig.axisymmetric )
 
-	if ( with_k_omega ) {
+	if (with_k_omega) {
 	    double Q_tke = 0.0; double Q_omega = 0.0;
 	    if ( in_turbulent_zone ) {
 		this.k_omega_time_derivatives(Q_tke, Q_omega, fs.tke, fs.omega);
@@ -1514,7 +1526,7 @@ public:
 	    Q.tke += Q_tke; Q.omega += Q_omega;
 	}
 
-	if ( GlobalConfig.electric_field_work ) {
+	if (GlobalConfig.electric_field_work) {
 	    // Work done on electrons due to electric field induced by charge separation
 	    // on scales less than the Debye length
 	    // FIXME: Only consistent with ambipolar diffusion. Currently this is up to
@@ -1537,6 +1549,7 @@ public:
 	    // [TODO] FIXME: Assuming the free electron energy is included in the last mode
 	    Q.energies.back() += udivpe * GlobalConfig.diffusion_factor;
 	} // end if ( GlobalConfig.electric_field_work )
+	return;
     } // end add_viscous_source_vector()
 
     double calculate_wall_Reynolds_number(int which_boundary)

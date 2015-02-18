@@ -91,7 +91,8 @@ public:
 
     this() {} // makes no sense to define the data in the absence of a model
 
-    @nogc void copy_values_from(in FlowState other)
+    @nogc 
+    void copy_values_from(in FlowState other)
     {
 	gas.copy_values_from(other.gas);
 	vel.refx = other.vel.x; vel.refy = other.vel.y; vel.refz = other.vel.z;
@@ -103,7 +104,8 @@ public:
 	S = other.S;
     }
 
-    @nogc void copy_average_values_from(in FlowState fs0, in FlowState fs1)
+    @nogc 
+    void copy_average_values_from(in FlowState fs0, in FlowState fs1)
     // Avoids memory allocation, it's all in place.
     {
 	gas.copy_average_values_from(fs0.gas, fs1.gas);

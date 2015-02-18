@@ -67,6 +67,7 @@ BCCode type_code_from_name(string name)
 } // end type_code_from_name()
 
 
+@nogc
 void reflect_normal_velocity(ref FVCell cell, in FVInterface IFace)
 // Reflects normal velocity with respect to the cell interface.
 //
@@ -79,6 +80,7 @@ void reflect_normal_velocity(ref FVCell cell, in FVInterface IFace)
     cell.fs.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
 }
 
+@nogc
 void reflect_normal_magnetic_field(ref FVCell cell, in FVInterface IFace)
 {
     cell.fs.B.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
@@ -134,7 +136,7 @@ public:
 		    dest_cell = blk.get_cell(i,j+1,k);
 		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
-		    if ( GlobalConfig.MHD ) {
+		    if (GlobalConfig.MHD) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
 		    }
 		    // ghost cell 2.
@@ -142,7 +144,7 @@ public:
 		    dest_cell = blk.get_cell(i,j+2,k);
 		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
-		    if ( GlobalConfig.MHD ) {
+		    if (GlobalConfig.MHD) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
 		    }
 		} // end i loop
@@ -158,7 +160,7 @@ public:
 		    dest_cell = blk.get_cell(i+1,j,k);
 		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
-		    if ( GlobalConfig.MHD ) {
+		    if (GlobalConfig.MHD) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
 		    }
 		    // ghost cell 2.
@@ -166,7 +168,7 @@ public:
 		    dest_cell = blk.get_cell(i+2,j,k);
 		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
-		    if ( GlobalConfig.MHD ) {
+		    if (GlobalConfig.MHD) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
 		    }
 		} // end j loop
@@ -182,7 +184,7 @@ public:
 		    dest_cell = blk.get_cell(i,j-1,k);
 		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
-		    if ( GlobalConfig.MHD ) {
+		    if (GlobalConfig.MHD) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
 		    }
 		    // ghost cell 2.
@@ -190,7 +192,7 @@ public:
 		    dest_cell = blk.get_cell(i,j-2,k);
 		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
-		    if ( GlobalConfig.MHD ) {
+		    if (GlobalConfig.MHD) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
 		    }
 		} // end i loop
@@ -206,7 +208,7 @@ public:
 		    dest_cell = blk.get_cell(i-1,j,k);
 		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
-		    if ( GlobalConfig.MHD ) {
+		    if (GlobalConfig.MHD) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
 		    }
 		    // ghost cell 2.
@@ -214,7 +216,7 @@ public:
 		    dest_cell = blk.get_cell(i-2,j,k);
 		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
-		    if ( GlobalConfig.MHD ) {
+		    if (GlobalConfig.MHD) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
 		    }
 		} // end j loop
@@ -230,7 +232,7 @@ public:
 		    dest_cell = blk.get_cell(i,j,k+1);
 		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
-		    if ( GlobalConfig.MHD ) {
+		    if (GlobalConfig.MHD) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
 		    }
 		    // ghost cell 2.
@@ -238,7 +240,7 @@ public:
 		    dest_cell = blk.get_cell(i,j,k+2);
 		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
-		    if ( GlobalConfig.MHD ) {
+		    if (GlobalConfig.MHD) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
 		    }
 		} // end j loop
@@ -254,7 +256,7 @@ public:
 		    dest_cell = blk.get_cell(i,j,k-1);
 		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
-		    if ( GlobalConfig.MHD ) {
+		    if (GlobalConfig.MHD) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
 		    }
 		    // ghost cell 2.
@@ -262,7 +264,7 @@ public:
 		    dest_cell = blk.get_cell(i,j,k-2);
 		    dest_cell.copy_values_from(src_cell, copy_opt);
 		    reflect_normal_velocity(dest_cell, IFace);
-		    if ( GlobalConfig.MHD ) {
+		    if (GlobalConfig.MHD) {
 			reflect_normal_magnetic_field(dest_cell, IFace);
 		    }
 		} // end j loop

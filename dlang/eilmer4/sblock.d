@@ -142,13 +142,12 @@ public:
 	return to!string(repr);
     }
 
+    @nogc
     size_t to_global_index(size_t i, size_t j, size_t k) const
-    {
-	if ( k < 0 || k >= _nkdim || j < 0 || j >= _njdim || i < 0 || i >= _nidim ) {
-	    throw new Error(text("SBlock:to_global_index: index out of bounds for block[", id,
-				 "] i=", i, " j=", j, " k=", k, " nidim=", _nidim, 
-				 " njdim=", _njdim, " nkdim=", _nkdim));
-	}
+    in {
+	assert(i < _nkdim && i < _njdim && k < _nkdim, "Index out of bounds.");
+    }
+    body {
 	return k * (_njdim * _nidim) + j * _nidim + i; 
     }
 
@@ -160,14 +159,14 @@ public:
 	return [i, j, k];
     }
 
-    ref FVCell get_cell(size_t i, size_t j, size_t k=0) { return _ctr[to_global_index(i,j,k)]; }
-    ref FVInterface get_ifi(size_t i, size_t j, size_t k=0) { return _ifi[to_global_index(i,j,k)]; }
-    ref FVInterface get_ifj(size_t i, size_t j, size_t k=0) { return _ifj[to_global_index(i,j,k)]; }
-    ref FVInterface get_ifk(size_t i, size_t j, size_t k=0) { return _ifk[to_global_index(i,j,k)]; }
-    ref FVVertex get_vtx(size_t i, size_t j, size_t k=0) { return _vtx[to_global_index(i,j,k)]; }
-    ref FVInterface get_sifi(size_t i, size_t j, size_t k=0) { return _sifi[to_global_index(i,j,k)]; }
-    ref FVInterface get_sifj(size_t i, size_t j, size_t k=0) { return _sifj[to_global_index(i,j,k)]; }
-    ref FVInterface get_sifk(size_t i, size_t j, size_t k=0) { return _sifk[to_global_index(i,j,k)]; }
+    @nogc ref FVCell get_cell(size_t i, size_t j, size_t k=0) { return _ctr[to_global_index(i,j,k)]; }
+    @nogc ref FVInterface get_ifi(size_t i, size_t j, size_t k=0) { return _ifi[to_global_index(i,j,k)]; }
+    @nogc ref FVInterface get_ifj(size_t i, size_t j, size_t k=0) { return _ifj[to_global_index(i,j,k)]; }
+    @nogc ref FVInterface get_ifk(size_t i, size_t j, size_t k=0) { return _ifk[to_global_index(i,j,k)]; }
+    @nogc ref FVVertex get_vtx(size_t i, size_t j, size_t k=0) { return _vtx[to_global_index(i,j,k)]; }
+    @nogc ref FVInterface get_sifi(size_t i, size_t j, size_t k=0) { return _sifi[to_global_index(i,j,k)]; }
+    @nogc ref FVInterface get_sifj(size_t i, size_t j, size_t k=0) { return _sifj[to_global_index(i,j,k)]; }
+    @nogc ref FVInterface get_sifk(size_t i, size_t j, size_t k=0) { return _sifk[to_global_index(i,j,k)]; }
 
     override void assemble_arrays()
     // We shouldn't be calling this until the essential bits of the GlobalConfig
@@ -394,6 +393,7 @@ public:
 	return number_of_invalid_cells;
     } // end count_invalid_cells()
 
+    @nogc
     override void init_residuals()
     // Initialization of data for later computing residuals.
     {
@@ -407,6 +407,7 @@ public:
 	}
     } // end init_residuals()
 
+    @nogc
     override void compute_residuals(int gtl)
     // Compute the residuals using previously stored data.
     //
@@ -499,6 +500,7 @@ public:
 	return dt_allow;
     } // end determine_time_step_size()
 
+    @nogc
     override void detect_shock_points()
     // Detects shocks by looking for compression between adjacent cells.
     //
@@ -1921,12 +1923,13 @@ public:
 	throw new Error("[TODO] Not implemented yet.");
     }
 
+    @nogc
     override void set_grid_velocities(double sim_time)
     // Presently sets the grid velocities at cell interfaces to zero.
     // [TODO] Insert the moving-grid code some day...
     {
 	if (GlobalConfig.moving_grid) {
-	    throw new Error("SBlock.set_grid_velocities(): moving grid is not yet implemented.");
+	    assert(false, "SBlock.set_grid_velocities(): moving grid is not yet implemented.");
 	}
 	// ifi interfaces are East-facing interfaces.
 	for ( size_t k = kmin; k <= kmax; ++k ) {
@@ -1965,8 +1968,10 @@ public:
 	FVInterface IFace;
 	// Maybe the following two FlowState objects should be in the Block object
 	// and initialised there so that we don't thrash the memory so much.
-	FlowState Lft = new FlowState(GlobalConfig.gmodel);
-	FlowState Rght = new FlowState(GlobalConfig.gmodel);
+	static FlowState Lft;
+	static FlowState Rght;
+	if (!Lft) Lft = new FlowState(GlobalConfig.gmodel);
+	if (!Rght) Rght = new FlowState(GlobalConfig.gmodel);
     
 	// ifi interfaces are East-facing interfaces.
 	for ( size_t k = kmin; k <= kmax; ++k ) {
@@ -2102,24 +2107,28 @@ public:
 	return;
     } // end convective_flux()
 
+    @nogc
     override void viscous_flux()
     {
-	throw new Error("[TODO] viscous_flux() not implemented yet.");
+	assert(false, "[TODO] viscous_flux() not implemented yet.");
     } // end viscous_flux()
 
+    @nogc
     override void viscous_derivatives(int gtl)
     {
-	throw new Error("[TODO] viscous_derivatives() not implemented yet.");
+	assert(false, "[TODO] viscous_derivatives() not implemented yet.");
     }
 
+    @nogc
     override void apply_menter_boundary_correction(int ftl)
     {
-	throw new Error("[TODO apply_menter_boundary_correction() not yet implemented.");
+	assert(false, "[TODO apply_menter_boundary_correction() not yet implemented.");
     }
 
+    @nogc
     override void estimate_turbulence_viscosity()
     {
-	throw new Error("[TODO] estimate_turbulence_viscosity() not implemented yet.");
+	assert(false, "[TODO] estimate_turbulence_viscosity() not implemented yet.");
     }
 
     override void apply_convective_bc(double t)
@@ -2147,6 +2156,7 @@ public:
     } // end apply_convective_bc
 
 
+    @nogc
     void copy_into_ghost_cells(int destination_face,
 			       ref SBlock src_blk, int src_face, int src_orientation,
 			       int type_of_copy, bool with_encode)
@@ -2155,6 +2165,7 @@ public:
 	FVCell src0, dest0, src1, dest1;
 	int gtl = 0; // Do the encode only for grid-time-level zero.
 	//
+	@nogc
 	void copy_pair_of_cells(const FVCell src0, FVCell dest0, 
 				const FVCell src1, FVCell dest1,
 				bool with_encode)
@@ -2198,10 +2209,7 @@ public:
 			src1 = src_blk.get_cell(i_src+1,j_src,k_src);
 			break;
 		    default:
-			throw new Error(text("Incorrect boundary connection:\n" ~
-					     " this block id= ", id,
-					     " src_block id= ", src_blk.id,
-					     " src_face= ", src_face));
+			assert(false, "Incorrect boundary connection, source face.");
 		    } // end switch src_face
 		    dest0 = get_cell(i_dest,j_dest+1);
 		    dest1 = get_cell(i_dest,j_dest+2);
@@ -2238,10 +2246,7 @@ public:
 			src1 = src_blk.get_cell(i_src+1,j_src);
 			break;
 		    default:
-			throw new Error(text("Incorrect boundary connection:\n" ~
-					     " this block id= ", id,
-					     " src_block id= ", src_blk.id,
-					     " src_face= ", src_face));
+			assert(false, "Incorrect boundary connection, source face.");
 		    } // end switch src_face
 		    dest0 = get_cell(i_dest+1,j_dest);
 		    dest1 = get_cell(i_dest+2,j_dest);
@@ -2278,10 +2283,7 @@ public:
 			src1 = src_blk.get_cell(i_src+1,j_src);
 			break;
 		    default:
-			throw new Error(text("Incorrect boundary connection:\n" ~
-					     " this block id= ", id,
-					     " src_block id= ", src_blk.id,
-					     " src_face= ", src_face));
+			assert(false, "Incorrect boundary connection, source face.");
 		    } // end switch src_face
 		    dest0 = get_cell(i_dest,j_dest-1);
 		    dest1 = get_cell(i_dest,j_dest-2);
@@ -2318,10 +2320,7 @@ public:
 			src1 = src_blk.get_cell(i_src+1,j_src);
 			break;
 		    default:
-			throw new Error(text("Incorrect boundary connection:\n" ~
-					     " this block id= ", id,
-					     " src_block id= ", src_blk.id,
-					     " src_face= ", src_face));
+			assert(false, "Incorrect boundary connection, source face.");
 		    } // end switch src_face
 		    dest0 = get_cell(i_dest-1,j_dest);
 		    dest1 = get_cell(i_dest-2,j_dest);
@@ -2329,9 +2328,7 @@ public:
 		} // j loop
 		break;
 	    default:
-		throw new Error(text("Incorrect boundary connection:\n" ~
-				     " this block id= ", id,
-				     " destination_face= ", destination_face));
+		assert(false, "Incorrect boundary connection, destination face.");
 	    } // end switch destination_face
 	    return;
 	} // end if dimensions == 2
