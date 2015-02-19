@@ -13,48 +13,74 @@ module gas.gas_model;
 import std.conv;
 import std.math;
 import std.stdio;
-import std.range;
-import std.algorithm;
 
+import util.msg_service;
 import gas.physical_constants;
 
 immutable double SMALL_MOLE_FRACTION = 1.0e-15;
+immutable double MIN_MOLES = 1.0e-30;
 immutable double T_MIN = 20.0; 
 
 class GasModel {
 public:
-    @nogc @property const uint n_species() { return _n_species; }
-    @nogc @property const uint n_modes() { return _n_modes; }
-    const string species_name(int i) { return _species_names[i]; }
+    @nogc @property uint n_species() const { return _n_species; }
+    @nogc @property uint n_modes() const { return _n_modes; }
+    @property ref double[] mol_masses() { return _mol_masses; }
+    final string species_name(int i) const { return _species_names[i]; }
 
     // Methods to be overridden.
-    void update_thermo_from_pT(GasState Q) const {}
-    void update_thermo_from_rhoe(GasState Q) const {}
-    void update_thermo_from_rhoT(GasState Q) const {}
-    void update_thermo_from_rhop(GasState Q) const {}
-    void update_thermo_from_ps(GasState Q, double s) const {}
-    void update_thermo_from_hs(GasState Q, double h, double s) const {}
-    void update_sound_speed(GasState Q) const {}
-    void update_trans_coeffs(GasState Q) const {}
+    abstract void update_thermo_from_pT(GasState Q) const {}
+    abstract void update_thermo_from_rhoe(GasState Q) const {}
+    abstract void update_thermo_from_rhoT(GasState Q) const {}
+    abstract void update_thermo_from_rhop(GasState Q) const {}
+    abstract void update_thermo_from_ps(GasState Q, double s) const {}
+    abstract void update_thermo_from_hs(GasState Q, double h, double s) const {}
+    abstract void update_sound_speed(GasState Q) const {}
+    abstract void update_trans_coeffs(GasState Q) const {}
     // const void update_diff_coeffs(ref GasState Q) {}
 
     // Methods to be overridden.
-    const double dedT_const_v(in GasState Q) { return 0.0; }
-    const double dhdT_const_p(in GasState Q) { return 0.0; }
-    const double gas_constant(in GasState Q) { return 0.0; }
-    const double internal_energy(in GasState Q) { return 0.0; }
-    const double enthalpy(in GasState Q) { return 0.0; }
-    const double entropy(in GasState Q) { return 0.0; }
+    abstract double dedT_const_v(in GasState Q) const { return 0.0; }
+    abstract double dhdT_const_p(in GasState Q) const { return 0.0; }
+    abstract double gas_constant(in GasState Q) const { return 0.0; }
+    abstract double internal_energy(in GasState Q) const { return 0.0; }
+    abstract double enthalpy(in GasState Q) const { return 0.0; }
+    abstract double entropy(in GasState Q) const { return 0.0; }
     
-    final const double Cv(in GasState Q) { return dedT_const_v(Q); }
-    final const double Cp(in GasState Q) { return dhdT_const_p(Q); }
-    final const double R(in GasState Q) { return gas_constant(Q); }
-    final const double gamma(in GasState Q) { return Cp(Q)/Cv(Q); }
+    final double Cv(in GasState Q) const { return dedT_const_v(Q); }
+    final double Cp(in GasState Q) const { return dhdT_const_p(Q); }
+    final double R(in GasState Q) const { return gas_constant(Q); }
+    final double gamma(in GasState Q) const { return Cp(Q)/Cv(Q); }
+    final double molecular_mass(in GasState Q) const
+    in {
+	assert(Q.massf.length == _mol_masses.length, brokenPreCondition("Inconsistent array lengths."));
+    }
+    body {
+	return mixture_molecular_mass(Q.massf, _mol_masses);
+    }
+    final void massf2molef(in GasState Q, double[] molef) const
+    in {
+	assert(Q.massf.length == molef.length, brokenPreCondition("Inconsistent array lengths."));
+    }
+    body {
+	gas.gas_model.massf2molef(Q.massf, _mol_masses, molef);
+    }
+    final void massf2conc(in GasState Q, double[] conc) const
+    in {
+	assert(Q.massf.length == conc.length, brokenPreCondition("Inconsisten array lenghts."));
+    }
+    body {
+	foreach (i; 0 .. _n_species) {
+	    conc[i] = Q.massf[i]*Q.rho / _mol_masses[i];
+	    if ( conc[i] < MIN_MOLES ) conc[i] = 0.0;
+	}
+    }
 protected:
     // These data need to be properly initialized by the derived class.
     uint _n_species;
     uint _n_modes;
     string[] _species_names;
+    double[] _mol_masses;
 }
 
 
@@ -320,25 +346,26 @@ body {
     return result;
 }
 
-@nogc double mixture_molecular_weight(in double[] massf, in double[] MW)
+@nogc pure double mixture_molecular_mass(in double[] massf, in double[] mol_masses)
 in {
-    assert(massf.length == MW.length, "Inconsistent array lengths.");
+    assert(massf.length == mol_masses.length, "Inconsistent array lengths.");
 }
 body {
     double M_inv = 0.0;
-    foreach (i; 0 .. massf.length) M_inv += massf[i] / MW[i];
+    foreach (i; 0 .. massf.length) M_inv += massf[i] / mol_masses[i];
     return 1.0/M_inv;
 }
 
-@nogc void massf2molef(in double[] massf, in double[] MW, double[] molef)
+@nogc void massf2molef(in double[] massf, in double[] mol_masses, double[] molef)
 in {
-    assert(massf.length == MW.length, "Inconsistent array lengths.");
+    assert(massf.length == mol_masses.length, "Inconsistent array lengths.");
     assert(massf.length == molef.length, "Inconsistent array lengths.");
 }
 body {
-    double MW_mix = mixture_molecular_weight(massf, MW);
-    foreach (i; 0 .. massf.length) molef[i] = massf[i] * MW_mix / MW[i];
+    double mixMolMass = mixture_molecular_mass(massf, mol_masses);
+    foreach (i; 0 .. massf.length) molef[i] = massf[i] * mixMolMass / mol_masses[i];
 }
+
 
 unittest {
     auto gd = GasState(2, 1);
@@ -346,9 +373,4 @@ unittest {
     gd.massf[1] = 0.2;
     double[] phi = [9.0, 16.0];
     assert(approxEqual(10.4, mass_average(gd, phi)));
-    double[] MW = [28.0e-3, 32.0e-3];
-    assert(approxEqual(0.0287179, mixture_molecular_weight(gd.massf, MW)));
-    double[] molef = [0.0, 0.0];
-    massf2molef(gd.massf, MW, molef);
-    assert(approxEqual([0.8205128, 0.1794872], molef));
 }

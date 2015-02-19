@@ -29,6 +29,7 @@ public:
 	_n_species = 1;
 	_n_modes = 1;
 	_species_names ~= "ideal air";
+	_mol_masses ~= 0.02896; // value for sea-level air
     }
     this(in string species_name, in double[string] params) {
 	this();
@@ -36,7 +37,7 @@ public:
 	// Let's overwrite that here.
 	_species_names[0] = species_name;
 	// Now, pull out the remaining numeric value parameters.
-	_Mmass = params["Mmass"];
+	_mol_masses ~= params["Mmass"];
 	_gamma = params["gamma"];
 	// Reference values for entropy
 	_s1 = params["s1"];
@@ -49,7 +50,7 @@ public:
 	_k_ref = params["k_ref"];
 	_S_k = params["S_k"];
 	// Compute derived parameters
-	_Rgas = R_universal/_Mmass;
+	_Rgas = R_universal/_mol_masses[0];
 	_Cv = _Rgas / (_gamma - 1.0);
 	_Cp = _Rgas*_gamma/(_gamma - 1.0);
     }
@@ -59,7 +60,7 @@ public:
 	char[] repr;
 	repr ~= "IdealGas(";
 	repr ~= "name=\"" ~ _species_names[0] ~"\"";
-	repr ~= ", Mmass=" ~ to!string(_Mmass);
+	repr ~= ", Mmass=" ~ to!string(_mol_masses[0]);
 	repr ~= ", gamma=" ~ to!string(_gamma);
 	repr ~= ", s1=" ~ to!string(_s1);
 	repr ~= ", T1=" ~ to!string(_T1);
@@ -113,8 +114,6 @@ public:
     }
     override void update_trans_coeffs(GasState Q) const
     {
-	assert(Q.T.length == 1, "incorrect number of modes");
-	assert(Q.k.length == 1, "incorrect number of modes");
 	Q.mu = sutherland_viscosity(Q.T[0], _T_ref, _mu_ref, _S_mu);
 	Q.k[0] = sutherland_thermal_conductivity(Q.T[0], _T_ref, _k_ref, _S_k);
     }
@@ -133,7 +132,7 @@ public:
     }
     override double gas_constant(in GasState Q) const
     {
-	return R_universal/_Mmass;
+	return R_universal/_mol_masses[0];
     }
     override double internal_energy(in GasState Q) const
     {
@@ -150,7 +149,6 @@ public:
 
 private:
     // Thermodynamic constants
-    double _Mmass = 0.02896; // effective molecular mass kg/mole
     double _Rgas = R_universal/0.02896; // J/kg/K
     double _gamma = 1.4;   // ratio of specific heats
     double _Cv = R_universal/0.02896 / 0.4; // J/kg/K

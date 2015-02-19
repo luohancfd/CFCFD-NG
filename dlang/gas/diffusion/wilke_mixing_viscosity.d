@@ -27,32 +27,32 @@ import util.msg_service;
 
 class WilkeMixingViscosity : Viscosity {
 public:
-    this(in Viscosity[] vms, in double[] MW)
+    this(in Viscosity[] vms, in double[] mol_masses)
     in {
-	assert(vms.length == MW.length, brokenPreCondition("vms.length and MW.length", __LINE__, __FILE__));
+	assert(vms.length == mol_masses.length, brokenPreCondition("vms.length and mol_masses.length", __LINE__, __FILE__));
     }
     body {
 	foreach (v; vms) {
 	    _vms ~= v.dup;
 	}
-	_MW = MW.dup;
-	_x.length = _MW.length;
-	_mu.length = _MW.length;
-	_phi.length = _MW.length;
+	_mol_masses = mol_masses.dup;
+	_x.length = _mol_masses.length;
+	_mu.length = _mol_masses.length;
+	_phi.length = _mol_masses.length;
 	foreach (ref p; _phi) {
-	    p.length = _MW.length;
+	    p.length = _mol_masses.length;
 	}
     }
     this(in WilkeMixingViscosity src) {
 	foreach (v; src._vms) {
 	    _vms ~= v.dup;
 	}
-	_MW = src._MW.dup;
-	_x.length = _MW.length;
-	_mu.length = _MW.length;
-	_phi.length = _MW.length;
+	_mol_masses = src._mol_masses.dup;
+	_x.length = _mol_masses.length;
+	_mu.length = _mol_masses.length;
+	_phi.length = _mol_masses.length;
 	foreach (ref p; _phi) {
-	    p.length = _MW.length;
+	    p.length = _mol_masses.length;
 	}
     }
     override WilkeMixingViscosity dup() const {
@@ -62,7 +62,7 @@ public:
     override double eval(in GasState Q) const {
 
 	// 1. Evaluate the mole fractions
-	massf2molef(Q.massf, _MW, _x);
+	massf2molef(Q.massf, _mol_masses, _x);
 	// 2. Calculate the component viscosities
 	for ( auto i = 0; i < Q.massf.length; ++i ) {
 	    _mu[i] =  _vms[i].eval(Q);
@@ -70,8 +70,8 @@ public:
 	// 3. Calculate interaction potentials
 	for ( auto i = 0; i < Q.massf.length; ++i ) {
 	    for ( auto j = 0; j < Q.massf.length; ++j ) {
-		double numer = pow((1.0 + sqrt(_mu[i]/_mu[j])*pow(_MW[j]/_MW[i], 0.25)), 2.0);
-		double denom = sqrt(8.0 + 8.0*_MW[i]/_MW[j]);
+		double numer = pow((1.0 + sqrt(_mu[i]/_mu[j])*pow(_mol_masses[j]/_mol_masses[i], 0.25)), 2.0);
+		double denom = sqrt(8.0 + 8.0*_mol_masses[i]/_mol_masses[j]);
 		_phi[i][j] = numer/denom;
 	    }
 	}
@@ -96,7 +96,7 @@ public:
     static double[][] _phi;
 private:
     Viscosity[] _vms; // component viscosity models
-    double[] _MW; // component molecular weights
+    double[] _mol_masses; // component molecular weights
 }
 
 unittest {
@@ -112,5 +112,5 @@ unittest {
     gd.massf[0] = 0.8;
     gd.massf[1] = 0.2;
     vm.update_viscosity(gd);
-    assert(approxEqual(1.12102e-05, gd.mu), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(1.12102e-05, gd.mu), failedUnitTest());
 }

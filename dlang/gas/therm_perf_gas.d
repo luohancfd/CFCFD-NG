@@ -38,11 +38,10 @@ public:
 	
 	// 1. Initialise gas constants from molecular mass
 	_R.length = _n_species;
-	double[] Mmass;
-	Mmass.length = _n_species;
+	_mol_masses.length = _n_species;
 	foreach ( isp; 0.._n_species ) {
-	    Mmass[isp] = lua.get!double(_species_names[isp], "M");
-	    _R[isp] = R_universal/Mmass[isp];
+	    _mol_masses[isp] = lua.get!double(_species_names[isp], "M");
+	    _R[isp] = R_universal/_mol_masses[isp];
 	}
 	// 2. Set the p-v-T EOS
 	_pgMixEOS = new PerfectGasMixEOS(_R);
@@ -56,14 +55,14 @@ public:
 	foreach ( isp; 0.._n_species ) {
 	    vms ~= createCEAViscosity(lua.get!LuaTable(_species_names[isp], "viscosity"));
 	}
-	_viscModel = new WilkeMixingViscosity(vms, Mmass);
+	_viscModel = new WilkeMixingViscosity(vms, _mol_masses);
 	// 5. Set the thermal conductivity model
 	ThermalConductivity[] tcms;
 	foreach (isp; 0.._n_species ) {
 	    tcms ~= createCEAThermalConductivity(lua.get!LuaTable(_species_names[isp], "therm_cond"));
 
 	}
-	_thermCondModel = new WilkeMixingThermCond(tcms, Mmass);
+	_thermCondModel = new WilkeMixingThermCond(tcms, _mol_masses);
     }
 
     override string toString() const
@@ -286,46 +285,46 @@ unittest
     gd.T[0] = 2000.0;
     gd.massf = [0.2, 0.2, 0.2, 0.2, 0.2];
     gm.update_thermo_from_pT(gd);
-    assert(approxEqual(11801825.6, gd.e[0]), failedUnitTest(__LINE__, __FILE__));
-    assert(approxEqual(1.2840117, gd.rho), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(11801825.6, gd.e[0]), failedUnitTest());
+    assert(approxEqual(1.2840117, gd.rho), failedUnitTest());
 
     gd.rho = 2.0;
     gd.e[0] = 14.0e6;
     gm.update_thermo_from_rhoe(gd);
-    assert(approxEqual(3373757.4, gd.p), failedUnitTest(__LINE__, __FILE__));
-    assert(approxEqual(4331.944, gd.T[0]), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(3373757.4, gd.p), failedUnitTest());
+    assert(approxEqual(4331.944, gd.T[0]), failedUnitTest());
     
     gd.T[0] = 10000.0;
     gd.rho = 1.5;
     gm.update_thermo_from_rhoT(gd);
-    assert(approxEqual(5841068.3, gd.p), failedUnitTest(__LINE__, __FILE__));
-    assert(approxEqual(20340105.9, gd.e[0]), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(5841068.3, gd.p), failedUnitTest());
+    assert(approxEqual(20340105.9, gd.e[0]), failedUnitTest());
 
     gd.rho = 10.0;
     gd.p = 5.0e6;
     gm.update_thermo_from_rhop(gd);
-    assert(approxEqual(11164648.5, gd.e[0]), failedUnitTest(__LINE__, __FILE__));
-    assert(approxEqual(1284.012, gd.T[0]), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(11164648.5, gd.e[0]), failedUnitTest());
+    assert(approxEqual(1284.012, gd.T[0]), failedUnitTest());
 
     gd.p = 1.0e6;
     double s = 10000.0;
     gm.update_thermo_from_ps(gd, s);
-    assert(approxEqual(2560.118, gd.T[0]), failedUnitTest(__LINE__, __FILE__));
-    assert(approxEqual(12313952.52, gd.e[0]), failedUnitTest(__LINE__, __FILE__));
-    assert(approxEqual(1.00309, gd.rho), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(2560.118, gd.T[0]), failedUnitTest());
+    assert(approxEqual(12313952.52, gd.e[0]), failedUnitTest());
+    assert(approxEqual(1.00309, gd.rho), failedUnitTest());
 
     s = 11000.0;
     double h = 17.0e6;
     gm.update_thermo_from_hs(gd, h, s);
-    assert(approxEqual(5273.103, gd.T[0]), failedUnitTest(__LINE__, __FILE__));
-    assert(approxEqual(14946629.7, gd.e[0]), failedUnitTest(__LINE__, __FILE__));
-    assert(approxEqual(0.4603513, gd.rho), failedUnitTest(__LINE__, __FILE__));
-    assert(approxEqual(945271.84, gd.p), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(5273.103, gd.T[0]), failedUnitTest());
+    assert(approxEqual(14946629.7, gd.e[0]), failedUnitTest());
+    assert(approxEqual(0.4603513, gd.rho), failedUnitTest());
+    assert(approxEqual(945271.84, gd.p), failedUnitTest());
 
     gd.T[0] = 4000.0;
     gm.update_trans_coeffs(gd);
-    assert(approxEqual(0.00012591, gd.mu), failedUnitTest(__LINE__, __FILE__));
-    assert(approxEqual(0.2448263, gd.k[0]), failedUnitTest(__LINE__, __FILE__));
+    assert(approxEqual(0.00012591, gd.mu), failedUnitTest());
+    assert(approxEqual(0.2448263, gd.k[0]), failedUnitTest());
 
     // TODO: entropy, enthalpy tests.
 }
