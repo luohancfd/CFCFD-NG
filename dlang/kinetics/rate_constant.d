@@ -23,6 +23,15 @@ interface RateConstant {
 }
 
 /++
+ User interface to configure ArrheniusRateConstant.
+ +/
+struct Arrhenius {
+    double A; // frequency factor, units vary depending on reaction order
+    double n; // power for temperature dependecy
+    double C; // activation temperature
+}
+
+/++
  ArrheniusRateConstant uses the Arrhenius model to compute
  a chemical rate constant.
 
@@ -56,6 +65,12 @@ public:
 	_n = t.get!double("n");
 	_C = t.get!double("C");
     }
+    this(Arrhenius input)
+    {
+	_A = input.A;
+	_n = input.n;
+	_C = input.C;
+    }
     ArrheniusRateConstant dup() const
     {
 	return new ArrheniusRateConstant(_A, _n, _C);
@@ -81,5 +96,10 @@ unittest {
     auto lua = initLuaState("sample-input/N2-diss.lua");
     auto rc2 = new ArrheniusRateConstant(lua.get!LuaTable("rate"));
     gd.T[0] = 4000.0;
+    assert(approxEqual(1594.39, rc2.eval(gd)), failedUnitTest());
+    // Test 3. Read rate constant parameters for nitrogen dissocation
+    // from a Lua table.
+    auto arrInput = lua.get!LuaTable("rate").toStruct!Arrhenius();
+    auto rc3 = new ArrheniusRateConstant(arrInput);
     assert(approxEqual(1594.39, rc2.eval(gd)), failedUnitTest());
 }
