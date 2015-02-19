@@ -1,7 +1,7 @@
 # makefile for the geometry package
 # Builds all of the demonstration programs.
 
-DEMO_PROGRAMS := geom_demo gpath_demo surface_demo
+DEMO_PROGRAMS := geom_demo gpath_demo surface_demo clusterfunctions_demo
 
 LUA_DIR := ../../extern/lua-5.1.4
 LIBLUA := $(LUA_DIR)/lib/liblua.a
@@ -37,3 +37,7 @@ gpath_demo: gpath_demo.d gpath.d geom.d $(LUAD_FILES) $(LIBLUA)
 surface_demo: surface_demo.d surface.d gpath.d geom.d $(LUAD_FILES) $(LIBLUA)
 	dmd $(DFLAGS) surface_demo.d $(OF)surface_demo \
 		surface.d gpath.d geom.d $(LUAD_FILES) $(DLINKFLAGS)
+
+clusterfunctions_demo: clusterfunctions_demo.d clusterfunctions.d
+	dmd $(DFLAGS) clusterfunctions_demo.d $(OF)clusterfunctions_demo \
+		clusterfunctions.d $(DLINKFLAGS)
