@@ -14,7 +14,6 @@ void main()
     Vector3 a = Vector3([1.0, 2.2, 3.0]);
     Vector3 b = Vector3(1.0);
     writeln("a = ", a, ", b = ", b);
-    writeln("Done.");
     Vector3 c = a + b;
     writeln("c = a + b = ", c);
     Vector3 d = a;
@@ -55,4 +54,5 @@ void main()
     Vector3 q = Vector3(0.0, 0.0, 1.0); // start point
     int flag =  project_onto_plane(q, qr, a, b, c);
     writeln("projected point q = ", q);
+    writeln("Done.");
 }

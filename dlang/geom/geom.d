@@ -8,7 +8,7 @@
  *          This has been somewhat successful, however, a few "in" parameters remain
  *          so that the vector arithmetic is a lot cleaner in the code.
  *          Effectively this hides the creation of Vector3 temporaries 
- *          the would otherwise have to appear explicitly in the code.
+ *          that would otherwise have to appear explicitly in the code.
  */
 module geom;
 
