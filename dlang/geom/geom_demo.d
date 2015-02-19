@@ -6,6 +6,7 @@
  */
 
 import std.stdio;
+import luad.all;
 import geom;
 
 void main()
@@ -54,5 +55,22 @@ void main()
     Vector3 q = Vector3(0.0, 0.0, 1.0); // start point
     int flag =  project_onto_plane(q, qr, a, b, c);
     writeln("projected point q = ", q);
+
+    writeln("Try LuaD connection.");
+    auto lua = new LuaState;
+    lua.openLibs();
+    lua["Vector"] = &myluaVector3;
+    lua["getX"] = &getX;
+    lua["getY"] = &getY;
+    lua["getZ"] = &getZ;
+    lua.doString(`
+-- Add a point
+a = Vector{x=1.0, y=2.0}
+print("a=", a)
+print("a.x=", getX(a), "a.y=", getY(a), "a.z=", getZ(a))      
+    `);
+    writeln("points.length= ", points.length);
+    writeln("points[0]= ", points[0]);
+
     writeln("Done.");
 }

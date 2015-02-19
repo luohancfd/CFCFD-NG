@@ -636,3 +636,28 @@ unittest {
     assert(approxEqualVectors(centroid, Vector3(0.5,0.5,0.5)), "hex centroid");
     assert(approxEqual(volume, 1.0), "hex volume");
 }
+
+//-----------------------------------------------------------------------------
+// Connection to Lua following Rowan's lead.
+
+import luad.all;
+
+struct Vector3Params {
+    double x = 0.0;
+    double y = 0.0;
+    double z = 0.0;
+}
+
+static Vector3[] points;
+
+double getX(int ip) { return points[ip].x; }
+double getY(int ip) { return points[ip].y; }
+double getZ(int ip) { return points[ip].z; }
+
+int myluaVector3(LuaTable t)
+// Returns index of newly added point.
+{
+    auto data = t.toStruct!Vector3Params();
+    points ~= Vector3(data.x, data.y, data.z);
+    return points.length - 1;
+}
