@@ -25,7 +25,7 @@ interface RateConstant {
 /++
  User interface to configure ArrheniusRateConstant.
  +/
-struct Arrhenius {
+struct ArrheniusParams {
     double A; // frequency factor, units vary depending on reaction order
     double n; // power for temperature dependecy
     double C; // activation temperature
@@ -65,7 +65,7 @@ public:
 	_n = t.get!double("n");
 	_C = t.get!double("C");
     }
-    this(Arrhenius input)
+    this(ArrheniusParams input)
     {
 	_A = input.A;
 	_n = input.n;
@@ -84,6 +84,17 @@ private:
     double _A, _n, _C;
 }
 
+static ArrheniusRateConstant[] rates;
+
+void Arrhenius0(LuaTable t)
+{
+    rates ~= new ArrheniusRateConstant(t.toStruct!ArrheniusParams());
+}
+void Arrhenius1(double A, double n, double C)
+{
+    rates ~= new ArrheniusRateConstant(A, n, C);
+}
+
 unittest {
     import util.msg_service;
     // Test 1. Rate constant for H2 + I2 reaction.
@@ -99,7 +110,12 @@ unittest {
     assert(approxEqual(1594.39, rc2.eval(gd)), failedUnitTest());
     // Test 3. Read rate constant parameters for nitrogen dissocation
     // from a Lua table.
-    auto arrInput = lua.get!LuaTable("rate").toStruct!Arrhenius();
-    auto rc3 = new ArrheniusRateConstant(arrInput);
-    assert(approxEqual(1594.39, rc2.eval(gd)), failedUnitTest());
+    lua = new LuaState;
+    lua.openLibs();
+    // Register Arrhenius functions with Lua
+    lua["Arrhenius0"] = &Arrhenius0;
+    lua["Arrhenius1"] = &Arrhenius1;
+    lua.doFile("sample-input/rate-input-test.lua");
+    assert(approxEqual(1594.39, rates[0].eval(gd)), failedUnitTest());
+    assert(approxEqual(1594.39, rates[1].eval(gd)), failedUnitTest());
 }
