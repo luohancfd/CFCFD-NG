@@ -73,25 +73,25 @@ public:
 	return to!string(repr);
     }
 
-    override void update_thermo_from_pT(ref GasState Q) const 
+    override void update_thermo_from_pT(GasState Q) const 
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	Q.rho = Q.p/(Q.T[0]*_Rgas);
 	Q.e[0] = _Cv*Q.T[0];
     }
-    override void update_thermo_from_rhoe(ref GasState Q) const
+    override void update_thermo_from_rhoe(GasState Q) const
     {
 	assert(Q.e.length == 1, "incorrect length of energy array");
 	Q.T[0] = Q.e[0]/_Cv;
 	Q.p = Q.rho*_Rgas*Q.T[0];
     }
-    override void update_thermo_from_rhoT(ref GasState Q) const
+    override void update_thermo_from_rhoT(GasState Q) const
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	Q.p = Q.rho*_Rgas*Q.T[0];
 	Q.e[0] = _Cv*Q.T[0];
     }
-    override void update_thermo_from_rhop(ref GasState Q) const
+    override void update_thermo_from_rhop(GasState Q) const
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	Q.T[0] = Q.p/(Q.rho*_Rgas);
@@ -99,19 +99,19 @@ public:
 	
     }
     
-    override void update_thermo_from_ps(ref GasState Q, double s) const
+    override void update_thermo_from_ps(GasState Q, double s) const
     {
 	throw new Exception(format("Not implemented: line=%d, file=%s\n", __LINE__, __FILE__));
     }
-    override void update_thermo_from_hs(ref GasState Q, double h, double s) const
+    override void update_thermo_from_hs(GasState Q, double h, double s) const
     {
 	throw new Exception(format("Not implemented: line=%d, file=%s\n", __LINE__, __FILE__));
     }
-    override void update_sound_speed(ref GasState Q) const
+    override void update_sound_speed(GasState Q) const
     {
 	Q.a = sqrt(_gamma*_Rgas*Q.T[0]);
     }
-    override void update_trans_coeffs(ref GasState Q) const
+    override void update_trans_coeffs(GasState Q) const
     {
 	assert(Q.T.length == 1, "incorrect number of modes");
 	assert(Q.k.length == 1, "incorrect number of modes");
