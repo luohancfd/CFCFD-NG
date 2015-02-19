@@ -28,6 +28,12 @@ public:
 	}
     }
     
+    final void eval_rate_constants(in GasState Q) const
+    {
+	foreach ( ref r; _reactions )
+	    r.eval_rate_constants(Q);
+    }
+
     final void eval_rates(in GasState Q, in double[] conc, bool evalRateConstants, out double[] rate)
     {
 	eval_split_rates(Q, conc, evalRateConstants, _q, _L);
@@ -39,8 +45,7 @@ public:
 				out double[] q, out double[] L)
     {
 	if ( evalRateConstants ) {
-	    foreach ( ref r; _reactions )
-		r.eval_rate_constants(Q);
+	    eval_rate_constants(Q);
 	}
 	foreach ( ref r; _reactions )
 	    r.eval_rates(conc);
