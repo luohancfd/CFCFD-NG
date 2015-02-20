@@ -536,7 +536,7 @@ void AOPatch::compute_background_mesh()
 
     // Initial positions of the mesh points are just TFI locations.
     double dXi = 1.0 / ((double) nx);
-    double dEta = 1.0 / ((double) nx);
+    double dEta = 1.0 / ((double) ny); // bug fix, I think, 2015-02-20
     double dXi2 = dXi * dXi;
     double dEta2 = dEta * dEta;
     for ( int ix = 0; ix <= nx; ++ix ) {
