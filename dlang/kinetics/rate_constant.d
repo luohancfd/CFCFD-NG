@@ -98,16 +98,16 @@ void Arrhenius1(double A, double n, double C)
 unittest {
     import util.msg_service;
     // Test 1. Rate constant for H2 + I2 reaction.
-    auto rc = new ArrheniusRateConstant(1.94e14, 0.0, 20620.0);
+    auto rc = new ArrheniusRateConstant(1.94e14*1e-6, 0.0, 20620.0);
     auto gd = new GasState(1, 1);
     gd.T[0] = 700.0;
-    assert(approxEqual(31.24116, rc.eval(gd)), failedUnitTest());
+    assert(approxEqual(3.10850956e-5, rc.eval(gd)), failedUnitTest());
     // Test 2. Read rate constant parameters for nitrogen dissociation
     // from Lua input and compute rate constant at 4000.0 K
     auto lua = initLuaState("sample-input/N2-diss.lua");
     auto rc2 = new ArrheniusRateConstant(lua.get!LuaTable("rate"));
     gd.T[0] = 4000.0;
-    assert(approxEqual(1594.39, rc2.eval(gd)), failedUnitTest());
+    assert(approxEqual(0.00159439, rc2.eval(gd)), failedUnitTest());
     // Test 3. Read rate constant parameters for nitrogen dissocation
     // from a Lua table.
     lua = new LuaState;
@@ -116,6 +116,6 @@ unittest {
     lua["Arrhenius0"] = &Arrhenius0;
     lua["Arrhenius1"] = &Arrhenius1;
     lua.doFile("sample-input/rate-input-test.lua");
-    assert(approxEqual(1594.39, rates[0].eval(gd)), failedUnitTest());
-    assert(approxEqual(1594.39, rates[1].eval(gd)), failedUnitTest());
+    assert(approxEqual(0.00159439, rates[0].eval(gd)), failedUnitTest());
+    assert(approxEqual(0.00159439, rates[1].eval(gd)), failedUnitTest());
 }

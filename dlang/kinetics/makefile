@@ -23,7 +23,9 @@ LUAD_FILES := ${LUAD_DIR}/luad/*.d \
 	${LUAD_DIR}/luad/c/*.d \
 	${LUAD_DIR}/luad/conversions/*.d
 
-KINETICS_FILES := rate_constant.d \
+KINETICS_FILES := \
+	chemistry_update.d \
+	rate_constant.d \
 	reaction.d \
 	reaction_mechanism.d
 
@@ -41,10 +43,16 @@ ${LIBLUA}:
 libkinetics.a : $(KINETICS_FILES) $(GAS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
 	dmd -lib -oflibkinetics.a $(KINETICS_FILES) $(GAS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES) $(DFLAGS)
 
+chemistry_update_test: chemistry_update.d libkinetics.a $(LIBGAS) $(LIBLUA) $(LUAD_FILES) $(NM_FILES)
+	dmd $(DFLAGS) -ofchemistry_update_test chemistry_update.d libkinetics.a ${LIBGAS} ${LIBLUA} $(LUAD_FILES) $(NM_FILES) $(DLINKFLAGS)
+
 rate_constant_test: rate_constant.d $(LIBGAS) $(LIBLUA) $(LUAD_FILES)
 	dmd $(DFLAGS) -ofrate_constant_test rate_constant.d ${LIBGAS} ${LIBLUA} $(LUAD_FILES) $(DLINKFLAGS)
+
 reaction_test: reaction.d $(LIBGAS) $(LIBLUA) $(LUAD_FILES)
 	dmd $(DFLAGS) -ofreaction_test reaction.d rate_constant.d ${LIBGAS} ${LIBLUA} $(LUAD_FILES) $(DLINKFLAGS)
 
 reaction_mechanism_test: reaction_mechanism.d libkinetics.a $(LIBGAS) $(LIBLUA) $(LUAD_FILES)
 	dmd $(DFLAGS) -ofreaction_mechanism_test reaction.d rate_constant.d ${LIBGAS} ${LIBLUA} $(LUAD_FILES) $(DLINKFLAGS)
+
+

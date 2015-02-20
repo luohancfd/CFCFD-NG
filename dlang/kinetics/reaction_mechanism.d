@@ -6,6 +6,8 @@
 
 module kinetics.reaction_mechanism;
 
+import std.stdio;
+
 import gas;
 import util.msg_service;
 import kinetics.rate_constant;
@@ -15,7 +17,7 @@ class ReactionMechanism
 {
 public:
     @property ulong n_reactions() const { return _reactions.length; }
-    this(in Reaction[] reactions, int n_species)
+    this(in Reaction[] reactions, size_t n_species)
     {
 	foreach ( ref r; reactions) {
 	    _reactions ~= r.dup();
@@ -27,28 +29,24 @@ public:
 	    _work_arrays_initialised = true;
 	}
     }
-    
-    final void eval_rate_constants(in GasState Q) const
+    ReactionMechanism dup() const
     {
-	foreach ( ref r; _reactions )
-	    r.eval_rate_constants(Q);
+	return new ReactionMechanism(_reactions, _q.length);
+    }
+    
+    final void eval_rate_constants(in GasState Q)
+    {
+	foreach ( ref r; _reactions ) r.eval_rate_constants(Q);
     }
 
-    final void eval_rates(in GasState Q, in double[] conc, bool evalRateConstants, out double[] rate)
+    final void eval_rates(in double[] conc, double[] rates)
     {
-	eval_split_rates(Q, conc, evalRateConstants, _q, _L);
-	foreach ( isp; 0..conc.length ) {
-	    rate[isp] = _q[isp] - _L[isp];
-	}
+	eval_split_rates(conc, _q, _L);
+	foreach ( isp; 0..conc.length ) rates[isp] = _q[isp] - _L[isp];
     }
-    final void eval_split_rates(in GasState Q, in double[] conc, bool evalRateConstants,
-				out double[] q, out double[] L)
+    final void eval_split_rates(in double[] conc, double[] q, double[] L)
     {
-	if ( evalRateConstants ) {
-	    eval_rate_constants(Q);
-	}
-	foreach ( ref r; _reactions )
-	    r.eval_rates(conc);
+	foreach ( ref r; _reactions ) r.eval_rates(conc);
 	foreach ( isp; 0..conc.length ) {
 	    q[isp] = 0.0;
 	    L[isp] = 0.0;
@@ -83,6 +81,7 @@ unittest
     auto reacMech = new ReactionMechanism([reaction], 3);
     double[] rates;
     rates.length = 3;
-    reacMech.eval_rates(gd, conc, true, rates);
+    reacMech.eval_rate_constants(gd);
+    reacMech.eval_rates(conc, rates);
     assert(approxEqual([-643.9303, -643.9303, 1287.8606], rates), failedUnitTest());
 }

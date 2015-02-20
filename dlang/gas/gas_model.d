@@ -18,6 +18,7 @@ import util.msg_service;
 import gas.physical_constants;
 
 immutable double SMALL_MOLE_FRACTION = 1.0e-15;
+immutable double MIN_MASS_FRACTION = 1.0e-30;
 immutable double MIN_MOLES = 1.0e-30;
 immutable double T_MIN = 20.0; 
 
@@ -65,16 +66,34 @@ public:
     body {
 	gas.gas_model.massf2molef(Q.massf, _mol_masses, molef);
     }
+    final void molef2massf(in double[] molef, GasState Q) const
+    in {
+	assert(Q.massf.length == molef.length, brokenPreCondition("Inconsistent array lengths."));
+    }
+    body {
+	gas.gas_model.molef2massf(molef, _mol_masses, Q.massf);
+    }
     final void massf2conc(in GasState Q, double[] conc) const
     in {
 	assert(Q.massf.length == conc.length, brokenPreCondition("Inconsisten array lenghts."));
     }
     body {
-	foreach (i; 0 .. _n_species) {
+	foreach ( i; 0.._n_species ) {
 	    conc[i] = Q.massf[i]*Q.rho / _mol_masses[i];
 	    if ( conc[i] < MIN_MOLES ) conc[i] = 0.0;
 	}
     }
+    final void conc2massf(in double[] conc, GasState Q) const
+    in {
+	assert(Q.massf.length == conc.length, brokenPreCondition("Inconsisten array lenghts."));
+    }
+    body {
+	foreach ( i; 0.._n_species ) {
+	    Q.massf[i] = conc[i]*_mol_masses[i] / Q.rho;
+	    if ( Q.massf[i] < MIN_MASS_FRACTION ) Q.massf[i] = MIN_MASS_FRACTION;
+	}
+    }
+
 protected:
     // These data need to be properly initialized by the derived class.
     uint _n_species;
@@ -342,7 +361,17 @@ in {
 }
 body {
     double result = 0.0;
-    foreach (i; 0 .. Q.massf.length) result += Q.massf[i] * phi[i];
+    foreach ( i; 0..Q.massf.length ) result += Q.massf[i] * phi[i];
+    return result;
+}
+
+@nogc pure double mole_average(in double[] molef, in double[] phi)
+in {
+    assert(molef.length == phi.length, "Inconsistent array lengths.");
+}
+body {
+    double result = 0.0;
+    foreach ( i; 0..molef.length ) result += molef[i] * phi[i];
     return result;
 }
 
@@ -363,8 +392,19 @@ in {
 }
 body {
     double mixMolMass = mixture_molecular_mass(massf, mol_masses);
-    foreach (i; 0 .. massf.length) molef[i] = massf[i] * mixMolMass / mol_masses[i];
+    foreach ( i; 0..massf.length ) molef[i] = massf[i] * mixMolMass / mol_masses[i];
 }
+
+@nogc void molef2massf(in double[] molef, in double[] mol_masses, double[] massf)
+in {
+    assert(massf.length == mol_masses.length, "Inconsistent array lengths.");
+    assert(massf.length == molef.length, "Inconsistent array lengths.");
+}
+body {
+    double mixMolMass = mole_average(molef, mol_masses);
+    foreach ( i; 0..massf.length ) massf[i] = molef[i] * mol_masses[i] / mixMolMass;
+}
+
 
 
 unittest {
