@@ -1685,7 +1685,7 @@ int integrate_in_time(double target_time)
 	switch ( G.implicit_mode ) {
 	case 0: // explicit update of convective terms and, maybe, the viscous terms
 	    if ( G.moving_grid ) 
-		break_loop2 = gasdynamic_increment_with_moving_grid(G.dt_global, finished_time_stepping);
+		break_loop2 = gasdynamic_increment_with_moving_grid(G.dt_global, finished_time_stepping, do_cfl_check_now);
 	    else
 		break_loop2 = gasdynamic_explicit_increment_with_fixed_grid(G.dt_global);
 	    break;
@@ -2342,7 +2342,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 } // end gasdynamic_inviscid_increment_with_fixed_grid()
 
 
-int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_stepping)
+int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_stepping, bool &do_cfl_check_now)
 // We have implemented only the simplest consistent two-stage update scheme. 
 {
     global_data &G = *get_global_data_ptr();
@@ -2351,6 +2351,7 @@ int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_steppin
     using std::swap;
     string filename, jbstring;
     char jbcstr[10];
+    bool grid_moving_flag = false;
 
     // FIX-ME moving grid: this is a work/refactoring in progress... PJ
     // 25-Mar-2103 except for superficial changes, it is the same as 
@@ -2402,6 +2403,7 @@ int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_steppin
                         printf( "Error: check the output vertex velocities.\n");
 	            }
                 } // end for *bdp
+                grid_moving_flag = true;
 	    }
 	    else { // user-defined grid movement
 	        for ( Block *bdp : G.my_blocks ) {
@@ -2585,6 +2587,13 @@ int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_steppin
 	    swap(cp->U[0], cp->U[2]);
 	    cp->copy_grid_level_to_level(2, 0);
 	}
+    }
+    
+    // check CFL condition if flow induced moving and
+    // grid has been adjusted at this time step
+    if ( G.flow_induced_moving && grid_moving_flag ) {
+        do_cfl_check_now = true;
+        grid_moving_flag = false;
     }
     
     G.sim_time = t0 + dt;

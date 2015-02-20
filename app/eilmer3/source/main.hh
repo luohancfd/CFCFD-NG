@@ -20,7 +20,7 @@ int write_solution_data(std::string tindxstring);
 int integrate_in_time(double target_time);
 int finalize_simulation(void);
 int gasdynamic_explicit_increment_with_fixed_grid(double dt);
-int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_stepping);
+int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_stepping, bool &do_cfl_check_now);
 int gasdynamic_separate_explicit_viscous_increment();
 int do_bad_cell_count(size_t gtl);
 int write_finishing_data(global_data *G, std::string filename);
