@@ -59,15 +59,20 @@ void main()
     writeln("Try LuaD connection.");
     auto lua = new LuaState;
     lua.openLibs();
-    lua["Vector"] = &myluaVector3;
-    lua["getX"] = &getX;
-    lua["getY"] = &getY;
-    lua["getZ"] = &getZ;
+    registerVector3(lua);
     lua.doString(`
--- Add a point
+-- Add a point and look at its index and value.
 a = Vector{x=1.0, y=2.0}
 print("a=", a)
-print("a.x=", getX(a), "a.y=", getY(a), "a.z=", getZ(a))      
+print("a.x=", getX(a), "a.y=", getY(a), "a.z=", getZ(a))
+b = {}
+Vector3Value(b, a)
+print("b=", b)
+print("uglyprint b=[")
+for k,v in pairs(b) do
+   print(k, "=", v, ",")
+end
+print("]")      
     `);
     writeln("points.length= ", points.length);
     writeln("points[0]= ", points[0]);

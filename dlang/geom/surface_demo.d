@@ -29,7 +29,7 @@ void main()
     auto my_AOpatch = new AOPatch(p00, p10, p11, p01);
     writeln("my_AOpatch= ", my_AOpatch);
     c = my_AOpatch(0.1, 0.1);
-    writeln("my_AOpatch.eval(0.1, 0.1)= ", c);
+    writeln("my_AOpatch(0.1, 0.1)= ", c);
 
     writeln("Done.");
 }

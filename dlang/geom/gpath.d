@@ -69,3 +69,29 @@ unittest {
     auto d = ab2(0.5);
     assert(approxEqualVectors(c, d), "Line.dup");
 }
+
+//-----------------------------------------------------------------------------
+// Connection to Lua following Rowan's lead.
+
+import luad.all;
+
+struct LineParams {
+    int[] plist;
+}
+
+// A little database of Path objects
+static Path[] paths;
+
+int makeLine(LuaTable t)
+// Returns index of newly added path.
+{
+    auto data = t.toStruct!LineParams();
+    paths ~= new Line(points[data.plist[0]], points[data.plist[1]]);
+    return paths.length - 1;
+}
+
+void registerLine(LuaState lua)
+// Register the Line service functions with the Lua interpreter.
+{
+    lua["Line"] = &makeLine;
+}

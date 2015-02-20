@@ -648,16 +648,50 @@ struct Vector3Params {
     double z = 0.0;
 }
 
+// A little database of Vector3 objects
 static Vector3[] points;
 
-double getX(int ip) { return points[ip].x; }
-double getY(int ip) { return points[ip].y; }
-double getZ(int ip) { return points[ip].z; }
+void Vector3FillTable(ref LuaTable t, int i) {
+    if (i >= 0 && i < points.length) {
+	t["x"] = points[i].x; t["y"] = points[i].y; t["z"] = points[i].z;
+    } else {
+	t["x"] = 0.0; t["y"] = 0.0; t["z"] = 0.0;
+    }
+    return;
+}
+double Vector3GetX(int i) {
+    if (i >= 0 && i < points.length)
+	return points[i].x;
+    else
+	return 0.0;
+}
+double Vector3GetY(int i) {
+    if (i >= 0 && i < points.length)
+	return points[i].y;
+    else
+	return 0.0;
+}
+double Vector3GetZ(int i) {
+    if (i >= 0 && i < points.length)
+	return points[i].z;
+    else
+	return 0.0;
+}
 
-int myluaVector3(LuaTable t)
+int makeVector3(LuaTable t)
 // Returns index of newly added point.
 {
     auto data = t.toStruct!Vector3Params();
     points ~= Vector3(data.x, data.y, data.z);
     return points.length - 1;
+}
+
+void registerVector3(LuaState lua)
+// Register the Vector3 service functions with the Lua interpreter.
+{
+    lua["Vector"] = &makeVector3;
+    lua["Vector3Value"] = &Vector3FillTable;
+    lua["getX"] = &Vector3GetX;
+    lua["getY"] = &Vector3GetY;
+    lua["getZ"] = &Vector3GetZ;
 }
