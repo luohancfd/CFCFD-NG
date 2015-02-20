@@ -82,16 +82,29 @@ struct LineParams {
 // A little database of Path objects
 static Path[] paths;
 
-int makeLine(LuaTable t)
-// Returns index of newly added path.
+int makeLine(int p0, int p1)
+// Makes a new Path object and returns its index.
 {
-    auto data = t.toStruct!LineParams();
-    paths ~= new Line(points[data.plist[0]], points[data.plist[1]]);
+    paths ~= new Line(points[p0], points[p1]);
     return paths.length - 1;
 }
 
-void registerLine(LuaState lua)
+void evalLine(ref LuaTable table, int i, double s)
+// Places the position of the parametric point s into the table t.
+{
+    if (i >= 0 && i < paths.length) {
+	auto p = paths[i](s);
+	table["x"] = p.x; table["y"] = p.y; table["z"] = p.z;
+    } else {
+	table["x"] = nil; table["y"] = nil; table["z"] = nil;
+    }
+
+    return;
+}
+
+void registerPath(LuaState lua)
 // Register the Line service functions with the Lua interpreter.
 {
     lua["Line"] = &makeLine;
+    lua["evalLine"] = &evalLine;
 }

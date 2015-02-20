@@ -651,27 +651,36 @@ struct Vector3Params {
 // A little database of Vector3 objects
 static Vector3[] points;
 
-void Vector3FillTable(ref LuaTable t, int i) {
+void Vector3FillTable(ref LuaTable table, int i) {
     if (i >= 0 && i < points.length) {
-	t["x"] = points[i].x; t["y"] = points[i].y; t["z"] = points[i].z;
+	table["x"] = points[i].x;
+	table["y"] = points[i].y;
+	table["z"] = points[i].z;
     } else {
-	t["x"] = 0.0; t["y"] = 0.0; t["z"] = 0.0;
+	table["x"] = nil; table["y"] = nil; table["z"] = nil;
     }
     return;
 }
-double Vector3GetX(int i) {
+double[] Vector3AsArray(int i)
+{
+    return points[i]._p;
+}
+double Vector3GetX(int i)
+{
     if (i >= 0 && i < points.length)
 	return points[i].x;
     else
 	return 0.0;
 }
-double Vector3GetY(int i) {
+double Vector3GetY(int i)
+{
     if (i >= 0 && i < points.length)
 	return points[i].y;
     else
 	return 0.0;
 }
-double Vector3GetZ(int i) {
+double Vector3GetZ(int i)
+{
     if (i >= 0 && i < points.length)
 	return points[i].z;
     else
@@ -685,12 +694,19 @@ int makeVector3(LuaTable t)
     points ~= Vector3(data.x, data.y, data.z);
     return points.length - 1;
 }
+int makeVector3FromArray(double[] xyz)
+{
+    points ~= Vector3(xyz);
+    return points.length - 1;
+}
 
 void registerVector3(LuaState lua)
 // Register the Vector3 service functions with the Lua interpreter.
 {
     lua["Vector"] = &makeVector3;
     lua["Vector3Value"] = &Vector3FillTable;
+    lua["Vector3Array"] = &Vector3AsArray;
+    lua["VectorA"] = &makeVector3FromArray;
     lua["getX"] = &Vector3GetX;
     lua["getY"] = &Vector3GetY;
     lua["getZ"] = &Vector3GetZ;

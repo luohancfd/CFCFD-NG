@@ -62,8 +62,8 @@ void main()
     registerVector3(lua);
     lua.doString(`
 -- Add a point and look at its index and value.
-a = Vector{x=1.0, y=2.0}
-print("a=", a)
+a = VectorA{1.0, 2.0}
+print("a=", a, " remember that it is an index")
 print("a.x=", getX(a), "a.y=", getY(a), "a.z=", getZ(a))
 b = {}
 Vector3Value(b, a)
