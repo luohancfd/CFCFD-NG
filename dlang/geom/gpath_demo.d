@@ -6,7 +6,6 @@
  */
 
 import std.stdio;
-import luad.all;
 import geom;
 import gpath;
 
@@ -20,39 +19,5 @@ void main()
     writeln("ab= ", ab);
     auto c = ab(0.5);
     writeln("ab(0.5)= ", c);
-
-    writeln("Try LuaD connection.");
-    auto lua = new LuaState;
-    lua.openLibs();
-    registerVector3(lua);
-    registerPath(lua);
-    lua.doString(`
--- Add a couple of points and make a Line.
-a = Vector{x=1.0, y=2.0}
-b = Vector{x=3.0, y=5.0}
-ab = Line(a, b)
-c = {}
-evalLine(c, ab, 0.5)
-print("c=", c)
-print("uglyprint c=[")
-for k,v in pairs(c) do
-   print(k, "=", v, ",")
-end
-print("]")
-ef = Line(VectorA{0.0, 10.0}, VectorA{10.0, 0.0})
-p = Vector3{x=9.0}
-q = Vector3{x=1.0, y=-1.0, z=8}
-pq = Line2(p, q)
-r = evalLine2(pq, 0.2)
-print("r.x=", r.x, "r.y=", r.y, "r.z=", r.z)
-    `);
-    writeln("points.length= ", points.length);
-    foreach (i; 0 .. points.length) {
-	writeln("points[", i, "]= ", points[i]);
-    }
-    writeln("paths.length= ", paths.length);
-    foreach (i; 0 .. paths.length) {
-	writeln("paths[", i, "]= ", paths[i]);
-    }
     writeln("Done.");
 }

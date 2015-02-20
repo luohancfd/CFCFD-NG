@@ -1,7 +1,8 @@
 # makefile for the geometry package
 # Builds all of the demonstration programs.
 
-DEMO_PROGRAMS := geom_demo gpath_demo surface_demo clusterfunctions_demo
+DEMO_PROGRAMS := geom_demo gpath_demo surface_demo clusterfunctions_demo \
+	luageom_demo
 
 LUA_DIR := ../../extern/lua-5.1.4
 LIBLUA := $(LUA_DIR)/lib/liblua.a
@@ -11,9 +12,12 @@ LUAD_FILES := $(wildcard $(LUAD_DIR)/luad/*.d) \
 	$(wildcard $(LUAD_DIR)/luad/c/*.d) \
 	$(wildcard $(LUAD_DIR)/luad/conversions/*.d)
 
-DFLAGS := -w -unittest -g -I.. -I$(LUAD_DIR)
+DFLAGS := -w -unittest -g -I..
 OF := -of
-DLINKFLAGS := -L-L$(LIBLUAPATH) -L-llua -L-ldl
+DLINKFLAGS := -L-ldl
+
+DFLAGS_LUA := $(DFLAGS) -I$(LUAD_DIR)
+DLINKFLAGS_LUA := -L-L$(LIBLUAPATH) -L-llua $(DLINKFLAGS)
 
 demo: $(DEMO_PROGRAMS)
 	echo "Demo codes built."
@@ -26,18 +30,22 @@ clean:
 $(LIBLUA):
 	cd $(LUA_DIR); make linux local
 
-geom_demo: geom_demo.d geom.d $(LUAD_FILES) $(LIBLUA)
+geom_demo: geom_demo.d geom.d
 	dmd $(DFLAGS) geom_demo.d $(OF)geom_demo \
-		geom.d $(LUAD_FILES) $(DLINKFLAGS)
+		geom.d $(DLINKFLAGS)
 
-gpath_demo: gpath_demo.d gpath.d geom.d $(LUAD_FILES) $(LIBLUA)
+gpath_demo: gpath_demo.d gpath.d geom.d
 	dmd $(DFLAGS) gpath_demo.d $(OF)gpath_demo \
-		gpath.d geom.d $(LUAD_FILES) $(DLINKFLAGS)
+		gpath.d geom.d $(DLINKFLAGS)
 
-surface_demo: surface_demo.d surface.d gpath.d geom.d $(LUAD_FILES) $(LIBLUA)
+surface_demo: surface_demo.d surface.d gpath.d geom.d
 	dmd $(DFLAGS) surface_demo.d $(OF)surface_demo \
-		surface.d gpath.d geom.d $(LUAD_FILES) $(DLINKFLAGS)
+		surface.d gpath.d geom.d $(DLINKFLAGS)
 
 clusterfunctions_demo: clusterfunctions_demo.d clusterfunctions.d
 	dmd $(DFLAGS) clusterfunctions_demo.d $(OF)clusterfunctions_demo \
 		clusterfunctions.d $(DLINKFLAGS)
+
+luageom_demo: luageom_demo.d surface.d gpath.d geom.d $(LUAD_FILES) $(LIBLUA)
+	dmd $(DFLAGS_LUA) luageom_demo.d $(OF)luageom_demo \
+		luageom.d surface.d gpath.d geom.d $(LUAD_FILES) $(DLINKFLAGS_LUA)

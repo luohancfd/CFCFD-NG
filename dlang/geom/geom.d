@@ -17,7 +17,7 @@ import std.stdio;
 import std.math;
 
 struct Vector3 {
-    package double[3] _p;
+    public double[3] _p;
 
     @nogc this(in double[] p)
     {
@@ -637,95 +637,3 @@ unittest {
     assert(approxEqual(volume, 1.0), "hex volume");
 }
 
-//-----------------------------------------------------------------------------
-// Connection to Lua following Rowan's lead.
-
-import luad.all;
-
-struct Vector3Params {
-    double x = 0.0;
-    double y = 0.0;
-    double z = 0.0;
-}
-
-// A little database of Vector3 objects
-static Vector3[] points;
-
-void Vector3FillTable(ref LuaTable table, int i) {
-    if (i >= 0 && i < points.length) {
-	table["x"] = points[i].x;
-	table["y"] = points[i].y;
-	table["z"] = points[i].z;
-    } else {
-	table["x"] = nil; table["y"] = nil; table["z"] = nil;
-    }
-    return;
-}
-double[] Vector3AsArray(int i)
-{
-    return points[i]._p;
-}
-double Vector3GetX(int i)
-{
-    if (i >= 0 && i < points.length)
-	return points[i].x;
-    else
-	return 0.0;
-}
-double Vector3GetY(int i)
-{
-    if (i >= 0 && i < points.length)
-	return points[i].y;
-    else
-	return 0.0;
-}
-double Vector3GetZ(int i)
-{
-    if (i >= 0 && i < points.length)
-	return points[i].z;
-    else
-	return 0.0;
-}
-
-int makeVector3(LuaTable t)
-// Returns index of newly added point.
-{
-    auto data = t.toStruct!Vector3Params();
-    points ~= Vector3(data.x, data.y, data.z);
-    return cast(int) points.length - 1;
-}
-int makeVector3FromArray(double[] xyz)
-{
-    points ~= Vector3(xyz);
-    return cast(int) points.length - 1;
-}
-
-Vector3 checkVector3Table(ref LuaTable t)
-{
-    // If we are going use it as a table
-    // fill in the missing spots
-    if ( t["x"].isNil ) t["x"] = 0.0;
-    if ( t["y"].isNil ) t["y"] = 0.0;
-    if ( t["z"].isNil ) t["z"] = 0.0;
-    auto data = t.toStruct!Vector3Params();
-    return Vector3(data.x, data.y, data.z);
-}
-
-LuaTable makeVector3FromTable(LuaTable t)
-{
-    checkVector3Table(t);
-    return t;
-}
-
-void registerVector3(LuaState lua)
-// Register the Vector3 service functions with the Lua interpreter.
-{
-    lua["Vector"] = &makeVector3;
-    lua["Vector3Value"] = &Vector3FillTable;
-    lua["Vector3Array"] = &Vector3AsArray;
-    lua["VectorA"] = &makeVector3FromArray;
-    lua["getX"] = &Vector3GetX;
-    lua["getY"] = &Vector3GetY;
-    lua["getZ"] = &Vector3GetZ;
-    lua["Vector3"] = &makeVector3FromTable;
-}

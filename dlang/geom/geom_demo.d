@@ -6,7 +6,6 @@
  */
 
 import std.stdio;
-import luad.all;
 import geom;
 
 void main()
@@ -55,32 +54,6 @@ void main()
     Vector3 q = Vector3(0.0, 0.0, 1.0); // start point
     int flag =  project_onto_plane(q, qr, a, b, c);
     writeln("projected point q = ", q);
-
-    writeln("Try LuaD connection.");
-    auto lua = new LuaState;
-    lua.openLibs();
-    registerVector3(lua);
-    lua.doString(`
--- Add a point and look at its index and value.
-a = VectorA{1.0, 2.0}
-print("a=", a, " remember that it is an index")
-print("a.x=", getX(a), "a.y=", getY(a), "a.z=", getZ(a))
-b = {}
-Vector3Value(b, a)
-print("b=", b)
-print("uglyprint b=[")
-for k,v in pairs(b) do
-   print(k, "=", v, ",")
-end
-print("]")
-c = Vector3({x=2.0, z=-4.2})
-print("c.x= ", c.x, "c.y= ", c.y, "c.z=", c.z)
-c.x = 32.0
-print("After modification of c.x...")
-print("c.x= ", c.x, "c.y= ", c.y, "c.z=", c.z)      
-    `);
-    writeln("points.length= ", points.length);
-    writeln("points[0]= ", points[0]);
 
     writeln("Done.");
 }
