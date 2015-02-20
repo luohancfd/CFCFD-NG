@@ -17,7 +17,7 @@ public:
     double t0; // to subrange t, when evaluating a point on the Path
     double t1;
     Path dup() const { return new Path(); }
-    Vector3 eval(double t) const
+    Vector3 opCall(double t) const
     {
 	return Vector3(0.0, 0.0, 0.0);
     }
@@ -46,7 +46,7 @@ public:
     {
 	return new Line(p0, p1, t0, t1);
     }
-    override Vector3 eval(double t) const 
+    override Vector3 opCall(double t) const 
     {
 	double tdsh = t0 + (t1-t0)*t; // subrange t
 	return (1.0-tdsh)*p0 + tdsh*p1;
@@ -63,9 +63,9 @@ unittest {
     auto a = Vector3([1.0, 2.2, 3.0]);
     auto b = Vector3(1.0);
     auto ab = new Line(a, b);
-    auto c = ab.eval(0.5);
-    assert(approxEqualVectors(c, Vector3(1.0, 1.1, 1.5)), "Line.eval");
+    auto c = ab(0.5);
+    assert(approxEqualVectors(c, Vector3(1.0, 1.1, 1.5)), "Line");
     auto ab2 = ab.dup();
-    auto d = ab2.eval(0.5);
+    auto d = ab2(0.5);
     assert(approxEqualVectors(c, d), "Line.dup");
 }

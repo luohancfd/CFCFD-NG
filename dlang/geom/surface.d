@@ -33,7 +33,7 @@ public:
     double s0;
     double s1;
 
-    Vector3 eval(double r, double s) const
+    Vector3 opCall(double r, double s) const
     {
 	return Vector3(0.0, 0.0, 0.0);
     }
@@ -75,15 +75,15 @@ public:
 	this.west = west.dup();
 	this.r0 = r0; this.r1 = r1;
 	this.s0 = s0; this.s1 = s1;
-	p00 = south.eval(0.0);
-	p10 = south.eval(1.0);
-	p01 = north.eval(0.0);
-	p11 = north.eval(1.0);
+	p00 = south(0.0);
+	p10 = south(1.0);
+	p01 = north(0.0);
+	p11 = north(1.0);
 	// Check alternate evaluation of corners for consistency.
-	Vector3 p00_alt = west.eval(0.0);
-	Vector3 p10_alt = east.eval(0.0);
-	Vector3 p01_alt = west.eval(1.0);
-	Vector3 p11_alt = east.eval(1.0);
+	Vector3 p00_alt = west(0.0);
+	Vector3 p10_alt = east(0.0);
+	Vector3 p01_alt = west(1.0);
+	Vector3 p11_alt = east(1.0);
 	if (!approxEqualVectors(p00, p00_alt)) {
 	    throw new Error(text("CoonsPatch open corner p00= ", p00,
 				 " p00_alt= ", p00_alt));
@@ -122,14 +122,14 @@ public:
 			      r0, r1, s0, s1);
     }
 
-    override Vector3 eval(double r, double s) const 
+    override Vector3 opCall(double r, double s) const 
     {
 	r = r0 + (r1-r0)*r; // subrange
 	s = s0 + (s1-s0)*s;
-	Vector3 south_r = south.eval(r); 
-	Vector3 north_r = north.eval(r);
-	Vector3 west_s = west.eval(s); 
-	Vector3 east_s = east.eval(s);
+	Vector3 south_r = south(r); 
+	Vector3 north_r = north(r);
+	Vector3 west_s = west(s); 
+	Vector3 east_s = east(s);
 	Vector3 p = (1.0-s)*south_r + s*north_r + (1.0-r)*west_s + r*east_s - 
 	    ( (1.0-r)*(1.0-s)*p00 + (1.0-r)*s*p01 + r*(1.0-s)*p10 + r*s*p11 );
 	return p;
@@ -154,10 +154,10 @@ unittest {
     auto p11 = Vector3(1.0, 1.1, 3.0);
     auto p01 = Vector3(0.0, 1.1, 3.0);
     auto my_patch = new CoonsPatch(p00, p10, p11, p01);
-    auto c = my_patch.eval(0.5, 0.5);
-    assert(approxEqualVectors(c, Vector3(0.5, 0.6, 3.0)), "CoonsPatch.eval mid");
-    c = my_patch.eval(0.1, 0.1);
-    assert(approxEqualVectors(c, Vector3(0.1, 0.2, 3.0)), "CoonsPatch.eval lower-left");
+    auto c = my_patch(0.5, 0.5);
+    assert(approxEqualVectors(c, Vector3(0.5, 0.6, 3.0)), "CoonsPatch mid");
+    c = my_patch(0.1, 0.1);
+    assert(approxEqualVectors(c, Vector3(0.1, 0.2, 3.0)), "CoonsPatch lower-left");
 }
 
 
@@ -203,15 +203,15 @@ public:
 	this.s0 = s0; this.s1 = s1;
 	_nx = nx; _ny = ny;
 	// Set up internal representation.
-	p00 = south.eval(0.0);
-	p10 = south.eval(1.0);
-	p01 = north.eval(0.0);
-	p11 = north.eval(1.0);
+	p00 = south(0.0);
+	p10 = south(1.0);
+	p01 = north(0.0);
+	p11 = north(1.0);
 	// Check alternate evaluation of corners for consistency.
-	Vector3 p00_alt = west.eval(0.0);
-	Vector3 p10_alt = east.eval(0.0);
-	Vector3 p01_alt = west.eval(1.0);
-	Vector3 p11_alt = east.eval(1.0);
+	Vector3 p00_alt = west(0.0);
+	Vector3 p10_alt = east(0.0);
+	Vector3 p01_alt = west(1.0);
+	Vector3 p11_alt = east(1.0);
 	if (!approxEqualVectors(p00, p00_alt)) {
 	    throw new Error(text("CoonsPatch open corner p00= ", p00,
 				 " p00_alt= ", p00_alt));
@@ -260,7 +260,7 @@ public:
 			   this._nx, this._ny, r0, r1, s0, s1);
     }
 
-    override Vector3 eval(double r, double s) const 
+    override Vector3 opCall(double r, double s) const 
     {
 	r = r0 + (r1-r0)*r; // subrange
 	s = s0 + (s1-s0)*s;
@@ -268,7 +268,7 @@ public:
 	// The background mesh is usually pretty coarse.
 	double tol = 1.0e-4;
 	if ( r < tol || s < tol || r > 1.0-tol || s > 1.0-tol ) {
-	    Vector3 p = tfi_surface.eval(r, s);
+	    Vector3 p = tfi_surface(r, s);
 	    return p;
 	}
 	// Interpolate within the AO background mesh.
@@ -314,7 +314,7 @@ private:
 	    foreach (iy; 0 .. _ny+1) {
 		double r = dXi * ix;
 		double s = dEta * iy;
-		_bgmesh[ix][iy] = tfi_surface.eval(r, s);
+		_bgmesh[ix][iy] = tfi_surface(r, s);
 	    }
 	}
 	// Now, adjust the mesh point locations.
@@ -390,10 +390,10 @@ unittest {
     auto p11 = Vector3(1.0, 1.1, 3.0);
     auto p01 = Vector3(0.0, 1.1, 3.0);
     auto my_patch = new AOPatch(p00, p10, p11, p01);
-    auto c = my_patch.eval(0.5, 0.5);
+    auto c = my_patch(0.5, 0.5);
     assert(approxEqualVectors(c, Vector3(0.443775, 0.652291, 3.0)),
-	   "AOPatch.eval mid");
-    c = my_patch.eval(0.1, 0.1);
+	   "AOPatch mid");
+    c = my_patch(0.1, 0.1);
     assert(approxEqualVectors(c, Vector3(0.0892476, 0.215529, 3.0)),
-	   "AOPatch.eval lower-left");
+	   "AOPatch lower-left");
 }

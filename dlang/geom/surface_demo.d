@@ -21,14 +21,14 @@ void main()
     writeln("CoonsPatch demo");
     auto my_patch = new CoonsPatch(p00, p10, p11, p01);
     writeln("my_patch= ", my_patch);
-    auto c = my_patch.eval(0.1, 0.1);
-    writeln("my_patch.eval(0.1, 0.1)= ", c);
+    auto c = my_patch(0.1, 0.1);
+    writeln("my_patch(0.1, 0.1)= ", c);
 
     writeln("AOPatch demo");
     p10 = Vector3(1.0, 0.4, 3.0);
     auto my_AOpatch = new AOPatch(p00, p10, p11, p01);
     writeln("my_AOpatch= ", my_AOpatch);
-    c = my_AOpatch.eval(0.1, 0.1);
+    c = my_AOpatch(0.1, 0.1);
     writeln("my_AOpatch.eval(0.1, 0.1)= ", c);
 
     writeln("Done.");

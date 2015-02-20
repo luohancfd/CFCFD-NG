@@ -17,7 +17,7 @@ void main()
     writeln("a = ", a, ", b = ", b);
     auto ab = new Line(a, b);
     writeln("ab= ", ab);
-    auto c = ab.eval(0.5);
-    writeln("ab.eval(0.5)= ", c);
+    auto c = ab(0.5);
+    writeln("ab(0.5)= ", c);
     writeln("Done.");
 }
