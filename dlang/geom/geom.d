@@ -692,12 +692,29 @@ int makeVector3(LuaTable t)
 {
     auto data = t.toStruct!Vector3Params();
     points ~= Vector3(data.x, data.y, data.z);
-    return points.length - 1;
+    return cast(int) points.length - 1;
 }
 int makeVector3FromArray(double[] xyz)
 {
     points ~= Vector3(xyz);
-    return points.length - 1;
+    return cast(int) points.length - 1;
+}
+
+Vector3 checkVector3Table(ref LuaTable t)
+{
+    // If we are going use it as a table
+    // fill in the missing spots
+    if ( t["x"].isNil ) t["x"] = 0.0;
+    if ( t["y"].isNil ) t["y"] = 0.0;
+    if ( t["z"].isNil ) t["z"] = 0.0;
+    auto data = t.toStruct!Vector3Params();
+    return Vector3(data.x, data.y, data.z);
+}
+
+LuaTable makeVector3FromTable(LuaTable t)
+{
+    checkVector3Table(t);
+    return t;
 }
 
 void registerVector3(LuaState lua)
@@ -710,4 +727,5 @@ void registerVector3(LuaState lua)
     lua["getX"] = &Vector3GetX;
     lua["getY"] = &Vector3GetY;
     lua["getZ"] = &Vector3GetZ;
+    lua["Vector3"] = &makeVector3FromTable;
 }

@@ -39,7 +39,12 @@ for k,v in pairs(c) do
    print(k, "=", v, ",")
 end
 print("]")
-ef = Line(VectorA{0.0, 10.0}, VectorA{10.0, 0.0})      
+ef = Line(VectorA{0.0, 10.0}, VectorA{10.0, 0.0})
+p = Vector3{x=9.0}
+q = Vector3{x=1.0, y=-1.0, z=8}
+pq = Line2(p, q)
+r = evalLine2(pq, 0.2)
+print("r.x=", r.x, "r.y=", r.y, "r.z=", r.z)
     `);
     writeln("points.length= ", points.length);
     foreach (i; 0 .. points.length) {

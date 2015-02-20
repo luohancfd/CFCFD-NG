@@ -86,7 +86,7 @@ int makeLine(int p0, int p1)
 // Makes a new Path object and returns its index.
 {
     paths ~= new Line(points[p0], points[p1]);
-    return paths.length - 1;
+    return cast(int) paths.length - 1;
 }
 
 void evalLine(ref LuaTable table, int i, double s)
@@ -102,9 +102,43 @@ void evalLine(ref LuaTable table, int i, double s)
     return;
 }
 
+// RJG additions to experiment
+Line checkLineTable(ref LuaTable t)
+{
+    if ( t["t0"].isNil ) t["t0"] = 0.0;
+    if ( t["t1"].isNil ) t["t1"] = 1.0;
+    auto p0Tab = t.get!LuaTable("p0");
+    auto p0 = checkVector3Table(p0Tab);
+    auto p1Tab = t.get!LuaTable("p1");
+    auto p1 = checkVector3Table(p1Tab);
+    return new Line(p0, p1, t.get!double("t0"), t.get!double("t1"));
+}
+
+static LuaState my_lua_ref;
+LuaTable makeLine2(LuaTable p0Tab, LuaTable p1Tab)
+{
+    auto lTab = my_lua_ref.newTable();
+    lTab["p0"] = p0Tab;
+    lTab["p1"] = p1Tab;
+    checkLineTable(lTab);
+    return lTab;
+}
+
+LuaTable evalLine2(ref LuaTable lTab, double s)
+{
+    auto line = checkLineTable(lTab);
+    auto p = line(s);
+    auto t = my_lua_ref.newTable();
+    t["x"] = p.x; t["y"] = p.y; t["z"] = p.z;
+    return t;
+}
+
 void registerPath(LuaState lua)
 // Register the Line service functions with the Lua interpreter.
 {
+    my_lua_ref = lua;
     lua["Line"] = &makeLine;
     lua["evalLine"] = &evalLine;
+    lua["Line2"] = &makeLine2;
+    lua["evalLine2"] = &evalLine2;
 }

@@ -72,7 +72,12 @@ print("uglyprint b=[")
 for k,v in pairs(b) do
    print(k, "=", v, ",")
 end
-print("]")      
+print("]")
+c = Vector3({x=2.0, z=-4.2})
+print("c.x= ", c.x, "c.y= ", c.y, "c.z=", c.z)
+c.x = 32.0
+print("After modification of c.x...")
+print("c.x= ", c.x, "c.y= ", c.y, "c.z=", c.z)      
     `);
     writeln("points.length= ", points.length);
     writeln("points[0]= ", points[0]);
