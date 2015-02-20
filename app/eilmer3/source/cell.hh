@@ -136,7 +136,6 @@ public:
     int status; // state of the interface with respect to pistons
     // Geometry
     Vector3 pos;       ///< \brief position of the (approx) midpoint
-    Vector3 vel;       ///< \brief flow velocity at interface, m/s [TODO] Remove?
     Vector3 ivel;      ///< \brief grid velocity at interface, m/s
     double Ybar;       ///< \brief Y-coordinate of the mid-point
     double length;     ///< \brief Interface length in the x,y-plane

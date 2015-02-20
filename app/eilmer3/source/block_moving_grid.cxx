@@ -93,10 +93,10 @@ int calc_boundary_vertex_velocity(std::vector<FV_Interface *> &IFaceList,
     }
     double sum_w = 0.0; for ( double wi : w ) sum_w += wi;
     if ( sum_w >= 1.0e-3 ) {
-	for ( size_t i =0; i < w.size(); ++i ) wv += w[i] * IFaceList[i]->vel;
+	for ( size_t i =0; i < w.size(); ++i ) wv += w[i] * IFaceList[i]->ivel;
 	wv /= sum_w;
     } else {
-	for ( size_t i =0; i < w.size(); ++i ) wv += IFaceList[i]->vel;
+	for ( size_t i =0; i < w.size(); ++i ) wv += IFaceList[i]->ivel;
 	wv /= w.size();
     }
     // Finally, constrain vertex velocity to be directed along 

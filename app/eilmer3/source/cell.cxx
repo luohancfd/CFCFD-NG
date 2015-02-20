@@ -415,7 +415,7 @@ int ConservedQuantities::clear_values()
 //----------------------------------------------------------------------------
 
 FV_Interface::FV_Interface(Gas_model *gm)
-    : id(0), status(0), pos(0.0,0.0,0.0), vel(0.0,0.0,0.0),
+    : id(0), status(0), pos(0.0,0.0,0.0), ivel(0.0,0.0,0.0),
       Ybar(0.0), length(0.0), area(N_LEVEL, 0.0),
       n(0.0,0.0,0.0), t1(0.0,0.0,0.0), t2(0.0,0.0,0.0),
       fs(new FlowState(gm)), F(new ConservedQuantities(gm))
@@ -428,7 +428,7 @@ FV_Interface::FV_Interface(Gas_model *gm)
 }
 
 FV_Interface::FV_Interface()
-    : id(0), status(0), pos(0.0,0.0,0.0), vel(0.0,0.0,0.0),
+    : id(0), status(0), pos(0.0,0.0,0.0), ivel(0.0,0.0,0.0),
       Ybar(0.0), length(0.0), area(N_LEVEL, 0.0),
       n(0.0,0.0,0.0), t1(0.0,0.0,0.0), t2(0.0,0.0,0.0),
       fs(new FlowState(get_gas_model_ptr())),
@@ -436,7 +436,7 @@ FV_Interface::FV_Interface()
 {}
 
 FV_Interface::FV_Interface(const FV_Interface &iface)
-    : id(iface.id), status(iface.status), pos(iface.pos), vel(iface.vel),
+    : id(iface.id), status(iface.status), pos(iface.pos), ivel(iface.ivel),
       Ybar(iface.Ybar), length(iface.length), area(iface.area), 
       n(iface.n), t1(iface.t1), t2(iface.t2),
       fs(new FlowState(*iface.fs)), F(new ConservedQuantities(*iface.F))
@@ -446,7 +446,7 @@ FV_Interface & FV_Interface::operator=(const FV_Interface &iface)
 {
     if ( this != &iface ) { // Avoid aliasing
 	id = iface.id; status = iface.status;
-	pos = iface.pos; vel = iface.vel;
+	pos = iface.pos; ivel = iface.ivel;
 	Ybar = iface.Ybar; length = iface.length; area = iface.area;
 	n = iface.n; t1 = iface.t1; t2 = iface.t2;
 	fs = new FlowState(*iface.fs);
@@ -492,7 +492,6 @@ int FV_Interface::copy_values_from(const FV_Interface &src, int type_of_copy)
     if ( type_of_copy == COPY_ALL_CELL_DATA ||
 	 type_of_copy == COPY_CELL_LENGTHS ) {
 	pos.x = src.pos.x; pos.y = src.pos.y; pos.z = src.pos.z;
-	vel.x = src.vel.x; vel.y = src.vel.y; vel.z = src.vel.z;
 	ivel.x = src.ivel.x; ivel.y = src.ivel.y; ivel.z = src.ivel.z;	
 	n.x = src.n.x; n.y = src.n.y; n.z = src.n.z;
 	t1.x = src.t1.x; t1.y = src.t1.y; t1.z = src.t1.z;
@@ -869,7 +868,7 @@ double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy, size_t gt
 	    // [todo] FIX-ME -- I'm not happy with conditional copies here -- PJ 23-Mar-2013.
 	    buf = iface[j]->fs->copy_values_to_buffer(buf);
 	    *buf++ = iface[j]->pos.x; *buf++ = iface[j]->pos.y; *buf++ = iface[j]->pos.z;
-	    *buf++ = iface[j]->vel.x; *buf++ = iface[j]->vel.y; *buf++ = iface[j]->vel.z;
+	    *buf++ = iface[j]->ivel.x; *buf++ = iface[j]->ivel.y; *buf++ = iface[j]->ivel.z;
 	    *buf++ = iface[j]->length;
 	}
     }
@@ -900,7 +899,7 @@ double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy, size_t 
 	    // [todo] FIX-ME -- I'm not happy with conditional copies here -- PJ 23-Mar-2013.
 	    buf = iface[j]->fs->copy_values_from_buffer(buf);
 	    iface[j]->pos.x = *buf++; iface[j]->pos.y = *buf++; iface[j]->pos.z = *buf++;
-	    iface[j]->vel.x = *buf++; iface[j]->vel.y = *buf++; iface[j]->vel.z = *buf++;
+	    iface[j]->ivel.x = *buf++; iface[j]->ivel.y = *buf++; iface[j]->ivel.z = *buf++;
 	    iface[j]->length = *buf++;
 	}
     }

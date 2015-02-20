@@ -276,23 +276,23 @@ int ShockFittingInBC::calculate_shock_speed(const FV_Cell &cL0, const FV_Cell &c
 	    // Set interface normal velocity to the lower of the calculated shock speed and
 	    // the lower of the two flow velocities either side of the interface, for stability.
 	    double flowv = min(vabs(fsL.vel), vabs(IFaceR.fs->vel));
-            IFaceR.vel.x = time_weight * copysign(min( fabs(ws), flowv ), ws);
-            IFaceR.vel.y = 0.0;
-            IFaceR.vel.z = 0.0;
-            IFaceR.vel.transform_to_global(IFaceR.n, IFaceR.t1, IFaceR.t2);
+            IFaceR.ivel.x = time_weight * copysign(min( fabs(ws), flowv ), ws);
+            IFaceR.ivel.y = 0.0;
+            IFaceR.ivel.z = 0.0;
+            IFaceR.ivel.transform_to_global(IFaceR.n, IFaceR.t1, IFaceR.t2);
         } else {
 	    // Probably no shock so move boundary at the lower of the two flow velocities
 	    // either side of the interface.
-            IFaceR.vel.x = time_weight * min(vabs(fsL.vel), vabs(IFaceR.fs->vel));
-            IFaceR.vel.y = 0.0;
-            IFaceR.vel.z = 0.0;
-            IFaceR.vel.transform_to_global(IFaceR.n, IFaceR.t1, IFaceR.t2);
+            IFaceR.ivel.x = time_weight * min(vabs(fsL.vel), vabs(IFaceR.fs->vel));
+            IFaceR.ivel.y = 0.0;
+            IFaceR.ivel.z = 0.0;
+            IFaceR.ivel.transform_to_global(IFaceR.n, IFaceR.t1, IFaceR.t2);
         }
     } else {
-	IFaceR.vel.x = 0.0;
-        IFaceR.vel.y = 0.0;
-        IFaceR.vel.z = 0.0;
-        IFaceR.vel.transform_to_global(IFaceR.n, IFaceR.t1, IFaceR.t2);
+	IFaceR.ivel.x = 0.0;
+        IFaceR.ivel.y = 0.0;
+        IFaceR.ivel.z = 0.0;
+        IFaceR.ivel.transform_to_global(IFaceR.n, IFaceR.t1, IFaceR.t2);
     }
     return SUCCESS;
 } // end ShockFittingInBC::calculate_shock_speed()
