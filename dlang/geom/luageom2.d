@@ -9,8 +9,8 @@
  * Programming in Lua, 2nd Edition
  * Lua.org, Rio de Janeiro 
  *
- * Author: Rowan G. and Peter J.
- * Date: 21-Feb-2014
+ * Authors: Rowan G. and Peter J.
+ * Date: 2015-02-21
  */
 
 module luageom2;
