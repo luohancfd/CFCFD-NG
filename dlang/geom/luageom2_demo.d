@@ -35,10 +35,20 @@ print("Sorry, you gave me values I couldn't use in slots 0 and 1.")
 print("Change the x value of f.")
 f:x(5.4)
 print("f= ", f)
-g = add(a, b)
+g = -f
 print("g= ", g)
-g:normalize()
-print("After normalizing, g=", g)
+assert(g:x() == -f:x()); assert(g:y() == -f:y()); assert(g:z() == -f:z())
+h = a + b
+assert(h:x() == a:x() + b:x()); assert(h:y() == a:y() + b:y()); assert(h:z() == a:z() + b:z())
+h:normalize()
+print("After normalizing, h=", h)
+i = unit(h)
+assert(h:x() == i:x()); assert(h:y() == i:y()); assert(h:z() == i:z())
+assert(abs(i) == 1.0)
+j = dot(g, f)
+print("j= ", j)
+k = cross(g, f)
+print("k= ", k)
     `);
     writeln("End demo.");
 }

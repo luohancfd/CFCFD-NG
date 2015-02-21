@@ -2,7 +2,7 @@
  * An Lua interface for the D geom module.
  *
  * This follows and adapts the examples given
- * in PIL in Chapter 28.
+ * in PIL in Chapter 28, specifically Section 28.3.
  *
  * Reference:
  * Ierusalimschy, R. (2006)
@@ -40,6 +40,7 @@ int pushVector3(lua_State *L, Vector3 vec)
 /**
  * This function will serve as our "constructor"
  * in the Lua script.
+ *
  * Construction from Lua can be any of:
  * ----------------------
  * a = Vector3:new(0.0, 1.0, 2.0)
@@ -129,8 +130,19 @@ Vector3* checkVector3(lua_State *L, int index)
 
 /*-------- exposed Vector3 methods ------------ */
 
-// The x(), y(), z() methods are a little funny.
+// The x(), y(), z() methods are a little funny
+// because they act as both getters and setters.
 // We are faking data access in a sense.
+/**
+ * Acts as both getter and setter for x component of Vector3.
+ *
+ * Example:
+ * -------------------------------
+ * a = Vector3()
+ * a:x(0.8) -- used as a setter
+ * b = a:x() -- used as a getter
+ * -------------------------------
+ */
 extern(C) int xVector3(lua_State* L)
 {
     int narg = lua_gettop(L);
@@ -145,23 +157,50 @@ extern(C) int xVector3(lua_State* L)
 }
 
 /**
- * Normalizes a Vector3 object. Exposes geom.Vector3.normalize()
+ * Acts as both a getter and setter for y component of Vector3.
+ *
+ * See example for xVector3()
  */
-extern(C) int normalizeVector3(lua_State* L)
+extern(C) int yVector3(lua_State* L)
 {
+    int narg = lua_gettop(L);
     auto a = checkVector3(L, 1);
-    a.normalize();
+    if( narg == 1 ) { // This is a getter
+	lua_pushnumber(L, a.y);
+	return 1;
+    }
+    // else: treat as a setter.
+    a.refy = luaL_checknumber(L, 2);
     return 0;
 }
 
-extern(C) int toStringVector3(lua_State* L)
+/**
+ * Acts as both a getter and setter for y component of Vector3.
+ *
+ * See example for xVector3()
+ */
+extern(C) int zVector3(lua_State* L)
 {
+    int narg = lua_gettop(L);
     auto a = checkVector3(L, 1);
-    lua_pushstring(L, a.toString.toStringz);
-    return 1;
+    if( narg == 1 ) { // This is a getter
+	lua_pushnumber(L, a.z);
+	return 1;
+    }
+    // else: treat as a setter.
+    a.refz = luaL_checknumber(L, 2);
+    return 0;
 }
 
-/*--------- exposed Vector3 overloaded operators */
+/**
+ * This provied the unary minus operator for Lua.
+ */
+extern(C) int opUnaryMinVector3(lua_State* L)
+{
+    auto a = checkVector3(L, 1);
+    auto b = -(*a);
+    return pushVector3(L, b);
+}
 
 /**
  * Adds two Vector3 objects. Exposes geom.Vector3.opBinary("+")
@@ -172,6 +211,142 @@ extern(C) int addVector3(lua_State* L)
     auto b = checkVector3(L, 2);
     auto c = (*a) + (*b);
     return pushVector3(L, c);
+}
+
+/**
+ * Subtracts two Vector3 objects. Exposes geom.Vector3.opBinary("-")
+ */
+extern(C) int subVector3(lua_State *L)
+{
+    auto a = checkVector3(L, 1);
+    auto b = checkVector3(L, 2);
+    auto c = (*a) - (*b);
+    return pushVector3(L, c);
+}
+
+/**
+ * Multiplies a Vector3 object by scalar.
+ */
+extern(C) int mulVector3(lua_State *L)
+{
+    // Need to test order of arguments.
+    // Could be:
+    //   Vector3 * val  <or>
+    //   val * Vector3
+    Vector3* a;
+    double b;
+    if ( lua_isuserdata(L, 1) ) {
+	if ( !lua_isnumber(L, 2) ) {
+	    string errMsg = "can't multiply Vector3 by non-number";
+	    luaL_error(L, errMsg.toStringz);
+	}
+	a = checkVector3(L, 1);
+	b = luaL_checknumber(L, 2);
+    }
+    else {
+	if ( !lua_isnumber(L, 1) ) {
+	    string errMsg = "can't multiply Vector3 by non-number";
+	    luaL_error(L, errMsg.toStringz);
+	}   
+	a = checkVector3(L, 2);
+	b = luaL_checknumber(L, 1);
+    }
+    auto c = (*a) * b;
+    return pushVector3(L, c);
+}
+
+/**
+ * Divides a Vector3 by a scalar.
+ */
+extern(C) int divVector3(lua_State* L)
+{
+    /* Lua could pass us:
+     *     Vector3 / scalar <or>
+     *     scalar / Vector3
+     * We can't do anything with the
+     * second form, so signal an error.
+     */
+    Vector3* a;
+    double b;
+    if ( lua_isuserdata(L, 1) ) {
+	if ( !lua_isnumber(L, 2) ) {
+	    string errMsg = "can't divide Vector3 by non-number";
+	    luaL_error(L, errMsg.toStringz);
+	}
+	a = checkVector3(L, 1);
+	b = luaL_checknumber(L, 2);
+    }
+    else {
+	string errMsg = "can't divide by a Vector3 object";
+	luaL_error(L, errMsg.toStringz);
+    }
+    auto c = (*a) / b;
+    return pushVector3(L, c);
+}
+
+/**
+ * Normalizes a Vector3 object. Exposes geom.Vector3.normalize()
+ */
+extern(C) int normalizeVector3(lua_State* L)
+{
+    auto a = checkVector3(L, 1);
+    a.normalize();
+    return 0;
+}
+
+/**
+ * Computes the dot product of two Vector3s.
+ *
+ * Note that this Lua function can service
+ * as both the method form and function form
+ * of the D dot function.
+ */
+extern(C) int dotVector3(lua_State* L)
+{
+    auto a = checkVector3(L, 1);
+    auto b = checkVector3(L, 2);
+    lua_pushnumber(L, dot(*a, *b));
+    return 1;
+}
+
+/**
+ * Computes the magnitude of a Vector3.
+ */
+extern(C) int absVector3(lua_State* L)
+{
+    auto a = checkVector3(L, 1);
+    lua_pushnumber(L, abs(*a));
+    return 1;
+}
+
+/**
+ * Returns the unit vector in the same direction.
+ */
+extern(C) int unitVector3(lua_State *L)
+{
+    auto a = checkVector3(L, 1);
+    // Copy before normalizing so that
+    // we don't change 'a'.
+    auto b = *a;
+    b.normalize();
+    return pushVector3(L, b); 
+}
+
+/**
+ * Returns the cross product of two Vector3s.
+ */
+extern(C) int crossVector3(lua_State* L)
+{
+    auto a = checkVector3(L, 1);
+    auto b = checkVector3(L, 2);
+    return pushVector3(L, cross(*a, *b));
+}
+
+extern(C) int toStringVector3(lua_State* L)
+{
+    auto a = checkVector3(L, 1);
+    lua_pushstring(L, a.toString.toStringz);
+    return 1;
 }
 
 void registerVector3(LuaState lua)
@@ -188,16 +363,45 @@ void registerVector3(LuaState lua)
     lua_setfield(L, -2, "new");
     lua_pushcfunction(L, &xVector3);
     lua_setfield(L, -2, "x");
-    lua_pushcfunction(L, &normalizeVector3);
-    lua_setfield(L, -2, "normalize");
-    lua_pushcfunction(L, &addVector3);
-    lua_setfield(L, -2, "__add");
+    lua_pushcfunction(L, &yVector3);
+    lua_setfield(L, -2, "y");
+    lua_pushcfunction(L, &zVector3);
+    lua_setfield(L, -2, "z");
     lua_pushcfunction(L, &toStringVector3);
     lua_setfield(L, -2, "__tostring");
+    lua_pushcfunction(L, &opUnaryMinVector3);
+    lua_setfield(L, -2, "__unm");
+    lua_pushcfunction(L, &addVector3);
+    lua_setfield(L, -2, "__add");
+    lua_pushcfunction(L, &subVector3);
+    lua_setfield(L, -2, "__sub");
+    lua_pushcfunction(L, &mulVector3);
+    lua_setfield(L, -2, "__mul");
+    lua_pushcfunction(L, &divVector3);
+    lua_setfield(L, -2, "__div");
+    lua_pushcfunction(L, &normalizeVector3);
+    lua_setfield(L, -2, "normalize");
+    lua_pushcfunction(L, &dotVector3);
+    lua_setfield(L, -2, "dot");
+    lua_pushcfunction(L, &absVector3);
+    lua_setfield(L, -2, "abs");
+    lua_pushcfunction(L, &unitVector3);
+    lua_setfield(L, -2, "unit");
+
     lua_setglobal(L, Vector3MT.toStringz);
 
     /* Also attempt to put "add" in the global namespace. */
     lua_pushcfunction(L, &addVector3);
     lua_setglobal(L, "add");
+    lua_pushcfunction(L, &dotVector3);
+    lua_setglobal(L, "dot");
+    lua_pushcfunction(L, &absVector3);
+    lua_setglobal(L, "abs"); // Need to be careful, this
+                             // clashes with the name in the
+                             // the math library.
+    lua_pushcfunction(L, &unitVector3);
+    lua_setglobal(L, "unit");
+    lua_pushcfunction(L, &crossVector3);
+    lua_setglobal(L, "cross");
 }
     
