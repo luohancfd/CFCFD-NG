@@ -2,7 +2,7 @@
 # Builds all of the demonstration programs.
 
 DEMO_PROGRAMS := geom_demo gpath_demo surface_demo clusterfunctions_demo \
-	luageom_demo
+	luageom_demo luageom2_demo
 
 LUA_DIR := ../../extern/lua-5.1.4
 LIBLUA := $(LUA_DIR)/lib/liblua.a
@@ -49,3 +49,7 @@ clusterfunctions_demo: clusterfunctions_demo.d clusterfunctions.d
 luageom_demo: luageom_demo.d surface.d gpath.d geom.d $(LUAD_FILES) $(LIBLUA)
 	dmd $(DFLAGS_LUA) luageom_demo.d $(OF)luageom_demo \
 		luageom.d surface.d gpath.d geom.d $(LUAD_FILES) $(DLINKFLAGS_LUA)
+
+luageom2_demo: luageom2_demo.d luageom2.d geom.d $(LUAD_FILES) $(LIBLUA)
+	dmd $(DFLAGS_LUA) luageom2_demo.d $(OF)luageom2_demo \
+		luageom2.d geom.d $(LUAD_FILES) $(DLINKFLAGS_LUA)
