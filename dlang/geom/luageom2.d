@@ -40,25 +40,76 @@ int pushVector3(lua_State *L, Vector3 vec)
 /**
  * This function will serve as our "constructor"
  * in the Lua script.
- *
- * We are free to support any type of construction.
- * Multiple construction types are also possible.
- * It's just a question of how much flexibility
- * we offer the user.
+ * Construction from Lua can be any of:
+ * ----------------------
+ * a = Vector3:new(0.0, 1.0, 2.0)
+ * b = Vector3:new{0.0, 1.0, 2.0}
+ * c = Vector3:new{x=0.0, y=1.0, z=2.0}
+ * d = Vector3:new{1.0, 3.0, x=5.0, z=8.0}
+ * assert(d:x() == 1.0); assert(d:y() == 3.0); assert(d:z() == 0.0)
+ * ----------------------
+ * For any of the lists of arguments, missing values
+ * are set to 0.0.
+ * Note that if you try to mix-n-match in the table, then
+ * the array-style of setting wins.
+ * This constructor is fairly robust to bad parameters.
+ * What will happen is that they are ignored and you get a 0.0.
  */
 extern(C) int newVector3(lua_State *L)
 {
     auto vec = Vector3(0.0, 0.0, 0.0);
     /* This is where we decide how the user will instantiate
-     * an object in Lua-land. Let's support positional argument
-     * construction like our old Python interface for the moment.
+     * an object in Lua-land.
      */
-    lua_remove(L, 1); // remove self.
+    lua_remove(L, 1); // remove first argument "this".
+
     int narg = lua_gettop(L);
-    if ( narg >= 1 ) vec.refx = luaL_checknumber(L, 1);
-    if ( narg >= 2 ) vec.refy = luaL_checknumber(L, 2);
-    if ( narg >= 3 ) vec.refz = luaL_checknumber(L, 3);
-    
+    if ( narg == 1 ) {	// Could be a table or a single double value
+	if ( lua_isnumber(L, 1) )  vec.refx = luaL_checknumber(L, 1);
+	else if ( lua_istable(L, 1) ) {
+	    // If it has a length > 0, then it's been populated array style.
+	    // This style of setting beats any fields that are present.
+	    size_t n = lua_objlen(L, 1);
+	    if ( n >= 1 ) {
+		lua_rawgeti(L, 1, 1);
+		if ( lua_isnumber(L, -1) ) vec.refx = lua_tonumber(L, -1);
+		lua_pop(L, 1);
+	    }
+	    if ( n >= 2 ) {
+		lua_rawgeti(L, 1, 2);
+		if ( lua_isnumber(L, -1) ) vec.refy = lua_tonumber(L, -1);
+		lua_pop(L, 1);
+	    }
+	    if ( n >= 3 ) {
+		lua_rawgeti(L, 1, 3);
+		if ( lua_isnumber(L, -1) ) vec.refz = lua_tonumber(L, -1);
+		lua_pop(L, 1);
+	    }
+	    if ( n == 0 ) { // then field based table.
+		lua_getfield(L, 1, "x");
+		if ( lua_isnumber(L, -1) ) vec.refx = lua_tonumber(L, -1);
+		lua_pop(L, 1);
+		lua_getfield(L, 1, "y");
+		if ( lua_isnumber(L, -1) ) vec.refy = lua_tonumber(L, -1);
+		lua_pop(L, 1);
+		lua_getfield(L, 1, "z");
+		if ( lua_isnumber(L, -1) ) vec.refz = lua_tonumber(L, -1);
+		lua_pop(L, 1);
+	    }
+	}
+	// else: You've given us something funny, so you're going to get
+	// a Vector3(0.0, 0.0, 0.0)
+    }
+    else if ( narg == 2 ) {
+	if ( lua_isnumber(L, 1) )  vec.refx = luaL_checknumber(L, 1);
+	if ( lua_isnumber(L, 2) )  vec.refy = luaL_checknumber(L, 2);
+    }
+    else if ( narg >= 3 ) {
+	if ( lua_isnumber(L, 1) )  vec.refx = luaL_checknumber(L, 1);
+	if ( lua_isnumber(L, 2) )  vec.refy = luaL_checknumber(L, 2);
+	if ( lua_isnumber(L, 3) )  vec.refz = luaL_checknumber(L, 3);
+    }
+
     /* Regardless of how we filled in vec. We are now
      * ready to grab a piece of the lua stack and
      * place our new Vector3 there as userdata.
