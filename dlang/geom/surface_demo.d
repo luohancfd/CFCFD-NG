@@ -13,7 +13,7 @@ import surface;
 void main()
 {
     writeln("Begin demonstration of the ParametricSurface elements.");
-    auto p00 = Vector3([0.0, 0.1, 3.0]);
+    auto p00 = Vector3(0.0, 0.1, 3.0);
     auto p10 = Vector3(1.0, 0.1, 3.0);
     auto p11 = Vector3(1.0, 1.1, 3.0);
     auto p01 = Vector3(0.0, 1.1, 3.0);

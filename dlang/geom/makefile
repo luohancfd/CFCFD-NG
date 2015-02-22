@@ -1,8 +1,11 @@
 # makefile for the geometry package
 # Builds all of the demonstration programs.
 
-DEMO_PROGRAMS := geom_demo gpath_demo surface_demo clusterfunctions_demo \
-	luageom_demo luageom2_demo luagpath_demo
+DEMO_PROGRAMS := geom_demo gpath_demo surface_demo univariatefunctions_demo \
+	luageom_demo luageom2_demo luagpath_demo sgrid_demo
+
+GZIP_DIR := ../extern/gzip
+GZIP_FILES := $(GZIP_DIR)/gzip.d
 
 LUA_DIR := ../../extern/lua-5.1.4
 LIBLUA := $(LUA_DIR)/lib/liblua.a
@@ -42,9 +45,15 @@ surface_demo: surface_demo.d surface.d gpath.d geom.d
 	dmd $(DFLAGS) surface_demo.d $(OF)surface_demo \
 		surface.d gpath.d geom.d $(DLINKFLAGS)
 
-clusterfunctions_demo: clusterfunctions_demo.d clusterfunctions.d
-	dmd $(DFLAGS) clusterfunctions_demo.d $(OF)clusterfunctions_demo \
-		clusterfunctions.d $(DLINKFLAGS)
+univariatefunctions_demo: univariatefunctions_demo.d univariatefunctions.d
+	dmd $(DFLAGS) univariatefunctions_demo.d $(OF)univariatefunctions_demo \
+		univariatefunctions.d $(DLINKFLAGS)
+
+sgrid_demo: sgrid_demo.d sgrid.d surface.d gpath.d geom.d univariatefunctions.d \
+	$(GZIP_FILES)
+	dmd $(DFLAGS) sgrid_demo.d $(OF)sgrid_demo \
+		sgrid.d surface.d gpath.d geom.d univariatefunctions.d \
+		$(GZIP_FILES) $(DLINKFLAGS)
 
 luageom_demo: luageom_demo.d surface.d gpath.d geom.d $(LUAD_FILES) $(LIBLUA)
 	dmd $(DFLAGS_LUA) luageom_demo.d $(OF)luageom_demo \

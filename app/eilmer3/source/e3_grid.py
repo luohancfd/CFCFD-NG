@@ -298,7 +298,7 @@ class StructuredGrid(object):
         The lines containing some of the metadata at the start of the file
         are read and then ignored.
         """
-        # First line contains a declatation that this is a legacy VTK file.
+        # First line contains a declaration that this is a legacy VTK file.
         locate_VTK_header_line("vtk", f) # expecting "vtk DataFile Version 2.0"
         self.label = f.readline().strip()
         if verbosity_level > 0: print "label=", self.label
