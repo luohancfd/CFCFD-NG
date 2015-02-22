@@ -235,9 +235,9 @@ ifeq ($(TARGET), for_gnu_openmp)
     CXXCOMPILE := g++
     CXXLINK := g++
     # Unix/Linux
-    CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -mtune=opteron -finline-limit=2400 $(MARCH_FLAG)
+    CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -finline-limit=2400 $(MARCH_FLAG)
     LFLAG   := $(OPT) -fPIC -finline-limit=2400 $(MARCH_FLAG)
-    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -Wall -mtune=opteron -pedantic $(MARCH_FLAG)
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -Wall -pedantic $(MARCH_FLAG)
     LLIB    := -lm
     PCA     := -fopenmp
 endif
