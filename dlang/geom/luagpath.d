@@ -47,17 +47,17 @@ int pushPath(T, string MTname)(lua_State *L, in T path)
  * Provides a sanity check that the raw userdata
  * is in fact what we think it is.
  */
-T* checkPath(T, string MTname)(lua_State *L, int index)
+T checkPath(T, string MTname)(lua_State *L, int index)
 {
     auto pPtr = cast(T*) luaL_checkudata(L, index, MTname.toStringz);
-    return pPtr;
+    return *pPtr;
 }
 
 extern(C) int opCallPath(T, string MTname)(lua_State* L)
 {
     auto path = checkPath!(T, MTname)(L, 1);
     auto t = luaL_checknumber(L, 2);
-    auto pt = (*path)(t);
+    auto pt = path(t);
     return pushVector3(L, pt);
 }
 
@@ -95,6 +95,8 @@ extern(C) int newLine(lua_State* L)
     auto b = checkVector3(L, 2);
     auto ab = new Line(*a, *b);
     return pushPath!(Line, LineMT)(L, ab);
+    // We could think about deleting line ab,
+    // or just rely on the garbage collector
 }
 
 void registerPaths(LuaState lua)
