@@ -41,14 +41,16 @@ public:
 	 string label="empty-label")
     {
 	this.niv = niv; this.njv = njv; this.nkv = 1;
-	// Any unspecified clustering functions defaults to the linear identity.
+	this.label = label;
+	// Any unspecified clustering functions default to the linear identity.
 	while (clusterf.length < 4) clusterf ~= new LinearFunction(0.0, 1.0);
 	resize_array();
 	make_grid_from_surface(surf, clusterf);
     }
 
-    this(string fileName, GridFileFormat fmt)
+    this(string fileName, GridFileFormat fmt, string label="empty-label")
     {
+	this.label = label;
 	final switch (fmt) {
 	case GridFileFormat.text:
 	    read_grid_from_text_file(fileName);
@@ -73,6 +75,11 @@ public:
 	    }
 	}
     } // end resize_array
+
+    Vector3 opIndex(size_t i, size_t j, size_t k=0)
+    {
+	return grid[i][j][k];
+    }
 
     void make_grid_from_surface(const ParametricSurface surf,
 				const(UnivariateFunction)[] clusterf)
@@ -227,6 +234,6 @@ unittest {
     auto cf = [new LinearFunction(), new LinearFunction(), 
 	       new LinearFunction(), new LinearFunction()];
     auto my_grid = new StructuredGrid(my_patch, 11, 21, cf);
-    assert(approxEqualVectors(my_grid.grid[5][5][0], Vector3(0.5, 0.35, 0.0)),
+    assert(approxEqualVectors(my_grid[5,5], Vector3(0.5, 0.35, 0.0)),
 			      "StructuredGrid sample point");
 }
