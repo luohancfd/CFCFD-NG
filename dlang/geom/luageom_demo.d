@@ -1,68 +1,55 @@
 /**
- * gpath_demo.d Demonstrate some of the behaviour of the geometric primitives.
+ * luageom2_demo.d
+ * Shows the wrapped Vector3 in action.
  *
- * Author: Peter J. and Rowan G.
- * Version: 2014-06-21
+ * Author: Rowan G. and Peter J.
+ * Date: 2015-02-21
  */
 
 import std.stdio;
 import luad.all;
-import geom;
-import gpath;
-import luageom;
+import luageom2;
 
 void main()
 {
-    writeln("Begin demonstration of LuaD connection to geometric elements.");
+    writeln("Begin demo of wrapped D Vector3 struct for use in Lua.");
     auto lua = new LuaState;
     lua.openLibs();
     registerVector3(lua);
-    registerPath(lua);
     lua.doString(`
--- Add a couple of points and alter their data.
-a = Vector{x=1.0, y=2.0}
-print("a=", a, " remember that it is an index")
-print("a.x=", getX(a), "a.y=", getY(a), "a.z=", getZ(a))
-b = {}
-Vector3Value(b, a)
-print("b=", b)
-print("uglyprint b=[")
-for k,v in pairs(b) do
-   print(k, "=", v, ",")
-end
-print("]")
-c = Vector3({x=2.0, z=-4.2})
-print("c.x= ", c.x, "c.y= ", c.y, "c.z=", c.z)
-c.x = 32.0
-print("After modification of c.x...")
-print("c.x= ", c.x, "c.y= ", c.y, "c.z=", c.z)      
-
--- Try a path
-b = Vector{x=3.0, y=5.0}
-ab = Line(a, b)
-c = {}
-evalLine(c, ab, 0.5)
-print("c=", c)
-print("uglyprint c=[")
-for k,v in pairs(c) do
-   print(k, "=", v, ",")
-end
-print("]")
-ef = Line(VectorA{0.0, 10.0}, VectorA{10.0, 0.0})
-p = Vector3{x=9.0}
-q = Vector3{x=1.0, y=-1.0, z=8}
-pq = Line2(p, q)
-r = evalLine2(pq, 0.2)
-print("r.x=", r.x, "r.y=", r.y, "r.z=", r.z)
+-- Add some points and manipulate them.
+print("Test some constructors.")
+a = Vector3:new()
+print("a= ", a)
+b = Vector3:new(7.0, 3.0, -2.5)
+print("b= ", b)
+c = Vector3:new{4.0, 1.2, 17}
+print("c= ", c)
+d = Vector3:new{x=5, z="9", y=78.6, label="some crap"}
+print("d= ", d)
+e = Vector3:new(1.0)
+print("e= ", e)
+f = Vector3:new(true, nil, 6.0)
+print("f= ", f)
+print("Sorry, you gave me values I couldn't use in slots 0 and 1.")
+print("Change the x value of f.")
+f:x(5.4)
+print("f= ", f)
+g = -f
+print("g= ", g)
+assert(g:x() == -f:x()); assert(g:y() == -f:y()); assert(g:z() == -f:z())
+h = a + b
+assert(h:x() == a:x() + b:x()); assert(h:y() == a:y() + b:y()); assert(h:z() == a:z() + b:z())
+h:normalize()
+print("After normalizing, h=", h)
+i = unit(h)
+assert(h:x() == i:x()); assert(h:y() == i:y()); assert(h:z() == i:z())
+assert(abs(i) == 1.0)
+j = dot(g, f)
+print("j= ", j)
+k = cross(g, f)
+print("k= ", k)
     `);
-
-    writeln("points.length= ", points.length);
-    foreach (i; 0 .. points.length) {
-	writeln("points[", i, "]= ", points[i]);
-    }
-    writeln("paths.length= ", paths.length);
-    foreach (i; 0 .. paths.length) {
-	writeln("paths[", i, "]= ", paths[i]);
-    }
-    writeln("Done.");
+    writeln("End demo.");
 }
+

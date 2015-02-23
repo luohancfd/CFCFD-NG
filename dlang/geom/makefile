@@ -2,7 +2,7 @@
 # Builds all of the demonstration programs.
 
 DEMO_PROGRAMS := geom_demo gpath_demo surface_demo univariatefunctions_demo \
-	luageom_demo luageom2_demo luagpath_demo sgrid_demo
+	luageom_demo luagpath_demo sgrid_demo
 
 GZIP_DIR := ../extern/gzip
 GZIP_FILES := $(GZIP_DIR)/gzip.d
@@ -55,13 +55,9 @@ sgrid_demo: sgrid_demo.d sgrid.d surface.d gpath.d geom.d univariatefunctions.d 
 		sgrid.d surface.d gpath.d geom.d univariatefunctions.d \
 		$(GZIP_FILES) $(DLINKFLAGS)
 
-luageom_demo: luageom_demo.d surface.d gpath.d geom.d $(LUAD_FILES) $(LIBLUA)
+luageom_demo: luageom_demo.d luageom.d geom.d $(LUAD_FILES) $(LIBLUA)
 	dmd $(DFLAGS_LUA) luageom_demo.d $(OF)luageom_demo \
-		luageom.d surface.d gpath.d geom.d $(LUAD_FILES) $(DLINKFLAGS_LUA)
-
-luageom2_demo: luageom2_demo.d luageom2.d geom.d $(LUAD_FILES) $(LIBLUA)
-	dmd $(DFLAGS_LUA) luageom2_demo.d $(OF)luageom2_demo \
-		luageom2.d geom.d $(LUAD_FILES) $(DLINKFLAGS_LUA)
+		luageom.d geom.d $(LUAD_FILES) $(DLINKFLAGS_LUA)
 
 luagpath_demo: luagpath_demo.d luagpath.d luageom2.d geom.d gpath.d $(LUAD_FILES) $(LIBLUA)
 	dmd $(DFLAGS_LUA) luagpath_demo.d $(OF)luagpath_demo \
