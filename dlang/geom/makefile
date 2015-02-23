@@ -59,6 +59,6 @@ luageom_demo: luageom_demo.d luageom.d geom.d $(LUAD_FILES) $(LIBLUA)
 	dmd $(DFLAGS_LUA) luageom_demo.d $(OF)luageom_demo \
 		luageom.d geom.d $(LUAD_FILES) $(DLINKFLAGS_LUA)
 
-luagpath_demo: luagpath_demo.d luagpath.d luageom2.d geom.d gpath.d $(LUAD_FILES) $(LIBLUA)
+luagpath_demo: luagpath_demo.d luagpath.d luageom.d geom.d gpath.d $(LUAD_FILES) $(LIBLUA)
 	dmd $(DFLAGS_LUA) luagpath_demo.d $(OF)luagpath_demo \
-		luagpath.d luageom2.d geom.d gpath.d $(LUAD_FILES) $(DLINKFLAGS_LUA)
+		luagpath.d luageom.d geom.d gpath.d $(LUAD_FILES) $(DLINKFLAGS_LUA)
