@@ -55,6 +55,19 @@ public:
 	S = other.S;
     }
 
+    this(in FlowState other)
+    {
+	gas = new GasState(to!int(other.gas.massf.length), to!int(other.gas.T.length));
+	gas.copy_values_from(other.gas);
+	vel.refx = other.vel.x; vel.refy = other.vel.y; vel.refz = other.vel.z;
+	B.refx = other.B.x; B.refy = other.B.y; B.refz = other.B.z;
+	tke = other.tke;
+	omega = other.omega;
+	mu_t = other.mu_t;
+	k_t = other.k_t;
+	S = other.S;
+    }
+
     this(in GasModel gm)
     {
 	gas = new GasState(gm, 100.0e3, [300.0,], [1.0,], 1.0); 
@@ -90,6 +103,11 @@ public:
     }
 
     this() {} // makes no sense to define the data in the absence of a model
+
+    FlowState dup() const
+    {
+	return new FlowState(this);
+    }
 
     @nogc 
     void copy_values_from(in FlowState other)

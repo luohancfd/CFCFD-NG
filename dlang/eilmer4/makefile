@@ -57,7 +57,8 @@ NM_DIR := ../nm
 NM_FILES := $(NM_DIR)/ridder.d
 
 GEOM_DIR := ../geom
-GEOM_FILES := $(GEOM_DIR)/geom.d
+GEOM_FILES := $(GEOM_DIR)/geom.d \
+	$(GEOM_DIR)/luageom.d
 
 GZIP_DIR := ../extern/gzip
 GZIP_FILES := $(GZIP_DIR)/gzip.d
@@ -127,6 +128,15 @@ flowstate_demo: flowstate_demo.d flowstate.d fvcore.d json_helper.d \
 		flowstate_demo.d fvcore.d flowstate.d json_helper.d \
 		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
+
+luaflowstate_demo: luaflowstate_demo.d luaflowstate.d flowstate.d fvcore.d json_helper.d \
+	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
+	$(DMD) $(DFLAGS) $(OF)luaflowstate_demo \
+		luaflowstate_demo.d luaflowstate.d fvcore.d flowstate.d json_helper.d \
+		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) \
+		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
+
+
 
 fv_demo: fv_demo.d fvcore.d fvcell.d fvvertex.d fvinterface.d onedinterp.d fluxcalc.d \
 	conservedquantities.d flowstate.d globalconfig.d globaldata.d \

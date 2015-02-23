@@ -13,7 +13,7 @@
  * Date: 2015-02-21
  */
 
-module luageom2;
+module luageom;
 
 // We cheat to get the C Lua headers by using LuaD.
 import luad.all;
