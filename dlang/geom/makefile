@@ -2,10 +2,14 @@
 # Builds all of the demonstration programs.
 
 DEMO_PROGRAMS := geom_demo gpath_demo surface_demo univariatefunctions_demo \
-	luageom_demo luagpath_demo sgrid_demo
+	luageom_demo sgrid_demo
 
 GZIP_DIR := ../extern/gzip
 GZIP_FILES := $(GZIP_DIR)/gzip.d
+
+UTIL_DIR := ../util
+UTIL_FILES := $(UTIL_DIR)/lua_service.d \
+	$(UTIL_DIR)/msg_service.d
 
 LUA_DIR := ../../extern/lua-5.1.4
 LIBLUA := $(LUA_DIR)/lib/liblua.a
@@ -59,6 +63,8 @@ luageom_demo: luageom_demo.d luageom.d geom.d $(LUAD_FILES) $(LIBLUA)
 	dmd $(DFLAGS_LUA) luageom_demo.d $(OF)luageom_demo \
 		luageom.d geom.d $(LUAD_FILES) $(DLINKFLAGS_LUA)
 
-luagpath_demo: luagpath_demo.d luagpath.d luageom.d geom.d gpath.d $(LUAD_FILES) $(LIBLUA)
+luagpath_demo: luagpath_demo.d luagpath.d luageom.d geom.d gpath.d \
+	$(UTIL_FILES) $(LUAD_FILES) $(LIBLUA)
 	dmd $(DFLAGS_LUA) luagpath_demo.d $(OF)luagpath_demo \
-		luagpath.d luageom.d geom.d gpath.d $(LUAD_FILES) $(DLINKFLAGS_LUA)
+		luagpath.d luageom.d geom.d gpath.d \
+		$(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)

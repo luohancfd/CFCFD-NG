@@ -9,7 +9,7 @@ import std.stdio;
 import luad.all;
 import geom;
 import gpath;
-import luageom2;
+import luageom;
 import luagpath;
 
 void main()

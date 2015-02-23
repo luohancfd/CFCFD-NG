@@ -1,6 +1,7 @@
 // sgrid_demo.d
 
 import std.stdio;
+import std.conv;
 import geom;
 import gpath;
 import surface;
@@ -20,5 +21,11 @@ void main()
     auto my_grid = new StructuredGrid(my_patch, 11, 21, cf);
     writeln("grid point 5 5 at x=", my_grid[5,5].x, " y=", my_grid[5,5].y);
     my_grid.write_to_text_file("test_grid.vtk", true);
+
+    writeln("Import GridPro grid...");
+    auto gpgrid = import_gridpro_grid("../../examples/eilmer3/3D/gridpro-import/blk.tmp");
+    foreach (i; 0 .. gpgrid.length) {
+	gpgrid[i].write_to_text_file("gpgrid-"~to!string(i)~".vtk", true);
+    }
     writeln("Done.");
 }

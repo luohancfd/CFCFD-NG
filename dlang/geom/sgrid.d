@@ -36,6 +36,15 @@ public:
     Vector3[][][] grid;
     string label;
 
+    // Blank grid, ready of import of data.
+    this(int niv, int njv, int nkv=1, string label="empty-label")
+    {
+	this.niv = niv; this.njv = njv; this.nkv = nkv;
+	this.label = label;
+	resize_array();
+    }
+
+    // 2D grid, built on Parametric surface.
     this(const ParametricSurface surf, int niv, int njv,
 	 const(UnivariateFunction)[] clusterf,
 	 string label="empty-label")
@@ -48,6 +57,7 @@ public:
 	make_grid_from_surface(surf, clusterf);
     }
 
+    // Imported grid.
     this(string fileName, GridFileFormat fmt, string label="empty-label")
     {
 	this.label = label;
@@ -76,7 +86,7 @@ public:
 	}
     } // end resize_array
 
-    Vector3 opIndex(size_t i, size_t j, size_t k=0)
+    ref Vector3 opIndex(size_t i, size_t j, size_t k=0)
     {
 	return grid[i][j][k];
     }
@@ -106,6 +116,41 @@ public:
 	    }
 	}
     } // end make_grid_from_surface()
+
+    void read_grid_from_text_file(string fileName, bool vtkHeader=true)
+    {
+	string[] tokens;
+	auto f = File(fileName, "r");
+	if (vtkHeader) {
+	    read_VTK_header_line("vtk", f);
+	    label = f.readln().strip();
+	    read_VTK_header_line("ASCII", f);
+	    read_VTK_header_line("STRUCTURED_GRID", f);
+	    tokens = read_VTK_header_line("DIMENSIONS", f);
+	} else {
+	    tokens = f.readln().strip().split();
+	}
+	niv = to!int(tokens[0]);
+	njv = to!int(tokens[1]);
+	nkv = to!int(tokens[2]);
+	resize_array();
+	foreach (k; 0 .. nkv) {
+	    foreach (j; 0 .. njv) {
+		foreach (i; 0 .. niv) {
+		    tokens = f.readln().strip().split();
+		    try {
+			grid[i][j][k].refx = to!double(tokens[0]);
+			grid[i][j][k].refy = to!double(tokens[1]);
+			grid[i][j][k].refz = to!double(tokens[2]);
+		    } catch (Exception e) {
+			throw new Error(text("Failed to read grid file at "
+					     "i=", i, " j=", j, " k=", k,
+					     "tokens=", tokens, "exception=", e));
+		    }
+		} // foreach i
+	    } // foreach j
+	} // foreach k
+    } // end read_grid_from_text_file()
 
     void write_to_text_file(string fileName, bool vtkHeader=true)
     {
@@ -150,41 +195,6 @@ public:
 	}
 	f.finish();
     } // end write_grid_to_gzip_file()
-
-    void read_grid_from_text_file(string fileName, bool vtkHeader=true)
-    {
-	string[] tokens;
-	auto f = File(fileName, "r");
-	if (vtkHeader) {
-	    read_VTK_header_line("vtk", f);
-	    label = f.readln().strip();
-	    read_VTK_header_line("ASCII", f);
-	    read_VTK_header_line("STRUCTURED_GRID", f);
-	    tokens = read_VTK_header_line("DIMENSIONS", f);
-	} else {
-	    tokens = f.readln().strip().split();
-	}
-	niv = to!int(tokens[0]);
-	njv = to!int(tokens[1]);
-	nkv = to!int(tokens[2]);
-	resize_array();
-	foreach (k; 0 .. nkv) {
-	    foreach (j; 0 .. njv) {
-		foreach (i; 0 .. niv) {
-		    tokens = f.readln().strip.split();
-		    try {
-			grid[i][j][k].refx = to!double(tokens[0]);
-			grid[i][j][k].refy = to!double(tokens[1]);
-			grid[i][j][k].refz = to!double(tokens[2]);
-		    } catch (Exception e) {
-			throw new Error(text("Failed to read grid file at "
-					     "i=", i, " j=", j, " k=", k,
-					     "tokens=", tokens, "exception=", e));
-		    }
-		} // foreach i
-	    } // foreach j
-	} // foreach k
-    } // end read_grid_from_text_file()
 
 } // end class SGrid
 
@@ -237,3 +247,54 @@ unittest {
     assert(approxEqualVectors(my_grid[5,5], Vector3(0.5, 0.35, 0.0)),
 			      "StructuredGrid sample point");
 }
+
+//-----------------------------------------------------------------
+
+StructuredGrid[] import_gridpro_grid(string fileName, double scale=1.0)
+/+
+Reads a complete Gridpro grid file, returns a list of StructuredGrids.
+
+A complete Gridpro grid file contains multiple blocks. This function
+will read through all blocks and store them as StructuredGrid objects.
+These are returned by the function. Gridpro builds grids in the same
+dimensions as the supplied geometry. Care should be taken with 
+Gridpro grids built from CAD geometries which may typically be
+in millimetres. In this case, the required 'scale' would be 0.001
+to convert to metres for use in Eilmer.
+    
+:param fileName: name of Gridpro grid file
+:param scale: a scale to convert supplied coordinates to metres
+:returns: list of StructuredGrid object(s)
+
+.. Author: Rowan J. Gollan
+.. Date: 16-Aug-2012
+.. Date: 2014-02-24 ported to D, PJ
++/
+{
+    auto f = File(fileName, "r");
+    StructuredGrid grids[];
+    while (true) {
+        auto line = f.readln().strip();
+        if (line.length == 0) break;
+        if (line[0] == '#') continue;
+        auto tks = line.split();
+        if (tks.length == 0) break; // Presumably reached end of file
+        auto niv = to!int(tks[0]);
+	auto njv = to!int(tks[1]);
+	auto nkv = to!int(tks[2]);
+	writeln("niv=", niv, " njv=", njv, " nkv=", nkv);
+        auto mygrid = new StructuredGrid(niv, njv, nkv);
+	foreach (i; 0 .. niv) {
+            foreach (j; 0 .. njv) {
+                foreach (k; 0 .. nkv) {
+                    tks = f.readln().strip().split();
+                    mygrid[i,j,k].refx = uflowz(scale*to!double(tks[0]));
+                    mygrid[i,j,k].refy = uflowz(scale*to!double(tks[1]));
+                    mygrid[i,j,k].refz = uflowz(scale*to!double(tks[2]));
+		}
+	    }
+	}
+	grids ~= mygrid;
+    } // end while
+    return grids;
+} // end import_gridpro_grid()

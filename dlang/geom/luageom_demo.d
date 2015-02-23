@@ -1,5 +1,5 @@
 /**
- * luageom2_demo.d
+ * luageom_demo.d
  * Shows the wrapped Vector3 in action.
  *
  * Author: Rowan G. and Peter J.
@@ -8,7 +8,7 @@
 
 import std.stdio;
 import luad.all;
-import luageom2;
+import luageom;
 
 void main()
 {
