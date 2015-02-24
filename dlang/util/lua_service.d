@@ -105,12 +105,44 @@ T checkObj(T, string metatableName)(lua_State* L, int index)
 }
 
 /**
+ * Test if the object type from index position in stack matches tname.
+ *
+ * Assuming the object is stored as Lua userdata, this returns
+ * the metatable name, which is essentially the object's type.
+ * If there is no valid object, the string "nil" is returned.
+ *
+ * This code basically duplicates the function luaL_testudata 
+ * in the Lua source file: lauxlib.c. IN LUA VERSION 5.2
+ * (You won't find it in our code collection.)
+ * The difference is that it only looks to see if the
+ * metatable matches.
+ */
+bool isObjType(lua_State* L, int index, string tname)
+{
+    bool result;
+    void *p = lua_touserdata(L, index);
+    if ( p ) {  /* value is a userdata? */
+	if (lua_getmetatable(L, index)) {  /* does it have a metatable? */
+	    luaL_getmetatable(L, tname.toStringz);  /* get correct metatable */
+	    if ( lua_rawequal(L, -1, -2) )  /* the same? */
+		result = true;
+	    else
+		result = false;
+	    lua_pop(L, 2);  /* remove both metatables */
+	    return true;
+	}
+    }
+    return false;  /* value is not a userdata with a metatable */
+}
+
+
+/**
  * Call an object's toString method and push result on Lua stack.
  */
 extern(C) int toStringObj(T, string metatableName)(lua_State* L)
 {
     auto path = checkObj!(T, metatableName)(L, 1);
-    lua_pushstring(L, path.toString.toStringz);
+    lua_pushstring(L, toStringz(path.toString));
     return 1;
 }
 

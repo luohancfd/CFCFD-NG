@@ -14,7 +14,7 @@ import luaflowstate;
 
 void main()
 {
-    writeln("Begin demonstration of LuaD connection to FlowState object.");
+    writeln("Begin demonstration of Lua connection to FlowState object.");
     auto lua = new LuaState;
     lua.openLibs();
     registerVector3(lua);

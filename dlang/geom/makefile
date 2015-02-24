@@ -2,7 +2,7 @@
 # Builds all of the demonstration programs.
 
 DEMO_PROGRAMS := geom_demo gpath_demo surface_demo univariatefunctions_demo \
-	sgrid_demo luageom_demo luagpath_demo
+	luageom_demo luagpath_demo luasurface_demo sgrid_demo
 
 GZIP_DIR := ../extern/gzip
 GZIP_FILES := $(GZIP_DIR)/gzip.d
@@ -23,7 +23,7 @@ DFLAGS := -w -unittest -g -I..
 OF := -of
 DLINKFLAGS := -L-ldl
 
-DFLAGS_LUA := $(DFLAGS) -I$(LUAD_DIR)
+DFLAGS_LUA := -w -g -I.. -I$(LUAD_DIR)
 DLINKFLAGS_LUA := -L-L$(LIBLUAPATH) -L-llua $(DLINKFLAGS)
 
 demo: $(DEMO_PROGRAMS)
@@ -68,3 +68,11 @@ luagpath_demo: luagpath_demo.d luagpath.d luageom.d geom.d gpath.d \
 	dmd $(DFLAGS_LUA) luagpath_demo.d $(OF)luagpath_demo \
 		luagpath.d luageom.d geom.d gpath.d \
 		$(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)
+
+luasurface_demo: luasurface_demo.d luasurface.d luagpath.d luageom.d geom.d gpath.d \
+	$(UTIL_FILES) $(LUAD_FILES) $(LIBLUA)
+	dmd $(DFLAGS_LUA) luasurface_demo.d $(OF)luasurface_demo \
+		luasurface.d luagpath.d luageom.d surface.d geom.d gpath.d \
+		$(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)
+
+

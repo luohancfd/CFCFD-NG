@@ -11,14 +11,22 @@ module luagpath;
 import luad.all;
 import luad.c.lua;
 import luad.c.lauxlib;
-import util.lua_service;
 import std.stdio;
 import std.string;
+import util.lua_service;
 import geom;
 import gpath;
 import luageom;
 
 immutable string LineMT = "Line"; // Name of Line metatable
+
+Path checkPath(lua_State* L, int index) {
+    if ( isObjType(L, index, LineMT) ) {
+	return checkObj!(Line, LineMT)(L, index);
+    }
+    // if all else fails
+    return null;
+}
 
 extern(C) int opCallPath(T, string MTname)(lua_State* L)
 {
@@ -80,7 +88,6 @@ void registerPaths(LuaState lua)
     lua_setfield(L, -2, "__tostring");
 
     lua_setglobal(L, LineMT.toStringz);
-
 }
     
 
