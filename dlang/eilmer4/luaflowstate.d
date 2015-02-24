@@ -26,6 +26,13 @@ static GasModel managedGasModel;
 /// name for FlowState object in Lua scripts.
 immutable string FlowStateMT = "FlowState"; 
 
+// Makes it a little more consistent to make this
+// available under this name.
+FlowState checkFlowState(lua_State* L, int index)
+{
+    return checkObj!(FlowState, FlowStateMT)(L, 1);
+}
+
 /** 
  * This function implements our constructor for the Lua interface.
  *

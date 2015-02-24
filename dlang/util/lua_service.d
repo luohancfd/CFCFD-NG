@@ -129,7 +129,7 @@ bool isObjType(lua_State* L, int index, string tname)
 	    else
 		result = false;
 	    lua_pop(L, 2);  /* remove both metatables */
-	    return true;
+	    return result;
 	}
     }
     return false;  /* value is not a userdata with a metatable */

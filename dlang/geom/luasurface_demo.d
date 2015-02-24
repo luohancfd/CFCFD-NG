@@ -26,14 +26,28 @@ a = Vector3:new{0.0, 0.0}
 b = Vector3:new{0.0, 1.0}
 c = Vector3:new{1.0, 0.0}
 d = Vector3:new{1.0, 1.0}
-bd = Line:new(b, d)
-cd = Line:new(c, d)
-ac = Line:new(a, c)
-ab = Line:new(a, b)
-surf = CoonsPatch:new{north=bd, east=cd, south=ac, west=ab}
---print("CoonsPatch representation: ", surf)
+surf = CoonsPatch:new{north=Line:new(b, d), east=Line:new(c, d),
+                      south=Line:new(a, c), west=Line:new(a, b)}
+print("CoonsPatch representation: ", surf)
 ctr = surf(0.5, 0.5)
 print("ctr= ", ctr)
+-- Try construction using corners and a subset surface 
+surf2 = CoonsPatch:new{p00=a, p01=b, p11=c, p10=d,
+                       r0=0, r1=0.5, s0=0.5, s1=1}
+p = surf2:eval(0.5, 0.5)
+print("p= ", p)
+-- Copy PJ's AO patch demo
+p00 = Vector3:new{0.0, 0.1, 3.0}
+p10 = Vector3:new{1.0, 0.4, 3.0}
+p11 = Vector3:new{1.0, 1.1, 3.0}
+p01 = Vector3:new{0.0, 1.1, 3.0}
+my_aopatch = AOPatch:new{p00=p00, p10=p10, p11=p11, p01=p01}
+p = my_aopatch(0.1, 0.1);
+print("my_aopatch(0.1, 0.1)= ", p)
+print("isSurface(my_aopatch)= ", isSurface(my_aopatch))
+print("isSurface(surf2)= ", isSurface(surf2));
+print("isSurface(a)= ", isSurface(a));
+
     `);
 }
 
