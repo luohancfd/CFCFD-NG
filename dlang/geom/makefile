@@ -2,7 +2,7 @@
 # Builds all of the demonstration programs.
 
 DEMO_PROGRAMS := geom_demo gpath_demo surface_demo univariatefunctions_demo \
-	luageom_demo sgrid_demo
+	sgrid_demo luageom_demo luagpath_demo
 
 GZIP_DIR := ../extern/gzip
 GZIP_FILES := $(GZIP_DIR)/gzip.d

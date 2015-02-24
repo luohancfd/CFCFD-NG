@@ -11,6 +11,7 @@ module luagpath;
 import luad.all;
 import luad.c.lua;
 import luad.c.lauxlib;
+import util.lua_service;
 import std.stdio;
 import std.string;
 import geom;

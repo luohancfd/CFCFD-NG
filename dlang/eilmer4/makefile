@@ -7,7 +7,8 @@ DMD ?= dmd
 
 PROGRAMS := e4shared
 
-DEMO_PROGRAMS := globalconfig_demo flowstate_demo fv_demo block_demo
+DEMO_PROGRAMS := globalconfig_demo flowstate_demo fv_demo block_demo \
+	luaflowstate_demo
 
 BC_FILES := bc.d \
 	bc_slip_wall.d \
