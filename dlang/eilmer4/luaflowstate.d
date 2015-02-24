@@ -20,7 +20,6 @@ import flowstate;
 import geom;
 import luageom;
 
-
 static GasModel managedGasModel;
 
 /// name for FlowState object in Lua scripts.
@@ -55,6 +54,13 @@ FlowState checkFlowState(lua_State* L, int index)
  */
 extern(C) int newFlowState(lua_State* L)
 {
+    if ( managedGasModel is null ) {
+	string errMsg = `Error in call to FlowState:new.
+It appears that you have not yet set the GasModel.
+Be sure to call setGasModel(fname) before using a FlowState object.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+
     lua_remove(L, 1); // Remove first argument "this".
     FlowState fs;
 
@@ -204,7 +210,7 @@ lua_setfield(L, -2, "` ~ var ~`");`;
 
 extern(C) int toTable(lua_State* L)
 {
-    auto fs = checkObj!(FlowState, FlowStateMT)(L, 1);
+    auto fs = checkFlowState(L, 1);
     lua_newtable(L); // anonymous table { }
 
     lua_newtable(L); // This one will hold gas values.
@@ -229,9 +235,18 @@ extern(C) int toTable(lua_State* L)
     return 1;
 }
 
+extern(C) int setGasModel(lua_State* L)
+{
+    string fname = to!string(luaL_checkstring(L, 1));
+    managedGasModel = init_gas_model(fname);
+    lua_pushinteger(L, managedGasModel.n_species);
+    lua_pushinteger(L, managedGasModel.n_modes);
+    return 2;
+    
+}
+
 void registerFlowState(LuaState lua)
 {
-    managedGasModel = init_gas_model("sample-data/ideal-air-gas-model.lua");
     auto L = lua.state;
     luaL_newmetatable(L, FlowStateMT.toStringz);
     
@@ -248,5 +263,8 @@ void registerFlowState(LuaState lua)
     lua_setfield(L, -2, "toTable");
 
     lua_setglobal(L, FlowStateMT.toStringz);
+
+    lua_pushcfunction(L, &setGasModel);
+    lua_setglobal(L, "setGasModel");
 }
 

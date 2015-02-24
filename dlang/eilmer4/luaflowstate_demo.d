@@ -20,6 +20,8 @@ void main()
     registerVector3(lua);
     registerFlowState(lua);
     lua.doString(`
+nsp, nmodes = setGasModel('sample-data/ideal-air-gas-model.lua')
+print("GasModel set to ideal air. nsp= ", nsp, " nmodes= ", nmodes)
 fs = FlowState:new{p=1.0e5, T=300.0, u=1000.0, v=200.0}
 fsTab = fs:toTable{}
 for k,v in pairs(fsTab) do
