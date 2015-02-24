@@ -147,7 +147,7 @@ extern(C) int xVector3(lua_State* L)
 {
     int narg = lua_gettop(L);
     auto a = checkVector3(L, 1);
-    if( narg == 1 ) { // This is a getter
+    if ( narg == 1 ) { // This is a getter
 	lua_pushnumber(L, a.x);
 	return 1;
     }

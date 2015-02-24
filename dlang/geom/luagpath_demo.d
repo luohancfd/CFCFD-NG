@@ -23,7 +23,7 @@ void main()
 -- Add a couple of points and alter their data.
 a = Vector3:new{x=1.0, y=2.0}
 b = Vector3:new(0.0, 5.0, 4.0)
-ab = Line:new(a, b)
+ab = Line:new{a, b}
 print("ab= ", ab)
 print("Try evaluating a point midway on the line.")
 pt = ab(0.5)
@@ -31,9 +31,11 @@ print("pt= ", pt)
 print("Or with an eval.")
 pt2 = ab:eval(0.5)
 print("pt2= ", pt2)
---print("Now give the line a bad constructor.")
---ln = Line:new(a, b, pt)
---]==]
+ab:t1(0.8)
+ab2 = ab:copy()
+ab2:t0(0.2)
+print("ab:t0()= ", ab:t0(), "ab:t1()= ", ab:t1())
+print("ab2:t0()= ", ab2:t0(), "ab2:t2()= ", ab2:t1())
     `);
     writeln("Done with demo.");
 }
