@@ -59,7 +59,12 @@ NM_FILES := $(NM_DIR)/ridder.d
 
 GEOM_DIR := ../geom
 GEOM_FILES := $(GEOM_DIR)/geom.d \
-	$(GEOM_DIR)/luageom.d
+	$(GEOM_DIR)/univariatefunctions.d \
+	$(GEOM_DIR)/gpath.d \
+	$(GEOM_DIR)/surface.d \
+	$(GEOM_DIR)/luageom.d \
+	$(GEOM_DIR)/luagpath.d \
+	$(GEOM_DIR)/luasurface.d
 
 GZIP_DIR := ../extern/gzip
 GZIP_FILES := $(GZIP_DIR)/gzip.d
@@ -195,7 +200,8 @@ e4shared: e4_main.d e4_core.d readconfig.d json_helper.d \
 e4prep: e4prep.d luaflowstate.d flowstate.d json_helper.d \
 	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES) \
 	$(GZIP_FILES)
+	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' e4prep.d > e4prep_with_rev_string.d
 	$(DMD) $(DFLAGS) $(OF)e4prep \
-		e4prep.d luaflowstate.d flowstate.d json_helper.d \
+		e4prep_with_rev_string.d luaflowstate.d flowstate.d json_helper.d \
 		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)

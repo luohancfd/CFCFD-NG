@@ -7,11 +7,14 @@
 
 import std.stdio;
 import std.getopt;
-import luad.all;
-import luageom;
-import luaflowstate;
 import geom;
 import gas;
+
+import luad.all;
+import luaflowstate;
+import luageom;
+import luagpath;
+import luasurface;
 
 
 void main(string[] args)
@@ -69,6 +72,8 @@ void main(string[] args)
     lua.openLibs();
     registerVector3(lua);
     registerFlowState(lua);
+    registerPaths(lua);
+    registerSurfaces(lua);
     lua.doFile("e4prep.lua");
     lua.doFile(jobName~".lua");
     lua.doString("build_job_files(\""~jobName~"\")");
