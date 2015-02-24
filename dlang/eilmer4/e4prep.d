@@ -64,14 +64,15 @@ void main(string[] args)
 	writeln("  verbosityLevel: ", verbosityLevel);
     }
 
-    writeln("Start up LuaD connection.");
+    writeln("Start LuaD connection.");
     auto lua = new LuaState;
     lua.openLibs();
     registerVector3(lua);
     registerFlowState(lua);
     lua.doFile("e4prep.lua");
     lua.doFile(jobName~".lua");
-    writeln("[TODO] Actually use the configuration data to make the grids, etc");
+    lua.doString("build_job_files(\""~jobName~"\")");
+    writeln("[TODO] Write grid files.");
     if (!noFlowFlag) {
 	writeln("[TODO] Write the flow data files.");
     }
