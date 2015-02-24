@@ -47,7 +47,12 @@ print("my_aopatch(0.1, 0.1)= ", p)
 print("isSurface(my_aopatch)= ", isSurface(my_aopatch))
 print("isSurface(surf2)= ", isSurface(surf2));
 print("isSurface(a)= ", isSurface(a));
-
+north = Line:new(b, d)
+east = Line:new(c, d)
+south = Line:new(a, c)
+west = Line:new(a, b)
+surf3 = makePatch{north, east, south, west, gridType="ao"}
+print("surf3= ", surf3)
     `);
 }
 

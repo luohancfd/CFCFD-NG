@@ -11,6 +11,7 @@ module luasurface;
 import std.stdio;
 import std.string;
 import std.conv;
+import std.uni;
 import luad.all;
 import luad.c.lua;
 import luad.c.lauxlib;
@@ -255,6 +256,53 @@ nor a list of named corners ('p00', 'p10', 'p11', 'p01') were found.`;
     return 0;
 }
 
+/* ---------- convenience functions -------------- */
+
+string getPath(string path, string pos)
+{
+    return `lua_rawgeti(L, 1, `~pos~`);
+auto `~path~` = checkPath(L, -1);
+if ( `~path~` is null ) luaL_error(L, toStringz(format(errMsgTmpl, "`~path~`")));
+lua_pop(L, 1);`;
+}
+extern(C) int makePatch(lua_State* L)
+{
+    if ( !lua_istable(L, 1) ) {
+	string errMsg = `Error in call to makePatch.
+A table is expected as the first argument. No table was found.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    size_t n = lua_objlen(L, 1);
+    if ( n != 4 ) {
+	string errMsg = `Error in call to makePatch.
+There should be four values listed first in the table.
+These are Paths listed in the orded North, East, South, West.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    string errMsgTmpl = `Error in call to makePatch.
+The %s path is not a valid Path object.`;
+    mixin(getPath("north", "1"));
+    mixin(getPath("east", "2"));
+    mixin(getPath("south", "3"));
+    mixin(getPath("west", "4"));
+
+    string gridType = "TFI";
+    lua_getfield(L, 1, "gridType");
+    if ( !lua_isnil(L, -1) ) {
+	gridType = to!string(luaL_checkstring(L, -1));
+    }
+    lua_pop(L, 1);
+    
+    gridType = toUpper(gridType);
+    if ( gridType == "AO" ) {
+	auto patch = new AOPatch(south, north, west, east);
+	return pushObj!(AOPatch, AOPatchMT)(L, patch);
+    }
+    // else
+    auto patch = new CoonsPatch(south, north, west, east);
+    return pushObj!(CoonsPatch, CoonsPatchMT)(L, patch);
+}
+
 void registerSurfaces(LuaState lua)
 {
     auto L = lua.state;
@@ -299,4 +347,6 @@ void registerSurfaces(LuaState lua)
 
     lua_pushcfunction(L, &isSurface);
     lua_setglobal(L, "isSurface");
+    lua_pushcfunction(L, &makePatch);
+    lua_setglobal(L, "makePatch");
 }
