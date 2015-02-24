@@ -4,11 +4,6 @@
 print("Loading e4prep.lua...")
 -- --------------------------------------------------------------------------
 
--- [TODO] Set up class for Block construction.
-blocks = {}
-
--- ---------------------------------------------------------------------------
-
 gdata = {
    title = "An Eilmer4 Simulation.",
    dimensions = 2,
@@ -62,6 +57,124 @@ gdata = {
 
 -- -------------------------------------------------------------------------------
 
+-- Symbolic names for identifying boundaries
+north = "north"; NORTH = "north"
+east = "east"; EAST = "east"
+south = "south"; SOUTH = "south"
+west = "west"; WEST = "west"
+top = "top"; TOP = "top"
+bottom = "bottom"; BOTTOM = "bottom"
+
+-- Class for BoundaryCondition
+-- For the classes below, we just follow the prototype pattern
+-- given in Ierusalimchy's book "Programming in Lua"
+
+BoundaryCondition = {
+   label = "",
+   myType = ""
+}
+
+function BoundaryCondition:new (o)
+   o = o or {}
+   setmetatable(o, self)
+   self.__index = self
+   return o
+end
+
+SlipWallBC = BoundaryCondition:new()
+SlipWallBC.myType = "SlipWall"
+
+SupInBC = BoundaryCondition:new()
+SupInBC.myType = "SupIn"
+SupInBC.flowCondition = nil
+
+ExtrapolateOutBC = BoundaryCondition:new()
+ExtrapolateOutBC.myType = "ExtrapolateOut"
+
+FullFaceExchangeBC = BoundaryCondition:new()
+FullFaceExchangeBC.myType = "FullFaceExchange"
+FullFaceExchangeBC.otherBlock = nil
+FullFaceExchangeBC.otherFace = nil
+
+-- Class for ClusterFunction
+UnivariateFunction = {
+   myType = ""
+}
+
+function UnivariateFunction:new (o)
+   o = o or {}
+   setmetatable(o, self)
+   self.__index = self
+   return o
+end
+
+LinearFunction = UnivariateFunction:new()
+LinearFunction.t0 = 0.0
+LinearFunction.t1 = 1.0
+LinearFunction.myType = "Linear"
+
+RobertsFunction = UnivariateFunction:new()
+RobertsFunction.end0 = true
+RobertsFunction.end1 = false
+RobertsFunction.beta = 1.1
+RobertsFunction.myType = "Roberts"
+
+
+-- Class for Block construction (for a StructuredGrid).
+SBlock = {
+   psurf = nil, -- ParametricSurface object for 2D simulation
+   pvol = nil,  -- ParametricVolume object for 3D simulation
+   grid = nil,  -- The StructuredGrid object
+   nic = nil,   -- number of cells i-index direction
+   njc = nil,   -- number of cells j-index direction
+   nkc = nil,   -- number of cells k-index direction
+   fillCondition = nil, -- expects a FlowState object
+   bcList = {
+      [north]=SlipWallBC:new(), [east]=SlipWallBC:new(), 
+      [south]=SlipWallBC:new(), [west]=SlipWallBC:new(),
+      [top]=SlipWallBC:new(), [bottom]=SlipWallBC:new()
+   },
+   cfList = {}, -- Clustering functions
+   label = "",
+   hcellList = {},
+   xforceList = {},
+   myType = "SBlock",
+   -- The following names are for the corner locations,
+   -- to be used for testing for block connections.
+   p000 = nil, p100 = nil, p110 = nil, p010 = nil,
+   p001 = nil, p101 = nil, p111 = nil, p011 = nil,
+} -- end Block
+
+blocks = {}
+
+function SBlock:new (o)
+   o = o or {}
+   setmetatable(o, self)
+   self.__index = self
+   self.id = #blocks
+   blocks[self.id+1] = self
+   return o
+end
+
+-- ---------------------------------------------------------------------------
+
+function connectBlocks(blkA, faceA, blkB, faceB, orientation)
+   blkA.bcList[faceA] = FullFaceExchangeBC:new{otherBlock=blkB.id, otherFace=faceB,
+					       orientation=orientation}
+   blkB.bcList[faceB] = FullFaceExchangeBC:new{otherBlock=blkA.id, otherFace=faceA,
+					       orientation=orientation}
+   -- [TODO] need to test for matching corner locations and 
+   -- concistent numbers of cells
+end
+
+function identifyBlockConnections()
+   -- [TODO] identify block connections by trying to match corner points.
+   -- Hard-code the cone20 connection for the moment.
+   connectBlocks(blocks[1], west, blocks[2], east, 0)
+end
+
+-- ---------------------------------------------------------------------------
+
 function write_control_file(fileName)
    local f = assert(io.open(fileName, "w"))
    f:write("{\n")
@@ -100,7 +213,7 @@ function write_config_file(fileName)
    f:write(string.format('"axisymmetric_flag": %s,\n',
 			 tostring(gdata.axisymmetric_flag)))
    f:write(string.format('"gas_model_file": "%s",\n', gdata.gas_model_file))
-   --[[
+--[[
    interpolation_type = "rhoe",
    interpolate_in_local_frame = true,
    apply_limiter_flag = true,
@@ -124,7 +237,7 @@ function write_config_file(fileName)
 
    control_count = 10,
    max_invalid_cells = 10,
-   --]]
+--]]
    for i,blk in pairs(blocks) do
       f:write("[TODO] write JSON config for block")
    end

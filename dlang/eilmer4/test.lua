@@ -30,20 +30,16 @@ af = Line:new{a, f}; be = Line:new{b, e}; cd = Line:new{c, d} -- vertical lines
 
 -- Define the blocks, with particular discretisation.
 nx0 = 10; nx1 = 30; ny = 40
-surf1 = makePatch{fe, be, ab, af}
-surf2 = makePatch{ed, cd, bc, be, gridType="ao"}
---[[
-blk_0 = Block2D(make_patch(fe, be, ab, af), nni=nx0, nnj=ny,
-                fill_condition=inflow, label="BLOCK-0")
-blk_1 = Block2D(make_patch(ed, cd, bc, be, "AO"), nni=nx1, nnj=ny,
-                fill_condition=initial, label="BLOCK-1",
-                hcell_list=[(9,0)], xforce_list=[0,0,1,0])
+blk0 = SBlock:new{psurf=makePatch{fe, be, ab, af}, nic=nx0, njc=ny,
+		  fillCondition=inflow, label="BLOCK-0"}
+blk1 = SBlock:new{psurf=makePatch{ed, cd, bc, be, gridType="ao"}, nic=nx1, njc=ny,
+		  fillCondition=initial, label="BLOCK-1",
+		  hcellList={{9,0}}, xforceList={0,0,1,0}}
 
 -- Set boundary conditions.
-identify_block_connections()
-blk_0.bc_list[WEST] = SupInBC(inflow, label="inflow-boundary")
-blk_1.bc_list[EAST] = ExtrapolateOutBC(label="outflow-boundary")
---]]
+identifyBlockConnections()
+blk0.bcList[west] = SupInBC:new{flowCondition=inflow, label="inflow-boundary"}
+blk1.bcList[east] = ExtrapolateOutBC:new{label="outflow-boundary"}
 
 -- Do a little more setting of global data.
 gdata.max_time = 5.0e-3  -- seconds
