@@ -5,7 +5,7 @@
 # when invoking this makefile.  Can also ask for gdc.
 DMD ?= dmd
 
-PROGRAMS := e4shared
+PROGRAMS := e4shared e4prep
 
 DEMO_PROGRAMS := globalconfig_demo flowstate_demo fv_demo block_demo \
 	luaflowstate_demo
@@ -78,7 +78,7 @@ REVISION_STRING := $(shell hg identify --id --num --branch --tags)
 ifeq ($(DMD), dmd)
     # DFLAGS := -unittest -gc -wi
     # DFLAGS := -profile -vgc -w -O -release -inline -boundscheck=off
-    DFLAGS := -w -O -release -inline -boundscheck=off \
+    DFLAGS := -gc -w -O -release -inline -boundscheck=off \
 	-I.. -I$(LUAD_DIR) -I$(NM_DIR) -I$(UTIL_DIR) -I$(GEOM_DIR) -I$(GZIP_DIR)
     OF := -of
     DLINKFLAGS := -L-L$(LIBLUAPATH) -L-llua -L-ldl
@@ -130,10 +130,10 @@ flowstate_demo: flowstate_demo.d flowstate.d fvcore.d json_helper.d \
 		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
 
-luaflowstate_demo: luaflowstate_demo.d luaflowstate.d flowstate.d fvcore.d json_helper.d \
+luaflowstate_demo: luaflowstate_demo.d luaflowstate.d flowstate.d json_helper.d \
 	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
 	$(DMD) $(DFLAGS) $(OF)luaflowstate_demo \
-		luaflowstate_demo.d luaflowstate.d fvcore.d flowstate.d json_helper.d \
+		luaflowstate_demo.d luaflowstate.d flowstate.d json_helper.d \
 		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
 
@@ -190,4 +190,12 @@ e4shared: e4_main.d e4_core.d readconfig.d json_helper.d \
 		globalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
 		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
+		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
+
+e4prep: e4prep.d luaflowstate.d flowstate.d json_helper.d \
+	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES) \
+	$(GZIP_FILES)
+	$(DMD) $(DFLAGS) $(OF)e4prep \
+		e4prep.d luaflowstate.d flowstate.d json_helper.d \
+		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
