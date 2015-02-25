@@ -2403,6 +2403,9 @@ int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_steppin
                         printf( "Error: check the output vertex velocities.\n");
 	            }
                 } // end for *bdp
+#               ifdef _MPI	        
+	        MPI_Barrier( MPI_COMM_WORLD );
+#               endif	                 
                 grid_moving_flag = true;
 	    }
 	    else { // user-defined grid movement
@@ -2494,7 +2497,6 @@ int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_steppin
 	    } // end for *cp
 	} // end of for *bdp...
 
-        G.sim_time = t0 + 1.0*dt;
 	// Preparation for second-stage of gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
 	    bdp->correct_vertex_positions(G.dimensions, G.dt_global);
