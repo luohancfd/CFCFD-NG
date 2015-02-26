@@ -862,7 +862,7 @@ class Block(object):
 
     def write_to_json_file(self, fp, dimensions):
         """
-        Writes the information to the specified file-object in .ini format.
+        Writes the information to the specified file-object in JSON format.
         """
         def my_json_bool(bvalue): return "true" if bvalue else "false" 
         def my_json_float_array(myarray):

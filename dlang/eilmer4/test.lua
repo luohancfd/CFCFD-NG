@@ -32,6 +32,9 @@ af = Line:new{a, f}; be = Line:new{b, e}; cd = Line:new{c, d} -- vertical lines
 nx0 = 10; nx1 = 30; ny = 40
 blk0 = SBlock:new{psurf=makePatch{fe, be, ab, af}, nic=nx0, njc=ny,
 		  fillCondition=inflow, label="BLOCK-0"}
+for k,v in pairs(blk0) do
+   print("k=", k, "v=", v)
+end
 blk1 = SBlock:new{psurf=makePatch{ed, cd, bc, be, gridType="ao"}, nic=nx1, njc=ny,
 		  fillCondition=initial, label="BLOCK-1",
 		  hcellList={{9,0}}, xforceList={0,0,1,0}}

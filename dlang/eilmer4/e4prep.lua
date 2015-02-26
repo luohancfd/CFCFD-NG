@@ -5,6 +5,7 @@ print("Loading e4prep.lua...")
 -- --------------------------------------------------------------------------
 
 gdata = {
+   blocks = {},
    title = "An Eilmer4 Simulation.",
    dimensions = 2,
    axisymmetric_flag = false,
@@ -25,9 +26,9 @@ gdata = {
    stringent_cfl = false,
    fixed_time_step = false,
    dt_reduction_factor = 0.2,
-   t0 = 0.0, -- may be useful to change t0 if we are restarting from another job
    dt = 1.0e-6,
    dt_max = 1.0e-3,
+   t0 = 0.0, -- needed for the initial solution file
 
    viscous_flag = false,
    separate_update_for_viscous_flag = false,
@@ -65,6 +66,15 @@ west = "west"; WEST = "west"
 top = "top"; TOP = "top"
 bottom = "bottom"; BOTTOM = "bottom"
 
+function faceList(dimensions)
+   local myList = {north, east, south, west}
+   if dimensions == 3 then 
+      table.insert(myList, top)
+      table.insert(myList, bottom)
+   end
+   return myList
+end
+
 -- Class for BoundaryCondition
 -- For the classes below, we just follow the prototype pattern
 -- given in Ierusalimchy's book "Programming in Lua"
@@ -74,7 +84,7 @@ BoundaryCondition = {
    myType = ""
 }
 
-function BoundaryCondition:new (o)
+function BoundaryCondition:new(o)
    o = o or {}
    setmetatable(o, self)
    self.__index = self
@@ -83,18 +93,50 @@ end
 
 SlipWallBC = BoundaryCondition:new()
 SlipWallBC.myType = "SlipWall"
+function SlipWallBC:tojson()
+   local str = '{'
+   -- str = str .. string.format('"label": "%s",', self.label) -- FIX-ME
+   str = str .. '"bc": "SlipWall"'
+   -- str = str .. string.format('"bc": "%s"', self.myType) -- FIX-ME
+   str = str .. '}'
+   return str
+end
 
 SupInBC = BoundaryCondition:new()
 SupInBC.myType = "SupIn"
 SupInBC.flowCondition = nil
+function SupInBC:tojson()
+   local str = '{'
+   -- str = str .. string.format('"label": "%s",', self.label) -- FIX-ME
+   str = str .. '"bc": "SupIn"'
+   -- str = str .. string.format('"bc": "%s"', self.myType) -- FIX-ME
+   str = str .. '}'
+   return str
+end
 
 ExtrapolateOutBC = BoundaryCondition:new()
 ExtrapolateOutBC.myType = "ExtrapolateOut"
+function ExtrapolateOutBC:tojson()
+   local str = '{'
+   -- str = str .. string.format('"label": "%s",', self.label) -- FIX-ME
+   str = str .. '"bc": "ExtrapolateOut"'
+   -- str = str .. string.format('"bc": "%s"', self.myType) -- FIX-ME
+   str = str .. '}'
+   return "finish me"
+end
 
 FullFaceExchangeBC = BoundaryCondition:new()
 FullFaceExchangeBC.myType = "FullFaceExchange"
 FullFaceExchangeBC.otherBlock = nil
 FullFaceExchangeBC.otherFace = nil
+function FullFaceExchangeBC:tojson()
+   local str = '{'
+   -- str = str .. string.format('"label": "%s",', self.label) -- FIX-ME
+   str = str .. '"bc": "FullFaceExchange"'
+   -- str = str .. string.format('"bc": "%s"', self.myType) -- FIX-ME
+   str = str .. '}'
+   return str
+end
 
 -- Class for ClusterFunction
 UnivariateFunction = {
@@ -122,6 +164,9 @@ RobertsFunction.myType = "Roberts"
 
 -- Class for Block construction (for a StructuredGrid).
 SBlock = {
+   myType = "SBlock",
+   active = true,
+   label = "",
    psurf = nil, -- ParametricSurface object for 2D simulation
    pvol = nil,  -- ParametricVolume object for 3D simulation
    grid = nil,  -- The StructuredGrid object
@@ -135,25 +180,64 @@ SBlock = {
       [top]=SlipWallBC:new(), [bottom]=SlipWallBC:new()
    },
    cfList = {}, -- Clustering functions
-   label = "",
    hcellList = {},
    xforceList = {},
-   myType = "SBlock",
    -- The following names are for the corner locations,
    -- to be used for testing for block connections.
    p000 = nil, p100 = nil, p110 = nil, p010 = nil,
    p001 = nil, p101 = nil, p111 = nil, p011 = nil,
 } -- end Block
 
-blocks = {}
-
-function SBlock:new (o)
+function SBlock:new(o)
    o = o or {}
    setmetatable(o, self)
    self.__index = self
-   self.id = #blocks
-   blocks[self.id+1] = self
+   -- Fill in default values, if already not set
+   o.nkc = o.nkc or 1 -- may not have specified nkc for 2D simulation
+   o.omegaz = o.omegaz or 0.0
+   o.bcList = o.bcList or {}
+   for _,face in ipairs(faceList(gdata.dimensions)) do
+      o.bcList[face] = o.bcList[face] or SlipWallBC:new()
+   end
+   -- Make a record of the new block, for later constructio of the config file.
+   -- Note that we want block id to start at zero for the D code.
+   o.id = #(gdata.blocks)
+   gdata.blocks[o.id+1] = o
    return o
+end
+
+function SBlock:tojson()
+   str = string.format('"block_%d": {\n', self.id)
+   str = str .. string.format('    "label": "%s",\n', self.label)
+   str = str .. string.format('    "active": %s,\n', tostring(self.active))
+   str = str .. string.format('    "nic": %d,\n', self.nic)
+   str = str .. string.format('    "njc": %d,\n', self.njc)
+   str = str .. string.format('    "nkc": %d,\n', self.nkc)
+   str = str .. string.format('    "omegaz": %f,\n', self.omegaz)
+   str = str .. string.format('    "nhcell": %d,\n', #(self.hcellList))
+   for i = 1, #(self.hcellList) do
+      local hcell = self.hcellList[i]
+      if gdata.dimensions == 3 then
+	 str = str .. string.format('    "history-cell-%d": [%d, %d, %d],\n', 
+				    i-1, hcell[1], hcell[2], hcell[3])
+      else
+	 str = str .. string.format('    "history-cell-%d": [%d, %d],\n',
+				    i-1, hcell[1], hcell[2])
+      end
+   end
+   -- Boundary conditions
+   for _,face in ipairs(faceList(gdata.dimensions)) do
+      print("face=", face, "bc=", self.bcList[face])
+      for k,v in pairs(self.bcList[face]) do
+	 print("k=", k, "v=", v)
+      end
+      print("done printing face values.")
+      str = str .. string.format('    "face_%s": ', face) ..
+	 self.bcList[face].tojson() .. ',\n'
+   end
+   str = str .. '    "dummy_entry_to_keep_json_parser_happy": 0\n'
+   str = str .. '},\n'
+   return str
 end
 
 -- ---------------------------------------------------------------------------
@@ -170,7 +254,7 @@ end
 function identifyBlockConnections()
    -- [TODO] identify block connections by trying to match corner points.
    -- Hard-code the cone20 connection for the moment.
-   connectBlocks(blocks[1], west, blocks[2], east, 0)
+   connectBlocks(gdata.blocks[1], west, gdata.blocks[2], east, 0)
 end
 
 -- ---------------------------------------------------------------------------
@@ -184,23 +268,21 @@ function write_control_file(fileName)
    f:write(string.format('"separate_update_for_viscous_flag": %s,\n',
 			 tostring(gdata.separate_update_for_viscous_flag)))
    f:write(string.format('"implicit_flag": %s,\n', tostring(gdata.implicit_flag)))
---[[
-   dt = 1.0e-6,
-   dt_max = 1.0e-3,
-   cfl = 0.5,
-   stringent_cfl = false,
-   fixed_time_step = false,
-   dt_reduction_factor = 0.2,
-   print_count = 20,
-   cfl_count = 10,
-   max_time = 1.0e-3,
-   max_step = 10,
-   dt_plot = 1.0e-3,
-   dt_history = 1.0e-3,
-   write_at_step = 0,
-   halt_now = 0,
---]]
-   f:write('"last_entry": 0\n') -- no comma on last entry
+   f:write(string.format('"dt": %e,\n', gdata.dt))
+   f:write(string.format('"dt_max": %e,\n', gdata.dt_max))
+   f:write(string.format('"cfl": %e,\n', gdata.cfl))
+   f:write(string.format('"stringent_cfl": %s,\n', tostring(gdata.stringent_cfl)))
+   f:write(string.format('"fixed_time_step": %s,\n', tostring(gdata.fixed_time_step)))
+   f:write(string.format('"dt_reduction_factor": %e,\n', gdata.dt_reduction_factor))
+   f:write(string.format('"print_count": %d,\n', gdata.print_count))
+   f:write(string.format('"cfl_count": %d,\n', gdata.cfl_count))
+   f:write(string.format('"max_time": %e,\n', gdata.max_time))
+   f:write(string.format('"max_step": %d,\n', gdata.max_step))
+   f:write(string.format('"dt_plot": %e,\n', gdata.dt_plot))
+   f:write(string.format('"dt_history": %e,\n', gdata.dt_history))
+   f:write(string.format('"write_at_step": %d,\n', gdata.write_at_step))
+   f:write('"halt_now": 0\n') -- presumably, we want the simulation to proceed
+   -- Note, also, no comma on last entry in JSON object.
    f:write("}\n")
    f:close()
 end
@@ -213,35 +295,41 @@ function write_config_file(fileName)
    f:write(string.format('"axisymmetric_flag": %s,\n',
 			 tostring(gdata.axisymmetric_flag)))
    f:write(string.format('"gas_model_file": "%s",\n', gdata.gas_model_file))
---[[
-   interpolation_type = "rhoe",
-   interpolate_in_local_frame = true,
-   apply_limiter_flag = true,
-   extrema_clipping_flag = true,
-   flux_calc = "adaptive",
-   compression_tolerance = -0.30,
-   shear_tolerance = 0.20,
-   M_inf = 0.01,
-   t0 = 0.0, -- may be useful to change t0 if we are restarting from another job
 
-   viscous_flag = false,
-   turbulence_model = "none",
-   turbulence_prandtl_number = 0.89,
-   turbulence_schmidt_number = 0.75,
-   max_mu_t_factor = 300.0,
-   transient_mu_t_factor = 1.0,
-   separate_update_for_k_omega_source = false,
+   f:write(string.format('"interpolation_type": "%s",\n', 
+			 string.lower(gdata.interpolation_type)))
+   f:write(string.format('"interpolate_in_local_frame": %s,\n', 
+			 tostring(gdata.interpolate_in_local_frame)))
+   f:write(string.format('"apply_limiter_flag": %s,\n', tostring(gdata.apply_limiter_flag)))
+   f:write(string.format('"extrema_clipping_flag": %s,\n',
+			 tostring(gdata.extrema_clipping_flag)))
 
-   reacting_flag = false,
-   dt_chem = -1.0,
+   f:write(string.format('"flux_calc": "%s",\n', gdata.flux_calc))
+   f:write(string.format('"compression_tolerance": %e,\n', gdata.compression_tolerance))
+   f:write(string.format('"shear_tolerance": %e,\n', gdata.shear_tolerance))
+   f:write(string.format('"M_inf": %e,\n', gdata.M_inf))
+   f:write(string.format('"viscous_flag": %s,\n', tostring(gdata.viscous_flag)))
 
-   control_count = 10,
-   max_invalid_cells = 10,
---]]
-   for i,blk in pairs(blocks) do
-      f:write("[TODO] write JSON config for block")
+   f:write(string.format('"turbulence_model": "%s",\n',
+			 string.lower(gdata.turbulence_model)))
+   f:write(string.format('"turbulence_prandtl_number": %g,\n',
+			 gdata.turbulence_prandtl_number))
+   f:write(string.format('"turbulence_schmidt_number": %g,\n',
+			 gdata.turbulence_schmidt_number))
+   f:write(string.format('"max_mu_t_factor": %e,\n', gdata.max_mu_t_factor))
+   f:write(string.format('"transient_mu_t_factor": %e,\n', gdata.transient_mu_t_factor))
+   f:write(string.format('"separate_update_for_k_omega_source": %s,\n', 
+			 tostring(gdata.separate_update_for_k_omega_source)))
+
+   f:write(string.format('"reacting_flag": %s,\n', tostring(gdata.reacting_flag)))
+   f:write(string.format('"max_invalid_cells": %d,\n', gdata.max_invalid_cells))
+   f:write(string.format('"control_count": %d,\n', gdata.control_count))
+
+   f:write(string.format('"nblock": %d,\n', #(gdata.blocks)))
+   for i = 1, #(gdata.blocks) do
+      f:write(gdata.blocks[i]:tojson())
    end
-   f:write('"last_entry": 0\n') -- no comma on last entry
+   f:write('"dummy_entry_to_keep_json_parser_happy": 0\n') -- no comma on last entry
    f:write("}\n")
    f:close()
 end
@@ -256,8 +344,8 @@ end
 function write_block_list_file(fileName)
    local f = assert(io.open(fileName, "w"))
    f:write("# indx label\n")
-   for i,blk in pairs(blocks) do
-      f:write("blk.indx blk.label [TODO] finish me")
+   for i = 1, #(gdata.blocks) do
+      f:write(string.format("%4d %s\n", gdata.blocks[i].id, gdata.blocks[i].label))
    end
    f:close()
 end
