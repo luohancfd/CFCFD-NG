@@ -60,11 +60,14 @@ NM_FILES := $(NM_DIR)/ridder.d
 GEOM_DIR := ../geom
 GEOM_FILES := $(GEOM_DIR)/geom.d \
 	$(GEOM_DIR)/univariatefunctions.d \
+	$(GEOM_DIR)/luaunifunction.d \
 	$(GEOM_DIR)/gpath.d \
 	$(GEOM_DIR)/surface.d \
 	$(GEOM_DIR)/luageom.d \
 	$(GEOM_DIR)/luagpath.d \
-	$(GEOM_DIR)/luasurface.d
+	$(GEOM_DIR)/luasurface.d \
+	$(GEOM_DIR)/sgrid.d \
+	$(GEOM_DIR)/luasgrid.d
 
 GZIP_DIR := ../extern/gzip
 GZIP_FILES := $(GZIP_DIR)/gzip.d

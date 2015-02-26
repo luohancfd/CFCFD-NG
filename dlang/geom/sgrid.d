@@ -75,6 +75,29 @@ public:
 	}
     }
 
+    this(const StructuredGrid other)
+    {
+	niv = other.niv;
+	njv = other.njv;
+	nkv = other.nkv;
+	label = this.label;
+	resize_array();
+	foreach (i; 0 .. grid.length) {
+	    foreach (j; 0 .. grid[i].length) {
+		foreach (k; 0 .. grid[i][j].length) {
+		    grid[i][j][k].refx = other.grid[i][j][k].x;
+		    grid[i][j][k].refy = other.grid[i][j][k].y;
+		    grid[i][j][k].refz = other.grid[i][j][k].z;
+		}
+	    }
+	}
+    }
+
+    StructuredGrid dup() const
+    {
+	return new StructuredGrid(this);
+    }
+
     void resize_array()
     {
 	grid.length = niv;

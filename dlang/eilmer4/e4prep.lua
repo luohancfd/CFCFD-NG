@@ -136,41 +136,13 @@ function FullFaceExchangeBC:tojson()
    return str
 end
 
--- Class for ClusterFunction
-UnivariateFunction = {
-   myType = ""
-}
-function UnivariateFunction:new(o)
-   o = o or {}
-   setmetatable(o, self)
-   self.__index = self
-   return o
-end
-
-LinearFunction = UnivariateFunction:new()
-LinearFunction.t0 = 0.0
-LinearFunction.t1 = 1.0
-LinearFunction.myType = "Linear"
-
-RobertsFunction = UnivariateFunction:new()
-RobertsFunction.end0 = true
-RobertsFunction.end1 = false
-RobertsFunction.beta = 1.1
-RobertsFunction.myType = "Roberts"
-
-
--- Class for Block construction (for a StructuredGrid).
+-- Class for Block construction (based on a StructuredGrid).
 SBlock = {
    myType = "SBlock",
    active = true,
    label = "",
    omegaz = 0.0,
-   psurf = nil, -- ParametricSurface object for 2D simulation
-   pvol = nil,  -- ParametricVolume object for 3D simulation
    grid = nil,  -- The StructuredGrid object
-   nic = nil,   -- number of cells i-index direction
-   njc = nil,   -- number of cells j-index direction
-   nkc = nil,   -- number of cells k-index direction
    fillCondition = nil, -- expects a FlowState object
    bcList = nil, -- boundary conditions
    hcellList = nil,
@@ -186,13 +158,18 @@ function SBlock:new(o)
    setmetatable(o, self)
    self.__index = self
    -- Fill in default values, if already not set
-   o.nkc = o.nkc or 1 -- may not have specified nkc for 2D simulation
    o.bcList = o.bcList or {}
    for _,face in ipairs(faceList(gdata.dimensions)) do
       o.bcList[face] = o.bcList[face] or SlipWallBC:new()
    end
    o.hcellList = o.hcellList or {}
    o.xforceList = o.xforceList or {}
+   -- [TODO] Extract some information from the StructuredGrid
+   -- nic 
+   -- njc
+   -- nkc
+   -- p000 and friends.
+
    -- Make a record of the new block, for later constructio of the config file.
    -- Note that we want block id to start at zero for the D code.
    o.id = #(gdata.blocks)
@@ -204,9 +181,9 @@ function SBlock:tojson()
    str = string.format('"block_%d": {\n', self.id)
    str = str .. string.format('    "label": "%s",\n', self.label)
    str = str .. string.format('    "active": %s,\n', tostring(self.active))
-   str = str .. string.format('    "nic": %d,\n', self.nic)
-   str = str .. string.format('    "njc": %d,\n', self.njc)
-   str = str .. string.format('    "nkc": %d,\n', self.nkc)
+   -- str = str .. string.format('    "nic": %d,\n', self.nic)
+   -- str = str .. string.format('    "njc": %d,\n', self.njc)
+   -- str = str .. string.format('    "nkc": %d,\n', self.nkc)
    str = str .. string.format('    "omegaz": %f,\n', self.omegaz)
    str = str .. string.format('    "nhcell": %d,\n', #(self.hcellList))
    for i = 1, #(self.hcellList) do

@@ -15,6 +15,8 @@ import luaflowstate;
 import luageom;
 import luagpath;
 import luasurface;
+import luaunifunction;
+import luasgrid;
 
 
 void main(string[] args)
@@ -74,6 +76,8 @@ void main(string[] args)
     registerFlowState(lua);
     registerPaths(lua);
     registerSurfaces(lua);
+    registerUnivariateFunctions(lua);
+    registerStructuredGrid(lua);
     lua.doFile("e4prep.lua");
     lua.doFile(jobName~".lua");
     lua.doString("build_job_files(\""~jobName~"\")");

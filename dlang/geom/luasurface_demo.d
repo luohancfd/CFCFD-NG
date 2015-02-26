@@ -26,8 +26,8 @@ a = Vector3:new{0.0, 0.0}
 b = Vector3:new{0.0, 1.0}
 c = Vector3:new{1.0, 0.0}
 d = Vector3:new{1.0, 1.0}
-surf = CoonsPatch:new{north=Line:new(b, d), east=Line:new(c, d),
-                      south=Line:new(a, c), west=Line:new(a, b)}
+surf = CoonsPatch:new{north=Line:new{b, d}, east=Line:new{c, d},
+                      south=Line:new{a, c}, west=Line:new{a, b}}
 print("CoonsPatch representation: ", surf)
 ctr = surf(0.5, 0.5)
 print("ctr= ", ctr)
@@ -47,10 +47,10 @@ print("my_aopatch(0.1, 0.1)= ", p)
 print("isSurface(my_aopatch)= ", isSurface(my_aopatch))
 print("isSurface(surf2)= ", isSurface(surf2));
 print("isSurface(a)= ", isSurface(a));
-north = Line:new(b, d)
-east = Line:new(c, d)
-south = Line:new(a, c)
-west = Line:new(a, b)
+north = Line:new{b, d}
+east = Line:new{c, d}
+south = Line:new{a, c}
+west = Line:new{a, b}
 surf3 = makePatch{north, east, south, west, gridType="ao"}
 print("surf3= ", surf3)
     `);

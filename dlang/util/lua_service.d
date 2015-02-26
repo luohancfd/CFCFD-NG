@@ -191,6 +191,33 @@ double getNumberFromTable(lua_State* L, int index, string field,
     return valIfError;
 } // end getNumberFromTable()
 
+int getIntegerFromTable(lua_State* L, int index, string field,
+			bool errorIfNotFound=false, int valIfError=int.init,
+			bool errorIfNotValid=false, string errMsg="")
+{
+    lua_getfield(L, index, field.toStringz);
+    if ( lua_isnil(L, -1) ) {
+	if ( errorIfNotFound ) {
+	    luaL_error(L, errMsg.toStringz);
+	}
+	else { // We didn't really care
+	    return valIfError;
+	}
+    }
+    // Presumably then we have something to look at.
+    if ( lua_isnumber(L, -1) ) {
+	auto val = lua_tointeger(L, -1);
+	lua_pop(L, 1);
+	return val;
+    }
+    // else, failed to find an integer value.
+    if ( errorIfNotValid ) {
+	luaL_error(L, errMsg.toStringz);
+    }
+    // We didn't want to fail, so give back int.init
+    return valIfError;
+} // end getIntegerFromTable()
+
 bool getBooleanFromTable(lua_State* L, int index, string field,
 			 bool errorIfNotFound=false, bool valIfError=bool.init,
 			 bool errorIfNotValid=false, string errMsg="")
