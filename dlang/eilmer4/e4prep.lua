@@ -5,7 +5,8 @@ print("Loading e4prep.lua...")
 -- --------------------------------------------------------------------------
 
 gdata = {
-   blocks = {},
+   blocks = {}, -- storage for later definitions of Block objects
+
    title = "An Eilmer4 Simulation.",
    dimensions = 2,
    axisymmetric_flag = false,
@@ -83,7 +84,6 @@ BoundaryCondition = {
    label = "",
    myType = ""
 }
-
 function BoundaryCondition:new(o)
    o = o or {}
    setmetatable(o, self)
@@ -95,45 +95,43 @@ SlipWallBC = BoundaryCondition:new()
 SlipWallBC.myType = "SlipWall"
 function SlipWallBC:tojson()
    local str = '{'
-   -- str = str .. string.format('"label": "%s",', self.label) -- FIX-ME
-   str = str .. '"bc": "SlipWall"'
-   -- str = str .. string.format('"bc": "%s"', self.myType) -- FIX-ME
+   str = str .. string.format('"label": "%s" ,', self.label)
+   str = str .. string.format('"bc": "%s"', self.myType)
    str = str .. '}'
    return str
 end
 
-SupInBC = BoundaryCondition:new()
+SupInBC = BoundaryCondition:new{flowCondition=nil}
 SupInBC.myType = "SupIn"
-SupInBC.flowCondition = nil
 function SupInBC:tojson()
    local str = '{'
-   -- str = str .. string.format('"label": "%s",', self.label) -- FIX-ME
-   str = str .. '"bc": "SupIn"'
-   -- str = str .. string.format('"bc": "%s"', self.myType) -- FIX-ME
+   str = str .. string.format('"label": "%s" ,', self.label)
+   str = str .. string.format('"bc": "%s", ', self.myType)
+   str = str .. string.format('"inflow_condition": "%s"', tostring(self.flowCondition))
    str = str .. '}'
    return str
 end
 
-ExtrapolateOutBC = BoundaryCondition:new()
+ExtrapolateOutBC = BoundaryCondition:new{x_order=1}
 ExtrapolateOutBC.myType = "ExtrapolateOut"
 function ExtrapolateOutBC:tojson()
    local str = '{'
-   -- str = str .. string.format('"label": "%s",', self.label) -- FIX-ME
-   str = str .. '"bc": "ExtrapolateOut"'
-   -- str = str .. string.format('"bc": "%s"', self.myType) -- FIX-ME
+   str = str .. string.format('"label": "%s" ,', self.label)
+   str = str .. string.format('"bc": "%s", ', self.myType)
+   str = str .. string.format('"x_order": %d', self.x_order)
    str = str .. '}'
-   return "finish me"
+   return str
 end
 
-FullFaceExchangeBC = BoundaryCondition:new()
+FullFaceExchangeBC = BoundaryCondition:new{otherBlock=nil, otherFace=nil, orientation=0}
 FullFaceExchangeBC.myType = "FullFaceExchange"
-FullFaceExchangeBC.otherBlock = nil
-FullFaceExchangeBC.otherFace = nil
 function FullFaceExchangeBC:tojson()
    local str = '{'
-   -- str = str .. string.format('"label": "%s",', self.label) -- FIX-ME
-   str = str .. '"bc": "FullFaceExchange"'
-   -- str = str .. string.format('"bc": "%s"', self.myType) -- FIX-ME
+   str = str .. string.format('"label": "%s",', self.label)
+   str = str .. string.format('"bc": "%s", ', self.myType)
+   str = str .. string.format('"other_block": %d, ', self.otherBlock)
+   str = str .. string.format('"other_face": %s, ', self.otherFace)
+   str = str .. string.format('"orientation": %d', self.orientation)
    str = str .. '}'
    return str
 end
@@ -142,8 +140,7 @@ end
 UnivariateFunction = {
    myType = ""
 }
-
-function UnivariateFunction:new (o)
+function UnivariateFunction:new(o)
    o = o or {}
    setmetatable(o, self)
    self.__index = self
@@ -167,6 +164,7 @@ SBlock = {
    myType = "SBlock",
    active = true,
    label = "",
+   omegaz = 0.0,
    psurf = nil, -- ParametricSurface object for 2D simulation
    pvol = nil,  -- ParametricVolume object for 3D simulation
    grid = nil,  -- The StructuredGrid object
@@ -174,14 +172,9 @@ SBlock = {
    njc = nil,   -- number of cells j-index direction
    nkc = nil,   -- number of cells k-index direction
    fillCondition = nil, -- expects a FlowState object
-   bcList = {
-      [north]=SlipWallBC:new(), [east]=SlipWallBC:new(), 
-      [south]=SlipWallBC:new(), [west]=SlipWallBC:new(),
-      [top]=SlipWallBC:new(), [bottom]=SlipWallBC:new()
-   },
-   cfList = {}, -- Clustering functions
-   hcellList = {},
-   xforceList = {},
+   bcList = nil, -- boundary conditions
+   hcellList = nil,
+   xforceList = nil,
    -- The following names are for the corner locations,
    -- to be used for testing for block connections.
    p000 = nil, p100 = nil, p110 = nil, p010 = nil,
@@ -194,15 +187,16 @@ function SBlock:new(o)
    self.__index = self
    -- Fill in default values, if already not set
    o.nkc = o.nkc or 1 -- may not have specified nkc for 2D simulation
-   o.omegaz = o.omegaz or 0.0
    o.bcList = o.bcList or {}
    for _,face in ipairs(faceList(gdata.dimensions)) do
       o.bcList[face] = o.bcList[face] or SlipWallBC:new()
    end
+   o.hcellList = o.hcellList or {}
+   o.xforceList = o.xforceList or {}
    -- Make a record of the new block, for later constructio of the config file.
    -- Note that we want block id to start at zero for the D code.
    o.id = #(gdata.blocks)
-   gdata.blocks[o.id+1] = o
+   gdata.blocks[#(gdata.blocks)+1] = o
    return o
 end
 
@@ -227,15 +221,10 @@ function SBlock:tojson()
    end
    -- Boundary conditions
    for _,face in ipairs(faceList(gdata.dimensions)) do
-      print("face=", face, "bc=", self.bcList[face])
-      for k,v in pairs(self.bcList[face]) do
-	 print("k=", k, "v=", v)
-      end
-      print("done printing face values.")
       str = str .. string.format('    "face_%s": ', face) ..
-	 self.bcList[face].tojson() .. ',\n'
+	 self.bcList[face]:tojson() .. ',\n'
    end
-   str = str .. '    "dummy_entry_to_keep_json_parser_happy": 0\n'
+   str = str .. '    "dummy_entry_without_trailing_comma": 0\n'
    str = str .. '},\n'
    return str
 end
@@ -329,7 +318,7 @@ function write_config_file(fileName)
    for i = 1, #(gdata.blocks) do
       f:write(gdata.blocks[i]:tojson())
    end
-   f:write('"dummy_entry_to_keep_json_parser_happy": 0\n') -- no comma on last entry
+   f:write('"dummy_entry_without_trailing_comma": 0\n') -- no comma on last entry
    f:write("}\n")
    f:close()
 end
