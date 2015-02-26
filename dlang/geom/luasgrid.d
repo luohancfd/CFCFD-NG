@@ -13,12 +13,14 @@ import luad.c.lua;
 import luad.c.lauxlib;
 import std.stdio;
 import std.string;
+import std.conv;
 import util.lua_service;
 import univariatefunctions;
 import geom;
 import gpath;
 import surface;
 import sgrid;
+import luageom;
 import luasurface;
 
 // Name of metatables
@@ -39,9 +41,49 @@ StructuredGrid checkStructuredGrid(lua_State* L, int index) {
 extern(C) int copyStructuredGrid(T, string MTname)(lua_State* L)
 {
     // Sometimes it's convenient to get a copy of a function.
-    auto f = checkObj!(T, MTname)(L, 1);
-    pushObj!(T, MTname)(L, f);
+    auto grid = checkObj!(T, MTname)(L, 1);
+    pushObj!(T, MTname)(L, grid);
     return 1;
+}
+
+extern(C) int get_niv(T, string MTname)(lua_State* L)
+{
+    int narg = lua_gettop(L); // assume narg == 1; This is a getter
+    auto grid = checkObj!(T, MTname)(L, 1);
+    lua_pushnumber(L, grid.niv);
+    return 1;
+}
+
+extern(C) int get_njv(T, string MTname)(lua_State* L)
+{
+    int narg = lua_gettop(L); // assume narg == 1; This is a getter
+    auto grid = checkObj!(T, MTname)(L, 1);
+    lua_pushnumber(L, grid.njv);
+    return 1;
+}
+
+extern(C) int get_nkv(T, string MTname)(lua_State* L)
+{
+    int narg = lua_gettop(L); // assume narg == 1; This is a getter
+    auto grid = checkObj!(T, MTname)(L, 1);
+    lua_pushnumber(L, grid.nkv);
+    return 1;
+}
+
+extern(C) int get_vtx(T, string MTname)(lua_State* L)
+{
+    int narg = lua_gettop(L);
+    auto grid = checkObj!(T, MTname)(L, 1);
+    size_t i = to!size_t(luaL_checkint(L, 2)); // Note that we expect 0 <= i < niv
+    size_t j = to!size_t(luaL_checkint(L, 3));
+    size_t k;
+    if (narg > 3) { 
+	k = to!size_t(luaL_checkint(L, 4));
+    } else {
+	k = 0; // Assume 2D grid
+    }
+    auto vtx = grid[i,j,k];
+    return pushVector3(L, vtx);
 }
 
 /**
@@ -103,6 +145,14 @@ void registerStructuredGrid(LuaState lua)
     lua_setfield(L, -2, "__tostring");
     lua_pushcfunction(L, &copyStructuredGrid!(StructuredGrid, StructuredGrid2DMT));
     lua_setfield(L, -2, "copy");
+    lua_pushcfunction(L, &get_niv!(StructuredGrid, StructuredGrid2DMT));
+    lua_setfield(L, -2, "get_niv");
+    lua_pushcfunction(L, &get_njv!(StructuredGrid, StructuredGrid2DMT));
+    lua_setfield(L, -2, "get_njv");
+    lua_pushcfunction(L, &get_nkv!(StructuredGrid, StructuredGrid2DMT));
+    lua_setfield(L, -2, "get_nkv");
+    lua_pushcfunction(L, &get_vtx!(StructuredGrid, StructuredGrid2DMT));
+    lua_setfield(L, -2, "get_vtx");
 
     lua_setglobal(L, StructuredGrid2DMT.toStringz);
 } // end registerStructuredGrid()

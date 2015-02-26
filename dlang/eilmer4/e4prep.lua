@@ -164,12 +164,27 @@ function SBlock:new(o)
    end
    o.hcellList = o.hcellList or {}
    o.xforceList = o.xforceList or {}
-   -- [TODO] Extract some information from the StructuredGrid
-   -- nic 
-   -- njc
-   -- nkc
-   -- p000 and friends.
-
+   -- Extract some information from the StructuredGrid
+   -- Note 0-based indexing for vertices and cells.
+   o.nic = o.grid:get_niv() - 1
+   o.njc = o.grid:get_njv() - 1
+   if gdata.dimensions == 3 then
+      o.nkc = o.grid:get_nkv() - 1
+      o.p000 = o.grid:get_vtx(0, 0, 0)
+      o.p100 = o.grid:get_vtx(o.nic, 0, 0)
+      o.p110 = o.grid:get_vtx(o.nic, o.njc, 0)
+      o.p010 = o.grid:get_vtx(0, o.nic, 0)
+      o.p001 = o.grid:get_vtx(0, 0, o.nkc)
+      o.p101 = o.grid:get_vtx(o.nic, 0, o.nkc)
+      o.p111 = o.grid:get_vtx(o.nic, o.njc, o.nkc)
+      o.p011 = o.grid:get_vtx(0, o.nic, o.nkc)
+   else
+      o.nkc = 1
+      o.p000 = o.grid:get_vtx(0, 0)
+      o.p100 = o.grid:get_vtx(o.nic, 0)
+      o.p110 = o.grid:get_vtx(o.nic, o.njc)
+      o.p010 = o.grid:get_vtx(0, o.nic)
+   end
    -- Make a record of the new block, for later constructio of the config file.
    -- Note that we want block id to start at zero for the D code.
    o.id = #(gdata.blocks)
@@ -181,9 +196,9 @@ function SBlock:tojson()
    str = string.format('"block_%d": {\n', self.id)
    str = str .. string.format('    "label": "%s",\n', self.label)
    str = str .. string.format('    "active": %s,\n', tostring(self.active))
-   -- str = str .. string.format('    "nic": %d,\n', self.nic)
-   -- str = str .. string.format('    "njc": %d,\n', self.njc)
-   -- str = str .. string.format('    "nkc": %d,\n', self.nkc)
+   str = str .. string.format('    "nic": %d,\n', self.nic)
+   str = str .. string.format('    "njc": %d,\n', self.njc)
+   str = str .. string.format('    "nkc": %d,\n', self.nkc)
    str = str .. string.format('    "omegaz": %f,\n', self.omegaz)
    str = str .. string.format('    "nhcell": %d,\n', #(self.hcellList))
    for i = 1, #(self.hcellList) do
