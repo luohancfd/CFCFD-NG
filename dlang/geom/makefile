@@ -2,7 +2,8 @@
 # Builds all of the demonstration programs.
 
 DEMO_PROGRAMS := geom_demo gpath_demo surface_demo univariatefunctions_demo \
-	luageom_demo luagpath_demo luasurface_demo sgrid_demo
+	luageom_demo luagpath_demo luasurface_demo luaunifunction_demo \
+	sgrid_demo
 
 GZIP_DIR := ../extern/gzip
 GZIP_FILES := $(GZIP_DIR)/gzip.d
@@ -75,4 +76,9 @@ luasurface_demo: luasurface_demo.d luasurface.d luagpath.d luageom.d geom.d gpat
 		luasurface.d luagpath.d luageom.d surface.d geom.d gpath.d \
 		$(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)
 
+luaunifunction_demo: luaunifunction_demo.d luaunifunction.d univariatefunctions.d \
+	$(UTIL_FILES) $(LUAD_FILES) $(LIBLUA)
+	dmd $(DFLAGS_LUA) luaunifunction_demo.d $(OF)luaunifunction_demo \
+		luaunifunction.d univariatefunctions.d \
+		$(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)
 

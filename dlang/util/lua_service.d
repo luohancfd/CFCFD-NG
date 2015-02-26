@@ -189,7 +189,35 @@ double getNumberFromTable(lua_State* L, int index, string field,
     }
     // We didn't want to fail, so give back double.init
     return valIfError;
-}
+} // end getNumberFromTable()
+
+bool getBooleanFromTable(lua_State* L, int index, string field,
+			 bool errorIfNotFound=false, bool valIfError=bool.init,
+			 bool errorIfNotValid=false, string errMsg="")
+{
+    lua_getfield(L, index, field.toStringz);
+    if ( lua_isnil(L, -1) ) {
+	if ( errorIfNotFound ) {
+	    luaL_error(L, errMsg.toStringz);
+	}
+	else { // We didn't really care
+	    return valIfError;
+	}
+    }
+    // Presumably then we have something to look at.
+    if ( lua_isboolean(L, -1) ) {
+	auto val = lua_toboolean(L, -1);
+	lua_pop(L, 1);
+	return val;
+    }
+    // else, failed to find a boolean value.
+    if ( errorIfNotValid ) {
+	luaL_error(L, errMsg.toStringz);
+    }
+    // We didn't want to fail, so give back bool.init
+    return valIfError;
+} // end getBooleanFromTable()
+
 /**
  * Custom exception type for signalling Lua input errors.
  *

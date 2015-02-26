@@ -49,6 +49,10 @@ public:
 	t0 = other.t0;
 	t1 = other.t1;
     }
+    LinearFunction dup() const
+    {
+	return new LinearFunction(this);
+    }
     override double opCall(double t) const
     {
 	return (1.0-t) * t0 + t * t1;
@@ -93,6 +97,10 @@ public:
 	alpha = other.alpha;
 	reverse = other.reverse;
 	cluster = other.cluster;
+    }
+    RobertsFunction dup() const
+    {
+	return new RobertsFunction(this);
     }
     override double opCall(double t) const
     {
