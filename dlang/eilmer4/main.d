@@ -1,4 +1,4 @@
-/** e4_main.d
+/** main.d
  * Eilmer4 compressible-flow simulation code, top-level function.
  *
  * Author: Peter J. and Rowan G. 
@@ -11,7 +11,7 @@ import std.getopt;
 import geom;
 import gas;
 import globalconfig;
-import e4_core;
+import simcore;
 
 import luad.all;
 import luaflowstate;
@@ -84,7 +84,7 @@ void main(string[] args)
 	registerSurfaces(lua);
 	registerUnivariateFunctions(lua);
 	registerStructuredGrid(lua);
-	lua.doFile("e4prep.lua");
+	lua.doFile("prep.lua");
 	lua.doFile(jobName~".lua");
 	lua.doString("build_job_files(\""~jobName~"\")");
 	writeln("Done.");

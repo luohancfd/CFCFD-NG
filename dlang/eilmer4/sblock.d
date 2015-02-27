@@ -30,9 +30,9 @@ import fvcell;
 import onedinterp;
 import block;
 import bc;
-import bc_slip_wall;
-import bc_full_face_exchange;
-import bc_mapped_cell_exchange;
+import slip_wall;
+import full_face_exchange;
+import mapped_cell_exchange;
 
 class SBlock: Block {
 public:

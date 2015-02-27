@@ -1,4 +1,4 @@
-// bc_slip_wall.d
+// bc/slip_wall.d
 //
 // Solid-wall which allows the fluid to slip along it with no shear stress.
 // Peter J. 2014-07-26

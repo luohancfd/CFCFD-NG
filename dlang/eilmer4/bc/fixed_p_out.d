@@ -1,4 +1,4 @@
-// bc_fixed_p_out.d
+// bc/fixed_p_out.d
 //
 // Outflow boundary condition that simply extrapolates the flow near the boundary
 // into the ghost cells just outside the boundary and then sets the pressure as

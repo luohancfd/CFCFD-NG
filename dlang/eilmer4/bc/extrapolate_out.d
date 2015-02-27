@@ -1,4 +1,4 @@
-// bc_extrapolate_out.d
+// bc/extrapolate_out.d
 //
 // Outflow boundary condition that simply extrapolates the flow near the boundary
 // into the ghost cells just outside the boundary.

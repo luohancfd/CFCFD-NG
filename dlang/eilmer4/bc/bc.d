@@ -1,7 +1,9 @@
-// bc.d
+// bc/bc.d
 // Base class for boundary condition objects, for use in Eilmer4
 //
 // Peter J. 2014-07-20 first cut.
+
+module bc;
 
 import std.conv;
 import std.json;
@@ -16,14 +18,14 @@ import fvinterface;
 import fvcell;
 import block;
 import sblock;
-import bc_slip_wall;
-import bc_supersonic_in;
-import bc_extrapolate_out;
-import bc_fixed_p_out;
-import bc_fixed_t_wall;
-import bc_adiabatic_wall;
-import bc_full_face_exchange;
-import bc_mapped_cell_exchange;
+import slip_wall;
+import supersonic_in;
+import extrapolate_out;
+import fixed_p_out;
+import fixed_t_wall;
+import adiabatic_wall;
+import full_face_exchange;
+import mapped_cell_exchange;
 
 enum BCCode 
 { 

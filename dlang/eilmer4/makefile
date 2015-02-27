@@ -10,16 +10,16 @@ PROGRAMS := e4shared
 DEMO_PROGRAMS := globalconfig_demo flowstate_demo fv_demo block_demo \
 	luaflowstate_demo
 
-BC_FILES := bc.d \
-	bc_slip_wall.d \
-	bc_adiabatic_wall.d \
-	bc_fixed_t_wall.d \
-	bc_full_face_exchange.d \
-	bc_mapped_cell_exchange.d \
-	bc_extrapolate_out.d \
-	bc_fixed_p_out.d \
-	bc_supersonic_in.d \
-	bc_menter_correction.d
+BC_FILES := bc/bc.d \
+	bc/slip_wall.d \
+	bc/adiabatic_wall.d \
+	bc/fixed_t_wall.d \
+	bc/full_face_exchange.d \
+	bc/mapped_cell_exchange.d \
+	bc/extrapolate_out.d \
+	bc/fixed_p_out.d \
+	bc/supersonic_in.d \
+	bc/menter_correction.d
 
 GAS_DIR := ../gas
 
@@ -117,7 +117,7 @@ clean:
 	- rm $(DEMO_PROGRAMS) $(PROGRAMS)
 	- rm test-grid.txt.gz test-flow.txt.gz trace.log trace.def
 	- rm -r plot/ flow/ grid/
-	- rm e4_main_with_rev_string.d e4prep_with_rev_string.d
+	- rm main_with_rev_string.d
 	- cd $(LUA_DIR); make clean
 	- cd $(GAS_DIR); make clean; rm libgas.a
 
@@ -125,24 +125,27 @@ $(LIBLUA):
 	cd $(LUA_DIR); make linux local
 
 globalconfig_demo: globalconfig_demo.d globalconfig.d fvcore.d \
-	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
+	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) \
+	$(LUAD_FILES) $(GZIP_FILES)
 	$(DMD) $(DFLAGS) $(OF)globalconfig_demo \
 		globalconfig_demo.d globalconfig.d fvcore.d \
-		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) \
+		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)  
 
 flowstate_demo: flowstate_demo.d flowstate.d fvcore.d json_helper.d \
-	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
+	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) \
+	$(LUAD_FILES) $(GZIP_FILES)
 	$(DMD) $(DFLAGS) $(OF)flowstate_demo \
 		flowstate_demo.d fvcore.d flowstate.d json_helper.d \
-		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) \
+		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
 
 luaflowstate_demo: luaflowstate_demo.d luaflowstate.d flowstate.d json_helper.d \
-	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
+	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) \
+	$(LUAD_FILES) $(GZIP_FILES)
 	$(DMD) $(DFLAGS) $(OF)luaflowstate_demo \
 		luaflowstate_demo.d luaflowstate.d flowstate.d json_helper.d \
-		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) \
+		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
 
 
@@ -181,7 +184,7 @@ block_demo: block_demo.d \
 		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
 
-e4shared: e4_main.d e4_core.d fileutil.d readconfig.d json_helper.d \
+e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 	block.d sblock.d ublock.d \
 	fluxcalc.d onedinterp.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d \
@@ -189,9 +192,9 @@ e4shared: e4_main.d e4_core.d fileutil.d readconfig.d json_helper.d \
 	block.d sblock.d ublock.d \
 	$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
 	$(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
-	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' e4_main.d > e4_main_with_rev_string.d
+	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' main.d > main_with_rev_string.d
 	$(DMD) $(DFLAGS) $(OF)e4shared \
-		e4_main_with_rev_string.d e4_core.d fileutil.d readconfig.d json_helper.d \
+		main_with_rev_string.d simcore.d fileutil.d readconfig.d json_helper.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		fluxcalc.d onedinterp.d \
 		conservedquantities.d flowstate.d luaflowstate.d \

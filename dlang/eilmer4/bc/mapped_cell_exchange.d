@@ -1,4 +1,4 @@
-// bc_mapped_cell_exchange.d
+// bc/mapped_cell_exchange.d
 //
 // Acquire ghost cell flow data from cells that have been individually mapped.
 // Peter J. 2014-07-26

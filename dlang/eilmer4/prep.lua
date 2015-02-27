@@ -1,7 +1,7 @@
--- e4prep.lua
+-- prep.lua
 -- A place to put helper functions and classes for the preparation activities.
 -- 
-print("Loading e4prep.lua...")
+print("Loading prep.lua...")
 -- --------------------------------------------------------------------------
 
 gdata = {

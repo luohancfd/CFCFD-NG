@@ -1,4 +1,4 @@
-// bc_adiabatic_wall.d
+// bc/adiabatic_wall.d
 //
 // Solid-wall with no-slip velocity and zero-temperature-gradient.
 // Peter J. 2014-07-26
@@ -12,7 +12,7 @@ import fvcell;
 import bc;
 import block;
 import sblock;
-import bc_menter_correction;
+import menter_correction;
 import globaldata;
 
 class AdiabaticWallBC: BoundaryCondition {

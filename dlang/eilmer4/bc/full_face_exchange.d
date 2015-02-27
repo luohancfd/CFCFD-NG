@@ -1,4 +1,4 @@
-// bc_full_face_exchange.d
+// bc/full_face_exchange.d
 //
 // Cell-to-cell exchange boundary condition.
 // Peter J. 2014-07-26

@@ -1,4 +1,4 @@
-// bc_menter_correction.d
+// bc/menter_correction.d
 // Apply Menter boundary correction to the cells near solid walls.
 //
 // Menter's slightly-rough-surface boundary condition is described

@@ -1,4 +1,4 @@
-// bc_fixed_t_wall.d
+// bc/fixed_t_wall.d
 //
 // Solid-wall with no-slip velocity and specified temperature.
 // Peter J. 2014-07-26
@@ -12,7 +12,7 @@ import fvcell;
 import bc;
 import block;
 import sblock;
-import bc_menter_correction;
+import menter_correction;
 import globalconfig;
 import globaldata;
 

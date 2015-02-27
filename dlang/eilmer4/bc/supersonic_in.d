@@ -1,4 +1,4 @@
-// bc_supersonic_in.d
+// bc/supersonic_in.d
 //
 // Inflow boundary condition that simply copies the (assumed) supersonic flow 
 // into the ghost cells just outside the boundary.

@@ -1,9 +1,11 @@
-/** e4_core.d
+/** simcore.d
  * Eilmer4 compressible-flow simulation code, core coordination functions.
  *
  * Author: Peter J. and Rowan G. 
  * First code: 2015-02-05
  */
+
+module simcore;
 
 import std.stdio;
 import std.file;
