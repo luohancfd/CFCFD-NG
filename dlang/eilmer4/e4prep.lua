@@ -337,6 +337,10 @@ function build_job_files(jobName)
    write_control_file(jobName .. ".control")
    write_times_file(jobName .. ".times")
    write_block_list_file(jobName .. ".list")
+   for i = 1, #(gdata.blocks) do
+      print("[TODO] write grid for Block", gdata.blocks[i].id, gdata.blocks[i].label)
+      print("[TODO] write flow for Block", gdata.blocks[i].id, gdata.blocks[i].label)
+   end
 end
 
 print("Done loading e4prep.lua")

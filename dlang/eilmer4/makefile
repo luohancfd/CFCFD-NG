@@ -5,7 +5,7 @@
 # when invoking this makefile.  Can also ask for gdc.
 DMD ?= dmd
 
-PROGRAMS := e4shared e4prep
+PROGRAMS := e4shared
 
 DEMO_PROGRAMS := globalconfig_demo flowstate_demo fv_demo block_demo \
 	luaflowstate_demo
@@ -181,7 +181,7 @@ block_demo: block_demo.d \
 		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
 
-e4shared: e4_main.d e4_core.d readconfig.d json_helper.d \
+e4shared: e4_main.d e4_core.d fileutil.d readconfig.d json_helper.d \
 	block.d sblock.d ublock.d \
 	fluxcalc.d onedinterp.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d \
@@ -191,20 +191,12 @@ e4shared: e4_main.d e4_core.d readconfig.d json_helper.d \
 	$(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
 	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' e4_main.d > e4_main_with_rev_string.d
 	$(DMD) $(DFLAGS) $(OF)e4shared \
-		e4_main_with_rev_string.d e4_core.d readconfig.d json_helper.d \
+		e4_main_with_rev_string.d e4_core.d fileutil.d readconfig.d json_helper.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		fluxcalc.d onedinterp.d \
-		conservedquantities.d flowstate.d \
+		conservedquantities.d flowstate.d luaflowstate.d \
 		globalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
 		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
 
-e4prep: e4prep.d luaflowstate.d flowstate.d json_helper.d \
-	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES) \
-	$(GZIP_FILES)
-	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' e4prep.d > e4prep_with_rev_string.d
-	$(DMD) $(DFLAGS) $(OF)e4prep \
-		e4prep_with_rev_string.d luaflowstate.d flowstate.d json_helper.d \
-		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
-		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
