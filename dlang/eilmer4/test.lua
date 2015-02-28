@@ -19,7 +19,7 @@ inflow = FlowState:new{p=95.84e3, T=1103.0, u=1000.0, v=0.0}
 -- Set up two quadrilaterals in the (x,y)-plane by first defining
 -- the corner nodes, then the lines between those corners.
 a = Vector3:new{0.0, 0.0}
-b = Vector3:new{0.2, 1.0}
+b = Vector3:new{0.2, 0.0}
 c = Vector3:new{1.0, 0.29118}
 d = Vector3:new{1.0, 1.0}
 e = Vector3:new{0.2, 1.0}

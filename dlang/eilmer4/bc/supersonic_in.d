@@ -19,9 +19,9 @@ import globaldata;
 
 class SupersonicInBC: BoundaryCondition {
 public:
-    int inflow_condition_id = 0;
+    FlowState fstate;
 
-    this(int id, int boundary, int inflow_condition_id_) 
+    this(int id, int boundary, in FlowState inflow) 
     {
 	blk_id = id;
 	which_boundary = boundary;
@@ -31,14 +31,14 @@ public:
 	sets_conv_flux_directly = false;
 	sets_visc_flux_directly = false;
 	emissivity = 0.0;
- 	inflow_condition_id = inflow_condition_id_;
+ 	fstate = new FlowState(inflow);
     }
 
     override string toString() const
     {
 	char[] repr;
 	repr ~= "SupersonicInBC(";
-	repr ~= "inflow_condition_id=" ~ to!string(inflow_condition_id);
+	repr ~= "inflow=" ~ to!string(fstate);
 	repr ~= ")";
 	return to!string(repr);
     }
@@ -51,7 +51,6 @@ public:
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
 	FVInterface dest_face;
-	FlowState fstate = myFlowStates[inflow_condition_id];
 	auto blk = allBlocks[blk_id];
 
 	final switch (which_boundary) {

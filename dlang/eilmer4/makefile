@@ -86,7 +86,7 @@ REVISION_STRING := $(shell hg identify --id --num --branch --tags)
 ifeq ($(DMD), dmd)
     # DFLAGS := -unittest -gc -wi
     # DFLAGS := -profile -vgc -w -O -release -inline -boundscheck=off
-    DFLAGS := -gc -gs -w -O -inline \
+    DFLAGS := -debug -gc -gs -gx -w \
 	-I.. -I$(LUAD_DIR) -I$(NM_DIR) -I$(UTIL_DIR) -I$(GEOM_DIR) -I$(GZIP_DIR)
     OF := -of
     DLINKFLAGS := -L-L$(LIBLUAPATH) -L-llua -L-ldl
@@ -188,7 +188,8 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 	block.d sblock.d ublock.d \
 	fluxcalc.d onedinterp.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d \
-	conservedquantities.d flowstate.d globalconfig.d globaldata.d \
+	conservedquantities.d flowstate.d luaflowstate.d \
+	globalconfig.d globaldata.d \
 	block.d sblock.d ublock.d \
 	$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
 	$(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)

@@ -14,6 +14,7 @@ import geom;
 import fvcore;
 import globalconfig;
 import globaldata;
+import flowstate;
 import fvinterface;
 import fvcell;
 import block;
@@ -44,25 +45,28 @@ enum BCCode
 BCCode type_code_from_name(string name)
 {
     switch ( name ) {
-    case "slip_wall", "slip-wall", "SlipWall":
+    case "slip_wall", "slip-wall", "SlipWall", "slipwall":
 	return BCCode.slip_wall;
-    case "adiabatic", "adiabatic_wall", "adiabatic-wall", "AdiabaticWall":
+    case "adiabatic", "adiabatic_wall", "adiabatic-wall", "AdiabaticWall",
+	"adiabaticwall":
 	return BCCode.adiabatic_wall;
     case "adjacent", "Adjacent", "full_face_exchange", "full-face-exchange",
-	"FullFaceExchange":
+	"FullFaceExchange", "fullfaceexchange":
 	return BCCode.full_face_exchange;
-    case "mapped_cell", "mapped-cell", "MappedCell":
+    case "mapped_cell", "mapped-cell", "MappedCell", "mappedcell":
 	return BCCode.mapped_cell;
-    case "supersonic_in", "supersonic-in", "sup_in", "sup-in", "SupersonicIn":
+    case "supersonic_in", "supersonic-in", "sup_in", "sup-in", "SupersonicIn",
+	"SupIn", "supin":
 	return BCCode.supersonic_in;
-    case "subsonic_in", "subsonic-in", "sub_in", "sub-in", "SubsonicIn":
+    case "subsonic_in", "subsonic-in", "sub_in", "sub-in",
+	"SubsonicIn", "subsonicin":
 	return BCCode.subsonic_in;
     case "static_profile_in", "static-profile-in", "static-profile", 
 	"StaticProfileIn":
 	return BCCode.static_profile_in;
-    case "fixed_p_out", "fixed-p-out", "FixedPOut":
+    case "fixed_p_out", "fixed-p-out", "FixedPOut", "fixedpout":
 	return BCCode.fixed_p_out;
-    case "extrapolate_out", "extrapolate-out", "ExtrapolateOut":
+    case "extrapolate_out", "extrapolate-out", "ExtrapolateOut", "extrapolateout":
 	return BCCode.extrapolate_out;
     default: return BCCode.slip_wall;
     } // end switch
@@ -287,21 +291,22 @@ public:
 
 BoundaryCondition make_BC_from_json(JSONValue json_data, int blk_id, int boundary)
 {
-    string bc_name = json_data["bc"].str;
+    BCCode bc_type = type_code_from_name(toLower(json_data["bc"].str));
     BoundaryCondition new_bc;
-    switch (toLower(bc_name)) {
-    case "sup_in":
-	int inflow_condition_id = getJSONint(json_data, "inflow_condition", 0);
-	new_bc = new SupersonicInBC(blk_id, boundary, inflow_condition_id);
+    // [TODO] rest of the boundary conditions...
+    switch (bc_type) {
+    case BCCode.supersonic_in:
+	auto inflow =  new FlowState(json_data["inflow_condition"], GlobalConfig.gmodel);
+	new_bc = new SupersonicInBC(blk_id, boundary, inflow);
 	break;
-    case "slip_wall":
+    case BCCode.slip_wall:
 	new_bc = new SlipWallBC(blk_id, boundary);
 	break;
-    case "extrapolate_out":
+    case BCCode.extrapolate_out:
 	int x_order = getJSONint(json_data, "x_order", 0);
 	new_bc = new ExtrapolateOutBC(blk_id, boundary, x_order);
 	break;
-    case "adjacent":
+    case BCCode.full_face_exchange:
 	int other_block = getJSONint(json_data, "other_block", -1);
 	string other_face_name = getJSONstring(json_data, "other_face", "none");
 	int neighbour_orientation = getJSONint(json_data, "neighbour_orientation", 0);

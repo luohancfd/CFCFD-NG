@@ -20,6 +20,7 @@ import flowstate;
 import geom;
 import luageom;
 
+static string managedGasModelFile;
 static GasModel managedGasModel;
 
 /// name for FlowState object in Lua scripts.
@@ -235,14 +236,41 @@ extern(C) int toTable(lua_State* L)
     return 1;
 }
 
+extern(C) int toJSONString(lua_State* L)
+{
+    auto fs = checkFlowState(L, 1);
+    lua_pushstring(L, fs.toJSONString().toStringz);
+    return 1;
+}
+
 extern(C) int setGasModel(lua_State* L)
 {
     string fname = to!string(luaL_checkstring(L, 1));
+    managedGasModelFile = fname;
     managedGasModel = init_gas_model(fname);
     lua_pushinteger(L, managedGasModel.n_species);
     lua_pushinteger(L, managedGasModel.n_modes);
     return 2;
     
+}
+
+extern(C) int get_nspecies(lua_State* L)
+{
+    lua_pushinteger(L, managedGasModel.n_species);
+    return 1;
+}
+
+extern(C) int get_nmodes(lua_State* L)
+{
+    lua_pushinteger(L, managedGasModel.n_modes);
+    return 1;
+}
+
+extern(C) int species_name(lua_State* L)
+{
+    int i = luaL_checkinteger(L, 1);
+    lua_pushstring(L, managedGasModel.species_name(i).toStringz);
+    return 1;
 }
 
 void registerFlowState(LuaState lua)
@@ -253,7 +281,6 @@ void registerFlowState(LuaState lua)
     /* metatable.__index = metatable */
     lua_pushvalue(L, -1); // duplicates the current metatable
     lua_setfield(L, -2, "__index");
-
     /* Register methods for use. */
     lua_pushcfunction(L, &newFlowState);
     lua_setfield(L, -2, "new");
@@ -261,10 +288,19 @@ void registerFlowState(LuaState lua)
     lua_setfield(L, -2, "__tostring");
     lua_pushcfunction(L, &toTable);
     lua_setfield(L, -2, "toTable");
-
+    lua_pushcfunction(L, &toJSONString);
+    lua_setfield(L, -2, "toJSONString");
+    // Make class visible
     lua_setglobal(L, FlowStateMT.toStringz);
 
+    // Register other global functions related to the underlying gas model.
     lua_pushcfunction(L, &setGasModel);
     lua_setglobal(L, "setGasModel");
+    lua_pushcfunction(L, &get_nspecies);
+    lua_setglobal(L, "get_nspecies");
+    lua_pushcfunction(L, &get_nmodes);
+    lua_setglobal(L, "get_nmodes");
+    lua_pushcfunction(L, &species_name);
+    lua_setglobal(L, "species_name");
 }
 

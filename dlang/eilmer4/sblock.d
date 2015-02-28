@@ -82,17 +82,18 @@ public:
     this(in int id, JSONValue json_data)
     {
 	this.id = id;
-	nicell = getJSONint(json_data, "nni", 0);
-	njcell = getJSONint(json_data, "nnj", 0);
-	nkcell = getJSONint(json_data, "nnk", 0);
+	nicell = getJSONint(json_data, "nic", 0);
+	njcell = getJSONint(json_data, "njc", 0);
+	nkcell = getJSONint(json_data, "nkc", 0);
 	this(id, nicell, njcell, nkcell);
 	fill_in_other_size_data();
 	label = getJSONstring(json_data, "label", "");
 	active = getJSONbool(json_data, "active", true);
 	omegaz = getJSONdouble(json_data, "omegaz", 0.0);
 	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
-	    bc[boundary] = make_BC_from_json(json_data["face_" ~ face_name[boundary]],
-					     id, boundary);
+	    string json_key = "face_" ~ face_name[boundary];
+	    auto bc_json_data = json_data[json_key];
+	    bc[boundary] = make_BC_from_json(bc_json_data, id, boundary);
 	}
     } // end constructor from json
 
@@ -145,7 +146,7 @@ public:
     @nogc
     size_t to_global_index(size_t i, size_t j, size_t k) const
     in {
-	assert(i < _nkdim && i < _njdim && k < _nkdim, "Index out of bounds.");
+	assert(i < _nidim && i < _njdim && k < _nkdim, "Index out of bounds.");
     }
     body {
 	return k * (_njdim * _nidim) + j * _nidim + i; 

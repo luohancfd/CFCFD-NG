@@ -12,6 +12,8 @@ gdata = {
    axisymmetric_flag = false,
 
    gas_model_file = "gas_model.lua",
+   mhd_flag = false,
+   radiation_flag = false,
 
    gasdynamic_update_scheme = "predictor-corrector",
    x_order = 2,
@@ -95,7 +97,7 @@ SlipWallBC = BoundaryCondition:new()
 SlipWallBC.myType = "SlipWall"
 function SlipWallBC:tojson()
    local str = '{'
-   str = str .. string.format('"label": "%s" ,', self.label)
+   str = str .. string.format('"label": "%s", ', self.label)
    str = str .. string.format('"bc": "%s"', self.myType)
    str = str .. '}'
    return str
@@ -105,9 +107,10 @@ SupInBC = BoundaryCondition:new{flowCondition=nil}
 SupInBC.myType = "SupIn"
 function SupInBC:tojson()
    local str = '{'
-   str = str .. string.format('"label": "%s" ,', self.label)
+   str = str .. string.format('"label": "%s", ', self.label)
    str = str .. string.format('"bc": "%s", ', self.myType)
-   str = str .. string.format('"inflow_condition": "%s"', tostring(self.flowCondition))
+   str = str .. string.format('"inflow_condition": %s',
+			      self.flowCondition:toJSONString())
    str = str .. '}'
    return str
 end
@@ -116,7 +119,7 @@ ExtrapolateOutBC = BoundaryCondition:new{x_order=1}
 ExtrapolateOutBC.myType = "ExtrapolateOut"
 function ExtrapolateOutBC:tojson()
    local str = '{'
-   str = str .. string.format('"label": "%s" ,', self.label)
+   str = str .. string.format('"label": "%s", ', self.label)
    str = str .. string.format('"bc": "%s", ', self.myType)
    str = str .. string.format('"x_order": %d', self.x_order)
    str = str .. '}'
@@ -127,10 +130,10 @@ FullFaceExchangeBC = BoundaryCondition:new{otherBlock=nil, otherFace=nil, orient
 FullFaceExchangeBC.myType = "FullFaceExchange"
 function FullFaceExchangeBC:tojson()
    local str = '{'
-   str = str .. string.format('"label": "%s",', self.label)
+   str = str .. string.format('"label": "%s", ', self.label)
    str = str .. string.format('"bc": "%s", ', self.myType)
    str = str .. string.format('"other_block": %d, ', self.otherBlock)
-   str = str .. string.format('"other_face": %s, ', self.otherFace)
+   str = str .. string.format('"other_face": "%s", ', self.otherFace)
    str = str .. string.format('"orientation": %d', self.orientation)
    str = str .. '}'
    return str
@@ -193,7 +196,7 @@ function SBlock:new(o)
 end
 
 function SBlock:tojson()
-   str = string.format('"block_%d": {\n', self.id)
+   local str = string.format('"block_%d": {\n', self.id)
    str = str .. string.format('    "label": "%s",\n', self.label)
    str = str .. string.format('    "active": %s,\n', tostring(self.active))
    str = str .. string.format('    "nic": %d,\n', self.nic)
@@ -221,6 +224,120 @@ function SBlock:tojson()
    return str
 end
 
+function make_variable_list_for_cell()
+   local names = {"pos.x", "pos.y", "pos.z", "volume", "rho", "vel.x", "vel.y", "vel.z",}
+   if gdata.mhd_flag then
+      names[#names+1] = "B.x"
+      names[#names+1] = "B.y"
+      names[#names+1] = "B.z"
+      names[#names+1] = "psi"
+      names[#names+1] = "divB"
+   end
+   names[#names+1] = "p"
+   names[#names+1] = "a"
+   names[#names+1] = "mu"
+   for i=1, get_nmodes() do
+      names[#names+1] = string.format("k[%d]", i-1)
+   end
+   names[#names+1] = "mu_t"
+   names[#names+1] = "k_t"
+   names[#names+1] = "S"
+   if gdata.radiation_flag then
+      names[#names+1] = "Q_rad_org"
+      names[#names+1] = "f_rad_org"
+      names[#names+1] = "Q_rE_rad"
+   end
+   names[#names+1] = "tke"
+   names[#names+1] = "omega"
+   for i=1, get_nspecies() do
+      names[#names+1] = string.format("massf[%d]-%s", i-1, species_name(i-1))
+   end
+   if get_nspecies() > 1 then
+      names[#names+1] = "dt_chem"
+   end
+   for i=1, get_nmodes() do
+      names[#names+1] = string.format("e[%d]", i-1)
+      names[#names+1] = string.format("T[%d]", i-1)
+   end
+   if get_nmodes() > 1 then
+      names[#names+1] = "dt_therm"
+   end
+   return names
+end
+
+function SBlock:cell_data_as_string(i, j, k)
+   local p000 = self.grid:get_vtx(i,j,k)
+   local p100 = self.grid:get_vtx(i+1,j,k)
+   local p110 = self.grid:get_vtx(i+1,j+1,k)
+   local p010 = self.grid:get_vtx(i,j+1,k)
+   -- [TODO] provide better calculation using wrapped geom module.
+   -- For the moment, it doesn't matter greatly because the solver 
+   -- will compute it's own approximations
+   local pos = 0.25*(p000 + p100 + p110 + p010) 
+   local volume = 0.0
+   if gdata.dimensions == 3 then
+      local p001 = self.grid:get_vtx(i,j,k+1)
+      local p101 = self.grid:get_vtx(i+1,j,k+1)
+      local p111 = self.grid:get_vtx(i+1,j+1,k+1)
+      local p011 = self.grid:get_vtx(i,j+1,k+1)
+      pos = 0.5*pos + 0.125*(p001 + p101 + p111 + p011)
+   end
+   local fs = self.fillCondition:toTable()
+   local str = string.format("%.12e %.12e %.12e %.12e %.12e %.12e %.12e %.12e",
+			     pos:x(), pos:y(), pos:z(), volume, fs.gas.rho,
+			     fs.vel:x(), fs.vel:y(), fs.vel:z())
+   if gdata.mhd_flag then
+      str = str .. string.format(" %.12e %.12e %.12e", fs.B:x(), fs.B:y(), fs.B:z())
+   end
+   str = str .. string.format(" %.12e %.12e %.12e", fs.gas.p, fs.gas.a, fs.gas.mu)
+   for i=1, get_nmodes() do
+      str = str .. string.format(" %.12e", fs.gas.k[i])
+   end
+   local S = 0  -- zero for shock detector
+   str = str .. string.format(" %.12e %.12e %d", fs.mu_t, fs.k_t, S)
+   if gdata.radiation_flag then
+      local Q_rad_org = 0.0
+      local f_rad_org = 0.0
+      local Q_rE_rad = 0.0
+      str = str .. string.format(" %.12e %.12e %.12e", Q_rad_org, f_rad_org, Q_rE_rad)
+   end
+   str = str .. string.format(" %.12e %.12e", fs.tke, fs.omega)
+   for i=1, get_nspecies() do
+      str = str .. string.format(" %.12e", fs.gas.massf[i])
+   end
+   if get_nspecies() > 1 then
+      str = str .. string.format(" %.12e", dt_chem)
+   end
+   for i=1, get_nmodes() do
+      str = str .. string.format(" %.12e %.12e", fs.gas.e[i], fs.gas.T[i])
+   end
+   if get_nmodes() > 1 then
+      str = str .. string.format(" %.12e", dt_therm)
+   end
+   return str
+end
+
+function SBlock:write_initial_flow(fileName)
+   local f = assert(io.open(fileName, "w"))
+   f:write(string.format('%20.12e\n', gdata.t0))
+   -- Variable list for cell on one line.
+   for _,name in pairs(make_variable_list_for_cell()) do
+      f:write(string.format(' "%s"', name))
+   end
+   f:write('\n')
+   -- Numbers of cells.
+   f:write(string.format("%d %d %d\n", self.nic, self.njc, self.nkc))
+   -- The actual cell data.
+   for k=0, self.nkc-1 do
+      for j=0, self.njc-1 do
+	 for i = 0, self.nic-1 do
+	    f:write(string.format(' %s\n', self:cell_data_as_string(i,j,k)))
+	 end
+      end
+   end
+   f:close()
+end
+
 -- ---------------------------------------------------------------------------
 
 function connectBlocks(blkA, faceA, blkB, faceB, orientation)
@@ -235,7 +352,7 @@ end
 function identifyBlockConnections()
    -- [TODO] identify block connections by trying to match corner points.
    -- Hard-code the cone20 connection for the moment.
-   connectBlocks(gdata.blocks[1], west, gdata.blocks[2], east, 0)
+   connectBlocks(gdata.blocks[1], east, gdata.blocks[2], west, 0)
 end
 
 -- ---------------------------------------------------------------------------
@@ -331,24 +448,25 @@ function write_block_list_file(fileName)
    f:close()
 end
 
-function build_job_files(jobName)
-   print("Build job files for ", jobName)
-   write_config_file(jobName .. ".config")
-   write_control_file(jobName .. ".control")
-   write_times_file(jobName .. ".times")
-   write_block_list_file(jobName .. ".list")
+function build_job_files(job)
+   print("Build job files for ", job)
+   write_config_file(job .. ".config")
+   write_control_file(job .. ".control")
+   write_times_file(job .. ".times")
+   write_block_list_file(job .. ".list")
    os.execute("mkdir -p grid/t0000")
    os.execute("mkdir -p flow/t0000")
    for i = 1, #(gdata.blocks) do
-      fileName = "grid/t0000/" .. jobName .. 
-	 string.format(".grid.b%04d.t0000", gdata.blocks[i].id)
-      print("About to write grid file:", fileName, "for block id", gdata.blocks[i].id)
+      local id = gdata.blocks[i].id
+      print("Block id=", id)
+      local fileName = "grid/t0000/" .. job .. string.format(".grid.b%04d.t0000", id)
       gdata.blocks[i].grid:write_to_text_file(fileName)
-      os.execute("gzip " .. fileName)
-      fileName = "flow/t0000/" .. jobName .. 
-	 string.format(".flow.b%04d.t0000", gdata.blocks[i].id)
-      print("[TODO] write flow for Block", gdata.blocks[i].id, gdata.blocks[i].label, fileName)
+      os.execute("gzip -f " .. fileName)
+      local fileName = "flow/t0000/" .. job .. string.format(".flow.b%04d.t0000", id)
+      gdata.blocks[i]:write_initial_flow(fileName)
+      os.execute("gzip -f " .. fileName)
    end
+   print("Done building files.")
 end
 
 print("Done loading e4prep.lua")

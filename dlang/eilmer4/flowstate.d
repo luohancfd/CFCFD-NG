@@ -11,6 +11,8 @@ module flowstate;
 import std.string;
 import std.conv;
 import std.json;
+import std.array;
+import std.format;
 import json_helper;
 import geom;
 import gas;
@@ -87,10 +89,10 @@ public:
 	double[] massf = getJSONdoublearray(json_data, "massf", [1.0,]);
 	double quality = 1.0;
 	gas = new GasState(gm, p, T, massf, quality);
-	double u = getJSONdouble(json_data, "u", 0.0);
-	double v = getJSONdouble(json_data, "v", 0.0);
-	double w = getJSONdouble(json_data, "w", 0.0);
-	vel = Vector3(u,v,w);
+	double velx = getJSONdouble(json_data, "velx", 0.0);
+	double vely = getJSONdouble(json_data, "vely", 0.0);
+	double velz = getJSONdouble(json_data, "velz", 0.0);
+	vel = Vector3(velx,vely,velz);
 	double Bx = getJSONdouble(json_data, "Bx", 0.0);
 	double By = getJSONdouble(json_data, "By", 0.0);
 	double Bz = getJSONdouble(json_data, "Bz", 0.0);
@@ -200,6 +202,38 @@ public:
 	repr ~= ")";
 	return to!string(repr);
     }
+
+    string toJSONString() const
+    {
+	auto writer = appender!string();
+	formattedWrite(writer, "{");
+	formattedWrite(writer, "\"p\": %.12e", gas.p);
+	formattedWrite(writer, ", \"T\": [ %.12e", gas.T[0]);
+	foreach (i; 1 .. gas.T.length) {
+	    formattedWrite(writer, ", %.12e", gas.T[i]);
+	}
+	formattedWrite(writer, "]");
+	formattedWrite(writer, ", \"massf\": [ %.12e", gas.massf[0]);
+	foreach (i; 1 .. gas.massf.length) {
+	    formattedWrite(writer, ", %.12e", gas.massf[i]);
+	}
+	formattedWrite(writer, "]");
+	// double quality = 1.0;
+	formattedWrite(writer, ", \"velx\": %.12e", vel.x);
+	formattedWrite(writer, ", \"vely\": %.12e", vel.y);
+	formattedWrite(writer, ", \"velz\": %.12e", vel.z);
+	formattedWrite(writer, ", \"Bx\": %.12e", B.x);
+	formattedWrite(writer, ", \"By\": %.12e", B.y);
+	formattedWrite(writer, ", \"Bz\": %.12e", B.z);
+	formattedWrite(writer, ", \"tke\": %.12e", tke);
+	formattedWrite(writer, ", \"omega\": %.12e", omega);
+	formattedWrite(writer, ", \"mu_t\": %.12e", mu_t);
+	formattedWrite(writer, ", \"k_t\": %.12e", k_t);
+	formattedWrite(writer, ", \"S\": %d", S);
+	formattedWrite(writer, "}");
+	return writer.data;
+    } // end toJSONString()
+
 /+ [TODO]
     double * copy_values_to_buffer(double *buf) const;
     double * copy_values_from_buffer(double *buf);

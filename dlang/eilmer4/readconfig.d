@@ -144,14 +144,7 @@ void read_config_file()
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  control_count: ", GlobalConfig.control_count);
     }
-
-    // Configure flow conditions, for use in boundary conditions.
-    //
-    int nflow = getJSONint(jsonData, "nflow", 0);
-    foreach (i; 0 .. nflow) {
-	myFlowStates ~= new FlowState(jsonData["flow_" ~ to!string(i)], GlobalConfig.gmodel);
-	if (GlobalConfig.verbosity_level > 1) { writeln("  flow[", i, "]: ", myFlowStates[i]); }
-    }
+    // TODO -- still have other entries such as nheatzone, nreactionzone, ...
 
     // Now, configure blocks that make up the flow domain.
     //
@@ -165,7 +158,6 @@ void read_config_file()
 	    writeln("  Block[", i, "]: ", myBlocks[i]);
 	}
     }
-    // TODO -- still have other entries such as nheatzone, nreactionzone, ...
 } // end read_config_file()
 
 void read_control_file()

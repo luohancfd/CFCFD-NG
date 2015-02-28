@@ -86,6 +86,7 @@ void main(string[] args)
 	registerStructuredGrid(lua);
 	lua.doFile("prep.lua");
 	lua.doFile(jobName~".lua");
+	lua.doString("gdata.gas_model_file=\""~luaflowstate.managedGasModelFile~"\"");
 	lua.doString("build_job_files(\""~jobName~"\")");
 	writeln("Done.");
     }
