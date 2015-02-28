@@ -86,6 +86,15 @@ extern(C) int get_vtx(T, string MTname)(lua_State* L)
     return pushVector3(L, vtx);
 }
 
+extern(C) int write_to_text_file(T, string MTname)(lua_State* L)
+{
+    int narg = lua_gettop(L); // assume narg == 2;
+    auto grid = checkObj!(T, MTname)(L, 1);
+    auto fileName = to!string(luaL_checkstring(L, 2));
+    grid.write_to_text_file(fileName, false);
+    return 0;
+}
+
 /**
  * The Lua constructor for a StructuredGrid.
  *
@@ -153,6 +162,8 @@ void registerStructuredGrid(LuaState lua)
     lua_setfield(L, -2, "get_nkv");
     lua_pushcfunction(L, &get_vtx!(StructuredGrid, StructuredGrid2DMT));
     lua_setfield(L, -2, "get_vtx");
+    lua_pushcfunction(L, &write_to_text_file!(StructuredGrid, StructuredGrid2DMT));
+    lua_setfield(L, -2, "write_to_text_file");
 
     lua_setglobal(L, StructuredGrid2DMT.toStringz);
 } // end registerStructuredGrid()

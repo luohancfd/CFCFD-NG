@@ -199,9 +199,13 @@ public:
 	}
     } // end write_to_text_file()
 
-    void write_grid_to_gzip_file(string fileName)
+    void write_to_gzip_file(string fileName)
     // This function essentially defines the Eilmer4 native format.
     {
+	debug {
+	    // 2015-02-28 [TODO] debug segmentation fault when calling from Lua.
+	    writeln("hello from write_grid_to_gzip_file; niv=", niv, " njv=", njv, " nkv=", nkv);
+	}
 	auto f = new GzipOut(fileName);
 	auto writer = appender!string();
 	formattedWrite(writer, "%d %d %d  # ni nj nk\n", niv, njv, nkv);
@@ -217,6 +221,9 @@ public:
 	    }
 	}
 	f.finish();
+	debug {
+	    writeln("finished writing gzip grid");
+	}
     } // end write_grid_to_gzip_file()
 
 } // end class SGrid

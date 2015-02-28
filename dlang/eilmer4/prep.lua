@@ -337,9 +337,17 @@ function build_job_files(jobName)
    write_control_file(jobName .. ".control")
    write_times_file(jobName .. ".times")
    write_block_list_file(jobName .. ".list")
+   os.execute("mkdir -p grid/t0000")
+   os.execute("mkdir -p flow/t0000")
    for i = 1, #(gdata.blocks) do
-      print("[TODO] write grid for Block", gdata.blocks[i].id, gdata.blocks[i].label)
-      print("[TODO] write flow for Block", gdata.blocks[i].id, gdata.blocks[i].label)
+      fileName = "grid/t0000/" .. jobName .. 
+	 string.format(".grid.b%04d.t0000", gdata.blocks[i].id)
+      print("About to write grid file:", fileName, "for block id", gdata.blocks[i].id)
+      gdata.blocks[i].grid:write_to_text_file(fileName)
+      os.execute("gzip " .. fileName)
+      fileName = "flow/t0000/" .. jobName .. 
+	 string.format(".flow.b%04d.t0000", gdata.blocks[i].id)
+      print("[TODO] write flow for Block", gdata.blocks[i].id, gdata.blocks[i].label, fileName)
    end
 end
 
