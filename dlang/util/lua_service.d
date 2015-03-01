@@ -206,7 +206,7 @@ int getIntegerFromTable(lua_State* L, int index, string field,
     }
     // Presumably then we have something to look at.
     if ( lua_isnumber(L, -1) ) {
-	auto val = lua_tointeger(L, -1);
+	auto val = to!int(lua_tointeger(L, -1));
 	lua_pop(L, 1);
 	return val;
     }

@@ -268,7 +268,7 @@ extern(C) int get_nmodes(lua_State* L)
 
 extern(C) int species_name(lua_State* L)
 {
-    int i = luaL_checkinteger(L, 1);
+    int i = to!int(luaL_checkinteger(L, 1));
     lua_pushstring(L, managedGasModel.species_name(i).toStringz);
     return 1;
 }
