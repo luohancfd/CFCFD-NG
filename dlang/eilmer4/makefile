@@ -80,7 +80,9 @@ LUAD_FILES := $(wildcard $(LUAD_DIR)/luad/*.d) \
 	$(wildcard $(LUAD_DIR)/luad/c/*.d) \
 	$(wildcard $(LUAD_DIR)/luad/conversions/*.d)
 
+# The install destination the same as Eilmer3, for now.
 INSTALL_DIR ?= $(HOME)/e3bin
+
 REVISION_STRING := $(shell hg identify --id --num --branch --tags)
 
 ifeq ($(DMD), dmd)
@@ -107,6 +109,11 @@ endif
 default: $(PROGRAMS)
 	@echo "Source code revision string $(REVISION_STRING)"
 	@echo "Eilmer4 simulation code built."
+
+install: $(PROGRAMS) prep.lua
+	@echo "Installing to $(INSTALL_DIR)"
+	cp $(PROGRAMS) $(INSTALL_DIR)
+	cp prep.lua $(INSTALL_DIR)
 
 demo: $(DEMO_PROGRAMS)
 	@echo "Source code revision string $(REVISION_STRING)"

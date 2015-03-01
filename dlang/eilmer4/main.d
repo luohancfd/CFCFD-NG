@@ -6,6 +6,8 @@
  */
 
 import std.stdio;
+import std.file;
+import std.path;
 import std.getopt;
 
 import geom;
@@ -84,7 +86,7 @@ void main(string[] args)
 	registerSurfaces(lua);
 	registerUnivariateFunctions(lua);
 	registerStructuredGrid(lua);
-	lua.doFile("prep.lua");
+	lua.doFile(dirName(thisExePath())~"/prep.lua");
 	lua.doFile(jobName~".lua");
 	lua.doString("gdata.gas_model_file=\""~luaflowstate.managedGasModelFile~"\"");
 	lua.doString("build_job_files(\""~jobName~"\")");
