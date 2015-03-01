@@ -11,6 +11,7 @@ module luaflowstate;
 import std.stdio;
 import std.string;
 import std.conv;
+import std.traits;
 import luad.all;
 import luad.c.lua;
 import luad.c.lauxlib;
@@ -209,12 +210,34 @@ return `pushVector3(L, fs.` ~ var ~ `);
 lua_setfield(L, -2, "` ~ var ~`");`;
 }
 
-
+/**
+ * Gives the caller a table populated with FlowState values.
+ *
+ * Note that the table is flat, and that just a few GasState
+ * variables have been unpackes. The fields in the returned table
+ * mirror those that the user can set.
+ */
 extern(C) int toTable(lua_State* L)
 {
     auto fs = checkFlowState(L, 1);
     lua_newtable(L); // anonymous table { }
+    mixin(pushGasVar("p"));
+    mixin(pushGasVarArray("T"));
+    mixin(pushGasVar("quality"));
+    mixin(pushGasVarArray("massf"));
+    mixin(pushFSVar("tke"));
+    mixin(pushFSVar("omega"));
+    mixin(pushFSVar("mu_t"));
+    mixin(pushFSVar("k_t"));
+    mixin(pushFSVecVar("vel"));
+    mixin(pushFSVecVar("B"));
 
+    return 1;
+}
+
+extern(C) int gasTable(lua_State *L)
+{
+    auto fs = checkFlowState(L, 1);
     lua_newtable(L); // This one will hold gas values.
     mixin(pushGasVar("p"));
     mixin(pushGasVar("a"));
@@ -225,17 +248,100 @@ extern(C) int toTable(lua_State* L)
     mixin(pushGasVarArray("T"));
     mixin(pushGasVarArray("e"));
     mixin(pushGasVarArray("k"));
-    lua_setfield(L, -2, "gas");
-
-    mixin(pushFSVar("tke"));
-    mixin(pushFSVar("omega"));
-    mixin(pushFSVar("mu_t"));
-    mixin(pushFSVar("k_t"));
-    mixin(pushFSVecVar("vel"));
-    mixin(pushFSVecVar("B"));
-
     return 1;
 }
+
+string checkGasVar(string var)
+{
+    return `lua_getfield(L, 2, "`~var~`");
+if ( !lua_isnil(L, -1) ) {
+    fs.gas.`~var~` = luaL_checknumber(L, -1);
+}
+lua_pop(L, 1);`;
+}
+
+string checkGasVarArray(string var)
+{
+    return `lua_getfield(L, 2, "`~var~`");
+if ( lua_istable(L, -1 ) ) {
+    fs.gas.`~var~`.length = 0;
+    getArrayOfNumbers(L, -1, fs.gas.`~var~`);
+}
+lua_pop(L, 1);`;
+}
+
+string checkFSVar(string var)
+{
+    return `lua_getfield(L, 2, "`~var~`");
+if ( !lua_isnil(L, -1) ) {
+    fs.`~var~` = luaL_checknumber(L, -1);
+}
+lua_pop(L, 1);`;
+}
+
+extern(C) int fromTable(lua_State* L)
+{
+    auto fs = checkFlowState(L, 1);
+    if ( !lua_istable(L, 2) ) {
+	return 0;
+    }
+    // Look for gas variables: "p" and "qaulity"
+    mixin(checkGasVar("p"));
+    mixin(checkGasVar("quality"));
+    // Look for arrays of gas variables: "massf" and "T"
+    mixin(checkGasVarArray("massf"));
+    if ( fs.gas.massf.length != GlobalConfig.gmodel.n_species ) {
+	string errMsg = "The mass fraction array ('massf') did not contain the correct number of entries.\n";
+	errMsg ~= format("massf.length= %d; n_species= %d\n", fs.gas.massf.length, GlobalConfig.gmodel.n_species);
+	luaL_error(L, errMsg.toStringz);
+    }
+    mixin(checkGasVarArray("T"));
+    if ( fs.gas.T.length != GlobalConfig.gmodel.n_modes ) {
+	string errMsg = "The temperature array ('T') did not contain the correct number of entries.\n";
+	errMsg ~= format("T.length= %d; n_modes= %d\n", fs.gas.T.length, GlobalConfig.gmodel.n_modes);
+	luaL_error(L, errMsg.toStringz);
+    }
+    // Look for velocity components: "u", "v", "w"
+    lua_getfield(L, 2, "u");
+    if ( !lua_isnil(L, -1 ) ) {
+	fs.vel.refx = luaL_checknumber(L, -1);
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, 2, "v");
+    if ( !lua_isnil(L, -1 ) ) {
+	fs.vel.refy = luaL_checknumber(L, -1);
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, 2, "w");
+    if ( !lua_isnil(L, -1 ) ) {
+	fs.vel.refz = luaL_checknumber(L, -1);
+    }
+    lua_pop(L, 1);
+    // Look for B components: "Bx", "By", "Bz"
+    lua_getfield(L, 2, "Bx");
+    if ( !lua_isnil(L, -1 ) ) {
+	fs.B.refx = luaL_checknumber(L, -1);
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, 2, "By");
+    if ( !lua_isnil(L, -1 ) ) {
+	fs.B.refy = luaL_checknumber(L, -1);
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, 2, "Bz");
+    if ( !lua_isnil(L, -1 ) ) {
+	fs.B.refz = luaL_checknumber(L, -1);
+    }
+    lua_pop(L, 1);
+    // Now look turbulence quantities
+    mixin(checkFSVar("tke"));
+    mixin(checkFSVar("omega"));
+    mixin(checkFSVar("mu_t"));
+    mixin(checkFSVar("k_t"));
+    return 0;
+}
+
+
 
 extern(C) int toJSONString(lua_State* L)
 {
@@ -299,6 +405,8 @@ void registerFlowState(LuaState lua)
     lua_setfield(L, -2, "__tostring");
     lua_pushcfunction(L, &toTable);
     lua_setfield(L, -2, "toTable");
+    lua_pushcfunction(L, &fromTable);
+    lua_setfield(L, -2, "fromTable");
     lua_pushcfunction(L, &toJSONString);
     lua_setfield(L, -2, "toJSONString");
     // Make class visible

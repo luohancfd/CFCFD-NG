@@ -147,11 +147,13 @@ flowstate_demo: flowstate_demo.d flowstate.d fvcore.d json_helper.d \
 		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
 
-luaflowstate_demo: luaflowstate_demo.d luaflowstate.d flowstate.d json_helper.d \
+luaflowstate_demo: luaflowstate_demo.d luaflowstate.d flowstate.d json_helper.d globalconfig.d \
+	fvcore.d fvcell.d fvvertex.d fvinterface.d conservedquantities.d \
 	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) \
 	$(LUAD_FILES) $(GZIP_FILES)
 	$(DMD) $(DFLAGS) $(OF)luaflowstate_demo \
-		luaflowstate_demo.d luaflowstate.d flowstate.d json_helper.d \
+		luaflowstate_demo.d luaflowstate.d flowstate.d json_helper.d globalconfig.d \
+		fvcore.d fvcell.d fvvertex.d fvinterface.d conservedquantities.d \
 		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
 

@@ -35,6 +35,11 @@ for k,v in pairs(fsTab) do
        end
     end
 end
+-- Try to set tke and omega
+fs:fromTable{tke=30.0, omega=500.0}
+fsTab = fs:toTable{}
+print("tke= ", fsTab.tke, " omega= ", fsTab.omega)
+
     `);
     writeln("Done with demo.");
 }
