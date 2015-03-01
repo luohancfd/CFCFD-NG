@@ -4,9 +4,9 @@
 print("Loading prep.lua...")
 -- --------------------------------------------------------------------------
 
-gdata = {
-   blocks = {}, -- storage for later definitions of Block objects
+blocks = {} -- storage for later definitions of Block objects
 
+gdata = {
    title = "An Eilmer4 Simulation.",
    dimensions = 2,
    axisymmetric_flag = false,
@@ -31,7 +31,6 @@ gdata = {
    dt_reduction_factor = 0.2,
    dt = 1.0e-6,
    dt_max = 1.0e-3,
-   t0 = 0.0, -- needed for the initial solution file
 
    viscous_flag = false,
    separate_update_for_viscous_flag = false,
@@ -190,8 +189,8 @@ function SBlock:new(o)
    end
    -- Make a record of the new block, for later constructio of the config file.
    -- Note that we want block id to start at zero for the D code.
-   o.id = #(gdata.blocks)
-   gdata.blocks[#(gdata.blocks)+1] = o
+   o.id = #(blocks)
+   blocks[#(blocks)+1] = o
    return o
 end
 
@@ -224,6 +223,7 @@ function SBlock:tojson()
    return str
 end
 
+--[[ The following (commented-out) functions have been replaced by D-language functions.
 function make_variable_list_for_cell()
    local names = {"pos.x", "pos.y", "pos.z", "volume", "rho", "vel.x", "vel.y", "vel.z",}
    if gdata.mhd_flag then
@@ -317,9 +317,9 @@ function SBlock:cell_data_as_string(i, j, k)
    return str
 end
 
-function SBlock:write_initial_flow(fileName)
+function SBlock:write_initial_flow(fileName, t0)
    local f = assert(io.open(fileName, "w"))
-   f:write(string.format('%20.12e\n', gdata.t0))
+   f:write(string.format('%20.12e\n', t0))
    -- Variable list for cell on one line.
    for _,name in pairs(make_variable_list_for_cell()) do
       f:write(string.format(' "%s"', name))
@@ -337,6 +337,7 @@ function SBlock:write_initial_flow(fileName)
    end
    f:close()
 end
+--]]
 
 -- ---------------------------------------------------------------------------
 
@@ -352,7 +353,7 @@ end
 function identifyBlockConnections()
    -- [TODO] identify block connections by trying to match corner points.
    -- Hard-code the cone20 connection for the moment.
-   connectBlocks(gdata.blocks[1], east, gdata.blocks[2], west, 0)
+   connectBlocks(blocks[1], east, blocks[2], west, 0)
 end
 
 -- ---------------------------------------------------------------------------
@@ -423,9 +424,9 @@ function write_config_file(fileName)
    f:write(string.format('"max_invalid_cells": %d,\n', gdata.max_invalid_cells))
    f:write(string.format('"control_count": %d,\n', gdata.control_count))
 
-   f:write(string.format('"nblock": %d,\n', #(gdata.blocks)))
-   for i = 1, #(gdata.blocks) do
-      f:write(gdata.blocks[i]:tojson())
+   f:write(string.format('"nblock": %d,\n', #(blocks)))
+   for i = 1, #blocks do
+      f:write(blocks[i]:tojson())
    end
    f:write('"dummy_entry_without_trailing_comma": 0\n') -- no comma on last entry
    f:write("}\n")
@@ -435,15 +436,15 @@ end
 function write_times_file(fileName)
    local f = assert(io.open(fileName, "w"))
    f:write("# tindx sim_time dt_global\n");
-   f:write(string.format("%04d %12.6e %12.6e\n", 0, gdata.t0, gdata.dt))
+   f:write(string.format("%04d %12.6e %12.6e\n", 0, 0.0, gdata.dt))
    f:close()
 end
 
 function write_block_list_file(fileName)
    local f = assert(io.open(fileName, "w"))
    f:write("# indx label\n")
-   for i = 1, #(gdata.blocks) do
-      f:write(string.format("%4d %s\n", gdata.blocks[i].id, gdata.blocks[i].label))
+   for i = 1, #(blocks) do
+      f:write(string.format("%4d %s\n", blocks[i].id, blocks[i].label))
    end
    f:close()
 end
@@ -456,14 +457,14 @@ function build_job_files(job)
    write_block_list_file(job .. ".list")
    os.execute("mkdir -p grid/t0000")
    os.execute("mkdir -p flow/t0000")
-   for i = 1, #(gdata.blocks) do
-      local id = gdata.blocks[i].id
+   for i = 1, #blocks do
+      local id = blocks[i].id
       print("Block id=", id)
       local fileName = "grid/t0000/" .. job .. string.format(".grid.b%04d.t0000", id)
-      gdata.blocks[i].grid:write_to_text_file(fileName)
+      blocks[i].grid:write_to_text_file(fileName)
       os.execute("gzip -f " .. fileName)
       local fileName = "flow/t0000/" .. job .. string.format(".flow.b%04d.t0000", id)
-      gdata.blocks[i]:write_initial_flow(fileName)
+      write_initial_flow_file(fileName, blocks[i].grid, blocks[i].fillCondition, 0.0)
       os.execute("gzip -f " .. fileName)
    end
    print("Done building files.")

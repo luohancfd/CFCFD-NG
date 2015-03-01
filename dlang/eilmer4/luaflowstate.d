@@ -18,10 +18,10 @@ import util.lua_service;
 import gas;
 import flowstate;
 import geom;
+import globalconfig;
 import luageom;
-
-static string managedGasModelFile;
-static GasModel managedGasModel;
+import sgrid;
+import luasgrid;
 
 /// name for FlowState object in Lua scripts.
 immutable string FlowStateMT = "FlowState"; 
@@ -30,7 +30,7 @@ immutable string FlowStateMT = "FlowState";
 // available under this name.
 FlowState checkFlowState(lua_State* L, int index)
 {
-    return checkObj!(FlowState, FlowStateMT)(L, 1);
+    return checkObj!(FlowState, FlowStateMT)(L, index);
 }
 
 /** 
@@ -55,6 +55,7 @@ FlowState checkFlowState(lua_State* L, int index)
  */
 extern(C) int newFlowState(lua_State* L)
 {
+    auto managedGasModel = GlobalConfig.gmodel;
     if ( managedGasModel is null ) {
 	string errMsg = `Error in call to FlowState:new.
 It appears that you have not yet set the GasModel.
@@ -246,31 +247,41 @@ extern(C) int toJSONString(lua_State* L)
 extern(C) int setGasModel(lua_State* L)
 {
     string fname = to!string(luaL_checkstring(L, 1));
-    managedGasModelFile = fname;
-    managedGasModel = init_gas_model(fname);
-    lua_pushinteger(L, managedGasModel.n_species);
-    lua_pushinteger(L, managedGasModel.n_modes);
+    GlobalConfig.gasModelFile = fname;
+    GlobalConfig.gmodel = init_gas_model(fname);
+    lua_pushinteger(L, GlobalConfig.gmodel.n_species);
+    lua_pushinteger(L, GlobalConfig.gmodel.n_modes);
     return 2;
     
 }
 
 extern(C) int get_nspecies(lua_State* L)
 {
-    lua_pushinteger(L, managedGasModel.n_species);
+    lua_pushinteger(L, GlobalConfig.gmodel.n_species);
     return 1;
 }
 
 extern(C) int get_nmodes(lua_State* L)
 {
-    lua_pushinteger(L, managedGasModel.n_modes);
+    lua_pushinteger(L, GlobalConfig.gmodel.n_modes);
     return 1;
 }
 
 extern(C) int species_name(lua_State* L)
 {
     int i = to!int(luaL_checkinteger(L, 1));
-    lua_pushstring(L, managedGasModel.species_name(i).toStringz);
+    lua_pushstring(L, GlobalConfig.gmodel.species_name(i).toStringz);
     return 1;
+}
+
+extern(C) int write_initial_flow_file_from_lua(lua_State* L)
+{
+    auto fname = to!string(luaL_checkstring(L, 1));
+    auto grid = checkStructuredGrid(L, 2);
+    auto fs = checkFlowState(L, 3);
+    double t0 = luaL_checknumber(L, 4);
+    write_initial_flow_file(fname, grid, fs, t0);
+    return 0;
 }
 
 void registerFlowState(LuaState lua)
@@ -302,5 +313,8 @@ void registerFlowState(LuaState lua)
     lua_setglobal(L, "get_nmodes");
     lua_pushcfunction(L, &species_name);
     lua_setglobal(L, "species_name");
+
+    lua_pushcfunction(L, &write_initial_flow_file_from_lua);
+    lua_setglobal(L, "write_initial_flow_file");
 }
 

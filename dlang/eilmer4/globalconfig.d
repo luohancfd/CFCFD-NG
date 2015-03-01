@@ -77,6 +77,7 @@ class IgnitionZone : BlockZone {
 final class GlobalConfig {
     static string base_file_name = "job"; // Change this to suit at run time.
     static string title = "Eilmer4 simulation"; // Change this to suit at run time.
+    static string gasModelFile = "gas-model.lua";
     static GasModel gmodel;
 
     static int nBlocks; // Number of blocks in the overall simulation.

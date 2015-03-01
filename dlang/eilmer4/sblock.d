@@ -1917,7 +1917,7 @@ public:
 	    } // for j
 	} // for k
 	outfile.finish();
-    }
+    } // end write_solution()
 
     override void write_history(string filename, double sim_time, bool write_header=false)
     {

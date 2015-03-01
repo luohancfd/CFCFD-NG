@@ -13,9 +13,13 @@ import std.conv;
 import std.json;
 import std.array;
 import std.format;
+import std.stdio;
 import json_helper;
 import geom;
 import gas;
+import fvcell;
+import sgrid;
+import globalconfig;
 
 class FlowState {
 public:
@@ -240,3 +244,81 @@ public:
     int BGK_equilibrium(void);
 +/
 } // end class FlowState
+
+void write_initial_flow_file(string fileName, ref StructuredGrid grid,
+			     in FlowState fs, double t0)
+{
+    // Numbers of cells derived from numbers of vertices.
+    int nic = grid.niv - 1;
+    int njc = grid.njv - 1;
+    int nkc = grid.nkv - 1;
+    if (GlobalConfig.dimensions == 2) nkc = 1;
+    //	
+    string cell_data_as_string(int i, int j, int k)
+    {
+	auto p000 = grid[i,j,k];
+	auto p100 = grid[i+1,j,k];
+	auto p110 = grid[i+1,j+1,k];
+	auto p010 = grid[i,j+1,k];
+	// [TODO] provide better calculation using geom module.
+	// For the moment, it doesn't matter greatly because the solver 
+	// will compute it's own approximations
+	auto pos = 0.25*(p000 + p100 + p110 + p010);
+	auto volume = 0.0;
+	if (GlobalConfig.dimensions == 3) {
+	    auto p001 = grid[i,j,k+1];
+	    auto p101 = grid[i+1,j,k+1];
+	    auto p111 = grid[i+1,j+1,k+1];
+	    auto p011 = grid[i,j+1,k+1];
+	    pos = 0.5*pos + 0.125*(p001 + p101 + p111 + p011);
+	}
+	// Should match FVCell.write_values_to_string()
+	auto writer = appender!string();
+	formattedWrite(writer, "%.12e %.12e %.12e %.12e %.12e %.12e %.12e %.12e",
+		       pos.x, pos.y, pos.z, volume, fs.gas.rho,
+		       fs.vel.x, fs.vel.y, fs.vel.z);
+	if (GlobalConfig.MHD)
+	    formattedWrite(writer, " %.12e %.12e %.12e", fs.B.x, fs.B.y, fs.B.z); 
+	formattedWrite(writer, " %.12e %.12e %.12e", fs.gas.p, fs.gas.a, fs.gas.mu);
+	auto gm = GlobalConfig.gmodel;
+	foreach (imode; 0 .. gm.n_modes) formattedWrite(writer, " %.12e", fs.gas.k[imode]); 
+	int S = 0;  // zero for shock detector
+	formattedWrite(writer, " %.12e %.12e %d", fs.mu_t, fs.k_t, S);
+	if (GlobalConfig.radiation) {
+	    double Q_rad_org = 0.0; double f_rad_org = 0.0; double Q_rE_rad = 0.0;
+	    formattedWrite(writer, " %.12e %.12e %.12e", Q_rad_org, f_rad_org, Q_rE_rad);
+	}
+	formattedWrite(writer, " %.12e %.12e", fs.tke, fs.omega);
+	foreach (isp; 0 .. gm.n_species) 
+	    formattedWrite(writer, " %.12e", fs.gas.massf[isp]); 
+	double dt_chem = -1.0;
+	if (gm.n_species > 1) formattedWrite(writer, " %.12e", dt_chem); 
+	foreach (imode; 0 .. gm.n_modes) 
+	    formattedWrite(writer, " %.12e %.12e", fs.gas.e[imode], fs.gas.T[imode]); 
+	double dt_therm = -1.0;
+	if (gm.n_modes > 1) formattedWrite(writer, " %.12e", dt_therm); 
+	return writer.data;
+    } // end  cell_data_as_string()
+
+    // Write the data for the whole structured block.
+    auto f = File(fileName, "w");
+    f.writefln("%20.12e", t0);
+    // Variable list for cell on one line.
+    auto writer = appender!string();
+    foreach(varname; variable_list_for_cell()) {
+	formattedWrite(writer, " \"%s\"", varname);
+    }
+    f.writeln(writer.data);
+    // Numbers of cells.
+    f.writefln("%d %d %d", nic, njc, nkc);
+    // The actual cell data.
+    foreach (k; 0 .. nkc) {
+	foreach (j; 0 .. njc) {
+	    foreach (i; 0 .. nic) {
+		f.writefln(" %s", cell_data_as_string(i,j,k));
+	    }
+	}
+    }
+    f.close();
+    return;
+} // end write_initial_flow_file()

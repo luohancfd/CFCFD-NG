@@ -325,6 +325,7 @@ public:
 
     string write_values_to_string() const
     {
+	// Should match cell_data_as_string() in flowstate.d
 	auto writer = appender!string();
 	formattedWrite(writer, "%.12e %.12e %.12e %.12e %.12e %.12e %.12e %.12e",
 		       pos[0].x, pos[0].y, pos[0].z, volume[0], fs.gas.rho,
@@ -342,7 +343,7 @@ public:
 	if ( gm.n_species > 1 ) formattedWrite(writer, " %.12e", dt_chem); 
 	foreach(i; 0 .. gm.n_modes) formattedWrite(writer, " %.12e %.12e", fs.gas.e[i], fs.gas.T[i]); 
 	if ( gm.n_modes > 1 ) formattedWrite(writer, " %.12e", dt_therm);
-	return writer.data();
+	return writer.data;
     }
 
     void scan_BGK_from_string(string bufptr)

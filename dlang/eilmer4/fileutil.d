@@ -17,7 +17,7 @@ string make_path_name(string mytype)(int tindx)
 {
     auto writer = appender!string();
     formattedWrite(writer, "%s/t%04d", mytype, tindx);
-    return writer.data();
+    return writer.data;
 }
 
 string make_file_name(string mytype)(string base_file_name, int blk_id, int tindx)
@@ -28,7 +28,7 @@ string make_file_name(string mytype)(string base_file_name, int blk_id, int tind
     formattedWrite(writer, "%s/t%04d/%s.%s.b%04d.t%04d.gz",
 		   mytype, tindx, base_file_name,
 		   mytype, blk_id, tindx);
-    return writer.data();
+    return writer.data;
 }
 
 void ensure_directory_is_present(string dir_name)
