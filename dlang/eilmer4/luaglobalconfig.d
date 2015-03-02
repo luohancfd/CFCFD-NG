@@ -18,51 +18,8 @@ import util.lua_service;
 import gas;
 import globalconfig;
 
-// -----------------------------------------------------------------------
-// Plan 1: set from metatable functions.
-
-immutable string GlobalConfigMT = "GlobalConfig";
-
-extern(C) int get_or_set_field(string name, T)(lua_State* L)
-{
-    // Note that, in both sets of tests below,
-    // we must test for the bool before the int
-    // because the bool is a more specialized type of int
-    // in the D language.
-    int narg = lua_gettop(L); 
-    if (narg == 0) {
-	// This is a getter
-	static if (is(T : bool)) {
-	    mixin("lua_pushboolean(L, to!int(GlobalConfig."~name~"));");
-	} else static if (is(T : double)) {
-	    mixin("lua_pushnumber(L, GlobalConfig."~name~");");
-	} else static if (is(T : int)) {
-	    mixin("lua_pushnumber(L, GlobalConfig."~name~");");
-	} else static if (is(T : string)) {
-	    mixin("lua_pushstring(L, GlobalConfig."~name~".toStringz);");
-	} else {
-	    assert(0, "Unavailable type");
-	}
-	return 1;
-    } else {
-	// This is a setter
-	static if (is(T : bool)) {
-	    mixin("GlobalConfig."~name~" = to!T(lua_toboolean(L, 1));");
-	} else static if (is(T : double)) {
-	    mixin("GlobalConfig."~name~" = to!T(luaL_checknumber(L, 1));");
-	} else static if (is(T : int)) {
-	    mixin("GlobalConfig."~name~" = to!T(luaL_checkint(L, 1));");
-	} else static if (is(T : string)) {
-	    mixin("GlobalConfig."~name~" = to!T(luaL_checkstring(L, 1));");
-	} else {
-	    assert(0, "Unavailable type");
-	}
-	return 0;
-    }
-} // end get_set_field()()
-
 // -------------------------------------------------------------------------------
-// Plan 2 -- set GlobalConfig fields from a table.
+// Set GlobalConfig fields from a table.
 
 extern(C) int configSetFromTable(lua_State* L)
 {
@@ -115,8 +72,7 @@ extern(C) int configGet(lua_State* L)
     return 1;
 } // end configGet()
 
-// -------------------------------------------------------------------------------
-// Plan 3 -- try interacting via __call, __index and __newindex
+// Interact via __call, __index and __newindex
 
 extern(C) int configSetWithCall(lua_State* L)
 {
@@ -183,51 +139,20 @@ extern(C) int species_name(lua_State* L)
 }
 
 //-----------------------------------------------------------------------
+// Call the following function from the main program to get the
+// functions appearing in the Lua interpreter.
+
 void registerGlobalConfig(LuaState lua)
 {
     auto L = lua.state;
 
-    // Register the GlobalConfig2D object
-    luaL_newmetatable(L, GlobalConfigMT.toStringz);
-    //
-    /* metatable.__index = metatable */
-    lua_pushvalue(L, -1); // duplicates the current metatable
-    lua_setfield(L, -2, "__index");
-    //
-    /* Register methods for use. */
-    lua_pushcfunction(L, &toStringObj!(GlobalConfig, GlobalConfigMT));
-    lua_setfield(L, -2, "__tostring");
-    //
-    lua_pushcfunction(L, &get_or_set_field!("title", string));
-    lua_setfield(L, -2, "title");
-    lua_pushcfunction(L, &get_or_set_field!("dimensions", int));
-    lua_setfield(L, -2, "dimensions");
-    lua_pushcfunction(L, &get_or_set_field!("max_time", double));
-    lua_setfield(L, -2, "max_time");
-    lua_pushcfunction(L, &get_or_set_field!("dt_init", double));
-    lua_setfield(L, -2, "dt_init");
-    lua_pushcfunction(L, &get_or_set_field!("axisymmetric", bool));
-    lua_setfield(L, -2, "axisymmetric");
-    //
-    lua_setglobal(L, GlobalConfigMT.toStringz);
-
-    // Register global functions
+    // Register global functions for setting configuration.
     lua_pushcfunction(L, &configSetFromTable);
     lua_setglobal(L, "configSet");
     lua_pushcfunction(L, &configGet);
     lua_setglobal(L, "configGet");
 
-    // Register other global functions related to the managed gas model.
-    lua_pushcfunction(L, &setGasModel);
-    lua_setglobal(L, "setGasModel");
-    lua_pushcfunction(L, &get_nspecies);
-    lua_setglobal(L, "get_nspecies");
-    lua_pushcfunction(L, &get_nmodes);
-    lua_setglobal(L, "get_nmodes");
-    lua_pushcfunction(L, &species_name);
-    lua_setglobal(L, "species_name");
-
-    // Experiment with making a 'config' table available
+    // Make a 'config' table available
     // First, set its metatable so that the metamethods
     // of __call, __index, and __newindex can do their jobs.
     luaL_newmetatable(L, "config_mt");
@@ -244,4 +169,13 @@ void registerGlobalConfig(LuaState lua)
     lua_setmetatable(L, -2);
     lua_setglobal(L, "config");
 
+    // Register other global functions related to the managed gas model.
+    lua_pushcfunction(L, &setGasModel);
+    lua_setglobal(L, "setGasModel");
+    lua_pushcfunction(L, &get_nspecies);
+    lua_setglobal(L, "get_nspecies");
+    lua_pushcfunction(L, &get_nmodes);
+    lua_setglobal(L, "get_nmodes");
+    lua_pushcfunction(L, &species_name);
+    lua_setglobal(L, "species_name");
 } // end registerGlobalConfig()
