@@ -22,7 +22,7 @@ void main()
     lua.doString(`
 nsp, nmodes = setGasModel('sample-data/ideal-air-gas-model.lua')
 print("GasModel set to ideal air. nsp= ", nsp, " nmodes= ", nmodes)
-fs = FlowState:new{p=1.0e5, T=300.0, u=1000.0, v=200.0}
+fs = FlowState:new{p=1.0e5, T=300.0, velx=1000.0, vely=200.0}
 fsTab = fs:toTable{}
 for k,v in pairs(fsTab) do
     print(k,v)
@@ -36,9 +36,9 @@ for k,v in pairs(fsTab) do
     end
 end
 -- Try to set tke and omega
-fs:fromTable{tke=30.0, omega=500.0}
+fs:fromTable{tke=30.0, omega=500.0, velz=3000.0}
 fsTab = fs:toTable{}
-print("tke= ", fsTab.tke, " omega= ", fsTab.omega)
+print("tke= ", fsTab.tke, " omega= ", fsTab.omega, "velz= ", fsTab.velz)
 
     `);
     writeln("Done with demo.");

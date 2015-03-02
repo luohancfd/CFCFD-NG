@@ -13,8 +13,8 @@ gdata.axisymmetric_flag = true
 
 nsp, nmodes = setGasModel('ideal-air-gas-model.lua')
 print("GasModel set to ideal air. nsp= ", nsp, " nmodes= ", nmodes)
-initial = FlowState:new{p=5955.0, T=304.0, u=0.0, v=0.0}
-inflow = FlowState:new{p=95.84e3, T=1103.0, u=1000.0, v=0.0}
+initial = FlowState:new{p=5955.0, T=304.0, velx=0.0, vely=0.0}
+inflow = FlowState:new{p=95.84e3, T=1103.0, velx=1000.0, vely=0.0}
 
 -- Set up two quadrilaterals in the (x,y)-plane by first defining
 -- the corner nodes, then the lines between those corners.

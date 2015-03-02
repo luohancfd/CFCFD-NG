@@ -111,16 +111,16 @@ The value should be a number.`;
     // Now everything else is optional. If it has been set, then we will 
     // ensure that it can be retrieved correctly, or signal the user.
     // Values related to velocity.
-    double u = 0.0;
-    double v = 0.0;
-    double w = 0.0;
+    double velx = 0.0;
+    double vely = 0.0;
+    double velz = 0.0;
     string errMsgTmplt = "Error in call to FlowState:new.\n";
     errMsgTmplt ~= "A valid value for '%s' is not found in arguments.\n";
     errMsgTmplt ~= "The value, if present, should be a number.";
-    u = getNumberFromTable(L, 1, "u", false, 0.0, true, format(errMsgTmplt, "u"));
-    v = getNumberFromTable(L, 1, "v", false, 0.0, true, format(errMsgTmplt, "v"));
-    w = getNumberFromTable(L, 1, "w", false, 0.0, true, format(errMsgTmplt, "w"));
-    auto vel = Vector3(u, v, w);
+    velx = getNumberFromTable(L, 1, "velx", false, 0.0, true, format(errMsgTmplt, "velx"));
+    vely = getNumberFromTable(L, 1, "vely", false, 0.0, true, format(errMsgTmplt, "vely"));
+    velz = getNumberFromTable(L, 1, "velz", false, 0.0, true, format(errMsgTmplt, "velz"));
+    auto vel = Vector3(velx, vely, velz);
 
     // Values related to mass fractions.
     double massf[];
@@ -206,8 +206,12 @@ lua_setfield(L, -2, "` ~ var ~`");`;
 
 string pushFSVecVar(string var)
 {
-return `pushVector3(L, fs.` ~ var ~ `);
-lua_setfield(L, -2, "` ~ var ~`");`;
+return `lua_pushnumber(L, fs.`~var~`.x);
+lua_setfield(L, -2, "`~var~`x");
+lua_pushnumber(L, fs.`~var~`.y);
+lua_setfield(L, -2, "`~var~`y");
+lua_pushnumber(L, fs.`~var~`.z);
+lua_setfield(L, -2, "`~var~`z");`;
 }
 
 /**
@@ -301,18 +305,21 @@ extern(C) int fromTable(lua_State* L)
 	errMsg ~= format("T.length= %d; n_modes= %d\n", fs.gas.T.length, GlobalConfig.gmodel.n_modes);
 	luaL_error(L, errMsg.toStringz);
     }
-    // Look for velocity components: "u", "v", "w"
-    lua_getfield(L, 2, "u");
+    // We should call equation of state to make sure gas state is consistent.
+    GlobalConfig.gmodel.update_thermo_from_pT(fs.gas);
+
+    // Look for velocity components: "velx", "vely", "velz"
+    lua_getfield(L, 2, "velx");
     if ( !lua_isnil(L, -1 ) ) {
 	fs.vel.refx = luaL_checknumber(L, -1);
     }
     lua_pop(L, 1);
-    lua_getfield(L, 2, "v");
+    lua_getfield(L, 2, "vely");
     if ( !lua_isnil(L, -1 ) ) {
 	fs.vel.refy = luaL_checknumber(L, -1);
     }
     lua_pop(L, 1);
-    lua_getfield(L, 2, "w");
+    lua_getfield(L, 2, "velz");
     if ( !lua_isnil(L, -1 ) ) {
 	fs.vel.refz = luaL_checknumber(L, -1);
     }
