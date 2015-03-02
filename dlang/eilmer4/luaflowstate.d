@@ -19,10 +19,11 @@ import util.lua_service;
 import gas;
 import flowstate;
 import geom;
-import globalconfig;
 import luageom;
 import sgrid;
 import luasgrid;
+import globalconfig;
+import luaglobalconfig;
 
 /// name for FlowState object in Lua scripts.
 immutable string FlowStateMT = "FlowState"; 
@@ -357,36 +358,6 @@ extern(C) int toJSONString(lua_State* L)
     return 1;
 }
 
-extern(C) int setGasModel(lua_State* L)
-{
-    string fname = to!string(luaL_checkstring(L, 1));
-    GlobalConfig.gasModelFile = fname;
-    GlobalConfig.gmodel = init_gas_model(fname);
-    lua_pushinteger(L, GlobalConfig.gmodel.n_species);
-    lua_pushinteger(L, GlobalConfig.gmodel.n_modes);
-    return 2;
-    
-}
-
-extern(C) int get_nspecies(lua_State* L)
-{
-    lua_pushinteger(L, GlobalConfig.gmodel.n_species);
-    return 1;
-}
-
-extern(C) int get_nmodes(lua_State* L)
-{
-    lua_pushinteger(L, GlobalConfig.gmodel.n_modes);
-    return 1;
-}
-
-extern(C) int species_name(lua_State* L)
-{
-    int i = to!int(luaL_checkinteger(L, 1));
-    lua_pushstring(L, GlobalConfig.gmodel.species_name(i).toStringz);
-    return 1;
-}
-
 extern(C) int write_initial_flow_file_from_lua(lua_State* L)
 {
     auto fname = to!string(luaL_checkstring(L, 1));
@@ -418,16 +389,6 @@ void registerFlowState(LuaState lua)
     lua_setfield(L, -2, "toJSONString");
     // Make class visible
     lua_setglobal(L, FlowStateMT.toStringz);
-
-    // Register other global functions related to the underlying gas model.
-    lua_pushcfunction(L, &setGasModel);
-    lua_setglobal(L, "setGasModel");
-    lua_pushcfunction(L, &get_nspecies);
-    lua_setglobal(L, "get_nspecies");
-    lua_pushcfunction(L, &get_nmodes);
-    lua_setglobal(L, "get_nmodes");
-    lua_pushcfunction(L, &species_name);
-    lua_setglobal(L, "species_name");
 
     lua_pushcfunction(L, &write_initial_flow_file_from_lua);
     lua_setglobal(L, "write_initial_flow_file");

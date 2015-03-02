@@ -11,6 +11,7 @@ import std.stdio;
 import luad.all;
 import luageom;
 import luaflowstate;
+import luaglobalconfig;
 
 void main()
 {
@@ -18,6 +19,7 @@ void main()
     auto lua = new LuaState;
     lua.openLibs();
     registerVector3(lua);
+    registerGlobalConfig(lua);
     registerFlowState(lua);
     lua.doString(`
 nsp, nmodes = setGasModel('sample-data/ideal-air-gas-model.lua')

@@ -164,13 +164,13 @@ flowstate_demo: flowstate_demo.d flowstate.d \
 
 luaflowstate_demo: luaflowstate_demo.d luaflowstate.d flowstate.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d conservedquantities.d \
-	globalconfig.d json_helper.d \
+	globalconfig.d luaglobalconfig.d json_helper.d \
 	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) \
 	$(LUAD_FILES) $(GZIP_FILES)
 	$(DMD) $(DFLAGS) $(OF)luaflowstate_demo \
 		luaflowstate_demo.d luaflowstate.d flowstate.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d conservedquantities.d \
-		globalconfig.d json_helper.d \
+		globalconfig.d luaglobalconfig.d json_helper.d \
 		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
 
@@ -213,7 +213,7 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 	fluxcalc.d onedinterp.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d \
 	conservedquantities.d flowstate.d luaflowstate.d \
-	globalconfig.d globaldata.d \
+	globalconfig.d luaglobalconfig.d globaldata.d \
 	block.d sblock.d ublock.d \
 	$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
 	$(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
@@ -223,7 +223,7 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		fluxcalc.d onedinterp.d \
 		conservedquantities.d flowstate.d luaflowstate.d \
-		globalconfig.d globaldata.d \
+		globalconfig.d luaglobalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
 		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)

@@ -19,6 +19,9 @@ void main()
     lua.openLibs();
     registerGlobalConfig(lua);
     lua.doString(`
+nsp, nmodes = setGasModel('sample-data/ideal-air-gas-model.lua')
+print("GasModel set to ideal air. nsp= ", nsp, " nmodes= ", nmodes)
+-- Test access to GlobalConfig via functions.
 GlobalConfig.title("Some grand plan")
 print("title=", GlobalConfig.title())
 GlobalConfig.dimensions(3)

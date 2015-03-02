@@ -16,6 +16,7 @@ import globalconfig;
 import simcore;
 
 import luad.all;
+import luaglobalconfig;
 import luaflowstate;
 import luageom;
 import luagpath;
@@ -81,6 +82,7 @@ void main(string[] args)
 	auto lua = new LuaState;
 	lua.openLibs();
 	registerVector3(lua);
+	registerGlobalConfig(lua);
 	registerFlowState(lua);
 	registerPaths(lua);
 	registerSurfaces(lua);
