@@ -18,6 +18,9 @@ import util.lua_service;
 import gas;
 import globalconfig;
 
+// -----------------------------------------------------------------------
+// Plan 1: set from metatable functions.
+
 immutable string GlobalConfigMT = "GlobalConfig";
 
 extern(C) int get_or_set_field(string name, T)(lua_State* L)
@@ -57,6 +60,61 @@ extern(C) int get_or_set_field(string name, T)(lua_State* L)
 	return 0;
     }
 } // end get_set_field()()
+
+// -------------------------------------------------------------------------------
+// Plan 2 -- set GlobalConfig fields from a table.
+
+extern(C) int configSetFromTable(lua_State* L)
+{
+    if (!lua_istable(L, 1)) return 0; // nothing to do
+    //
+    // Look for fields that may be present.
+    lua_getfield(L, 1, "title");
+    if (!lua_isnil(L, -1)) GlobalConfig.title = to!string(luaL_checkstring(L, -1));
+    lua_pop(L, 1);
+    lua_getfield(L, 1, "dimensions");
+    if (!lua_isnil(L, -1)) GlobalConfig.dimensions = luaL_checkint(L, -1);
+    lua_pop(L, 1);
+    lua_getfield(L, 1, "axisymmetric");
+    if (!lua_isnil(L, -1)) GlobalConfig.axisymmetric = to!bool(lua_toboolean(L, -1));
+    lua_pop(L, 1);
+    lua_getfield(L, 1, "max_time");
+    if (!lua_isnil(L, -1)) GlobalConfig.max_time = to!double(luaL_checknumber(L, -1));
+    lua_pop(L, 1);
+    lua_getfield(L, 1, "dt_init");
+    if (!lua_isnil(L, -1)) GlobalConfig.dt_init = to!double(luaL_checknumber(L, -1));
+    lua_pop(L, 1);
+    //
+    return 0;
+} // end configSetFromTable()
+
+// Get GlobalConfig fields by their string name.
+extern(C) int configGet(lua_State* L)
+{
+    string fieldName = to!string(luaL_checkstring(L, 1));
+
+    switch (fieldName) {
+    case "title":
+	lua_pushstring(L, GlobalConfig.title.toStringz);
+	break;
+    case "dimensions":
+	lua_pushnumber(L, GlobalConfig.dimensions);
+	break;
+    case "axisymmetric":
+	lua_pushboolean(L, GlobalConfig.axisymmetric);
+	break;
+    case "max_time":
+	lua_pushnumber(L, GlobalConfig.max_time);
+	break;
+    case "dt_init":
+	lua_pushnumber(L, GlobalConfig.dt_init);
+	break;
+    default:
+	lua_pushnil(L);
+    }
+    return 1;
+} // end configGet()
+
 
 //------------------------------------------------------------------------
 // Functions related to the managed gas model.
@@ -119,6 +177,12 @@ void registerGlobalConfig(LuaState lua)
     lua_setfield(L, -2, "axisymmetric");
     //
     lua_setglobal(L, GlobalConfigMT.toStringz);
+
+    // Register global functions
+    lua_pushcfunction(L, &configSetFromTable);
+    lua_setglobal(L, "configSet");
+    lua_pushcfunction(L, &configGet);
+    lua_setglobal(L, "configGet");
 
     // Register other global functions related to the managed gas model.
     lua_pushcfunction(L, &setGasModel);
