@@ -25,10 +25,18 @@ GlobalConfig.dimensions(3)
 print("dimensions=", GlobalConfig.dimensions())
 GlobalConfig.dt_init(0.001)
 print("dt_init=", GlobalConfig.dt_init())
+
+print("default value: axisymmetric=", GlobalConfig.axisymmetric())
+GlobalConfig.axisymmetric(true)
 print("axisymmetric=", GlobalConfig.axisymmetric())
-GlobalConfig.axisymmetric(0) -- doesn't accept true false
+if GlobalConfig.axisymmetric() then
+   print("script sees axisymmetric as true")
+else
+   print("script sees axisymmetric as false")
+end
+GlobalConfig.axisymmetric(false)
 print("axisymmetric=", GlobalConfig.axisymmetric())
-if GlobalConfig.axisymmetric then
+if GlobalConfig.axisymmetric() then
    print("script sees axisymmetric as true")
 else
    print("script sees axisymmetric as false")

@@ -21,15 +21,19 @@ immutable string GlobalConfigMT = "GlobalConfig";
 
 extern(C) int get_or_set_field(string name, T)(lua_State* L)
 {
+    // Note that, in both sets of tests below,
+    // we must test for the bool before the int
+    // because the bool is a more specialized type of int
+    // in the D language.
     int narg = lua_gettop(L); 
     if (narg == 0) {
 	// This is a getter
-	static if (is(T : int)) {
-	    mixin("lua_pushnumber(L, GlobalConfig."~name~");");
+	static if (is(T : bool)) {
+	    mixin("lua_pushboolean(L, to!int(GlobalConfig."~name~"));");
 	} else static if (is(T : double)) {
 	    mixin("lua_pushnumber(L, GlobalConfig."~name~");");
-	} else static if (is(T : bool)) {
-	    mixin("lua_pushboolean(L, GlobalConfig."~name~");");
+	} else static if (is(T : int)) {
+	    mixin("lua_pushnumber(L, GlobalConfig."~name~");");
 	} else static if (is(T : string)) {
 	    mixin("lua_pushstring(L, GlobalConfig."~name~".toStringz);");
 	} else {
@@ -38,12 +42,12 @@ extern(C) int get_or_set_field(string name, T)(lua_State* L)
 	return 1;
     } else {
 	// This is a setter
-	static if (is(T : int)) {
-	    mixin("GlobalConfig."~name~" = to!T(luaL_checkint(L, 1));");
+	static if (is(T : bool)) {
+	    mixin("GlobalConfig."~name~" = to!T(lua_toboolean(L, 1));");
 	} else static if (is(T : double)) {
 	    mixin("GlobalConfig."~name~" = to!T(luaL_checknumber(L, 1));");
-	} else static if (is(T : bool)) {
-	    mixin("GlobalConfig."~name~" = to!T(lua_toboolean(L, 1));");
+	} else static if (is(T : int)) {
+	    mixin("GlobalConfig."~name~" = to!T(luaL_checkint(L, 1));");
 	} else static if (is(T : string)) {
 	    mixin("GlobalConfig."~name~" = to!T(luaL_checkstring(L, 1));");
 	} else {
