@@ -804,8 +804,14 @@ def read_all_heat_flux_data(rootName, nblock, tindx, zipFiles=0):
     for jb in range(nblock):
 	heat.append([])
 	for js in range(6):
-	    fileName = rootName+".heat"+(".b%04d.s%04d.t%04d" % (jb, js, tindx))
-	    fileName = os.path.join("heat", "t%04d" % ( tindx ), fileName)
+            if type(tindx) is int:
+                tindx_str = "%04d" % tindx
+            elif type(tindx) is str:
+                tindx_str = tindx
+            else:
+                raise RuntimeError("WTF: tindx is neither an int nor string.")
+	    fileName = rootName+".heat"+(".b%04d.s%04d.t%s" % (jb, js, tindx_str))
+	    fileName = os.path.join("heat", "t%s" % ( tindx_str ), fileName)
 	    # test if this file exists (required due to disparate 2D/3D boundaries)
 	    if os.path.isfile(fileName) == False \
 	    	and os.path.isfile(fileName+".gz") == False: 
