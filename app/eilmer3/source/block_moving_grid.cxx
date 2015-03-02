@@ -506,7 +506,6 @@ int Block::determine_moving_time_step_size()
 	    if (dt_moving_local < dt_moving_allow) dt_moving_allow = dt_moving_local;
 	}
     } // for cp
-    cout << " moving time step for this block is " << dt_moving_allow << endl;
     
     return SUCCESS;
 } // end of determine_moving_time_step_size()

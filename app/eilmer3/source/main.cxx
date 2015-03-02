@@ -1303,10 +1303,6 @@ int integrate_in_time(double target_time)
 #   ifdef _MPI
     int cfl_result_2;
 #   endif
-    int cfl_moving_result;
-#   ifdef _MPI
-    int cfl_moving_result_2;
-#   endif
     int status_flag = SUCCESS;
     dt_record.resize(G.my_blocks.size()); // Just the blocks local to this process.
 
@@ -1725,58 +1721,9 @@ int integrate_in_time(double target_time)
                             printf( "Error: check the output vertex velocities.\n");
 	                }
                     } // end for *bdp
-	            // predict new vertex positions
-	            for ( Block *bdp : G.my_blocks ) {
-                        bdp->predict_vertex_positions(G.dimensions, G.dt_global);
-	                bdp->compute_primary_cell_geometric_data(G.dimensions, 1); // for start of next stage
-	                bdp->set_gcl_interface_properties(G.dimensions, 1, G.dt_global);		
-	            }                    
 #                   ifdef _MPI	        
 	            MPI_Barrier( MPI_COMM_WORLD );
 #                   endif
-                    // do moving cfl check
-                    // Adjust the moving time step to be the minimum allowed
-                    // for any active block.     
-                    G.dt_moving_allow = 1.0e6; /* outrageously large so that it gets replace immediately */
-                    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-                        Block *bdp = G.my_blocks[jb];
-                        if ( bdp->active ) {
-	                    cfl_moving_result = bdp->determine_moving_time_step_size();
-                            if ( cfl_moving_result != 0 ) {
-	                        program_return_flag = DT_SEARCH_FAILED;
-		                status_flag = FAILURE;
-		                goto conclusion;
-	                    }
-                        }
-                    } // end for jb loop
-                    // If we arrive here, cfl_moving_result will be zero, indicating that all local blocks 
-                    // have successfully determined a suitable moving_time step.
-#                   ifdef _MPI
-                    MPI_Allreduce( &cfl_moving_result, &cfl_moving_result_2, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD );
-                    if ( cfl_moving_result_2 != 0 ) {
-	                program_return_flag = DT_SEARCH_FAILED;
-	                status_flag = FAILURE;
-	                goto conclusion;
-                    }
-#                   endif
-                    // Get an overview of the allowable timestep.
-                    // Note that, for an MPI job, jb may not be the same as bdp->id.
-                    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	                dt_record[jb] = 0.0;
-                    }
-                    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	                Block *bdp = G.my_blocks[jb];
-	                if ( !bdp->active ) continue;
-	                if ( bdp->dt_moving_allow < G.dt_moving_allow ) G.dt_moving_allow = bdp->dt_moving_allow;
-	                dt_record[jb] = bdp->dt_moving_allow;
-                    }
-#                   ifdef _MPI
-                    // Finding the minimum allowable time step is very important for stability.
-                    MPI_Allreduce(MPI_IN_PLACE, &(G.dt_moving_allow), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-#                   endif
-                    // Change the actual time step, as needed.
-	            G.dt_moving = min(G.dt_moving_allow, G.dt_max);
-	            cout << "The current moving time step is " << G.dt_moving << endl;
                     // check CFL condition if flow induced moving and
                     // grid has been adjusted at this time step
                     do_cfl_check_now = true;
