@@ -43,7 +43,9 @@ public:
 
     double dt_allow;            // Allowable time step
     double cfl_min, cfl_max;    // estimates of CFL number
-
+    
+    double dt_moving_allow;                   // Allowable time step for moving grid
+    
     double L_min;  // minimum sized cell in the block
     Vector3 bounding_box_min; // minimum point of bounding box
     Vector3 bounding_box_max; // maximum point of bounding box
@@ -173,7 +175,8 @@ public:
     int set_interface_velocities2D(size_t gtl);
     int set_vertex_velocities3D(size_t gtl);
     int set_interface_velocities3D(size_t gtl);
-    int clear_vertex_velocities(size_t dimensions);    
+    int clear_vertex_velocities(size_t dimensions);
+    int determine_moving_time_step_size();        
     
     // in block_io.cxx
     int read_grid(std::string filename, size_t dimensions,

@@ -487,6 +487,30 @@ int Block::set_interface_velocities3D(size_t gtl)
     return SUCCESS;
 }
 
+int Block::determine_moving_time_step_size()
+/// \brief Compute the local moving time step limit for all cells in the block.
+///
+{
+    global_data *gdp = get_global_data_ptr();
+    bool first;
+    double dt_moving_local, signal;
+
+    first = true;
+    for ( FV_Cell *cp: active_cells ) {
+	signal = cp->moving_signal_frequency(gdp->dimensions);
+	dt_moving_local = gdp->cfl_moving_target / signal; // Recommend a time step size.
+	if ( first ) {
+	    dt_moving_allow = dt_moving_local;
+	    first = false;
+	} else {
+	    if (dt_moving_local < dt_moving_allow) dt_moving_allow = dt_moving_local;
+	}
+    } // for cp
+    cout << " moving time step for this block is " << dt_moving_allow << endl;
+    
+    return SUCCESS;
+} // end of determine_moving_time_step_size()
+
 // Helper's function
 double tetragonal_dipyramid(const Vector3 &p0, const Vector3 &p1, 
 				   const Vector3 &p2, const Vector3 &p3, 

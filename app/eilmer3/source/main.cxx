@@ -1303,6 +1303,10 @@ int integrate_in_time(double target_time)
 #   ifdef _MPI
     int cfl_result_2;
 #   endif
+    int cfl_moving_result;
+#   ifdef _MPI
+    int cfl_moving_result_2;
+#   endif
     int status_flag = SUCCESS;
     dt_record.resize(G.my_blocks.size()); // Just the blocks local to this process.
 
@@ -1319,6 +1323,10 @@ int integrate_in_time(double target_time)
     G.t_plot = G.sim_time + G.dt_plot;
     G.t_his = G.sim_time + G.dt_his;
     G.t_moving = 0.0;
+    // if this is fluid structure interaction simulation
+    if ( G.flow_induced_moving ) {
+        G.t_moving = G.sim_time + G.dt_moving;
+    }
     
     // Flags to indicate that the saved output is fresh.
     // On startup or restart, it is assumed to be so.
@@ -1679,12 +1687,118 @@ int integrate_in_time(double target_time)
 	    // In shared memory version, G.q_wall is up-to-date globally
 	    // and available for all blocks.
 	}
+	
 	// 2a.
+	// Assgin moving vertex velocity
+	if ( G.moving_grid ) {
+	    // Grid-movement is done after a specified point in time.
+	    // As Paul Petrie-repar suggested
+            // The edge length (2D) or interface area (3D), interface velocity, normal vector
+            // should be remained as the same as level 0 for both stages of the pc
+            // The default gird movement strategy is set by equations, the more complex way
+            // is flow induced moving grid, which vertex moving velocity will be defined
+            // the external code 
+            if ( G.flow_induced_moving ) {
+                for ( Block *bdp : G.my_blocks ) {
+                    bdp->clear_vertex_velocities(G.dimensions);
+                }
+            } // end if ( G.flow_induced_moving )   
+	    if ( G.sim_time >= G.t_moving ) { 
+	        if ( G.flow_induced_moving ) { // flow induced grid movement
+	            write_temp_solution_data();
+#                   ifdef _MPI	        
+	            MPI_Barrier( MPI_COMM_WORLD );
+#                   endif	        
+	            if ( master ) {
+	                if ( system("./flow_induced_moving.sh") != 0 ) {
+	                    printf( "Error: check the external code for flow induced moving grid.\n");
+	                }
+	            }
+#                   ifdef _MPI	        
+	            MPI_Barrier( MPI_COMM_WORLD );
+#                   endif
+	            for ( Block *bdp : G.my_blocks ) {
+	                sprintf( jbcstr, "b%04d", static_cast<int>(bdp->id) );
+	                string jbstring = jbcstr;
+	                string filename = "temp/"+jbstring;
+                        if ( bdp->read_vertex_velocities(filename, G.dimensions) != SUCCESS ) {
+                            printf( "Error: check the output vertex velocities.\n");
+	                }
+                    } // end for *bdp
+	            // predict new vertex positions
+	            for ( Block *bdp : G.my_blocks ) {
+                        bdp->predict_vertex_positions(G.dimensions, G.dt_global);
+	                bdp->compute_primary_cell_geometric_data(G.dimensions, 1); // for start of next stage
+	                bdp->set_gcl_interface_properties(G.dimensions, 1, G.dt_global);		
+	            }                    
+#                   ifdef _MPI	        
+	            MPI_Barrier( MPI_COMM_WORLD );
+#                   endif
+                    // do moving cfl check
+                    // Adjust the moving time step to be the minimum allowed
+                    // for any active block.     
+                    G.dt_moving_allow = 1.0e6; /* outrageously large so that it gets replace immediately */
+                    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
+                        Block *bdp = G.my_blocks[jb];
+                        if ( bdp->active ) {
+	                    cfl_moving_result = bdp->determine_moving_time_step_size();
+                            if ( cfl_moving_result != 0 ) {
+	                        program_return_flag = DT_SEARCH_FAILED;
+		                status_flag = FAILURE;
+		                goto conclusion;
+	                    }
+                        }
+                    } // end for jb loop
+                    // If we arrive here, cfl_moving_result will be zero, indicating that all local blocks 
+                    // have successfully determined a suitable moving_time step.
+#                   ifdef _MPI
+                    MPI_Allreduce( &cfl_moving_result, &cfl_moving_result_2, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD );
+                    if ( cfl_moving_result_2 != 0 ) {
+	                program_return_flag = DT_SEARCH_FAILED;
+	                status_flag = FAILURE;
+	                goto conclusion;
+                    }
+#                   endif
+                    // Get an overview of the allowable timestep.
+                    // Note that, for an MPI job, jb may not be the same as bdp->id.
+                    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	                dt_record[jb] = 0.0;
+                    }
+                    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	                Block *bdp = G.my_blocks[jb];
+	                if ( !bdp->active ) continue;
+	                if ( bdp->dt_moving_allow < G.dt_moving_allow ) G.dt_moving_allow = bdp->dt_moving_allow;
+	                dt_record[jb] = bdp->dt_moving_allow;
+                    }
+#                   ifdef _MPI
+                    // Finding the minimum allowable time step is very important for stability.
+                    MPI_Allreduce(MPI_IN_PLACE, &(G.dt_moving_allow), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+#                   endif
+                    // Change the actual time step, as needed.
+	            G.dt_moving = min(G.dt_moving_allow, G.dt_max);
+	            cout << "The current moving time step is " << G.dt_moving << endl;
+                    // check CFL condition if flow induced moving and
+                    // grid has been adjusted at this time step
+                    do_cfl_check_now = true;
+	        } // end if ( G.flow_induced_moving )
+	        else { // user-defined grid movement
+	            for ( Block *bdp : G.my_blocks ) {
+	                if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
+	                    add_udf_velocity_for_vtx(bdp, 0);
+	                } else { // mainly for shock fitting
+		            bdp->set_geometry_velocities(G.dimensions, 0);
+		        }
+	            }  // end for
+                } // end else
+                G.t_moving = G.sim_time + G.dt_moving;
+	    } // end if ( G.sim_time >= G.t_moving )
+	} // end if ( G.moving_grid )
+		
 	// explicit or implicit update of the inviscid terms.
 	int break_loop2 = 0;
 	switch ( G.implicit_mode ) {
 	case 0: // explicit update of convective terms and, maybe, the viscous terms
-	    if ( G.moving_grid ) 
+	    if ( G.moving_grid )     
 		break_loop2 = gasdynamic_increment_with_moving_grid(G.dt_global, finished_time_stepping, do_cfl_check_now);
 	    else
 		break_loop2 = gasdynamic_explicit_increment_with_fixed_grid(G.dt_global);
@@ -2349,9 +2463,6 @@ int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_steppin
     bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     int step_status_flag;
     using std::swap;
-    string filename, jbstring;
-    char jbcstr[10];
-    bool grid_moving_flag = false;
 
     // FIX-ME moving grid: this is a work/refactoring in progress... PJ
     // 25-Mar-2103 except for superficial changes, it is the same as 
@@ -2366,59 +2477,7 @@ int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_steppin
     do {
 	//  Preparation for the first-stage of inviscid gas-dynamic flow update.
 	++attempt_number;
-	step_status_flag = 0;
-	// Grid-movement is done after a specified point in time.
-	// As Paul Petrie-repar suggested
-        // The edge length (2D) or interface area (3D), interface velocity, normal vector
-        // should be remained as the same as level 0 for both stages of the pc
-        // The default gird movement strategy is set by equations, the more complex way
-        // is flow induced moving grid, which vextex moving velocity will be defined
-        // the external code 
-        
-        if ( G.flow_induced_moving ) {
-            for ( Block *bdp : G.my_blocks ) {
-                bdp->clear_vertex_velocities(G.dimensions);
-            }
-        } // end if        
-        
-	if ( G.sim_time >= G.t_moving ) { 
-	    if ( G.flow_induced_moving ) { // flow induced grid movement
-	        write_temp_solution_data();
-#               ifdef _MPI	        
-	        MPI_Barrier( MPI_COMM_WORLD );
-#               endif	        
-	        if ( master ) {
-	            if ( system("./flow_induced_moving.sh") != 0 ) {
-	                printf( "Error: check the external code for flow induced moving grid.\n");
-	            }
-	        }
-#               ifdef _MPI	        
-	        MPI_Barrier( MPI_COMM_WORLD );
-#               endif	        
-	        for ( Block *bdp : G.my_blocks ) {
-	            sprintf( jbcstr, "b%04d", static_cast<int>(bdp->id) );
-	            jbstring = jbcstr;
-	            filename = "temp/"+jbstring;
-                    if ( bdp->read_vertex_velocities(filename, G.dimensions) != SUCCESS ) {
-                        printf( "Error: check the output vertex velocities.\n");
-	            }
-                } // end for *bdp
-#               ifdef _MPI	        
-	        MPI_Barrier( MPI_COMM_WORLD );
-#               endif	                 
-                grid_moving_flag = true;
-	    }
-	    else { // user-defined grid movement
-	        for ( Block *bdp : G.my_blocks ) {
-	            if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
-	                add_udf_velocity_for_vtx(bdp, 0);
-	            } else { // mainly for shock fitting
-		        bdp->set_geometry_velocities(G.dimensions, 0);
-		    }
-	        }  // end for
-            } 
-            G.t_moving = G.sim_time + G.dt_moving;
-	}		
+	step_status_flag = 0;		
         
 	// predict new vertex positions
 	for ( Block *bdp : G.my_blocks ) {
@@ -2589,13 +2648,6 @@ int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_steppin
 	    swap(cp->U[0], cp->U[2]);
 	    cp->copy_grid_level_to_level(2, 0);
 	}
-    }
-    
-    // check CFL condition if flow induced moving and
-    // grid has been adjusted at this time step
-    if ( G.flow_induced_moving && grid_moving_flag ) {
-        do_cfl_check_now = true;
-        grid_moving_flag = false;
     }
     
     G.sim_time = t0 + dt;

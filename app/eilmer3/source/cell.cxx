@@ -2076,6 +2076,52 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 } // end of signal_frequency()
 
 
+double FV_Cell::moving_signal_frequency(size_t dimensions)
+{
+    double signal;
+    double un_N, un_E, un_T;
+    double un_N0, un_N1, un_E0, un_E1, un_T0, un_T1;
+    FV_Interface *north = iface[NORTH];
+    FV_Interface *south = iface[SOUTH];    
+    FV_Interface *east = iface[EAST];
+    FV_Interface *west = iface[WEST];    
+    FV_Interface *top = iface[TOP];
+    FV_Interface *bottom = iface[BOTTOM];    
+    
+    un_N0 = fabs( dot(north->ivel, north->n) - dot(south->ivel, north->n) );
+    un_N1 = fabs( dot(north->ivel, south->n) - dot(south->ivel, south->n) );
+    un_N = max(un_N0,un_N1);
+    un_E0 = fabs( dot(east->ivel, east->n) - dot(west->ivel, east->n) );    
+    un_E1 = fabs( dot(east->ivel, west->n) - dot(west->ivel, west->n) );
+    un_E = max(un_E0,un_E1);    
+    if ( dimensions == 3 ) {
+	un_T0 = fabs( dot(top->ivel, top->n) - dot(bottom->ivel, top->n) );
+	un_T1 = fabs( dot(top->ivel, bottom->n) - dot(bottom->ivel, bottom->n) );
+        un_T = max(un_T0,un_T1);	
+    }  else {
+	un_T = 0.0;
+    }
+
+    double signalN, signalE, signalT;
+    if ( dimensions == 3 ) {
+        // eilmer -- 3D cells
+	signalN = un_N / jLength;
+	signal = signalN;
+	signalE = un_E / iLength;
+	if ( signalE > signal ) signal = signalE;
+	signalT = un_T / kLength;
+	if ( signalT > signal ) signal = signalT;
+    } else {
+	// eilmer -- 2D cells
+	signalN = un_N / jLength;
+	signalE = un_E / iLength;
+	signal = max(signalN, signalE);
+    }
+    
+    return signal;
+} // end of moving_signal_frequency()
+
+
 int FV_Cell::turbulence_viscosity_zero()
 {
     fs->mu_t = 0.0;

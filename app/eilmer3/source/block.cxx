@@ -564,7 +564,7 @@ int Block::determine_time_step_size()
 	    if (cfl_local > cfl_max) cfl_max = cfl_local;
 	    if (dt_local < dt_allow) dt_allow = dt_local;
 	}
-    } // for cp
+    } // for cp  
     if ( cfl_max > 0.0 && cfl_max < cfl_allow ) {
 	return SUCCESS;
     } else {

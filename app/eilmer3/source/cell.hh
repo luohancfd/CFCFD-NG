@@ -270,6 +270,7 @@ public:
     int chemical_increment(double dt, double T_frozen);
     int thermal_increment(double dt, double T_frozen_energy);
     double signal_frequency(size_t dimensions, bool with_k_omega);
+    double moving_signal_frequency(size_t dimensions);    
     int turbulence_viscosity_zero();
     int turbulence_viscosity_zero_if_not_in_zone();
     int turbulence_viscosity_limit(double factor);

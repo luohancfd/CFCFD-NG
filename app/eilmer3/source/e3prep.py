@@ -439,7 +439,9 @@ class GlobalData(object):
     * wall_update_count: (int) Number of steps to wait before recomputing heat transfer in the
       wall conduction model. Values greater than 1 give a loosely-coupled approach to the flow solver/
       wall solver update. 
-    * flow_induced_moving_flag: (0/1) Set to 1 to activate functions that allow flow induced grid movement.        
+    * flow_induced_moving_flag: (0/1) Set to 1 to activate functions that allow flow induced grid movement.
+    * cfl_moving: (float) The ratio of the actual time step to the allowed time
+      step as determined by the vertex moving velocity and grid.
     """
     count = 0
 
@@ -482,7 +484,8 @@ class GlobalData(object):
                 'ignition_time_start', 'ignition_time_stop', \
                 'electric_field_work_flag', 'conjugate_ht_flag', 'conjugate_ht_file', \
                 'conjugate_ht_coupling', 'wall_update_count', \
-                'radiation_scaling', 'udf_vtx_velocity_flag', 'flow_induced_moving_flag'
+                'radiation_scaling', 'udf_vtx_velocity_flag', 'flow_induced_moving_flag', \
+                'cfl_moving'
     
     def __init__(self):
         """
@@ -591,7 +594,8 @@ class GlobalData(object):
         self.conjugate_ht_file = "dummy_ht_file"
         self.conjugate_ht_coupling = "QFS_QWS"
         self.wall_update_count = 1
-        self.flow_induced_moving_flag = 0        
+        self.flow_induced_moving_flag = 0
+        self.cfl_moving = 20.0                
         GlobalData.count += 1
         return
 
@@ -655,6 +659,7 @@ class GlobalData(object):
         fp.write("halt_now = 0\n"); # presumably, we want the simulation to proceed
         fp.write("halt_on_large_flow_change = %s\n" % self.halt_on_large_flow_change)
         fp.write("tolerance_in_T = %g\n" % self.tolerance_in_T)
+        fp.write("cfl_moving = %e\n" % self.cfl_moving)        
         return
 
     def write_to_control_json_file(self, fp):
@@ -691,6 +696,7 @@ class GlobalData(object):
         fp.write('"halt_now": 0,\n'); # presumably, we want the simulation to proceed
         fp.write('"halt_on_large_flow_change": %s,\n' % my_json_bool(self.halt_on_large_flow_change))
         fp.write('"tolerance_in_T": %g\n' % self.tolerance_in_T) # no comma on last one      
+        fp.write('"cfl_moving": %e,\n' % self.cfl_moving)        
         fp.write('}\n')
         return
 

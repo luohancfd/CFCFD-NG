@@ -816,6 +816,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
     dict.parse_size_t("control_data", "max_step", G.max_step, 10);
     dict.parse_int("control_data", "halt_now", G.halt_now, 0);
     dict.parse_int("control_data", "implicit_flag", G.implicit_mode, 0);
+    dict.parse_double("control_data", "cfl_moving", G.cfl_moving_target, 20.0);    
     G.implicit_mode = i_value; // FIX-ME PJ We'll replace this with a type map soon.
     dict.parse_size_t("control_data", "wall_update_count", G.wall_update_count, 1);
     dict.parse_int("control_data", "radiation_update_frequency", G.radiation_update_frequency, 1);

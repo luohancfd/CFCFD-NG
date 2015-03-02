@@ -172,9 +172,14 @@ struct global_data
     bool shock_fitting;
     bool shock_fitting_decay;
     double shock_fitting_speed_factor;
-    bool moving_grid;
-    bool write_vertex_velocities;
-    bool flow_induced_moving;    
+    
+    bool moving_grid;              /* moving grid flag */
+    bool write_vertex_velocities;  /* write vertex velocities flag */
+    bool flow_induced_moving;      /* flow induced moving flag */
+    double dt_moving_allow;        /* allowable global time step for moving grid */
+    double t_moving;               /* time to next adapt new vertex velocity    */
+    double dt_moving;              /* interval for running setting vertex velocity for moving grid  */
+    double cfl_moving_target;      /* target CFL value for moving grid    */       
 
     /// Set the tolerance in relative velocity change for the shock detector.
     /// This value is expected to be a negative number (for compression)
@@ -194,9 +199,7 @@ struct global_data
     double t_plot;          /* time to write next soln    */
     size_t write_at_step;   /* update step at which to write a solution, 0=don't do it */
     double t_his;           /* time to write next sample  */
-    double t_fstc;          /* time to write next fluid-structure exchange data*/
-    double t_moving;        /* time to next adapt new vertex velocity    */
-    double dt_moving;       /* interval for running setting vertex velocity for moving grid  */   
+    double t_fstc;          /* time to write next fluid-structure exchange data*/  
     double dt_plot;         /* interval for writing soln  */
     double dt_his;          /* interval for writing sample */
     double dt_fstc;         /* interval for writing next f-s exchange data*/
