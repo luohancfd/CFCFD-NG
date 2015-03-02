@@ -57,6 +57,15 @@ print("title=", configGet("title"))
 print("axisymmetric=", configGet("axisymmetric"))
 print("max_time=", configGet("max_time"))
 print("dt_init=", configGet("dt_init"))
+------------------ Plan 3: GlobalConfig via a specially named 'config' table. ----
+print("Testing a different form of config interaction.")
+config{title="Testing plan 3", dimensions=3}
+config["max_time"] = 1.0e-5
+config.dt_init = 1.0e-9
+print("title= ", config["title"])
+print("dimensions= ", config.dimensions)
+print("max_time= ", config.max_time)
+print("dt_init= ", config["dt_init"])
     `);
     writeln("Done with demo.");
 }

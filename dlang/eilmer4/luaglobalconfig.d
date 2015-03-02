@@ -115,6 +115,39 @@ extern(C) int configGet(lua_State* L)
     return 1;
 } // end configGet()
 
+// -------------------------------------------------------------------------------
+// Plan 3 -- try interacting via __call, __index and __newindex
+
+extern(C) int configSetWithCall(lua_State* L)
+{
+    // Arguments to __call are: table then call arguments
+    // So remove table and delegate to configSetFromTable
+    lua_remove(L, 1);
+    return configSetFromTable(L);
+}
+
+extern(C) int configSetFromValue(lua_State *L)
+{
+    // Argumnets to __newindex are: table, key, value
+    // We aren't interested in the table because we have
+    // the GlobalConfig object to use.
+    // Let's put the key and value into a table with one entry
+    // and delegate to configSetFromTable.
+    lua_newtable(L);
+    lua_pushvalue(L, 3);
+    lua_setfield(L, -2, luaL_checkstring(L, 2));
+    // Now set table to position 1 in stack for use in call to configSetFromTable.
+    lua_replace(L, 1);
+    return configSetFromTable(L);
+}
+
+extern(C) int configGetByKey(lua_State* L)
+{
+    // Arguments to __index are: table, key
+    // Just remove table and delegate to configGet.
+    lua_remove(L, 1);
+    return configGet(L);
+} 
 
 //------------------------------------------------------------------------
 // Functions related to the managed gas model.
@@ -193,4 +226,22 @@ void registerGlobalConfig(LuaState lua)
     lua_setglobal(L, "get_nmodes");
     lua_pushcfunction(L, &species_name);
     lua_setglobal(L, "species_name");
+
+    // Experiment with making a 'config' table available
+    // First, set its metatable so that the metamethods
+    // of __call, __index, and __newindex can do their jobs.
+    luaL_newmetatable(L, "config_mt");
+    lua_pushcfunction(L, &configSetWithCall);
+    lua_setfield(L, -2, "__call");
+    lua_pushcfunction(L, &configSetFromValue);
+    lua_setfield(L, -2, "__newindex");
+    lua_pushcfunction(L, &configGetByKey);
+    lua_setfield(L, -2, "__index");
+    lua_setglobal(L, "config_mt");
+    // Second make a globally available table called 'config'
+    lua_newtable(L);
+    luaL_getmetatable(L, "config_mt");
+    lua_setmetatable(L, -2);
+    lua_setglobal(L, "config");
+
 } // end registerGlobalConfig()
