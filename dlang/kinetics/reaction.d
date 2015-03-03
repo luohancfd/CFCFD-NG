@@ -9,8 +9,10 @@
 module kinetics.reaction;
 
 import std.math;
+import std.string;
 import std.typecons;
-
+import luad.all;
+import util.lua_service;
 import gas;
 import util.msg_service;
 import kinetics.rate_constant;
@@ -81,7 +83,7 @@ class ElementaryReaction : Reaction
 public:
     this(in RateConstant forward, in RateConstant backward,
 	 int[] reac_spidx, int[] reac_coeffs, int[] prod_spidx, int[] prod_coeffs,
-	 int n_species)
+	 size_t n_species)
     {
 	assert(reac_spidx.length == reac_coeffs.length,
 	       brokenPreCondition("reac_spidx and reac_coeffs arrays not of equal length"));
@@ -178,6 +180,53 @@ private:
     Tuple!(int, int)[] _products;
     int[] _nu;
 }
+
+/++
+ + Creates a Reaction object from information in a LuaTable.
+ +
+ + The table format mirrors that created by reaction.lua::transformReaction()
+ + Check that source also.
+ + table = {equation = "H2 + I2 <=> 2 HI",
+ +          type = "elementary",
+ +          frc = transform_rate_constant(fr),
+ +          brc = transform_rate_constant(fr),
+ +          ec = nil,
+ +          reacIdx = {0, 1},
+ +          reacCoeffs = {1, 1},
+ +          prodIdx = {2},
+ +          prodCoeffs = {2},
+ +          anonymousCollider = false,
+ +          pressureDependent = false,
+ +          efficiencies = {}
+ + }
+ +/
+Reaction createReaction(LuaTable t, size_t n_species)
+{
+    // All Reactions have a forward and backward rate.
+    auto frc = createRateConstant(t.get!LuaTable("frc"));
+    auto brc = createRateConstant(t.get!LuaTable("brc"));
+
+    // And most use reacIdx, reacCoeffs, prodIdx and prodCoeffs lists.
+    int[] reacIdx, reacCoeffs, prodIdx, prodCoeffs;
+    getArray(t.get!LuaTable("reacIdx"), reacIdx, "reacIdx");
+    getArray(t.get!LuaTable("reacCoeffs"), reacCoeffs, "reacCoeffs");
+    getArray(t.get!LuaTable("prodIdx"), prodIdx, "prodIdx");
+    getArray(t.get!LuaTable("prodCoeffs"), prodCoeffs, "prodCoeffs");
+
+    // We need to specialise the creation of a Reaction
+    // based on type.
+    auto type = t.get!string("type");
+    switch (type) {
+    case "elementary":
+	return new ElementaryReaction(frc, brc, reacIdx, reacCoeffs,
+				      prodIdx, prodCoeffs, n_species);
+    default:
+	string msg = format("The reaction type: %s is not known.", type);
+	throw new Exception(msg);
+    }
+}
+
+
 
 unittest {
     // Find rate of forward production for H2 + I2 reaction at 700 K.

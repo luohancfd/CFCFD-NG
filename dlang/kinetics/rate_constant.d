@@ -8,6 +8,7 @@
 module kinetics.rate_constant;
 
 import std.math;
+import std.string;
 import luad.all;
 import util.lua_service;
 import gas;
@@ -20,15 +21,6 @@ import gas;
 interface RateConstant {
     RateConstant dup() const;
     double eval(in GasState Q) const;
-}
-
-/++
- User interface to configure ArrheniusRateConstant.
- +/
-struct ArrheniusParams {
-    double A; // frequency factor, units vary depending on reaction order
-    double n; // power for temperature dependecy
-    double C; // activation temperature
 }
 
 /++
@@ -65,12 +57,6 @@ public:
 	_n = t.get!double("n");
 	_C = t.get!double("C");
     }
-    this(ArrheniusParams input)
-    {
-	_A = input.A;
-	_n = input.n;
-	_C = input.C;
-    }
     ArrheniusRateConstant dup() const
     {
 	return new ArrheniusRateConstant(_A, _n, _C);
@@ -84,16 +70,26 @@ private:
     double _A, _n, _C;
 }
 
-static ArrheniusRateConstant[] rates;
+/++
+ + Create a RateConstant object based on information in a LuaTable.
+ +
+ + Expected table format is:
+ + tab = {model='Arrhenius',
+ +        -- then model-specific parameters follow.
+ +        A=..., n=..., C=...}
+ +/
+RateConstant createRateConstant(LuaTable t)
+{
+    auto model = t.get!string("model");
+    switch (model) {
+    case "Arrhenius":
+	return new ArrheniusRateConstant(t);
+    default:
+	string msg = format("The rate constant model: %s could not be created.", model);
+	throw new Exception(msg);
+    }
+}
 
-void Arrhenius0(LuaTable t)
-{
-    rates ~= new ArrheniusRateConstant(t.toStruct!ArrheniusParams());
-}
-void Arrhenius1(double A, double n, double C)
-{
-    rates ~= new ArrheniusRateConstant(A, n, C);
-}
 
 unittest {
     import util.msg_service;
@@ -108,14 +104,5 @@ unittest {
     auto rc2 = new ArrheniusRateConstant(lua.get!LuaTable("rate"));
     gd.T[0] = 4000.0;
     assert(approxEqual(0.00159439, rc2.eval(gd)), failedUnitTest());
-    // Test 3. Read rate constant parameters for nitrogen dissocation
-    // from a Lua table.
-    lua = new LuaState;
-    lua.openLibs();
-    // Register Arrhenius functions with Lua
-    lua["Arrhenius0"] = &Arrhenius0;
-    lua["Arrhenius1"] = &Arrhenius1;
-    lua.doFile("sample-input/rate-input-test.lua");
-    assert(approxEqual(0.00159439, rates[0].eval(gd)), failedUnitTest());
-    assert(approxEqual(0.00159439, rates[1].eval(gd)), failedUnitTest());
+
 }

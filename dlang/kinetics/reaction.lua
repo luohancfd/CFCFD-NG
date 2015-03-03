@@ -224,8 +224,8 @@ end
 -- Gets expanded to:
 -- table = {equation = "H2 + I2 <=> 2 HI",
 --          type = "elementary",
---          fr = transform_rate_constant(fr),
---          br = transform_rate_constant(fr),
+--          frc = transform_rate_constant(fr),
+--          brc = transform_rate_constant(fr),
 --          ec = nil,
 --          reacIdx = {0, 1},
 --          reacCoeffs = {1, 1},
@@ -239,7 +239,7 @@ end
 function transformReaction(t, species, suppress_warnings)
    r = {}
    r.equation = t[1]
-   r.type = "normal"
+   r.type = "elementary"
 
    rs = parseReactionString(t[1])
    anonymousCollider = false
@@ -339,7 +339,7 @@ function transformReaction(t, species, suppress_warnings)
    end
 
    -- Look for presence of pressure dependent reaction
-   --[=[ NOT UPDATED : 03-Mar-2015
+--[==[ NOT UPDATED : 03-Mar-2015
          TODO when pressure dependent reactions are added.
    pressure_dependent = false
    for _,p in ipairs(rs[1]) do
@@ -352,7 +352,7 @@ function transformReaction(t, species, suppress_warnings)
 	 pressure_dependent = true
       end
    end
-   --]=]
+
    -- Deal with any efficiencies for anonymous collision partners (if needed)
    if anonymousCollider then --  or pressure_dependent then
       if anonymousCollider then
@@ -392,7 +392,7 @@ function transformReaction(t, species, suppress_warnings)
 	    table.remove(r.efficiencies, i)
 	 end
       end
---[==[
+
       if pressure_dependent then
 	 if r.frc then
 	    if r.frc.model == "pressure dependent" then
@@ -406,8 +406,6 @@ function transformReaction(t, species, suppress_warnings)
 	 end
       end
 --]==]      
-   end
-   
    -- Look for chemistry_energy_coupling field
    --if t.chemistry_energy_coupling then
    --    r.chemistry_energy_coupling = t.chemistry_energy_coupling
@@ -429,8 +427,8 @@ function reacToLuaStr(r, i)
    local rstr = string.format("reaction[%d] = {\n", i)
    rstr = rstr .. string.format("  equation = \"%s\",\n", r.equation)
    rstr = rstr .. string.format("  type = \"%s\",\n", r.type)
-   rstr = rstr .. string.format("  fr = %s,\n", rateConstantToLuaStr(r.frc))
-   rstr = rstr .. string.format("  br = %s,\n", rateConstantToLuaStr(r.brc))
+   rstr = rstr .. string.format("  frc = %s,\n", rateConstantToLuaStr(r.frc))
+   rstr = rstr .. string.format("  brc = %s,\n", rateConstantToLuaStr(r.brc))
    if r.ec then
       rstr = rstr .. string.format("  ec = %s,\n", ecModelToLuaStr(r.ec))
    end

@@ -9,6 +9,8 @@ module kinetics.reaction_mechanism;
 import std.stdio;
 
 import gas;
+import luad.all;
+import util.lua_service;
 import util.msg_service;
 import kinetics.rate_constant;
 import kinetics.reaction;
@@ -65,6 +67,37 @@ private:
     static bool _work_arrays_initialised = false;
     static double[] _q;
     static double[] _L;
+}
+
+/++
+ + Creates a ReactionMechanism object from information contained in a LuaTable.
+ +
+ + The expected format of the table is a of Reaction objects, eg.
+ + tab = { [1]={... reaction 1 info ...},
+ +         [2]={... reaction 2 info ...},
+ +              .......................
+ +         [n]={... reaction n info ...}
+ +       }
+ +/ 
+ReactionMechanism createReactionMechanism(LuaTable t, in GasModel gmodel)
+{
+    writeln("Entered createReactionMechanism()");
+    auto n_species = gmodel.n_species;
+    writeln("n_species= ", n_species);
+    auto n_reactions = t.length;
+    writeln("n_reactions= ", n_reactions);
+    Reaction[] reactions;
+    foreach ( i; 1..n_reactions+1 ) {
+	reactions ~= createReaction(t.get!LuaTable(i), n_species);
+    }
+    return new ReactionMechanism(reactions, n_species);
+}
+
+ReactionMechanism createReactionMechanism(string fname, in GasModel gmodel)
+{
+    auto lua = initLuaState(fname);
+    writeln("About to call createReactionMechanism() -- table form.");
+    return createReactionMechanism(lua.get!LuaTable("reaction"), gmodel);
 }
 
 unittest
