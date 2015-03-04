@@ -188,7 +188,7 @@ CEAThermo createCEAThermo(LuaTable t, double R)
 	    c.R = R;
 	    c.T_lower = seg_t.get!double("T_lower");
 	    c.T_upper = seg_t.get!double("T_upper");
-	    double coeffs[];
+	    double[] coeffs;
 	    getArray(seg_t.get!LuaTable("coeffs"), coeffs, "coeffs");
 	    foreach ( ic; 0..c.a.length ) {
 		c.a[ic] = coeffs[ic];

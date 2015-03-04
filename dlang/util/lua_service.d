@@ -68,7 +68,7 @@ void getArray(T)(LuaTable t, out T[] values, string tabName)
  * Get array of numbers from index in Lua stack.
  */
 
-void getArrayOfNumbers(lua_State* L, int index, double values[])
+void getArrayOfNumbers(lua_State* L, int index, double[] values)
 {
     auto n = to!int(lua_objlen(L, index));
     foreach ( i; 1..n+1 ) {

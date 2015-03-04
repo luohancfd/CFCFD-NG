@@ -10,4 +10,4 @@ import ode, ode_lists, sode
 import stats
 import collect_run_stats
 import line_search
-
+import ridder

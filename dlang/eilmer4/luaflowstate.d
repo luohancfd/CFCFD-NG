@@ -87,7 +87,7 @@ The value should be a number.`;
     double p = getNumberFromTable(L, 1, "p", true, double.init, true, errMsg);
 
     // Next test for T and if it's a single value or array.
-    double T[];
+    double[] T;
     lua_getfield(L, 1, "T");
     if ( lua_isnumber(L, -1 ) ) {
 	double Tval = lua_tonumber(L, -1);
@@ -124,7 +124,7 @@ The value should be a number.`;
     auto vel = Vector3(velx, vely, velz);
 
     // Values related to mass fractions.
-    double massf[];
+    double[] massf;
     lua_getfield(L, 1, "massf");
     if ( lua_isnil(L, -1) ) {
 	massf ~= 1.0; // Nothing set, so massf = [1.0]

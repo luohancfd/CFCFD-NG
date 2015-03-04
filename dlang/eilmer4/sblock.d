@@ -44,7 +44,7 @@ public:
     size_t kmin, kmax;
     size_t[] hicell, hjcell, hkcell; // locations of sample cells for history record
     size_t[] micell, mjcell, mkcell; // locations of monitor cells
-    BoundaryCondition bc[6];
+    BoundaryCondition[6] bc;
 
 private:
     // Total number of cells in each direction for this block.

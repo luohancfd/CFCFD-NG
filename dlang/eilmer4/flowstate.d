@@ -32,7 +32,7 @@ public:
     double k_t;    // turbulence thermal-conductivity
     int S;         // shock indicator, value 0 or 1
 
-    this(in GasModel gm, in double p_init, in double T_init[], in Vector3 vel_init,
+    this(in GasModel gm, in double p_init, in double[] T_init, in Vector3 vel_init,
 	 in double[] massf_init=[1.0,], in double quality_init=1.0,
 	 in Vector3 B_init=(0.0,0.0,0.0),
 	 in double tke_init=0.0, in double omega_init=1.0,
@@ -89,7 +89,7 @@ public:
     this(in JSONValue json_data, in GasModel gm)
     {
 	double p = getJSONdouble(json_data, "p", 100.0e3);
-	double T[] = getJSONdoublearray(json_data, "T", [300.0,]);
+	double[] T = getJSONdoublearray(json_data, "T", [300.0,]);
 	double[] massf = getJSONdoublearray(json_data, "massf", [1.0,]);
 	double quality = 1.0;
 	gas = new GasState(gm, p, T, massf, quality);

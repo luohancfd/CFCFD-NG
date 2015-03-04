@@ -58,7 +58,7 @@ bool getJSONbool(JSONValue jsonData, string key, bool defaultValue)
 
 int[] getJSONintarray(JSONValue jsonData, string key, int[] defaultValue)
 {
-    int value[];
+    int[] value;
     try {
 	auto json_values = jsonData[key].array;
 	foreach (json_val; json_values) {
@@ -72,7 +72,7 @@ int[] getJSONintarray(JSONValue jsonData, string key, int[] defaultValue)
 
 double[] getJSONdoublearray(JSONValue jsonData, string key, double[] defaultValue)
 {
-    double value[];
+    double[] value;
     try {
 	auto json_values = jsonData[key].array;
 	foreach (json_val; json_values) {
