@@ -302,7 +302,7 @@ to convert to metres for use in Eilmer.
 +/
 {
     auto f = File(fileName, "r");
-    StructuredGrid grids[];
+    StructuredGrid[] grids;
     while (true) {
         auto line = f.readln().strip();
         if (line.length == 0) break;
