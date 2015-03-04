@@ -25,6 +25,9 @@ LuaState initLuaState(string fname)
     return lua;
 }
 
+/++
+ + Grab a set of values of the same type based on a set of (string) keys.
+ +/
 void getValues(T)(LuaTable t, in string[] keys, out T[string] values, string tabName)
 {
     foreach ( k; keys ) {
@@ -38,6 +41,12 @@ void getValues(T)(LuaTable t, in string[] keys, out T[string] values, string tab
     }
 }
 
+/++
+ + Grab an array of values of the same type out of a table in array format.
+ +
+ + Note 'tabName' is just used to report a useful error message.
+ + The table is already passed as the first argument.
+ +/
 void getArray(T)(LuaTable t, out T[] values, string tabName)
 {
     auto len = t.length;
