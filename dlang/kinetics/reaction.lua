@@ -42,7 +42,7 @@ end
 function rateConstantToLuaStr(rc)
    local str
    if rc.model == 'Arrhenius' or true then
-      str = string.format("{model='Arrhenius', A=%e, n=%f, C=%e }", rc.A, rc.n, rc.C)
+      str = string.format("{model='Arrhenius', A=%16.12e, n=%f, C=%16.12e }", rc.A, rc.n, rc.C)
    end
    return str
 end

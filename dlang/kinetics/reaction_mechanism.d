@@ -60,7 +60,15 @@ public:
 	    }
 	}
     }
-
+    final double k_f(int ir)
+    {
+	return _reactions[ir].k_f;
+    }
+    final double k_b(int ir)
+    {
+	return _reactions[ir].k_b;
+    }
+    
 private:
     Reaction[] _reactions;
     // Working array space
@@ -81,11 +89,8 @@ private:
  +/ 
 ReactionMechanism createReactionMechanism(LuaTable t, in GasModel gmodel)
 {
-    writeln("Entered createReactionMechanism()");
     auto n_species = gmodel.n_species;
-    writeln("n_species= ", n_species);
     auto n_reactions = t.length;
-    writeln("n_reactions= ", n_reactions);
     Reaction[] reactions;
     foreach ( i; 1..n_reactions+1 ) {
 	reactions ~= createReaction(t.get!LuaTable(i), n_species);
@@ -96,7 +101,6 @@ ReactionMechanism createReactionMechanism(LuaTable t, in GasModel gmodel)
 ReactionMechanism createReactionMechanism(string fname, in GasModel gmodel)
 {
     auto lua = initLuaState(fname);
-    writeln("About to call createReactionMechanism() -- table form.");
     return createReactionMechanism(lua.get!LuaTable("reaction"), gmodel);
 }
 
