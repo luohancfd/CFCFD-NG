@@ -47,7 +47,7 @@ Recipes book is those by Cash and Karp (1990) cite:cash-1990-variable.
 These are used here in the kinetics module.
 
 * Verification of implementation
-When using the Runge-Kutta-Fehlberg method, we take the firth-order
+When using the Runge-Kutta-Fehlberg method, we take the fifth-order
 accurate estimate as our new update.
 Our verification will involve testing that the result of our
 numerical update does indeed converge towards the true solution
@@ -97,17 +97,16 @@ void main()
 }
 #+END_SRC
 
-#+BEGIN_SRC emacs-lisp :results silent
+#+BEGIN_SRC emacs-lisp :results silent :exports none
 (org-babel-tangle)
 #+END_SRC
 
-#+BEGIN_SRC sh :exports: results :results output scalar raw replace
+Compile and run this program by doing the following:
+#+BEGIN_SRC sh :results output scalar raw replace :exports code
 dmd h2i2_system.d ../../nm/ridder.d
 ./h2i2_system
 #+END_SRC
 
-#+RESULTS:
-7.1420197868416215
 
 *** Numerical solution
 We will write a small D program that computes the numerical solution
@@ -242,14 +241,14 @@ We'll also keep the results in a data file: =rkf-verification-results.dat=.
 }
 #+END_SRC
 
-#+BEGIN_SRC emacs-lisp :results silent 
+#+BEGIN_SRC emacs-lisp :results silent :exports none
 (org-babel-tangle)
 #+END_SRC
 
 The makefile is a little complicated because of the dependencies.
 It has been prepared earlier.
 Here we build our program and execute it.
-#+BEGIN_SRC sh :results output table raw
+#+BEGIN_SRC sh :results output table raw :exports both
 make -f make.rkf > /dev/null
 ./rkf_verify
 #+END_SRC
@@ -280,18 +279,8 @@ not truncation error.
 
 Let's see this as a plot also.
 
-#+BEGIN_SRC gnuplot :file rkf-vrfcn-results.eps
-set term postscript eps enhanced 20 "Palatino"
-set xlabel "timestep size"
-set ylabel "error ratio"
-set yrange [-2:5]
-plot 'rkf-verification-results.dat' u 1:4 notitle w l lw 2
-#+END_SRC
 
-#+RESULTS:
-[[file:rkf-vrfcn-results.eps]]
-
-#+BEGIN_SRC sh :results value file :file rkf-vrfcn-results.png
+#+BEGIN_SRC sh :results value file :file rkf-vrfcn-results.png :exports results
 convert -density 150 rkf-vrfcn-results.eps rkf-vrfcn-results.png
 #+END_SRC
 
