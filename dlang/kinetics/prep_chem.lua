@@ -34,6 +34,8 @@ require 'reaction'
 local validateReaction = reaction.validateReaction
 local transformReaction = reaction.transformReaction
 local reacToLuaStr = reaction.reacToLuaStr
+local reacToStoichMatrix = reaction.reacToStoichMatrix
+local effToStr = reaction.effToStr
 
 --%---------------------------------------------------------------------
 --  Tables to store configuration 
@@ -201,9 +203,10 @@ end
 function printHelp()
    print("prep-chem --- Prepares a chemistry input file for Eilmer4.")
    print("Usage:")
-   print(" > prep-chem [--compact] input output")
+   print(" > prep-chem [--compact] gmodelfile cheminput output")
    print("")
-   print("   input       : input chemistry file in Lua format.")
+   print("   gmodelfile  : a gas model file is required as input for context")
+   print("   cheminput   : input chemistry file in Lua format.")
    print("   output      : output file in format ready for Eilmer4.")
    print("")
    print("Options:")
@@ -231,37 +234,65 @@ function buildVerboseLuaFile(fName)
    f:close()
 end
 
+function buildCompactNotationFile(fName)
+   f = assert(io.open(fName, 'w'))
+   f:write(string.format("%d %d\n", #species, #reactions))
+   f:write("#Reactant Stoichiometric Matrix\n")
+   for _,r in ipairs(reactions) do
+      f:write(reacToStoichMatrix(r.reacIdx, r.reacCoeffs, #species))
+      f:write("\n")
+   end
+   f:write("#Product Stoichiometric Matrix\n")
+   for _,r in ipairs(reactions) do
+      f:write(reacToStoichMatrix(r.prodIdx, r.prodCoeffs, #species))
+      f:write("\n")
+   end
+   f:write("#Anonymous collider? No : 0, Yes : 1\n")
+   for _,r in ipairs(reactions) do
+      f:write(effToStr(r, #species))
+      f:write("\n")
+   end
+   f:close()
+end
+
 --%----------------------------------
 --  Main coordinating routine.
 --%----------------------------------
 function main()
-   local inFname, outFname
+   local gmodelName, inFname, outFname
    local doCompact = false
    if ( #arg == 0 or arg[1] == "--help" ) then
       printHelp()
    end
    
-   if ( #arg < 2 ) then
+   if ( #arg < 3 ) then
       print("Not enough arguments or unknown option.")
       print("Exiting program without doing anything.")
       printHelp()
    end
 
-   if ( #arg == 3 ) then
+   if ( #arg == 4 ) then
       -- Check we did ask for compact notation.
       if ( arg[1] ~= "--compact" ) then
 	 print(format.string("The option '%s' is not recognised."))
 	 print("Exiting program without doing anything.")
 	 printHelp()
       end
+      gmodelName = arg[2]
+      inFname = arg[3]
+      outFname = arg[4]
+      doCompact = true
+   else
+      gmodelName = arg[1]
       inFname = arg[2]
       outFname = arg[3]
-      doCompact = true
-      print("--compact not implemented yet.")
-      os.exit(1)
-   else
-      inFname = arg[1]
-      outFname = arg[2]
+   end
+   -- Execute gas model file, just so we can get the list of species.
+   dofile(gmodelName)
+   -- Now we'll make the species table give us reverse look up.
+   -- For a given species name, we want its D (0-offset) index
+   for i, sp in ipairs(species) do
+      species[sp] = i-1
    end
    -- Transform reactions internally
    dofile(inFname)

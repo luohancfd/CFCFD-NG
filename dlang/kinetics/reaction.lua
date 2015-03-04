@@ -440,3 +440,37 @@ function reacToLuaStr(r, i)
    rstr = rstr .. "}"
    return rstr
 end
+
+function reacToStoichMatrix(spIdx, coeffs, nsp)
+   -- Combine spIdx and coeffs into single table
+   local stoichTab = {}
+   for i=1,#spIdx do
+      stoichTab[spIdx[i]] = coeffs[i]
+   end
+   local str = ""
+   for isp=0,nsp-1 do
+      if stoichTab[isp] then
+	 str = str..string.format("%d ", stoichTab[isp])
+      else
+	 str = str.."0 "
+      end
+   end
+   return str
+end
+
+function effToStr(reac, nsp)
+   local str = ""
+   if not r.anonymousCollider then
+      str = str.."0"
+      return str
+   end
+   str = str.."1 "
+   for isp=0,nsp-1 do
+      if r.efficiencies[isp] then
+	 str = str..string.format("%12.6f ", r.efficiencies[isp])
+      else
+	 str = str..string.format("%12.6f ", 0.0)
+      end
+   end
+   return str
+end
