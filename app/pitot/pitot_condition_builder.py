@@ -55,7 +55,8 @@ def check_new_inputs(cfg):
         print "'driver_condition_list' variable not specified. Bailing out."
         print "Variable needs to be a list containing valid driver conditions."
         cfg['bad_input'] = True
-    driver_condition_check_list = ['He:0.80,Ar:0.20', 'He:0.90,Ar:0.10', 'He:1.0']
+    driver_condition_check_list = ['He:0.80,Ar:0.20', 'He:0.90,Ar:0.10', 'He:1.0', 
+                                   'He:0.60,Ar:0.40']
     for driver_condition in cfg['driver_condition_list']:
         if driver_condition not in driver_condition_check_list:
             print "Invalid driver condition found in 'driver_condition_list'. Bailing out."
@@ -369,6 +370,8 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
         driver_condition = 'He:0.9 Ar:0.1'
     elif cfg['driver_gas'] == 'He:0.80,Ar:0.20':
         driver_condition = 'He:0.8 Ar:0.2'
+    elif cfg['driver_gas'] == 'He:0.60,Ar:0.40':
+        driver_condition = 'He:0.6 Ar:0.4'
     
     results['test number'].append(cfg['test_number'])
     results['driver condition'].append(driver_condition)

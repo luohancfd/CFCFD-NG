@@ -234,13 +234,16 @@ def input_checker(cfg):
             print "Bailing out."
             cfg['bad_input'] = True
         if 'driver_composition' not in cfg:
-            print "You have specified a custom facility but have not set 'driver_composition' variable."
-            print "Bailing out."
-            cfg['bad_input'] = True
-        if not isinstance(cfg['driver_composition'], dict):
-            print "'driver_composition' variable is not a valid Python dictionary."
-            print "Bailing out."
-            cfg['bad_input'] = True
+            #bail out here if they haven't specified pg driver details
+            if 'driver_pg_gam' not in cfg or 'driver_pg_R' not in cfg:
+                print "You have specified a custom facility but have not set 'driver_composition' variable."
+                print "Bailing out."
+                cfg['bad_input'] = True
+        if 'driver_composition' in cfg:
+            if not isinstance(cfg['driver_composition'], dict):
+                print "'driver_composition' variable is not a valid Python dictionary."
+                print "Bailing out."
+                cfg['bad_input'] = True
         if 'driver_inputUnits' not in cfg:
             print "'driver_inputUnits' not set. Setting it to 'moles'."
             cfg['driver_inputUnits'] = 'moles'
@@ -451,8 +454,11 @@ def start_message(cfg, states):
         if not cfg['facility'] == 'custom': 
             print "Facility is {0}. Driver condition is {1}.".format(cfg['facility'], cfg['piston'])
             print "Driver gas is {0}.".format(cfg['driver_gas'])
-        if cfg['facility'] == 'custom': 
-            print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_composition'])
+        if cfg['facility'] == 'custom':
+            if 'driver_composition' in cfg:
+                print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_composition'])
+            else:
+                print "Facility is {0}. Driver gas is a perfect gas with gam = {1} and R = {2}.".format(cfg['facility'], cfg['driver_pg_gam'], cfg['driver_pg_R'])
         print "Driver burst conditions are p4 = {0} Pa, T4 = {1} K, M_throat = {2}."\
               .format(cfg['p4'], cfg['T4'], cfg['M_throat'])
         
@@ -496,6 +502,8 @@ def state_builder(cfg):
     #unsteady expansion, this was based on calcs done by RGM
 
     primary_driver_x2 = {'He:1.0':[Gas({'He':1.0},inputUnits='moles'),2.15],
+                        'He:0.98,Ar:0.02-off-design':[Gas({'He':0.98,'Ar':0.02},inputUnits='moles',
+                                              outputUnits='moles'),2.15],
                        'He:0.80,Ar:0.20':[Gas({'He':0.8,'Ar':0.2},inputUnits='moles',
                                               outputUnits='moles'),1],
                         'He:0.90,Ar:0.10':[Gas({'He':0.9,'Ar':0.1},inputUnits='moles',
@@ -599,7 +607,8 @@ def state_builder(cfg):
 
     elif cfg['facility'] == 'x3':
         states['s4']=primary_driver_x3[cfg['driver_gas']][0].clone()
-        cfg['p4'] = 2.79e7; cfg['T4'] = 2700.0 #Pa, K
+        if cfg['piston'] == 'x3':
+            cfg['p4'] = 2.79e7; cfg['T4'] = 2700.0 #Pa, K
         states['s4'].set_pT(cfg['p4'],cfg['T4'])
         V['s4']=0.0
         M['s4']=0.0
@@ -608,18 +617,30 @@ def state_builder(cfg):
         
     elif cfg['facility'] == 'custom':
         # set driver fill condition
-        print "Custom driver gas is {0}.".format(cfg['driver_composition'])
+        if 'driver_composition' in cfg:
+            print "Custom driver gas is {0}.".format(cfg['driver_composition'])
+        else:
+            print "Using custom pg driver gas with gam = {0} and R = {1}."\
+            .format(cfg['driver_pg_gam'], cfg['driver_pg_R'])
         if 'T4' in cfg and 'p4' in cfg:
             # if T4 and p4 are set, cut the crap and just set the burst condition
             print "Driver burst conditions have been specified, building burst state."
             print "p4 = {0} Pa, T4 = {1} K.".format(cfg['p4'], cfg['T4'])
-            states['s4'] = Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'],
-                               outputUnits=cfg['driver_inputUnits'])
+            if 'driver_composition' in cfg:
+                states['s4'] = Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'],
+                                   outputUnits=cfg['driver_inputUnits'])
+            else:
+                states['s4']=pg.Gas(Mmass=8314.4621/cfg['driver_pg_R'],
+                                                     gamma=cfg['driver_pg_gam'], name='s1')                  
             states['s4'].set_pT(cfg['p4'],cfg['T4'])
         else:
             print "Custom driver fill condition is {0} Pa, {1} K.".format(cfg['driver_p'], cfg['driver_T'])
-            states['primary_driver_fill']=Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'],
-                                              outputUnits=cfg['driver_inputUnits'])
+            if 'driver_composition' in cfg:
+                states['primary_driver_fill']=Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'],
+                                                  outputUnits=cfg['driver_inputUnits'])
+            else:
+                states['primary_driver_fill']=pg.Gas(Mmass=8314.4621/cfg['driver_pg_R'],
+                                                     gamma=cfg['driver_pg_gam'], name='s1')    
             states['primary_driver_fill'].set_pT(cfg['driver_p'],cfg['driver_T'])
             # now do the compression to state 4
             # If both p4 and compression ratio are set, code will use p4

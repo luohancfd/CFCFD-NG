@@ -226,24 +226,6 @@ def shock_tube_calculation(cfg, states, V, M):
         V3,V3g = normal_shock(statesd2,Vsd2g-Vr,state3)
     
         return (state3.p-state2.p)/state2.p
-            
-        
-        #Across the contact surface, p3 == p2
-        p3 = state2.p
-        
-        # therefore we know the required pressure ratio across our shock
-        
-        print 'shocking state psd2 = {0} Pa, p3 = {1} Pa'.format(shocking_state.p,p3)
-        
-        (Vs1found, V3, V3g, state3) = normal_shock_p2p1(shocking_state, p3/shocking_state.p)
-        
-        print 'Vs1 found is {0} m/s'.format(Vs1found)
-        
-        print 'V2g = {0} m/s, V3g = {1} m/s'.format(V2g,V3g)
-        
-        print 'V3 = {0} m/s'.format(V3)
-        
-        return (V2g - V3g)/V2g        
         
     def error_in_velocity_shock_tube_expansion_shock_speed_iterator(Vs1,
                                                 expanding_state=states[cfg['shock_tube_expansion']], 

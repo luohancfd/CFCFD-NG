@@ -217,7 +217,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "19-Jan-2015"
+VERSION_STRING = "04-Mars-2015"
 
 DEBUG_PITOT = False
 
@@ -555,7 +555,7 @@ if __name__ == '__main__':
             print " "
             cfg = {'solver':'eq', 'test':'fulltheory-pressure',
                    'mode':'printout', 'area_ratio':2.5,
-                   'facility':'x3', 'nozzle':False, 'secondary': True,
+                   'facility':'x3', 'piston':'x3', 'nozzle':False, 'secondary': True,
                    'driver_gas':'He:0.60,Ar:0.40', 'test_gas':'air',
                    'psd1':133000.0, 'p1':73000.0, 'p5':210.0, 
                    'shock_switch':True, 'filename':demo}

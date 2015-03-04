@@ -112,12 +112,20 @@ def txt_file_output(cfg, states, V, M):
     print test_gas_used
     txt_output.write(test_gas_used + '\n')  
     if cfg['solver'] == 'eq':
-        driver_gas_used = 'Driver gas is {0}.'.format(states['s4'].reactants)   
+        if 'driver_pg_gam' not in cfg: # driver will be pg if it is!
+            driver_gas_used = 'Driver gas is {0}.'.format(states['s4'].reactants)  
+        else:
+            driver_gas_used = "Driver gas is a perfect gas with gam = {0} and R = {1}."\
+            .format(cfg['driver_pg_gam'], cfg['driver_pg_R'])            
     else:
         if cfg['facility'] != 'custom':
             driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])
         else:
-            driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_composition'])
+            if 'driver_composition' in cfg:
+                driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_composition'])
+            else:
+                driver_gas_used = "Driver gas is a perfect gas with gam = {0} and R = {1}."\
+                .format(cfg['driver_pg_gam'], cfg['driver_pg_R'])
     print driver_gas_used
     txt_output.write(driver_gas_used + '\n') 
             
@@ -485,7 +493,10 @@ def csv_file_output(cfg, states, V, M):
         if cfg['facility'] != 'custom':
             csv_driver_gas_used = 'Driver gas,{0}.'.format(cfg['driver_gas'])
         else:
-            csv_driver_gas_used = 'Driver gas,{0}.'.format(cfg['driver_composition'])
+            if 'driver_composition' in cfg:
+                csv_driver_gas_used = 'Driver gas,{0}.'.format(cfg['driver_composition'])
+            else:
+                csv_driver_gas_used = 'Driver gas,custom pg, gam,{0},R,{1}'.format(cfg['driver_pg_gam'], cfg['driver_pg_R'])
     csv_output.write(csv_driver_gas_used + '\n') 
             
     if cfg['secondary']:
