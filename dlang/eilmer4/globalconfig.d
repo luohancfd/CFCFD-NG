@@ -77,11 +77,11 @@ class IgnitionZone : BlockZone {
 final class GlobalConfig {
     static string base_file_name = "job"; // Change this to suit at run time.
     static string title = "Eilmer4 simulation"; // Change this to suit at run time.
-    static string gasModelFile = "gas-model.lua";
+    static string gas_model_file = "gas-model.lua";
     static GasModel gmodel;
 
     static int nBlocks; // Number of blocks in the overall simulation.
-    static int dimensions = 2; // or 3
+    static int dimensions = 2; // default is 2, other valid option is 3
     static bool axisymmetric = false;
 
     // Parameters controlling convective update
@@ -115,7 +115,7 @@ final class GlobalConfig {
     // High-order reconstruction (2) adds a correction term to the cell-centre values
     // to approach something like a piecewise-quadratic interpolation between the
     // cell centres.
-    static int Xorder = 2; 
+    static int interpolation_order = 2; 
 
     // Default flow-data reconstruction includes interpolation of density 
     // and internal energy.  Other options for the thermodunamic properties
@@ -182,8 +182,8 @@ final class GlobalConfig {
     static double diffusion_schmidt = 0.7;
 
     static TurbulenceModel turbulence_model = TurbulenceModel.none;
-    static double turbulence_prandtl = 0.89;
-    static double turbulence_schmidt = 0.75;
+    static double turbulence_prandtl_number = 0.89;
+    static double turbulence_schmidt_number = 0.75;
     static double max_mu_t_factor = 300.0;
     static double transient_mu_t_factor = 1.0;
     static BlockZone[] turbulent_zones;
@@ -228,15 +228,15 @@ final class GlobalConfig {
     static double T_frozen_energy; // temperature (in K) below which energy exchanges are skipped
     static BlockZone[] reaction_zones;
 
-    static int max_step;            // iteration limit
+    static int max_step = 10;       // iteration limit
     static int t_level;             // time level within update
     static int halt_now = 0;        // flag for premature halt
     static bool halt_on_large_flow_change = false; 
     // Set to true to halt simulation when any
     // monitor point sees a large flow change.
     static double tolerance_in_T;   // Temperature change for the flow change.
-    static int print_count; // Number of steps between writing messages to console.
-    static int control_count; // Number of steps between rereading .control file.
+    static int print_count = 20; // Number of steps between writing messages to console.
+    static int control_count = 10; // Number of steps between rereading .control file.
 
     static int verbosity_level = 1;
     // Messages have a hierarchy:  // [TODO] we are not really abiding by this.
@@ -245,18 +245,18 @@ final class GlobalConfig {
     // 2 : plus verbose init messages
     // 3 : plus verbose boundary condition messages
 
-    static double max_time;        // final solution time, s, set by user
-    static double dt_init;         // initial time step set by user
+    static double max_time = 1.0e-3; // final solution time, s, set by user
+    static double dt_init = 1.0e-6; // initial time step set by user
+    static double dt_max = 1.0e-3; // Maximum allowable time-step, after all other considerations.
     static double cfl_value = 0.5; // target CFL number (worst case) set by user
     static bool stringent_cfl = false; 
     // If true, assume the worst with respect to cell geometry and wave speed.
     static size_t cfl_count = 10;  // steps between checking time step size
-    static double dt_max; // Maximum allowable time-step, after all other considerations.
     static bool fixed_time_step = false; // set true to fix dt_allow
 
-    static size_t write_at_step;   // update step at which to write a solution, 0=don't do it
-    static double dt_plot;         // interval for writing soln
-    static double dt_history;      // interval for writing sample
+    static size_t write_at_step = 0; // update step at which to write a solution, 0=don't do it
+    static double dt_plot = 1.0e-3; // interval for writing soln
+    static double dt_history = 1.0e-3; // interval for writing sample
 
     static double energy_residual;      // to be monitored for steady state
     static Vector3 energy_residual_loc; // location of largest value

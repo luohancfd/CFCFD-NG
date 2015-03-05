@@ -154,7 +154,7 @@ void one_d_interp_both(in FVInterface IFace,
     // the viscous-transport and diffusion coefficients.
     Lft.copy_values_from(cL0.fs);
     Rght.copy_values_from(cR0.fs);
-    if ( GlobalConfig.Xorder > 1 ) {
+    if ( GlobalConfig.interpolation_order > 1 ) {
 	// High-order reconstruction for some properties.
 	if ( GlobalConfig.interpolate_in_local_frame ) {
 	    // Paul Petrie-Repar and Jason Qin have noted that the velocity needs
@@ -307,7 +307,7 @@ void one_d_interp_left(in FVInterface IFace,
     // the viscous-transport and diffusion coefficients.
     Lft.copy_values_from(cL0.fs);
     Rght.copy_values_from(cR0.fs);
-    if ( GlobalConfig.Xorder > 1 ) {
+    if ( GlobalConfig.interpolation_order > 1 ) {
 	// High-order reconstruction for some properties.
 	if ( GlobalConfig.interpolate_in_local_frame ) {
 	    // In the interface-local frame.
@@ -420,7 +420,7 @@ void one_d_interp_right(in FVInterface IFace,
     // the viscous-transport and diffusion coefficients.
     Lft.copy_values_from(cL0.fs);
     Rght.copy_values_from(cR0.fs);
-    if ( GlobalConfig.Xorder > 1 ) {
+    if ( GlobalConfig.interpolation_order > 1 ) {
 	// High-order reconstruction for some properties.
 	if ( GlobalConfig.interpolate_in_local_frame ) {
 	    // In the interface-local frame.

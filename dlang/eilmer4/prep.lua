@@ -2,63 +2,9 @@
 -- A place to put helper functions and classes for the preparation activities.
 -- 
 print("Loading prep.lua...")
--- --------------------------------------------------------------------------
 
-blocks = {} -- storage for later definitions of Block objects
-
-gdata = {
-   title = "An Eilmer4 Simulation.",
-   dimensions = 2,
-   axisymmetric_flag = false,
-
-   gas_model_file = "gas_model.lua",
-   mhd_flag = false,
-   radiation_flag = false,
-
-   gasdynamic_update_scheme = "predictor-corrector",
-   x_order = 2,
-   interpolation_type = "rhoe",
-   interpolate_in_local_frame = true,
-   apply_limiter_flag = true,
-   extrema_clipping_flag = true,
-   flux_calc = "adaptive",
-   compression_tolerance = -0.30,
-   shear_tolerance = 0.20,
-   M_inf = 0.01,
-   cfl = 0.5,
-   stringent_cfl = false,
-   fixed_time_step = false,
-   dt_reduction_factor = 0.2,
-   dt = 1.0e-6,
-   dt_max = 1.0e-3,
-
-   viscous_flag = false,
-   separate_update_for_viscous_flag = false,
-   implicit_flag = false,
-
-   turbulence_model = "none",
-   turbulence_prandtl_number = 0.89,
-   turbulence_schmidt_number = 0.75,
-   max_mu_t_factor = 300.0,
-   transient_mu_t_factor = 1.0,
-   separate_update_for_k_omega_source = false,
-
-   reacting_flag = false,
-   dt_chem = -1.0,
-
-   print_count = 20,
-   control_count = 10,
-   cfl_count = 10,
-   max_invalid_cells = 10,
-   max_time = 1.0e-3,
-   max_step = 10,
-   dt_plot = 1.0e-3,
-   dt_history = 1.0e-3,
-   write_at_step = 0,
-   halt_now = 0,
-} -- end gdata
-
--- -------------------------------------------------------------------------------
+-- Storage for later definitions of Block objects
+blocks = {}
 
 -- Symbolic names for identifying boundaries
 north = "north"; NORTH = "north"
@@ -161,7 +107,7 @@ function SBlock:new(o)
    self.__index = self
    -- Fill in default values, if already not set
    o.bcList = o.bcList or {}
-   for _,face in ipairs(faceList(gdata.dimensions)) do
+   for _,face in ipairs(faceList(config.dimensions)) do
       o.bcList[face] = o.bcList[face] or SlipWallBC:new()
    end
    o.hcellList = o.hcellList or {}
@@ -170,7 +116,7 @@ function SBlock:new(o)
    -- Note 0-based indexing for vertices and cells.
    o.nic = o.grid:get_niv() - 1
    o.njc = o.grid:get_njv() - 1
-   if gdata.dimensions == 3 then
+   if config.dimensions == 3 then
       o.nkc = o.grid:get_nkv() - 1
       o.p000 = o.grid:get_vtx(0, 0, 0)
       o.p100 = o.grid:get_vtx(o.nic, 0, 0)
@@ -205,7 +151,7 @@ function SBlock:tojson()
    str = str .. string.format('    "nhcell": %d,\n', #(self.hcellList))
    for i = 1, #(self.hcellList) do
       local hcell = self.hcellList[i]
-      if gdata.dimensions == 3 then
+      if config.dimensions == 3 then
 	 str = str .. string.format('    "history-cell-%d": [%d, %d, %d],\n', 
 				    i-1, hcell[1], hcell[2], hcell[3])
       else
@@ -214,7 +160,7 @@ function SBlock:tojson()
       end
    end
    -- Boundary conditions
-   for _,face in ipairs(faceList(gdata.dimensions)) do
+   for _,face in ipairs(faceList(config.dimensions)) do
       str = str .. string.format('    "face_%s": ', face) ..
 	 self.bcList[face]:tojson() .. ',\n'
    end
@@ -245,26 +191,26 @@ end
 function write_control_file(fileName)
    local f = assert(io.open(fileName, "w"))
    f:write("{\n")
-   f:write(string.format('"x_order": %d,\n', gdata.x_order))
+   f:write(string.format('"x_order": %d,\n', config.x_order))
    f:write(string.format('"gasdynamic_update_scheme": "%s",\n',
-			 gdata.gasdynamic_update_scheme))
-   f:write(string.format('"separate_update_for_viscous_flag": %s,\n',
-			 tostring(gdata.separate_update_for_viscous_flag)))
-   f:write(string.format('"implicit_flag": %s,\n', tostring(gdata.implicit_flag)))
-   f:write(string.format('"dt": %e,\n', gdata.dt))
-   f:write(string.format('"dt_max": %e,\n', gdata.dt_max))
-   f:write(string.format('"cfl": %e,\n', gdata.cfl))
-   f:write(string.format('"stringent_cfl": %s,\n', tostring(gdata.stringent_cfl)))
-   f:write(string.format('"fixed_time_step": %s,\n', tostring(gdata.fixed_time_step)))
-   f:write(string.format('"dt_reduction_factor": %e,\n', gdata.dt_reduction_factor))
-   f:write(string.format('"print_count": %d,\n', gdata.print_count))
-   f:write(string.format('"cfl_count": %d,\n', gdata.cfl_count))
-   f:write(string.format('"max_time": %e,\n', gdata.max_time))
-   f:write(string.format('"max_step": %d,\n', gdata.max_step))
-   f:write(string.format('"dt_plot": %e,\n', gdata.dt_plot))
-   f:write(string.format('"dt_history": %e,\n', gdata.dt_history))
-   f:write(string.format('"write_at_step": %d,\n', gdata.write_at_step))
-   f:write('"halt_now": 0\n') -- presumably, we want the simulation to proceed
+			 config.gasdynamic_update_scheme))
+   f:write(string.format('"separate_update_for_viscous_terms": %s,\n',
+			 tostring(config.separate_update_for_viscous_terms)))
+   --f:write(string.format('"implicit_flag": %s,\n', tostring(config.implicit_flag)))
+   f:write(string.format('"dt_init": %e,\n', config.dt_init))
+   f:write(string.format('"dt_max": %e,\n', config.dt_max))
+   f:write(string.format('"cfl_value": %e,\n', config.cfl_value))
+   f:write(string.format('"stringent_cfl": %s,\n', tostring(config.stringent_cfl)))
+   f:write(string.format('"fixed_time_step": %s,\n', tostring(config.fixed_time_step)))
+   f:write(string.format('"dt_reduction_factor": %e,\n', config.dt_reduction_factor))
+   f:write(string.format('"print_count": %d,\n', config.print_count))
+   f:write(string.format('"cfl_count": %d,\n', config.cfl_count))
+   f:write(string.format('"max_time": %e,\n', config.max_time))
+   f:write(string.format('"max_step": %d,\n', config.max_step))
+   f:write(string.format('"dt_plot": %e,\n', config.dt_plot))
+   f:write(string.format('"dt_history": %e,\n', config.dt_history))
+   f:write(string.format('"write_at_step": %d,\n', config.write_at_step))
+   f:write(string.format('"halt_now": %d\n', config.halt_now))
    -- Note, also, no comma on last entry in JSON object.
    f:write("}\n")
    f:close()
@@ -273,40 +219,40 @@ end
 function write_config_file(fileName)
    local f = assert(io.open(fileName, "w"))
    f:write("{\n")
-   f:write(string.format('"title": "%s",\n', gdata.title))
-   f:write(string.format('"dimensions": %d,\n', gdata.dimensions))
-   f:write(string.format('"axisymmetric_flag": %s,\n',
-			 tostring(gdata.axisymmetric_flag)))
-   f:write(string.format('"gas_model_file": "%s",\n', gdata.gas_model_file))
+   f:write(string.format('"title": "%s",\n', config.title))
+   f:write(string.format('"dimensions": %d,\n', config.dimensions))
+   f:write(string.format('"axisymmetric": %s,\n',
+			 tostring(config.axisymmetric)))
+   f:write(string.format('"gas_model_file": "%s",\n', config.gas_model_file))
 
-   f:write(string.format('"interpolation_type": "%s",\n', 
-			 string.lower(gdata.interpolation_type)))
+   f:write(string.format('"thermo_interpolator": "%s",\n', 
+			 string.lower(config.thermo_interpolator)))
    f:write(string.format('"interpolate_in_local_frame": %s,\n', 
-			 tostring(gdata.interpolate_in_local_frame)))
-   f:write(string.format('"apply_limiter_flag": %s,\n', tostring(gdata.apply_limiter_flag)))
+			 tostring(config.interpolate_in_local_frame)))
+   f:write(string.format('"apply_limiter_flag": %s,\n', tostring(config.apply_limiter_flag)))
    f:write(string.format('"extrema_clipping_flag": %s,\n',
-			 tostring(gdata.extrema_clipping_flag)))
+			 tostring(config.extrema_clipping_flag)))
 
-   f:write(string.format('"flux_calc": "%s",\n', gdata.flux_calc))
-   f:write(string.format('"compression_tolerance": %e,\n', gdata.compression_tolerance))
-   f:write(string.format('"shear_tolerance": %e,\n', gdata.shear_tolerance))
-   f:write(string.format('"M_inf": %e,\n', gdata.M_inf))
-   f:write(string.format('"viscous_flag": %s,\n', tostring(gdata.viscous_flag)))
+   f:write(string.format('"flux_calculator": "%s",\n', config.flux_calculator))
+   f:write(string.format('"compression_tolerance": %e,\n', config.compression_tolerance))
+   f:write(string.format('"shear_tolerance": %e,\n', config.shear_tolerance))
+   f:write(string.format('"M_inf": %e,\n', config.M_inf))
+   f:write(string.format('"viscous": %s,\n', tostring(config.viscous)))
 
    f:write(string.format('"turbulence_model": "%s",\n',
-			 string.lower(gdata.turbulence_model)))
+			 string.lower(config.turbulence_model)))
    f:write(string.format('"turbulence_prandtl_number": %g,\n',
-			 gdata.turbulence_prandtl_number))
+			 config.turbulence_prandtl_number))
    f:write(string.format('"turbulence_schmidt_number": %g,\n',
-			 gdata.turbulence_schmidt_number))
-   f:write(string.format('"max_mu_t_factor": %e,\n', gdata.max_mu_t_factor))
-   f:write(string.format('"transient_mu_t_factor": %e,\n', gdata.transient_mu_t_factor))
+			 config.turbulence_schmidt_number))
+   f:write(string.format('"max_mu_t_factor": %e,\n', config.max_mu_t_factor))
+   f:write(string.format('"transient_mu_t_factor": %e,\n', config.transient_mu_t_factor))
    f:write(string.format('"separate_update_for_k_omega_source": %s,\n', 
-			 tostring(gdata.separate_update_for_k_omega_source)))
+			 tostring(config.separate_update_for_k_omega_source)))
 
-   f:write(string.format('"reacting_flag": %s,\n', tostring(gdata.reacting_flag)))
-   f:write(string.format('"max_invalid_cells": %d,\n', gdata.max_invalid_cells))
-   f:write(string.format('"control_count": %d,\n', gdata.control_count))
+   f:write(string.format('"reacting": %s,\n', tostring(config.reacting)))
+   f:write(string.format('"max_invalid_cells": %d,\n', config.max_invalid_cells))
+   f:write(string.format('"control_count": %d,\n', config.control_count))
 
    f:write(string.format('"nblock": %d,\n', #(blocks)))
    for i = 1, #blocks do
@@ -320,7 +266,7 @@ end
 function write_times_file(fileName)
    local f = assert(io.open(fileName, "w"))
    f:write("# tindx sim_time dt_global\n");
-   f:write(string.format("%04d %12.6e %12.6e\n", 0, 0.0, gdata.dt))
+   f:write(string.format("%04d %12.6e %12.6e\n", 0, 0.0, config.dt_init))
    f:close()
 end
 

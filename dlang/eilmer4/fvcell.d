@@ -1218,7 +1218,7 @@ public:
 	S_bar_squared = fmax(0.0, S_bar_squared);
 	double omega_t = fmax(fs.omega, C_lim*sqrt(2.0*S_bar_squared/beta_star));
 	fs.mu_t = fs.gas.rho * fs.tke / omega_t;
-	double Pr_t = GlobalConfig.turbulence_prandtl;
+	double Pr_t = GlobalConfig.turbulence_prandtl_number;
 	auto gmodel = GlobalConfig.gmodel;
 	fs.k_t = gmodel.Cp(fs.gas) * fs.mu_t / Pr_t;
     } // end turbulence_viscosity_k_omega()

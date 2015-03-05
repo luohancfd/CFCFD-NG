@@ -140,7 +140,7 @@ enum FluxCalculator {
     hlle // MHD HLLE approximate Riemann solver
 }
 
-string fluxcalc_name(FluxCalculator fcalc)
+string flux_calculator_name(FluxCalculator fcalc)
 {
     final switch ( fcalc ) {
     case FluxCalculator.ausmdv: return "ausmdv";
@@ -151,7 +151,7 @@ string fluxcalc_name(FluxCalculator fcalc)
     }
 }
 
-FluxCalculator fluxcalc_from_name(string name)
+FluxCalculator flux_calculator_from_name(string name)
 {
     switch ( name ) {
     case "ausmdv": return FluxCalculator.ausmdv;

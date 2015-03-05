@@ -45,13 +45,13 @@ void read_config_file()
     // Now that we have parsed JSON data, dip into it to get config values.
     //
     GlobalConfig.title = jsonData["title"].str;
-    string gasModelFile = jsonData["gas_model_file"].str;
-    GlobalConfig.gmodel = init_gas_model(gasModelFile);
+    GlobalConfig.gas_model_file = jsonData["gas_model_file"].str;
+    GlobalConfig.gmodel = init_gas_model(GlobalConfig.gas_model_file);
     GlobalConfig.dimensions = getJSONint(jsonData, "dimensions", 2);
     GlobalConfig.axisymmetric = getJSONbool(jsonData, "axisymmetric_flag", false);
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  title: ", GlobalConfig.title);
-	writeln("  gasModelFile: ", gasModelFile);
+	writeln("  gas_model_file: ", GlobalConfig.gas_model_file);
 	writeln("  dimensions: ", GlobalConfig.dimensions);
 	writeln("  axisymmetric: ", GlobalConfig.axisymmetric);
     }
@@ -73,8 +73,8 @@ void read_config_file()
     GlobalConfig.interpolate_in_local_frame = 
 	getJSONbool(jsonData, "interpolate_in_local_frame", true);
     try {
-	string name = jsonData["flux_calc"].str;
-	GlobalConfig.flux_calculator = fluxcalc_from_name(name);
+	string name = jsonData["flux_calculator"].str;
+	GlobalConfig.flux_calculator = flux_calculator_from_name(name);
     } catch (Exception e) {
 	GlobalConfig.flux_calculator = FluxCalculator.adaptive;
     }
@@ -93,7 +93,7 @@ void read_config_file()
 	writeln("  apply_limiter: ", GlobalConfig.apply_limiter);
 	writeln("  extrema_clipping: ", GlobalConfig.extrema_clipping);
 	writeln("  interpolate_in_local_frame: ", GlobalConfig.interpolate_in_local_frame);
-	writeln("  flux_calculator: ", fluxcalc_name(GlobalConfig.flux_calculator));
+	writeln("  flux_calculator: ", flux_calculator_name(GlobalConfig.flux_calculator));
 	writeln("  shear_tolerance: ", GlobalConfig.shear_tolerance);
 	writeln("  M_inf: ", GlobalConfig.M_inf);
 	writeln("  compression_tolerance: ", GlobalConfig.compression_tolerance);
@@ -113,9 +113,9 @@ void read_config_file()
     } catch (Exception e) {
 	GlobalConfig.turbulence_model = TurbulenceModel.none;
     }
-    GlobalConfig.turbulence_prandtl =
+    GlobalConfig.turbulence_prandtl_number =
 	getJSONdouble(jsonData, "turbulence_prandtl_number", 0.89);
-    GlobalConfig.turbulence_schmidt =
+    GlobalConfig.turbulence_schmidt_number =
 	getJSONdouble(jsonData, "turbulence_schmidt_number", 0.75);
     GlobalConfig.max_mu_t_factor = getJSONdouble(jsonData, "max_mu_t_factor", 300.0);
     GlobalConfig.transient_mu_t_factor = getJSONdouble(jsonData, "transient_mu_t_factor", 1.0);
@@ -124,8 +124,8 @@ void read_config_file()
 	writeln("  viscous_delay: ", GlobalConfig.viscous_delay);
 	writeln("  viscous_factor_increment: ", GlobalConfig.viscous_factor_increment);
 	writeln("  turbulence_model: ", turbulence_model_name(GlobalConfig.turbulence_model));
-	writeln("  turbulence_prandtl: ", GlobalConfig.turbulence_prandtl);
-	writeln("  turbulence_schmidt: ", GlobalConfig.turbulence_schmidt);
+	writeln("  turbulence_prandtl_number: ", GlobalConfig.turbulence_prandtl_number);
+	writeln("  turbulence_schmidt_number: ", GlobalConfig.turbulence_schmidt_number);
 	writeln("  max_mu_t_factor: ", GlobalConfig.max_mu_t_factor);
 	writeln("  transient_mu_t_factor: ", GlobalConfig.transient_mu_t_factor);
     }
@@ -179,7 +179,7 @@ void read_control_file()
 	exit(1);
     }
 
-    GlobalConfig.Xorder = getJSONint(jsonData, "x_order", 2);
+    GlobalConfig.interpolation_order = getJSONint(jsonData, "interpolation_order", 2);
     try {
 	string name = jsonData["gasdynamic_update_scheme"].str;
 	GlobalConfig.gasdynamic_update_scheme = update_scheme_from_name(name);
@@ -202,7 +202,7 @@ void read_control_file()
     GlobalConfig.dt_plot = getJSONdouble(jsonData, "dt_plot", 1.0e-3);
     GlobalConfig.dt_history = getJSONdouble(jsonData, "dt_history", 1.0e-3);
     if (GlobalConfig.verbosity_level > 1) {
-	writeln("  Xorder: ", GlobalConfig.Xorder);
+	writeln("  interpolation_order: ", GlobalConfig.interpolation_order);
 	writeln("  gasdynamic_update_scheme: ",
 		gasdynamic_update_scheme_name(GlobalConfig.gasdynamic_update_scheme));
 	writeln("  separate_update_for_viscous_terms: ", GlobalConfig.separate_update_for_viscous_terms);
