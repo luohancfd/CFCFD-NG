@@ -191,7 +191,7 @@ end
 function write_control_file(fileName)
    local f = assert(io.open(fileName, "w"))
    f:write("{\n")
-   f:write(string.format('"x_order": %d,\n', config.x_order))
+   f:write(string.format('"interpolation_order": %d,\n', config.interpolation_order))
    f:write(string.format('"gasdynamic_update_scheme": "%s",\n',
 			 config.gasdynamic_update_scheme))
    f:write(string.format('"separate_update_for_viscous_terms": %s,\n',
@@ -229,9 +229,8 @@ function write_config_file(fileName)
 			 string.lower(config.thermo_interpolator)))
    f:write(string.format('"interpolate_in_local_frame": %s,\n', 
 			 tostring(config.interpolate_in_local_frame)))
-   f:write(string.format('"apply_limiter_flag": %s,\n', tostring(config.apply_limiter_flag)))
-   f:write(string.format('"extrema_clipping_flag": %s,\n',
-			 tostring(config.extrema_clipping_flag)))
+   f:write(string.format('"apply_limiter": %s,\n', tostring(config.apply_limiter)))
+   f:write(string.format('"extrema_clipping": %s,\n', tostring(config.extrema_clipping)))
 
    f:write(string.format('"flux_calculator": "%s",\n', config.flux_calculator))
    f:write(string.format('"compression_tolerance": %e,\n', config.compression_tolerance))

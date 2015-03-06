@@ -204,6 +204,9 @@ extern(C) int configSetFromTable(lua_State* L)
     lua_getfield(L, 1, "fixed_time_step");
     if (!lua_isnil(L, -1)) GlobalConfig.fixed_time_step = to!bool(lua_toboolean(L, -1));
     lua_pop(L, 1);
+    lua_getfield(L, 1, "write_at_step");
+    if (!lua_isnil(L, -1)) GlobalConfig.write_at_step = luaL_checkint(L, -1);
+    lua_pop(L, 1);
 
     lua_getfield(L, 1, "dt_plot");
     if (!lua_isnil(L, -1)) GlobalConfig.dt_plot = to!double(luaL_checknumber(L, -1));
@@ -372,6 +375,9 @@ extern(C) int configGet(lua_State* L)
 	break;
     case "fixed_time_step":
 	lua_pushboolean(L, GlobalConfig.fixed_time_step);
+	break;
+    case "write_at_step":
+	lua_pushnumber(L, GlobalConfig.write_at_step);
 	break;
 
     case "dt_plot":

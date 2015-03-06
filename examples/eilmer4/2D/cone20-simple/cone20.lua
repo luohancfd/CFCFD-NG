@@ -7,9 +7,9 @@ job_title = "Mach 1.5 flow over a 20 degree cone."
 print(job_title)
 
 -- We can set individual attributes of the global data object.
-gdata.dimensions = 2
-gdata.title = job_title
-gdata.axisymmetric_flag = true
+config.dimensions = 2
+config.title = job_title
+config.axisymmetric = true
 
 nsp, nmodes = setGasModel('ideal-air-gas-model.lua')
 print("GasModel set to ideal air. nsp= ", nsp, " nmodes= ", nmodes)
@@ -41,10 +41,10 @@ blk0.bcList[west] = SupInBC:new{flowCondition=inflow, label="inflow-boundary"}
 blk1.bcList[east] = ExtrapolateOutBC:new{label="outflow-boundary"}
 
 -- Do a little more setting of global data.
-gdata.max_time = 5.0e-3  -- seconds
-gdata.max_step = 3000
-gdata.dt = 1.0e-6
-gdata.cfl = 0.5
--- gdata.dt_max = 10.0e-6
-gdata.dt_plot = 1.5e-3
-gdata.dt_history = 10.0e-5
+config.max_time = 5.0e-3  -- seconds
+config.max_step = 3000
+config.dt_init = 1.0e-6
+config.cfl_value = 0.5
+-- config.dt_max = 10.0e-6
+config.dt_plot = 1.5e-3
+config.dt_history = 10.0e-5

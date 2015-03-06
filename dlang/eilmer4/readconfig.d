@@ -48,7 +48,7 @@ void read_config_file()
     GlobalConfig.gas_model_file = jsonData["gas_model_file"].str;
     GlobalConfig.gmodel = init_gas_model(GlobalConfig.gas_model_file);
     GlobalConfig.dimensions = getJSONint(jsonData, "dimensions", 2);
-    GlobalConfig.axisymmetric = getJSONbool(jsonData, "axisymmetric_flag", false);
+    GlobalConfig.axisymmetric = getJSONbool(jsonData, "axisymmetric", false);
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  title: ", GlobalConfig.title);
 	writeln("  gas_model_file: ", GlobalConfig.gas_model_file);
@@ -63,13 +63,13 @@ void read_config_file()
 	getJSONbool(jsonData, "adjust_invalid_cell_data", false);
     GlobalConfig.max_invalid_cells = getJSONint(jsonData, "max_invalid_cells", 0);
     try {
-	string name = jsonData["interpolation_type"].str;
+	string name = jsonData["thermo_interpolator"].str;
 	GlobalConfig.thermo_interpolator = thermo_interpolator_from_name(name);
     } catch (Exception e) {
 	GlobalConfig.thermo_interpolator = InterpolateOption.rhoe;
     }
-    GlobalConfig.apply_limiter = getJSONbool(jsonData, "apply_limiter_flag", true);
-    GlobalConfig.extrema_clipping = getJSONbool(jsonData, "extreme_clipping_flag", true);
+    GlobalConfig.apply_limiter = getJSONbool(jsonData, "apply_limiter", true);
+    GlobalConfig.extrema_clipping = getJSONbool(jsonData, "extreme_clipping", true);
     GlobalConfig.interpolate_in_local_frame = 
 	getJSONbool(jsonData, "interpolate_in_local_frame", true);
     try {
@@ -82,9 +82,9 @@ void read_config_file()
     GlobalConfig.M_inf = getJSONdouble(jsonData, "M_inf", 0.01);
     GlobalConfig.compression_tolerance = 
 	getJSONdouble(jsonData, "compression_tolerance", -0.30);
-    GlobalConfig.moving_grid = getJSONbool(jsonData, "moving_grid_flag", false);
+    GlobalConfig.moving_grid = getJSONbool(jsonData, "moving_grid", false);
     GlobalConfig.write_vertex_velocities = 
-	getJSONbool(jsonData, "write_vertex_velocities_flag", false);
+	getJSONbool(jsonData, "write_vertex_velocities", false);
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  adjust_invalid_cell_data: ", GlobalConfig.adjust_invalid_cell_data);
 	writeln("  max_invalid_cells: ", GlobalConfig.max_invalid_cells);
@@ -103,7 +103,7 @@ void read_config_file()
 
     // Parameters controlling viscous/molecular transport
     //
-    GlobalConfig.viscous = getJSONbool(jsonData, "viscous_flag", false);
+    GlobalConfig.viscous = getJSONbool(jsonData, "viscous", false);
     GlobalConfig.viscous_delay = getJSONdouble(jsonData, "viscous_delay", 0.0);
     GlobalConfig.viscous_factor_increment = 
 	getJSONdouble(jsonData, "viscous_factor_increment", 0.01);
@@ -132,7 +132,7 @@ void read_config_file()
 
     // Parameters controlling thermochemistry
     //
-    GlobalConfig.reacting = getJSONbool(jsonData, "reacting_flag", false);
+    GlobalConfig.reacting = getJSONbool(jsonData, "reacting", false);
     // TODO GlobalConfig.reaction_update
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  reacting: ", GlobalConfig.reacting);
@@ -187,18 +187,19 @@ void read_control_file()
 	GlobalConfig.gasdynamic_update_scheme = GasdynamicUpdate.pc;
     }
     GlobalConfig.separate_update_for_viscous_terms =
-	getJSONbool(jsonData, "separate_update_for_viscous_flag", false);
+	getJSONbool(jsonData, "separate_update_for_viscous_terms", false);
     GlobalConfig.max_step = getJSONint(jsonData, "max_step", 100);
     GlobalConfig.max_time = getJSONdouble(jsonData, "max_time", 1.0e-3);
     GlobalConfig.halt_now = getJSONint(jsonData, "halt_now", 0);
     GlobalConfig.print_count = getJSONint(jsonData, "print_count", 0);
     GlobalConfig.cfl_count = getJSONint(jsonData, "cfl_count", 0);
-    GlobalConfig.dt_init = getJSONdouble(jsonData, "dt", 1.0e-6);
+    GlobalConfig.dt_init = getJSONdouble(jsonData, "dt_init", 1.0e-6);
     GlobalConfig.dt_max = getJSONdouble(jsonData, "dt_max", 1.0-3);
-    GlobalConfig.cfl_value = getJSONdouble(jsonData, "cfl", 0.5);
+    GlobalConfig.cfl_value = getJSONdouble(jsonData, "cfl_value", 0.5);
     GlobalConfig.stringent_cfl = getJSONbool(jsonData, "stringent_cfl", false);
     GlobalConfig.fixed_time_step = getJSONbool(jsonData, "fixed_time_step", false);
     GlobalConfig.dt_reduction_factor = getJSONdouble(jsonData, "dt_reduction_factor", 0.2);
+    GlobalConfig.write_at_step = getJSONint(jsonData, "write_at_step", 0);
     GlobalConfig.dt_plot = getJSONdouble(jsonData, "dt_plot", 1.0e-3);
     GlobalConfig.dt_history = getJSONdouble(jsonData, "dt_history", 1.0e-3);
     if (GlobalConfig.verbosity_level > 1) {
@@ -217,6 +218,7 @@ void read_control_file()
 	writeln("  stringent_cfl: ", GlobalConfig.stringent_cfl);
 	writeln("  dt_reduction_factor: ", GlobalConfig.dt_reduction_factor);
 	writeln("  fixed_time_step: ", GlobalConfig.fixed_time_step);
+	writeln("  write_at_step: ", GlobalConfig.write_at_step);
 	writeln("  dt_plot: ", GlobalConfig.dt_plot);
 	writeln("  dt_history: ", GlobalConfig.dt_history);
     }
