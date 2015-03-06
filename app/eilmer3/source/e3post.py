@@ -848,6 +848,10 @@ def write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, h
     fp.write("# Column 10: pos.x (m)\n")
     fp.write("# Column 11: pos.y (m)\n")
     fp.write("# Column 12: pos.z (m)\n")
+    fp.write("# Column 13: i \n")
+    fp.write("# Column 14: j \n")
+    fp.write("# Column 15: k \n")
+    fp.write("# Column 16: block index \n")        
     heat_flux_lists = heat_flux_list_str.split(';')
     if verbosity_level > 0: print "heat_flux_lists = ", heat_flux_lists
     first = True
@@ -855,7 +859,7 @@ def write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, h
     for heat_flux_str in heat_flux_lists:
 	bstr,sstr,istr,jstr,kstr = heat_flux_str.split(',')
 	bfirst,blast = decode_range_from_string(bstr, 0, nblock-1)
-        print bfirst, blast
+	if verbosity_level > 0: print bfirst, blast
 	for jb in range(bfirst,blast+1):
 	    sfirst,slast = decode_range_from_string(sstr, 0, len(hf_data[jb])-1)
 	    for js in range(sfirst,slast+1):
@@ -879,12 +883,13 @@ def write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, h
 				first = False
 			    L += vabs(pos-pos_prev)
 			    pos_prev = pos
-			    fp.write("%e %e %e %e %e %e %e %e %e %e %e %e\n" % \
+			    fp.write("%e %e %e %e %e %e %e %e %e %e %e %e %d %d %d %d\n" % \
                                          ( L, iface_data.qc, iface_data.qd, iface_data.qr,
                                            iface_data.Twall, iface_data.Tcell,
                                            iface_data.rho_cell, iface_data.un_cell, 
                                            iface_data.Re_wall, 
-                                           iface_data.x, iface_data.y, iface_data.z) )
+                                           iface_data.x, iface_data.y, iface_data.z,
+                                           i, j, k, jb) )
     #
     return 0
     
