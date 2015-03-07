@@ -22,7 +22,7 @@ from bc_defs import *
 from flux_dict import *
 import string
 
-# The folowing dictionary provides a map from inter-block connections
+# The following dictionary provides a map from inter-block connections
 # that are defined by (A,B) vertex pairs to inter-block connections that
 # are defined by (A-face, B-face, orientation, axis-map) tuples.
 # The orientation is used in the C-code to decide where to transfer data
