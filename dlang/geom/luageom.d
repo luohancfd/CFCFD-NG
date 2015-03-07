@@ -396,9 +396,7 @@ void registerVector3(LuaState lua)
     lua_pushcfunction(L, &dotVector3);
     lua_setglobal(L, "dot");
     lua_pushcfunction(L, &absVector3);
-    lua_setglobal(L, "abs"); // Need to be careful, this
-                             // clashes with the name in the
-                             // the math library.
+    lua_setglobal(L, "vabs"); // to avoid name clash with math library
     lua_pushcfunction(L, &unitVector3);
     lua_setglobal(L, "unit");
     lua_pushcfunction(L, &crossVector3);

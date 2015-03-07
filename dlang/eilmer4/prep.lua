@@ -24,27 +24,78 @@ function faceList(dimensions)
 end
 
 -- -----------------------------------------------------------------------
+
 -- Connections between 2D blocks, described as vertex-pairs.
--- When specifying a connection, we actually specify the names
--- of the connecting faces. The connection orientation is always 0.
-vtxpairs2D = {
-   [{north, south}] = {{3,0},{2,1}},
-   [{north, west}]  = {{3,3},{2,0}},
-   [{north, north}] = {{3,2},{2,3}},
-   [{north, east}]  = {{3,1},{2,2}},
-   [{west,  south}] = {{0,0},{3,1}},
-   [{west,  west}]  = {{0,3},{3,0}},
-   [{west,  north}] = {{0,2},{3,3}},
-   [{west,  east}]  = {{0,1},{3,2}},
-   [{south, south}] = {{1,0},{0,1}},
-   [{south, west}]  = {{1,3},{0,0}},
-   [{south, north}] = {{1,2},{0,3}},
-   [{south, east}]  = {{1,1},{0,2}},
-   [{east,  south}] = {{2,0},{1,1}},
-   [{east,  west}]  = {{2,3},{1,0}},
-   [{east,  north}] = {{2,2},{1,3}},
-   [{east,  east}]  = {{2,1},{1,2}}
-}
+-- When specifying a connection between 2D blocks,
+-- we actually specify the names of the connecting faces.
+-- The connection orientation is always 0.
+tabulatedData = {
+   {{{3,0},{2,1}}, {north, south}},
+   {{{3,3},{2,0}}, {north, west}},
+   {{{3,2},{2,3}}, {north, north}},
+   {{{3,1},{2,2}}, {north, east}},
+   {{{0,0},{3,1}}, {west,  south}},
+   {{{0,3},{3,0}}, {west,  west}},
+   {{{0,2},{3,3}}, {west,  north}},
+   {{{0,1},{3,2}}, {west,  east}},
+   {{{1,0},{0,1}}, {south, south}},
+   {{{1,3},{0,0}}, {south, west}},
+   {{{1,2},{0,3}}, {south, north}},
+   {{{1,1},{0,2}}, {south, east}},
+   {{{2,0},{1,1}}, {east,  south}},
+   {{{2,3},{1,0}}, {east,  west}},
+   {{{2,2},{1,3}}, {east,  north}},
+   {{{2,1},{1,2}}, {east,  east}},
+} -- end tabulatedData
+
+-- Since there are a number of permutations for each valid vertex-vertex
+-- connection set, define a function that can help sort the pairs into
+-- a standard order.
+function cmpVtxPair(a, b)
+   return (a[1] < b[1]) or (a[1] == b[1] and a[2] < b[2])
+end
+
+-- Table unpacking function from Section 5.1 in Programming in Lua
+function unpack(t, i, n)
+   i = i or 1
+   n = n or #t
+   if i <= n then
+      return t[i], unpack(t, i+1, n)
+   end
+end
+
+-- A couple of convenience functions
+function tostringVtxPair(t)
+   return string.format("{%d,%d}", t[1], t[2])
+end
+function tostringVtxPairList(t)
+   str = "{" .. tostringVtxPair(t[1])
+   for i=2, #t do
+      str = str .. "," .. tostringVtxPair(t[i])
+   end
+   str = str .. "}"
+   return str
+end
+function tostringConnection(t)
+   local faceA, faceB, orientation = unpack(t)
+   orientation = orientation or 0
+   return string.format("{%s, %s, %d}", faceA, faceB, orientation)
+end
+
+connections2D = {}
+vtxPairs2D = {}
+for _,v in ipairs(tabulatedData) do
+   local vtxPairs, connection = unpack(v)
+   table.sort(vtxPairs, cmpVtxPair)
+   connections2D[vtxPairs] = connection
+   local this_face, other_face = unpack(connection)
+   vtxPairs2D[{this_face, other_face}] = vtxPairs
+end
+
+for k,v in pairs(connections2D) do
+   print(string.format('connections2D[%s] = %s', tostringVtxPairList(k),
+		       tostringConnection(v)))
+end
 
 -- Connections between 3D blocks, described as sets of vertex pairs.
 -- When specifying a connection, we specify the set of paired vertices.
@@ -55,7 +106,7 @@ vtxpairs2D = {
 -- at the block boundaries and the axis-map is used to interpret GridPro
 -- connectivity data.  The i,j,k axes of *this* block are aligned with the
 -- specified axes of the *other* block. 
-connectionsTabulatedData = {
+tabulatedData = {
    {{{3,2},{7,6},{6,7},{2,3}}, {north, north, 0, '-i-j+k'}},
    {{{3,3},{7,2},{6,6},{2,7}}, {north, north, 1, '+k-j+i'}},
    {{{3,7},{7,3},{6,2},{2,6}}, {north, north, 2, '+i-j-k'}},
@@ -235,38 +286,41 @@ connectionsTabulatedData = {
    {{{0,0},{3,1},{2,2},{1,3}}, {bottom, bottom, 1, '+j+i-k'}},
    {{{0,3},{3,0},{2,1},{1,2}}, {bottom, bottom, 2, '+i-j-k'}},
    {{{0,2},{3,3},{2,0},{1,1}}, {bottom, bottom, 3, '-j-i-k'}}
-} -- end of connectionsTabulatedData
+} -- end of tabulatedData
 
--- Since there are a number of permutations for each valid vertex-vertex
--- connection set, define a function that can help sort the pairs into
--- a standard order.
-function cmpVtxPair(a, b)
-   return (a[1] < b[1]) or (a[1] == b[1] and a[2] < b[2])
-end
 connections3D = {}
-for _,v in ipairs(connectionsData) do
-   vtxPairs = v[1]; connection = v[2]
-   table.sort(vtxPairs, cmpVtxPair)
-   connections3D[vtxPairs] = connection
-end
-
---[[
+vtxPairs3D = {}
 -- When reading GridPro block connectivity file, 
 -- we need to look up Eilmer notation for connection orientations.
 eilmer_orientation = {}
-for vpairs in connections3D.keys():
-    this_face, other_face, orientation, axis_map = connections3D[vpairs]
-    eilmer_orientation[this_face,other_face,axis_map] = orientation 
+for _,v in ipairs(tabulatedData) do
+   local vtxPairs, connection = unpack(v)
+   table.sort(vtxPairs, cmpVtxPair)
+   connections3D[vtxPairs] = connection
+   local this_face, other_face, orientation, axis_map = unpack(connection)
+   vtxPairs3D[{this_face, other_face, orientation}] = vtxPairs
+   eilmer_orientation[{this_face, other_face, axis_map}] = orientation
+end
 
--- print "eilmer_orientation=", eilmer_orientation
+function to_eilmer_axis_map(gridpro_ijk)
+   -- Convert from GridPro axis_map string to Eilmer3 axis_map string.
+   -- From GridPro manual, Section 7.3.2 Connectivity Information.
+   -- Example, 123 --> '+i+j+k'
+   local axis_map = {[0]='xx', [1]='+i', [2]='+j', [3]='+k',
+		     [4]='-i', [5]='-j', [6]='-k'}
+   if type(gridpro_ijk) == "number" then
+      gridpro_ijk = string.format("%03d", gridpro_ijk)
+   end
+   if type(gridpro_ijk) ~= "string" then
+      print("Expected a string or integer of three digits but got:", gridpro_ijk)
+      os.exit(-1)
+   end
+   eilmer_ijk = axis_map[tonumber(string.sub(gridpro_ijk, 1, 1))] ..
+      axis_axis_map[tonumber(string.sub(gridpro_ijk, 2, 2))] ..
+      map[tonumber(string.sub(gridpro_ijk, 3, 3))]
+   return other_ijk
+end
 
--- It is handy to be able to look up the pairs, especially for 3D blocks.
--- The following dictionary is used in check_block_connection_3D().
-vpairsDict3D = {}
-for vpairs in connections3D.keys():
-    this_face, other_face, orientation, axis_map = connections3D[vpairs]
-    vpairsDict3D[this_face, other_face, orientation] = vpairs
---]]
 -- -----------------------------------------------------------------------
 
 -- Class for BoundaryCondition
@@ -343,10 +397,9 @@ SBlock = {
    bcList = nil, -- boundary conditions
    hcellList = nil,
    xforceList = nil,
-   -- The following names are for the corner locations,
+   -- The following table p for the corner locations,
    -- to be used for testing for block connections.
-   p000 = nil, p100 = nil, p110 = nil, p010 = nil,
-   p001 = nil, p101 = nil, p111 = nil, p011 = nil,
+   p = {}
 } -- end Block
 
 function SBlock:new(o)
@@ -366,20 +419,20 @@ function SBlock:new(o)
    o.njc = o.grid:get_njv() - 1
    if config.dimensions == 3 then
       o.nkc = o.grid:get_nkv() - 1
-      o.p000 = o.grid:get_vtx(0, 0, 0)
-      o.p100 = o.grid:get_vtx(o.nic, 0, 0)
-      o.p110 = o.grid:get_vtx(o.nic, o.njc, 0)
-      o.p010 = o.grid:get_vtx(0, o.nic, 0)
-      o.p001 = o.grid:get_vtx(0, 0, o.nkc)
-      o.p101 = o.grid:get_vtx(o.nic, 0, o.nkc)
-      o.p111 = o.grid:get_vtx(o.nic, o.njc, o.nkc)
-      o.p011 = o.grid:get_vtx(0, o.nic, o.nkc)
+      o.p[0] = o.grid:get_vtx(0, 0, 0)
+      o.p[1] = o.grid:get_vtx(o.nic, 0, 0)
+      o.p[2] = o.grid:get_vtx(o.nic, o.njc, 0)
+      o.p[3] = o.grid:get_vtx(0, o.njc, 0)
+      o.p[4] = o.grid:get_vtx(0, 0, o.nkc)
+      o.p[5] = o.grid:get_vtx(o.nic, 0, o.nkc)
+      o.p[6] = o.grid:get_vtx(o.nic, o.njc, o.nkc)
+      o.p[7] = o.grid:get_vtx(0, o.njc, o.nkc)
    else
       o.nkc = 1
-      o.p000 = o.grid:get_vtx(0, 0)
-      o.p100 = o.grid:get_vtx(o.nic, 0)
-      o.p110 = o.grid:get_vtx(o.nic, o.njc)
-      o.p010 = o.grid:get_vtx(0, o.nic)
+      o.p[0] = o.grid:get_vtx(0, 0)
+      o.p[1] = o.grid:get_vtx(o.nic, 0)
+      o.p[2] = o.grid:get_vtx(o.nic, o.njc)
+      o.p[3] = o.grid:get_vtx(0, o.njc)
    end
    -- Make a record of the new block, for later constructio of the config file.
    -- Note that we want block id to start at zero for the D code.
@@ -419,19 +472,98 @@ end
 
 -- ---------------------------------------------------------------------------
 
+function closeEnough(vA, vB, tolerance)
+   -- Decide if two Vector quantities are close enough to being equal.
+   -- This will be used to test that the block corners coincide.
+   tolerance = tolerance or 1.0e-4
+   return (vabs(vA - vB)/(vabs(vA + vB)+1.0)) <= tolerance
+end
+
 function connectBlocks(blkA, faceA, blkB, faceB, orientation)
+   print("connectBlocks: blkA=", blkA.id, "faceA=", faceA, 
+	 "blkB=", blkB.id, "faceB=", faceB, "orientation=", orientation)
    blkA.bcList[faceA] = FullFaceExchangeBC:new{otherBlock=blkB.id, otherFace=faceB,
 					       orientation=orientation}
    blkB.bcList[faceB] = FullFaceExchangeBC:new{otherBlock=blkA.id, otherFace=faceA,
 					       orientation=orientation}
    -- [TODO] need to test for matching corner locations and 
-   -- concistent numbers of cells
+   -- consistent numbers of cells
 end
 
-function identifyBlockConnections()
-   -- [TODO] identify block connections by trying to match corner points.
+function isPairInList(targetPair, pairList)
+   local count = 0
+   for _,v in ipairs(pairList) do
+      if (v[1] == targetPair[1] and v[2] == targetPair[2]) or
+	 (v[2] == targetPair[1] and v[1] == targetPair[2]) 
+      then
+	 count = count + 1
+      end
+   end
+   return count > 0
+end
+
+function verticesAreCoincident(A, B, vtxPairs, tolerance)
+   tolerance = tolerance or 1.0e-6
+   local allVerticesAreClose = true
+   for _,v in ipairs(vtxPairs) do
+      print("A.id=", A.id, "B.id=", B.id, "vtxPair=", tostringVtxPair(v))
+      print("  A.p=", tostring(A.p[v[1]]), "B.p=", tostring(B.p[v[2]]))
+      if vabs(A.p[v[1]] - B.p[v[2]]) > tolerance then
+	 allVerticesAreClose = false
+      end
+   end
+   return allVerticesAreClose
+end
+
+function identifyBlockConnections(blockList, excludeList, tolerance)
+   -- Identify block connections by trying to match corner points.
+   -- Parameters:
+   -- blockList: the list of SBlock objects to be included in the search.
+   --    If nil, the whole collection is searched.
+   -- excludeList: list of pairs of SBlock objects that should not be
+   --    included in the search for connections.
+   -- tolerance: spatial tolerance for the colocation of vertices
+   blockList = blockList or blocks
+   excludeList = excludeList or {}
+   tolerance = tolerance or 1.0e-6
+   for _,A in ipairs(blockList) do
+      for _,B in ipairs(blockList) do
+	 print("identifyBlockConnections: A=", A.id, "B=", B.id)
+	 if (A ~= B) and (not isPairInList({A, B}, excludeList)) then
+	    print("   Proceed with test for coincident vertices.")
+	    local connectionCount = 0
+	    if config.dimensions == 2 then
+	       print("   2D test")
+	       for vtxPairs,connection in pairs(connections2D) do
+		  print("    vtxPairs=", tostringVtxPairList(vtxPairs),
+			"connection=", tostringConnection(connection))
+		  if verticesAreCoincident(A, B, vtxPairs, tolerance) then
+		     local faceA, faceB = unpack(connection)
+		     connectBlocks(A, faceA, B, faceB, 0)
+		     connectCount = connectCount + 1
+		  end
+	       end
+	    else
+	       print("   3D test")
+	       for vtxPairs,connection in pairs(connections3D) do
+		  print("    vtxPairs=", tostringVtxPairs(vtxpairs),
+			"connection=", tostringConnection(connection))
+		  if verticesAreCoincident(A, B, vtxPairs, tolerance) then
+		     local faceA, faceB, orientation = unpack(connection)
+		     connectBlocks(A, faceA, B, faceB, orientation)
+		     connectCount = connectCount + 1
+		  end
+	       end
+	    end
+	    if connectionCount > 0 then
+	       -- So we don't double-up on connections.
+	       excludeList[#excludeList+1] = {A,B}
+	    end
+	 end -- if (A ~= B...
+      end -- for _,B
+   end -- for _,A
    -- Hard-code the cone20 connection for the moment.
-   connectBlocks(blocks[1], east, blocks[2], west, 0)
+   -- connectBlocks(blocks[1], east, blocks[2], west, 0)
 end
 
 -- ---------------------------------------------------------------------------
