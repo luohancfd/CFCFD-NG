@@ -91,11 +91,12 @@ for _,v in ipairs(tabulatedData) do
    local this_face, other_face = unpack(connection)
    vtxPairs2D[{this_face, other_face}] = vtxPairs
 end
-
+--[[
 for k,v in pairs(connections2D) do
    print(string.format('connections2D[%s] = %s', tostringVtxPairList(k),
 		       tostringConnection(v)))
 end
+--]]
 
 -- Connections between 3D blocks, described as sets of vertex pairs.
 -- When specifying a connection, we specify the set of paired vertices.
@@ -396,10 +397,7 @@ SBlock = {
    fillCondition = nil, -- expects a FlowState object
    bcList = nil, -- boundary conditions
    hcellList = nil,
-   xforceList = nil,
-   -- The following table p for the corner locations,
-   -- to be used for testing for block connections.
-   p = {}
+   xforceList = nil
 } -- end Block
 
 function SBlock:new(o)
@@ -419,6 +417,13 @@ function SBlock:new(o)
    o.njc = o.grid:get_njv() - 1
    if config.dimensions == 3 then
       o.nkc = o.grid:get_nkv() - 1
+   else
+      o.nkc = 1
+   end
+   -- The following table p for the corner locations,
+   -- is to be used later for testing for block connections.
+   o.p = {}
+   if config.dimensions == 3 then
       o.p[0] = o.grid:get_vtx(0, 0, 0)
       o.p[1] = o.grid:get_vtx(o.nic, 0, 0)
       o.p[2] = o.grid:get_vtx(o.nic, o.njc, 0)
@@ -428,7 +433,6 @@ function SBlock:new(o)
       o.p[6] = o.grid:get_vtx(o.nic, o.njc, o.nkc)
       o.p[7] = o.grid:get_vtx(0, o.njc, o.nkc)
    else
-      o.nkc = 1
       o.p[0] = o.grid:get_vtx(0, 0)
       o.p[1] = o.grid:get_vtx(o.nic, 0)
       o.p[2] = o.grid:get_vtx(o.nic, o.njc)
@@ -438,6 +442,8 @@ function SBlock:new(o)
    -- Note that we want block id to start at zero for the D code.
    o.id = #(blocks)
    blocks[#(blocks)+1] = o
+   -- print("Block id=", o.id, "p0=", tostring(o.p[0]), "p1=", tostring(o.p[1]),
+   --       "p2=", tostring(o.p[2]), "p3=", tostring(o.p[3]))
    return o
 end
 
@@ -506,8 +512,8 @@ function verticesAreCoincident(A, B, vtxPairs, tolerance)
    tolerance = tolerance or 1.0e-6
    local allVerticesAreClose = true
    for _,v in ipairs(vtxPairs) do
-      print("A.id=", A.id, "B.id=", B.id, "vtxPair=", tostringVtxPair(v))
-      print("  A.p=", tostring(A.p[v[1]]), "B.p=", tostring(B.p[v[2]]))
+      -- print("A.id=", A.id, "B.id=", B.id, "vtxPair=", tostringVtxPair(v))
+      -- print("  A.p=", tostring(A.p[v[1]]), "B.p=", tostring(B.p[v[2]]))
       if vabs(A.p[v[1]] - B.p[v[2]]) > tolerance then
 	 allVerticesAreClose = false
       end
@@ -528,30 +534,27 @@ function identifyBlockConnections(blockList, excludeList, tolerance)
    tolerance = tolerance or 1.0e-6
    for _,A in ipairs(blockList) do
       for _,B in ipairs(blockList) do
-	 print("identifyBlockConnections: A=", A.id, "B=", B.id)
 	 if (A ~= B) and (not isPairInList({A, B}, excludeList)) then
-	    print("   Proceed with test for coincident vertices.")
+	    -- print("Proceed with test for coincident vertices.")
 	    local connectionCount = 0
 	    if config.dimensions == 2 then
-	       print("   2D test")
+	       -- print("2D test")
 	       for vtxPairs,connection in pairs(connections2D) do
-		  print("    vtxPairs=", tostringVtxPairList(vtxPairs),
-			"connection=", tostringConnection(connection))
+		  -- print("vtxPairs=", tostringVtxPairList(vtxPairs),
+		  --       "connection=", tostringConnection(connection))
 		  if verticesAreCoincident(A, B, vtxPairs, tolerance) then
 		     local faceA, faceB = unpack(connection)
 		     connectBlocks(A, faceA, B, faceB, 0)
-		     connectCount = connectCount + 1
+		     connectionCount = connectionCount + 1
 		  end
 	       end
 	    else
-	       print("   3D test")
+	       -- print("   3D test")
 	       for vtxPairs,connection in pairs(connections3D) do
-		  print("    vtxPairs=", tostringVtxPairs(vtxpairs),
-			"connection=", tostringConnection(connection))
 		  if verticesAreCoincident(A, B, vtxPairs, tolerance) then
 		     local faceA, faceB, orientation = unpack(connection)
 		     connectBlocks(A, faceA, B, faceB, orientation)
-		     connectCount = connectCount + 1
+		     connectionCount = connectionCount + 1
 		  end
 	       end
 	    end
