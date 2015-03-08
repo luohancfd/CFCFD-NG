@@ -110,7 +110,7 @@ default: $(PROGRAMS)
 	@echo "Source code revision string $(REVISION_STRING)"
 	@echo "Eilmer4 simulation code built."
 
-install: $(PROGRAMS) prep.lua
+install: $(PROGRAMS) prep.lua prep-gas
 	@echo "Installing to $(INSTALL_DIR)"
 	cp $(PROGRAMS) $(INSTALL_DIR)
 	cp prep.lua $(INSTALL_DIR)
@@ -127,6 +127,9 @@ clean:
 	- rm main_with_rev_string.d
 	- cd $(LUA_DIR); make clean
 	- cd $(GAS_DIR); make clean; rm libgas.a
+
+prep-gas:
+	cd $(GAS_DIR); make INSTALL_DIR=$(INSTALL_DIR) install-prep-gas 
 
 $(LIBLUA):
 	cd $(LUA_DIR); make linux local

@@ -271,6 +271,12 @@ function main()
       printHelp()
    end
 
+   if ( #arg > 4 ) then
+      print("Two many arguments.")
+      print("Exiting program without doing anything.")
+      printHelp()
+   end
+
    if ( #arg == 4 ) then
       -- Check we did ask for compact notation.
       if ( arg[1] ~= "--compact" ) then

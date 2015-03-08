@@ -3,6 +3,7 @@
 # We can specify the LDC2 compiler as DMD=ldmd2 on the command-line
 # when invoking this makefile.  Can also ask for gdc.
 DMD ?= dmd
+INSTALL_DIR ?= $(HOME)/e3bin
 
 DEMO_PROGRAMS := gas_model_demo ideal_gas_demo
 UNITTEST_FILES := therm_perf_gas_test \
@@ -83,6 +84,9 @@ demo: ${DEMO_PROGRAMS}
 clean:
 	- rm ${DEMO_PROGRAMS} *.o *.a
 	- cd $(LUA); make clean
+
+install-prep-gas: prep_gas.lua
+	cp prep_gas.lua $(INSTALL_DIR)/prep-gas; chmod +x $(INSTALL_DIR)/prep-gas
 
 $(LIBLUA):
 	cd $(LUA); make linux local

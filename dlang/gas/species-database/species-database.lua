@@ -8,8 +8,37 @@
 
 db = {}
 
+db.air = {}
+db.air.atomicConstituents = {}
+db.air.charge = 0
+db.air.M = {
+   value = 28.96e-3,
+   units = 'kg/mol',
+}
+db.air.gamma = {
+   value = 1.4,
+   note = "valid at low temperatures"
+}
+db.air.entropyRefValues = {
+   s1 = 0.0,
+   T1 = 298.15,
+   p1 = 101.325e3
+}
+db.air.sutherlandVisc = {
+   mu_ref = 1.716e-5, 
+   T_ref = 273.0,
+   S = 111.0,
+   reference = "Table 1-2, White (2006)"
+}
+db.air.sutherlandThermCond = {
+   T_ref = 273.0, 
+   k_ref = 0.0241, 
+   S = 194.0,
+   reference = "Table 1-3, White (2006)"
+}
+
 db.N2 = {}
-db.N2.atomic_constituents = {N=2}
+db.N2.atomicConstituents = {N=2}
 db.N2.charge = 0
 db.N2.M = { 
    value = 28.0134e-3,
@@ -32,13 +61,13 @@ db.N2.sutherlandVisc = {
    mu_ref = 1.663e-05,
    T_ref = 273.0,
    S = 107.0,
-   ref = "Table 1-2, White (2006)"
+   reference = "Table 1-2, White (2006)"
 }
 db.N2.sutherlandThermCond = { 
    k_ref = 0.0242,
    T_ref = 273.0,
    S = 150.0,
-   ref = "Table 1-3, White (2006)"
+   reference = "Table 1-3, White (2006)"
 }
 db.N2.ceaThermoCoeffs = {
    nsegments = 3,

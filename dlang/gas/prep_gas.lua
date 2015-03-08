@@ -19,11 +19,11 @@ function writeIdealGas(f, sp, db)
       print("WARNING: We will build a file with the first species listed and ignore the rest.")
    end
    local s = sp[1]
-   f:write("IdealGgas = {\n")
+   f:write("IdealGas = {\n")
    f:write(string.format("   speciesName = '%s',\n", s))
    f:write(string.format("   mMass = %.8f,\n", db[s].M.value))
    f:write(string.format("   gamma = %.8f,\n", db[s].gamma.value))
-   f:write("   entropyRef = {\n")
+   f:write("   entropyRefValues = {\n")
    f:write(string.format("      s1 = %.8e,\n", db[s].entropyRefValues.s1))
    f:write(string.format("      T1 = %.8f,\n", db[s].entropyRefValues.T1))
    f:write(string.format("      p1 = %.8e,\n", db[s].entropyRefValues.p1))
@@ -38,7 +38,7 @@ function writeIdealGas(f, sp, db)
    f:write(string.format("      T_ref = %.8f,\n", db[s].sutherlandThermCond.T_ref))
    f:write(string.format("      S = %.8f,\n", db[s].sutherlandThermCond.S))
    f:write("   }\n")
-   f:write("}")
+   f:write("}\n")
 end
 
 gasModels = {}

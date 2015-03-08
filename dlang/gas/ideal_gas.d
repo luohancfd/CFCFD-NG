@@ -20,6 +20,7 @@ import std.json;
 import std.conv;
 import luad.all;
 import util.lua_service;
+import util.msg_service;
 import std.c.stdlib : exit;
 
 class IdealGas: GasModel {
@@ -31,24 +32,26 @@ public:
 	_species_names ~= "ideal air";
 	_mol_masses ~= 0.02896; // value for sea-level air
     }
-    this(in string species_name, in double[string] params) {
+    this(LuaState lua) {
 	this();
+	auto t = lua.get!LuaTable("IdealGas");
 	// The species name was set to 'ideal air' by default.
 	// Let's overwrite that here.
-	_species_names[0] = species_name;
+	_species_names[0] = t.get!string("speciesName");
 	// Now, pull out the remaining numeric value parameters.
-	_mol_masses ~= params["Mmass"];
-	_gamma = params["gamma"];
+	_mol_masses ~= t.get!double("mMass");
+	_gamma = t.get!double("gamma");
 	// Reference values for entropy
-	_s1 = params["s1"];
-	_T1 = params["T1"];
-	_p1 = params["p1"];
+	_s1 = t.get!double("entropyRefValues", "s1");
+	_T1 = t.get!double("entropyRefValues", "T1");
+	_p1 = t.get!double("entropyRefValues", "p1");
 	// Molecular transport coefficent constants.
-	_mu_ref = params["mu_ref"];
-	_T_ref = params["T_ref"];
-	_S_mu = params["S_mu"];
-	_k_ref = params["k_ref"];
-	_S_k = params["S_k"];
+	_mu_ref = t.get!double("sutherlandVisc", "mu_ref");
+	_T_mu = t.get!double("sutherlandVisc", "T_ref");
+	_S_mu = t.get!double("sutherlandVisc", "S");
+	_k_ref = t.get!double("sutherlandThermCond", "k_ref");
+	_T_k = t.get!double("sutherlandThermCond", "T_ref");
+	_S_k = t.get!double("sutherlandThermCond", "S");
 	// Compute derived parameters
 	_Rgas = R_universal/_mol_masses[0];
 	_Cv = _Rgas / (_gamma - 1.0);
@@ -58,7 +61,7 @@ public:
     override string toString() const
     {
 	char[] repr;
-	repr ~= "IdealGas(";
+	repr ~= "IdealGas =(";
 	repr ~= "name=\"" ~ _species_names[0] ~"\"";
 	repr ~= ", Mmass=" ~ to!string(_mol_masses[0]);
 	repr ~= ", gamma=" ~ to!string(_gamma);
@@ -66,9 +69,10 @@ public:
 	repr ~= ", T1=" ~ to!string(_T1);
 	repr ~= ", p1=" ~ to!string(_p1);
 	repr ~= ", mu_ref=" ~ to!string(_mu_ref);
-	repr ~= ", T_ref=" ~ to!string(_T_ref);
+	repr ~= ", T_mu=" ~ to!string(_T_mu);
 	repr ~= ", S_mu=" ~ to!string(_S_mu);
 	repr ~= ", k_ref=" ~ to!string(_k_ref);
+	repr ~= ", T_mu= " ~ to!string(_T_k);
 	repr ~= ", S_k=" ~ to!string(_S_k);
 	repr ~= ")";
 	return to!string(repr);
@@ -114,8 +118,8 @@ public:
     }
     override void update_trans_coeffs(GasState Q) const
     {
-	Q.mu = sutherland_viscosity(Q.T[0], _T_ref, _mu_ref, _S_mu);
-	Q.k[0] = sutherland_thermal_conductivity(Q.T[0], _T_ref, _k_ref, _S_k);
+	Q.mu = sutherland_viscosity(Q.T[0], _T_mu, _mu_ref, _S_mu);
+	Q.k[0] = sutherland_thermal_conductivity(Q.T[0], _T_k, _k_ref, _S_k);
     }
     /*
     override void eval_diffusion_coefficients(ref GasState Q) {
@@ -159,65 +163,52 @@ private:
     double _p1 = 101.325e3; // Pa
     // Molecular transport coefficent constants.
     double _mu_ref = 1.716e-5; // Pa.s
-    double _T_ref = 273.0; // degrees K
+    double _T_mu = 273.0; // degrees K
     double _S_mu = 111.0; // degrees K
     double _k_ref = 0.0241; // W/(m.K) 
+    double _T_k = 273.0; // degrees K
     double _S_k = 194.0; // degrees K
 
 } // end class Ideal_gas
-
-IdealGas createIdealGas(ref LuaTable t)
-{
-    auto species_name = t.get!string("species_name");
-    string[10] plist = ["Mmass", "gamma",
-			"s1", "T1", "p1",
-			"mu_ref", "T_ref", "S_mu", "k_ref", "S_k"];
-    double[string] params;
-    getValues(t, plist, params, "IdealGas");
-    auto gm = new IdealGas(species_name, params);
-    return gm;
-}
 
 unittest {
     import std.stdio;
     auto gm = new IdealGas();
     assert(gm.species_name(0) == "ideal air", "species name list");
     auto gd = new GasState(gm, 100.0e3, 300.0);
-    assert(approxEqual(gm.R(gd), 287.086), "gas constant");
-    assert(gm.n_modes == 1, "number of energy modes");
-    assert(gm.n_species == 1, "number of species");
-    assert(approxEqual(gd.p, 1.0e5), "pressure");
-    assert(approxEqual(gd.T[0], 300.0), "static temperature");
-    assert(approxEqual(gd.massf[0], 1.0), "massf[0]");
+    assert(approxEqual(gm.R(gd), 287.086), failedUnitTest());
+    assert(gm.n_modes == 1, failedUnitTest());
+    assert(gm.n_species == 1, failedUnitTest());
+    assert(approxEqual(gd.p, 1.0e5), failedUnitTest());
+    assert(approxEqual(gd.T[0], 300.0), failedUnitTest());
+    assert(approxEqual(gd.massf[0], 1.0), failedUnitTest());
 
     gm.update_thermo_from_pT(gd);
     gm.update_sound_speed(gd);
-    assert(approxEqual(gd.rho, 1.16109), "density");
-    assert(approxEqual(gd.e[0], 215314.0), "internal energy");
-    assert(approxEqual(gd.a, 347.241), "density");
+    assert(approxEqual(gd.rho, 1.16109), failedUnitTest());
+    assert(approxEqual(gd.e[0], 215314.0), failedUnitTest());
+    assert(approxEqual(gd.a, 347.241), failedUnitTest());
     gm.update_trans_coeffs(gd);
-    assert(approxEqual(gd.mu, 1.84691e-05), "viscosity");
-    assert(approxEqual(gd.k[0], 0.0262449), "conductivity");
+    assert(approxEqual(gd.mu, 1.84691e-05), failedUnitTest());
+    assert(approxEqual(gd.k[0], 0.0262449), failedUnitTest());
 
     auto lua = new LuaState;
-    lua.openLibs();
     lua.doFile("sample-data/ideal-air-gas-model.lua");
-    auto t = lua.get!LuaTable("Ideal_gas");
-    gm = createIdealGas(t);
-    assert(approxEqual(gm.R(gd), 287.086), "gas constant");
-    assert(gm.n_modes == 1, "number of energy modes");
-    assert(gm.n_species == 1, "number of species");
-    assert(approxEqual(gd.p, 1.0e5), "pressure");
-    assert(approxEqual(gd.T[0], 300.0), "static temperature");
-    assert(approxEqual(gd.massf[0], 1.0), "massf[0]");
+    gm = new IdealGas(lua);
+    assert(approxEqual(gm.R(gd), 287.086), failedUnitTest());
+    assert(gm.n_modes == 1, failedUnitTest());
+    assert(gm.n_species == 1, failedUnitTest());
+    assert(approxEqual(gd.p, 1.0e5), failedUnitTest());
+    assert(approxEqual(gd.T[0], 300.0), failedUnitTest());
+    assert(approxEqual(gd.massf[0], 1.0), failedUnitTest());
 
     gm.update_thermo_from_pT(gd);
     gm.update_sound_speed(gd);
-    assert(approxEqual(gd.rho, 1.16109), "density");
-    assert(approxEqual(gd.e[0], 215314.0), "internal energy");
-    assert(approxEqual(gd.a, 347.241), "density");
+    assert(approxEqual(gd.rho, 1.16109), failedUnitTest());
+    assert(approxEqual(gd.e[0], 215314.0), failedUnitTest());
+    assert(approxEqual(gd.a, 347.241), failedUnitTest());
     gm.update_trans_coeffs(gd);
-    assert(approxEqual(gd.mu, 1.84691e-05), "viscosity");
-    assert(approxEqual(gd.k[0], 0.0262449), "conductivity");
+    assert(approxEqual(gd.mu, 1.84691e-05), failedUnitTest());
+    assert(approxEqual(gd.k[0], 0.0262449), failedUnitTest());
 
 }
