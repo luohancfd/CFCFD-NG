@@ -389,23 +389,21 @@ end
 
 -- Class for Block construction (based on a StructuredGrid).
 SBlock = {
-   myType = "SBlock",
-   active = true,
-   label = "",
-   omegaz = 0.0,
-   grid = nil,  -- The StructuredGrid object
-   fillCondition = nil, -- expects a FlowState object
-   bcList = nil, -- boundary conditions
-   hcellList = nil,
-   xforceList = nil
+   myType = "SBlock"
 } -- end Block
 
 function SBlock:new(o)
    o = o or {}
    setmetatable(o, self)
    self.__index = self
+   -- Must have a grid and fillCondition
+   assert(o.grid, "need to supply a grid")
+   assert(o.fillCondition, "need to supply a fillCondition")
    -- Fill in default values, if already not set
-   o.bcList = o.bcList or {}
+   o.active = o.active or true
+   o.label = o.label or ""
+   o.omegaz = o.omegaz or 0.0
+   o.bcList = o.bcList or {} -- boundary conditions
    for _,face in ipairs(faceList(config.dimensions)) do
       o.bcList[face] = o.bcList[face] or SlipWallBC:new()
    end

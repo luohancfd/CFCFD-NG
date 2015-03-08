@@ -110,7 +110,12 @@ public:
     } // end resize_array
 
     ref Vector3 opIndex(size_t i, size_t j, size_t k=0)
-    {
+    in {
+	assert (i < niv, text("index i=", i, " is invalid, niv=", niv));
+	assert (j < njv, text("index j=", j, " is invalid, njv=", njv));
+	assert (k < nkv, text("index k=", k, " is invalid, nkv=", nkv));
+    }
+    body {
 	return grid[i][j][k];
     }
 

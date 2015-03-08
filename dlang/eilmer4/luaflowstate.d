@@ -219,8 +219,8 @@ lua_setfield(L, -2, "`~var~`z");`;
  * Gives the caller a table populated with FlowState values.
  *
  * Note that the table is flat, and that just a few GasState
- * variables have been unpackes. The fields in the returned table
- * mirror those that the user can set.
+ * variables have been unpacked. The fields in the returned table
+ * form a superset of those that the user can set.
  */
 extern(C) int toTable(lua_State* L)
 {
@@ -228,8 +228,13 @@ extern(C) int toTable(lua_State* L)
     lua_newtable(L); // anonymous table { }
     mixin(pushGasVar("p"));
     mixin(pushGasVarArray("T"));
+    mixin(pushGasVarArray("e"));
     mixin(pushGasVar("quality"));
     mixin(pushGasVarArray("massf"));
+    mixin(pushGasVar("a"));
+    mixin(pushGasVar("rho"));
+    mixin(pushGasVar("mu"));
+    mixin(pushGasVarArray("k"));
     mixin(pushFSVar("tke"));
     mixin(pushFSVar("omega"));
     mixin(pushFSVar("mu_t"));
@@ -237,22 +242,6 @@ extern(C) int toTable(lua_State* L)
     mixin(pushFSVecVar("vel"));
     mixin(pushFSVecVar("B"));
 
-    return 1;
-}
-
-extern(C) int gasTable(lua_State *L)
-{
-    auto fs = checkFlowState(L, 1);
-    lua_newtable(L); // This one will hold gas values.
-    mixin(pushGasVar("p"));
-    mixin(pushGasVar("a"));
-    mixin(pushGasVar("rho"));
-    mixin(pushGasVar("mu"));
-    mixin(pushGasVar("quality"));
-    mixin(pushGasVarArray("massf"));
-    mixin(pushGasVarArray("T"));
-    mixin(pushGasVarArray("e"));
-    mixin(pushGasVarArray("k"));
     return 1;
 }
 
