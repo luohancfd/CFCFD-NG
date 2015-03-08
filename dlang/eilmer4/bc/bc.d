@@ -73,6 +73,40 @@ BCCode type_code_from_name(string name)
 } // end type_code_from_name()
 
 
+BoundaryCondition make_BC_from_json(JSONValue json_data, int blk_id, int boundary)
+{
+    BCCode bc_type = type_code_from_name(toLower(json_data["bc"].str));
+    BoundaryCondition new_bc;
+    // [TODO] rest of the boundary conditions...
+    switch (bc_type) {
+    case BCCode.supersonic_in:
+	auto inflow =  new FlowState(json_data["inflow_condition"], GlobalConfig.gmodel);
+	new_bc = new SupersonicInBC(blk_id, boundary, inflow);
+	break;
+    case BCCode.slip_wall:
+	new_bc = new SlipWallBC(blk_id, boundary);
+	break;
+    case BCCode.extrapolate_out:
+	int x_order = getJSONint(json_data, "x_order", 0);
+	new_bc = new ExtrapolateOutBC(blk_id, boundary, x_order);
+	break;
+    case BCCode.full_face_exchange:
+	int other_block = getJSONint(json_data, "other_block", -1);
+	string other_face_name = getJSONstring(json_data, "other_face", "none");
+	int neighbour_orientation = getJSONint(json_data, "neighbour_orientation", 0);
+ 	new_bc = new FullFaceExchangeBC(blk_id, boundary,
+					other_block,
+					face_index(other_face_name),
+					neighbour_orientation);
+	break;
+    default:
+	new_bc = new SlipWallBC(blk_id, boundary);
+    }
+    return new_bc;
+} // end make_BC_from_json()
+
+//----------------------------------------------------------------------------------------
+
 @nogc
 void reflect_normal_velocity(ref FVCell cell, in FVInterface IFace)
 // Reflects normal velocity with respect to the cell interface.
@@ -287,36 +321,3 @@ public:
 	// Meant only for FullFaceExchangeBC and MappedCellExchangeBC.
     }
 } // end class BoundaryCondition
-
-
-BoundaryCondition make_BC_from_json(JSONValue json_data, int blk_id, int boundary)
-{
-    BCCode bc_type = type_code_from_name(toLower(json_data["bc"].str));
-    BoundaryCondition new_bc;
-    // [TODO] rest of the boundary conditions...
-    switch (bc_type) {
-    case BCCode.supersonic_in:
-	auto inflow =  new FlowState(json_data["inflow_condition"], GlobalConfig.gmodel);
-	new_bc = new SupersonicInBC(blk_id, boundary, inflow);
-	break;
-    case BCCode.slip_wall:
-	new_bc = new SlipWallBC(blk_id, boundary);
-	break;
-    case BCCode.extrapolate_out:
-	int x_order = getJSONint(json_data, "x_order", 0);
-	new_bc = new ExtrapolateOutBC(blk_id, boundary, x_order);
-	break;
-    case BCCode.full_face_exchange:
-	int other_block = getJSONint(json_data, "other_block", -1);
-	string other_face_name = getJSONstring(json_data, "other_face", "none");
-	int neighbour_orientation = getJSONint(json_data, "neighbour_orientation", 0);
- 	new_bc = new FullFaceExchangeBC(blk_id, boundary,
-					other_block,
-					face_index(other_face_name),
-					neighbour_orientation);
-	break;
-    default:
-	new_bc = new SlipWallBC(blk_id, boundary);
-    }
-    return new_bc;
-} // end make_BC_from_json()
