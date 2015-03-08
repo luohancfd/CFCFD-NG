@@ -245,7 +245,9 @@ def read_block_labels():
 
     Comment lines start with a # character.
     """
-    fileName = "block_labels.list"
+    fileName = "block_labels.list" # default, Eilmer3 file
+    if not os.path.isfile(fileName):
+        fileName = rootName + ".list" # Eilmer4 file
     fp = open(fileName, "r")
     buf = fp.readline()
     block_labels = []
