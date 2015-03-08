@@ -146,7 +146,7 @@ public:
     @nogc
     size_t to_global_index(size_t i, size_t j, size_t k) const
     in {
-	assert(i < _nidim && i < _njdim && k < _nkdim, "Index out of bounds.");
+	assert(i < _nidim && j < _njdim && k < _nkdim, "Index out of bounds.");
     }
     body {
 	return k * (_njdim * _nidim) + j * _nidim + i; 
