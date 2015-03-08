@@ -3,6 +3,11 @@
 -- 
 print("Loading prep.lua...")
 
+-- As an experiment to see if we can avoid SEGFAULTs, we tried turning off
+-- the garbage collector in the Lua interpreter.  It made no difference.
+-- Disabling the garbage collector on the D side did make a difference.
+-- collectgarbage("stop")
+
 -- Storage for later definitions of Block objects
 blocks = {}
 

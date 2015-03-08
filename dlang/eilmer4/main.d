@@ -5,6 +5,7 @@
  * First code: 2015-02-05
  */
 
+import core.memory;
 import std.stdio;
 import std.file;
 import std.path;
@@ -79,6 +80,7 @@ void main(string[] args)
     }
     if (prepFlag) {
 	writeln("Start LuaD connection.");
+	GC.disable(); // To avoid segfaults, just for the preparation via Lua.
 	auto lua = new LuaState;
 	lua.openLibs();
 	registerVector3(lua);
@@ -92,6 +94,7 @@ void main(string[] args)
 	lua.doFile(jobName~".lua");
 	lua.doString("build_job_files(\""~jobName~"\")");
 	writeln("Done.");
+	GC.enable();
     }
     if (runFlag) {
 	GlobalConfig.base_file_name = jobName;
