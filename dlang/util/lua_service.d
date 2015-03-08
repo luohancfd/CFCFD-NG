@@ -309,13 +309,7 @@ unittest
     assert(vals["B"] == -15.8);
     assert(vals["C"] == 2.0);
 
-    /// Test 5. Grab all values as ints
-    getValues(t, keys3, vals2, "test5");
-    assert(vals2["A"] == 9);
-    assert(vals2["B"] == -16); // note that it converts to -16 rather than -15
-    assert(vals2["C"] == 2);
-
-    /// Test 6. Expect an exit exception when we go for an invalid key.
+    /// Test 5. Expect an exit exception when we go for an invalid key.
     keys3[0] = "AA";
     try {
 	getValues(t, keys3, vals, "test6");
