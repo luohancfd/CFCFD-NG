@@ -45,7 +45,7 @@ blk2.bcList[east] = ExtrapolateOutBC:new{label="outflow-boundary"}
 
 -- Do a little more setting of global data.
 config.max_time = 5.0e-3  -- seconds
-config.max_step = 30
+config.max_step = 6000
 config.dt_init = 1.0e-6
 config.cfl_value = 0.5
 -- config.dt_max = 10.0e-6
