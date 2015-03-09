@@ -6,13 +6,15 @@ class ParadeRadiator:
         self.pname = name
 	self.name = name.replace("+","_plus").replace("E","e_minus")
         self.atoms = atoms
-	if self.atoms==0:
+	if self.atoms=='0':
 	    self.type = "electron_radiator"
-	elif self.atoms==1:
+	elif self.atoms=='1':
 	    self.type = "atomic_radiator"
-	elif self.atoms==2:
+	elif self.atoms=='2':
 	    self.type = "diatomic_radiator"
-	elif self.atoms==3:
+	elif self.atoms=='-2':
+	    self.type = "diatomic_radiator"
+	elif self.atoms=='3':
 	    self.type = "triatomic_radiator"
 	else:
 	    print "atoms: %d not understood"
@@ -53,7 +55,7 @@ class ParadeRadiator:
 	atoms = self.atoms
         if self.band_model == "SNB":
             atoms *= -1              
-        string = " 'Y',        '%s'           %d       %d   %d   %d   2,   '%s'\n" % ( self.pname, atoms, tt, tr, tv, data_file_path )
+        string = " 'Y',        '%s'           %s       %d   %d   %d   2,   '%s'\n" % ( self.pname, atoms, tt, tr, tv, data_file_path )
         for sys in self.systems:
             string += " 'b'    '%s' \n" % sys		# sys is the string for the band system. random 'N' was removed.
         return string
@@ -74,57 +76,57 @@ class ParadeRadiator:
         return
 
 # when checking the species data files, check also the specified radiating bands.
-available_radiators_boltzmann = { "Ar"       :    ParadeRadiator( "Ar" , 1, 39.948   ,    "NIST/arinist.dat" ),
-                        "Ar_plus"  :    ParadeRadiator( "Ar+", 1, 39.948   ,   "NIST/ariinist.dat" ),
-                        "C"        :    ParadeRadiator( "C"  , 1, 12.011   ,     "NIST/cinistmf.dat" ),
-                        "F"        :    ParadeRadiator( "F"  , 1, 18.9984  ,     "NIST/finist.dat" ),
-                        "H"        :    ParadeRadiator( "H"  , 1,  1.008   ,     "NIST/hinist.dat" ),
-                        "H_plus"   :    ParadeRadiator( "H+" , 1,  1.008   ,    "hii.dat" ),
-                        "He"       :    ParadeRadiator( "He" , 1,  4.0026  ,    "NIST/heinist.dat" ),
-                        "N"        :    ParadeRadiator( "N"  , 1, 14.0067  ,     "NIST/niNISTmf.dat" ),
-                        "N_plus"   :    ParadeRadiator( "N+" , 1, 14.0067  ,    "NIST/niiNISTmf.dat" ),
-                        "O"        :    ParadeRadiator( "O"  , 1, 15.998   ,     "NIST/oiNISTmf.dat" ),
-                        "O_plus"   :    ParadeRadiator( "O+" , 1, 15.998   ,    "oiiseb.dat" ),		# changed from oiiNISTmf.dat
-                        "C2"       :    ParadeRadiator( "C2" , 2, 24.0214  ,  "C2ijb.dat", [ "swan" ] ),
-                        "CH"       :    ParadeRadiator( "CH" , 2, 13.0186  ,  "CHibp.dat", [ "3900A", "4300A" ] ),
-                        "CN"       :    ParadeRadiator( "CN" , 2, 26.0174  , "CNibp.dat", [ "CNviolet", "CNred" ] ),	# may not have CN red... check!
-                        "CO"       :    ParadeRadiator( "CO" , 2, 28.0101  ,  "COilh.dat", [ "CO4p", "CO3p", "COA", "Asundi" ] ),
-                        "CO_plus"  :    ParadeRadiator( "CO+", 2, 28.0101  , "COiimf.dat", [ "COp1n", "COpComet" ] ),
-                        "N2"       :    ParadeRadiator( "N2" , 2, 28.01348 ,  "N2ihl.dat", [ "N21p", "N22p", "N2bh2", "N2bh", "N2cy", "N2wj", "N2w", "N2eX" ] ),
-                        "N2_plus"  :    ParadeRadiator( "N2+", 2, 28.012931, "N2iibp.dat", [ "N2p1n" ] ),
-                        "NH"       :    ParadeRadiator( "NH" , 2, 15.01468 , "NHibp.dat" , [ "3360A" ] ),
-                        "NO"       :    ParadeRadiator( "NO" , 2, 30.00614 , "NOibp.dat" , [ "NObeta", "NOgamma", "NOdelta", "NOepsilon" ] ),
-                        "O2"       :    ParadeRadiator( "O2" , 2, 31.9988  , "O2ibp.dat" , [ "O2sr" ] ),
-			"H2"	   :    ParadeRadiator( "H2" , 2, 2.016    , "H2inj.dat" ),
-                        "CO2"      :    ParadeRadiator( "CO2", 3, 44.0095  , "CO2ihl.dat" , [ "CO2rovib" ] ),
-			"C3"	   :    ParadeRadiator( "C3" , 3, 36.033   , "C3_FGE.cs" ),
-			"C2H"      :    ParadeRadiator( "C2H", 3, 25.030   , "C2H_KAIST.cs" ),
-                        "e_minus"  :    ParadeRadiator( "E" , 0, 0.000548579903, "none" ) }
+available_radiators_boltzmann = { "Ar"       :    ParadeRadiator( "Ar" , '1', 39.948   ,    "NIST/arinist.dat" ),
+                        "Ar_plus"  :    ParadeRadiator( "Ar+", '1', 39.948   ,   "NIST/ariinist.dat" ),
+                        "C"        :    ParadeRadiator( "C"  , '1', 12.011   ,     "NIST/cinistmf.dat" ),
+                        "F"        :    ParadeRadiator( "F"  , '1', 18.9984  ,     "NIST/finist.dat" ),
+                        "H"        :    ParadeRadiator( "H"  , '1',  1.008   ,     "NIST/hinist.dat" ),
+                        "H_plus"   :    ParadeRadiator( "H+" , '1',  1.008   ,    "hii.dat" ),
+                        "He"       :    ParadeRadiator( "He" , '1',  4.0026  ,    "NIST/heinist.dat" ),
+                        "N"        :    ParadeRadiator( "N"  , '1', 14.0067  ,     "NIST/niNISTmf.dat" ),
+                        "N_plus"   :    ParadeRadiator( "N+" , '1', 14.0067  ,    "NIST/niiNISTmf.dat" ),
+                        "O"        :    ParadeRadiator( "O"  , '1', 15.998   ,     "NIST/oiNISTmf.dat" ),
+                        "O_plus"   :    ParadeRadiator( "O+" , '1', 15.998   ,    "oiiseb.dat" ),		# changed from oiiNISTmf.dat
+                        "C2"       :    ParadeRadiator( "C2" , '2', 24.0214  ,  "C2ijb.dat", [ "swan" ] ),
+                        "CH"       :    ParadeRadiator( "CH" , '2', 13.0186  ,  "CHibp.dat", [ "3900A", "4300A" ] ),
+                        "CN"       :    ParadeRadiator( "CN" , '2', 26.0174  , "CNibp.dat", [ "CNviolet", "CNred" ] ),	# may not have CN red... check!
+                        "CO"       :    ParadeRadiator( "CO" , '2', 28.0101  ,  "COilh.dat", [ "CO4p", "CO3p", "COA", "Asundi" ] ),
+                        "CO_plus"  :    ParadeRadiator( "CO+", '2', 28.0101  , "COiimf.dat", [ "COp1n", "COpComet" ] ),
+                        "N2"       :    ParadeRadiator( "N2" , '2', 28.01348 ,  "N2ihl.dat", [ "N21p", "N22p", "N2bh2", "N2bh", "N2cy", "N2wj", "N2w", "N2eX" ] ),
+                        "N2_plus"  :    ParadeRadiator( "N2+", '2', 28.012931, "N2iibp.dat", [ "N2p1n" ] ),
+                        "NH"       :    ParadeRadiator( "NH" , '2', 15.01468 , "NHibp.dat" , [ "3360A" ] ),
+                        "NO"       :    ParadeRadiator( "NO" , '2', 30.00614 , "NOibp.dat" , [ "NObeta", "NOgamma", "NOdelta", "NOepsilon" ] ),
+                        "O2"       :    ParadeRadiator( "O2" , '2', 31.9988  , "O2ibp.dat" , [ "O2sr" ] ),
+			"H2"	   :    ParadeRadiator( "H2" , '2', 2.016    , "H2inj.dat" ),
+                        "CO2"      :    ParadeRadiator( "CO2", '3', 44.0095  , "CO2ihl.dat" , [ "CO2rovib" ] ),
+			"C3"	   :    ParadeRadiator( "C3" ,'-2', 36.033   , "CSDATA/C3_FGE.cs" ),
+			"C2H"      :    ParadeRadiator( "C2H",'-2', 25.030   , "CSDATA/C2H_KAIST.cs" ),
+                        "e_minus"  :    ParadeRadiator( "E" , '0', 0.000548579903, "none" ) }
 
 # remember to include important bands, like the N2 Rydberg bands...
-available_radiators_qss = { "Ar"       :    ParadeRadiator( "Ar" , 1, 39.948   , "NIST/arinist.dat"  ),
-						"Ar_plus"  :    ParadeRadiator( "Ar+", 1, 39.948   ,  "NIST/ariinist.dat" ),
-						"C"        :    ParadeRadiator( "C"  , 1, 12.011   ,  "NIST/cinistmf.dat" ),
-						"F"        :    ParadeRadiator( "F"  , 1, 18.9984  ,  "NIST/finist.dat" ),
-						"H"        :    ParadeRadiator( "H"  , 1,  1.008   ,  "NIST/hinist.dat" ),
-						"H_plus"   :    ParadeRadiator( "H+" , 1,  1.008   ,  "hii.dat" ),
-						"He"       :    ParadeRadiator( "He" , 1,  4.0026  ,  "NIST/heinist.dat" ),
-						"N"        :    ParadeRadiator( "N"  , 1, 14.0067  ,  "QSS/NiParknist.qss" ),
-						"N_plus"   :    ParadeRadiator( "N+" , 1, 14.0067  ,  "NIST/niiNISTmf.dat" ),
-						"O"        :    ParadeRadiator( "O"  , 1, 15.998   ,  "QSS/OiPark.qss" ),
-						"O_plus"   :    ParadeRadiator( "O+" , 1, 15.998   ,  "oiiseb.dat" ),
-						"C2"       :    ParadeRadiator( "C2" , 2, 24.0214  ,  "C2ijb.dat", [ "swan" ] ),
-						"CH"       :    ParadeRadiator( "CH" , 2, 13.0186  ,  "CHibp.dat", [ "3900A", "4300A" ] ),
-						"CN"       :    ParadeRadiator( "CN" , 2, 26.0174  ,  "QSS/CNijb.qss", [ "CNviolet" ] ),
-						"CO"       :    ParadeRadiator( "CO" , 2, 28.0101  ,  "COilh.dat", [ "CO4p", "CO3p", "COA", "Asundi" ] ),
-						"CO_plus"  :    ParadeRadiator( "CO+", 2, 28.0101  ,  "COiimf.dat", [ "COp1n", "COpComet" ] ),
-						"N2"       :    ParadeRadiator( "N2" , 2, 28.01348 ,  "QSS/N2inj.qss" , [ "N21p", "N22p", "N2bh2", "N2bh", "N2cy", "N2wj", "N2w", "N2eX" ] ),
-						"N2_plus"  :    ParadeRadiator( "N2+", 2, 28.012931,  "QSS/N2iijb.qss", [ "N2p1n" ] ),
-						"NH"       :    ParadeRadiator( "NH" , 2, 15.01468 ,  "NHibp.dat" , [ "3360A" ] ),
-						"NO"       :    ParadeRadiator( "NO" , 2, 30.00614 ,  "QSS/NOijb.qss" , [ "NObeta" , "NOgamma" , "NOdelta" , "NOepsilon" ] ),
-						"O2"       :    ParadeRadiator( "O2" , 2, 31.9988  ,  "QSS/O2ijb.qss" , [ "O2sr" ] ),
-						"H2"	   :    ParadeRadiator( "H2" , 2, 2.016    ,  "H2inj.dat" ),
-			                        "CO2"      :    ParadeRadiator( "CO2", 3, 44.0095  ,  "CO2ihl.dat" , [ "CO2rovib" ] ),
-						"C3"	   :    ParadeRadiator( "C3" , 3, 36.033   ,  "C3_FGE.cs" ),
-						"C2H"      :    ParadeRadiator( "C2H", 3, 25.030   ,  "C2H_KAIST.cs" ),
-						"e_minus"  :    ParadeRadiator( "E" , 0, 0.000548579903, "none" ) }
+available_radiators_qss = { "Ar"       :    ParadeRadiator( "Ar" , '1', 39.948   , "NIST/arinist.dat"  ),
+						"Ar_plus"  :    ParadeRadiator( "Ar+", '1', 39.948   ,  "NIST/ariinist.dat" ),
+						"C"        :    ParadeRadiator( "C"  , '1', 12.011   ,  "NIST/cinistmf.dat" ),
+						"F"        :    ParadeRadiator( "F"  , '1', 18.9984  ,  "NIST/finist.dat" ),
+						"H"        :    ParadeRadiator( "H"  , '1',  1.008   ,  "NIST/hinist.dat" ),
+						"H_plus"   :    ParadeRadiator( "H+" , '1',  1.008   ,  "hii.dat" ),
+						"He"       :    ParadeRadiator( "He" , '1',  4.0026  ,  "NIST/heinist.dat" ),
+						"N"        :    ParadeRadiator( "N"  , '1', 14.0067  ,  "QSS/NiParknist.qss" ),
+						"N_plus"   :    ParadeRadiator( "N+" , '1', 14.0067  ,  "NIST/niiNISTmf.dat" ),
+						"O"        :    ParadeRadiator( "O"  , '1', 15.998   ,  "QSS/OiPark.qss" ),
+						"O_plus"   :    ParadeRadiator( "O+" , '1', 15.998   ,  "oiiseb.dat" ),
+						"C2"       :    ParadeRadiator( "C2" , '2', 24.0214  ,  "C2ijb.dat", [ "swan" ] ),
+						"CH"       :    ParadeRadiator( "CH" , '2', 13.0186  ,  "CHibp.dat", [ "3900A", "4300A" ] ),
+						"CN"       :    ParadeRadiator( "CN" , '2', 26.0174  ,  "QSS/CNijb.qss", [ "CNviolet" ] ),
+						"CO"       :    ParadeRadiator( "CO" , '2', 28.0101  ,  "COilh.dat", [ "CO4p", "CO3p", "COA", "Asundi" ] ),
+						"CO_plus"  :    ParadeRadiator( "CO+", '2', 28.0101  ,  "COiimf.dat", [ "COp1n", "COpComet" ] ),
+						"N2"       :    ParadeRadiator( "N2" , '2', 28.01348 ,  "QSS/N2inj.qss" , [ "N21p", "N22p", "N2bh2", "N2bh", "N2cy", "N2wj", "N2w", "N2eX" ] ),
+						"N2_plus"  :    ParadeRadiator( "N2+", '2', 28.012931,  "QSS/N2iijb.qss", [ "N2p1n" ] ),
+						"NH"       :    ParadeRadiator( "NH" , '2', 15.01468 ,  "NHibp.dat" , [ "3360A" ] ),
+						"NO"       :    ParadeRadiator( "NO" , '2', 30.00614 ,  "QSS/NOijb.qss" , [ "NObeta" , "NOgamma" , "NOdelta" , "NOepsilon" ] ),
+						"O2"       :    ParadeRadiator( "O2" , '2', 31.9988  ,  "QSS/O2ijb.qss" , [ "O2sr" ] ),
+						"H2"	   :    ParadeRadiator( "H2" , '2', 2.016    ,  "H2inj.dat" ),
+			                        "CO2"      :    ParadeRadiator( "CO2", '3', 44.0095  ,  "CO2ihl.dat" , [ "CO2rovib" ] ),
+						"C3"	   :    ParadeRadiator( "C3" , '-2', 36.033   ,  "CSDATA/C3_FGE.cs" ),
+						"C2H"      :    ParadeRadiator( "C2H", '-2', 25.030   ,  "CSDATA/C2H_KAIST.cs" ),
+						"e_minus"  :    ParadeRadiator( "E" , '0', 0.000548579903, "none" ) }
