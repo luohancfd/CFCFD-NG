@@ -2,7 +2,7 @@ species = {'N2', 'O2', 'NO', 'N', 'O', }
 
 N2 = {}
 N2.M = 0.0280134
-N2.viscosity = {
+N2.ceaViscosity = {
    nsegments = 3,
    segment0 = {
       A = 0.62526577,
@@ -29,7 +29,7 @@ N2.viscosity = {
       D = -0.53503838,
     },
 }
-N2.therm_cond = {
+N2.ceaThermCond = {
    nsegments = 3,
    segment0 = {
       A = 0.85439436,
@@ -56,7 +56,7 @@ N2.therm_cond = {
       D = -14.517761,
     },
 }
-N2.cea_thermo = {
+N2.ceaThermoCoeffs = {
    nsegments = 3,
    segment0 = {
     T_upper = 1000,
@@ -106,7 +106,7 @@ N2.cea_thermo = {
 }
 O2 = {}
 O2.M = 0.0319988
-O2.viscosity = {
+O2.ceaViscosity = {
    nsegments = 3,
    segment0 = {
       A = 0.6091618,
@@ -133,7 +133,7 @@ O2.viscosity = {
       D = 0.9093178,
    },
 }
-O2.therm_cond = {
+O2.ceaThermCond = {
    nsegments = 3,
    segment0 = {
       A = 0.77229167,
@@ -160,7 +160,7 @@ O2.therm_cond = {
       D = 20.342043,
     },
 }
-O2.cea_thermo = {
+O2.ceaThermoCoeffs = {
    nsegments = 3,
    segment0 = {
     T_upper = 1000,
@@ -210,7 +210,7 @@ O2.cea_thermo = {
 }
 NO = {}
 NO.M = 0.0300061
-NO.viscosity = {
+NO.ceaViscosity = {
    nsegments = 3,
    segment0 = {
       A = 0.60262029,
@@ -237,7 +237,7 @@ NO.viscosity = {
       D = 0.2651645,
     },
 }
-NO.therm_cond = {
+NO.ceaThermCond = {
    nsegments = 3,
    segment0 = {
       A = 0.95028758,
@@ -264,7 +264,7 @@ NO.therm_cond = {
       D = 20.928749,
     }
 }
-NO.cea_thermo = {
+NO.ceaThermoCoeffs = {
    nsegments = 3,
    segment0 = {
     T_upper = 1000,
@@ -314,7 +314,7 @@ NO.cea_thermo = {
 }
 N = {}
 N.M = 0.0140067
-N.viscosity = {
+N.ceaViscosity = {
    nsegments = 2,
    segment0 = {
       A = 0.83724737,
@@ -333,7 +333,7 @@ N.viscosity = {
       D = -0.55811716,
     },
 }
-N.therm_cond = {
+N.ceaThermCond = {
    nsegments = 2,
    segment0 = {
       A = 0.83771661,
@@ -352,7 +352,7 @@ N.therm_cond = {
       D = 0.24048513,
     },
 }
-N.cea_thermo = {
+N.ceaThermoCoeffs = {
    nsegments = 3,
    segment0 = {
     T_upper = 1000,
@@ -402,7 +402,7 @@ N.cea_thermo = {
 }
 O = {}
 O.M = 0.0159994
-O.viscosity = {
+O.ceaViscosity = {
    nsegments = 2,
    segment0 = {
       A = 0.77269241,
@@ -421,7 +421,7 @@ O.viscosity = {
       D = -0.18001077,
    },
 }
-O.therm_cond = {
+O.ceaThermCond = {
    nsegments = 2,
    segment0 = {
       A = 0.77271664,
@@ -440,7 +440,7 @@ O.therm_cond = {
       D = 0.48644232,
     },
 }
-O.cea_thermo = {
+O.ceaThermoCoeffs = {
    nsegments = 3,
    segment0 = {
     T_upper = 1000,

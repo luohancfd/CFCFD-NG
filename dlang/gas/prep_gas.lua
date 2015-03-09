@@ -111,8 +111,8 @@ gasModels = {}
 gasModels["IDEALGAS"] = {writeFn=writeIdealGas, DName="IdealGas"}
 gasModels["IDEAL GAS"] = gasModels["IDEALGAS"]
 -- Thermally perfect gas and aliases
-gasModels["THERMPERFGAS"] = {writeFn=writeThermPerfGas, DName="ThermPerfGas"}
-gasModels["THERMALLY PERFECT GAS"] = gasModels["THERMPERFGAS"]
+gasModels["THERMALLYPERFECTGAS"] = {writeFn=writeThermPerfGas, DName="ThermallyPerfectGas"}
+gasModels["THERMALLY PERFECT GAS"] = gasModels["THERMALLYPERFECTGAS"]
 
 function printHelp()
    print("prep-gas --- Prepares a gas model input file for Eilmer4.")

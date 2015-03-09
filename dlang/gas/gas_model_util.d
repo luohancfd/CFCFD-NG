@@ -10,6 +10,7 @@ module gas.gas_model_util;
 
 import gas.gas_model;
 import gas.ideal_gas;
+import gas.therm_perf_gas;
 import std.file;
 import std.stdio;
 import luad.all;
@@ -54,6 +55,9 @@ GasModel init_gas_model(in string file_name="gas-model.lua") {
     switch ( gas_model_name ) {
     case "IdealGas":
 	gm = new IdealGas(lua);
+	break;
+    case "ThermallyPerfectGas":
+	gm = new ThermallyPerfectGas(lua);
 	break;
     default:
 	gm = new IdealGas();
