@@ -42,6 +42,20 @@ Then add these lines to the end of your ``.bashrc``::
 This sets your environment ready for compiling and running.
 It's easiest to log out and back in to have the changes take effect.
 
+If you are an OpenFOAM user on raijin cluster, then add the following lines to the end of your ``.bashrc``::
+
+  module load openmpi/1.6.3
+  module load OpenFOAM
+  export WM_PROJECT_VERSION=2.2.1
+  export WM_PROJECT_USER_DIR=$HOME/$WM_PROJECT/$USER-$WM_PROJECT_VERSION
+  export FOAM_USER_APPBIN=$WM_PROJECT_USER_DIR/platforms/$WM_OPTIONS/bin
+  export FOAM_USER_LIBBIN=$WM_PROJECT_USER_DIR/platforms/$WM_OPTIONS/lib
+  export PATH=$PATH:$FOAM_USER_APPBIN
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$FOAM_USER_LIBBIN
+  
+Please note that the current version of OpenFOAM on raijin cluster is 2.2.1. You should change
+your ``.bashrc`` file if higher version is used.
+
 Compiling eilmer
 ----------------
 
@@ -66,7 +80,7 @@ UPDATE: 28-Jan-2015
 If the warning that's issued when compiling block_io.cxx bothers you,
 it can be suppressed by ignoring that particular warning:
 
-  > OMPI_CXXFLAGS=-wd823 make TARGET=for_openmpi install
+  > OMPI_CXXFLAGS=-wd823 make TARGET=for_openmpi_intel install
 
 Submitting a job
 ----------------
