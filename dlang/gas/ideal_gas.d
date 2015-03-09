@@ -134,6 +134,11 @@ public:
     {
 	return _Cp;
     }
+    override double dpdrho_const_T(in GasState Q) const
+    {
+	double R = gas_constant(Q);
+	return R*Q.T[0];
+    }
     override double gas_constant(in GasState Q) const
     {
 	return R_universal/_mol_masses[0];

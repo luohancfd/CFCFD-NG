@@ -35,6 +35,12 @@ public:
 	_n_species = cast(uint) _species_names.length;
 	_n_modes = 1;
 	
+	// 0. Initialise static work arrays
+	_Cp.length = _n_species;
+	_Cv.length = _n_species;
+	_h.length = _n_species;
+	_s.length = _n_species;
+	
 	// 1. Initialise gas constants from molecular mass
 	_R.length = _n_species;
 	_mol_masses.length = _n_species;
@@ -224,7 +230,14 @@ public:
     }
     override void update_sound_speed(GasState Q) const
     {
-	throw new Exception(format("not implemented: line=%d, file=%d", __LINE__, __FILE__));
+	// Reference:
+	// Cengel and Boles (1998)
+	// Thermodynamics: an Engineering Approach, 3rd edition
+	// McGraw Hill
+	// Equation 16-10 on p. 849
+    
+	// "frozen" sound speed
+	Q.a = sqrt(gamma(Q)*dpdrho_const_T(Q));
     }
     override void update_trans_coeffs(GasState Q) const
     {
@@ -240,11 +253,19 @@ public:
     */
     override double dedT_const_v(in GasState Q) const
     {
-	throw new Exception("not implemented");
+	// Noting that Cv = Cp - R
+	foreach ( i; 0.._n_species ) _Cv[i] = _curves[i].eval_Cp(Q.T[0]) - _R[i];
+	return mass_average(Q, _Cv);
     }
     override double dhdT_const_p(in GasState Q) const
     {
-	throw new Exception("not implemented");
+	foreach ( i; 0.._n_species ) _Cp[i] = _curves[i].eval_Cp(Q.T[0]);
+	return mass_average(Q, _Cp);
+    }
+    override double dpdrho_const_T(in GasState Q) const
+    {
+	double R = gas_constant(Q);
+	return R*Q.T[0];
     }
     override double gas_constant(in GasState Q) const
     {
@@ -256,21 +277,21 @@ public:
     }
     override double enthalpy(in GasState Q) const
     {
-	double[] h = new double[_n_species];
 	foreach ( isp; 0.._n_species) {
-	    h[isp] = _curves[isp].eval_h(Q.T[0]);
+	    _h[isp] = _curves[isp].eval_h(Q.T[0]);
 	}
-	return mass_average(Q, h);
+	return mass_average(Q, _h);
     }
     override double entropy(in GasState Q) const
     {
-	double[] s = new double[_n_species];
 	foreach ( isp; 0.._n_species ) {
-	    s[isp] = _curves[isp].eval_s(Q.T[0]) - _R[isp]*log(Q.p/P_atm);
+	    _s[isp] = _curves[isp].eval_s(Q.T[0]) - _R[isp]*log(Q.p/P_atm);
 	}
-	return mass_average(Q, s);
+	return mass_average(Q, _s);
     }
 
+    // Working array space
+    static double[] _Cp, _Cv, _h, _s;
 private:
     double[] _R;
     PerfectGasMixEOS _pgMixEOS;

@@ -41,12 +41,13 @@ public:
     // const void update_diff_coeffs(ref GasState Q) {}
 
     // Methods to be overridden.
-    abstract double dedT_const_v(in GasState Q) const { return 0.0; }
-    abstract double dhdT_const_p(in GasState Q) const { return 0.0; }
-    abstract double gas_constant(in GasState Q) const { return 0.0; }
-    abstract double internal_energy(in GasState Q) const { return 0.0; }
-    abstract double enthalpy(in GasState Q) const { return 0.0; }
-    abstract double entropy(in GasState Q) const { return 0.0; }
+    abstract double dedT_const_v(in GasState Q) const; 
+    abstract double dhdT_const_p(in GasState Q) const; 
+    abstract double dpdrho_const_T(in GasState Q) const; 
+    abstract double gas_constant(in GasState Q) const;
+    abstract double internal_energy(in GasState Q) const;
+    abstract double enthalpy(in GasState Q) const;
+    abstract double entropy(in GasState Q) const;
     
     final double Cv(in GasState Q) const { return dedT_const_v(Q); }
     final double Cp(in GasState Q) const { return dhdT_const_p(Q); }

@@ -157,7 +157,6 @@ The value should be a number.`;
     By = getNumberFromTable(L, 1, "By", false, 0.0, true, format(errMsgTmplt, "By"));
     Bz = getNumberFromTable(L, 1, "Bz", false, 0.0, true, format(errMsgTmplt, "Bz"));
     auto B = Vector3(Bx, By, Bz);
-
     // Values related to k-omega model.
     double tke = getNumberFromTable(L, 1, "tke", false, 0.0, true, format(errMsgTmplt, "tke"));
     double omega = getNumberFromTable(L, 1, "omega", false, 0.0, true, format(errMsgTmplt, "omega"));
