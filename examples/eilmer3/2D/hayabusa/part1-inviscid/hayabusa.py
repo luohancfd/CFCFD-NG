@@ -1,9 +1,9 @@
 ## \file hayabusa.py
 ## \brief Simulating the JAXA Hayabusa sample return capsule
-## \author DFP, 30-Oct-2012
+## Version updated by EJF, March 2015.
 ## 
-## Part1: Inviscid solution on a coarse grid
-##            Condition from Dan's thesis
+## Part 1: Inviscid solution on a coarse grid.
+## 13:52:20UTC trajectory point, near peak heating.
 
 from math import cos, sin, tan, sqrt, pi
 from cfpylib.grid.shock_layer_surface import *
@@ -17,13 +17,7 @@ gdata.axisymmetric_flag = 1
 #
 # 1. Setup the gas model
 #
-species = select_gas_model(model='two temperature gas', \
-							species=[ 'N2', 'N2_plus', \
-									  'NO', 'NO_plus', \
-									  'O2', 'O2_plus', \
-									   'N',  'N_plus', \
-									   'O',  'O_plus', \
-											'e_minus' ] )
+species = select_gas_model(model='two temperature gas', species=['N2', 'N2_plus', 'NO', 'NO_plus', 'O2', 'O2_plus', 'N', 'N_plus', 'O', 'O_plus', 'e_minus'])
 set_reaction_update("Park93-s03-AIC-EIIC.lua")
 set_energy_exchange_update("air-TV-TE.lua")
 gm = get_gas_model_ptr()
@@ -33,9 +27,9 @@ ntm = gm.get_number_of_modes()
 #
 # 2. Define flow conditions
 #
-rho_inf = 1.73e-4
-T_inf = 230.0
-u_inf = 9.679e3
+rho_inf = 5.04e-4
+T_inf = 258.02
+u_inf = 10.44e3
 massf_inf = [ 0.0 ] * gm.get_number_of_species()
 massf_inf[species.index('N2')] = 0.767
 massf_inf[species.index('O2')] = 0.233
@@ -51,10 +45,8 @@ gm.eval_thermo_state_rhoT(Q)
 M_inf = u_inf / Q.a
 p_inf = Q.p
 print "p_inf = %0.1f, M_inf = %0.1f" % ( p_inf, M_inf )
-inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=[T_inf]*ntm, \
-                        massf=massf_inf)
-initial = FlowCondition(p=p_inf/10.0, u=0.0, v=0.0, T=[T_inf]*ntm, \
-                        massf=massf_inf)
+inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
+initial = FlowCondition(p=p_inf/10.0, u=0.0, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
 
 #
 # 3. Define the geometry
@@ -78,23 +70,20 @@ c = Node( b.x + ( D/2.0-b.y)/tan(theta), D/2.0, label='c')
 d = Node( 0.0, c.y - abs(c.x), label='d')
 east = Polyline( [Arc(a,b,o),Line(b,c)] )
 
-# parametric surface
-psurf, west = make_parametric_surface( bx_scale, by_scale, M_inf, Rn, \
-									   axi=gdata.axisymmetric_flag )
+# parametric surface & west boundary
+psurf, west = make_parametric_surface(bx_scale, by_scale, M_inf, Rn, gdata.axisymmetric_flag, east, shock=None)
+
 #
 # 4. Define the blocks, boundary conditions and set the discretisation
 #
-nnx = 40; nny=30
-nbx = 2; nby = 2
+nnx = 30; nny = 90
+nbx = 4; nby = 4
 
 blk_0 = SuperBlock2D(psurf=psurf,
 		     fill_condition=initial,
 		     nni=nnx, nnj=nny,
 		     nbi=nbx, nbj=nby,
-		     bc_list=[ExtrapolateOutBC(), \
-		                    SlipWallBC(), \
-		                    SlipWallBC(), \
-		                    SupInBC(inflow)],
+		     bc_list=[ExtrapolateOutBC(), SlipWallBC(), SlipWallBC(), SupInBC(inflow)],
 		     wc_bc_list=[NonCatalyticWBC()]*4,
 		     label="BLOCK-0", hcell_list=[(nnx,1)])
  
@@ -103,13 +92,14 @@ blk_0 = SuperBlock2D(psurf=psurf,
 #
 gdata.viscous_flag = 0
 gdata.flux_calc = ADAPTIVE
-gdata.max_time = Rn * 5 / u_inf    # 5 body lengths
-gdata.max_step = 230000
-gdata.dt = 1.0e-8
+gdata.max_time = Rn * 5.0 / u_inf    # 5 body lengths
+gdata.max_step = 500000
+gdata.dt = 1.0e-10
+gdata.dt_max = 1.0e-9
 gdata.reaction_time_start = Rn * 0.1 /u_inf
 gdata.stringent_cfl = 1
-gdata.dt_plot = Rn * 1 / u_inf    # 5 solutions
-gdata.cfl = 0.5
+gdata.dt_plot = Rn * 1.0 / u_inf    # 5 solutions
+gdata.cfl = 0.2
 gdata.cfl_count = 1
 gdata.print_count = 20
 

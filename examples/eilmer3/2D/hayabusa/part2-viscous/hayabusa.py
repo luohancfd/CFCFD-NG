@@ -1,9 +1,9 @@
 ## \file hayabusa.py
 ## \brief Simulating the JAXA Hayabusa sample return capsule
-## \author DFP, 30-Oct-2012
+## Version updated by EJF, March 2015.
 ## 
 ## Part2: Viscous solution on a finer grid
-##             Condition from Dan's thesis
+## 13:52:20UTC trajectory point, near peak heating.
 
 from math import *
 from cfpylib.grid.shock_layer_surface import *
@@ -29,13 +29,13 @@ ntm = gm.get_number_of_modes()
 #
 # 2. Define flow conditions
 #
-rho_inf = 1.73e-4
-T_inf = 230.0
-u_inf = 9.679e3
+rho_inf = 5.04e-4
+T_inf = 258.02
+u_inf = 10.44e3
 massf_inf = [ 0.0 ] * gm.get_number_of_species()
 massf_inf[species.index('N2')] = 0.767
 massf_inf[species.index('O2')] = 0.233
-fixed_T_wall = 3000.0
+#fixed_T_wall = 3000.0
 
 # do some calculations to get pressure, Mach number and total mass-flux
 Q = Gas_data(gm)
@@ -51,7 +51,7 @@ print "p_inf = %0.1f, M_inf = %0.1f" % ( p_inf, M_inf )
 inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
 
 # use the inviscid solution as the initial condition
-initial = ExistingSolution(rootName="hayabusa", solutionWorkDir="../part1-inviscid/", nblock=4, tindx=9999)
+initial = ExistingSolution(rootName="hayabusa", solutionWorkDir="../part1-inviscid/", nblock=16, tindx=5)
 
 #
 # 3. Define the geometry
@@ -74,36 +74,34 @@ b = Node(-Rn*cos(theta),Rn*sin(theta), label='b')
 c = Node( b.x + ( D/2.0-b.y)/tan(theta), D/2.0, label='c')
 d = Node( 0.0, c.y - abs(c.x), label='d')
 
-body = Polyline( [Arc(a,b,o),Line(b,c)] )
+east = Polyline( [Arc(a,b,o),Line(b,c)] )
 
 # make the computational domain
-x_limit = c.x; gamma = 0.2
+x_limit = c.x; gamma = 0.36
 if fit2shock:
-    shock, nodes = fit_billig2shock( initial, gdata.axisymmetric_flag, M_inf, Rn, body )
-    psurf = make_parametric_surface( M_inf=M_inf, R=Rn, axi=gdata.axisymmetric_flag, east=body, shock=shock, f_s=1.0/(1.0-gamma) )
+    shock, nodes = fit_billig2shock( initial, gdata.axisymmetric_flag, M_inf, Rn, east )
+    psurf, west = make_parametric_surface( M_inf=M_inf, R=Rn, axi=gdata.axisymmetric_flag, east=east, shock=shock, f_s=1.0/(1.0-gamma) )
 else:  
     bx_scale = 0.95; by_scale = 0.95
-    psurf, west = make_parametric_surface( bx_scale, by_scale, M_inf, Rn, axi=gdata.axisymmetric_flag )
+    psurf, west = make_parametric_surface( bx_scale, by_scale, M_inf, Rn, axi=gdata.axisymmetric_flag, east=east )
 
 #
 # 4. Define the blocks, boundary conditions and set the discretisation
 #
-nnx = 60; nny=40
+nnx = 40; nny = 120
 nbx = 4; nby = 4
 
 # clustering at shock and boundary layer [ outflow, surface, axis, inflow ]
-beta0 = 1.1; dx0 = 5.0e-1; dx1 = 2.0e-2 # gamma is previously defined
-beta1 = 1.2
+beta0 = 1.05; dx0 = 5.0e-1; dx1 = 2.0e-2 # gamma is previously defined
+beta1 = 1.1
 cf_list = [BHRCF(beta0,dx0,dx1,gamma),
            RCF(1,0,beta1),
            BHRCF(beta0,dx0,dx1,gamma),
            RCF(1,0,beta1)]
 
 # boundary conditions [ outflow, surface, axis, inflow ]
-if fixed_T_wall:
-    eastBC = FixedTBC(fixed_T_wall)
-else:
-    eastBC = SurfaceEnergyBalanceBC(0.9)
+#eastBC = FixedTBC(fixed_T_wall)
+eastBC = SurfaceEnergyBalanceBC(0.9) 	# use an energy balance for the flight scale
 bc_list=[ ExtrapolateOutBC(),
           eastBC,
           SlipWallBC(),
@@ -131,16 +129,17 @@ gdata.viscous_flag = 1
 gdata.viscous_delay = 0.1 * Rn / u_inf
 gdata.viscous_factor_increment = 1.0e-5
 gdata.diffusion_flag = 1
-gdata.diffusion_model = "ConstantLewisNumber"
+gdata.diffusion_model = "Ramshaw-Chang"
 gdata.electric_field_work_flag = 0   # should only be applied with ambipolar diffusion
 gdata.flux_calc = ADAPTIVE
 gdata.max_time = Rn * 5 / u_inf      # 5 body lengths
 gdata.max_step = 230000
 gdata.dt = 1.0e-10
+gdata.dt_max = 1.0e-10
 gdata.reaction_time_start = 0
 gdata.stringent_cfl = 1
 gdata.dt_plot = Rn * 1 / u_inf       # 5 solutions
-gdata.cfl = 0.25
+gdata.cfl = 0.1
 gdata.cfl_count = 1
 gdata.print_count = 1
 

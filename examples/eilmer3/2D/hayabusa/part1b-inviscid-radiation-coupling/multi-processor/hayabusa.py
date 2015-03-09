@@ -1,9 +1,9 @@
 ## \file hayabusa.py
 ## \brief Simulating the JAXA Hayabusa sample return capsule
-## \author DFP, 30-Oct-2012
+## Version updated by EJF, March 2015.
 ## 
 ## Part1b: Radiation coupled (and inviscid) simulation on a coarse grid 
-##               Condition from Dan's thesis
+## 13:52:20UTC trajectory point, near peak heating.s
 
 from cfpylib.gasdyn.billig import x_from_y, y_from_x
 from cfpylib.nm.zero_solvers import bisection
@@ -34,9 +34,9 @@ ntm = gm.get_number_of_modes()
 #
 # 2. Define flow conditions
 #
-rho_inf = 1.73e-4
-T_inf = 230.0
-u_inf = 9.679e3
+rho_inf = 5.04e-4
+T_inf = 258.02
+u_inf = 10.44e3
 massf_inf = [ 0.0 ] * gm.get_number_of_species()
 massf_inf[species.index('N2')] = 0.767
 massf_inf[species.index('O2')] = 0.233
@@ -53,9 +53,7 @@ M_inf = u_inf / Q.a
 p_inf = Q.p
 print "p_inf = %0.1f, M_inf = %0.1f" % ( p_inf, M_inf )
 inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
-initial = ExistingSolution(rootName="hayabusa", solutionWorkDir="../../part1-inviscid/", nblock=4, tindx=5) 
-# initial  = FlowCondition(p=p_inf/10, u=u_inf, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
-
+initial = ExistingSolution(rootName="hayabusa", solutionWorkDir="../../part1-inviscid/", nblock=16, tindx=5) 
 
 #
 # 3. Define the geometry
@@ -80,13 +78,13 @@ d = Node( 0.0, c.y - abs(c.x), label='d')
 east = Polyline( [Arc(a,b,o),Line(b,c)] )
 
 # parametric surface
-psurf, west = make_parametric_surface( bx_scale, by_scale, M_inf, Rn, axi=gdata.axisymmetric_flag )
+psurf, west = make_parametric_surface( bx_scale, by_scale, M_inf, Rn, axi=gdata.axisymmetric_flag, east=east )
 
 #
 # 4. Define the blocks, boundary conditions and set the discretisation
 #
-nnx = 40; nny=30
-nbx = 2; nby = 2
+nnx = 40; nny=120
+nbx = 4; nby = 4
 
 blk_0 = SuperBlock2D(psurf=psurf,
 		     fill_condition=initial,

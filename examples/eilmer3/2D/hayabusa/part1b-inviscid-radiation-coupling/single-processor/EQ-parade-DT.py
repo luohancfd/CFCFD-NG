@@ -25,7 +25,7 @@ for rad_name in radiators:
     if rad.type=="diatomic_radiator":
         rad.iTv = 1
 
-parade_data_path = "/home/nauka/pott_da/parade31/Data"
+parade_data_path = "/home/.../parade32/Data" # insert your data path here!!
 gdata.create_parade_template_files(parade_data_path)
 
 # thats all we need to do!
