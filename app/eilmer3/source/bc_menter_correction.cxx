@@ -1,6 +1,17 @@
 // bc_menter_correction.cxx
 /// \brief Apply Menter boundary correction to the cells near solid walls.
 ///
+/// Apply Menter's correction for the omega values at the wall, as described
+/// in Menter's 1994 AIAA Journal paper, v.32, n.8, pp.1598-1605.
+/// Note that we now no longer propagate the correction of the omega data in
+/// the first 6 cells (as we previously did), since this is not recommended
+/// in Menter's paper.
+/// 
+/// We have kept our previous implementation and notes of the Menter omega 
+/// correction in the code, for future references. This should be removed
+/// in a couple of months, should we not have any issues with the updated
+/// version of the code. Notes from earlier implementation of the Menter 
+/// correction are as follows: -
 /// Menter's slightly-rough-surface boundary condition is described
 /// in Wilcox's 2006 text, eqn 7.36.
 /// For low-resolution grids, the k-omega model is reported to over-estimate
@@ -9,6 +20,7 @@
 /// the 1/y**2 form of the omega data out a few cells from the wall.
 ///
 /// PJ, October 2007
+/// Wilson C, March 2015
 
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/gas/models/gas_data.hh"
@@ -23,7 +35,10 @@ double ideal_omega_at_wall(FV_Cell *cell)
 {
     Gas_data *wall_gas = cell->cell_at_nearest_wall->fs->gas;
     double d0 = cell->half_cell_width_at_wall;
-    return 400.0 * wall_gas->mu / wall_gas->rho / (d0 * d0);
+    // Previous implementation of Menter's omega correction: -
+    // return 400.0 * wall_gas->mu / wall_gas->rho / (d0 * d0);
+    // We now return the correct implementation of Menter's correction.
+    return 60.0 * (wall_gas->mu / wall_gas->rho) / (0.075 * d0 * d0);
 }
 
 double ideal_omega(FV_Cell *cell)

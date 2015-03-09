@@ -412,7 +412,7 @@ int gasdynamic_point_implicit_viscous_increment(void)
 	if ( !bdp->active ) continue;
 	bdp->clear_fluxes_of_conserved_quantities( G.dimensions );
 	apply_viscous_bc( *bdp, G.sim_time, G.dimensions );
-	if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
+	// if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
 	if ( G.dimensions == 2 ) {
 	    viscous_derivatives_2D( bdp );
 	} else {
