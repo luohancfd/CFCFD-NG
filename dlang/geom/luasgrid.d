@@ -135,6 +135,27 @@ The value, if present, should be a number.`;
     return pushObj!(StructuredGrid, StructuredGrid2DMT)(L, grid);
 }
 
+extern(C) int importGridproGrid(lua_State *L)
+{
+    int narg = lua_gettop(L);
+    if ( narg == 0 ) {
+	string errMsg = `Error in call to importGridproGrid().
+At least one argument is required: the name of the Gridpro file.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    auto fname = to!string(luaL_checkstring(L, 1));
+    double scale = 1.0;
+    if ( narg >= 2 ) {
+	scale = luaL_checknumber(L, 2);
+    }
+    auto sgrids = import_gridpro_grid(fname, scale);
+    lua_newtable(L);
+    foreach ( int i, grid; sgrids ) {
+	pushObj!(StructuredGrid, StructuredGrid2DMT)(L, grid);
+	lua_rawseti(L, -2, i+1);
+    }
+    return 1;
+}
 
 void registerStructuredGrid(LuaState lua)
 {
@@ -166,6 +187,11 @@ void registerStructuredGrid(LuaState lua)
     lua_setfield(L, -2, "write_to_text_file");
 
     lua_setglobal(L, StructuredGrid2DMT.toStringz);
+
+    // Global functions available for use
+    lua_pushcfunction(L, &importGridproGrid);
+    lua_setglobal(L, "importGridproGrid");
+
 } // end registerStructuredGrid()
     
 

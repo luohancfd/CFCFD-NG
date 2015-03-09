@@ -39,6 +39,10 @@ ni = grid:get_niv()
 nj = grid:get_njv()
 print("grid size=", ni, nj)
 print("upper-right corner=", grid:get_vtx(ni-1,nj-1))
+-- Try Gridpro import
+grids = importGridproGrid("../../examples/eilmer3/3D/gridpro-import/blk.tmp", 0.001)
+print("no. of grids read= ", #grids)
+print("size of grid 1= ", grids[1]:get_niv(), grids[1]:get_njv())
     `);
 }
 
