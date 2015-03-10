@@ -16,6 +16,7 @@ import std.string;
 import json_helper;
 import geom;
 import gas;
+import kinetics;
 import fvcore;
 import globalconfig;
 import globaldata;
@@ -133,9 +134,12 @@ void read_config_file()
     // Parameters controlling thermochemistry
     //
     GlobalConfig.reacting = getJSONbool(jsonData, "reacting", false);
-    // TODO GlobalConfig.reaction_update
+    GlobalConfig.reactions_file = jsonData["reactions_file"].str;
+    if ( GlobalConfig.reacting )
+	GlobalConfig.reaction_update = new ReactionUpdateScheme(GlobalConfig.reactions_file, GlobalConfig.gmodel);
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  reacting: ", GlobalConfig.reacting);
+	writeln("  reactions_file: ", GlobalConfig.reactions_file);
     }
 
     // Parameters controlling other simulation options

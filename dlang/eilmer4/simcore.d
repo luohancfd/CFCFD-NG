@@ -74,6 +74,7 @@ double init_simulation(int tindx)
 	    // needed for both the cfd_check and the BLomax turbulence model.
 	    cell.decode_conserved(0, 0, myblk.omegaz);
 	}
+	myblk.set_cell_dt_chem(-1.0);
     }
     exchange_shared_boundary_data();
     if (GlobalConfig.verbosity_level > 0) writeln("Done init_simulation().");
@@ -166,9 +167,24 @@ double integrate_in_time(double target_time, int maxWallClock)
 	// 2c. Increment because of viscous effects may be done
 	//     separately to the convective terms.
         // 2d. Chemistry step. 
-	//     Allow finite-rate evolution of species due
-        //     to chemical reactions
-
+	if ( GlobalConfig.reacting ) {
+	    //writeln("Performing chemistry calculation for all blocks.");
+	    foreach (blk; myBlocks) {
+		if (!blk.active) continue;
+		foreach ( i, cell; blk.active_cells) {
+		    /*if ( i == 60 ) {
+			writeln("Before chemistry....");
+			writeln(cell.fs.gas);
+			}*/
+		    cell.chemical_increment(dt_global, 300.0);
+		    /*if ( i == 60 ) {
+			writeln("After chemistry....");
+			writeln(cell.fs.gas);
+			}*/
+		    // Hard-code Tfrozen
+		}
+	    }
+	}
         // 3. Update the time record and (occasionally) print status.
         ++step;
         output_just_written = false;

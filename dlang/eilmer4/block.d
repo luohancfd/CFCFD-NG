@@ -56,5 +56,9 @@ public:
     void estimate_turbulence_viscosity() {}
     void apply_convective_bc(double t) {}
     void apply_viscous_bc(double t) {}
+    void set_cell_dt_chem(double dt_chem)
+    {
+	foreach ( cell; active_cells ) cell.dt_chem = dt_chem;
+    }
 
 } // end class Block

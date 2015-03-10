@@ -7,6 +7,8 @@
 module kinetics.reaction_mechanism;
 
 import std.stdio;
+import std.algorithm;
+import std.math;
 
 import gas;
 import luad.all;
@@ -68,7 +70,66 @@ public:
     {
 	return _reactions[ir].k_b;
     }
-    
+    /++
+     + Selects an approriate chemistry time step based on rate of change information.
+     +
+     + This selection algorithm first came to my attention in the paper by Young and Boris.
+     + In this implementation, we use the modification suggested by Mott.
+     + 
+     + References:
+     + Young and Boris (1977)
+     + A Numerical Technique for Solving Stiff Ordinary Differential Equations 
+     + Associated with the Chemical Kinetics Reactive-Flow Problem
+     + The Journal of Physical Chemistry, 81:25 pp. 2424--2427
+     +
+     + Mott, D.R. (1999)
+     + New Quasi-Steady-State and Partial-Equilibrium Methods for
+     + Integrating Chemically Reacting Systems.
+     + PhD Thesis, The University of Michigan
+     +/ 
+    final double estimateStepSize(in double[] conc)
+    {
+	immutable double MUCH_LARGER_FACTOR = 10000.0;
+	immutable double ZERO_EPS = 1.0e-50;
+	immutable double ZERO_TOL = 1.0e-30;
+	immutable double EPS1 = 1.0e-3;
+	immutable double CHEM_STEP_UPPER_INITIAL_LIMIT = 1.0e-10;
+	immutable double CHEM_STEP_LOWER_INITIAL_LIMIT = 1.0e-15;
+	
+	double min_dt = 1.0e6; // something massive to get us started
+	double dt;
+	eval_split_rates(conc, _q, _L);
+	foreach ( isp, c; conc ) {
+	    //writefln("c= %e  fabs= %e", c, fabs(_q[isp] - _L[isp]));
+	    if ( c > 0.0 && (fabs(_q[isp] - _L[isp]) > ZERO_TOL) ) {
+		//writefln("q=%e  L=%e", _q[isp], _L[isp]);
+		if ( _q[isp] > MUCH_LARGER_FACTOR*_L[isp] ) {
+		    // See Mott's thesis, Eq 3.40
+		    // In it, he gives this means of estimating the timestep
+		    // when q >> L. But he doesn't give a value for how
+		    // much larger that factor should be.
+		    // In the end, it's only an estimate so it shouldn't matter much.
+		    // (hopefully).
+		    // The value should be 1/p_i, so that is....
+		    dt = c/(_L[isp] + ZERO_EPS);
+		    //writefln("Mott's dt= %e ", dt);
+		}
+		else {
+		    dt = fabs( c / (_q[isp] - _L[isp]) );
+		    //writefln("Young and Boris dt= %e", dt);
+		}
+		min_dt = min(min_dt, dt);
+	    }
+	}
+	double dt_chem = EPS1*min_dt;
+	//	writefln("dt_chem= %e", dt_chem);
+	dt_chem = min(dt_chem, CHEM_STEP_UPPER_INITIAL_LIMIT);
+	//	writefln("dt_chem= %e", dt_chem);
+	dt_chem = max(dt_chem, CHEM_STEP_LOWER_INITIAL_LIMIT);
+	//	writefln("dt_chem= %e", dt_chem);
+	return dt_chem;
+    }
+
 private:
     Reaction[] _reactions;
     // Working array space

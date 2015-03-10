@@ -167,6 +167,10 @@ extern(C) int configSetFromTable(lua_State* L)
     lua_getfield(L, 1, "reacting");
     if (!lua_isnil(L, -1)) GlobalConfig.reacting = to!bool(lua_toboolean(L, -1));
     lua_pop(L, 1);
+    lua_getfield(L, 1, "reactions_file");
+    if (!lua_isnil(L, -1)) GlobalConfig.reactions_file = to!string(luaL_checkstring(L, -1));
+    lua_pop(L, 1);
+
 
     lua_getfield(L, 1, "max_step");
     if (!lua_isnil(L, -1)) GlobalConfig.max_step = luaL_checkint(L, -1);
@@ -338,6 +342,9 @@ extern(C) int configGet(lua_State* L)
 
     case "reacting":
 	lua_pushboolean(L, GlobalConfig.reacting);
+	break;
+    case "reactions_file":
+	lua_pushstring(L, GlobalConfig.reactions_file.toStringz);
 	break;
 
     case "max_step":

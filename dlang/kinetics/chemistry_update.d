@@ -10,6 +10,8 @@ module kinetics.chemistry_update;
 import std.stdio;
 import std.math;
 import std.algorithm;
+import luad.all;
+import util.lua_service;
 import gas;
 import kinetics.reaction_mechanism;
 
@@ -27,6 +29,36 @@ static double[] conc0;
 static double[] concOut;
 enum ResultOfStep { success, failure };
 
+final class ReactionUpdateScheme {
+    ReactionMechanism rmech;
+    ChemODEStep cstep;
+    bool tightTempCoupling;
+    int maxSubcycles;
+    int maxAttempts;
+
+    this(string fname, in GasModel gmodel)
+    {
+	auto lua = initLuaState(fname);
+	auto t = lua.get!LuaTable("reaction");
+	rmech = createReactionMechanism(t, gmodel);
+	// Just hard code selection of RKF for present.
+	cstep = new RKFStep(gmodel, rmech, 1.0e-3);
+	tightTempCoupling = false;
+	maxSubcycles = MAX_SUBCYCLES;
+	maxAttempts = MAX_STEP_ATTEMPTS;
+    }
+
+    void update_state(GasState Q, double tInterval, ref double dtSuggest, in GasModel gmodel)
+    {
+	if ( update_chemistry(Q, tInterval, dtSuggest, gmodel, rmech, cstep,
+			      tightTempCoupling, maxSubcycles, maxAttempts) != 0 ) {
+	    string errMsg = "There was a problem with the chemistry update.";
+	    throw new Exception(errMsg);
+	}
+    }
+
+}
+
 int update_chemistry(GasState Q, double tInterval, ref double dtSuggest,
 		     in GasModel gmodel, ReactionMechanism rmech, ChemODEStep cstep,
 		     bool tightTempCoupling, int maxSubcycles=MAX_SUBCYCLES, int maxAttempts=MAX_STEP_ATTEMPTS)
@@ -41,21 +73,19 @@ int update_chemistry(GasState Q, double tInterval, ref double dtSuggest,
     Qinit.copy_values_from(Q);
     gmodel.massf2conc(Q, conc0);
 
+    // 0. Evaluate the rate constants. 
+    //    It helps to have these computed before doing other setup work.
+    rmech.eval_rate_constants(Q);
     // 1. Sort out the time step for possible subcycling.
     double t = 0.0;
     double h;
     if ( dtSuggest > tInterval )
 	h = dtSuggest;
-    /*
     else if ( dtSuggest <= 0.0 )
-	h = estimateStepSize(conc);
-    */
+	h = rmech.estimateStepSize(conc0);
     else
 	h = dtSuggest;
     // 2. Now do the interesting stuff, increment species change
-    // 2a. Evaluate the rate constants (kf, kb) at least initially
-    rmech.eval_rate_constants(Q);
-    // 2b. Begin cycling
     int cycle = 0;
     int attempt = 0;
     for ( ; cycle < maxSubcycles; ++cycle ) {
@@ -109,6 +139,7 @@ int update_chemistry(GasState Q, double tInterval, ref double dtSuggest,
 	    }
 	} // end attempts at single step.
 	if ( attempt == MAX_STEP_ATTEMPTS ) {
+	    writeln("WARNING: hit max step attempts within a subcycle.");
 	    // We did poorly. Let the outside world know by returning -1.
 	    // But put the original GasState back in place.
 	    Q.copy_values_from(Qinit);
@@ -145,6 +176,7 @@ int update_chemistry(GasState Q, double tInterval, ref double dtSuggest,
 	// If we make it out here, then we didn't complete within
 	// the maximum number of subscyles... we are taking too long.
 	// Let's return the gas state to how it was before we failed.
+	writeln("WARNING: hit max number of subcycles.");
 	Q.copy_values_from(Qinit);
 	return -1;
     }

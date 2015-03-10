@@ -11,6 +11,7 @@ module kinetics.reaction;
 import std.math;
 import std.string;
 import std.typecons;
+import std.algorithm;
 import luad.all;
 import util.lua_service;
 import gas;
@@ -100,7 +101,7 @@ public:
 	    pmap[prod_spidx[i]] = true;
 	}
 	_participants = pmap.keys.dup();
-	_participants.sort;
+	sort(_participants);
 	foreach ( isp; 0..n_species ) {
 	    int nu1 = 0;
 	    foreach ( ref r; _reactants ) {

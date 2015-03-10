@@ -1,3 +1,4 @@
+#!/usr/bin/env lua
 -- Author: Rowan J. Gollan
 -- Date: 03-Mar-2009
 --

@@ -636,6 +636,7 @@ function write_config_file(fileName)
 			 tostring(config.separate_update_for_k_omega_source)))
 
    f:write(string.format('"reacting": %s,\n', tostring(config.reacting)))
+   f:write(string.format('"reactions_file": "%s",\n', config.reactions_file))
    f:write(string.format('"max_invalid_cells": %d,\n', config.max_invalid_cells))
    f:write(string.format('"control_count": %d,\n', config.control_count))
 

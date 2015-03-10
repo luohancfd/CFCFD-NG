@@ -91,7 +91,7 @@ public:
     body {
 	foreach ( i; 0.._n_species ) {
 	    Q.massf[i] = conc[i]*_mol_masses[i] / Q.rho;
-	    if ( Q.massf[i] < MIN_MASS_FRACTION ) Q.massf[i] = MIN_MASS_FRACTION;
+	    if ( Q.massf[i] < MIN_MASS_FRACTION ) Q.massf[i] = 0.0;
 	}
     }
 

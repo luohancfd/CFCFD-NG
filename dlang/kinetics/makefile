@@ -2,6 +2,8 @@
 # Can be used to perform unit tests
 # and build stand-alone programs.
 
+INSTALL_DIR ?= $(HOME)/e3bin
+
 UNITTEST_FILES := rate_constant_test \
 	reaction_test
 
@@ -29,8 +31,13 @@ KINETICS_FILES := \
 	reaction.d \
 	reaction_mechanism.d
 
+
 DFLAGS := -main -unittest -gc -wi -I../ 
 DLINKFLAGS :=  -w -L-L${LIBLUAPATH} -L-llua -L-ldl
+
+install-prep-chem: prep_chem.lua reaction.lua lex_elems.lua
+	cp reaction.lua lex_elems.lua $(INSTALL_DIR)
+	cp prep_chem.lua $(INSTALL_DIR)/prep-chem; chmod +x $(INSTALL_DIR)/prep-chem
 
 unittests: $(UNITTEST_FILES)
 

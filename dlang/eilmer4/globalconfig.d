@@ -13,6 +13,7 @@ import std.stdio;
 
 import geom;
 import gas;
+import kinetics;
 import fvcore;
 
 // Symbolic names for turbulence models.
@@ -194,7 +195,8 @@ final class GlobalConfig {
     // Chemical equilibrium simulations (via Look-Up Table) does not use this
     // chemical update function call.
     static bool reacting = false;
-    // TODO static ReactingScheme reaction_update = ReactingScheme.none;
+    static string reactions_file = "chemistry.lua";
+    static ReactionUpdateScheme reaction_update = null;
 
     // With this flag on, finite-rate evolution of the vibrational energies 
     // (and in turn the total energy) is computed.

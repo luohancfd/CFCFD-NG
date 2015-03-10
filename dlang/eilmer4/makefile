@@ -50,6 +50,15 @@ DIFFUSION_FILES := \
 
 GAS_FILES := $(GAS_MODEL_FILES) $(THERMO_FILES) $(DIFFUSION_FILES)
 
+KINETICS_DIR := ../kinetics
+
+KINETICS_FILES := \
+	$(KINETICS_DIR)/package.d \
+	$(KINETICS_DIR)/chemistry_update.d \
+	$(KINETICS_DIR)/rate_constant.d \
+	$(KINETICS_DIR)/reaction.d \
+	$(KINETICS_DIR)/reaction_mechanism.d
+
 UTIL_DIR := ../util
 UTIL_FILES := $(UTIL_DIR)/lua_service.d \
 	$(UTIL_DIR)/msg_service.d
@@ -110,7 +119,7 @@ default: $(PROGRAMS)
 	@echo "Source code revision string $(REVISION_STRING)"
 	@echo "Eilmer4 simulation code built."
 
-install: $(PROGRAMS) prep.lua prep-gas
+install: $(PROGRAMS) prep.lua prep-gas prep-chem
 	@echo "Installing to $(INSTALL_DIR)"
 	cp $(PROGRAMS) $(INSTALL_DIR)
 	cp prep.lua $(INSTALL_DIR)
@@ -131,57 +140,60 @@ clean:
 prep-gas:
 	cd $(GAS_DIR); make INSTALL_DIR=$(INSTALL_DIR) install-prep-gas 
 
+prep-chem:
+	cd $(KINETICS_DIR); make INSTALL_DIR=$(INSTALL_DIR) install-prep-chem
+
 $(LIBLUA):
 	cd $(LUA_DIR); make linux local
 
 globalconfig_demo: globalconfig_demo.d globalconfig.d fvcore.d \
 	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) \
-	$(LUAD_FILES) $(GZIP_FILES)
+	$(KINETICS_FILES) $(LUAD_FILES) $(GZIP_FILES)
 	$(DMD) $(DFLAGS) $(OF)globalconfig_demo \
 		globalconfig_demo.d globalconfig.d fvcore.d \
 		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
-		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)  
+		$(KINETICS_FILES) $(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)  
 
 luaglobalconfig_demo: luaglobalconfig_demo.d luaglobalconfig.d globalconfig.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d conservedquantities.d \
 	flowstate.d json_helper.d \
 	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) \
-	$(LUAD_FILES) $(GZIP_FILES)
+	$(KINETICS_FILES) $(LUAD_FILES) $(GZIP_FILES)
 	$(DMD) $(DFLAGS) $(OF)luaglobalconfig_demo \
 		luaglobalconfig_demo.d luaglobalconfig.d globalconfig.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d conservedquantities.d \
 		flowstate.d json_helper.d \
 		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
-		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)  
+		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)  
 
 flowstate_demo: flowstate_demo.d flowstate.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d conservedquantities.d \
 	globalconfig.d json_helper.d \
 	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) \
-	$(LUAD_FILES) $(GZIP_FILES)
+	$(KINETICS_FILES) $(LUAD_FILES) $(GZIP_FILES)
 	$(DMD) $(DFLAGS) $(OF)flowstate_demo flowstate_demo.d \
 		fvcore.d flowstate.d fvcell.d fvvertex.d fvinterface.d \
 		conservedquantities.d globalconfig.d json_helper.d \
 		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
-		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
+		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)
 
 luaflowstate_demo: luaflowstate_demo.d luaflowstate.d flowstate.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d conservedquantities.d \
 	globalconfig.d luaglobalconfig.d json_helper.d \
 	$(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES) \
-	$(LUAD_FILES) $(GZIP_FILES)
+	$(KINETICS_FILES) $(LUAD_FILES) $(GZIP_FILES)
 	$(DMD) $(DFLAGS) $(OF)luaflowstate_demo \
 		luaflowstate_demo.d luaflowstate.d flowstate.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d conservedquantities.d \
 		globalconfig.d luaglobalconfig.d json_helper.d \
 		$(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
-		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
+		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)
 
 fv_demo: fv_demo.d fvcore.d fvcell.d fvvertex.d fvinterface.d onedinterp.d fluxcalc.d \
 	conservedquantities.d flowstate.d globalconfig.d globaldata.d \
 	block.d sblock.d ublock.d json_helper.d \
 	$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
-	$(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
+	$(KINETICS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
 	$(DMD) $(DFLAGS) $(OF)fv_demo \
 		fv_demo.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
@@ -189,7 +201,7 @@ fv_demo: fv_demo.d fvcore.d fvcell.d fvvertex.d fvinterface.d onedinterp.d fluxc
 		globalconfig.d globaldata.d block.d sblock.d ublock.d \
 		json_helper.d \
 		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
-		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
+		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)
 
 block_demo: block_demo.d \
 	block.d sblock.d ublock.d \
@@ -199,7 +211,7 @@ block_demo: block_demo.d \
 	block.d sblock.d ublock.d \
 	json_helper.d \
 	$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
-	$(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
+	$(KINETICS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
 	$(DMD) $(DFLAGS) $(OF)block_demo \
 		block_demo.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
@@ -209,7 +221,7 @@ block_demo: block_demo.d \
 		block.d sblock.d ublock.d \
 		json_helper.d \
 		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
-		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
+		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)
 
 e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 	block.d sblock.d ublock.d \
@@ -219,7 +231,7 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 	globalconfig.d luaglobalconfig.d globaldata.d \
 	block.d sblock.d ublock.d \
 	$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
-	$(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
+	$(KINETICS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
 	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' main.d > main_with_rev_string.d
 	$(DMD) $(DFLAGS) $(OF)e4shared \
 		main_with_rev_string.d simcore.d fileutil.d readconfig.d json_helper.d \
@@ -229,5 +241,5 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 		globalconfig.d luaglobalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
 		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
-		$(UTIL_FILES) $(NM_FILES) $(DLINKFLAGS)
+		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)
 

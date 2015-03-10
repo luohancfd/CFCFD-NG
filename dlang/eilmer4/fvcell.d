@@ -947,8 +947,8 @@ public:
 	    }
 	}
 	try {
-	    // [TODO] auto rupdate = GlobalConfig.reaction_update_scheme;
-	    // [TODO] rupdate.update_state(fs.gas, dt, dt_chem, gmodel);
+	    auto rupdate = GlobalConfig.reaction_update;
+	    rupdate.update_state(fs.gas, dt, dt_chem, gmodel);
 	    if (GlobalConfig.ignition_zone_active) {
 		// Restore actual gas temperature
 		fs.gas.T[0] = T_save;
@@ -975,7 +975,6 @@ public:
 	foreach(isp; 0 .. fs.gas.massf.length)
 	    U[0].massf[isp] = fs.gas.rho * fs.gas.massf[isp];
 
-	assert(false, "[TODO] not yet ready for use");
     } // end chemical_increment()
 
     void thermal_increment(double dt, double T_frozen_energy) 
