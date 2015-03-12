@@ -351,9 +351,16 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	}
 	// Second stage of gas-dynamic update.
 	t_level = 1;
+	// Apply preReconAction to all blocks first.
+	// We might be relying on exchangine boundary data
+	// as a pre-reconstruction activity.
+	// NOTE FOR PJ: This replaces exchange. Good idea or no?
 	foreach (blk; myBlocks) {
 	    if (!blk.active) continue;
 	    blk.applyPreReconAction(sim_time);
+	}
+	foreach (blk; myBlocks) {
+	    if (!blk.active) continue;
 	    blk.convective_flux();
 	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 		// [TODO] Replace with applyPreSpatialDeriv
