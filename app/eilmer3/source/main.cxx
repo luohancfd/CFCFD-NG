@@ -1424,6 +1424,9 @@ int integrate_in_time(double target_time)
     //                 Top of main time-stepping loop
     //----------------------------------------------------------------
     while ( !finished_time_stepping ) {
+#       ifdef _MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#       endif    
 	if ( (G.step/G.control_count)*G.control_count == G.step ) {
 	    // Reparse the time-step control parameters as frequently as specified.
 	    read_control_parameters(G.base_file_name+".control", master, false);
