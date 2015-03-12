@@ -30,9 +30,6 @@ import fvcell;
 import onedinterp;
 import block;
 import bc;
-import slip_wall;
-import full_face_exchange;
-import mapped_cell_exchange;
 
 class SBlock: Block {
 public:
@@ -868,7 +865,8 @@ public:
 	    // Step 3: find the closest real wall.
 	    for ( size_t iface = 0; iface < num_faces; ++iface ) {
 		if ( bc[iface].is_wall && 
-		     bc[iface].type_code == BCCode.slip_wall &&
+		     // bc[iface].type_code == BCCode.slip_wall &&
+		     // Isn't it enough that is_wal is true?
 		     dist[iface] < cell.distance_to_nearest_wall ) {
 		    cell.distance_to_nearest_wall = dist[iface];
 		    cell.half_cell_width_at_wall = half_width[iface];
@@ -2007,13 +2005,9 @@ public:
 		    } else {
 			IFace.fs.copy_average_values_from(Lft, Rght);
 		    }
-		    // Finally, the flux calculation itself.
-		    if ( (i == imin && bc[Face.west].sets_conv_flux_directly) ||
-			 (i == imax+1 && bc[Face.east].sets_conv_flux_directly) ) {
-			// Retain the b.c. set flux at the boundary by doing nothing here.
-		    } else {
-			compute_interface_flux(Lft, Rght, IFace, omegaz);
-		    }
+
+		    compute_interface_flux(Lft, Rght, IFace, omegaz);
+
 		} // i loop
 	    } // j loop
 	} // for k
@@ -2051,12 +2045,9 @@ public:
 			IFace.fs.copy_average_values_from(Lft, Rght);
 		    }
 		    // Finally, the flux calculation.
-		    if ( (j == jmin && bc[Face.south].sets_conv_flux_directly) ||
-			 (j == jmax+1 && bc[Face.north].sets_conv_flux_directly) ) {
-			// Retain the b.c. flux at the boundary by doing nothing here.
-		    } else {
-			compute_interface_flux(Lft, Rght, IFace, omegaz);
-		    } // end if
+
+		    compute_interface_flux(Lft, Rght, IFace, omegaz);
+
 		} // j loop
 	    } // i loop
 	} // for k
@@ -2095,13 +2086,9 @@ public:
 		    } else {
 			IFace.fs.copy_average_values_from(Lft, Rght);
 		    }
-		    // Finally, the flux calculation.
-		    if ( (k == kmin && bc[Face.bottom].sets_conv_flux_directly) ||
-			 (k == kmax+1 && bc[Face.top].sets_conv_flux_directly) ) {
-			// Retain the b.c. set flux at the boundary by doing nothing here.
-		    } else {
-			compute_interface_flux(Lft, Rght, IFace, omegaz);
-		    } // end if
+
+		    compute_interface_flux(Lft, Rght, IFace, omegaz);
+
 		} // for k 
 	    } // j loop
 	} // i loop
@@ -2132,18 +2119,18 @@ public:
 	assert(false, "[TODO] estimate_turbulence_viscosity() not implemented yet.");
     }
 
-    override void apply_convective_bc(double t)
+    override void applyPreReconAction(double t)
     {
-	bc[Face.north].apply_convective(t);
-	bc[Face.east].apply_convective(t);
-	bc[Face.south].apply_convective(t);
-	bc[Face.west].apply_convective(t);
+	bc[Face.north].applyPreReconAction(t);
+	bc[Face.east].applyPreReconAction(t);
+	bc[Face.south].applyPreReconAction(t);
+	bc[Face.west].applyPreReconAction(t);
 	if ( GlobalConfig.dimensions == 3 ) {
-	    bc[Face.top].apply_convective(t);
-	    bc[Face.bottom].apply_convective(t);
+	    bc[Face.top].applyPreReconAction(t);
+	    bc[Face.bottom].applyPreReconAction(t);
 	}
     } // end apply_convective_bc()
-
+    /*
     override void apply_viscous_bc(double t)
     {
 	bc[Face.north].apply_viscous(t);
@@ -2155,7 +2142,7 @@ public:
 	    bc[Face.bottom].apply_viscous(t);
 	}
     } // end apply_convective_bc
-
+    */
 
     @nogc
     void copy_into_ghost_cells(int destination_face,

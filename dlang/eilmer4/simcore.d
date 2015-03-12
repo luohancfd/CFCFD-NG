@@ -76,11 +76,14 @@ double init_simulation(int tindx)
 	}
 	myblk.set_cell_dt_chem(-1.0);
     }
-    exchange_shared_boundary_data();
+    // [TODO] Is it appropriate to disable this?
+    //exchange_shared_boundary_data();
     if (GlobalConfig.verbosity_level > 0) writeln("Done init_simulation().");
     return sim_time;
 } // end init_simulation()
 
+/* For shared memory code, boundary condition
+   does copy directly.
 void exchange_shared_boundary_data()
 {
     foreach (ref myblk; myBlocks) {
@@ -91,7 +94,7 @@ void exchange_shared_boundary_data()
 	} // end foreach face
     } // end foreach myblk
 } // end exchange_shared_boundary_data()
-
+*/
 void update_times_file()
 {
     auto writer = appender!string();
@@ -306,7 +309,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
     }
     foreach (blk; myBlocks) {
 	if (!blk.active) continue;
-	blk.apply_convective_bc(sim_time);
+	blk.applyPreReconAction(sim_time);
 	// We've put this detector step here because it needs the ghost-cell data
 	// to be current, as it should be just after a call to apply_convective_bc().
 	if (GlobalConfig.flux_calculator == FluxCalculator.adaptive)
@@ -318,7 +321,8 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	if (!blk.active) continue;
 	blk.convective_flux();
 	if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-	    blk.apply_viscous_bc(sim_time);
+	    // [TODO] Replace with applyPreSpatialDeriv
+	    //blk.apply_viscous_bc(sim_time);
 	    if (GlobalConfig.turbulence_model == TurbulenceModel.k_omega)
 		blk.apply_menter_boundary_correction(0);
 	    blk.viscous_derivatives(0); 
@@ -349,10 +353,11 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	t_level = 1;
 	foreach (blk; myBlocks) {
 	    if (!blk.active) continue;
-	    blk.apply_convective_bc(sim_time);
+	    blk.applyPreReconAction(sim_time);
 	    blk.convective_flux();
 	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-		blk.apply_viscous_bc(sim_time);
+		// [TODO] Replace with applyPreSpatialDeriv
+		//		blk.apply_viscous_bc(sim_time);
 		if (GlobalConfig.turbulence_model == TurbulenceModel.k_omega)
 		    blk.apply_menter_boundary_correction(1);
 		blk.viscous_derivatives(0); 
@@ -381,12 +386,19 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    foreach (cell; blk.active_cells) cell.clear_source_vector();
 	}
 	t_level = 2;
+	// Apply preReconAction to all blocks first.
+	// We might be relying on exchangine boundary data
+	// as a pre-reconstruction activity.
+	// NOTE FOR PJ: This replaces exchange. Good idea or no?
 	foreach (blk; myBlocks) {
 	    if (!blk.active) continue;
-	    blk.apply_convective_bc(sim_time);
+	    blk.applyPreReconAction(sim_time);
+	}
+	foreach (blk; myBlocks) {
+	    if (!blk.active) continue;
 	    blk.convective_flux();
-	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-		blk.apply_viscous_bc(sim_time);
+	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {         // [TODO] Replace with applyPreSpatialDeriv
+		//blk.apply_viscous_bc(sim_time);
 		if (GlobalConfig.turbulence_model == TurbulenceModel.k_omega)
 		    blk.apply_menter_boundary_correction(2);
 		blk.viscous_derivatives(0); 

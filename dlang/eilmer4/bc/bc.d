@@ -1,7 +1,9 @@
 // bc/bc.d
 // Base class for boundary condition objects, for use in Eilmer4
 //
-// Peter J. 2014-07-20 first cut.
+// Peter J. 2014-07-20 : first cut.
+// RG & PJ  2015-12-03 : Decompose boundary conditions into lists of actions
+//    
 
 module bc;
 
@@ -19,15 +21,9 @@ import fvinterface;
 import fvcell;
 import block;
 import sblock;
-import slip_wall;
-import supersonic_in;
-import extrapolate_out;
-import fixed_p_out;
-import fixed_t_wall;
-import adiabatic_wall;
-import full_face_exchange;
-import mapped_cell_exchange;
+import ghost_cell_effect;
 
+/*
 enum BCCode 
 { 
     slip_wall,
@@ -39,7 +35,11 @@ enum BCCode
     subsonic_in,
     static_profile_in,
     fixed_p_out,
-    extrapolate_out
+    extrapolate_out,
+    ud_ghost_cells,
+    ud_convective_flux,
+    ud_interface_val,
+    ud_diffusive_flux
 }
 
 BCCode type_code_from_name(string name)
@@ -71,62 +71,23 @@ BCCode type_code_from_name(string name)
     default: return BCCode.slip_wall;
     } // end switch
 } // end type_code_from_name()
+*/
 
-
-BoundaryCondition make_BC_from_json(JSONValue json_data, int blk_id, int boundary)
+BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary)
 {
-    BCCode bc_type = type_code_from_name(toLower(json_data["bc"].str));
-    BoundaryCondition new_bc;
-    // [TODO] rest of the boundary conditions...
-    switch (bc_type) {
-    case BCCode.supersonic_in:
-	auto inflow =  new FlowState(json_data["inflow_condition"], GlobalConfig.gmodel);
-	new_bc = new SupersonicInBC(blk_id, boundary, inflow);
-	break;
-    case BCCode.slip_wall:
-	new_bc = new SlipWallBC(blk_id, boundary);
-	break;
-    case BCCode.extrapolate_out:
-	int x_order = getJSONint(json_data, "x_order", 0);
-	new_bc = new ExtrapolateOutBC(blk_id, boundary, x_order);
-	break;
-    case BCCode.full_face_exchange:
-	int other_block = getJSONint(json_data, "other_block", -1);
-	string other_face_name = getJSONstring(json_data, "other_face", "none");
-	int neighbour_orientation = getJSONint(json_data, "neighbour_orientation", 0);
- 	new_bc = new FullFaceExchangeBC(blk_id, boundary,
-					other_block,
-					face_index(other_face_name),
-					neighbour_orientation);
-	break;
-    default:
-	new_bc = new SlipWallBC(blk_id, boundary);
+    auto newBC = new BoundaryCondition(blk_id, boundary);
+    // Assemble list of preReconAction effects
+    auto preReconActionList = jsonData["pre_recon_action"].array;
+    foreach ( jsonObj; preReconActionList ) {
+	newBC.preReconAction ~= make_GCE_from_json(jsonObj, blk_id, boundary);
     }
-    return new_bc;
+    // [TODO] We need to fill out the Action list
+    // for other hook points.
+    return newBC;
 } // end make_BC_from_json()
 
-//----------------------------------------------------------------------------------------
-
-@nogc
-void reflect_normal_velocity(ref FVCell cell, in FVInterface IFace)
-// Reflects normal velocity with respect to the cell interface.
-//
-// The process is to rotate the velocity vector into the local frame of
-// the interface, negate the normal (local x-component) velocity and
-// rotate back to the global frame.
-{
-    cell.fs.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
-    cell.fs.vel.refx = -(cell.fs.vel.x);
-    cell.fs.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
-}
-
-@nogc
-void reflect_normal_magnetic_field(ref FVCell cell, in FVInterface IFace)
-{
-    cell.fs.B.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
-    cell.fs.B.refx = -(cell.fs.B.x);
-    cell.fs.B.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
-}
+// Boundary condition is abstract because no one is
+// allowed to instantiate this barebones abstract class.
 
 class BoundaryCondition {
     // [TODO] we need to redesign this so that we can use unstructured-grid blocks, eventually.
@@ -138,186 +99,65 @@ public:
 
     // Nature of the boundary condition that may be checked 
     // by other parts of the CFD code.
-    BCCode type_code = BCCode.slip_wall;
+    // BCCode type_code = BCCode.slip_wall;
     bool is_wall = true;
     bool ghost_cell_data_available = true;
-    bool sets_conv_flux_directly = false;
-    bool sets_visc_flux_directly = false;
     double emissivity = 0.0;
+
+    this(int id, int boundary, bool isWall=true, bool ghostCellDataAvailable=true, double _emissivity=0.0)
+    {
+	blk_id = id;
+	which_boundary = boundary;
+	is_wall = isWall;
+	ghost_cell_data_available = ghostCellDataAvailable;
+	emissivity = _emissivity;
+    }
+
+    // Action lists.
+    // The BoundaryCondition is called at four stages in a global timestep.
+    // Those stages are:
+    // 1. pre reconstruction
+    // 2. post convective flux evaluation
+    // 3. pre spatial derivative estimate
+    // 4. post diffusive flux evaluation
+    // Note the object may be called more than 4 times depending
+    // on the type of time-stepping used to advance the solution.
+    // At each of these stages, a series of effects are applied in order
+    // with the end goal to leave the boundary values in an appropriate
+    // state. We will call this series of effects an action.
+    GhostCellEffect[] preReconAction;
+    //    BoundaryFluxEffect[] postConvFluxAction;
+    //    BoundaryInterfaceEffect[] preSpatialDerivAction;
+    //    BoundaryFluxEffect[] postDiffFluxAction;
 
     override string toString() const
     {
 	char[] repr;
 	repr ~= "BoundaryCondition(";
-	repr ~= "type_code=" ~ to!string(type_code);
+	//repr ~= "type_code=" ~ to!string(type_code);
 	repr ~= ")";
 	return to!string(repr);
     }
 
-    void apply_convective(double t)
+    final void applyPreReconAction(double t)
     {
-	// The default convective boundary condition is to reflect
-	// the normal component of the velocity at the ghost-cell centres.
-	// Effectively a slip-wall. 
-	size_t i, j, k;
-	FVCell src_cell, dest_cell;
-	FVInterface IFace;
-	auto copy_opt = CopyDataOption.minimal_flow;
-	auto blk = allBlocks[blk_id];
-
-	final switch (which_boundary) {
-	case Face.north:
-	    j = blk.jmax;
-	    for (k = blk.kmin; k <= blk.kmax; ++k) {
-		for (i = blk.imin; i <= blk.imax; ++i) {
-		    // ghost cell 1.
-		    src_cell = blk.get_cell(i,j,k);
-		    IFace = src_cell.iface[Face.north];
-		    dest_cell = blk.get_cell(i,j+1,k);
-		    dest_cell.copy_values_from(src_cell, copy_opt);
-		    reflect_normal_velocity(dest_cell, IFace);
-		    if (GlobalConfig.MHD) {
-			reflect_normal_magnetic_field(dest_cell, IFace);
-		    }
-		    // ghost cell 2.
-		    src_cell = blk.get_cell(i,j-1,k);
-		    dest_cell = blk.get_cell(i,j+2,k);
-		    dest_cell.copy_values_from(src_cell, copy_opt);
-		    reflect_normal_velocity(dest_cell, IFace);
-		    if (GlobalConfig.MHD) {
-			reflect_normal_magnetic_field(dest_cell, IFace);
-		    }
-		} // end i loop
-	    } // for k
-	    break;
-	case Face.east:
-	    i = blk.imax;
-	    for (k = blk.kmin; k <= blk.kmax; ++k) {
-		for (j = blk.jmin; j <= blk.jmax; ++j) {
-		    // ghost cell 1.
-		    src_cell = blk.get_cell(i,j,k);
-		    IFace = src_cell.iface[Face.east];
-		    dest_cell = blk.get_cell(i+1,j,k);
-		    dest_cell.copy_values_from(src_cell, copy_opt);
-		    reflect_normal_velocity(dest_cell, IFace);
-		    if (GlobalConfig.MHD) {
-			reflect_normal_magnetic_field(dest_cell, IFace);
-		    }
-		    // ghost cell 2.
-		    src_cell = blk.get_cell(i-1,j,k);
-		    dest_cell = blk.get_cell(i+2,j,k);
-		    dest_cell.copy_values_from(src_cell, copy_opt);
-		    reflect_normal_velocity(dest_cell, IFace);
-		    if (GlobalConfig.MHD) {
-			reflect_normal_magnetic_field(dest_cell, IFace);
-		    }
-		} // end j loop
-	    } // for k
-	    break;
-	case Face.south:
-	    j = blk.jmin;
-	    for (k = blk.kmin; k <= blk.kmax; ++k) {
-		for (i = blk.imin; i <= blk.imax; ++i) {
-		    // ghost cell 1.
-		    src_cell = blk.get_cell(i,j,k);
-		    IFace = src_cell.iface[Face.south];
-		    dest_cell = blk.get_cell(i,j-1,k);
-		    dest_cell.copy_values_from(src_cell, copy_opt);
-		    reflect_normal_velocity(dest_cell, IFace);
-		    if (GlobalConfig.MHD) {
-			reflect_normal_magnetic_field(dest_cell, IFace);
-		    }
-		    // ghost cell 2.
-		    src_cell = blk.get_cell(i,j+1,k);
-		    dest_cell = blk.get_cell(i,j-2,k);
-		    dest_cell.copy_values_from(src_cell, copy_opt);
-		    reflect_normal_velocity(dest_cell, IFace);
-		    if (GlobalConfig.MHD) {
-			reflect_normal_magnetic_field(dest_cell, IFace);
-		    }
-		} // end i loop
-	    } // for k
-	    break;
-	case Face.west:
-	    i = blk.imin;
-	    for (k = blk.kmin; k <= blk.kmax; ++k) {
-		for (j = blk.jmin; j <= blk.jmax; ++j) {
-		    // ghost cell 1.
-		    src_cell = blk.get_cell(i,j,k);
-		    IFace = src_cell.iface[Face.west];
-		    dest_cell = blk.get_cell(i-1,j,k);
-		    dest_cell.copy_values_from(src_cell, copy_opt);
-		    reflect_normal_velocity(dest_cell, IFace);
-		    if (GlobalConfig.MHD) {
-			reflect_normal_magnetic_field(dest_cell, IFace);
-		    }
-		    // ghost cell 2.
-		    src_cell = blk.get_cell(i+1,j,k);
-		    dest_cell = blk.get_cell(i-2,j,k);
-		    dest_cell.copy_values_from(src_cell, copy_opt);
-		    reflect_normal_velocity(dest_cell, IFace);
-		    if (GlobalConfig.MHD) {
-			reflect_normal_magnetic_field(dest_cell, IFace);
-		    }
-		} // end j loop
-	    } // for k
-	    break;
-	case Face.top:
-	    k = blk.kmax;
-	    for (i = blk.imin; i <= blk.imax; ++i) {
-		for (j = blk.jmin; j <= blk.jmax; ++j) {
-		    // ghost cell 1.
-		    src_cell = blk.get_cell(i,j,k);
-		    IFace = src_cell.iface[Face.top];
-		    dest_cell = blk.get_cell(i,j,k+1);
-		    dest_cell.copy_values_from(src_cell, copy_opt);
-		    reflect_normal_velocity(dest_cell, IFace);
-		    if (GlobalConfig.MHD) {
-			reflect_normal_magnetic_field(dest_cell, IFace);
-		    }
-		    // ghost cell 2.
-		    src_cell = blk.get_cell(i,j,k-1);
-		    dest_cell = blk.get_cell(i,j,k+2);
-		    dest_cell.copy_values_from(src_cell, copy_opt);
-		    reflect_normal_velocity(dest_cell, IFace);
-		    if (GlobalConfig.MHD) {
-			reflect_normal_magnetic_field(dest_cell, IFace);
-		    }
-		} // end j loop
-	    } // for i
-	    break;
-	case Face.bottom:
-	    k = blk.kmin;
-	    for (i = blk.imin; i <= blk.imax; ++i) {
-		for (j = blk.jmin; j <= blk.jmax; ++j) {
-		    // ghost cell 1.
-		    src_cell = blk.get_cell(i,j,k);
-		    IFace = src_cell.iface[Face.bottom];
-		    dest_cell = blk.get_cell(i,j,k-1);
-		    dest_cell.copy_values_from(src_cell, copy_opt);
-		    reflect_normal_velocity(dest_cell, IFace);
-		    if (GlobalConfig.MHD) {
-			reflect_normal_magnetic_field(dest_cell, IFace);
-		    }
-		    // ghost cell 2.
-		    src_cell = blk.get_cell(i,j,k+1);
-		    dest_cell = blk.get_cell(i,j,k-2);
-		    dest_cell.copy_values_from(src_cell, copy_opt);
-		    reflect_normal_velocity(dest_cell, IFace);
-		    if (GlobalConfig.MHD) {
-			reflect_normal_magnetic_field(dest_cell, IFace);
-		    }
-		} // end j loop
-	    } // for i
-	    break;
-	} // end switch which_boundary
-    } // end apply_convective()
-
-    void apply_viscous(double t) {}  // does nothing
-
-    void do_copy_into_boundary()
-    {
-	// Do nothing in this base class.
-	// Meant only for FullFaceExchangeBC and MappedCellExchangeBC.
+	foreach ( gce; preReconAction ) gce.apply(t);
     }
+    /*
+    final void applyPostConvFluxAction(double t)
+    {
+	foreach ( bfe; postConvFluxAction ) bfe.apply(t);
+    }
+
+    final void applyPreSpatialDerivAction(double t)
+    {
+	foreach ( bie; preSpatialDerivAction ) bie.apply(t);
+    }
+
+    final void applyPostDiffFluxAction(double t)
+    {
+	foreach ( bfe; postSpatialDerivAction ) bfe.apply(t);
+    }
+    */
+
 } // end class BoundaryCondition

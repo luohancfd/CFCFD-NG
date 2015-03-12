@@ -11,15 +11,7 @@ DEMO_PROGRAMS := globalconfig_demo flowstate_demo fv_demo block_demo \
 	luaflowstate_demo luaglobalconfig_demo
 
 BC_FILES := bc/bc.d \
-	bc/slip_wall.d \
-	bc/adiabatic_wall.d \
-	bc/fixed_t_wall.d \
-	bc/full_face_exchange.d \
-	bc/mapped_cell_exchange.d \
-	bc/extrapolate_out.d \
-	bc/fixed_p_out.d \
-	bc/supersonic_in.d \
-	bc/menter_correction.d
+	bc/ghost_cell_effect.d
 
 GAS_DIR := ../gas
 
