@@ -96,12 +96,12 @@ for _,v in ipairs(tabulatedData) do
    local this_face, other_face = unpack(connection)
    vtxPairs2D[{this_face, other_face}] = vtxPairs
 end
---[[
+--[=[
 for k,v in pairs(connections2D) do
    print(string.format('connections2D[%s] = %s', tostringVtxPairList(k),
 		       tostringConnection(v)))
 end
---]]
+--]=]
 
 -- Connections between 3D blocks, described as sets of vertex pairs.
 -- When specifying a connection, we specify the set of paired vertices.
@@ -328,6 +328,51 @@ function to_eilmer_axis_map(gridpro_ijk)
 end
 
 -- -----------------------------------------------------------------------
+-- Class for GhostCellEffect
+GhostCellEffect = {
+   type = ""
+}
+function GhostCellEffect:new(o)
+   o = o or {}
+   setmetatable(o, self)
+   self.__index = self
+   return o
+end
+
+InternalCopyThenReflect = GhostCellEffect:new()
+InternalCopyThenReflect.type = "internal_copy_then_reflect"
+function InternalCopyThenReflect:tojson()
+   local str = string.format('          {"type" : "%s"}', self.type)
+   return str
+end
+
+FlowStateCopy = GhostCellEffect:new{flowCondition=nil}
+FlowStateCopy.type = "flowstate_copy"
+function GhostCellEffect:tojson()
+   local str = string.format('          {"type": "%s",', self.type)
+   str = str .. string.format(' "flowstate": %s', self.flowCondition:toJSONString())
+   str = str .. '}'
+   return str
+end
+
+ExtrapolateCopy = GhostCellEffect:new{xOrder=0}
+ExtrapolateCopy.type = "extrapolate_copy"
+function ExtrapolateCopy:tojson()
+   local str = string.format('          {"type": "%s", "x_order": %d}', self.type, self.xOrder)
+   return str
+end
+
+FullFaceExchangeCopy = GhostCellEffect:new{otherBlock=nil, otherFace=nil, orientation=-1}
+FullFaceExchangeCopy.type = "full_face_exchange_copy"
+function FullFaceExchangeCopy:tojson()
+   local str = string.format('          {"type": "%s", ', self.type)
+   str = str .. string.format('"other_block": %d, ', self.otherBlock)
+   str = str .. string.format('"other_face": "%s", ', self.otherFace)
+   str = str .. string.format('"orientation": %d', self.orientation)
+   str = str .. '}'
+   return str
+end
+
 
 -- Class for BoundaryCondition
 -- For the classes below, we just follow the prototype pattern
@@ -335,7 +380,8 @@ end
 
 BoundaryCondition = {
    label = "",
-   myType = ""
+   myType = "",
+   preReconAction = {}
 }
 function BoundaryCondition:new(o)
    o = o or {}
@@ -343,51 +389,51 @@ function BoundaryCondition:new(o)
    self.__index = self
    return o
 end
+function BoundaryCondition:tojson()
+   local str = '{'
+   str = str .. string.format('"label": "%s", \n', self.label)
+   str = str .. '        "pre_recon_action": [\n'
+   for i,effect in ipairs(self.preReconAction) do
+      str = str .. effect:tojson()
+      -- Extra code to deal with annoying JSON trailing comma deficiency
+      if i ~= #self.preReconAction then str = str .. "," end
+   end
+   str = str .. '\n        ]\n    }'
+   return str
+end
 
 SlipWallBC = BoundaryCondition:new()
 SlipWallBC.myType = "SlipWall"
-function SlipWallBC:tojson()
-   local str = '{'
-   str = str .. string.format('"label": "%s", ', self.label)
-   str = str .. string.format('"bc": "%s"', self.myType)
-   str = str .. '}'
-   return str
+function SlipWallBC:new(o)
+   o = BoundaryCondition.new(self, o)
+   o.preReconAction = { InternalCopyThenReflect:new() }
+   return o
 end
 
-SupInBC = BoundaryCondition:new{flowCondition=nil}
+SupInBC = BoundaryCondition:new()
 SupInBC.myType = "SupIn"
-function SupInBC:tojson()
-   local str = '{'
-   str = str .. string.format('"label": "%s", ', self.label)
-   str = str .. string.format('"bc": "%s", ', self.myType)
-   str = str .. string.format('"inflow_condition": %s',
-			      self.flowCondition:toJSONString())
-   str = str .. '}'
-   return str
+function SupInBC:new(o)
+   o = BoundaryCondition.new(self, o)
+   o.preReconAction = { FlowStateCopy:new{flowCondition=o.flowCondition} }
+   return o
 end
 
-ExtrapolateOutBC = BoundaryCondition:new{x_order=1}
+ExtrapolateOutBC = BoundaryCondition:new()
 ExtrapolateOutBC.myType = "ExtrapolateOut"
-function ExtrapolateOutBC:tojson()
-   local str = '{'
-   str = str .. string.format('"label": "%s", ', self.label)
-   str = str .. string.format('"bc": "%s", ', self.myType)
-   str = str .. string.format('"x_order": %d', self.x_order)
-   str = str .. '}'
-   return str
+function ExtrapolateOutBC:new(o)
+   o = BoundaryCondition.new(self, o)
+   o.preReconAction = { ExtrapolateCopy:new{xOrder = o.xOrder} }
+   return o
 end
 
-FullFaceExchangeBC = BoundaryCondition:new{otherBlock=nil, otherFace=nil, orientation=0}
+FullFaceExchangeBC = BoundaryCondition:new()
 FullFaceExchangeBC.myType = "FullFaceExchange"
-function FullFaceExchangeBC:tojson()
-   local str = '{'
-   str = str .. string.format('"label": "%s", ', self.label)
-   str = str .. string.format('"bc": "%s", ', self.myType)
-   str = str .. string.format('"other_block": %d, ', self.otherBlock)
-   str = str .. string.format('"other_face": "%s", ', self.otherFace)
-   str = str .. string.format('"orientation": %d', self.orientation)
-   str = str .. '}'
-   return str
+function FullFaceExchangeBC:new(o)
+   o = BoundaryCondition.new(self, o)
+   o.preReconAction = { FullFaceExchangeCopy:new{otherBlock=o.otherBlock,
+						 otherFace=o.otherFace,
+						 orientation=o.orientation} }
+   return o
 end
 
 -- -----------------------------------------------------------------------
