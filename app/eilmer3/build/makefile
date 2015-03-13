@@ -412,8 +412,10 @@ _libprep3.dylib : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIB
 # There are many more dependencies for libprep3 but 
 # it is probably easier to make clean before a make.
 
-$(SRC)/libprep3_wrap.cxx $(SRC)/libprep3.py : $(SRC)/libprep3.i \
-		$(GAS)/models/libgas.i $(GEOM2_SRC)/libgeom2.i $(RAD_SRC)/radpy.i
+$(SRC)/libprep3_wrap.cxx $(SRC)/libprep3.py : $(SRC)/libprep3.i $(SRC)/*.hh \
+		$(GAS)/models/libgas.i $(GAS)/models/*.hh \
+		$(GEOM2_SRC)/libgeom2.i $(GEOM2_SRC)/*.hh \
+		$(RAD_SRC)/radpy.i $(RAD_SRC)/*.hh
 	swig -python -c++ -w512 $(SRC)/libprep3.i
 
 libprep3.py : $(SRC)/libprep3.py

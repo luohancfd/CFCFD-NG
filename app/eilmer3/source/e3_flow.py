@@ -215,15 +215,6 @@ class FlowCondition(object):
         fp.write(self.flow.write_to_ini_str(self.indx))
         return
 
-    def write_to_json_file(self, fp):
-        """
-        Writes the information to the specified file in JSON format.
-
-        This is used to fill in details in the job.config file.
-        """
-        fp.write(self.flow.write_to_json_str(self.indx))
-        return
-
     def to_dict(self):
         """
         Returns the flow data in dictionary form, ready to be written for a cell.

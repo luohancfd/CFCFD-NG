@@ -45,7 +45,6 @@ public:
     std::string str() const;
     // void print_data() const;
     std::string write_to_ini_str( int indx ) const;
-    std::string write_to_json_str( int indx ) const;
     // std::string write_to_mbcns_p_str( int indx ) const;
 };
 

@@ -166,46 +166,6 @@ string CFlowCondition::write_to_ini_str( int indx ) const
     return ost.str();
 }
 
-string CFlowCondition::write_to_json_str( int indx ) const
-// Write the data to a string using JSON format.
-{
-    ostringstream ost;
-    ost.setf(ios_base::scientific, ios_base::floatfield);
-    ost << "\"flow_" << indx << "\": {" << endl;
-    ost << "    \"label\": \"" << label << "\"," << endl;
-    ost << "    \"p\": " << gas->p << "," << endl;
-    ost << "    \"nmodes\": " << gas->T.size() << "," << endl;
-    ost << "    \"T\": [";
-    for ( size_t i = 0; i < gas->T.size(); ++i ) {
-	ost << gas->T[i];
-	if ( i < gas->T.size()-1 ) ost << ", ";
-    }
-    ost << "]," << endl;
-    ost << "    \"nsp\": " << gas->massf.size() << "," << endl;
-    ost << "    \"massf\": [";
-    for ( size_t i = 0; i < gas->massf.size(); ++i ) {
-	ost << gas->massf[i];
-	if ( i < gas->massf.size()-1 ) ost << ", ";
-    }
-    ost << "]," << endl;
-    ost << "    \"u\": " << u << "," << endl;
-    ost << "    \"v\": " << v << "," << endl;
-    ost << "    \"w\": " << w << "," << endl;
-    ost << "    \"Bx\": " << Bx << "," << endl;
-    ost << "    \"By\": " << By << "," << endl;
-    ost << "    \"Bz\": " << Bz << "," << endl;
-    ost << "    \"psi\": " << psi << "," << endl;
-    ost << "    \"divB\": " << divB << "," << endl;
-    ost << "    \"tke\": " << tke << "," << endl;
-    ost << "    \"omega\": " << omega << "," << endl;
-    ost << "    \"mu_t\": " << mu_t << "," << endl;
-    ost << "    \"k_t\": " << k_t << "," << endl;
-    ost << "    \"S\": " << S << endl; // Careful not to add a trailing comma.
-    ost << "}," << endl;
-    return ost.str();
-}
-
-
 /// \brief Overload stream output for CFlowCondition objects
 ostream& operator<<( ostream &os, const CFlowCondition &cfc )
 {
