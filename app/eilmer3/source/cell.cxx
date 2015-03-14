@@ -2013,18 +2013,22 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	    if ( dimensions == 3 ) {
 		signal += 4.0 * G.viscous_factor * (fs->gas->mu + fs->mu_t)
 		    * gam_eff / (Prandtl * fs->gas->rho)
-		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength) + 1.0/(kLength*kLength));
+		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength) + 1.0/(kLength*kLength))
+		    * G.viscous_signal_factor;
 	    } else {
 		signal += 4.0 * G.viscous_factor * (fs->gas->mu + fs->mu_t) 
 		    * gam_eff / (Prandtl * fs->gas->rho)
-		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength));
+		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength))
+		    * G.viscous_signal_factor;
 	    }
 	} else if ( VISCOUS_TIME_LIMIT_MODEL == 1 ) {
 	    // A viscous time limit model incorporating diffusion effects
 	    // See Ramshaw and Chang PCPP V.12 n.3 1992 p314
 	    // 1. Viscosity signal frequency
-	    double D_a = 4.0 * G.viscous_factor * (fs->gas->mu + -0.66667 * fs->gas->mu +
-						   fs->mu_t - 0.66667 * fs->mu_t ) / fs->gas->rho;
+	    double D_a = 4.0 * G.viscous_factor * 
+		(fs->gas->mu + -0.66667 * fs->gas->mu +
+		 fs->mu_t - 0.66667 * fs->mu_t ) / fs->gas->rho
+		* G.viscous_signal_factor;
 	    // 1. Conductivity signal frequency
 	    double D_b = fs->gas->k[0];
 	    size_t nmodes = gmodel->get_number_of_modes();

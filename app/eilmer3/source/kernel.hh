@@ -105,6 +105,12 @@ struct global_data
     double dt_global;       /* simulation time step       */
     double dt_allow;        /* allowable global time step */
     double CFL;             /* target CFL (worst case)    */
+    double viscous_signal_factor; 
+    // 2015-03-14: scale factor for the viscous stability condition
+    // A value of 1.0 applies the usual viscous component.
+    // The viscous contribution to the signal speed might
+    // be usefully scaled down so that time steps do not go down
+    // to crazily-small values for rarefied flows on fine grids. 
     bool stringent_cfl;     // If true, assume the worst with respect to cell geometry and wave speed.
     double dt_max;          // Maximum allowable time-step, after all other considerations.
     bool fixed_time_step;   /* flag for fixed time-stepping */

@@ -379,6 +379,11 @@ class GlobalData(object):
       Typically the default value of 0.5 is good but you may want
       to try smaller values if you are having the solution go unstable,
       especially for viscous simulations.
+    * viscous_signal_factor: (float) 1.0==full viscous effect for the signal 
+      calculation within the time-step calculation.  It has been suggested that
+      the full viscous effect may not be needed to ensure stable calculations
+      for highly-resolved viscous calculations.  A value of 0.0 will completely
+      suppress the viscous contribution to the signal speed calculation.
     * print_count: (int) The number of time steps between printing a status message
       to the console.
     * cfl_count: (int) The number of time steps between checking the CFL number.
@@ -467,7 +472,7 @@ class GlobalData(object):
                 'moving_grid_flag', 'write_vertex_velocities_flag', \
                 'filter_flag', 'filter_tstart', 'filter_tend', \
                 'filter_dt', 'filter_mu', 'filter_npass', \
-                't0', 'dt', 'dt_max', 'cfl', 'dt_chem', 'dt_therm', \
+                't0', 'dt', 'dt_max', 'cfl', 'viscous_signal_factor', 'dt_chem', 'dt_therm', \
                 'interpolation_type', 'interpolate_in_local_frame', 'sequence_blocks', \
                 'print_count', 'cfl_count', 'max_invalid_cells', 'dt_reduction_factor', \
                 'max_time', 'max_step', 'dt_plot', 'dt_history', "write_at_step", \
@@ -552,6 +557,7 @@ class GlobalData(object):
         self.t_order = None  # now deprecated
         self.gasdynamic_update_scheme = 'predictor-corrector'
         self.cfl = 0.5
+        self.viscous_signal_factor = 1.0
         self.stringent_cfl = 0
         self.fixed_time_step = False
         self.dt_reduction_factor = 0.2
@@ -642,6 +648,7 @@ class GlobalData(object):
         fp.write("fixed_time_step = %s\n" % self.fixed_time_step)
         fp.write("dt_reduction_factor = %e\n" % self.dt_reduction_factor)
         fp.write("cfl = %e\n" % self.cfl)
+        fp.write("viscous_signal_factor = %e\n" % self.viscous_signal_factor)
         fp.write("stringent_cfl = %d\n" % self.stringent_cfl)
         fp.write("print_count = %d\n" % self.print_count)
         fp.write("cfl_count = %d\n" % self.cfl_count)

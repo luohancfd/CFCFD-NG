@@ -804,6 +804,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
     dict.parse_double("control_data", "dt_reduction_factor",
 		      G.dt_reduction_factor, 0.2);
     dict.parse_double("control_data", "cfl", G.cfl_target, 0.5);
+    dict.parse_double("control_data", "viscous_signal_factor", G.viscous_signal_factor, 1.0);
     dict.parse_boolean("control_data", "stringent_cfl", G.stringent_cfl, false);
     dict.parse_size_t("control_data", "print_count", G.print_count, 20);
     dict.parse_size_t("control_data", "cfl_count", G.cfl_count, 10);
