@@ -373,6 +373,14 @@ function FullFaceExchangeCopy:tojson()
    return str
 end
 
+UserDefinedGhostCell = GhostCellEffect:new{fileName='user-defined-bc.lua'}
+UserDefinedGhostCell.type = "user_defined"
+function UserDefinedGhostCell:tojson()
+   local str = string.format('         {"type": "%s", ', self.type)
+   str = str .. string.format('"filename": "%s"', self.fileName)
+   str = str .. '}'
+   return str
+end
 
 -- Class for BoundaryCondition
 -- For the classes below, we just follow the prototype pattern
@@ -433,6 +441,14 @@ function FullFaceExchangeBC:new(o)
    o.preReconAction = { FullFaceExchangeCopy:new{otherBlock=o.otherBlock,
 						 otherFace=o.otherFace,
 						 orientation=o.orientation} }
+   return o
+end
+
+UserDefinedBC = BoundaryCondition:new()
+UserDefinedBC.myType = "UserDefined"
+function UserDefinedBC:new(o)
+   o = BoundaryCondition.new(self, o)
+   o.preReconAction = { UserDefinedGhostCell:new{fileName=o.fileName} }
    return o
 end
 

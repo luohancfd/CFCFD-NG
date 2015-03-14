@@ -64,6 +64,23 @@ void getArray(T)(LuaTable t, out T[] values, string tabName)
     }
 }
 
+/++
+ + Grab a double from t[k] or a defaul value.
+ +/
+
+double getDouble(LuaTable t, string k, double defVal)
+{
+    double val;
+    try {
+	val = t.get!double(k);
+    }
+    catch (Exception e) {
+	val = defVal;
+    }
+    return val;
+}
+
+
 /**
  * Get array of numbers from index in Lua stack.
  */

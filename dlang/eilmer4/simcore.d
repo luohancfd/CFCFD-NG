@@ -309,7 +309,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
     }
     foreach (blk; myBlocks) {
 	if (!blk.active) continue;
-	blk.applyPreReconAction(sim_time);
+	blk.applyPreReconAction(sim_time, 0);
 	// We've put this detector step here because it needs the ghost-cell data
 	// to be current, as it should be just after a call to apply_convective_bc().
 	if (GlobalConfig.flux_calculator == FluxCalculator.adaptive)
@@ -357,7 +357,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	// NOTE FOR PJ: This replaces exchange. Good idea or no?
 	foreach (blk; myBlocks) {
 	    if (!blk.active) continue;
-	    blk.applyPreReconAction(sim_time);
+	    blk.applyPreReconAction(sim_time, t_level);
 	}
 	foreach (blk; myBlocks) {
 	    if (!blk.active) continue;
@@ -399,7 +399,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	// NOTE FOR PJ: This replaces exchange. Good idea or no?
 	foreach (blk; myBlocks) {
 	    if (!blk.active) continue;
-	    blk.applyPreReconAction(sim_time);
+	    blk.applyPreReconAction(sim_time, t_level);
 	}
 	foreach (blk; myBlocks) {
 	    if (!blk.active) continue;

@@ -90,7 +90,8 @@ public:
 	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
 	    string json_key = "face_" ~ face_name[boundary];
 	    auto bc_json_data = json_data[json_key];
-	    bc[boundary] = make_BC_from_json(bc_json_data, id, boundary);
+	    bc[boundary] = make_BC_from_json(bc_json_data, id, boundary,
+					     nicell, njcell, nkcell);
 	}
     } // end constructor from json
 
@@ -2119,15 +2120,15 @@ public:
 	assert(false, "[TODO] estimate_turbulence_viscosity() not implemented yet.");
     }
 
-    override void applyPreReconAction(double t)
+    override void applyPreReconAction(double t, int tLevel)
     {
-	bc[Face.north].applyPreReconAction(t);
-	bc[Face.east].applyPreReconAction(t);
-	bc[Face.south].applyPreReconAction(t);
-	bc[Face.west].applyPreReconAction(t);
+	bc[Face.north].applyPreReconAction(t, tLevel);
+	bc[Face.east].applyPreReconAction(t, tLevel);
+	bc[Face.south].applyPreReconAction(t, tLevel);
+	bc[Face.west].applyPreReconAction(t, tLevel);
 	if ( GlobalConfig.dimensions == 3 ) {
-	    bc[Face.top].applyPreReconAction(t);
-	    bc[Face.bottom].applyPreReconAction(t);
+	    bc[Face.top].applyPreReconAction(t, tLevel);
+	    bc[Face.bottom].applyPreReconAction(t, tLevel);
 	}
     } // end apply_convective_bc()
     /*

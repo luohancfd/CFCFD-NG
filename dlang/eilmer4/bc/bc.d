@@ -11,6 +11,8 @@ import std.conv;
 import std.json;
 import std.stdio;
 import std.string;
+import luad.all;
+import util.lua_service;
 import json_helper;
 import geom;
 import fvcore;
@@ -22,6 +24,7 @@ import fvcell;
 import block;
 import sblock;
 import ghost_cell_effect;
+import user_defined_effects;
 
 /*
 enum BCCode 
@@ -73,13 +76,22 @@ BCCode type_code_from_name(string name)
 } // end type_code_from_name()
 */
 
-BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary)
+BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary,
+				    size_t nicell, size_t njcell, size_t nkcell)
 {
     auto newBC = new BoundaryCondition(blk_id, boundary);
     // Assemble list of preReconAction effects
     auto preReconActionList = jsonData["pre_recon_action"].array;
     foreach ( jsonObj; preReconActionList ) {
 	newBC.preReconAction ~= make_GCE_from_json(jsonObj, blk_id, boundary);
+	// Some extra configuration in the case of a UserDefined bc.
+	// We need to connect the Lua state back to the parent BC container.
+	if ( newBC.preReconAction[$-1].type == "UserDefined" ) {
+	    writeln("UserDefined preReconAction found.");
+	    auto gce = to!UserDefinedGhostCell(newBC.preReconAction[$-1]);
+	    newBC.initUserDefinedLuaState(gce, nicell, njcell, nkcell);
+	    newBC.ghost_cell_data_available = true;
+	}
     }
     // [TODO] We need to fill out the Action list
     // for other hook points.
@@ -113,6 +125,14 @@ public:
 	emissivity = _emissivity;
     }
 
+    void initUserDefinedLuaState(UserDefinedGhostCell udgc, size_t nicell, size_t njcell, size_t nkcell)
+    {
+	_lua = new LuaState();
+	_lua.openLibs();
+	setGlobalsInLuaState(nicell, njcell, nkcell);
+	_lua.doFile(udgc.luafname);
+	udgc.setLuaState(_lua);
+    }
     // Action lists.
     // The BoundaryCondition is called at four stages in a global timestep.
     // Those stages are:
@@ -139,9 +159,9 @@ public:
 	return to!string(repr);
     }
 
-    final void applyPreReconAction(double t)
+    final void applyPreReconAction(double t, int tLevel)
     {
-	foreach ( gce; preReconAction ) gce.apply(t);
+	foreach ( gce; preReconAction ) gce.apply(t, tLevel);
     }
     /*
     final void applyPostConvFluxAction(double t)
@@ -159,5 +179,28 @@ public:
 	foreach ( bfe; postSpatialDerivAction ) bfe.apply(t);
     }
     */
+private:
+    // We need a place to hold a lua state in memory that might
+    // possibly be used by various stages of the boundary condition
+    // action.
+    LuaState _lua;
+    void setGlobalsInLuaState(size_t nicell, size_t njcell, size_t nkcell)
+    {
+	_lua["blkId"] = blk_id;
+	_lua["whichBoundary"] = which_boundary;
+	_lua["n_species"] = GlobalConfig.gmodel.n_species;
+	_lua["n_modes"] = GlobalConfig.gmodel.n_modes;
+	_lua["nicell"] = nicell;
+	_lua["njcell"] = njcell;
+	_lua["nkcell"] = nkcell;
+	_lua["NORTH"] = Face.north;
+	_lua["EAST"] = Face.east;
+	_lua["SOUTH"] = Face.south;
+	_lua["WEST"] = Face.west;
+	_lua["TOP"] = Face.top;
+	_lua["BOTTOM"] = Face.bottom;
+    }
+    
 
 } // end class BoundaryCondition
+

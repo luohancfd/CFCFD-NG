@@ -15,6 +15,7 @@ import fvcell;
 import block;
 import sblock;
 import gas;
+import user_defined_effects;
 
 @nogc
 void reflect_normal_velocity(ref FVCell cell, in FVInterface IFace)
@@ -58,8 +59,13 @@ GhostCellEffect make_GCE_from_json(JSONValue jsonData, int blk_id, int boundary)
 	string otherFaceName = getJSONstring(jsonData, "other_face", "none");
 	
 	int neighbourOrientation = getJSONint(jsonData, "neighbour_orientation", 0);
-	newGCE = new GhostCellFullFaceExchangeCopy(blk_id, boundary, 
+	newGCE = new GhostCellFullFaceExchangeCopy(blk_id, boundary,
 						   otherBlock, face_index(otherFaceName), neighbourOrientation);
+	break;
+    case "user_defined":
+	string fname = getJSONstring(jsonData, "filename", "none");
+	
+	newGCE = new UserDefinedGhostCell(blk_id, boundary, fname);
 	break;
     default:
 	string errMsg = format("ERROR: The GhostCellEffect type: '%s' is unknown.", gceType);
@@ -72,14 +78,16 @@ class GhostCellEffect {
 public:
     int blk_id;
     int which_boundary;
+    string type;
 
-    this(int id, int boundary)
+    this(int id, int boundary, string _type)
     {
 	blk_id = id;
 	which_boundary = boundary;
+	type = _type;
     }
     
-    abstract void apply(double t);
+    abstract void apply(double t, int tLevel);
 }
 
 class GhostCellInternalCopyThenReflect : GhostCellEffect {
@@ -87,10 +95,10 @@ public:
     
     this(int id, int boundary)
     {
-	super(id, boundary);
+	super(id, boundary, "InternalCopyThenReflect");
     }
 
-    override void apply(double t)
+    override void apply(double t, int tLevel)
     {
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
@@ -253,11 +261,11 @@ public:
 
     this(int id, int boundary, in FlowState _fstate)
     {
-	super(id, boundary);
+	super(id, boundary, "flowStateCopy");
 	fstate = new FlowState(_fstate);
     }
 
-    override void apply(double t)
+    override void apply(double t, int tLevel)
     {
     	// Fill ghost cells with data from just inside the boundary
 	// using zero-order extrapolation (i.e. just copy the data).
@@ -344,11 +352,11 @@ public:
     
     this(int id, int boundary, int x_order)
     {
-	super(id, boundary);
+	super(id, boundary, "ExtrapolateCopy");
 	xOrder = x_order;
     }
     
-    override void apply(double t)
+    override void apply(double t, int tLevel)
     {
 	// Fill ghost cells with data from just inside the boundary
 	// using zero-order extrapolation (i.e. just copy the data).
@@ -830,13 +838,13 @@ public:
     this(int id, int boundary,
 	 int otherBlock, int otherFace, int orient)
     {
-	super(id, boundary);
+	super(id, boundary, "FullFaceExchangeCopy");
 	neighbourBlock = otherBlock;
 	neighbourFace = otherFace;
 	neighbourOrientation = orient;
     }
 
-    override void apply(double t)
+    override void apply(double t, int tLevel)
     {
 	// TODO Check me!  This is a work-around.
 	// We should be able to directly reference the BCs block as blk.

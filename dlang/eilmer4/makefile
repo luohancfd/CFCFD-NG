@@ -11,7 +11,8 @@ DEMO_PROGRAMS := globalconfig_demo flowstate_demo fv_demo block_demo \
 	luaflowstate_demo luaglobalconfig_demo
 
 BC_FILES := bc/bc.d \
-	bc/ghost_cell_effect.d
+	bc/ghost_cell_effect.d \
+	bc/user_defined_effects.d
 
 GAS_DIR := ../gas
 

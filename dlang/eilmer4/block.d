@@ -54,7 +54,7 @@ public:
     void viscous_derivatives(int gtl) {}
     void apply_menter_boundary_correction(int ftl) {}
     void estimate_turbulence_viscosity() {}
-    abstract void applyPreReconAction(double t);
+    abstract void applyPreReconAction(double t, int tLevel);
     void set_cell_dt_chem(double dt_chem)
     {
 	foreach ( cell; active_cells ) cell.dt_chem = dt_chem;
