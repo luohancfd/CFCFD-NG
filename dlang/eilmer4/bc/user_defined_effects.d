@@ -28,7 +28,6 @@ public:
     void setLuaState(LuaState lua)
     {
 	_lua = lua;
-	_tbl = _lua.newTable(0, 19);
     }
 
     override void apply(double t, int tLevel)
@@ -112,7 +111,6 @@ public:
 			
 private:
     LuaState _lua;
-    LuaTable _tbl;
 
     void putFlowStateIntoGhostCell(LuaTable t, FVCell ghostCell)
     {
@@ -139,29 +137,30 @@ private:
 			  in FVInterface IFace, FVCell ghostCell0, FVCell ghostCell1)
     {
 	// 1. Set useful values for caller in table
-	_tbl["t"] = t; 
-	_tbl["dt"] = dt_global;
-	_tbl["timeStep"] = step;
-	_tbl["timeLevel"] = tLevel;
-	_tbl["x"] = IFace.pos.x;
-	_tbl["y"] = IFace.pos.y;
-	_tbl["z"] = IFace.pos.z;
-	_tbl["csX"] = IFace.n.x;
-	_tbl["csY"] = IFace.n.y;
-	_tbl["csZ"] = IFace.n.z;
-	_tbl["csX1"] = IFace.t1.x;
-	_tbl["csY1"] = IFace.t1.y;
-	_tbl["csZ1"] = IFace.t1.z;
-	_tbl["csX2"] = IFace.t2.x;
-	_tbl["csY2"] = IFace.t2.y;
-	_tbl["csZ2"] = IFace.t2.z;
-	_tbl["i"] = i;
-	_tbl["j"] = j;
-	_tbl["k"] = k;
+	auto args = _lua.newTable(0, 19);
+	args["t"] = t; 
+	args["dt"] = dt_global;
+	args["timeStep"] = step;
+	args["timeLevel"] = tLevel;
+	args["x"] = IFace.pos.x;
+	args["y"] = IFace.pos.y;
+	args["z"] = IFace.pos.z;
+	args["csX"] = IFace.n.x;
+	args["csY"] = IFace.n.y;
+	args["csZ"] = IFace.n.z;
+	args["csX1"] = IFace.t1.x;
+	args["csY1"] = IFace.t1.y;
+	args["csZ1"] = IFace.t1.z;
+	args["csX2"] = IFace.t2.x;
+	args["csY2"] = IFace.t2.y;
+	args["csZ2"] = IFace.t2.z;
+	args["i"] = i;
+	args["j"] = j;
+	args["k"] = k;
 	
 	// 2. Call LuaFunction and expect two tables of ghost cell flow state
 	auto f = _lua.get!LuaFunction("ghostCells");
-	LuaObject[] ret = f(_tbl);
+	LuaObject[] ret = f(args);
 	if ( ret.length < 2 ) {
 	    string errMsg = "ERROR: There was a problem in the call to the user-defined ghost cell boundary condition.\n";
 	    errMsg ~= format("ERROR: This occured for block [%d] on the %s boundary.", blk_id, face_name[which_boundary]);

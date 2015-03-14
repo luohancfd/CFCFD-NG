@@ -87,7 +87,6 @@ BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary
 	// Some extra configuration in the case of a UserDefined bc.
 	// We need to connect the Lua state back to the parent BC container.
 	if ( newBC.preReconAction[$-1].type == "UserDefined" ) {
-	    writeln("UserDefined preReconAction found.");
 	    auto gce = to!UserDefinedGhostCell(newBC.preReconAction[$-1]);
 	    newBC.initUserDefinedLuaState(gce, nicell, njcell, nkcell);
 	    newBC.ghost_cell_data_available = true;
