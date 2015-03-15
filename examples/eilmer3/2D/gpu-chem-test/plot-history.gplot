@@ -1,0 +1,13 @@
+set term postscript eps enhanced 20 "Times"
+set output 'massf-hist.eps'
+set xlabel 'time, ms'
+set ylabel 'mass fraction'
+set logscale y
+set yrange [1.0e-10:5]
+set key bottom
+plot 'cpu-chem-hist.dat' u ($1*1000.0):22 t 'O_2' w l, \
+     'cpu-chem-hist.dat' u ($1*1000.0):23 t 'H_2' w l, \
+     'cpu-chem-hist.dat' u ($1*1000.0):24 t 'H_2O' w l, \
+     'cpu-chem-hist.dat' u ($1*1000.0):25 t 'O' w l, \
+     'cpu-chem-hist.dat' u ($1*1000.0):26 t 'H' w l, \
+     'cpu-chem-hist.dat' u ($1*1000.0):27 t 'OH' w l

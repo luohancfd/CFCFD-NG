@@ -212,7 +212,7 @@ eval_split(const vector<double> &y,
 }
 
 const double eps1 = 0.001;
-const double chem_step_upper_limit = 1.0e-3;
+const double chem_step_upper_limit = 1.0e-10;
 const double chem_step_lower_limit = 1.0e-20;
 const double zero_tol = 1.0e-30;
 
@@ -220,13 +220,27 @@ double
 Chemical_kinetic_system::
 stepsize_select(const vector<double> &y)
 {
-    eval(y, ydot_);
-    double min_dt = chem_step_upper_limit; // to get us started
+    const double MUCH_LARGER_FACTOR = 10000.0;
+    const double ZERO_EPS = 1.0e-50;
+    eval_split(y, q_, L_);
+    double min_dt = 1.0e6; // something massive to get us started.
     double old_dt = 0.0;
 
     for( int isp = 0; isp < ndim_; ++isp ) {
-	if( (y[isp] > 0.0) && (fabs(ydot_[isp]) > zero_tol) ) {
-	    old_dt = fabs( y[isp] / ydot_[isp] );
+	if( (y[isp] > 0.0) && (fabs(q_[isp] - L_[isp]) > zero_tol) ) {
+	    if ( q_[isp] > MUCH_LARGER_FACTOR*L_[isp] ) {
+		// See Mott's thesis, Eq 3.40
+		// In it, he gives this means of estimating the timestep
+		// when q >> L. But he doesn't give a value for how
+		// much larger that factor should be.
+		// In the end, it's only an estimate so it shouldn't matter much.
+		// (hopefully).
+		// The value should be 1/p_i, so that is....
+		old_dt = y[isp]/(L_[isp] + ZERO_EPS);
+	    }
+	    else {
+		old_dt = fabs( y[isp] / (q_[isp] - L_[isp]) );
+	    }
 	    if( old_dt < min_dt ) {
 		min_dt = old_dt;
 	    }

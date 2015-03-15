@@ -15,6 +15,7 @@
 TARGET ?= for_gnu
 MEMORY_SIZE ?= large
 WITH_IMPLICIT ?= 0
+WITH_GPU_CHEM ?= 0
 INSTALL_DIR ?= $(HOME)/e3bin
 REVISION_STRING := $(shell hg identify --id --num --branch --tags)
 
@@ -100,13 +101,17 @@ ZLIB            := ../../../extern/zlib-1.2.3
 LIBZLIB         := $(ZLIB)/libz.a
 WALLCON         := ../../wallcon
 LIBWALLCON      := ../../wallcon/build/libwallcon.a
-
+OpenCLLINK      := -lOpenCL
 #------------------------------------------------------------
 
 E3_EXE_FILES := e3shared.exe e3console.tcl e3rad.exe
 E3_MPI_EXE_FILES := e3mpi.exe
+E3_GPU_CHEM_EXE := e3gpu-chem.exe
 ifeq ($(WITH_MPI), 1)
     E3_EXE_FILES += $(E3_MPI_EXE_FILES)
+endif
+ifeq ($(WITH_GPU_CHEM), 1)
+    E3_EXE_FILES += $(E3_GPU_CHEM_EXE)
 endif
 E3_UTILS := ../utilities/p2e.py ../utilities/import_grid.py \
             ../utilities/tecplot_feblock.py ../utilities/csv_util.py \
@@ -484,6 +489,16 @@ e3shared.exe : e3shared.o $(LIBE3) $(E3_OBJECTS_NO_MPI) $(LIBGAS) $(LIBRAD) \
 		$(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBWALLCON) $(LIBNM) $(LLIB) \
 		-o e3shared.exe
+e3gpu-chem.exe : e3gpu-chem.o gpu-chem-update.o $(LIBE3) $(E3_OBJECTS_NO_MPI) $(LIBGAS) $(LIBRAD) \
+		$(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
+		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBWALLCON)
+	$(CXXLINK) $(PCA) $(LFLAG) e3gpu-chem.o gpu-chem-update.o \
+		$(LIBE3) $(E3_OBJECTS_NO_MPI) $(LIBGAS) $(LIBRAD) \
+		$(LIBUTIL) $(LIBGEOM2) \
+		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBWALLCON) $(LIBNM) $(LLIB) \
+		$(OpenCLLINK) \
+		-o e3gpu-chem.exe
+
 
 e3mpi.exe : e3mpi.o $(LIBE3) $(E3_OBJECTS_MPI) \
 		$(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
@@ -516,6 +531,11 @@ e3shared.o : $(SRC)/main.cxx $(SRC)/main.hh $(SRC)/block.hh $(SRC)/kernel.hh $(S
 		$(SRC)/init.hh $(SRC)/exch2d.hh $(SRC)/visc.hh $(SRC)/piston.hh $(LIBLUA)
 	$(CXXCOMPILE) $(PCA) $(CXXFLAG) -DSHARED -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
 		$(SRC)/main.cxx -o e3shared.o
+
+e3gpu-chem.o : $(SRC)/main.cxx $(SRC)/main.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh \
+		$(SRC)/init.hh $(SRC)/exch2d.hh $(SRC)/visc.hh $(SRC)/piston.hh $(LIBLUA)
+	$(CXXCOMPILE) $(PCA) $(CXXFLAG) -DGPU_CHEM -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
+		$(SRC)/main.cxx -o e3gpu-chem.o
 
 e3mpi.o : $(SRC)/main.cxx $(SRC)/main.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh \
 		$(SRC)/init.hh $(SRC)/exch2d.hh $(SRC)/exch_mpi.hh \
@@ -782,6 +802,9 @@ conj-ht-interface-no-mpi.o : $(SRC)/conj-ht-interface.cxx $(SRC)/conj-ht-interfa
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/conj-ht-interface.cxx \
 		-o conj-ht-interface-no-mpi.o
 
+gpu-chem-update.o : $(SRC)/gpu-chem-update.cxx $(SRC)/gpu-chem-update.hh
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/gpu-chem-update.cxx \
+		-o gpu-chem-update.o
 #
 #---------------------------- end of makefile -----------------------------
 

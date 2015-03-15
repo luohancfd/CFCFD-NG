@@ -72,6 +72,9 @@ extern "C" {
 #include "piston.hh"
 #include "implicit.hh"
 #include "conj-ht-interface.hh"
+#ifdef GPU_CHEM
+#    include "gpu-chem-update.hh"
+#endif
 #include "main.hh"
 
 //-----------------------------------------------------------------
@@ -89,6 +92,10 @@ int max_wall_clock = 0; // seconds
 time_t start, now; // wall-clock timer
 
 lua_State *L; // for the uder-defined procedures
+
+#ifdef GPU_CHEM
+gpu_chem *gchem = 0;
+#endif
 
 //-----------------------------------------------------------------
 
@@ -782,6 +789,12 @@ int prepare_to_integrate(size_t start_tindx)
 	    exit(FAILURE);
 	}
     }
+#ifdef GPU_CHEM
+    // Initialise the gpu chemistry update, first count number of cells in simulation
+    int ncells = 0;
+    for ( Block *bdp : G.my_blocks ) ncells += bdp->active_cells.size();
+    gchem = init_gpu_module(ncells);
+#endif
     start = time(NULL); // start of wallclock timing
     return SUCCESS;
 } // end prepare_to_integrate()
@@ -1812,6 +1825,19 @@ int integrate_in_time(double target_time)
         // 2d. Chemistry step. 
 	//     Allow finite-rate evolution of species due
         //     to chemical reactions
+#ifdef GPU_CHEM
+        if ( G.reacting && G.sim_time >= G.reaction_time_start ) {
+	    // Gather all cells across all active blocks
+	    vector<FV_Cell*> cells;
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( !bdp->active ) continue;
+		for ( FV_Cell *cp: bdp->active_cells ) {
+		    cells.push_back(cp);
+		}
+	    }
+	    update_chemistry(*gchem, G.dt_global, cells);
+	}
+#else
         if ( G.reacting && G.sim_time >= G.reaction_time_start ) {
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( !bdp->active ) continue;
@@ -1828,7 +1854,7 @@ int integrate_in_time(double target_time)
 		}
 	    }
 	}
-
+#endif
 	// 2e. Thermal step.
 	//     Allow finite-rate evolution of thermal energy
 	//     due to transfer between thermal energy modes.

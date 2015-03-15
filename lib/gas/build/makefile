@@ -61,7 +61,8 @@ TEST_EXECUTABLES := user-defined-gas-model-test.x \
 	noneq-test.py \
 	noneq-test.x \
 	cpu-chem-test \
-	gpu-chem-test
+	gpu-chem-test \
+	cpu-chem-step-test
 #	gas-module-test.lua \
 # 	perfect-gas-EOS-test.x \
 # 	noble-abel-gas-EOS-test.x \
@@ -787,6 +788,10 @@ reaction-update-test.x : $(KINETICS)/reaction-update-test.cxx $(LIBGAS) $(LIBLUA
 
 cpu-chem-test : $(KINETICS)/cpu-chem-test.cxx $(LIBGAS) $(LIBLUA)
 	$(CXXLINK) $(LFLAG) -o cpu-chem-test $(KINETICS)/cpu-chem-test.cxx \
+	$(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) -I$(LUA_INCLUDE_DIR)
+
+cpu-qss-step-test : $(KINETICS)/cpu-qss-step-test.cxx $(LIBGAS) $(LIBLUA)
+	$(CXXLINK) $(LFLAG) -o cpu-qss-step-test $(KINETICS)/cpu-qss-step-test.cxx \
 	$(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) -I$(LUA_INCLUDE_DIR)
 
 gpu-chem-test : $(KINETICS)/gpu-chem-test.cxx $(LIBGAS) $(LIBLUA)
