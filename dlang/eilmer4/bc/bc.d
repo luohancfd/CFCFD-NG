@@ -192,12 +192,13 @@ private:
 	_lua["nicell"] = nicell;
 	_lua["njcell"] = njcell;
 	_lua["nkcell"] = nkcell;
-	_lua["NORTH"] = Face.north;
-	_lua["EAST"] = Face.east;
-	_lua["SOUTH"] = Face.south;
-	_lua["WEST"] = Face.west;
-	_lua["TOP"] = Face.top;
-	_lua["BOTTOM"] = Face.bottom;
+	_lua["north"] = Face.north;
+	_lua["east"] = Face.east;
+	_lua["south"] = Face.south;
+	_lua["west"] = Face.west;
+	_lua["top"] = Face.top;
+	_lua["bottom"] = Face.bottom;
+	_lua["sampleFlow"] = &luafn_sampleFlow;
     }
     
 

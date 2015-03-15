@@ -215,16 +215,10 @@ lua_setfield(L, -2, "`~var~`z");`;
 }
 
 /**
- * Gives the caller a table populated with FlowState values.
- *
- * Note that the table is flat, and that just a few GasState
- * variables have been unpacked. The fields in the returned table
- * form a superset of those that the user can set.
+ * Push FlowState values to a table at TOS in lua_State.
  */
-extern(C) int toTable(lua_State* L)
+void pushFlowStateToTable(in FlowState fs, lua_State* L)
 {
-    auto fs = checkFlowState(L, 1);
-    lua_newtable(L); // anonymous table { }
     mixin(pushGasVar("p"));
     mixin(pushGasVarArray("T"));
     mixin(pushGasVarArray("e"));
@@ -240,7 +234,20 @@ extern(C) int toTable(lua_State* L)
     mixin(pushFSVar("k_t"));
     mixin(pushFSVecVar("vel"));
     mixin(pushFSVecVar("B"));
+}
 
+/**
+ * Gives the caller a table populated with FlowState values.
+ *
+ * Note that the table is flat, and that just a few GasState
+ * variables have been unpacked. The fields in the returned table
+ * form a superset of those that the user can set.
+ */
+extern(C) int toTable(lua_State* L)
+{
+    auto fs = checkFlowState(L, 1);
+    lua_newtable(L); // anonymous table { }
+    pushFlowStateToTable(fs, L);
     return 1;
 }
 

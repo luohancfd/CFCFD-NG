@@ -6,6 +6,7 @@
 import std.string;
 import std.stdio;
 import luad.all;
+import luad.c.lua;
 import util.lua_service;
 
 import simcore;
@@ -15,6 +16,33 @@ import fvinterface;
 import globalconfig;
 import globaldata;
 import ghost_cell_effect;
+import luaflowstate;
+
+// Helper functions for user's lua script
+extern(C) int luafn_sampleFlow(lua_State *L)
+{
+    // Get arguments from lua_stack
+    auto blkId = lua_tointeger(L, 1);
+    auto i = lua_tointeger(L, 2);
+    auto j = lua_tointeger(L, 3);
+    auto k = lua_tointeger(L, 4);
+    
+    // Grab the appropriate cell
+    auto cell = allBlocks[blkId].get_cell(i, j, k);
+    auto fs = cell.fs;
+    
+    // Return the interesting bits as a table.
+    lua_newtable(L);
+    pushFlowStateToTable(fs, L);
+    lua_pushnumber(L, cell.pos[0].x); lua_setfield(L, -2, "x");
+    lua_pushnumber(L, cell.pos[0].y); lua_setfield(L, -2, "y");
+    lua_pushnumber(L, cell.pos[0].z); lua_setfield(L, -2, "z");
+    lua_pushnumber(L, cell.iLength); lua_setfield(L, -2, "iLength");
+    lua_pushnumber(L, cell.jLength); lua_setfield(L, -2, "jLength");
+    lua_pushnumber(L, cell.kLength); lua_setfield(L, -2, "kLength");
+    lua_pushnumber(L, cell.volume[0]); lua_setfield(L, -2, "vol");
+    return 1;
+}
 
 class UserDefinedGhostCell : GhostCellEffect {
 public:
@@ -53,9 +81,9 @@ public:
 	    break;
 	case Face.east:
 	    i = blk.imax;
-	    for (k = blk.kmin; k <- blk.kmax; ++k) {
+	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
-		    ghostCell0 = blk.get_cell(i+i,j,k);
+		    ghostCell0 = blk.get_cell(i+1,j,k);
 		    ghostCell1 = blk.get_cell(i+2,j,k);
 		    IFace = ghostCell0.iface[Face.west];
 		    callGhostCellUDF(t, tLevel, i, j, k, IFace, ghostCell0, ghostCell1);
@@ -126,6 +154,7 @@ private:
 	    throw new Exception(errMsg);
 	}
 	GlobalConfig.gmodel.update_thermo_from_pT(ghostCell.fs.gas);
+	GlobalConfig.gmodel.update_sound_speed(ghostCell.fs.gas);
 	ghostCell.fs.vel.refx = getDouble(t, "velx", 0.0);
 	ghostCell.fs.vel.refy = getDouble(t, "vely", 0.0);
 	ghostCell.fs.vel.refz = getDouble(t, "velz", 0.0);
