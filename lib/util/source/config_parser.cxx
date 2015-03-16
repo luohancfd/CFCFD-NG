@@ -20,13 +20,13 @@ ConfigParser::ConfigParser( string fname )
 {
     // Now we have to do some 'real' work parsing the input file
     // and setting up the config_map
-    FILE* fp = NULL;
-    while ( fp == NULL ) {
-        fp = fopen( fname.c_str(), "r" );
-    }      
-    fclose(fp);      
     ifstream infile( fname.c_str() );    
-    if( ! infile ) {
+    size_t retries = 10;
+    for ( int i=0; i< retries && infile.fail(); ++i ) {
+        infile.open( fname.c_str() );
+        sleep(2);
+    }    
+    if( infile.fail() ) {
 	cout << "ConfigParser - unable to open file: " << fname << endl
 	     << "No configuration information has been read!" << endl;
 	throw runtime_error("File not found.");
