@@ -26,6 +26,7 @@ import globaldata;
 import flowstate;
 import sblock;
 import bc;
+import user_defined_source_terms;
 
 // State data for simulation.
 // Needs to be seen by all of the coordination functions.
@@ -334,6 +335,9 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 		cell.add_viscous_source_vector(with_k_omega);
 	    }
+	    if (GlobalConfig.udf_source_terms) {
+		addUDFSourceTermsToCell(cell, 0, sim_time);
+	    }
 	    cell.time_derivatives(0, 0, GlobalConfig.dimensions, with_k_omega);
 	    bool force_euler = false;
 	    cell.stage_1_update_for_flow_on_fixed_grid(dt_global, force_euler, with_k_omega);
@@ -376,6 +380,9 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 		    cell.add_viscous_source_vector(with_k_omega);
 		}
+		if (GlobalConfig.udf_source_terms) {
+		    addUDFSourceTermsToCell(cell, 0, sim_time);
+		}
 		cell.time_derivatives(0, 1, GlobalConfig.dimensions, with_k_omega);
 		bool force_euler = false;
 		cell.stage_2_update_for_flow_on_fixed_grid(dt_global, with_k_omega);
@@ -416,6 +423,9 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		cell.add_inviscid_source_vector(0, blk.omegaz);
 		if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 		    cell.add_viscous_source_vector(with_k_omega);
+		}
+		if (GlobalConfig.udf_source_terms) {
+		    addUDFSourceTermsToCell(cell, 0, sim_time);
 		}
 		cell.time_derivatives(0, 2, GlobalConfig.dimensions, with_k_omega);
 		bool force_euler = false;

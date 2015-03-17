@@ -25,6 +25,7 @@ import block;
 import sblock;
 import ghost_cell_effect;
 import user_defined_effects;
+import lua_helper;
 
 /*
 enum BCCode 

@@ -223,6 +223,7 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 	conservedquantities.d flowstate.d luaflowstate.d \
 	globalconfig.d luaglobalconfig.d globaldata.d \
 	block.d sblock.d ublock.d \
+	lua_helper.d user_defined_source_terms.d \
 	$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
 	$(KINETICS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
 	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' main.d > main_with_rev_string.d
@@ -233,6 +234,7 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 		conservedquantities.d flowstate.d luaflowstate.d \
 		globalconfig.d luaglobalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
+		lua_helper.d user_defined_source_terms.d \
 		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)
 

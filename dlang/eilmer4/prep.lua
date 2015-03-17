@@ -701,6 +701,8 @@ function write_config_file(fileName)
    f:write(string.format('"reactions_file": "%s",\n', config.reactions_file))
    f:write(string.format('"max_invalid_cells": %d,\n', config.max_invalid_cells))
    f:write(string.format('"control_count": %d,\n', config.control_count))
+   f:write(string.format('"udf_source_terms_file": "%s",\n', config.udf_source_terms_file))
+   f:write(string.format('"udf_source_terms": %s,\n', tostring(config.udf_source_terms)))
 
    f:write(string.format('"nblock": %d,\n', #(blocks)))
    for i = 1, #blocks do

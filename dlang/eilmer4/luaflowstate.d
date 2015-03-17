@@ -13,6 +13,7 @@ import std.string;
 import std.conv;
 import std.traits;
 import luad.all;
+import luad.stack;
 import luad.c.lua;
 import luad.c.lauxlib;
 import util.lua_service;
@@ -234,6 +235,14 @@ void pushFlowStateToTable(in FlowState fs, lua_State* L)
     mixin(pushFSVar("k_t"));
     mixin(pushFSVecVar("vel"));
     mixin(pushFSVecVar("B"));
+}
+
+void pushFlowStateToLuaTable(in FlowState fs, LuaTable tab)
+{
+    auto L = tab.state();
+    pushValue!LuaTable(L, tab);
+    // Now tab is TOS
+    pushFlowStateToTable(fs, L);
 }
 
 /**

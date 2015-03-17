@@ -273,4 +273,8 @@ final class GlobalConfig {
     static double filter_next_time;
     static double filter_mu;
     static int filter_npass;
+
+    // Indicate presence of user-defined source terms
+    static string udf_source_terms_file = "dummy-source-terms.txt";
+    static bool udf_source_terms = false;
 } // end class GlobalConfig

@@ -23,6 +23,7 @@ import globaldata;
 import flowstate;
 import sblock;
 import bc;
+import user_defined_source_terms;
 
 void read_config_file()
 {
@@ -149,6 +150,17 @@ void read_config_file()
 	writeln("  control_count: ", GlobalConfig.control_count);
     }
     // TODO -- still have other entries such as nheatzone, nreactionzone, ...
+
+    // Parameters related to udf source terms
+    GlobalConfig.udf_source_terms = getJSONbool(jsonData, "udf_source_terms", false);
+    GlobalConfig.udf_source_terms_file = jsonData["udf_source_terms_file"].str;
+    if ( GlobalConfig.udf_source_terms ) {
+	initUDFSourceTerms(GlobalConfig.udf_source_terms_file);
+    }
+    if ( GlobalConfig.verbosity_level > 1 ) {
+	writeln("  udf_source_terms: ", GlobalConfig.udf_source_terms);
+	writeln("  udf_source_terms_file: ", GlobalConfig.udf_source_terms_file);
+    }
 
     // Now, configure blocks that make up the flow domain.
     //

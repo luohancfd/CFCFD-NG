@@ -17,32 +17,8 @@ import globalconfig;
 import globaldata;
 import ghost_cell_effect;
 import luaflowstate;
+import lua_helper;
 
-// Helper functions for user's lua script
-extern(C) int luafn_sampleFlow(lua_State *L)
-{
-    // Get arguments from lua_stack
-    auto blkId = lua_tointeger(L, 1);
-    auto i = lua_tointeger(L, 2);
-    auto j = lua_tointeger(L, 3);
-    auto k = lua_tointeger(L, 4);
-    
-    // Grab the appropriate cell
-    auto cell = allBlocks[blkId].get_cell(i, j, k);
-    auto fs = cell.fs;
-    
-    // Return the interesting bits as a table.
-    lua_newtable(L);
-    pushFlowStateToTable(fs, L);
-    lua_pushnumber(L, cell.pos[0].x); lua_setfield(L, -2, "x");
-    lua_pushnumber(L, cell.pos[0].y); lua_setfield(L, -2, "y");
-    lua_pushnumber(L, cell.pos[0].z); lua_setfield(L, -2, "z");
-    lua_pushnumber(L, cell.iLength); lua_setfield(L, -2, "iLength");
-    lua_pushnumber(L, cell.jLength); lua_setfield(L, -2, "jLength");
-    lua_pushnumber(L, cell.kLength); lua_setfield(L, -2, "kLength");
-    lua_pushnumber(L, cell.volume[0]); lua_setfield(L, -2, "vol");
-    return 1;
-}
 
 class UserDefinedGhostCell : GhostCellEffect {
 public:
@@ -192,7 +168,7 @@ private:
 	LuaObject[] ret = f(args);
 	if ( ret.length < 2 ) {
 	    string errMsg = "ERROR: There was a problem in the call to the user-defined ghost cell boundary condition.\n";
-	    errMsg ~= format("ERROR: This occured for block [%d] on the %s boundary.", blk_id, face_name[which_boundary]);
+	    errMsg ~= format("ERROR: This occurred for block [%d] on the %s boundary.", blk_id, face_name[which_boundary]);
 	    errMsg ~= "ERROR: Two tables of flow state for the ghost cells are expected\n";
 	    errMsg ~= "ERROR: but were not received.\n";
 	    throw new Exception(errMsg);

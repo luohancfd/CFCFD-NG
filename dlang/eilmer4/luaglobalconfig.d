@@ -219,6 +219,12 @@ extern(C) int configSetFromTable(lua_State* L)
     if (!lua_isnil(L, -1)) GlobalConfig.dt_history = to!double(luaL_checknumber(L, -1));
     lua_pop(L, 1);
     //
+    lua_getfield(L, 1, "udf_source_terms_file");
+    if (!lua_isnil(L, -1)) GlobalConfig.udf_source_terms_file = to!string(luaL_checkstring(L, -1));
+    lua_pop(L, 1);
+    lua_getfield(L, 1, "udf_source_terms");
+    if (!lua_isnil(L, -1)) GlobalConfig.udf_source_terms = to!bool(lua_toboolean(L, -1));
+    lua_pop(L, 1);
     return 0;
 } // end configSetFromTable()
 
@@ -392,6 +398,13 @@ extern(C) int configGet(lua_State* L)
 	break;
     case "dt_history":
 	lua_pushnumber(L, GlobalConfig.dt_history);
+	break;
+
+    case "udf_source_terms_file":
+	lua_pushstring(L, GlobalConfig.udf_source_terms_file.toStringz);
+	break;
+    case "udf_source_terms":
+	lua_pushboolean(L, GlobalConfig.udf_source_terms);
 	break;
 
     default:
