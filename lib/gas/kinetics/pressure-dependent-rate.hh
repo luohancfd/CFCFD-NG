@@ -44,10 +44,12 @@ private:
     // Some (possible) Troe model parameters
     bool Troe_model_;
     bool T2_supplied_;
+    bool F_cent_supplied_;
     double a_;
     double T1_;
     double T2_;
     double T3_;
+    double F_cent_;
 
 };
 

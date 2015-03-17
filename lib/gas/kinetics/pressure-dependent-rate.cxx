@@ -37,20 +37,29 @@ Pressure_dependent(lua_State *L, Gas_model &g, double T_upper, double T_lower)
     lua_getfield(L, -1, "Troe");
     if ( lua_istable(L, -1) ) {
 	Troe_model_ = true;
-	lua_getfield(L, -1, "a"); a_ = luaL_checknumber(L, -1); lua_pop(L, 1);
-	lua_getfield(L, -1, "T1"); T1_ = luaL_checknumber(L, -1); lua_pop(L, 1);
-	lua_getfield(L, -1, "T3"); T3_ = luaL_checknumber(L, -1); lua_pop(L, 1);
-	lua_getfield(L, -1, "T2");
-	if ( !lua_isnumber(L, -1) ) {
-	    T2_supplied_ = false;
-	    T2_ = 0.0;
+	lua_getfield(L, -1, "F_cent");
+	if ( !lua_isnil(L, -1) ) {
+	    F_cent_supplied_ = true;
+	    F_cent_ = luaL_checknumber(L, -1);
+	    lua_pop(L, 1);
 	}
 	else {
-	    T2_supplied_ = true;
-	    T2_ = luaL_checknumber(L, -1);
+	    F_cent_supplied_ = false;
+	    lua_pop(L, 1);
+	    // We need to get other values.
+	    lua_getfield(L, -1, "a"); a_ = luaL_checknumber(L, -1); lua_pop(L, 1);
+	    lua_getfield(L, -1, "T1"); T1_ = luaL_checknumber(L, -1); lua_pop(L, 1);
+	    lua_getfield(L, -1, "T3"); T3_ = luaL_checknumber(L, -1); lua_pop(L, 1);
+	    lua_getfield(L, -1, "T2");
+	    if ( !lua_isnumber(L, -1) ) {
+		T2_supplied_ = false;
+		T2_ = 0.0;
+	    }
+	    else {
+		T2_supplied_ = true;
+		T2_ = luaL_checknumber(L, -1);
+	    }
 	}
-	
-	lua_pop(L, 1);
     }
     lua_pop(L, 1);
 
@@ -102,14 +111,14 @@ s_eval(const Gas_data &Q)
 
     // Troe model
     if ( Troe_model_ ) {
-	
-	double F_cent = (1.0 - a_)*exp(-T/T3_) + a_*exp(-T/T1_);
-
-	if ( T2_supplied_ ) {
-	    F_cent += exp(-T2_/T);
+	if ( !F_cent_supplied_ ) {
+	    F_cent_ = (1.0 - a_)*exp(-T/T3_) + a_*exp(-T/T1_);
+	    if ( T2_supplied_ ) {
+		F_cent_ += exp(-T2_/T);
+	    }
 	}
 
-	double log_F_cent = log10(max(F_cent, small));
+	double log_F_cent = log10(max(F_cent_, small));
 	double c = -0.4 - 0.67*log_F_cent;
 	double n = 0.75 - 1.27*log_F_cent;
 	double d = 0.14;
