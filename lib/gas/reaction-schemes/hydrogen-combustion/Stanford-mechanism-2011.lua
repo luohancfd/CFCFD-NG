@@ -120,12 +120,12 @@ reaction{
 }
 
 reaction{
-   'O + H2 <=> H + Oh',
+   'O + H2 <=> H + OH',
    fr={'Arrhenius', A=3.82e12, n=0.0, T_a=7948*S},
    label='r9a'
 }
 reaction{
-   'O + H2 <=> H + Oh',
+   'O + H2 <=> H + OH',
    fr={'Arrhenius', A=8.79e14, n=0.0, T_a=19170*S},
    label='r9b'
 }
