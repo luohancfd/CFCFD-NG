@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 
 #include "../../util/source/lua_service.hh"
 #include "../../util/source/useful.h"
@@ -97,7 +98,6 @@ double GuptaYos_CI_model::s_eval_Pi_Omega_22( Gas_data &Q )
     	double f = 0.5*log(2.09e-2*pow(tmpA,4)+1.52*pow(tmpA,8.0/3.0));	// correction factor, Eq. 24b
     	Pi_Omega_22 *= f;
     }
-    
     return Pi_Omega_22;	
 }
 
@@ -145,20 +145,18 @@ Stallcop_CI_model::~Stallcop_CI_model()
 double Stallcop_CI_model::s_eval_Pi_Omega_11( Gas_data &Q )
 {
     // Electron number density
-    double N_e = Q.massf[ie_] * Q.rho / PC_m_SI;
-    
+    double massf_e = max(Q.massf[ie_], 1.0e-30); // Make sure massf_e is not actually 0.0 for this calc.
+    double N_e = massf_e * Q.rho / PC_m_SI;
     double Pi_Omega_11 = (*Pi_Omega_11_)(Q.T[iT_],N_e) * 1.0e-20;	// convert Ang**2 -> m**2
-    
     return Pi_Omega_11;	
 }
 
 double Stallcop_CI_model::s_eval_Pi_Omega_22( Gas_data &Q )
 {
     // Electron number density
-    double N_e = Q.massf[ie_] * Q.rho / PC_m_SI;
-    
+    double massf_e = max(Q.massf[ie_], 1.0e-30); // Make sure massf_e is not actually 0.0 for this calc.
+    double N_e = massf_e * Q.rho / PC_m_SI;
     double Pi_Omega_22 = (*Pi_Omega_22_)(Q.T[iT_],N_e) * 1.0e-20;	// convert Ang**2 -> m**2
-    
     return Pi_Omega_22;	
 }
 
