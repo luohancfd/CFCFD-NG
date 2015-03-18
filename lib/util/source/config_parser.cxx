@@ -11,6 +11,7 @@
 #include <vector>
 #include <map>
 #include <stdexcept>
+#include <unistd.h>
 #include "config_parser.hh"
 using namespace std;
 
@@ -22,7 +23,7 @@ ConfigParser::ConfigParser( string fname )
     // and setting up the config_map
     ifstream infile( fname.c_str() );    
     size_t retries = 10;
-    for ( int i=0; i< retries && infile.fail(); ++i ) {
+    for ( size_t i=0; i< retries && infile.fail(); ++i ) {
         infile.open( fname.c_str() );
         sleep(2);
     }    
