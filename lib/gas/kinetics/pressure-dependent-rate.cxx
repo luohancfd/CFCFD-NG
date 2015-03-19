@@ -59,6 +59,7 @@ Pressure_dependent(lua_State *L, Gas_model &g, double T_upper, double T_lower)
 		T2_supplied_ = true;
 		T2_ = luaL_checknumber(L, -1);
 	    }
+	    lua_pop(L, 1);
 	}
     }
     lua_pop(L, 1);
