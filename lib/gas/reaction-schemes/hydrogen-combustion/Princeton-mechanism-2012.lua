@@ -31,7 +31,7 @@ reaction{
 }
 reaction{
    'O + H2 <=> H + OH',
-   fr={'Arrhenius', A=8.79e12, n=0.0, T_a=1.917e4*S},
+   fr={'Arrhenius', A=8.79e14, n=0.0, T_a=1.917e4*S},
    label='r2b',
    note='identical to Stanford r9b'
 }
