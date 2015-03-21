@@ -202,7 +202,7 @@ E3_OBJECTS_NO_MPI := conj-ht-interface-no-mpi.o
 
 PY_FILES = e3prep.py e3post.py turbo_post.py cgns_grid.py e3cgns.py e3history.py \
 	e3_block.py e3_render.py e3_grid.py e3_flow.py bc_defs.py flux_dict.py \
-	libprep3.py e3_defs.py e3_bc_util.py e3march.py
+	libprep3.py e3_defs.py e3_bc_util.py e3march.py prep-gpu-chem-kernel.py
 
 # Assume Unix/Linux
 LOADABLE_MODULE := _libprep3.so
@@ -246,6 +246,7 @@ install : $(INSTALL_DIR) $(E3_EXE_FILES) $(PY_FILES) $(E3_UTILS)
 	- chmod +x $(INSTALL_DIR)/shock1d.py
 	- chmod +x $(INSTALL_DIR)/e3loadbalance.py
 	- chmod +x $(INSTALL_DIR)/e3prepToFoam.py
+
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
 	- cp $(INSTALL_DIR)/_libprep3.dylib $(INSTALL_DIR)/_libprep3.so
 endif
@@ -480,6 +481,10 @@ e3history.py : $(SRC)/e3history.py
 e3console.tcl: $(SRC)/e3console.tcl
 	cp $(SRC)/e3console.tcl .
 	chmod +x e3console.tcl
+
+prep-gpu-chem-kernel.py: $(SRC)/prep-gpu-chem-kernel.py
+	cp $(SRC)/prep-gpu-chem-kernel.py .
+	chmod +x prep-gpu-chem-kernel.py
 
 e3shared.exe : e3shared.o $(LIBE3) $(E3_OBJECTS_NO_MPI) $(LIBGAS) $(LIBRAD) \
 		$(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
