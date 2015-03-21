@@ -181,7 +181,7 @@ reaction{
 reaction{
    'H2 + M <=> H + H + M',
    fr={'Arrhenius', A=5.84e18, n=-1.1, T_a=104380*S},
-   efficiencies={H20=14.4,H2O2=14.4,H2=0.0,O2=0.0},
+   efficiencies={H2O=14.4,H2O2=14.4,H2=0.0,O2=0.0},
    label='r18a'
 }
 reaction{
