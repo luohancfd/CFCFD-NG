@@ -32,16 +32,18 @@ function transformRateConstant(t, coeffs, anonymousCollider)
    m = {}
    m.model = t[1]
 
-   m.A = t.A*convFactor
-   m.n = t.n
-   m.C = t.C
+   if m.model == 'Arrhenius' then
+      m.A = t.A*convFactor
+      m.n = t.n
+      m.C = t.C
+   end
 
    return m
 end
 
 function rateConstantToLuaStr(rc)
-   local str
-   if rc.model == 'Arrhenius' or true then
+   local str = ""
+   if rc.model == 'Arrhenius' then
       str = string.format("{model='Arrhenius', A=%16.12e, n=%f, C=%16.12e }", rc.A, rc.n, rc.C)
    end
    return str
@@ -242,7 +244,7 @@ function transformReaction(t, species, suppress_warnings)
    r.type = "elementary"
 
    rs = parseReactionString(t[1])
-   anonymousCollider = false
+   r.anonymousCollider = false
    -- deal with forward elements
 
    reactants = {}
@@ -251,7 +253,7 @@ function transformReaction(t, species, suppress_warnings)
 	 coeff = tonumber(p[1]) or 1
 	 p[2] = transformSpeciesStr(p[2])
 	 if p[2] == "M" then
-	    anonymousCollider = true
+	    r.anonymousCollider = true
 	 else 
 	    spIdx = species[p[2]]
 	    if spIdx == nil then
@@ -292,7 +294,7 @@ function transformReaction(t, species, suppress_warnings)
 	 coeff = tonumber(p[1]) or 1
 	 p[2] = transformSpeciesStr(p[2])
 	 if p[2] == "M" then
-	    anonymousCollider = true
+	    r.anonymousCollider = true
 	 else 
 	    spIdx = species[p[2]]
 	    if spIdx == nil then
@@ -323,19 +325,51 @@ function transformReaction(t, species, suppress_warnings)
       r.prodCoeffs[#r.prodCoeffs+1] = products[isp]
    end
 
-   r.anonymousCollider = anonymousCollider
-
    if t.fr then
       r.frc = transformRateConstant(t.fr, r.reacCoeffs, anonymousCollider)
+   else
+      r.frc = {model="from equilibrium constant"}
    end
    if t.br then
       r.brc = transformRateConstant(t.br, r.prodCoeffs, anonymousCollider)
+   else
+      r.brc = {model="from equilibrium constant"}
    end
    if t.ec then
       r.ec = t.ec
    else
       -- By default
       r.ec = {model="from thermo",iT=0}
+   end
+
+   -- Deal with efficiencies
+   if r.anonymousCollider then
+      r.type = "withAnonymousCollider"
+      -- All efficiencies are set to 1.0
+      r.efficiencies = {}
+      for i=1,#species do
+	 -- the { , } table needs to have 0-offset indices in it
+	 r.efficiencies[i-1] = 1.0
+      end
+      -- Next look at the special cases
+      if t.efficiencies then
+	 for k,v in pairs(t.efficiencies) do
+	    if not species[k] then
+		  if not suppressWarnings then
+		     print("WARNING: One of the species given in the efficiencies list")
+		     print("is NOT one of the species in the gas model.")
+		     print("The efficiency for: ", k, " will be skipped.")
+		     print("This occurred for reaction number: ", t.number)
+		     if t.label then
+			print("label: ", t.label)
+		     end
+		  end
+	    else
+	       -- species[k] gives back a C++ index,
+	       r.efficiencies[species[k]] =  v
+	    end
+	 end
+      end
    end
 
    -- Look for presence of pressure dependent reaction
@@ -460,14 +494,14 @@ end
 
 function effToStr(reac, nsp)
    local str = ""
-   if not r.anonymousCollider then
+   if not reac.anonymousCollider then
       str = str.."0"
       return str
    end
    str = str.."1 "
    for isp=0,nsp-1 do
-      if r.efficiencies[isp] then
-	 str = str..string.format("%12.6f ", r.efficiencies[isp])
+      if reac.efficiencies[isp] then
+	 str = str..string.format("%12.6f ", reac.efficiencies[isp])
       else
 	 str = str..string.format("%12.6f ", 0.0)
       end
