@@ -21,7 +21,7 @@ void ydot(__global double *Y,
            __global double *q,                             
            idx, int numcell)                               
 {            
-
+<insert-source-terms-here>
 }                                                          
 
 __kernel                                                   
