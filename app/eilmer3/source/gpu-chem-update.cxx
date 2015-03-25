@@ -23,7 +23,7 @@ gpu_chem* init_gpu_module(int ncells)
     char *programSource;
     size_t source_size;
 
-    fp = fopen("/home/qpsf01/kdamm/cfcfd3-gpu/app/eilmer3/source/alpha_qss_kernel.cl", "r");
+    fp = fopen("/home/qpsf01/kdamm/cfcfd3/app/eilmer3/source/alpha_qss_kernel.cl", "r");
     if (fp ==  NULL) {
         fprintf(stderr, "Failed to load kernel.\n");
         exit(1);
@@ -245,8 +245,15 @@ int update_chemistry(gpu_chem &gchem, double dt_global, vector<FV_Cell*>& cells)
     oc.status=clEnqueueWriteBuffer(oc.cmdQueue, oc.bufkb, CL_FALSE, 0, oc.nreac_datasize,(void *)w.kb, 0, NULL, NULL);
     oc.status=clEnqueueWriteBuffer(oc.cmdQueue, oc.bufY, CL_FALSE, 0, oc.datasize,(void *)w.Y, 0, NULL, NULL);
     oc.status=clEnqueueWriteBuffer(oc.cmdQueue, oc.bufh, CL_FALSE, 0, oc.ncell,(void*)w.h, 0, NULL, NULL);
-
-    
+    /*
+    std::cout << "Y[0]b =   " << w.Y[0] << "\n";
+    std::cout << "Y[1]b =   " << w.Y[4096] << "\n";
+    std::cout << "Y[2]b =   " << w.Y[8192] << "\n";
+    std::cout << "Y[3]b =   " << w.Y[12288] << "\n";
+    std::cout << "Y[4]b =   " << w.Y[16384] << "\n";
+    std::cout << "Y[5]b =   " << w.Y[20480] << "\n";
+    std::cout << "Y[6]b =   " << w.Y[24576] << "\n";
+    */
     //set kernel arguments
     oc.status = clSetKernelArg(oc.kernel, 0, sizeof(cl_mem),(void *)&(oc.bufkf));
     oc.status = clSetKernelArg(oc.kernel, 1, sizeof(cl_mem),(void *)&(oc.bufkb));
@@ -286,8 +293,16 @@ int update_chemistry(gpu_chem &gchem, double dt_global, vector<FV_Cell*>& cells)
     clEnqueueReadBuffer(oc.cmdQueue, oc.bufY, CL_TRUE, 0, oc.datasize,(void *)w.Y, 0, NULL, NULL);
     //    clEnqueueReadBuffer(oc.cmdQueue, oc.bufdebugging, CL_TRUE, 0, oc.debugnum,(void *)w.debugging, 0, NULL, NULL);
     clEnqueueReadBuffer(oc.cmdQueue, oc.bufh, CL_TRUE, 0, oc.ncell, (void *)w.h, 0, NULL, NULL);
-
-    std::cout << "Y[0] =   " << w.Y[0] << "\n";
+    /*
+    std::cout << "Y[0]a =   " << w.Y[0] << "\n";
+    std::cout << "Y[1]a =   " << w.Y[4096] << "\n";
+    std::cout << "Y[2]a =   " << w.Y[8192] << "\n";
+    std::cout << "Y[3]a =   " << w.Y[12288] << "\n";
+    std::cout << "Y[4]a =   " << w.Y[16384] << "\n";
+    std::cout << "Y[5]a =   " << w.Y[20480] << "\n";
+    std::cout << "Y[6]a =   " << w.Y[24576] << "\n";
+    */
+    //    std::cout << "Y[0] =   " << w.Y[0] << "\n";
   
     //    std::cout << "Species Concentration Check (after kernel): " << w.Y[0] << "\n";
     //    std::cout << "debug value: " << w.debugging[0] << "\n";
