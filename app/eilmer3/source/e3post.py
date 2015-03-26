@@ -1600,6 +1600,8 @@ if __name__ == '__main__':
                 write_static_flow_profile_from_block(outputName, flow[blk_id], which_surface)
         #
         if uoDict.has_key("--probe"):
+            outputFileName = uoDict.get("--output-file", "probe_point.data")
+            fp_probe = open(outputFileName, "w")        
             if verbosity_level > 0:
                 print "Probe data for t=", times_dict[tindx]
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
@@ -1615,8 +1617,9 @@ if __name__ == '__main__':
                 if verbosity_level > 0:
                     print "    coords=(%g,%g,%g)" % (x, y, z)
                     print "    jb=", jb, "ijk=", i, j, k
-                flow[jb].write_gnuplot_header(sys.stdout)
-                flow[jb].write_gnuplot_data_for_cell(sys.stdout, i, j, k)
+                flow[jb].write_gnuplot_header(fp_probe)
+                flow[jb].write_gnuplot_data_for_cell(fp_probe, i, j, k)
+            fp_probe.close()
         #
         if uoDict.has_key("--heat-flux-list"):
             outputFileName = uoDict.get("--output-file", "hf_profile.data")
