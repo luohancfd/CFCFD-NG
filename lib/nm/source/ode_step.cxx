@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <cstdlib>
 
 #include "ode_system.hh"
 #include "ode_step.hh"
@@ -850,17 +851,17 @@ QssStep::QssStep( const string name, int ndim, int max_correctors,
 	cout << "WARNING: The contents of this file will be used to override the normal defaults.\n";
 	string line;
 	getline(fin, line);
-	eps1_ = stod(line);
+	eps1_ = atof(line.c_str());
 	cout << "WARNING: eps1 = " << eps1_ << endl;
 	getline(fin, line);
-	double c = stod(line);
+	double c = atof(line.c_str());
 	cout << "WARNING: c = " << c << endl;
 	eps2_ = eps1_/c;
 	getline(fin, line);
-	delta_ = stod(line);
+	delta_ = atof(line.c_str());
 	cout << "WARNING: delta= " << delta_ << endl;
 	getline(fin, line);
-	max_correctors_ = stoi(line);
+	max_correctors_ = atoi(line.c_str());
 	cout << "WARNING: max_correctors= " << max_correctors_ << endl;
 	fin.close();
     }
