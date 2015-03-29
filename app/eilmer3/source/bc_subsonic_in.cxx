@@ -186,7 +186,7 @@ int SubsonicInBC::apply_convective(double t)
 	p = pA / area; // Average pressure across boundary.
 	if ( mass_flux > 0.0 ) {
 	    // Adjust the pressure to better achieve the specified mass flux.
-	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
+	    dp_over_p = relax_factor * 0.5 / (rhoA/area) * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
 	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    gstagp.gas->p = max(gstagp.gas->p, p0_min);
 	    gstagp.gas->p = min(gstagp.gas->p, p0_max);
@@ -251,7 +251,7 @@ int SubsonicInBC::apply_convective(double t)
 	p = pA / area; // Average pressure across boundary.
 	if ( mass_flux > 0.0 ) {
 	    // Adjust the pressure to better achieve the specified mass flux.
-	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
+	    dp_over_p = relax_factor * 0.5 / (rhoA/area) * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
 	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    gstagp.gas->p = max(gstagp.gas->p, p0_min);
 	    gstagp.gas->p = min(gstagp.gas->p, p0_max);
@@ -316,7 +316,7 @@ int SubsonicInBC::apply_convective(double t)
 	p = pA / area; // Average pressure across boundary.
 	if ( mass_flux > 0.0 ) {
 	    // Adjust the pressure to better achieve the specified mass flux.
-	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
+	    dp_over_p = relax_factor * 0.5 / (rhoA/area) * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
 	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    gstagp.gas->p = max(gstagp.gas->p, p0_min);
 	    gstagp.gas->p = min(gstagp.gas->p, p0_max);
@@ -381,7 +381,7 @@ int SubsonicInBC::apply_convective(double t)
 	p = pA / area; // Average pressure across boundary.
 	if ( mass_flux > 0.0 ) {
 	    // Adjust the pressure to better achieve the specified mass flux.
-	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
+	    dp_over_p = relax_factor * 0.5 / (rhoA/area) * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
 	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    gstagp.gas->p = max(gstagp.gas->p, p0_min);
 	    gstagp.gas->p = min(gstagp.gas->p, p0_max);
@@ -466,7 +466,7 @@ int SubsonicInBC::apply_convective(double t)
 	p = pA / area; // Average pressure across boundary.
 	if ( mass_flux > 0.0 ) {
 	    // Adjust the pressure to better achieve the specified mass flux.
-	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
+	    dp_over_p = relax_factor * 0.5 / (rhoA/area) * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
 	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    gstagp.gas->p = max(gstagp.gas->p, p0_min);
 	    gstagp.gas->p = min(gstagp.gas->p, p0_max);
@@ -531,7 +531,7 @@ int SubsonicInBC::apply_convective(double t)
 	p = pA / area; // Average pressure across boundary.
 	if ( mass_flux > 0.0 ) {
 	    // Adjust the pressure to better achieve the specified mass flux.
-	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
+	    dp_over_p = relax_factor * 0.5 / (rhoA/area) * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
 	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    gstagp.gas->p = max(gstagp.gas->p, p0_min);
 	    gstagp.gas->p = min(gstagp.gas->p, p0_max);
