@@ -56,6 +56,9 @@ test combustion-products {Combustion should have produced water by the end of th
 	set massf_H2  0
 	set massf_H2O 0
     } else {
+	set fp [open probe_point.data r]
+	set results [string trim [read $fp]]
+	close $fp
 	set line_of_data [string trim [lindex [split $results "\n"] end]]
 	# puts $line_of_data
 	set items [split $line_of_data]

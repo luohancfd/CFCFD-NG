@@ -47,6 +47,9 @@ test subsonic-region {Subsonic region should have a small positive Mach number.}
 	set T 0
 	set Mach 0
     } else {
+	set fp [open probe_point.data r]
+	set results [string trim [read $fp]]
+	close $fp
 	set line_of_data [string trim [lindex [split $results "\n"] end]]
 	# puts $line_of_data
 	set items [split $line_of_data]
@@ -80,6 +83,9 @@ test supersonic-region {Supersonic exit should be a bit over Mach 3.} -body {
 	set T 0
 	set Mach 0
     } else {
+	set fp [open probe_point.data r]
+	set results [string trim [read $fp]]
+	close $fp
 	set line_of_data [string trim [lindex [split $results "\n"] end]]
 	# puts $line_of_data
 	set items [split $line_of_data]

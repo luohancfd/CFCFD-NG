@@ -29,6 +29,9 @@ test exit-flow {The shock-processed flow near the outlet of the duct.} -body {
         puts "Flow-field-probing command failed"
         puts $results
     } else {
+	set fp [open probe_point.data r]
+	set results [string trim [read $fp]]
+	close $fp
 	# puts $results
 	# Skip through the output, looking for the interesting data.
 	# There will be a header line, followed by the actual data values.
