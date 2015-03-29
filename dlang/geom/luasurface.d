@@ -27,6 +27,8 @@ immutable string CoonsPatchMT = "CoonsPatch";
 /// Name of AOPatch metatable -- this is the Lua access name.
 immutable string AOPatchMT = "AOPatch";
 
+static const(ParametricSurface)[] surfaceStore;
+
 ParametricSurface checkSurface(lua_State* L, int index) {
     // We have to do a brute force test for each object
     // type in turn.
@@ -155,9 +157,9 @@ A table with input parameters is expected as the first argument.`;
 	auto cpatch = new CoonsPatch(paths["south"], paths["north"],
 				     paths["west"], paths["east"],
 				     r0, r1, s0, s1);
-	return pushObj!(CoonsPatch, CoonsPatchMT)(L, cpatch);
-    }
-    else {
+	surfaceStore ~= pushObj!(CoonsPatch, CoonsPatchMT)(L, cpatch);
+	return 1;
+    } else {
 	lua_pop(L, 1);
     }
     // Instead, look for Vector3 objects.
@@ -170,7 +172,8 @@ A table with input parameters is expected as the first argument.`;
 	double r0, r1, s0, s1;
 	getRandS(L, "CoonsPatch", r0, r1, s0, s1);
 	auto cpatch = new CoonsPatch(p00, p10, p11, p01, r0, r1, s0, s1);
-	return pushObj!(CoonsPatch, CoonsPatchMT)(L, cpatch);
+	surfaceStore ~= pushObj!(CoonsPatch, CoonsPatchMT)(L, cpatch);
+	return 1;
     }
     lua_pop(L, 1);
     // If we make it here, there's been an error in construction.
@@ -179,7 +182,7 @@ Neither a list of named paths ('north', 'east', 'south', 'west')
 nor a list of named corners ('p00', 'p10', 'p11', 'p01') were found.`;
     luaL_error(L, errMsg.toStringz);
     return 0;
-}
+} // end newCoonsPatch()
 
 /**
  * This is constructor for an AOPatch object to be used from the Lua interface.
@@ -230,9 +233,9 @@ A table with input parameters is expected as the first argument.`;
 	auto aopatch = new AOPatch(paths["south"], paths["north"],
 				   paths["west"], paths["east"],
 				   nx, ny, r0, r1, s0, s1);
-	return pushObj!(AOPatch, AOPatchMT)(L, aopatch);
-    }
-    else {
+	surfaceStore ~= pushObj!(AOPatch, AOPatchMT)(L, aopatch);
+	return 1;
+    } else {
 	lua_pop(L, 1);
     }
     // Instead, look for Vector3 objects.
@@ -245,7 +248,8 @@ A table with input parameters is expected as the first argument.`;
 	double r0, r1, s0, s1;
 	getRandS(L, "AOPatch", r0, r1, s0, s1);
 	auto aopatch = new AOPatch(p00, p10, p11, p01, nx, ny, r0, r1, s0, s1);
-	return pushObj!(AOPatch, AOPatchMT)(L, aopatch);
+	surfaceStore ~= pushObj!(AOPatch, AOPatchMT)(L, aopatch);
+	return 1;
     }
     lua_pop(L, 1);
     // If we make it here, there's been an error in construction.
@@ -296,11 +300,13 @@ The %s path is not a valid Path object.`;
     gridType = toUpper(gridType);
     if ( gridType == "AO" ) {
 	auto patch = new AOPatch(south, north, west, east);
-	return pushObj!(AOPatch, AOPatchMT)(L, patch);
+	surfaceStore ~= pushObj!(AOPatch, AOPatchMT)(L, patch);
+	return 1;
     }
     // else
     auto patch = new CoonsPatch(south, north, west, east);
-    return pushObj!(CoonsPatch, CoonsPatchMT)(L, patch);
+    surfaceStore ~= pushObj!(CoonsPatch, CoonsPatchMT)(L, patch);
+    return 1;
 }
 
 void registerSurfaces(LuaState lua)

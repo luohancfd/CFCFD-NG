@@ -183,16 +183,21 @@ luaflowstate_demo: luaflowstate_demo.d luaflowstate.d flowstate.d \
 		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)
 
 fv_demo: fv_demo.d fvcore.d fvcell.d fvvertex.d fvinterface.d onedinterp.d fluxcalc.d \
-	conservedquantities.d flowstate.d globalconfig.d globaldata.d \
-	block.d sblock.d ublock.d json_helper.d \
+	conservedquantities.d flowstate.d luaflowstate.d \
+	globalconfig.d globaldata.d \
+	block.d sblock.d ublock.d \
+	json_helper.d lua_helper.d user_defined_source_terms.d \
+	simcore.d fileutil.d readconfig.d luaglobalconfig.d \
 	$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
 	$(KINETICS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
 	$(DMD) $(DFLAGS) $(OF)fv_demo \
 		fv_demo.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
-		conservedquantities.d flowstate.d onedinterp.d fluxcalc.d \
-		globalconfig.d globaldata.d block.d sblock.d ublock.d \
-		json_helper.d \
+		conservedquantities.d flowstate.d luaflowstate.d onedinterp.d fluxcalc.d \
+		globalconfig.d globaldata.d \
+		block.d sblock.d ublock.d \
+		json_helper.d lua_helper.d user_defined_source_terms.d \
+		simcore.d fileutil.d readconfig.d luaglobalconfig.d \
 		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)
 
@@ -200,19 +205,22 @@ block_demo: block_demo.d \
 	block.d sblock.d ublock.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d \
 	fluxcalc.d onedinterp.d \
-	conservedquantities.d flowstate.d globalconfig.d globaldata.d \
+	conservedquantities.d flowstate.d luaflowstate.d \
+	globalconfig.d globaldata.d \
 	block.d sblock.d ublock.d \
-	json_helper.d \
+	json_helper.d lua_helper.d user_defined_source_terms.d \
+	simcore.d fileutil.d readconfig.d luaglobalconfig.d \
 	$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
 	$(KINETICS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
 	$(DMD) $(DFLAGS) $(OF)block_demo \
 		block_demo.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
 		fluxcalc.d onedinterp.d \
-		conservedquantities.d flowstate.d \
+		conservedquantities.d flowstate.d luaflowstate.d \
 		globalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
-		json_helper.d \
+		json_helper.d lua_helper.d user_defined_source_terms.d \
+		simcore.d fileutil.d readconfig.d luaglobalconfig.d \
 		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)
 

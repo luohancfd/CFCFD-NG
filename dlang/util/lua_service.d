@@ -100,20 +100,26 @@ void getArrayOfNumbers(lua_State* L, int index, out double[] values)
  * This creates a new userdata spot on the Lua stack and
  * populates it with an object of type T.
  *
- * Note: we explicitly set the metatable name as
+ * Notes: 
+ * (1) We explicitly set the metatable name as
  * a string and do NOT try to get the type name
  * using T.stringof (or a more elaborate __traits function).
  * The reason is that we want control of the name that
  * appears in the Lua script, no matter what name the various D
  * compilers decide to give your class type.
+ * (2) We also want to keep a reference to the object in the D domain
+ * so that the D garbage collector will not try to remove it and 
+ * any of its internally-referenced objects from that domain.
+ * We cannot tell how long the Lua interpreter will want 
+ * to have access to the object. 
  */
-int pushObj(T, string metatableName)(lua_State* L, in T obj)
+const(T) pushObj(T, string metatableName)(lua_State* L, T obj)
 {
     auto ptr = cast(T*) lua_newuserdata(L, obj.sizeof);
-    *ptr = obj.dup();
+    *ptr = obj; // Make a copy of the object into the Lua domain.
     luaL_getmetatable(L, metatableName.toStringz);
     lua_setmetatable(L, -2);
-    return 1;
+    return obj; // Back in the D domain, we should keep a reference.
 }
 
 /**

@@ -29,6 +29,8 @@ import luaglobalconfig;
 /// name for FlowState object in Lua scripts.
 immutable string FlowStateMT = "FlowState"; 
 
+static const(FlowState)[] flowStateStore;
+
 // Makes it a little more consistent to make this
 // available under this name.
 FlowState checkFlowState(lua_State* L, int index)
@@ -72,7 +74,8 @@ Be sure to call setGasModel(fname) before using a FlowState object.`;
     int narg = lua_gettop(L);
     if ( narg == 0 ) {
 	fs = new FlowState(managedGasModel);
-	return pushObj!(FlowState, FlowStateMT)(L, fs);
+	flowStateStore ~= pushObj!(FlowState, FlowStateMT)(L, fs);
+	return 1;
     }
     // else narg >= 1
     if ( !lua_istable(L, 1) ) {
@@ -169,7 +172,8 @@ The value should be a number.`;
 
     fs = new FlowState(managedGasModel, p, T, vel, massf, quality, B,
 		       tke, omega, mu_t, k_t);
-    return pushObj!(FlowState, FlowStateMT)(L, fs);
+    flowStateStore ~= pushObj!(FlowState, FlowStateMT)(L, fs);
+    return 1;
 }
 
 /**

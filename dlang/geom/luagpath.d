@@ -19,6 +19,9 @@ import gpath;
 import luageom;
 
 immutable string LineMT = "Line"; // Name of Line metatable
+// A place to hang on to references to objects that are pushed into the Lua domain.
+// We don't want the D garbage collector to prematurely dispose of said objects.
+static const(Path)[] pathStore; 
 
 Path checkPath(lua_State* L, int index) {
     if ( isObjType(L, index, LineMT) ) {
@@ -72,7 +75,7 @@ extern(C) int copyPath(T, string MTname)(lua_State* L)
 {
     // Sometimes it's convenient to get a copy of a path.
     auto path = checkObj!(T, MTname)(L, 1);
-    pushObj!(T, MTname)(L, path);
+    pathStore ~= pushObj!(T, MTname)(L, path);
     return 1;
 }
 
@@ -122,7 +125,8 @@ The value, if present, should be a number.`;
     double t0 = getNumberFromTable(L, 1, "t0", false, 0.0, true, format(errMsgTmplt, "t0"));
     double t1 = getNumberFromTable(L, 1, "t1", false, 1.0, true, format(errMsgTmplt, "t1"));
     auto ab = new Line(*a, *b, t0, t1);
-    return pushObj!(Line, LineMT)(L, ab);
+    pathStore ~= pushObj!(Line, LineMT)(L, ab);
+    return 1;
 }
 
 void registerPaths(LuaState lua)

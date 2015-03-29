@@ -20,6 +20,8 @@ import univariatefunctions;
 immutable string LinearFunctionMT = "LinearFunction";
 immutable string RobertsFunctionMT = "RobertsFunction";
 
+static const(UnivariateFunction)[] functionStore;
+
 UnivariateFunction checkUnivariateFunction(lua_State* L, int index) {
     if ( isObjType(L, index, LinearFunctionMT) ) {
 	return checkObj!(LinearFunction, LinearFunctionMT)(L, index);
@@ -43,7 +45,7 @@ extern(C) int copyUnivariateFunction(T, string MTname)(lua_State* L)
 {
     // Sometimes it's convenient to get a copy of a function.
     auto f = checkObj!(T, MTname)(L, 1);
-    pushObj!(T, MTname)(L, f);
+    functionStore ~= pushObj!(T, MTname)(L, f);
     return 1;
 }
 
@@ -72,7 +74,8 @@ The value, if present, should be a number.`;
     double t0 = getNumberFromTable(L, 1, "t0", false, 0.0, true, format(errMsgTmplt, "t0"));
     double t1 = getNumberFromTable(L, 1, "t1", false, 1.0, true, format(errMsgTmplt, "t1"));
     auto f = new LinearFunction(t0, t1);
-    return pushObj!(LinearFunction, LinearFunctionMT)(L, f);
+    functionStore ~= pushObj!(LinearFunction, LinearFunctionMT)(L, f);
+    return 1;
 }
 
 /**
@@ -102,7 +105,8 @@ The value, if present, should be boolean (true or false).`;
     bool end1 = getBooleanFromTable(L, 1, "end1", false, false, true, format(errMsgTmpltBool, "t1"));
     double beta = getNumberFromTable(L, 1, "beta", false, 1.0, true, format(errMsgTmpltNumber, "beta"));
     auto f = new RobertsFunction(end0, end1, beta);
-    return pushObj!(RobertsFunction, RobertsFunctionMT)(L, f);
+    functionStore ~= pushObj!(RobertsFunction, RobertsFunctionMT)(L, f);
+    return 1;
 }
 
 void registerUnivariateFunctions(LuaState lua)

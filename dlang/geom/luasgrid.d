@@ -27,6 +27,8 @@ import luasurface;
 immutable string StructuredGrid2DMT = "StructuredGrid2D";
 immutable string StructuredGrid3DMT = "StructuredGrid3D";
 
+static const(StructuredGrid)[] structuredGridStore;
+
 StructuredGrid checkStructuredGrid(lua_State* L, int index) {
     if ( isObjType(L, index, StructuredGrid2DMT) ) {
 	return checkObj!(StructuredGrid, StructuredGrid2DMT)(L, index);
@@ -42,7 +44,7 @@ extern(C) int copyStructuredGrid(T, string MTname)(lua_State* L)
 {
     // Sometimes it's convenient to get a copy of a function.
     auto grid = checkObj!(T, MTname)(L, 1);
-    pushObj!(T, MTname)(L, grid);
+    structuredGridStore ~= pushObj!(T, MTname)(L, grid);
     return 1;
 }
 
@@ -132,7 +134,8 @@ The value, if present, should be a number.`;
     UnivariateFunction[] cfList = [new LinearFunction(), new LinearFunction(),
 				   new LinearFunction(), new LinearFunction()];
     auto grid = new StructuredGrid(surf, niv, njv, cfList);
-    return pushObj!(StructuredGrid, StructuredGrid2DMT)(L, grid);
+    structuredGridStore ~= pushObj!(StructuredGrid, StructuredGrid2DMT)(L, grid);
+    return 1;
 }
 
 extern(C) int importGridproGrid(lua_State *L)
@@ -151,7 +154,7 @@ At least one argument is required: the name of the Gridpro file.`;
     auto sgrids = import_gridpro_grid(fname, scale);
     lua_newtable(L);
     foreach ( int i, grid; sgrids ) {
-	pushObj!(StructuredGrid, StructuredGrid2DMT)(L, grid);
+	structuredGridStore ~= pushObj!(StructuredGrid, StructuredGrid2DMT)(L, grid);
 	lua_rawseti(L, -2, i+1);
     }
     return 1;
