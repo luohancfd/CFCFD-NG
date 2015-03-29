@@ -1829,6 +1829,17 @@ class Block3D(Block):
         vol = hex_cell_volume(p0, p1, p2, p3, p4, p5, p6, p7)
         return (centre.x, centre.y, centre.z, vol)
 
+    def check_volumes(self, gdata):
+        bad_cells = []
+        for k in range(self.nnk):
+            for j in range(self.nnj):
+                for i in range(self.nni):
+                    x, y, z, vol = self.cell_centre_location(i, j, k, gdata)
+                    if vol <= 0.0:
+                        bad_cells.append((i, j, k, vol))
+        return bad_cells
+
+
 # --------------------------------------------------------------------
 
 class MultiBlock3D(object):
