@@ -27,6 +27,10 @@ ifeq ($(TARGET), for_openmpi_debug)
     WITH_MPI := 1
 endif
 
+ifeq ($(TARGET), for_openmpi_intel)
+    WITH_MPI := 1
+endif
+
 ifeq ($(TARGET), for_clang_openmpi)
     WITH_MPI := 1
 endif
