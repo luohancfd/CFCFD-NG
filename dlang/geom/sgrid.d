@@ -18,7 +18,7 @@ import gzip;
 import geom;
 import gpath;
 import surface;
-// import volume;
+import volume;
 import univariatefunctions;
 
 //-----------------------------------------------------------------
@@ -55,6 +55,19 @@ public:
 	while (clusterf.length < 4) clusterf ~= new LinearFunction(0.0, 1.0);
 	resize_array();
 	make_grid_from_surface(surf, clusterf);
+    }
+
+    // 3D grid, built on ParametricVolume.
+    this(const ParametricVolume pvolume, int niv, int njv, int nkv,
+	 const(UnivariateFunction)[] clusterf,
+	 string label="empty-label")
+    {
+	this.niv = niv; this.njv = njv; this.nkv = nkv;
+	this.label = label;
+	// Any unspecified clustering functions default to the linear identity.
+	while (clusterf.length < 12) clusterf ~= new LinearFunction(0.0, 1.0);
+	resize_array();
+	make_grid_from_volume(pvolume, clusterf);
     }
 
     // Imported grid.
@@ -144,6 +157,52 @@ public:
 	    }
 	}
     } // end make_grid_from_surface()
+
+    void make_grid_from_volume(const ParametricVolume pvolume,
+			       const(UnivariateFunction)[] clusterf)
+    // Given a parametric volume, create the grid via TFI.
+    //
+    // The clustering information always comes from the 12 edges.
+    {
+	// First, set up clustered parameter values along each edge.
+        double[] r01 = clusterf[0].distribute_parameter_values(niv);
+        double[] s12 = clusterf[1].distribute_parameter_values(njv);
+        double[] r32 = clusterf[2].distribute_parameter_values(niv);
+        double[] s03 = clusterf[3].distribute_parameter_values(njv);
+	//
+	double[] r45 = clusterf[4].distribute_parameter_values(niv);
+	double[] s56 = clusterf[5].distribute_parameter_values(njv);
+	double[] r76 = clusterf[6].distribute_parameter_values(niv);
+	double[] s47 = clusterf[7].distribute_parameter_values(njv);
+	//
+	double[] t04 = clusterf[8].distribute_parameter_values(nkv);
+	double[] t15 = clusterf[9].distribute_parameter_values(nkv);
+	double[] t26 = clusterf[10].distribute_parameter_values(nkv);
+	double[] t37 = clusterf[11].distribute_parameter_values(nkv);
+	//
+	// Now, work through the mesh, one point at a time,
+        // blending the stretched parameter values
+        // and creating the actual vertex coordinates in Cartesian space.
+        foreach (k; 0 .. nkv) {
+	    double t = to!double(k) / (nkv - 1);
+	    foreach (j; 0 .. njv) {
+		double s = to!double(j) / (njv - 1);
+		foreach (i; 0 .. niv) {
+		    double r = to!double(i) / (niv - 1);
+                    double tdash = (1.0-r)*(1.0-s)*t04[k] + r*s*t26[k] + 
+			(1.0-s)*r*t15[k] + s*(1.0-r)*t37[k];
+                    double sdash = (1.0-t)*(1.0-r)*s03[j] + t*r*s56[j] + 
+			(1.0-t)*r*s12[j] + t*(1-r)*s47[j];
+                    double rdash = (1.0-s)*(1.0-t)*r01[i] + s*t*r76[i] + 
+			(1.0-s)*t*r45[i] + s*(1.0-t)*r32[i];
+			Vector3 p = pvolume(rdash, sdash, tdash);
+		    grid[i][j][k].refx = p.x;
+		    grid[i][j][k].refy = p.y;
+		    grid[i][j][k].refz = p.z;
+		} // i
+	    } // j
+	} // k
+    } // end make_grid_from_volume()
 
     void read_grid_from_text_file(string fileName, bool vtkHeader=true)
     {

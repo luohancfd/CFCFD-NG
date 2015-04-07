@@ -5,6 +5,7 @@ import std.conv;
 import geom;
 import gpath;
 import surface;
+import volume;
 import univariatefunctions;
 import sgrid;
 
@@ -21,6 +22,23 @@ void main()
     auto my_grid = new StructuredGrid(my_patch, 11, 21, cf);
     writeln("grid point 5 5 at x=", my_grid[5,5].x, " y=", my_grid[5,5].y);
     my_grid.write_to_text_file("test_grid.vtk", true);
+
+    writeln("3D grid");
+    Vector3[8] p;
+    p[0] = Vector3(0.0, 0.1, 0.0);
+    p[1] = Vector3(1.0, 0.1, 0.0);
+    p[2] = Vector3(1.0, 1.1, 0.0);
+    p[3] = Vector3(0.0, 1.1, 0.0);
+    //
+    p[4] = Vector3(0.0, 0.1, 3.0);
+    p[5] = Vector3(1.0, 0.1, 3.0);
+    p[6] = Vector3(1.0, 1.1, 3.0);
+    p[7] = Vector3(0.0, 1.1, 3.0);
+    //
+    auto simple_box = new TFIVolume(p);
+    auto my_3Dgrid = new StructuredGrid(simple_box, 11, 21, 11, cf);
+    writeln("grid point 5 5 5 at p=", my_3Dgrid[5,5,5]);
+    my_3Dgrid.write_to_text_file("test_3Dgrid.vtk", true);
 
     writeln("Import GridPro grid...");
     auto gpgrid = import_gridpro_grid("../../examples/eilmer3/3D/gridpro-import/blk.tmp");

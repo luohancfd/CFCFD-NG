@@ -60,10 +60,12 @@ univariatefunctions_demo: univariatefunctions_demo.d univariatefunctions.d
 	dmd $(DFLAGS) univariatefunctions_demo.d $(OF)univariatefunctions_demo \
 		univariatefunctions.d $(DLINKFLAGS)
 
-sgrid_demo: sgrid_demo.d sgrid.d surface.d gpath.d geom.d univariatefunctions.d \
+sgrid_demo: sgrid_demo.d sgrid.d volume.d surface.d gpath.d geom.d \
+	univariatefunctions.d \
 	$(GZIP_FILES)
 	dmd $(DFLAGS) sgrid_demo.d $(OF)sgrid_demo \
-		sgrid.d surface.d gpath.d geom.d univariatefunctions.d \
+		sgrid.d volume.d surface.d gpath.d geom.d \
+		univariatefunctions.d \
 		$(GZIP_FILES) $(DLINKFLAGS)
 
 luageom_demo: luageom_demo.d luageom.d geom.d $(LUAD_FILES) $(LIBLUA)
@@ -98,11 +100,15 @@ luaunifunction_demo: luaunifunction_demo.d luaunifunction.d univariatefunctions.
 		luaunifunction.d univariatefunctions.d \
 		$(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)
 
-luasgrid_demo: luasgrid_demo.d sgrid.d surface.d gpath.d geom.d univariatefunctions.d \
-	luasgrid.d luasurface.d luagpath.d luageom.d luaunifunction.d \
+luasgrid_demo: luasgrid_demo.d sgrid.d volume.d surface.d gpath.d geom.d \
+	univariatefunctions.d \
+	luasgrid.d luavolume.d luasurface.d luagpath.d luageom.d \
+	luaunifunction.d \
 	$(GZIP_FILES) $(UTIL_FILES) $(LUAD_FILES)
 	dmd $(DFLAGS_LUA) luasgrid_demo.d $(OF)luasgrid_demo \
-		sgrid.d surface.d gpath.d geom.d  univariatefunctions.d \
-		luasgrid.d luasurface.d luagpath.d luageom.d luaunifunction.d \
+		sgrid.d volume.d surface.d gpath.d geom.d \
+		univariatefunctions.d \
+		luasgrid.d luavolume.d luasurface.d luagpath.d luageom.d \
+		luaunifunction.d \
 		$(GZIP_FILES) $(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)
 
