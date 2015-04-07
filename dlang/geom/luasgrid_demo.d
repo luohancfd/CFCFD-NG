@@ -37,13 +37,11 @@ surf = CoonsPatch:new{north=Line:new{b, d}, east=Line:new{c, d},
                       south=Line:new{a, c}, west=Line:new{a, b}}
 print("CoonsPatch representation: ", surf)
 myrf = RobertsFunction:new{end0=true, end1=false, beta=1.01}
---[[
 grid = StructuredGrid:new{psurface=surf, niv=10, njv=20} 
 ni = grid:get_niv()
 nj = grid:get_njv()
 print("grid size=", ni, nj)
 print("upper-right corner=", grid:get_vtx(ni-1,nj-1))
---]]
 print("3D grid")
 pArray = {Vector3:new{0.0, 0.1, 0.0}, Vector3:new{1.0, 0.1, 0.0},
           Vector3:new{1.0, 1.1, 0.0}, Vector3:new{0.0, 1.1, 0.0},

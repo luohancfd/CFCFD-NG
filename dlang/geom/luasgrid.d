@@ -131,19 +131,21 @@ A table containing arguments is expected, but no table was found.`;
     }
     lua_pop(L, 1);
     // We didn't find a psurface entry, so try for a pvolume, for a 3D grid.
-    lua_getfield(L, 1, "pvolume".toStringz);
-    if ( !lua_isnil(L, -1) ) {
-	dimensions = 3;
-	pvolume = checkVolume(L, -1);
-	if (!pvolume) {
-	    string errMsg = "Error in StructuredGrid:new{}. pvolume not a ParametricVolume.";
+    if (!psurface) {
+	lua_getfield(L, 1, "pvolume".toStringz);
+	if ( !lua_isnil(L, -1) ) {
+	    dimensions = 3;
+	    pvolume = checkVolume(L, -1);
+	    if (!pvolume) {
+		string errMsg = "Error in StructuredGrid:new{}. pvolume not a ParametricVolume.";
+		luaL_error(L, errMsg.toStringz);
+	    }
+	} else {
+	    string errMsg = "Error in StructuredGrid:new{}. neither psurface nor pvolume found.";
 	    luaL_error(L, errMsg.toStringz);
 	}
-    } else {
-	string errMsg = "Error in StructuredGrid:new{}. neither psurface nor pvolume found.";
-	luaL_error(L, errMsg.toStringz);
+	lua_pop(L, 1);
     }
-    lua_pop(L, 1);
 
     string errMsgTmplt = `Error in StructuredGrid:new{}.
 A valid value for '%s' was not found in list of arguments.
