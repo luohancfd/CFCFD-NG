@@ -10,7 +10,7 @@
 # To see what parameters one can set, look up the class definition
 # in the file e3prep.py.
 
-gdata.title = "Ramp at 20 degrees."
+gdata.title = "Ramp at 10 degrees."
 gdata.dimensions = 3
 
 # Accept defaults for air giving R=287.1, gamma=1.4

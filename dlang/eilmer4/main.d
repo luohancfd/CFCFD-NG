@@ -22,6 +22,7 @@ import luaflowstate;
 import luageom;
 import luagpath;
 import luasurface;
+import luavolume;
 import luaunifunction;
 import luasgrid;
 
@@ -88,6 +89,7 @@ void main(string[] args)
 	registerFlowState(lua);
 	registerPaths(lua);
 	registerSurfaces(lua);
+	registerVolumes(lua);
 	registerUnivariateFunctions(lua);
 	registerStructuredGrid(lua);
 	lua.doFile(dirName(thisExePath())~"/prep.lua");
