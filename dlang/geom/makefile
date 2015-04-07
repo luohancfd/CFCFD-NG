@@ -1,9 +1,10 @@
 # makefile for the geometry package
 # Builds all of the demonstration programs.
 
-DEMO_PROGRAMS := geom_demo gpath_demo surface_demo univariatefunctions_demo \
-	volume_demo \
-	luageom_demo luagpath_demo luasurface_demo luaunifunction_demo \
+DEMO_PROGRAMS := geom_demo gpath_demo surface_demo volume_demo \
+	univariatefunctions_demo \
+	luageom_demo luagpath_demo luasurface_demo luavolume_demo \
+	luaunifunction_demo \
 	sgrid_demo luasgrid_demo
 
 GZIP_DIR := ../extern/gzip
@@ -75,10 +76,20 @@ luagpath_demo: luagpath_demo.d luagpath.d luageom.d geom.d gpath.d \
 		luagpath.d luageom.d geom.d gpath.d \
 		$(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)
 
-luasurface_demo: luasurface_demo.d luasurface.d luagpath.d luageom.d geom.d gpath.d \
+luasurface_demo: luasurface_demo.d luasurface.d luagpath.d luageom.d \
+	geom.d gpath.d surface.d \
 	$(UTIL_FILES) $(LUAD_FILES) $(LIBLUA)
 	dmd $(DFLAGS_LUA) luasurface_demo.d $(OF)luasurface_demo \
-		luasurface.d luagpath.d luageom.d surface.d geom.d gpath.d \
+		luasurface.d luagpath.d luageom.d \
+		surface.d geom.d gpath.d \
+		$(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)
+
+luavolume_demo: luavolume_demo.d luavolume.d luasurface.d luagpath.d luageom.d \
+	geom.d gpath.d surface.d volume.d \
+	$(UTIL_FILES) $(LUAD_FILES) $(LIBLUA)
+	dmd $(DFLAGS_LUA) luavolume_demo.d $(OF)luavolume_demo \
+		luavolume.d luasurface.d luagpath.d luageom.d \
+		volume.d surface.d geom.d gpath.d \
 		$(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)
 
 luaunifunction_demo: luaunifunction_demo.d luaunifunction.d univariatefunctions.d \

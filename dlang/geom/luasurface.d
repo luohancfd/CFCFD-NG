@@ -1,6 +1,6 @@
 /**
  * luasurface.d
- * Lua interface to Surface objects.
+ * Lua interface to ParametricSurface objects.
  *
  * Authors: Rowan G. and Peter J.
  * Version: 2015-02-24
@@ -57,6 +57,9 @@ extern(C) int opCallSurface(T, string MTname)(lua_State* L)
     auto pt = surface(r, s);
     return pushVector3(L, pt);
 }
+
+
+// Helper functions for constructors.
 
 string getPathFromTable(string pName)
 {
@@ -355,4 +358,4 @@ void registerSurfaces(LuaState lua)
     lua_setglobal(L, "isSurface");
     lua_pushcfunction(L, &makePatch);
     lua_setglobal(L, "makePatch");
-}
+} // end registerSurfaces()
