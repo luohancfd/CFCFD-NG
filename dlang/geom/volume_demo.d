@@ -14,23 +14,22 @@ import volume;
 void main()
 {
     writeln("Begin demonstration of the ParametricVolume elements.");
-    auto p00 = Vector3(0.0, 0.1, 3.0);
-    auto p10 = Vector3(1.0, 0.1, 3.0);
-    auto p11 = Vector3(1.0, 1.1, 3.0);
-    auto p01 = Vector3(0.0, 1.1, 3.0);
+    Vector3[8] p;
+    p[0] = Vector3(0.0, 0.1, 0.0);
+    p[1] = Vector3(1.0, 0.1, 0.0);
+    p[2] = Vector3(1.0, 1.1, 0.0);
+    p[3] = Vector3(0.0, 1.1, 0.0);
 
-    writeln("CoonsPatch demo");
-    auto my_patch = new CoonsPatch(p00, p10, p11, p01);
-    writeln("my_patch= ", my_patch);
-    auto c = my_patch(0.1, 0.1);
-    writeln("my_patch(0.1, 0.1)= ", c);
+    p[4] = Vector3(0.0, 0.1, 3.0);
+    p[5] = Vector3(1.0, 0.1, 3.0);
+    p[6] = Vector3(1.0, 1.1, 3.0);
+    p[7] = Vector3(0.0, 1.1, 3.0);
 
-    writeln("AOPatch demo");
-    p10 = Vector3(1.0, 0.4, 3.0);
-    auto my_AOpatch = new AOPatch(p00, p10, p11, p01);
-    writeln("my_AOpatch= ", my_AOpatch);
-    c = my_AOpatch(0.1, 0.1);
-    writeln("my_AOpatch(0.1, 0.1)= ", c);
+    writeln("TFIVolume demo");
+    auto my_vol = new TFIVolume(p);
+    writeln("my_vol= ", my_vol);
+    auto c = my_vol(0.1, 0.1, 0.1);
+    writeln("my_vol(0.1, 0.1, 0.1)= ", c);
 
     writeln("Done.");
 }
