@@ -21,8 +21,8 @@ b = Vector3:new{0.0, 0.01}
 c = Vector3:new{0.01, 0.0}
 d = Vector3:new{0.01, 0.01}
 
-grid0 = StructuredGrid2D:new{surf=makePatch{Line:new{b, d}, Line:new{c, d}, Line:new{a, c}, Line:new{a, b}},
-			     niv=3, njv=3}
+grid0 = StructuredGrid:new{psurface=makePatch{Line:new{b, d}, Line:new{c, d}, Line:new{a, c}, Line:new{a, b}},
+			   niv=3, njv=3}
 blk0 = SBlock:new{grid=grid0, fillCondition=initial, label="blk0", hcellList={{0,0}}}
 
 -- Finish off config

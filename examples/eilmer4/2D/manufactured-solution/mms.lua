@@ -27,7 +27,7 @@ d = Vector3:new{1.0, 1.0}
 nx0 = 16
 ny0 = 16
 
-grid = StructuredGrid2D:new{surf=makePatch{Line:new{c,d}, Line:new{b,d}, Line:new{a,b}, Line:new{a,c}},
+grid = StructuredGrid:new{psurface=makePatch{Line:new{c,d}, Line:new{b,d}, Line:new{a,b}, Line:new{a,c}},
 			  niv=nx0+1, njv=ny0+1}
 
 blk = SBlock:new{grid=grid, fillCondition=initial, label="blk"}

@@ -29,8 +29,8 @@ fe = Line:new{f, e}; ed = Line:new{e, d} -- upper boundary
 af = Line:new{a, f}; be = Line:new{b, e}; cd = Line:new{c, d} -- vertical lines
 -- Mesh the patches, with particular discretisation.
 nx0 = 10; nx1 = 30; ny = 40
-grid0 = StructuredGrid2D:new{surf=makePatch{fe, be, ab, af}, niv=nx0+1, njv=ny+1}
-grid1 = StructuredGrid2D:new{surf=makePatch{ed, cd, bc, be, gridType="ao"}, niv=nx1+1, njv=ny+1}
+grid0 = StructuredGrid:new{psurface=makePatch{fe, be, ab, af}, niv=nx0+1, njv=ny+1}
+grid1 = StructuredGrid:new{psurface=makePatch{ed, cd, bc, be, gridType="ao"}, niv=nx1+1, njv=ny+1}
 -- Define the flow-solution blocks.
 blk0 = SBlock:new{grid=grid0, fillCondition=inflow, label="BLOCK-0"}
 blk1 = SBlock:new{grid=grid1, fillCondition=initial, label="BLOCK-1",

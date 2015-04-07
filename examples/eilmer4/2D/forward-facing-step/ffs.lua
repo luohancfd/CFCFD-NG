@@ -28,9 +28,9 @@ nab = math.floor(0.6/dx); nbc = math.floor(2.4/dx)
 print("nab=", nab, "nbc=", nbc)
 n01 = math.floor(0.2/dx); n12 = math.floor(0.8/dx)
 print("n01=", n01, "n12=", n12)
-grid0 = StructuredGrid2D:new{surf=surf0, niv=nab+1, njv=n01+1}
-grid1 = StructuredGrid2D:new{surf=surf1, niv=nab+1, njv=n12+1}
-grid2 = StructuredGrid2D:new{surf=surf2, niv=nbc+1, njv=n12+1}
+grid0 = StructuredGrid:new{psurface=surf0, niv=nab+1, njv=n01+1}
+grid1 = StructuredGrid:new{psurface=surf1, niv=nab+1, njv=n12+1}
+grid2 = StructuredGrid:new{psurface=surf2, niv=nbc+1, njv=n12+1}
 
 -- Define the flow-solution blocks.
 blk0 = SBlock:new{grid=grid0, fillCondition=inflow, label="BLOCK-0"}
