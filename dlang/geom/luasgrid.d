@@ -19,22 +19,20 @@ import univariatefunctions;
 import geom;
 import gpath;
 import surface;
+import volume;
 import sgrid;
 import luageom;
 import luasurface;
+import luavolume;
 
 // Name of metatables
-immutable string StructuredGrid2DMT = "StructuredGrid2D";
-immutable string StructuredGrid3DMT = "StructuredGrid3D";
+immutable string StructuredGridMT = "StructuredGrid";
 
 static const(StructuredGrid)[] structuredGridStore;
 
 StructuredGrid checkStructuredGrid(lua_State* L, int index) {
-    if ( isObjType(L, index, StructuredGrid2DMT) ) {
-	return checkObj!(StructuredGrid, StructuredGrid2DMT)(L, index);
-    }
-    if ( isObjType(L, index, StructuredGrid3DMT) ) {
-	return checkObj!(StructuredGrid, StructuredGrid3DMT)(L, index);
+    if ( isObjType(L, index, StructuredGridMT) ) {
+	return checkObj!(StructuredGrid, StructuredGridMT)(L, index);
     }
     // if all else fails
     return null;
@@ -101,12 +99,15 @@ extern(C) int write_to_text_file(T, string MTname)(lua_State* L)
  * The Lua constructor for a StructuredGrid.
  *
  * Example construction in Lua:
- * grid = StructuredGrid2D:new{surf=someParametricSurface, niv=10, njv=10,
- *                             clusterf={cf_north, cf_east, cf_south, cf_west},
- *                             label="something"}
- * [TODO] 2D from ParametricVolume
+ * grid = StructuredGrid:new{psurface=someParametricSurface, niv=10, njv=10,
+ *                           clusterf={cf_north, cf_east, cf_south, cf_west},
+ *                           label="A-2D-Grid"}
+ * grid3D = StructuredGrid:new{pvolume=someParametricVolume,
+ *                             niv=11, njv=21, nkv=11,
+ *                             clusterf={},
+ *                             label="A-3D-Grid"}
  */
-extern(C) int newStructuredGrid2D(lua_State* L)
+extern(C) int newStructuredGrid(lua_State* L)
 {
     lua_remove(L, 1); // remove first agurment "this"
     int narg = lua_gettop(L);
@@ -115,28 +116,60 @@ extern(C) int newStructuredGrid2D(lua_State* L)
 A table containing arguments is expected, but no table was found.`;
 	luaL_error(L, errMsg.toStringz);
     }
-    lua_getfield(L, 1, "surf".toStringz);
-    if ( lua_isnil(L, -1) ) {
-	string errMsg = "Error in call to StructuredGrid:new{}. surf not found.";
+    ParametricSurface psurface;
+    ParametricVolume pvolume;
+    int dimensions;
+    // First, look for a ParametricSurface field, for a 2D grid.
+    lua_getfield(L, 1, "psurface".toStringz);
+    if ( !lua_isnil(L, -1) ) {
+	dimensions = 2;
+	psurface = checkSurface(L, -1);
+	if (!psurface) {
+	    string errMsg = "Error in StructuredGrid:new{}. psurface not a ParametricSurface.";
+	    luaL_error(L, errMsg.toStringz);
+	}
+    }
+    lua_pop(L, 1);
+    // We didn't find a psurface entry, so try for a pvolume, for a 3D grid.
+    lua_getfield(L, 1, "pvolume".toStringz);
+    if ( !lua_isnil(L, -1) ) {
+	dimensions = 3;
+	pvolume = checkVolume(L, -1);
+	if (!pvolume) {
+	    string errMsg = "Error in StructuredGrid:new{}. pvolume not a ParametricVolume.";
+	    luaL_error(L, errMsg.toStringz);
+	}
+    } else {
+	string errMsg = "Error in StructuredGrid:new{}. neither psurface nor pvolume found.";
 	luaL_error(L, errMsg.toStringz);
     }
-    ParametricSurface surf = checkSurface(L, -1);
-    if (!surf) {
-	string errMsg = "Error in call to StructuredGrid:new{}. surf not a ParametricSurface.";
-	luaL_error(L, errMsg.toStringz);
-    }
-    string errMsgTmplt = `Error in call to StructuredGrid:new{}.
+    lua_pop(L, 1);
+
+    string errMsgTmplt = `Error in StructuredGrid:new{}.
 A valid value for '%s' was not found in list of arguments.
 The value, if present, should be a number.`;
     int niv = getIntegerFromTable(L, 1, "niv", true, 0, true, format(errMsgTmplt, "niv"));
     int njv = getIntegerFromTable(L, 1, "njv", true, 0, true, format(errMsgTmplt, "njv"));
+    int nkv = 1;
+    if ( dimensions == 3 ) {
+	nkv = getIntegerFromTable(L, 1, "nkv", true, 0, true, format(errMsgTmplt, "nkv"));
+    }
     // [TODO] include clustering functions.
-    UnivariateFunction[] cfList = [new LinearFunction(), new LinearFunction(),
-				   new LinearFunction(), new LinearFunction()];
-    auto grid = new StructuredGrid(surf, niv, njv, cfList);
-    structuredGridStore ~= pushObj!(StructuredGrid, StructuredGrid2DMT)(L, grid);
+    UnivariateFunction[] cfList;
+    int number_of_edges = (dimensions == 2) ? 4 : 12;
+    foreach (i; 0 .. number_of_edges) {
+	cfList ~= new LinearFunction();
+    }
+    StructuredGrid grid;
+    if ( dimensions == 2 ) {
+	grid = new StructuredGrid(psurface, niv, njv, cfList);
+    } else {
+	grid = new StructuredGrid(pvolume, niv, njv, nkv, cfList);
+    }
+    structuredGridStore ~= pushObj!(StructuredGrid, StructuredGridMT)(L, grid);
     return 1;
-}
+} // end newStructuredGrid()
+
 
 extern(C) int importGridproGrid(lua_State *L)
 {
@@ -154,42 +187,43 @@ At least one argument is required: the name of the Gridpro file.`;
     auto sgrids = import_gridpro_grid(fname, scale);
     lua_newtable(L);
     foreach ( int i, grid; sgrids ) {
-	structuredGridStore ~= pushObj!(StructuredGrid, StructuredGrid2DMT)(L, grid);
+	structuredGridStore ~= pushObj!(StructuredGrid, StructuredGridMT)(L, grid);
 	lua_rawseti(L, -2, i+1);
     }
     return 1;
 }
 
+
 void registerStructuredGrid(LuaState lua)
 {
     auto L = lua.state;
 
-    // Register the StructuredGrid2D object
-    luaL_newmetatable(L, StructuredGrid2DMT.toStringz);
+    // Register the StructuredGrid object
+    luaL_newmetatable(L, StructuredGridMT.toStringz);
     
     /* metatable.__index = metatable */
     lua_pushvalue(L, -1); // duplicates the current metatable
     lua_setfield(L, -2, "__index");
 
     /* Register methods for use. */
-    lua_pushcfunction(L, &newStructuredGrid2D);
+    lua_pushcfunction(L, &newStructuredGrid);
     lua_setfield(L, -2, "new");
-    lua_pushcfunction(L, &toStringObj!(StructuredGrid, StructuredGrid2DMT));
+    lua_pushcfunction(L, &toStringObj!(StructuredGrid, StructuredGridMT));
     lua_setfield(L, -2, "__tostring");
-    lua_pushcfunction(L, &copyStructuredGrid!(StructuredGrid, StructuredGrid2DMT));
+    lua_pushcfunction(L, &copyStructuredGrid!(StructuredGrid, StructuredGridMT));
     lua_setfield(L, -2, "copy");
-    lua_pushcfunction(L, &get_niv!(StructuredGrid, StructuredGrid2DMT));
+    lua_pushcfunction(L, &get_niv!(StructuredGrid, StructuredGridMT));
     lua_setfield(L, -2, "get_niv");
-    lua_pushcfunction(L, &get_njv!(StructuredGrid, StructuredGrid2DMT));
+    lua_pushcfunction(L, &get_njv!(StructuredGrid, StructuredGridMT));
     lua_setfield(L, -2, "get_njv");
-    lua_pushcfunction(L, &get_nkv!(StructuredGrid, StructuredGrid2DMT));
+    lua_pushcfunction(L, &get_nkv!(StructuredGrid, StructuredGridMT));
     lua_setfield(L, -2, "get_nkv");
-    lua_pushcfunction(L, &get_vtx!(StructuredGrid, StructuredGrid2DMT));
+    lua_pushcfunction(L, &get_vtx!(StructuredGrid, StructuredGridMT));
     lua_setfield(L, -2, "get_vtx");
-    lua_pushcfunction(L, &write_to_text_file!(StructuredGrid, StructuredGrid2DMT));
+    lua_pushcfunction(L, &write_to_text_file!(StructuredGrid, StructuredGridMT));
     lua_setfield(L, -2, "write_to_text_file");
 
-    lua_setglobal(L, StructuredGrid2DMT.toStringz);
+    lua_setglobal(L, StructuredGridMT.toStringz);
 
     // Global functions available for use
     lua_pushcfunction(L, &importGridproGrid);
