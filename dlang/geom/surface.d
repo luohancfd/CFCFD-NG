@@ -213,19 +213,19 @@ public:
 	Vector3 p01_alt = west(1.0);
 	Vector3 p11_alt = east(1.0);
 	if (!approxEqualVectors(p00, p00_alt)) {
-	    throw new Error(text("CoonsPatch open corner p00= ", p00,
+	    throw new Error(text("AOPatch open corner p00= ", p00,
 				 " p00_alt= ", p00_alt));
 	}
 	if (!approxEqualVectors(p10, p10_alt)) {
-	    throw new Error(text("CoonsPatch open corner p10= ", p10,
+	    throw new Error(text("AOPatch open corner p10= ", p10,
 				 " p10_alt= ", p10_alt));
 	}
 	if (!approxEqualVectors(p11, p11_alt)) {
-	    throw new Error(text("CoonsPatch open corner p11= ", p11,
+	    throw new Error(text("AOPatch open corner p11= ", p11,
 				 " p11_alt= ", p11_alt));
 	}
 	if (!approxEqualVectors(p01, p01_alt)) {
-	    throw new Error(text("CoonsPatch open corner p01= ", p01,
+	    throw new Error(text("AOPatch open corner p01= ", p01,
 				 " p01_alt= ", p01_alt));
 	}
 	// The TFI grid is a fall-back way of evaluating a point on

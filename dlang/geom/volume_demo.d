@@ -1,18 +1,19 @@
 /**
- * surface_demo.d Demonstrate some of the behaviour of the surface construction.
+ * volume_demo.d Demonstrate some of the behaviour of constructing volumes.
  *
  * Author: Peter J.
- * Version: 2014-06-16
+ * Version: 2015-04-07
  */
 
 import std.stdio;
 import geom;
 import gpath;
 import surface;
+import volume;
 
 void main()
 {
-    writeln("Begin demonstration of the ParametricSurface elements.");
+    writeln("Begin demonstration of the ParametricVolume elements.");
     auto p00 = Vector3(0.0, 0.1, 3.0);
     auto p10 = Vector3(1.0, 0.1, 3.0);
     auto p11 = Vector3(1.0, 1.1, 3.0);

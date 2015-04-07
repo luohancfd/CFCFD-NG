@@ -2,6 +2,7 @@
 # Builds all of the demonstration programs.
 
 DEMO_PROGRAMS := geom_demo gpath_demo surface_demo univariatefunctions_demo \
+	volume_demo \
 	luageom_demo luagpath_demo luasurface_demo luaunifunction_demo \
 	sgrid_demo luasgrid_demo
 
@@ -49,6 +50,10 @@ gpath_demo: gpath_demo.d gpath.d geom.d
 surface_demo: surface_demo.d surface.d gpath.d geom.d
 	dmd $(DFLAGS) surface_demo.d $(OF)surface_demo \
 		surface.d gpath.d geom.d $(DLINKFLAGS)
+
+volume_demo: volume_demo.d volume.d surface.d gpath.d geom.d
+	dmd $(DFLAGS) volume_demo.d $(OF)volume_demo \
+		volume.d surface.d gpath.d geom.d $(DLINKFLAGS)
 
 univariatefunctions_demo: univariatefunctions_demo.d univariatefunctions.d
 	dmd $(DFLAGS) univariatefunctions_demo.d $(OF)univariatefunctions_demo \

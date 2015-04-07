@@ -16,6 +16,37 @@ import std.conv;
 import std.stdio;
 import std.math;
 
+// Nomenclature that we try to use consistently through the 3D code.
+// Symbolic names and indices for the cells' faces.
+// The names of the faces of the structured-grid blocks will be the same.
+enum Face {
+    north = 0,
+    east = 1,
+    south = 2,
+    west = 3,
+    top = 4,
+    bottom = 5
+}
+
+string[] face_name = [ "north", "east", "south", "west", "top", "bottom" ];
+uint face_index(string name)
+{
+    switch ( name ) {
+    case "north": return Face.north;
+    case "east": return Face.east;
+    case "south": return Face.south;
+    case "west": return Face.west;
+    case "top": return Face.top;
+    case "bottom": return Face.bottom;
+    default:
+	throw new Error(text("Invalid face name:", name));
+    }
+} // end face_index
+
+
+// Vector3 is the geometric primitive object that we use in all of our
+// higher-order objects.
+
 struct Vector3 {
     public double[3] _p;
 

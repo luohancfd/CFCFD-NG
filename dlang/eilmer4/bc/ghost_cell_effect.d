@@ -5,6 +5,7 @@
 import std.json;
 import std.string;
 
+import geom;
 import json_helper;
 import globalconfig;
 import globaldata;

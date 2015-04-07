@@ -9,6 +9,7 @@ import luad.all;
 import luad.c.lua;
 import util.lua_service;
 
+import geom;
 import simcore;
 import fvcore;
 import fvcell;
