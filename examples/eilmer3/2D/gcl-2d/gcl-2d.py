@@ -23,18 +23,10 @@ blk = Block2D(PyFunctionSurface(simple_rectangle),
               fill_condition=initial,
               cf_list=4*[None,])
 
-
-blk.bc_list[NORTH] = SlipWallBC()
-blk.bc_list[EAST] = ExtrapolateOutBC()
-blk.bc_list[SOUTH] = SlipWallBC()
-blk.bc_list[WEST] = SupInBC(initial)              
-
-'''
 blk.bc_list[NORTH] = SlipWallBC()
 blk.bc_list[EAST] = SlipWallBC()
 blk.bc_list[SOUTH] = SlipWallBC()
 blk.bc_list[WEST] = SlipWallBC()
-'''
 
 identify_block_connections()
 
