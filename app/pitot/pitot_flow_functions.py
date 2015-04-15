@@ -955,7 +955,12 @@ def shock_over_model_calculation(cfg, states, V, M):
                         del states['s10e']
                 
     elif cfg['solver'] == 'pg': #we need to make a cea2 gas object to do this equilibrium calculaiton if every other gas object is pg
-        states[cfg['test_section_state']+'eq'] = make_test_gas(cfg['test_gas'])[0]
+        if cfg['test_gas'] != 'custom':
+            states[cfg['test_section_state']+'eq'] = make_test_gas(cfg['test_gas'])[0]
+        else: # need to do something slightly different if we have a custom test gas
+            states[cfg['test_section_state']+'eq'] = Gas(cfg['test_gas_composition'],
+                                                     inputUnits=cfg['test_gas_inputUnits'], 
+                                                     outputUnits='moles', with_ions=True)                                       
         states[cfg['test_section_state']+'eq'].set_pT(states[cfg['test_section_state']].p,states[cfg['test_section_state']].T)
         states['s10e'] = states[cfg['test_section_state']+'eq'].clone()
         (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']+'eq'], V[cfg['test_section_state']], states['s10e'])
