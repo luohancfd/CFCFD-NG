@@ -15,7 +15,7 @@ Chris James (c.james4@uq.edu.au) - 23/12/14
 
 """
 
-VERSION_STRING = "29-Dec-2014"
+VERSION_STRING = "16-Apr-2015"
 
 from pitot_condition_builder import stream_tee
 
@@ -461,10 +461,8 @@ def gg_differing_diluent_analysis_summary(cfg, results):
     # print lines explaining the results
     summary_line_1 = "# Summary of pitot gas giant different diluent analysis program output."
     gg_d_d_analysis_summary_file.write(summary_line_1 + '\n')
-    print summary_line_1
-    summary_line_2 = "# Summary performed using Version {0} of the contamination analysis program.".format(VERSION_STRING)
+    summary_line_2 = "# Summary performed using Version {0} of the gas giant diluent analysis program.".format(VERSION_STRING)
     gg_d_d_analysis_summary_file.write(summary_line_2 + '\n')
-    print summary_line_2
     
     summary_line_3 = "{0} tests ran. {1} ({2:.1f}%) were successful."\
         .format(cfg['number_of_test_runs'], len(results['test number']),
@@ -608,7 +606,13 @@ def run_pitot_gg_differing_diluent_analysis(cfg = {}, config_file = None):
     #and a normalised csv also
     normalised_results_csv_builder(results, test_name = cfg['original_filename'],  
                         intro_line = intro_line, 
-                        normalised_by = cfg['normalise_results_by'])                        
+                        normalised_by = cfg['normalise_results_by'])  
+                        
+    # and pull in the pickle function from pitot_condition_builder.py
+    # so we can pick the results and config dictionaries                  
+    from pitot_condition_builder import pickle_data
+    
+    pickle_data(cfg, results)
     
     # now analyse results dictionary and print some results to the screen
     # and another external file

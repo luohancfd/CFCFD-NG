@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "28-Dec-2014"
+VERSION_STRING = "16-Apr-2015"
 
 import sys
 
@@ -480,7 +480,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
 def condition_builder_summary_builder(cfg, results):
     """Function that takes the config dictionary and results dictionary 
        made throughout the running of the program and prints a summary of 
-       the run to the screen and to a summary text file
+       the run to the screen and to a summary text file.
     """
     
     condition_builder_summary_file = open(cfg['original_filename']+'-condition-builder-summary.txt',"w")
@@ -558,6 +558,35 @@ def condition_builder_summary_builder(cfg, results):
     
     condition_builder_summary_file.close()   
             
+    return
+    
+def pickle_data(cfg, results):
+    """Function that takes the config and results dictionaries 
+       made throughout the running of the program and dumps them in another
+       dictionary in a pickle object. Basically, this means the dictionaries can
+       be "unpickled" and analysed by the user directly without needing to data 
+       import the csv.
+       
+       The file can then be opened like this:
+       
+       import pickle
+       data_file = open('file_location')
+       cfg_and_results = pickle.load(data_file)
+       data_file.close()
+    """
+    
+    import pickle
+    
+    print '-'*60
+    print "Pickling cfg and results dictionaries."
+    
+    pickle_file = open(cfg['original_filename']+'-condition-builder-pickle.dat',"w")
+    
+    cfg_and_results = {'cfg':cfg, 'results':results}
+    
+    pickle.dump(cfg_and_results, pickle_file)
+    pickle_file.close()
+   
     return
             
 def run_pitot_condition_builder(cfg = {}, config_file = None):
@@ -705,6 +734,12 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     intro_line = "Output of pitot condition building program Version {0}.".format(VERSION_STRING)            
     results_csv_builder(results, test_name = cfg['original_filename'],  
                         intro_line = intro_line)
+                        
+    # and a to pickled object the user can load with pickle
+    # (this allows the cfg and results dictionaries to be loaded directly)
+    # it just pickles the dictionaries to pitot should not be needed to load
+    # this data
+    pickle_data(cfg, results)
     
     # now analyse results dictionary and print some results to the screen
     # and another external file
