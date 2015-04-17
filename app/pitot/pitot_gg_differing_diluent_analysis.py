@@ -192,8 +192,9 @@ def gg_differing_diluent_analysis_test_run(cfg, results):
     else:
         # need to remove Vs values from the dictionary or it will bail out
         # on the next run         
-        if cfg['secondary']: cfg.pop('Vsd') 
-        cfg.pop('Vs1'); cfg.pop('Vs2')
+        if cfg['secondary'] and 'Vsd' in cfg: cfg.pop('Vsd')
+        if 'Vs1' in cfg: cfg.pop('Vs1') 
+        if 'Vs2' in cfg: cfg.pop('Vs2')
         cfg['last_run_successful'] = False
         results['unsuccessful_runs'].append(cfg['test_number'])
         

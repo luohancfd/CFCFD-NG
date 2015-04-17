@@ -189,8 +189,9 @@ def contamination_analysis_test_run(cfg, results):
     else:
         # need to remove Vs values from the dictionary or it will bail out
         # on the next run         
-        if cfg['secondary']: cfg.pop('Vsd') 
-        cfg.pop('Vs1'); cfg.pop('Vs2')
+        if cfg['secondary'] and 'Vsd' in cfg: cfg.pop('Vsd')
+        if 'Vs1' in cfg: cfg.pop('Vs1') 
+        if 'Vs2' in cfg: cfg.pop('Vs2')
         cfg['last_run_successful'] = False
         results['unsuccessful_runs'].append(cfg['test_number'])
         
@@ -604,6 +605,13 @@ def run_pitot_contamination_analysis(cfg = {}, config_file = None):
     normalised_results_csv_builder(results, test_name = cfg['original_filename'],  
                         intro_line = intro_line, 
                         normalised_by = cfg['normalise_results_by'])   
+
+    # and pull in the pickle function from pitot_condition_builder.py
+    # so we can pick the results and config dictionaries                  
+    from pitot_condition_builder import pickle_data
+    
+    pickle_data(cfg, results)
+
     
     # now analyse results dictionary and print some results to the screen
     # and another external file
