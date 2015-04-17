@@ -45,7 +45,7 @@ It's easiest to log out and back in to have the changes take effect.
 If you are an OpenFOAM user on raijin cluster, then add the following lines to the end of your ``.bashrc``::
 
   module load openmpi/1.6.3
-  module load OpenFOAM
+  module load OpenFOAM/2.2.1
   export WM_PROJECT_VERSION=2.2.1
   export WM_PROJECT_USER_DIR=$HOME/$WM_PROJECT/$USER-$WM_PROJECT_VERSION
   export FOAM_USER_APPBIN=$WM_PROJECT_USER_DIR/platforms/$WM_OPTIONS/bin
@@ -55,6 +55,8 @@ If you are an OpenFOAM user on raijin cluster, then add the following lines to t
   
 Please note that the current version of OpenFOAM on raijin cluster is 2.2.1. You should change
 your ``.bashrc`` file if higher version is used.
+
+17-04-15: Now OpenFOAM/2.3.1 is also available on raijin.
 
 Compiling eilmer
 ----------------
