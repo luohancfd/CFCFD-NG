@@ -195,6 +195,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
         model. Made pg mode clean up CEA also.
     17-Apr-2015:
         Added "freestream enthalpy" to the pitot output.
+        Added some code to the condition builder programs that allows them to clean
+        up old files before a run.
 """
 
 #--------------------- intro stuff --------------------------------------

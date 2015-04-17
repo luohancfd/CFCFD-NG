@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "16-Apr-2015"
+VERSION_STRING = "17-Apr-2015"
 
 import sys
 
@@ -100,6 +100,10 @@ def check_new_inputs(cfg):
         print '-'*60
         sys.exit(1)
         
+    if 'cleanup_old_files' not in cfg:
+        print "'cleanup_old_files' variable not set. Setting to default value of 'False'"
+        cfg['cleanup_old_files'] = False
+        
     if not cfg['bad_input']:
         print "Extra input check completed. Test will now run."
         
@@ -183,7 +187,7 @@ def build_results_dict(cfg):
     
     basic_list = ['test number','driver condition','psd1','p1','p5','Vsd','Vs1',
                   'Vs2','p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2',
-                  'p7','T7','rho7','V7','M7','Ht','u_eq']
+                  'p7','T7','rho7','V7','M7','Ht','h','u_eq']
     full_list += basic_list
     
     if cfg['nozzle']:
@@ -407,6 +411,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
         results['Ht'].append(cfg['stagnation_enthalpy']/10**6)
     else:
         results['Ht'].append('did not solve')
+    results['h'].append(cfg['freestream_enthalpy']/10**6)    
     if cfg['u_eq']:
         results['u_eq'].append(cfg['u_eq'])
     else:
@@ -545,7 +550,7 @@ def condition_builder_summary_builder(cfg, results):
                 elif variable[0] == 'r':
                     summary_line = "Variable {0} varies from {1:.7f} - {2:.7f} kg/m**3."\
                     .format(variable, min_value, max_value)
-                elif variable[0] == 'H':
+                elif variable[0] == 'H' or variable[0] == 'h':
                     summary_line = "Variable {0} varies from {1:.7f} - {2:.7f} MJ/kg."\
                     .format(variable, min_value, max_value)
                 elif variable[-2:] == 'ec':
@@ -589,6 +594,32 @@ def pickle_data(cfg, results):
     pickle_file.close()
    
     return
+    
+def cleanup_old_files():
+    """Function that will remove any files in the current directory ending with
+       .txt, .csv, or .dat. This is handy because even if you think the code will
+       overwrite any old runs with new ones, you may have a situation where the new run
+       fails and the old run files are kept instead. Better to start clean.
+    """
+    
+    print "Cleaning up any old condition builder files in the current folder."
+    
+    import os
+    
+    # start by getting our current working directory
+    cwd = os.getcwd()
+    
+    # now get a list of files and folders in the current working directory
+    
+    file_list = os.listdir(cwd)
+
+    # now loop through and remove anything ending in '.csv', '.txt', or '.dat'
+
+    for filename in file_list:
+        if filename[-4:] in ['.csv', '.txt', '.dat']:
+            if os.path.isfile(filename): os.remove(filename)
+    
+    return
             
 def run_pitot_condition_builder(cfg = {}, config_file = None):
     """
@@ -611,6 +642,11 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     cfg = input_checker(cfg)
     
     cfg = check_new_inputs(cfg)
+    
+    # clean up any old files if the user has asked for it
+    
+    if cfg['cleanup_old_files']:
+        cleanup_old_files()
     
     # make a counter so we can work out what test we're running
     # also make one to store how many runs are successful

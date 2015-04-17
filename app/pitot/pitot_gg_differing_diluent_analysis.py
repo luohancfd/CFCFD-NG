@@ -15,7 +15,7 @@ Chris James (c.james4@uq.edu.au) - 23/12/14
 
 """
 
-VERSION_STRING = "16-Apr-2015"
+VERSION_STRING = "17-Apr-2015"
 
 from pitot_condition_builder import stream_tee
 
@@ -54,7 +54,11 @@ def check_new_inputs(cfg):
     if 'normalise_results_by' not in cfg:
         print "'normalise_results_by' not in cfg."
         print "Setting it to 'first value'."
-        cfg['normalise_results_by'] = 'first value'     
+        cfg['normalise_results_by'] = 'first value'  
+        
+    if 'cleanup_old_files' not in cfg:
+        print "'cleanup_old_files' variable not set. Setting to default value of 'False'"
+        cfg['cleanup_old_files'] = False
                 
     if cfg['bad_input']: #bail out here if you end up having issues with your input
         print "Config failed check. Bailing out now."
@@ -107,13 +111,13 @@ def build_results_dict(cfg):
     
     if cfg['secondary']:    
         basic_list = ['test number','diluent percentage','psd1','p1','p5','Vsd',
-                      'Vs1', 'Vs2', 'Ht','u_eq', 'rho1', 'gamma1', 'R1', 'MW1',
+                      'Vs1', 'Vs2', 'Ht','h','u_eq', 'rho1', 'gamma1', 'R1', 'MW1',
                       'p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2',
                       's2 %H2', 's2 %H', 's2 %{0}'.format(cfg['diluent']),'s2 %H+', 's2 %e-',
                       'p6','T6','rho6','V6','M6','p7','T7','rho7','V7','M7']
     else:
         basic_list = ['test number','diluent percentage','p1','p5',
-                      'Vs1', 'Vs2', 'Ht','u_eq','rho1', 'gamma1', 'R1', 'MW1',
+                      'Vs1', 'Vs2', 'Ht','h','u_eq','rho1', 'gamma1', 'R1', 'MW1',
                       'p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2',
                       's2 %H2', 's2 %H', 's2 %{0}'.format(cfg['diluent']),'s2 %H+', 's2 %e-',
                       'p6','T6','rho6','V6','M6','p7','T7','rho7','V7','M7']
@@ -361,6 +365,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
         results['Ht'].append(cfg['stagnation_enthalpy']/10**6)
     else:
         results['Ht'].append('did not solve')
+    results['h'].append(cfg['freestream_enthalpy']/10**6)
     if cfg['u_eq']:
         results['u_eq'].append(cfg['u_eq'])
     else:
@@ -498,7 +503,7 @@ def gg_differing_diluent_analysis_summary(cfg, results):
                 elif variable[0] == 'r':
                     summary_line = "Variable {0} varies from {1:.7f} - {2:.7f} kg/m**3."\
                     .format(variable, min_value, max_value)
-                elif variable[0] == 'H':
+                elif variable[0] == 'H' or variable[0] == 'h':
                     summary_line = "Variable {0} varies from {1:.7f} - {2:.7f} MJ/kg."\
                     .format(variable, min_value, max_value)                    
                 else:
@@ -540,6 +545,12 @@ def run_pitot_gg_differing_diluent_analysis(cfg = {}, config_file = None):
     cfg = input_checker(cfg)
     
     cfg = check_new_inputs(cfg)
+    
+    # clean up any old files if the user has asked for it
+    
+    if cfg['cleanup_old_files']:
+        from pitot_condition_builder import cleanup_old_files
+        cleanup_old_files()
     
     # make a counter so we can work out what test we're running
     # also make one to store how many runs are successful

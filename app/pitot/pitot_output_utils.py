@@ -339,13 +339,13 @@ def txt_file_output(cfg, states, V, M):
         freestream_enth = 'The freestream enthalpy (h) leaving the nozzle is {0:<.5g} MJ/kg (h8 - h1).'\
         .format(cfg['freestream_enthalpy']/10**6)
     elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'expansion-tube':
-        stag_enth = 'The freestream enthalpy (h) at the end of the acceleration tube (state 7) is {0:<.5g} MJ/kg (h7 - h1).'\
+        freestream_enth = 'The freestream enthalpy (h) at the end of the acceleration tube (state 7) is {0:<.5g} MJ/kg (h7 - h1).'\
         .format(cfg['freestream_enthalpy']/10**6)
     elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'nr-shock-tunnel':
-        stag_enth = 'The freestream enthalpy (h) at the end of the shock tube (state 2) is {0:<.5g} MJ/kg (h2 - h1).'\
+        freestream_enth = 'The freestream enthalpy (h) at the end of the shock tube (state 2) is {0:<.5g} MJ/kg (h2 - h1).'\
         .format(cfg['freestream_enthalpy']/10**6)
     elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'reflected-shock-tunnel':
-        stag_enth = 'The freestream enthalpy (h) in the stagnated region (state 5) is {0:<.5g} MJ/kg (h5 - h1).'\
+        freestream_enth = 'The freestream enthalpy (h) in the stagnated region (state 5) is {0:<.5g} MJ/kg (h5 - h1).'\
         .format(cfg['freestream_enthalpy']/10**6)
         
     print freestream_enth  
