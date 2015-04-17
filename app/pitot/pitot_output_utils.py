@@ -327,8 +327,29 @@ def txt_file_output(cfg, states, V, M):
             .format(cfg['stagnation_enthalpy']/10**6)
     else:
         stag_enth = "Was unable to find total condition. Therefore, unable to print stagnation enthalpy."
-    print stag_enth
+        
+    print stag_enth  
     txt_output.write(stag_enth + '\n')
+    
+    # I'm going to add freestream enthalpy (just the h component) to the output also
+    # (take away the initial enthalpy in state 1 to get the change)
+    cfg['freestream_enthalpy'] = states[cfg['test_section_state']].h - states['s1'].h #J/kg
+    
+    if cfg['nozzle']:        
+        freestream_enth = 'The freestream enthalpy (h) leaving the nozzle is {0:<.5g} MJ/kg (h8 - h1).'\
+        .format(cfg['freestream_enthalpy']/10**6)
+    elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'expansion-tube':
+        stag_enth = 'The freestream enthalpy (h) at the end of the acceleration tube (state 7) is {0:<.5g} MJ/kg (h7 - h1).'\
+        .format(cfg['freestream_enthalpy']/10**6)
+    elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'nr-shock-tunnel':
+        stag_enth = 'The freestream enthalpy (h) at the end of the shock tube (state 2) is {0:<.5g} MJ/kg (h2 - h1).'\
+        .format(cfg['freestream_enthalpy']/10**6)
+    elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+        stag_enth = 'The freestream enthalpy (h) in the stagnated region (state 5) is {0:<.5g} MJ/kg (h5 - h1).'\
+        .format(cfg['freestream_enthalpy']/10**6)
+        
+    print freestream_enth  
+    txt_output.write(freestream_enth + '\n')
     
     if cfg['stagnation_enthalpy']:
         #calculate flight equivalent velocity
@@ -632,6 +653,10 @@ def csv_file_output(cfg, states, V, M):
         csv_stag_enth = 'Ht,{0:<.5g} MJ/kg.'.format(cfg['stagnation_enthalpy']/10**6)
         csv_output.write(csv_stag_enth + '\n')
         
+    csv_freestream_enth = 'h,{0:<.5g} MJ/kg.'.format(cfg['freestream_enthalpy']/10**6)
+    csv_output.write(csv_freestream_enth + '\n') 
+       
+    if cfg['stagnation_enthalpy']:           
         csv_u_eq_print = 'Ue,{0:<.5g} m/s.'.format(cfg['u_eq'])
         csv_output.write(csv_u_eq_print + '\n')
 

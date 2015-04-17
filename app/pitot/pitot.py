@@ -193,6 +193,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
     15-Apr-2015:
         Added a fix so custom test gases won't bail out when calculating shock over
         model. Made pg mode clean up CEA also.
+    17-Apr-2015:
+        Added "freestream enthalpy" to the pitot output.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -220,7 +222,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "15-Apr-2015"
+VERSION_STRING = "17-Apr-2015"
 
 DEBUG_PITOT = False
 
