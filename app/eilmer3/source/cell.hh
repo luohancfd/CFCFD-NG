@@ -268,6 +268,9 @@ public:
     int stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega);
     double get_divergence_damping(double dt);
     int chemical_increment(double dt, double T_frozen);
+#ifdef GPU_CHEM_ALGO
+    int chemical_increment(double dt_flow);
+#endif
     int thermal_increment(double dt, double T_frozen_energy);
     double signal_frequency(size_t dimensions, bool with_k_omega);
     double moving_signal_frequency(size_t dimensions);    
@@ -287,6 +290,10 @@ public:
     int reset_Q_rad_to_zero(void);
     double rad_scaling_ratio(void) const;
 }; // end of class FV_cell
+
+#ifdef GPU_CHEM_ALGO
+void alpha_func(std::vector<double> &p, double h, std::vector<double> &alpha);
+#endif
 
 //--------------------------------------------------------------
 

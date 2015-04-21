@@ -1842,6 +1842,13 @@ int integrate_in_time(double target_time)
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( !bdp->active ) continue;
 		for ( FV_Cell *cp: bdp->active_cells ) {
+#ifdef GPU_CHEM_ALGO
+		    if ( cp->chemical_increment(G.dt_global) != SUCCESS ) {
+			cout << "Chemistry problem using simplified stepping algorithm.\n";
+			cout << "Bailing out!\n";
+			exit(NUMERICAL_ERROR);
+		    }
+#else    
 		    if ( cp->chemical_increment(G.dt_global, G.T_frozen) != SUCCESS ) {
 			cout << "In block: " << bdp->id << " the chemical increment failed on cell:\n";
 			vector<size_t> ijk(bdp->to_ijk_indices(cp->id));
@@ -1851,6 +1858,7 @@ int integrate_in_time(double target_time)
 			cout << "Bailing out at this point!\n";
 			exit(NUMERICAL_ERROR);
 		    }
+#endif
 		}
 	    }
 	}

@@ -16,6 +16,7 @@ TARGET ?= for_gnu
 MEMORY_SIZE ?= large
 WITH_IMPLICIT ?= 0
 WITH_GPU_CHEM ?= 0
+WITH_GPU_CHEM_ALGO ?= 0
 INSTALL_DIR ?= $(HOME)/e3bin
 REVISION_STRING := $(shell hg identify --id --num --branch --tags)
 
@@ -78,6 +79,12 @@ ifdef DBG_CELL_J
 endif
 ifdef DBG_CELL_K
     CXXFLAG += -DDBG_CELL_I=$(DBG_CELL_K)
+endif
+
+# Test if we want the specialised GPU chemistry algorithm
+# for the CPU chemistry
+ifeq ($(WITH_GPU_CHEM_ALGO), 1)
+    CXXFLAG += -DGPU_CHEM_ALGO
 endif
 
 SRC             := ../source
@@ -498,6 +505,7 @@ e3shared.exe : e3shared.o $(LIBE3) $(E3_OBJECTS_NO_MPI) $(LIBGAS) $(LIBRAD) \
 		$(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBWALLCON) $(LIBNM) $(LLIB) \
 		-o e3shared.exe
+
 e3gpu-chem.exe : e3gpu-chem.o gpu-chem-update.o $(LIBE3) $(E3_OBJECTS_NO_MPI) $(LIBGAS) $(LIBRAD) \
 		$(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBWALLCON)
@@ -507,8 +515,6 @@ e3gpu-chem.exe : e3gpu-chem.o gpu-chem-update.o $(LIBE3) $(E3_OBJECTS_NO_MPI) $(
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBWALLCON) $(LIBNM) $(LLIB) \
 		$(OpenCLLINK) \
 		-o e3gpu-chem.exe
-
-
 e3mpi.exe : e3mpi.o $(LIBE3) $(E3_OBJECTS_MPI) \
 		$(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBWALLCON)

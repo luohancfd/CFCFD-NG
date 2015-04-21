@@ -19,6 +19,8 @@
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
 #include "../../../lib/geometry2/source/geom.hh"
+#include "../../../lib/gas/kinetics/chemical-kinetic-ODE-update.hh"
+#include "../../../lib/gas/kinetics/chemical-kinetic-system.hh"
 #include "cell.hh"
 #include "kernel.hh"
 #include "flux_calc.hh"
@@ -1857,6 +1859,183 @@ int FV_Cell::chemical_increment(double dt, double T_frozen)
 	U[0]->massf[isp] = fs->gas->rho * fs->gas->massf[isp];
     return flag;
 } // end of chemical_increment()
+
+
+#ifdef GPU_CHEM_ALGO
+static vector<double> conc, p, q, L, alpha, yp, yp0, yc, pp, qp, p_bar, q_bar;
+static const double ZERO_EPS = 1.0e-50;
+void alpha_func(vector<double> &p, double h, vector<double> &alpha)
+{
+    for ( size_t isp = 0; isp < p.size(); ++isp ) {
+	double rr = 1.0/(p[isp]*h + ZERO_EPS);
+	alpha[isp] = (180.0*rr*rr*rr+60.0*rr*rr+11.0*rr+1.0)/(360.0*rr*rr*rr+60.0*rr*rr+12.0*rr+1.0);    
+    }
+}
+
+int FV_Cell::chemical_increment(double dt_flow)
+{
+    const double e = 0.001; 
+    const double epsilon = e/2.0;
+    const int max_iterations = 10;
+    global_data &G = *get_global_data_ptr();
+    Gas_model *gmodel = get_gas_model_ptr();
+    int nsp = gmodel->get_number_of_species();
+    Chemical_kinetic_ODE_update *ckupdate = dynamic_cast<Chemical_kinetic_ODE_update*>(get_reaction_update_ptr());
+    Chemical_kinetic_system *cks = ckupdate->get_cks_pointer();
+    int nreac = cks->get_n_reactions();
+    if ( conc.size() == 0 ) {
+	conc.resize(nsp);
+	p.resize(nsp);
+	q.resize(nsp);
+	L.resize(nsp);
+	alpha.resize(nsp);
+	yp.resize(nsp);
+	yp0.resize(nsp);
+	yc.resize(nsp);
+	pp.resize(nsp);
+	qp.resize(nsp);
+	p_bar.resize(nsp);
+	q_bar.resize(nsp);
+    }
+    
+    // Set up for integration
+    convert_massf2conc(fs->gas->rho, fs->gas->massf, gmodel->M(), conc);
+
+    for ( int ir = 0; ir < nreac; ++ir ) {
+	Reaction* reac = cks->get_reaction(ir);
+	reac->compute_k_f(*(fs->gas));
+	reac->compute_k_b(*(fs->gas));
+    }
+    
+    double h = 0.0;
+    if ( dt_chem <= 0.0 ) {
+	cks->set_gas_data_ptr(*(fs->gas));
+	h = cks->stepsize_select(conc);
+    }
+    else {
+	h = dt_chem;
+    }
+
+    // Insert Kyle's looping algorithm here
+    double t = 0.0;
+    // Keep a record of the penultimate timestep for future use
+    double dt_prev = h;
+    double dt_suggest;
+    double sigma = 1.0e-50;   
+    double cond = 0.0; 
+    double x0 = 0.0;
+
+    while (t < dt_flow) {      
+	int count = 0;                                                             
+	int flag = 0;                                                                       
+	int step_fail = 1;
+	cks->eval_split(conc, q, L);
+	// Predictor step
+	for ( int isp = 0; isp < nsp; ++isp ) p[isp] = L[isp] / (conc[isp] + ZERO_EPS);
+	alpha_func(p, h, alpha);
+	for ( int isp = 0; isp < nsp; ++isp ) {
+
+	    yp[isp] = conc[isp] + (h*(q[isp]-p[isp]*conc[isp]))/(1.0+alpha[isp]*dt_chem*p[isp]);        
+	    // Save a copy of initial predictor
+	    yp0[isp] = yp[isp];
+	}                                                                        
+
+	while ( step_fail == 1 ) {
+	    step_fail = 0;  
+	    cks->eval_split(yp, qp, L);
+	    for ( int isp = 0; isp < nsp; ++isp ) {
+		pp[isp] = L[isp] / (yp[isp] + ZERO_EPS);
+		p_bar[isp] = 0.5*(pp[isp] + p[isp]);
+	    }
+	    alpha_func(p_bar, h, alpha);
+	    for ( int isp = 0; isp < nsp; ++isp ) {
+		q_bar[isp] = alpha[isp]*qp[isp]+(1.0-alpha[isp])*q[isp]; 
+		yc[isp] = conc[isp] + (dt_chem*(q_bar[isp]-p_bar[isp]*conc[isp]))/(1.0+alpha[isp]*dt_chem*p_bar[isp]);
+		// Test for convergence
+                cond = (fabs(yc[isp]-yp0[isp])); 
+                if (cond >= (e*(yc[isp]+1.0e-10))) {
+		    step_fail = 1;      
+		}       
+	    }     
+	    count = count + 1;    
+	    if (count > max_iterations) {
+		step_fail = 0; 
+		flag  = 1; 
+	    } 
+	    if ( step_fail == 1 ) {
+		for ( int isp = 0; isp < nsp; ++isp ) yp[isp] = yc[isp];
+	    }      
+	} // end while
+ 
+	if (flag == 0) { // successful step
+	    for ( int isp = 0; isp < nsp; isp++) conc[isp] = yc[isp];
+	    t = t + h;
+	    // Order here is important:
+	    // First set dt_chem (which is held onto between global steps)
+	    // to the last good timestep (dt_prev).
+	    // Then reset dt_prev to the current good timestep.
+	    // On the final iteration, we've already set dt_chem before we leave
+	    // the routine.
+	    dt_chem = dt_prev;
+	    dt_prev = h;
+        } 
+
+	// Now work on a suggestion for new timestep
+	for ( int isp = 0; isp < nsp; ++isp ) {
+	    cond = (fabs(yc[isp]-yp0[isp])/(epsilon*yc[isp])); 
+	    if ( cond > sigma )     
+		sigma = cond;
+	}
+
+	if ( sigma <= 0.0 ) {
+	    dt_suggest = h;
+	}
+	else {
+	    x0 = sigma;
+	    x0 = x0 - 0.5*(x0*x0 - sigma)/x0;
+	    x0 = x0 - 0.5*(x0*x0 - sigma)/x0;
+	    x0 = x0 - 0.5*(x0*x0 - sigma)/x0;
+	    dt_suggest = h * ((1.0/x0) + 0.005);
+	}
+
+	if (flag == 0)  { // successful step
+	    if ( dt_suggest/h > 1.15 )
+		dt_suggest = 1.15*h;
+	    else     
+		dt_suggest = h;
+     
+	}
+	else { // unsuccessful step
+	    if ( dt_suggest/h > (1.0/3.0) ) {
+		dt_suggest = (1.0/3.0)*h;    
+	    }
+	    else if ( dt_suggest/h < 0.01 ) {
+		dt_suggest = 0.01*h;
+	    }
+	}
+	// Check that dt_suggest doesn't overshoot the total time
+	// we're aiming for.
+	h = min(dt_flow - t, dt_suggest);
+    }
+
+    // Finished looping, now get cell state in order
+    convert_conc2massf(fs->gas->rho, conc, gmodel->M(), fs->gas->massf);
+    // Enforce thermodynamic constraint of fixed mass, fixed energy.
+    gmodel->eval_thermo_state_rhoe(*(fs->gas));
+    // If we are doing a viscous sim, we'll need to ensure
+    // viscous properties are up-to-date
+    if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas));
+    if ( G.diffusion ) gmodel->eval_diffusion_coefficients(*(fs->gas));
+    // ...but we have to manually update the conservation quantities
+    // for the gas-dynamics time integration.
+    // Species densities: mass of species isp per unit volume.
+    for ( int isp = 0; isp < nsp; ++isp )
+	U[0]->massf[isp] = fs->gas->rho * fs->gas->massf[isp];
+    
+    return SUCCESS;
+} 
+
+#endif
 
 
 /// \brief Apply the thermal update for a specified cell.
