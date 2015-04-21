@@ -1,8 +1,8 @@
 /**
- * gpath_demo.d Demonstrate some of the behaviour of the geometric primitives.
+ * gpath_demo.d Demonstrate some of the behaviour of the path primitives.
  *
  * Author: Peter J.
- * Version: 2014-06-16
+ * Version: 2015-02-19, 2015-04-21 Arc, Bezier
  */
 
 import std.stdio;
@@ -19,5 +19,21 @@ void main()
     writeln("ab= ", ab);
     auto c = ab(0.5);
     writeln("ab(0.5)= ", c);
+
+    writeln("Arc");
+    a = Vector3([2.0, 2.0, 0.0]);
+    b = Vector3([1.0, 2.0, 1.0]);
+    c = Vector3([1.0, 2.0, 0.0]);
+    auto abc = new Arc(a, b, c);
+    writeln("abc= ", abc);
+    auto d = abc(0.5);
+    writeln("abc(0.5)= ", d);
+
+    writeln("Bezier");
+    auto adb = new Bezier([a, d, b]);
+    auto e = adb(0.5);
+    writeln("adb= ", adb);
+    writeln("adb(0.5)=", e);
+
     writeln("Done.");
 }

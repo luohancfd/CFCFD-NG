@@ -4,6 +4,7 @@
  *
  * Author: Peter J and Rowan G.
  * Version: 2015-02-19 first code
+ *          2015-04-21 added Arc, Bezier
  */
 
 module gpath;
@@ -156,4 +157,119 @@ unittest {
     auto abc = new Arc(a, b, c);
     auto d = abc(0.5);
     assert(approxEqualVectors(d, Vector3(1.7071068, 2.0, 0.7071068)), "Arc");
+}
+
+
+class Bezier : Path {
+public:
+    Vector3[] B; // collection of control points
+    bool arc_length_param_flag;
+    this(in Vector3[] B, double t0=0.0, double t1=1.0, bool arc_length_p=false)
+    {
+	this.B = B.dup();
+	this.t0 = t0; this.t1 = t1;
+	arc_length_param_flag = arc_length_p;
+	if ( arc_length_param_flag ) set_arc_length_vector(100);
+    }
+    this(ref const(Bezier) other)
+    {
+	B = other.B.dup();
+	t0 = other.t0; t1 = other.t1;
+	arc_length_param_flag = other.arc_length_param_flag;
+	if ( arc_length_param_flag ) arc_length = other.arc_length.dup();
+    }
+    override Bezier dup() const
+    {
+	return new Bezier(B, t0, t1);
+    }
+
+    Vector3 raw_eval(double t) const 
+    {
+	// Evaluate B(t) without considering arc_length parameterization flag
+	// or subrange.
+	if ( B.length == 0 ) return Vector3(0.0, 0.0, 0.0);
+	if ( B.length == 1 ) return B[0];
+	size_t n_order = B.length - 1;
+	// Apply de Casteljau's algorithm. 
+	Vector3[] Q = B.dup(); // work array will be overwritten
+	foreach (k; 0 .. n_order) {
+	    foreach (i; 0 .. n_order-k) {
+		Q[i] = (1.0 - t) * Q[i] + t * Q[i+1];
+	    }
+	}
+	return Q[0];
+    } // end raw_eval()
+
+    override Vector3 opCall(double t) const 
+    {
+	// Evaluate B(t) considering arc_length parameterization flag 
+	// and possible subrange of t.
+	if ( B.length == 0 ) return Vector3(0.0, 0.0, 0.0);
+	if ( B.length == 1 ) return B[0];
+	if ( arc_length_param_flag ) {
+	    t = t_from_arc_length(t);
+	}
+	return raw_eval(t);
+    } // end OpCall()
+
+    override string toString() const
+    {
+	return "Bezier(B=" ~ to!string(B) 
+	    ~ ", t0=" ~ to!string(t0) 
+	    ~ ", t1=" ~ to!string(t1) 
+	    ~ ", arc_length_p=" ~ to!string(arc_length_param_flag)
+	    ~ ")";
+    }
+
+private:
+    double[] arc_length;
+    void set_arc_length_vector(int N)
+    {
+	// Compute the arc_lengths for a number of sample points 
+	// so that these can later be used to do a reverse interpolation
+	// on the evaluation parameter.
+	if ( arc_length.length == 0 ) return;
+	double dt = 1.0 / arc_length.length;
+	arc_length.length = 0;
+	double L = 0.0;
+	arc_length ~= L;
+	Vector3 p0 = raw_eval(0.0);
+	Vector3 p1;
+	foreach (i; 1 .. N+1) {
+	    p1 = raw_eval(dt * i);
+	    L += abs(p1 - p0);
+	    arc_length ~= L;
+	    p0 = p1;
+	}
+    } // end set_arc_length_vector()
+
+    double t_from_arc_length(double t) const
+    {
+	// The incoming parameter value, t, is proportional to arc_length.
+	// Do a reverse look-up from the arc_length to the original t parameter
+	// of the Bezier curve.
+	double L_target = t * arc_length[$];
+	// Starting from the right-hand end,
+	// let's try to find a point to the left of L_target.
+	// If the value is out of range, this should just result in
+	// us extrapolating one of the end segments -- that's OK.
+	int i = arc_length.length - 1;
+	double dt = 1.0 / arc_length.length;
+	while ( L_target < arc_length[i] && i > 0 ) i--;
+	double frac = (L_target - arc_length[i]) / (arc_length[i+1] - arc_length[i]);
+	return (1.0 - frac) * dt*i + frac * dt*(i+1);
+    } // end t_from_arc_length()
+
+} // end class Bezier
+
+
+unittest {
+    auto a = Vector3([2.0, 2.0, 0.0]);
+    auto b = Vector3([1.0, 2.0, 1.0]);
+    auto c = Vector3([1.0, 2.0, 0.0]);
+    auto abc = new Arc(a, b, c);
+    auto d = abc(0.5);
+    auto adb = new Bezier([a, d, b]);
+    auto e = adb(0.5);
+    assert(approxEqualVectors(e, Vector3(1.60355, 2, 0.603553)), "Bezier");
 }
