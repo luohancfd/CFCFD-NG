@@ -45,7 +45,7 @@ public:
     virtual string vtk_str() const;
 
     // Try inlining the following few transformation functions.
-    // They will be used frequently in the flow simulation code Elmer3.
+    // They will be used frequently in the flow simulation code Eilmer3.
     // Change of coordinate system; rotation with translation.
 
     /// Transform coordinates from global frame to local (dash) frame.

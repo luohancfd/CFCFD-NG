@@ -258,6 +258,39 @@ struct Vector3 {
 	_p[1] = v_y;
 	_p[2] = v_z;
     }
+    // Change of coordinate system; rotation with translation.
+
+    // Transform coordinates from global frame to local (dash) frame.
+    // Local frame is defined by unit vectors (n, t1 and t2) at location c.
+    @nogc void transform_to_local_frame(ref const(Vector3) n,
+					ref const(Vector3) t1,
+					ref const(Vector3) t2,
+					ref const(Vector3) c)
+    {
+	_p[0] -= c._p[0]; _p[1] -= c._p[1]; _p[2] -= c._p[2]; // shift to local origin
+	double v_x = this.dot(n); // normal component
+	double v_y = this.dot(t1); // tangential component 1
+	double v_z = this.dot(t2); // tangential component 2
+	_p[0] = v_x;
+	_p[1] = v_y;
+	_p[2] = v_z;
+    }
+
+    /**
+     * Rotate v back into the global (xyz) coordinate system.
+     */
+    @nogc void transform_to_global_frame(ref const(Vector3) n,
+					 ref const(Vector3) t1,
+					 ref const(Vector3) t2,
+					 ref const(Vector3) c)
+    {
+	double v_x = _p[0]*n._p[0] + _p[1]*t1._p[0] + _p[2]*t2._p[0] + c._p[0]; // global-x
+	double v_y = _p[0]*n._p[1] + _p[1]*t1._p[1] + _p[2]*t2._p[1] + c._p[1]; // global-y
+	double v_z = _p[0]*n._p[2] + _p[1]*t1._p[2] + _p[2]*t2._p[2] + c._p[2]; // global-z
+	_p[0] = v_x;
+	_p[1] = v_y;
+	_p[2] = v_z;
+    }
 } // end class Vector3
 
 

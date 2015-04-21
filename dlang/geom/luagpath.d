@@ -19,6 +19,7 @@ import gpath;
 import luageom;
 
 immutable string LineMT = "Line"; // Name of Line metatable
+immutable string ArcMT = "Arc";
 // A place to hang on to references to objects that are pushed into the Lua domain.
 // We don't want the D garbage collector to prematurely dispose of said objects.
 static const(Path)[] pathStore; 
@@ -26,6 +27,9 @@ static const(Path)[] pathStore;
 Path checkPath(lua_State* L, int index) {
     if ( isObjType(L, index, LineMT) ) {
 	return checkObj!(Line, LineMT)(L, index);
+    }
+    if ( isObjType(L, index, ArcMT) ) {
+	return checkObj!(Arc, ArcMT)(L, index);
     }
     // if all else fails
     return null;
@@ -79,7 +83,7 @@ extern(C) int copyPath(T, string MTname)(lua_State* L)
     return 1;
 }
 
-/* ----------------- Line specific functions --------------- */
+/* ----------------- Path-specific functions --------------- */
 
 /**
  * The Lua constructor for a Line.
@@ -127,7 +131,66 @@ The value, if present, should be a number.`;
     auto ab = new Line(*a, *b, t0, t1);
     pathStore ~= pushObj!(Line, LineMT)(L, ab);
     return 1;
-}
+} // end newLine()
+
+
+/**
+ * The Lua constructor for an Arc.
+ *
+ * Example construction in Lua:
+ * ---------------------------------
+ * a = Vector3:new{1, 0}
+ * b = Vector3:new{0, 1}
+ * c = Vector3:new{0, 0}
+ * abc = Arc:new{a, b, c}
+ * abc = Arc:new{a, b, c, t0=0.0, t1=1.0}
+ * ---------------------------------
+ */
+extern(C) int newArc(lua_State* L)
+{
+    lua_remove(L, 1); // remove first agurment "this"
+    int narg = lua_gettop(L);
+    if ( narg == 0 || !lua_istable(L, 1) ) {
+	string errMsg = `Error in call to Arc:new{}.;
+A table containing arguments is expected, but no table was found.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    // Expect Vector3 at position 1.
+    lua_rawgeti(L, 1, 1);
+    auto a = checkVector3(L, -1);
+    if ( a is null ) {
+	string errMsg = `Error in call to Arc:new{}.
+A Vector3 object is expected as the first argument. No valid Vector3 was found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    lua_pop(L, 1);
+    // Expect Vector3 at position 2.
+    lua_rawgeti(L, 1, 2);
+    auto b = checkVector3(L, -1);
+    if ( b is null ) {
+	string errMsg = `Error in call to Arc:new{}.
+A Vector3 object is expected as the second argument. No valid Vector3 was found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    lua_pop(L, 1);
+    // Expect Vector3 at position 3.
+    lua_rawgeti(L, 1, 3);
+    auto c = checkVector3(L, -1);
+    if ( c is null ) {
+	string errMsg = `Error in call to Arc:new{}.
+A Vector3 object is expected as the third argument. No valid Vector3 was found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    lua_pop(L, 1);
+    string errMsgTmplt = `Error in call to Arc:new{}.
+A valid value for '%s' was not found in list of arguments.
+The value, if present, should be a number.`;
+    double t0 = getNumberFromTable(L, 1, "t0", false, 0.0, true, format(errMsgTmplt, "t0"));
+    double t1 = getNumberFromTable(L, 1, "t1", false, 1.0, true, format(errMsgTmplt, "t1"));
+    auto abc = new Arc(*a, *b, *c, t0, t1);
+    pathStore ~= pushObj!(Arc, ArcMT)(L, abc);
+    return 1;
+} // end newArc()
 
 void registerPaths(LuaState lua)
 {
@@ -157,7 +220,31 @@ void registerPaths(LuaState lua)
     lua_setfield(L, -2, "t1");
 
     lua_setglobal(L, LineMT.toStringz);
-}
+
+    // Register the Arc object
+    luaL_newmetatable(L, ArcMT.toStringz);
+    
+    /* metatable.__index = metatable */
+    lua_pushvalue(L, -1); // duplicates the current metatable
+    lua_setfield(L, -2, "__index");
+
+    lua_pushcfunction(L, &newArc);
+    lua_setfield(L, -2, "new");
+    lua_pushcfunction(L, &opCallPath!(Arc, ArcMT));
+    lua_setfield(L, -2, "__call");
+    lua_pushcfunction(L, &opCallPath!(Arc, ArcMT));
+    lua_setfield(L, -2, "eval");
+    lua_pushcfunction(L, &toStringObj!(Arc, ArcMT));
+    lua_setfield(L, -2, "__tostring");
+    lua_pushcfunction(L, &copyPath!(Arc, ArcMT));
+    lua_setfield(L, -2, "copy");
+    lua_pushcfunction(L, &t0Path!(Arc, ArcMT));
+    lua_setfield(L, -2, "t0");
+    lua_pushcfunction(L, &t1Path!(Arc, ArcMT));
+    lua_setfield(L, -2, "t1");
+
+    lua_setglobal(L, ArcMT.toStringz);
+} // end registerPaths()
     
 
 

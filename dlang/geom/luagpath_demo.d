@@ -36,6 +36,14 @@ ab2 = ab:copy()
 ab2:t0(0.2)
 print("ab:t0()= ", ab:t0(), "ab:t1()= ", ab:t1())
 print("ab2:t0()= ", ab2:t0(), "ab2:t2()= ", ab2:t1())
+--
+print("Arc")
+a = Vector3:new(2.0, 2.0, 0.0)
+b = Vector3:new(1.0, 2.0, 1.0)
+c = Vector3:new(1.0, 2.0, 0.0)
+abc = Arc:new{a, b, c}
+d = abc(0.5)
+print("d=", d, "expected approximately Vector3(1.7071068, 2.0, 0.7071068)")
     `);
     writeln("Done with demo.");
 }
