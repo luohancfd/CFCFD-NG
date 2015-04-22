@@ -2,7 +2,8 @@
  * A Lua interface for the D gpath module.
  *
  * Authors: Rowan G. and Peter J.
- * Date: 2015-02-22
+ * Date: 2015-02-22 First code
+ *       2015-04-22 greatly expanded with Arc, Bezier, Polyline, LuaFnPath
  */
 
 module luagpath;
@@ -41,6 +42,9 @@ Path checkPath(lua_State* L, int index) {
     }
     if ( isObjType(L, index, PolylineMT) ) {
 	return checkObj!(Polyline, PolylineMT)(L, index);
+    }
+    if ( isObjType(L, index, LuaFnPathMT) ) {
+	return checkObj!(LuaFnPath, LuaFnPathMT)(L, index);
     }
     // if all else fails
     return null;

@@ -96,12 +96,6 @@ for _,v in ipairs(tabulatedData) do
    local this_face, other_face = unpack(connection)
    vtxPairs2D[{this_face, other_face}] = vtxPairs
 end
---[=[
-for k,v in pairs(connections2D) do
-   print(string.format('connections2D[%s] = %s', tostringVtxPairList(k),
-		       tostringConnection(v)))
-end
---]=]
 
 -- Connections between 3D blocks, described as sets of vertex pairs.
 -- When specifying a connection, we specify the set of paired vertices.
@@ -463,12 +457,16 @@ function SBlock:new(o)
    o = o or {}
    setmetatable(o, self)
    self.__index = self
+   -- Make a record of the new block, for later construction of the config file.
+   -- Note that we want block id to start at zero for the D code.
+   o.id = #(blocks)
+   blocks[#(blocks)+1] = o
    -- Must have a grid and fillCondition
    assert(o.grid, "need to supply a grid")
    assert(o.fillCondition, "need to supply a fillCondition")
    -- Fill in default values, if already not set
    o.active = o.active or true
-   o.label = o.label or ""
+   o.label = o.label or string.format("BLOCK-%d", o.id)
    o.omegaz = o.omegaz or 0.0
    o.bcList = o.bcList or {} -- boundary conditions
    for _,face in ipairs(faceList(config.dimensions)) do
@@ -503,10 +501,6 @@ function SBlock:new(o)
       o.p[2] = o.grid:get_vtx(o.nic, o.njc)
       o.p[3] = o.grid:get_vtx(0, o.njc)
    end
-   -- Make a record of the new block, for later constructio of the config file.
-   -- Note that we want block id to start at zero for the D code.
-   o.id = #(blocks)
-   blocks[#(blocks)+1] = o
    -- print("Block id=", o.id, "p0=", tostring(o.p[0]), "p1=", tostring(o.p[1]),
    --       "p2=", tostring(o.p[2]), "p3=", tostring(o.p[3]))
    return o
