@@ -13,6 +13,7 @@ import luad.c.lua;
 import luad.c.lauxlib;
 import std.stdio;
 import std.string;
+import std.conv;
 import util.lua_service;
 import geom;
 import gpath;
@@ -22,6 +23,7 @@ immutable string LineMT = "Line"; // Name of Line metatable
 immutable string ArcMT = "Arc";
 immutable string BezierMT = "Bezier";
 immutable string PolylineMT = "Polyline";
+immutable string LuaFnPathMT = "LuaFnPath";
 
 // A place to hang on to references to objects that are pushed into the Lua domain.
 // We don't want the D garbage collector to prematurely dispose of said objects.
@@ -303,6 +305,132 @@ The value, if present, should be a number.`;
 } // end newPolyline()
 
 
+/**
+ * LuaFnPath class and it's Lua constructor.
+ *
+ * This is hangs onto a Lua call-back function that is invoked from the D domain.
+ *
+ * Example:
+ * function myLuaFunction(t)
+ *    -- Straight line from 0,0,0 to 1.0,2.0,3.0
+ *    return {t, 2*t, 3*t}
+ * end
+ * myPath = LuaFnPath:new{"myLuaFunction"}
+ */
+
+class LuaFnPath : Path {
+public:
+    lua_State* L; // a pointer to the Lua interpreter's state.
+    // Even though some of the class methods claim that they don't change
+    // the object state, we have to get the Lua interpreter to evaluate
+    // things and that diddles with the Lua interpreter's internal state.
+    // So the const on the lua_State pointer is more a statement that
+    // "I'm not going to switch interpreters on you."
+    // Hence the ugly but (hopefully safe) casts where ever we get 
+    // the Lua interpreter to do something.
+    // This is the best I can do for the moment.  PJ, 2014-04-22
+    string luaFnName;
+    this(const lua_State* L, string luaFnName, double t0=0.0, double t1=1.0)
+    {
+	this.L = cast(lua_State*)L;
+	this.luaFnName = luaFnName;
+	this.t0 = t0; this.t1 = t1;
+    }
+    this(ref const(LuaFnPath) other)
+    {
+	L = cast(lua_State*)other.L;
+	luaFnName = other.luaFnName;
+	t0 = other.t0; t1 = other.t1;
+    }
+    override LuaFnPath dup() const
+    {
+	return new LuaFnPath(L, luaFnName, t0, t1);
+    }
+    override Vector3 opCall(double t) const 
+    {
+	double tdsh = t0 + (t1-t0)*t; // subrange t
+	// Call back to the Lua function.
+	lua_getglobal(cast(lua_State*)L, luaFnName.toStringz);
+	lua_pushnumber(cast(lua_State*)L, tdsh);
+	if ( lua_pcall(cast(lua_State*)L, 1, 1, 0) != 0 ) {
+	    string errMsg = "Error in call to " ~ luaFnName ~ 
+		" from LuaFnPath:opCall(): " ~ 
+		to!string(lua_tostring(cast(lua_State*)L, -1));
+	    luaL_error(cast(lua_State*)L, errMsg.toStringz);
+	}
+	// We are expecting a table to be returned, containing three numbers.
+	if ( !lua_istable(cast(lua_State*)L, -1) ) {
+	    string errMsg = `Error in call to LuaFnPath:opCall().;
+A table containing arguments is expected, but no table was found.`;
+	    luaL_error(cast(lua_State*)L, errMsg.toStringz);
+	}
+	// Expect a number at position 1 for x.
+	lua_rawgeti(cast(lua_State*)L, -1, 1);
+	if ( !lua_isnumber(cast(lua_State*)L, -1) ) {
+	    string errMsg = `Error in call to LuaFnPath:opCall().;
+A number was expected in position 1, for x.`;
+	    luaL_error(cast(lua_State*)L, errMsg.toStringz);
+	}
+	double x = to!double(lua_tonumber(cast(lua_State*)L, -1));
+	lua_pop(cast(lua_State*)L, 1);
+	// Expect a number at position 2 for y.
+	lua_rawgeti(cast(lua_State*)L, -1, 2);
+	if ( !lua_isnumber(cast(lua_State*)L, -1) ) {
+	    string errMsg = `Error in call to LuaFnPath:opCall().;
+A number was expected in position 2, for y.`;
+	    luaL_error(cast(lua_State*)L, errMsg.toStringz);
+	}
+	double y = to!double(lua_tonumber(cast(lua_State*)L, -1));
+	lua_pop(cast(lua_State*)L, 1);
+	// Expect a number at position 3 for z.
+	double z = 0.0; // default value
+	lua_rawgeti(cast(lua_State*)L, -1, 3);
+	if ( lua_isnumber(cast(lua_State*)L, -1) ) {
+	    z = to!double(lua_tonumber(cast(lua_State*)L, -1));
+	}
+	lua_pop(cast(lua_State*)L, 1);
+	return Vector3(x, y, z);
+    }
+    override string toString() const
+    {
+	return "LuaFnPath(luaFnName=\"" ~ luaFnName ~ "\", t0=" ~ to!string(t0) 
+	    ~ ", t1=" ~ to!string(t1) ~ ")";
+    }
+} // end class LuaFnPath
+
+extern(C) int newLuaFnPath(lua_State* L)
+{
+    lua_remove(L, 1); // remove first argument "this"
+    int narg = lua_gettop(L);
+    if ( narg == 0 || !lua_istable(L, 1) ) {
+	string errMsg = `Error in call to LuaFnPath:new{}.;
+A table containing arguments is expected, but no table was found.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    // Expect function name at array position 1.
+    string fnName = "";
+    lua_rawgeti(L, 1, 1);
+    if ( lua_isstring(L, -1) ) {
+	fnName ~= to!string(lua_tostring(L, -1));
+    }
+    lua_pop(L, 1);
+    if ( fnName == "" ) {
+	string errMsg = `Error in call to LuaFnPath:new{}. No function name found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    string errMsgTmplt = `Error in call to LuaFnPath:new{}.
+A valid value for '%s' was not found in list of arguments.
+The value, if present, should be a number.`;
+    double t0 = getNumberFromTable(L, 1, "t0", false, 0.0, true, format(errMsgTmplt, "t0"));
+    double t1 = getNumberFromTable(L, 1, "t1", false, 1.0, true, format(errMsgTmplt, "t1"));
+    auto lfp = new LuaFnPath(L, fnName, t0, t1);
+    pathStore ~= pushObj!(LuaFnPath, LuaFnPathMT)(L, lfp);
+    return 1;
+} // end newLuaFnPath()
+
+
+//-------------------------------------------------------------------------------------
+
 void registerPaths(LuaState lua)
 {
     auto L = lua.state;
@@ -403,6 +531,30 @@ void registerPaths(LuaState lua)
     lua_setfield(L, -2, "t1");
 
     lua_setglobal(L, PolylineMT.toStringz);
+
+    // Register the Polyline object
+    luaL_newmetatable(L, LuaFnPathMT.toStringz);
+    
+    /* metatable.__index = metatable */
+    lua_pushvalue(L, -1); // duplicates the current metatable
+    lua_setfield(L, -2, "__index");
+
+    lua_pushcfunction(L, &newLuaFnPath);
+    lua_setfield(L, -2, "new");
+    lua_pushcfunction(L, &opCallPath!(LuaFnPath, LuaFnPathMT));
+    lua_setfield(L, -2, "__call");
+    lua_pushcfunction(L, &opCallPath!(LuaFnPath, LuaFnPathMT));
+    lua_setfield(L, -2, "eval");
+    lua_pushcfunction(L, &toStringObj!(LuaFnPath, LuaFnPathMT));
+    lua_setfield(L, -2, "__tostring");
+    lua_pushcfunction(L, &copyPath!(LuaFnPath, LuaFnPathMT));
+    lua_setfield(L, -2, "copy");
+    lua_pushcfunction(L, &t0Path!(LuaFnPath, LuaFnPathMT));
+    lua_setfield(L, -2, "t0");
+    lua_pushcfunction(L, &t1Path!(LuaFnPath, LuaFnPathMT));
+    lua_setfield(L, -2, "t1");
+
+    lua_setglobal(L, LuaFnPathMT.toStringz);
 } // end registerPaths()
     
 

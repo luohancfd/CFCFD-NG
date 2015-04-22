@@ -55,6 +55,16 @@ polyline = Polyline:new{abc, Line:new{b,c}}
 print("polyline= ", polyline)
 f = polyline(0.5)
 print("polyline(0.5)= ", f, "expected approximately Vector3(1.28154, 2, 0.95955)")
+--
+print("LuaFnPath")
+function myLuaFunction(t)
+   -- Straight line from 0,0,0 to 1.0,2.0,3.0
+   return {t, 2*t, 3*t}
+end
+myPath = LuaFnPath:new{"myLuaFunction"}
+print("myLine= ", myPath)
+g = myPath(0.5)
+print("myPath(0.5)= ", g)
     `);
     writeln("Done with demo.");
 }
