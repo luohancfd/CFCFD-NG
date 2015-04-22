@@ -109,7 +109,7 @@ extern(C) int write_to_text_file(T, string MTname)(lua_State* L)
  */
 extern(C) int newStructuredGrid(lua_State* L)
 {
-    lua_remove(L, 1); // remove first agurment "this"
+    lua_remove(L, 1); // remove first argument "this"
     int narg = lua_gettop(L);
     if ( narg == 0 || !lua_istable(L, 1) ) {
 	string errMsg = `Error in call to StructuredGrid:new{}.;

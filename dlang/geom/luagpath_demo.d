@@ -49,6 +49,12 @@ print("Bezier")
 adb = Bezier:new{a, d, b}
 e = adb(0.5)
 print("e=", e, "expected approximately Vector3(1.60355, 2, 0.603553)")
+--
+print("Polyline")
+polyline = Polyline:new{abc, Line:new{b,c}}
+print("polyline= ", polyline)
+f = polyline(0.5)
+print("polyline(0.5)= ", f, "expected approximately Vector3(1.28154, 2, 0.95955)")
     `);
     writeln("Done with demo.");
 }

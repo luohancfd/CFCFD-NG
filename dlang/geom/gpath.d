@@ -309,13 +309,13 @@ unittest {
 
 class Polyline : Path {
 public:
-    Path[] seg; // collection of Path segments
-    double[] t_seg;
+    Path[] segments; // collection of Path segments
+    double[] t_values; // collection of segment break-points (in parameter t)
     bool arc_length_param_flag;
     this(in Path[] segments, double t0=0.0, double t1=1.0, bool arc_length_p=false)
     {
-	foreach (myseg; segments) seg ~= myseg.dup(); 
-	t_seg.length = seg.length;
+	foreach (myseg; segments) this.segments ~= myseg.dup(); 
+	t_values.length = this.segments.length;
 	this.t0 = t0; this.t1 = t1;
 	arc_length_param_flag = arc_length_p;
 	if ( arc_length_param_flag ) set_arc_length_vector(100);
@@ -323,8 +323,8 @@ public:
     }
     this(ref const(Polyline) other)
     {
-	foreach (myseg; other.seg) seg ~= myseg.dup(); 
-	t_seg = other.t_seg.dup();
+	foreach (myseg; other.segments) segments ~= myseg.dup(); 
+	t_values = other.t_values.dup();
 	t0 = other.t0; t1 = other.t1;
 	arc_length_param_flag = other.arc_length_param_flag;
 	if ( arc_length_param_flag ) arc_length = other.arc_length.dup();
@@ -332,32 +332,32 @@ public:
     }
     override Polyline dup() const
     {
-	return new Polyline(seg, t0, t1);
+	return new Polyline(segments, t0, t1);
     }
 
     Vector3 raw_eval(double t) const 
     {
 	// Evaluate B(t) without considering arc_length parameterization flag
 	// or subrange.
-	auto n = seg.length;
+	auto n = segments.length;
 	if ( n == 0 ) {
 	    throw new Error(text("Polyline.raw_eval() No segments present."));
 	}
-	if ( n == 1 ) return seg[0](t);
+	if ( n == 1 ) return segments[0](t);
 	size_t i;
 	for ( i = 0; i < n; ++i ) {
-	    if ( t <= t_seg[i] ) break;
+	    if ( t <= t_values[i] ) break;
 	}
 	if ( i >= n ) i = n - 1;  // last segment
-	// At this point, t_seg[i-1] < t <= t_seg[i] (we hope)
+	// At this point, t_values[i-1] < t <= t_values[i] (we hope)
 	// Have assumed that the t breakpoints are well behaved.
 	double t_local;
 	if ( i == 0 ) {
-	    t_local = t / t_seg[i];
+	    t_local = t / t_values[i];
 	} else {
-	    t_local = (t - t_seg[i-1]) / (t_seg[i] - t_seg[i-1]);
+	    t_local = (t - t_values[i-1]) / (t_values[i] - t_values[i-1]);
 	}
-	return seg[i](t_local);
+	return segments[i](t_local);
     } // end raw_eval()
 
     override Vector3 opCall(double t) const 
@@ -370,7 +370,7 @@ public:
 
     override string toString() const
     {
-	return "Polyline(segments=" ~ to!string(seg) 
+	return "Polyline(segments=" ~ to!string(segments) 
 	    ~ ", t0=" ~ to!string(t0) 
 	    ~ ", t1=" ~ to!string(t1) 
 	    ~ ", arc_length_p=" ~ to!string(arc_length_param_flag)
@@ -382,10 +382,10 @@ private:
     void reset_breakpoints()
     {
 	// Set up the parameter breakpoints based on cumulative length.
-	t_seg[0] = seg[0].length();
-	foreach (i; 1 .. seg.length) t_seg[i] = t_seg[i-1] + seg[i].length(); 
-	double L_total = t_seg[$-1];
-	foreach (i; 0 .. seg.length) t_seg[i] /= L_total; 
+	t_values[0] = segments[0].length();
+	foreach (i; 1 .. segments.length) t_values[i] = t_values[i-1] + segments[i].length(); 
+	double L_total = t_values[$-1];
+	foreach (i; 0 .. segments.length) t_values[i] /= L_total; 
     } // end reset_breakpoints()
 
     void set_arc_length_vector(int N)
@@ -426,3 +426,14 @@ private:
     } // end t_from_arc_length()
 
 } // end class Polyline
+
+
+unittest {
+    auto a = Vector3([2.0, 2.0, 0.0]);
+    auto b = Vector3([1.0, 2.0, 1.0]);
+    auto c = Vector3([1.0, 2.0, 0.0]);
+    auto abc = new Arc(a, b, c);
+    auto polyline = new Polyline([abc, new Line(b, c)]);
+    auto f = polyline(0.5);
+    assert(approxEqualVectors(f, Vector3(1.28154, 2, 0.95955)), "Polyline");
+}

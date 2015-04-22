@@ -21,6 +21,7 @@ import luageom;
 immutable string LineMT = "Line"; // Name of Line metatable
 immutable string ArcMT = "Arc";
 immutable string BezierMT = "Bezier";
+immutable string PolylineMT = "Polyline";
 
 // A place to hang on to references to objects that are pushed into the Lua domain.
 // We don't want the D garbage collector to prematurely dispose of said objects.
@@ -35,6 +36,9 @@ Path checkPath(lua_State* L, int index) {
     }
     if ( isObjType(L, index, BezierMT) ) {
 	return checkObj!(Bezier, BezierMT)(L, index);
+    }
+    if ( isObjType(L, index, PolylineMT) ) {
+	return checkObj!(Polyline, PolylineMT)(L, index);
     }
     // if all else fails
     return null;
@@ -103,7 +107,7 @@ extern(C) int copyPath(T, string MTname)(lua_State* L)
  */
 extern(C) int newLine(lua_State* L)
 {
-    lua_remove(L, 1); // remove first agurment "this"
+    lua_remove(L, 1); // remove first argument "this"
     int narg = lua_gettop(L);
     if ( narg == 0 || !lua_istable(L, 1) ) {
 	string errMsg = `Error in call to Line:new{}.;
@@ -153,7 +157,7 @@ The value, if present, should be a number.`;
  */
 extern(C) int newArc(lua_State* L)
 {
-    lua_remove(L, 1); // remove first agurment "this"
+    lua_remove(L, 1); // remove first argument "this"
     int narg = lua_gettop(L);
     if ( narg == 0 || !lua_istable(L, 1) ) {
 	string errMsg = `Error in call to Arc:new{}.;
@@ -213,7 +217,7 @@ The value, if present, should be a number.`;
  */
 extern(C) int newBezier(lua_State* L)
 {
-    lua_remove(L, 1); // remove first agurment "this"
+    lua_remove(L, 1); // remove first argument "this"
     int narg = lua_gettop(L);
     if ( narg == 0 || !lua_istable(L, 1) ) {
 	string errMsg = `Error in call to Bezier:new{}.;
@@ -245,6 +249,58 @@ The value, if present, should be a number.`;
     pathStore ~= pushObj!(Bezier, BezierMT)(L, bez);
     return 1;
 } // end newBezier()
+
+
+/**
+ * The Lua constructor for a Polyline.
+ *
+ * Example construction in Lua:
+ * ---------------------------------
+ * p0 = Vector3:new{1, 0}
+ * p1 = Vector3:new{0.7071, 0.7071}
+ * p2 = Vector3:new{0, 1}
+ * -- A couple of paths to combine.
+ * line1 = Line:new{p0, p1}
+ * line2 = Line:new{p1, p2}
+ * -- An arbitrary number of Path objects in the table.
+ * poly = Polyline:new{line1, line2}
+ * poly = Polyline:new{line1, line2, t0=0.0, t1=1.0}
+ * ---------------------------------
+ */
+extern(C) int newPolyline(lua_State* L)
+{
+    lua_remove(L, 1); // remove first argument "this"
+    int narg = lua_gettop(L);
+    if ( narg == 0 || !lua_istable(L, 1) ) {
+	string errMsg = `Error in call to Polyline:new{}.;
+A table containing arguments is expected, but no table was found.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    // Expect Path objects at array positions.
+    Path[] segments;
+    int position = 1;
+    while ( true ) {
+	lua_rawgeti(L, 1, position);
+	if ( lua_isnil(L, -1) ) { lua_pop(L, 1); break; }
+	auto seg = checkPath(L, -1);
+	lua_pop(L, 1);
+	if ( seg is null ) break;
+	segments ~= seg;
+	++position;
+    }
+    if ( segments.length == 0 ) {
+	string errMsg = `Error in call to Polyline:new{}. No valid Path objects found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    string errMsgTmplt = `Error in call to Polyline:new{}.
+A valid value for '%s' was not found in list of arguments.
+The value, if present, should be a number.`;
+    double t0 = getNumberFromTable(L, 1, "t0", false, 0.0, true, format(errMsgTmplt, "t0"));
+    double t1 = getNumberFromTable(L, 1, "t1", false, 1.0, true, format(errMsgTmplt, "t1"));
+    auto poly = new Polyline(segments, t0, t1);
+    pathStore ~= pushObj!(Polyline, PolylineMT)(L, poly);
+    return 1;
+} // end newPolyline()
 
 
 void registerPaths(LuaState lua)
@@ -323,6 +379,30 @@ void registerPaths(LuaState lua)
     lua_setfield(L, -2, "t1");
 
     lua_setglobal(L, BezierMT.toStringz);
+
+    // Register the Polyline object
+    luaL_newmetatable(L, PolylineMT.toStringz);
+    
+    /* metatable.__index = metatable */
+    lua_pushvalue(L, -1); // duplicates the current metatable
+    lua_setfield(L, -2, "__index");
+
+    lua_pushcfunction(L, &newPolyline);
+    lua_setfield(L, -2, "new");
+    lua_pushcfunction(L, &opCallPath!(Polyline, PolylineMT));
+    lua_setfield(L, -2, "__call");
+    lua_pushcfunction(L, &opCallPath!(Polyline, PolylineMT));
+    lua_setfield(L, -2, "eval");
+    lua_pushcfunction(L, &toStringObj!(Polyline, PolylineMT));
+    lua_setfield(L, -2, "__tostring");
+    lua_pushcfunction(L, &copyPath!(Polyline, PolylineMT));
+    lua_setfield(L, -2, "copy");
+    lua_pushcfunction(L, &t0Path!(Polyline, PolylineMT));
+    lua_setfield(L, -2, "t0");
+    lua_pushcfunction(L, &t1Path!(Polyline, PolylineMT));
+    lua_setfield(L, -2, "t1");
+
+    lua_setglobal(L, PolylineMT.toStringz);
 } // end registerPaths()
     
 
