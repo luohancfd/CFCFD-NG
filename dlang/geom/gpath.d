@@ -4,7 +4,7 @@
  *
  * Author: Peter J and Rowan G.
  * Version: 2015-02-19 first code
- *          2015-04-21 added Arc, Bezier
+ *          2015-04-21 added Arc, Bezier, Polyline
  */
 
 module gpath;
@@ -21,6 +21,21 @@ public:
     abstract Path dup() const;
     abstract Vector3 opCall(double t) const;
     abstract override string toString() const;
+    double length() const
+    {
+	// Returns the geometric length of the Path.
+	double L = 0.0;
+	int n = 20;
+	double dt = 1.0 / n;
+	Vector3 p0 = this.opCall(0.0);
+	Vector3 p1;
+	foreach (i; 1 .. n) {
+	    p1 = this.opCall(dt * i);
+	    L += abs(p1 - p0);
+	    p0 = p1;
+	}
+	return L;
+    } // end length()
 } // end class Path
 
 
@@ -51,6 +66,11 @@ public:
     {
 	return "Line(p0=" ~ to!string(p0) ~ ", p1=" ~ to!string(p1) ~
 	    ", t0=" ~ to!string(t0) ~ ", t1=" ~ to!string(t1) ~ ")";
+    }
+    override double length() const
+    {
+	// Returns the geometric length.
+	return fabs(t1 - t0) * abs(p1 - p0);
     }
 } // end class Line
 
@@ -99,6 +119,14 @@ public:
     {
 	return "Arc(a=" ~ to!string(a) ~ ", b=" ~ to!string(b) ~ ", c=" ~ to!string(c)
 	    ~ ", t0=" ~ to!string(t0) ~ ", t1=" ~ to!string(t1) ~ ")";
+    }
+    override double length() const
+    {
+	// Returns the geometric length.
+	double L;
+	Vector3 p;
+	evaluate_position_and_length(1.0, p, L);
+	return fabs(t1 - t0) * L;
     }
     
     void evaluate_position_and_length(in double t, out Vector3 loc, out double L) const
@@ -187,7 +215,9 @@ public:
     {
 	// Evaluate B(t) without considering arc_length parameterization flag
 	// or subrange.
-	if ( B.length == 0 ) return Vector3(0.0, 0.0, 0.0);
+	if ( B.length == 0 ) {
+	    throw new Error(text("Bezier.raw_eval() No control points present."));
+	}
 	if ( B.length == 1 ) return B[0];
 	size_t n_order = B.length - 1;
 	// Apply de Casteljau's algorithm. 
@@ -204,7 +234,9 @@ public:
     {
 	// Evaluate B(t) considering arc_length parameterization flag 
 	// and possible subrange of t.
-	if ( B.length == 0 ) return Vector3(0.0, 0.0, 0.0);
+	if ( B.length == 0 ) {
+	    throw new Error(text("Bezier.opCall() No control points present."));
+	}
 	if ( B.length == 1 ) return B[0];
 	if ( arc_length_param_flag ) {
 	    t = t_from_arc_length(t);
@@ -228,9 +260,9 @@ private:
 	// Compute the arc_lengths for a number of sample points 
 	// so that these can later be used to do a reverse interpolation
 	// on the evaluation parameter.
-	if ( arc_length.length == 0 ) return;
-	double dt = 1.0 / arc_length.length;
 	arc_length.length = 0;
+	if ( N == 0 ) return;
+	double dt = 1.0 / N;
 	double L = 0.0;
 	arc_length ~= L;
 	Vector3 p0 = raw_eval(0.0);
@@ -248,7 +280,7 @@ private:
 	// The incoming parameter value, t, is proportional to arc_length.
 	// Do a reverse look-up from the arc_length to the original t parameter
 	// of the Bezier curve.
-	double L_target = t * arc_length[$];
+	double L_target = t * arc_length[$-1];
 	// Starting from the right-hand end,
 	// let's try to find a point to the left of L_target.
 	// If the value is out of range, this should just result in
@@ -273,3 +305,124 @@ unittest {
     auto e = adb(0.5);
     assert(approxEqualVectors(e, Vector3(1.60355, 2, 0.603553)), "Bezier");
 }
+
+
+class Polyline : Path {
+public:
+    Path[] seg; // collection of Path segments
+    double[] t_seg;
+    bool arc_length_param_flag;
+    this(in Path[] segments, double t0=0.0, double t1=1.0, bool arc_length_p=false)
+    {
+	foreach (myseg; segments) seg ~= myseg.dup(); 
+	t_seg.length = seg.length;
+	this.t0 = t0; this.t1 = t1;
+	arc_length_param_flag = arc_length_p;
+	if ( arc_length_param_flag ) set_arc_length_vector(100);
+	reset_breakpoints();
+    }
+    this(ref const(Polyline) other)
+    {
+	foreach (myseg; other.seg) seg ~= myseg.dup(); 
+	t_seg = other.t_seg.dup();
+	t0 = other.t0; t1 = other.t1;
+	arc_length_param_flag = other.arc_length_param_flag;
+	if ( arc_length_param_flag ) arc_length = other.arc_length.dup();
+	reset_breakpoints();
+    }
+    override Polyline dup() const
+    {
+	return new Polyline(seg, t0, t1);
+    }
+
+    Vector3 raw_eval(double t) const 
+    {
+	// Evaluate B(t) without considering arc_length parameterization flag
+	// or subrange.
+	auto n = seg.length;
+	if ( n == 0 ) {
+	    throw new Error(text("Polyline.raw_eval() No segments present."));
+	}
+	if ( n == 1 ) return seg[0](t);
+	size_t i;
+	for ( i = 0; i < n; ++i ) {
+	    if ( t <= t_seg[i] ) break;
+	}
+	if ( i >= n ) i = n - 1;  // last segment
+	// At this point, t_seg[i-1] < t <= t_seg[i] (we hope)
+	// Have assumed that the t breakpoints are well behaved.
+	double t_local;
+	if ( i == 0 ) {
+	    t_local = t / t_seg[i];
+	} else {
+	    t_local = (t - t_seg[i-1]) / (t_seg[i] - t_seg[i-1]);
+	}
+	return seg[i](t_local);
+    } // end raw_eval()
+
+    override Vector3 opCall(double t) const 
+    {
+	// First, map to the subrange of the full polyline.
+	t = t0 + t * (t1 - t0);
+	if ( arc_length_param_flag ) t = t_from_arc_length(t);
+	return raw_eval(t);
+    } // end OpCall()
+
+    override string toString() const
+    {
+	return "Polyline(segments=" ~ to!string(seg) 
+	    ~ ", t0=" ~ to!string(t0) 
+	    ~ ", t1=" ~ to!string(t1) 
+	    ~ ", arc_length_p=" ~ to!string(arc_length_param_flag)
+	    ~ ")";
+    }
+
+private:
+    double[] arc_length;
+    void reset_breakpoints()
+    {
+	// Set up the parameter breakpoints based on cumulative length.
+	t_seg[0] = seg[0].length();
+	foreach (i; 1 .. seg.length) t_seg[i] = t_seg[i-1] + seg[i].length(); 
+	double L_total = t_seg[$-1];
+	foreach (i; 0 .. seg.length) t_seg[i] /= L_total; 
+    } // end reset_breakpoints()
+
+    void set_arc_length_vector(int N)
+    {
+	// Compute the arc_lengths for a number of sample points 
+	// so that these can later be used to do a reverse interpolation
+	// on the evaluation parameter.
+	arc_length.length = 0;
+	if ( N == 0 ) return;
+	double dt = 1.0 / N;
+	double L = 0.0;
+	arc_length ~= L;
+	Vector3 p0 = raw_eval(0.0);
+	Vector3 p1;
+	foreach (i; 1 .. N+1) {
+	    p1 = raw_eval(dt * i);
+	    L += abs(p1 - p0);
+	    arc_length ~= L;
+	    p0 = p1;
+	}
+    } // end set_arc_length_vector()
+
+    double t_from_arc_length(double t) const
+    {
+	// The incoming parameter value, t, is proportional to arc_length.
+	// Do a reverse look-up from the arc_length to the original t parameter
+	// of the Bezier curve.
+	double L_target = t * arc_length[$-1];
+	// Starting from the right-hand end,
+	// let's try to find a point to the left of L_target.
+	// If the value is out of range, this should just result in
+	// us extrapolating one of the end segments -- that's OK.
+	int i = arc_length.length - 1;
+	double dt = 1.0 / arc_length.length;
+	while ( L_target < arc_length[i] && i > 0 ) i--;
+	double frac = (L_target - arc_length[i]) / (arc_length[i+1] - arc_length[i]);
+	return (1.0 - frac) * dt*i + frac * dt*(i+1);
+    } // end t_from_arc_length()
+
+} // end class Polyline

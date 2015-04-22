@@ -31,9 +31,15 @@ void main()
 
     writeln("Bezier");
     auto adb = new Bezier([a, d, b]);
+    writeln("Bezier adb= ", adb);
     auto e = adb(0.5);
-    writeln("adb= ", adb);
     writeln("adb(0.5)=", e);
+
+    writeln("Polyline");
+    auto polyline = new Polyline([abc, new Line(b, c)]);
+    writeln("polyline= ", polyline);
+    auto f = polyline(0.5);
+    writeln("polyline(0.5)= ", f);
 
     writeln("Done.");
 }
