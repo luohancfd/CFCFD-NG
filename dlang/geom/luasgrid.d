@@ -24,6 +24,7 @@ import sgrid;
 import luageom;
 import luasurface;
 import luavolume;
+import luaunifunction;
 
 // Name of metatables
 immutable string StructuredGridMT = "StructuredGrid";
@@ -100,11 +101,11 @@ extern(C) int write_to_text_file(T, string MTname)(lua_State* L)
  *
  * Example construction in Lua:
  * grid = StructuredGrid:new{psurface=someParametricSurface, niv=10, njv=10,
- *                           clusterf={cf_north, cf_east, cf_south, cf_west},
+ *                           cfList={cf_north, cf_east, cf_south, cf_west},
  *                           label="A-2D-Grid"}
  * grid3D = StructuredGrid:new{pvolume=someParametricVolume,
  *                             niv=11, njv=21, nkv=11,
- *                             clusterf={},
+ *                             cfList={},
  *                             label="A-3D-Grid"}
  */
 extern(C) int newStructuredGrid(lua_State* L)
@@ -147,6 +148,35 @@ A table containing arguments is expected, but no table was found.`;
 	lua_pop(L, 1);
     }
 
+    // Get clustering functions, 
+    // filling in nil or invalid entries with LinearFunction.
+    UnivariateFunction[] cfList;
+    int number_of_edges = (dimensions == 2) ? 4 : 12;
+    lua_getfield(L, 1, "cfList".toStringz);
+    if ( lua_istable(L, -1) ) {
+	// Extract the cluster functions from the table at top of stack. 
+	foreach (i; 0 .. number_of_edges) {
+	    lua_rawgeti(L, -1, i+1);
+	    if ( lua_isnil(L, -1) ) {
+		cfList ~= new LinearFunction();
+	    } else {
+		auto mycf = checkUnivariateFunction(L, -1);
+		if ( mycf ) {
+		    cfList ~= mycf;
+		} else {
+		    cfList ~= new LinearFunction();
+		}
+	    }
+	    lua_pop(L, 1);
+	}
+    } else {
+	// Didn't find a table of cluster functions.
+	foreach (i; 0 .. number_of_edges) {
+	    cfList ~= new LinearFunction();
+	}
+    }
+    lua_pop(L, 1);
+
     string errMsgTmplt = `Error in StructuredGrid:new{}.
 A valid value for '%s' was not found in list of arguments.
 The value, if present, should be a number.`;
@@ -156,12 +186,7 @@ The value, if present, should be a number.`;
     if ( dimensions == 3 ) {
 	nkv = getIntegerFromTable(L, 1, "nkv", true, 0, true, format(errMsgTmplt, "nkv"));
     }
-    // [TODO] include clustering functions.
-    UnivariateFunction[] cfList;
-    int number_of_edges = (dimensions == 2) ? 4 : 12;
-    foreach (i; 0 .. number_of_edges) {
-	cfList ~= new LinearFunction();
-    }
+
     StructuredGrid grid;
     if ( dimensions == 2 ) {
 	grid = new StructuredGrid(psurface, niv, njv, cfList);
