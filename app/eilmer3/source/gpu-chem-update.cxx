@@ -13,17 +13,23 @@ using namespace std;
 #include "../../../lib/gas/kinetics/chemical-kinetic-ODE-update.hh"
 #include "../../../lib/gas/kinetics/chemical-kinetic-system.hh"
 
-
+/*
+#include <sys/time.h>
+#include <time.h>
+double gpu_time();
+*/
 
 gpu_chem* init_gpu_module(int ncells) 
 {
+  
 
+  
   // Load the kernel source code into the array programSource                                                                                                                 
     FILE *fp;
     char *programSource;
     size_t source_size;
-
-    fp = fopen("/home/qpsf01/kdamm/cfcfd3/app/eilmer3/source/alpha_qss_kernel.cl", "r");
+    //fp = fopen("/home/qpsf01/kdamm/cfcfd3/app/eilmer3/source/alpha_qss_kernel.cl", "r");
+    fp = fopen("alpha_qss_kernel.cl", "r");
     if (fp ==  NULL) {
         fprintf(stderr, "Failed to load kernel.\n");
         exit(1);
@@ -34,7 +40,7 @@ gpu_chem* init_gpu_module(int ncells)
 
 
 
-  gpu_chem* gchem = new gpu_chem();
+    gpu_chem* gchem = new gpu_chem();
     opencl_container& oc = gchem->cl;
     Gas_model *gmodel = get_gas_model_ptr();
     Chemical_kinetic_ODE_update *ckupdate = dynamic_cast<Chemical_kinetic_ODE_update*>(get_reaction_update_ptr());
@@ -132,7 +138,28 @@ gpu_chem* init_gpu_module(int ncells)
      
     //create the kernel
     oc.kernel = clCreateKernel(oc.program, "new_qss", &(oc.status));
+
+    //Let's the user know some interesting facts ahout the particular GPU doing the calculations
+    size_t  maxWorkgroupSize;
+    clGetDeviceInfo(oc.devices[0],CL_DEVICE_MAX_WORK_GROUP_SIZE,sizeof(maxWorkgroupSize),&maxWorkgroupSize,NULL);
+    std::cout <<  maxWorkgroupSize  << "\t";
+
+    cl_uint  maxComputeUnit;
+    clGetDeviceInfo(oc.devices[0],CL_DEVICE_MAX_COMPUTE_UNITS,sizeof(maxComputeUnit),&maxComputeUnit,NULL);
+    std::cout <<  maxComputeUnit  << "\t";
+
+    cl_ulong  GlobeMemSize;
+    clGetDeviceInfo(oc.devices[0],CL_DEVICE_GLOBAL_MEM_SIZE,sizeof(GlobeMemSize),&GlobeMemSize,NULL);
+    std::cout <<   GlobeMemSize  << "\t";
+
+    cl_char  name[1024];
+    clGetDeviceInfo(oc.devices[0], CL_DEVICE_NAME,sizeof(name),&name,NULL);
+    std::cout <<  name  << "\t";
     
+    cl_char   vendor[1024];
+    clGetDeviceInfo(oc.devices[0], CL_DEVICE_VENDOR,sizeof(vendor),&vendor,NULL);
+    std::cout <<  vendor  << "\t";
+
     return gchem;
 }
 
@@ -185,7 +212,13 @@ void clear_gpu_module(gpu_chem* gchem)
 
 int update_chemistry(gpu_chem &gchem, double dt_global, vector<FV_Cell*>& cells)
 {
- 
+
+  // double chem_start;
+  // double chem_finish;
+  // double chem_time;
+
+  //chem_start = gpu_time();
+
     // HARD-CODED ARRAY SIZES
     // FIXME: when generalising for different GPUs
     // end FIXME
@@ -205,9 +238,9 @@ int update_chemistry(gpu_chem &gchem, double dt_global, vector<FV_Cell*>& cells)
 	// to the large vector storage of data for the GPU. In actuality, we convert
 	// to concentration rather than mass fraction for use in the ODE solver.
 	for ( int isp = 0; isp < gchem.nspec; ++isp ) {
-	  //  w.Y[i*gchem.nspec+isp] = conc[isp] ;
 	  w.Y[i+isp*cellnum] = conc[isp]; 
 	}
+
 	
 	// In this loop, we populate the large kf and kb vectors for the GPU
 	// using the lib/gas routines to compute reaction rate coefficients.
@@ -215,13 +248,31 @@ int update_chemistry(gpu_chem &gchem, double dt_global, vector<FV_Cell*>& cells)
 	    Reaction* reac = cks->get_reaction(ir);
 	    reac->compute_k_f(*(cp->fs->gas));
 	    reac->compute_k_b(*(cp->fs->gas));
-	    // w.kf[i*gchem.nreac+ir] = reac->k_f();
-	    // w.kb[i*gchem.nreac+ir] = reac->k_b();
 	    w.kf[i+ir*cellnum] = reac->k_f();
 	    w.kb[i+ir*cellnum] = reac->k_b();
 
 	}
+	
+	/*
+	w.kf[i+cells.size()*0]= 1.45485e-13;      //kf and kb @ 1000 K 
+	w.kb[i+cells.size()*0]= 1800.00;
+	w.kf[i+cells.size()*1]= 1.22022e-16;
+	w.kb[i+cells.size()*1]= 400.00;
+	w.kf[i+cells.size()*2]= 2.66153e-15;
+	w.kb[i+cells.size()*2]= 13914.00;
+	w.kf[i+cells.size()*3]= 7.15073e-13;
+	w.kb[i+cells.size()*3]= 7100.00;
+	w.kf[i+cells.size()*4]= 6748.01;
+	w.kb[i+cells.size()*4]= 3.20499e+06;
+	w.kf[i+cells.size()*5]= 3396.1;
+	w.kb[i+cells.size()*5]= 1.48549e+06;
+	w.kf[i+cells.size()*6]= 46825.5;
+	w.kb[i+cells.size()*6]= 1.5e+07;
+	w.kf[i+cells.size()*7]= 281258.00;
+	w.kb[i+cells.size()*7]= 357801.00;
+	*/
 
+	
 	// Populate the stepsize (h) array
 	if ( cp->dt_chem <= 0.0 ) {
 	    cks->set_gas_data_ptr(*(cp->fs->gas));
@@ -233,11 +284,16 @@ int update_chemistry(gpu_chem &gchem, double dt_global, vector<FV_Cell*>& cells)
 
     }
 
+    // chem_finish = gpu_time();
+    // chem_time = chem_finish - chem_start;
+    // printf("Chemistry: set up vectors  = %10.5f \n", chem_time);
+    
     //    std::cout << "Species Concentration Check (before kernel): " << w.Y[0] << "\t";
     //    std::cout << "kf (before kernel): " << w.kf[31] << "\t";
     //    std::cout << "kb (before kernel): " << w.kb[31] << "\t";
 
-    //    std::cout << "Y[0] =   " << w.h[0] << "\n";
+
+    // chem_start = gpu_time();
 
     //F. Write reaction rates to device buffers----------------------------------------------------------------
     opencl_container& oc = gchem.cl;
@@ -245,15 +301,11 @@ int update_chemistry(gpu_chem &gchem, double dt_global, vector<FV_Cell*>& cells)
     oc.status=clEnqueueWriteBuffer(oc.cmdQueue, oc.bufkb, CL_FALSE, 0, oc.nreac_datasize,(void *)w.kb, 0, NULL, NULL);
     oc.status=clEnqueueWriteBuffer(oc.cmdQueue, oc.bufY, CL_FALSE, 0, oc.datasize,(void *)w.Y, 0, NULL, NULL);
     oc.status=clEnqueueWriteBuffer(oc.cmdQueue, oc.bufh, CL_FALSE, 0, oc.ncell,(void*)w.h, 0, NULL, NULL);
-    /*
-    std::cout << "Y[0]b =   " << w.Y[0] << "\n";
-    std::cout << "Y[1]b =   " << w.Y[4096] << "\n";
-    std::cout << "Y[2]b =   " << w.Y[8192] << "\n";
-    std::cout << "Y[3]b =   " << w.Y[12288] << "\n";
-    std::cout << "Y[4]b =   " << w.Y[16384] << "\n";
-    std::cout << "Y[5]b =   " << w.Y[20480] << "\n";
-    std::cout << "Y[6]b =   " << w.Y[24576] << "\n";
-    */
+
+    // chem_finish = gpu_time();
+    // chem_time = chem_finish - chem_start;
+    // printf("Chemistry: Data transfer to device  = %10.5f \n", chem_time);
+
     //set kernel arguments
     oc.status = clSetKernelArg(oc.kernel, 0, sizeof(cl_mem),(void *)&(oc.bufkf));
     oc.status = clSetKernelArg(oc.kernel, 1, sizeof(cl_mem),(void *)&(oc.bufkb));
@@ -277,35 +329,38 @@ int update_chemistry(gpu_chem &gchem, double dt_global, vector<FV_Cell*>& cells)
     oc.status = clSetKernelArg(oc.kernel, 19, sizeof(cl_double),(void *)&(dt_global));
     oc.status = clSetKernelArg(oc.kernel, 20, sizeof(cl_mem),(void *)&(oc.bufdebugging));
 
-
-       
     //define an index space (global work size) of work items for execution
     size_t globalWorkSize[1];
-    size_t localWorkSize[1]; 
+    //    size_t localWorkSize[1]; 
 
     globalWorkSize[0]=cells.size();
     //localWorkSize[0]= 64;
 
+    //    chem_start = gpu_time();
+
     //execute the kernel
     oc.status = clEnqueueNDRangeKernel(oc.cmdQueue, oc.kernel, 1, NULL, globalWorkSize, NULL, 0 , NULL, NULL);
-     
+
+    // chem_finish = gpu_time();
+    // chem_time = chem_finish - chem_start;
+    // printf("Chemistry: kernel runtime = %10.5f \n", chem_time);
+
+    // chem_start = gpu_time();
+
     //read output off device back to CPU
     clEnqueueReadBuffer(oc.cmdQueue, oc.bufY, CL_TRUE, 0, oc.datasize,(void *)w.Y, 0, NULL, NULL);
-    //    clEnqueueReadBuffer(oc.cmdQueue, oc.bufdebugging, CL_TRUE, 0, oc.debugnum,(void *)w.debugging, 0, NULL, NULL);
     clEnqueueReadBuffer(oc.cmdQueue, oc.bufh, CL_TRUE, 0, oc.ncell, (void *)w.h, 0, NULL, NULL);
-    /*
-    std::cout << "Y[0]a =   " << w.Y[0] << "\n";
-    std::cout << "Y[1]a =   " << w.Y[4096] << "\n";
-    std::cout << "Y[2]a =   " << w.Y[8192] << "\n";
-    std::cout << "Y[3]a =   " << w.Y[12288] << "\n";
-    std::cout << "Y[4]a =   " << w.Y[16384] << "\n";
-    std::cout << "Y[5]a =   " << w.Y[20480] << "\n";
-    std::cout << "Y[6]a =   " << w.Y[24576] << "\n";
-    */
+
+    // chem_finish = gpu_time();
+    // chem_time = chem_finish - chem_start;
+    // printf("Chemistry data transfer to host = %10.5f \n", chem_time);
+
+    
     //    std::cout << "Y[0] =   " << w.Y[0] << "\n";
   
     //    std::cout << "Species Concentration Check (after kernel): " << w.Y[0] << "\n";
-    //    std::cout << "debug value: " << w.debugging[0] << "\n";
+
+    //    chem_start = gpu_time();
 
     // Now reverse step 1. Get concentrations from large Y vector and populate cells with mass fractions.
     for ( size_t i = 0; i < cells.size(); ++i ) {
@@ -329,6 +384,20 @@ int update_chemistry(gpu_chem &gchem, double dt_global, vector<FV_Cell*>& cells)
 	    cp->U[0]->massf[isp] = cp->fs->gas->rho * cp->fs->gas->massf[isp];
     }
 
-      
+    // chem_finish = gpu_time();
+    // chem_time = chem_finish - chem_start;
+    // printf("Chemistry vector post set up = %10.5f \n", chem_time);
+
+
     return SUCCESS;
 }
+
+/*
+double gpu_time()
+{
+  struct timeval t;
+  gettimeofday(&t, NULL);
+  double d = t.tv_sec + (double) t.tv_usec/1000000;
+  return d;
+}
+*/

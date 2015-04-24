@@ -1920,7 +1920,7 @@ int FV_Cell::chemical_increment(double dt_flow)
     double t = 0.0;
     // Keep a record of the penultimate timestep for future use
     double dt_prev = h;
-    double dt_suggest;
+    double dt_suggest = 0.0;
     double sigma = 1.0e-50;   
     double cond = 0.0; 
     double x0 = 0.0;
@@ -1934,14 +1934,15 @@ int FV_Cell::chemical_increment(double dt_flow)
 	for ( int isp = 0; isp < nsp; ++isp ) p[isp] = L[isp] / (conc[isp] + ZERO_EPS);
 	alpha_func(p, h, alpha);
 	for ( int isp = 0; isp < nsp; ++isp ) {
-
-	    yp[isp] = conc[isp] + (h*(q[isp]-p[isp]*conc[isp]))/(1.0+alpha[isp]*dt_chem*p[isp]);        
+	    yp[isp] = conc[isp] + (h*(q[isp]-p[isp]*conc[isp]))/(1.0+alpha[isp]*h*p[isp]);        
 	    // Save a copy of initial predictor
 	    yp0[isp] = yp[isp];
 	}                                                                        
 
 	while ( step_fail == 1 ) {
-	    step_fail = 0;  
+	    step_fail = 0;
+	    sigma = 1.0e-50;
+	    cond = 0.0;
 	    cks->eval_split(yp, qp, L);
 	    for ( int isp = 0; isp < nsp; ++isp ) {
 		pp[isp] = L[isp] / (yp[isp] + ZERO_EPS);
@@ -1950,7 +1951,7 @@ int FV_Cell::chemical_increment(double dt_flow)
 	    alpha_func(p_bar, h, alpha);
 	    for ( int isp = 0; isp < nsp; ++isp ) {
 		q_bar[isp] = alpha[isp]*qp[isp]+(1.0-alpha[isp])*q[isp]; 
-		yc[isp] = conc[isp] + (dt_chem*(q_bar[isp]-p_bar[isp]*conc[isp]))/(1.0+alpha[isp]*dt_chem*p_bar[isp]);
+		yc[isp] = conc[isp] + (h*(q_bar[isp]-p_bar[isp]*conc[isp]))/(1.0+alpha[isp]*h*p_bar[isp]);
 		// Test for convergence
                 cond = (fabs(yc[isp]-yp0[isp])); 
                 if (cond >= (e*(yc[isp]+1.0e-10))) {
@@ -1976,8 +1977,7 @@ int FV_Cell::chemical_increment(double dt_flow)
 	    // Then reset dt_prev to the current good timestep.
 	    // On the final iteration, we've already set dt_chem before we leave
 	    // the routine.
-	    dt_chem = dt_prev;
-	    dt_prev = h;
+	    dt_chem = dt_suggest;
         } 
 
 	// Now work on a suggestion for new timestep
@@ -2000,22 +2000,27 @@ int FV_Cell::chemical_increment(double dt_flow)
 
 	if (flag == 0)  { // successful step
 	    if ( dt_suggest/h > 1.15 )
-		dt_suggest = 1.15*h;
+		h = 1.15*h;
 	    else     
-		dt_suggest = h;
+		h = dt_suggest;
      
 	}
-	else { // unsuccessful step
+	if (flag == 1) { // unsuccessful step WAS < 1.0/3.0
 	    if ( dt_suggest/h > (1.0/3.0) ) {
-		dt_suggest = (1.0/3.0)*h;    
+		h = (1.0/3.0)*h;    
 	    }
 	    else if ( dt_suggest/h < 0.01 ) {
-		dt_suggest = 0.01*h;
+		h = 0.01*h;
 	    }
+	    else
+	      {
+		h = dt_suggest;
+	      }
 	}
 	// Check that dt_suggest doesn't overshoot the total time
 	// we're aiming for.
-	h = min(dt_flow - t, dt_suggest);
+	dt_suggest = h;
+	h = min(dt_flow - t, h);
     }
 
     // Finished looping, now get cell state in order
