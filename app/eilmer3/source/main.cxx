@@ -804,11 +804,6 @@ int prepare_to_integrate(size_t start_tindx)
 int call_udf(double t, size_t step, std::string udf_fn_name)
 {
     lua_getglobal(L, udf_fn_name.c_str());  // function to be called
-    if ( udf_fn_name == "before_grid_update" && lua_isnil(L, -1) ) {
-	// If the user hasn't defined before_grid_update,
-	// we'll just return without doing anything
-	return SUCCESS;
-    }
     lua_newtable(L); // creates a table that is now at the TOS
     lua_pushnumber(L, t); lua_setfield(L, -2, "t");
     lua_pushinteger(L, static_cast<int>(step)); lua_setfield(L, -2, "step");
@@ -821,6 +816,26 @@ int call_udf(double t, size_t step, std::string udf_fn_name)
     return SUCCESS;
 } // end call_udf()
 
+int call_udf2(double t, size_t step, size_t blk_id, std::string udf_fn_name)
+{
+    lua_getglobal(L, udf_fn_name.c_str());  // function to be called
+    if ( udf_fn_name == "before_grid_update" && lua_isnil(L, -1) ) {
+	// If the user hasn't defined before_grid_update,
+	// we'll just return without doing anything
+	return SUCCESS;
+    }
+    lua_newtable(L); // creates a table that is now at the TOS
+    lua_pushnumber(L, t); lua_setfield(L, -2, "t");
+    lua_pushinteger(L, static_cast<int>(step)); lua_setfield(L, -2, "step");
+    lua_pushinteger(L, static_cast<int>(blk_id)); lua_setfield(L, -2, "block_id");
+    int number_args = 1; // table of {t, step}
+    int number_results = 0; // no results returned on the stack.
+    if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
+	handle_lua_error(L, "error running user-defined function: %s\n", lua_tostring(L, -1));
+    }
+    lua_settop(L, 0); // clear the stack
+    return SUCCESS;
+} // end call_udf()
 
 /// \brief Add to the components of the source vector, Q, via a Lua udf.
 /// This is done (occasionally) just after the for inviscid source vector calculation.
@@ -1710,9 +1725,16 @@ int integrate_in_time(double target_time)
 	if ( G.moving_grid ) {
 	    // The user might want to do some customization before the grid update step.
 	    // If so, we provide a user-defined function as the customization point.
+	    
 	    if ( G.udf_file.length() > 0 ) {
-		call_udf( G.sim_time, G.step, "before_grid_update" );
+		for ( Block *bdp : G.my_blocks ) {
+		    call_udf2( G.sim_time, G.step, bdp->id, "before_grid_update" );
+		}
 	    }
+	    // Place a barrier so that each rank has completed the call before moding on
+#           ifdef _MPI	        
+	    MPI_Barrier( MPI_COMM_WORLD );
+#           endif	      
 	    // Grid-movement is done after a specified point in time.
 	    // As Paul Petrie-repar suggested
             // The edge length (2D) or interface area (3D), interface velocity, normal vector
