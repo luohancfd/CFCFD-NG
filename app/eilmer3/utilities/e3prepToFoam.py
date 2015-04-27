@@ -813,7 +813,9 @@ def main(uoDict):
     # move back to starting_directory
     os.chdir(start_dir) 
     if flag != 0:
-        raise MyError("Problem during execution of renumberMesh.")
+    #    raise MyError("Problem during execution of renumberMesh.")
+        print "WARNING: Problem during execution of renumberMesh. \n The simulation should still run without a problem.
+
 
     print warn_str
 

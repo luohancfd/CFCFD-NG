@@ -1446,7 +1446,7 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, jb, grid, flow, ax
         for j in range(njo):
             for i in range(nio):
                 if two_D:
-                    if axi_flag:
+                    if float(axi_flag) == 1:
                         x,y,z = uflowz(grid.x[i,j,0]), uflowz(grid.y[i,j,0]), uflowz(grid.z[i,j,0])
                         if k == 0:
                             y = y * 0.99920010666097792 # = cos(0.04)
