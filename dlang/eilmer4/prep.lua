@@ -809,6 +809,7 @@ function SSolidBlock:new(o)
    -- Must have a grid and initial temperature
    assert(o.grid, "need to supply a grid")
    assert(o.initTemperature, "need to supply an initTemperature")
+   assert(o.properties, "need to supply physical properties for the block")
    -- Fill in some defaults, if not already set
    o.active = o.active or true
    o.label = o.label or string.format("SOLIDBLOCK-%d", o.id)
@@ -972,6 +973,10 @@ function build_job_files(job)
    write_block_list_file(job .. ".list")
    os.execute("mkdir -p grid/t0000")
    os.execute("mkdir -p flow/t0000")
+   if #solidBlocks >= 1 then
+      os.execute("mkdir -p solid-grid/t0000")
+      os.execute("mkdir -p solid/t0000")
+   end
    for i = 1, #blocks do
       local id = blocks[i].id
       print("Block id=", id)
@@ -982,6 +987,18 @@ function build_job_files(job)
       write_initial_flow_file(fileName, blocks[i].grid, blocks[i].fillCondition, 0.0)
       os.execute("gzip -f " .. fileName)
    end
+   for i = 1, #solidBlocks do
+      local id = solidBlocks[i].id
+      print("SolidBlock id=", id)
+      local fileName = "solid-grid/t0000/" .. job .. string.format(".grid.b%04d.t0000", id)
+      solidBlocks[i].grid:write_to_text_file(fileName)
+      os.execute("gzip -f " .. fileName)
+      local fileName = "solid/t0000/" .. job .. string.format(".solid.b%04d.t0000", id)
+      writeInitialSolidFile(fileName, solidBlocks[i].grid,
+			    solidBlocks[i].initTemperature, solidBlocks[i].properties, 0.0)
+      os.execute("gzip -f " .. fileName)
+   end
+
    print("Done building files.")
 end
 

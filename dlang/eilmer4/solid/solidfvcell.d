@@ -9,17 +9,23 @@
 
 module solidfvcell;
 
+import std.conv;
+import std.string;
+import std.array;
+import std.format;
 import geom;
+import fvcore;
 import solidfvinterface;
 import solidfvvertex;
 import solidprops;
 
 class SolidFVCell {
 public:
+    size_t id;
     // Cell properties
     double volume;
+    double areaxy;
     Vector3 pos;
-    SolidProps sp;
     // Cell state
     double[] T;
     double[] e;
@@ -27,6 +33,33 @@ public:
     // Connections
     SolidFVInterface[] iface;
     SolidFVVertex[] vtx;
+
+    this()
+    {
+	T.length = n_time_levels;
+	e.length = n_time_levels;
+	dedt.length = n_time_levels;
+    }
+
+    void scanValuesFromString(string buffer)
+    {
+	auto items = split(buffer);
+	pos.refx = to!double(items.front); items.popFront();
+	pos.refy = to!double(items.front); items.popFront();
+	pos.refz = to!double(items.front); items.popFront();
+	volume = to!double(items.front); items.popFront();
+	e[0] = to!double(items.front); items.popFront();
+	T[0] = to!double(items.front); items.popFront();
+    }
+
+    string writeValuesToString() const
+    {
+	auto writer = appender!string();
+	formattedWrite(writer, "%.16e %.16e %.16e %.16e %.16e %.16e",
+		       pos.x, pos.y, pos.z, volume, e[0], T[0]);
+	return writer.data;
+    }
+
 
     void timeDerivatives(int ftl, int dimensions)
     {
@@ -53,7 +86,6 @@ public:
     {
 	double gamma1 = 1.0;
 	e[1] = e[0] + dt*gamma1*dedt[0];
-	T[1] = updateTemperature(sp, e[1]);
     }
     void stage2Update(double dt)
     {
@@ -61,7 +93,14 @@ public:
 	double gamma1 = 0.5;
 	double gamma2 = 0.5;
 	e[2] = e[0] + dt*(gamma1*dedt[0] + gamma2*dedt[1]);
-	T[2] = updateTemperature(sp, e[2]);
     }
 
+}
+
+string[] varListForSolidCell()
+{
+    string[] list;
+    list ~= ["pos.x", "pos.y", "pos.z", "volume"];
+    list ~= ["e", "T"];
+    return list;
 }

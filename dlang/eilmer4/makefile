@@ -24,7 +24,8 @@ SOLID_FILES := solid/solidbc.d \
 	solid/solidfvcell.d \
 	solid/solidfvinterface.d \
 	solid/solidfvvertex.d \
-	solid/solidprops.d
+	solid/solidprops.d \
+	solid/luasolidprops.d
 
 GAS_DIR := ../gas
 

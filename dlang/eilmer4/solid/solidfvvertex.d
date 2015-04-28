@@ -7,9 +7,14 @@
 
 module solidfvvertex;
 
+import geom;
+
 class SolidFVVertex {
 public:
+    size_t id;
+    Vector3 pos;
     double area;
+    double areaxy;
     double dTdx;
     double dTdy;
 

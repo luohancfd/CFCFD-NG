@@ -25,7 +25,7 @@ import luasurface;
 import luavolume;
 import luaunifunction;
 import luasgrid;
-
+import luasolidprops;
 
 void main(string[] args)
 {
@@ -92,6 +92,7 @@ void main(string[] args)
 	registerVolumes(lua);
 	registerUnivariateFunctions(lua);
 	registerStructuredGrid(lua);
+	registerSolidProps(lua);
 	lua.doFile(dirName(thisExePath())~"/prep.lua");
 	lua.doFile(jobName~".lua");
 	lua.doString("build_job_files(\""~jobName~"\")");

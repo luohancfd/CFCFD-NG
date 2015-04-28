@@ -27,6 +27,7 @@ import flowstate;
 import sblock;
 import ssolidblock;
 import solidfvcore;
+import solidprops;
 import bc;
 import user_defined_source_terms;
 
@@ -78,6 +79,17 @@ double init_simulation(int tindx)
 	    cell.decode_conserved(0, 0, myblk.omegaz); // <--- caused segfault
 	}
 	myblk.set_cell_dt_chem(-1.0);
+    }
+    foreach (ref mySolidBlk; mySolidBlocks) {
+	mySolidBlk.assembleArrays();
+	mySolidBlk.bindFacesAndVerticesToCells();
+	writeln("mySolidBlk= ", mySolidBlk);
+	mySolidBlk.readGrid(make_file_name!"solid-grid"(job_name, mySolidBlk.id, tindx));
+	mySolidBlk.readSolution(make_file_name!"solid"(job_name, mySolidBlk.id, tindx));
+    }
+    foreach (ref mySolidBlk; mySolidBlocks) {
+	mySolidBlk.computePrimaryCellGeometricData();
+	mySolidBlk.computeSecondaryCellGeometricData();
     }
     // [TODO] Is it appropriate to disable this?
     //exchange_shared_boundary_data();
@@ -206,6 +218,10 @@ double integrate_in_time(double target_time, int maxWallClock)
 	    foreach (ref myblk; myBlocks) {
 		auto file_name = make_file_name!"flow"(job_name, myblk.id, current_tindx);
 		myblk.write_solution(file_name, sim_time);
+	    }
+	    foreach (ref mySolidBlk; mySolidBlocks) {
+		auto fileName = make_file_name!"solid"(job_name, mySolidBlk.id, current_tindx);
+		mySolidBlk.writeSolution(fileName, sim_time);
 	    }
 	    update_times_file();
 	    output_just_written = true;
@@ -464,6 +480,7 @@ void solidDomainExplicitIncrement()
 	    //	    }
 	    cell.timeDerivatives(0, GlobalConfig.dimensions);
 	    cell.stage1Update(dt_global);
+	    cell.T[1] = updateTemperature(blk.sp, cell.e[1]);
 	} // end foreach cell
     } // end foreach blk
 
@@ -487,6 +504,7 @@ void solidDomainExplicitIncrement()
 		//}
 		cell.timeDerivatives(1, GlobalConfig.dimensions);
 		cell.stage2Update(dt_global);
+		cell.T[2] = updateTemperature(blk.sp, cell.e[2]);
 	    } // end foreach cell
 	} // end foreach blk
     } // end if numberOfStagesForUpdateScheme >= 2
@@ -504,6 +522,4 @@ void solidDomainExplicitIncrement()
 	    cell.T[0] = cell.T[endIdx];
 	} 
     } // end foreach block
-    // Finally, update the the globally known simulation time for whole step.
-    sim_time = t0 + dt_global;
 } // end solidDomainExplicitIncrement()
