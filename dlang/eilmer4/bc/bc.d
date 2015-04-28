@@ -45,8 +45,13 @@ BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary
 	    newBC.ghost_cell_data_available = true;
 	}
     }
-    // [TODO] We need to fill out the Action list
-    // for other hook points.
+    auto preSpatialDerivActionList = jsonData["pre_spatial_deriv_action"].array;
+    foreach ( jsonObj; preSpatialDerivActionList ) {
+	newBC.preSpatialDerivAction ~= make_BIE_from_json(jsonObj, blk_id, boundary);
+	// [TODO] need to think about a way to connect to the user_defined BC
+	// as appropriate, or do we just have separate interpreters?
+    }
+    // [TODO] We need to fill out the Action lists for other hook points.
     return newBC;
 } // end make_BC_from_json()
 
@@ -108,6 +113,14 @@ public:
 	    repr ~= "preReconAction=[" ~ to!string(preReconAction[0]);
 	    foreach (i; 1 .. preReconAction.length) {
 		repr ~= ", " ~ to!string(preReconAction[i]);
+	    }
+	    repr ~= "]";
+	}
+	repr ~= ", ";
+	if ( preSpatialDerivAction.length > 0 ) {
+	    repr ~= "preSpatialDerivAction=[" ~ to!string(preSpatialDerivAction[0]);
+	    foreach (i; 1 .. preSpatialDerivAction.length) {
+		repr ~= ", " ~ to!string(preSpatialDerivAction[i]);
 	    }
 	    repr ~= "]";
 	}

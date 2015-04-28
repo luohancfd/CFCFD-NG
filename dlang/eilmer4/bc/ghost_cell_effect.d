@@ -56,7 +56,7 @@ GhostCellEffect make_GCE_from_json(JSONValue jsonData, int blk_id, int boundary)
 	int xOrder = getJSONint(jsonData, "x_order", 0);
 	newGCE = new GhostCellExtrapolateCopy(blk_id, boundary, xOrder);
 	break;
-    case "fixed_p":
+    case "fixed_pressure_temperature":
 	double POut = getJSONdouble(jsonData, "p_out", 1.0e5);
 	double TOut = getJSONdouble(jsonData, "T_out", 300.0);
 	newGCE = new GhostCellFixedPT(blk_id, boundary, POut, TOut);
@@ -873,7 +873,7 @@ public:
 
     override string toString() const 
     {
-	return "FixedP(p_out=" ~ to!string(Pout) ~ ", T_out=" ~ to!string(Tout) ~")";
+	return "FixedPT(p_out=" ~ to!string(Pout) ~ ", T_out=" ~ to!string(Tout) ~")";
     }
     
     override void apply(double t, int gtl, int ftl)

@@ -325,7 +325,14 @@ function to_eilmer_axis_map(gridpro_ijk)
 end
 
 -- -----------------------------------------------------------------------
--- Class for GhostCellEffect
+-- Classes for constructing boundary conditions.
+-- Each boundary condition is composed of lists of actions to do
+-- at specific points in the superloop of the main simulation code.
+
+-- For the classes below, we just follow the prototype pattern
+-- given in Ierusalimchy's book "Programming in Lua"
+
+-- Base class and subclasses for GhostCellEffect
 GhostCellEffect = {
    type = ""
 }
@@ -345,7 +352,7 @@ end
 
 FlowStateCopy = GhostCellEffect:new{flowCondition=nil}
 FlowStateCopy.type = "flowstate_copy"
-function GhostCellEffect:tojson()
+function FlowStateCopy:tojson()
    local str = string.format('          {"type": "%s",', self.type)
    str = str .. string.format(' "flowstate": %s', self.flowCondition:toJSONString())
    str = str .. '}'
@@ -356,6 +363,14 @@ ExtrapolateCopy = GhostCellEffect:new{xOrder=0}
 ExtrapolateCopy.type = "extrapolate_copy"
 function ExtrapolateCopy:tojson()
    local str = string.format('          {"type": "%s", "x_order": %d}', self.type, self.xOrder)
+   return str
+end
+
+FixedPT = GhostCellEffect:new{p_out=1.0e5, T_out=300.0}
+FixedPT.type = "fixed_pressure_temperature"
+function FixedPT:tojson()
+   local str = string.format('          {"type": "%s", "p_out": %f, "T_out": %f}',
+			     self.type, self.p_out, self.T_out)
    return str
 end
 
@@ -379,14 +394,61 @@ function UserDefinedGhostCell:tojson()
    return str
 end
 
+-- Base class and subclasses for BoundaryInterfaceEffect
+BoundaryInterfaceEffect = {
+   type = ""
+}
+function BoundaryInterfaceEffect:new(o)
+   o = o or {}
+   setmetatable(o, self)
+   self.__index = self
+   return o
+end
+
+CopyCellData = BoundaryInterfaceEffect:new()
+CopyCellData.type = "copy_cell_data"
+function CopyCellData:tojson()
+   local str = string.format('          {"type" : "%s"}', self.type)
+   return str
+end
+
+ZeroVelocity = BoundaryInterfaceEffect:new()
+ZeroVelocity.type = "zero_velocity"
+function ZeroVelocity:tojson()
+   local str = string.format('          {"type" : "%s"}', self.type)
+   return str
+end
+
+FixedT = BoundaryInterfaceEffect:new{Twall=nil}
+FixedT.type = "fixed_temperature"
+function FixedT:tojson()
+   local str = string.format('          {"type": "%s",', self.type)
+   str = str .. string.format(' "Twall": %f', self.Twall)
+   str = str .. '}'
+   return str
+end
+
+UpdateThermoTransCoeffs = BoundaryInterfaceEffect:new()
+UpdateThermoTransCoeffs.type = "update_thermo_trans_coeffs"
+function UpdateThermoTransCoeffs:tojson()
+   local str = string.format('          {"type" : "%s"}', self.type)
+   return str
+end
+
+WallKOmega = BoundaryInterfaceEffect:new()
+WallKOmega.type = "wall_k_omega"
+function WallKOmega:tojson()
+   local str = string.format('          {"type" : "%s"}', self.type)
+   return str
+end
+
 -- Class for BoundaryCondition
--- For the classes below, we just follow the prototype pattern
--- given in Ierusalimchy's book "Programming in Lua"
 
 BoundaryCondition = {
    label = "",
    myType = "",
-   preReconAction = {}
+   preReconAction = {},
+   preSpatialDerivAction = {}
 }
 function BoundaryCondition:new(o)
    o = o or {}
@@ -403,7 +465,14 @@ function BoundaryCondition:tojson()
       -- Extra code to deal with annoying JSON trailing comma deficiency
       if i ~= #self.preReconAction then str = str .. "," end
    end
-   str = str .. '\n        ]\n    }'
+   str = str .. '\n        ],\n'
+   str = str .. '        "pre_spatial_deriv_action": [\n'
+   for i,effect in ipairs(self.preSpatialDerivAction) do
+      str = str .. effect:tojson()
+      if i ~= #self.preSpatialDerivAction then str = str .. "," end
+   end
+   str = str .. '\n        ]\n'
+   str = str .. '    }'
    return str
 end
 
@@ -412,6 +481,29 @@ SlipWallBC.myType = "SlipWall"
 function SlipWallBC:new(o)
    o = BoundaryCondition.new(self, o)
    o.preReconAction = { InternalCopyThenReflect:new() }
+   o.preSpatialDerivAction = { CopyCellData:new() }
+   return o
+end
+
+FixedTWallBC = BoundaryCondition:new()
+FixedTWallBC.myType = "FixedTWall"
+function FixedTWallBC:new(o)
+   o = BoundaryCondition.new(self, o)
+   o.preReconAction = { InternalCopyThenReflect:new() }
+   o.preSpatialDerivAction = { CopyCellData:new(), ZeroVelocity:new(),
+			       FixedT:new{Twall=o.Twall},
+			       UpdateThermoTransCoeffs:new(),
+			       WallKOmega:new() }
+   return o
+end
+
+AdiabaticWallBC = BoundaryCondition:new()
+AdiabaticWallBC.myType = "FixedTWall"
+function AdiabaticWallBC:new(o)
+   o = BoundaryCondition.new(self, o)
+   o.preReconAction = { InternalCopyThenReflect:new() }
+   o.preSpatialDerivAction = { CopyCellData:new(), ZeroVelocity:new(),
+			       WallKOmega:new() }
    return o
 end
 
@@ -420,6 +512,7 @@ SupInBC.myType = "SupIn"
 function SupInBC:new(o)
    o = BoundaryCondition.new(self, o)
    o.preReconAction = { FlowStateCopy:new{flowCondition=o.flowCondition} }
+   o.preSpatialDerivAction = { CopyCellData:new() }
    return o
 end
 
@@ -428,6 +521,17 @@ ExtrapolateOutBC.myType = "ExtrapolateOut"
 function ExtrapolateOutBC:new(o)
    o = BoundaryCondition.new(self, o)
    o.preReconAction = { ExtrapolateCopy:new{xOrder = o.xOrder} }
+   o.preSpatialDerivAction = { CopyCellData:new() }
+   return o
+end
+
+FixedPTOutBC = BoundaryCondition:new()
+FixedPTOutBC.myType = "FixedPTOut"
+function FixedPTOutBC:new(o)
+   o = BoundaryCondition.new(self, o)
+   o.preReconAction = { ExtrapolateCopy:new{xOrder = o.xOrder},
+			FixedPT:new{p_out=o.p_out, T_out=o.T_out} }
+   o.preSpatialDerivAction = { CopyCellData:new() }
    return o
 end
 
@@ -438,6 +542,7 @@ function FullFaceExchangeBC:new(o)
    o.preReconAction = { FullFaceExchangeCopy:new{otherBlock=o.otherBlock,
 						 otherFace=o.otherFace,
 						 orientation=o.orientation} }
+   o.preSpatialDerivAction = { CopyCellData:new() }
    return o
 end
 
@@ -446,6 +551,7 @@ UserDefinedBC.myType = "UserDefined"
 function UserDefinedBC:new(o)
    o = BoundaryCondition.new(self, o)
    o.preReconAction = { UserDefinedGhostCell:new{fileName=o.fileName} }
+   o.preSpatialDerivAction = { CopyCellData:new() } -- [TODO] change when functions available
    return o
 end
 

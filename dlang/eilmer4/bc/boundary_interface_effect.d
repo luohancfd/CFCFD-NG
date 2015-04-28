@@ -31,20 +31,20 @@ BoundaryInterfaceEffect make_BIE_from_json(JSONValue jsonData, int blk_id, int b
     string bieType = jsonData["type"].str;
     BoundaryInterfaceEffect newBIE;
     switch (bieType) {
-    case "copyCellData":
+    case "copy_cell_data":
 	newBIE = new BIE_CopyCellData(blk_id, boundary);
 	break;
-    case "zeroVelocity":
+    case "zero_velocity":
 	newBIE = new BIE_ZeroVelocity(blk_id, boundary);
 	break;
-    case "fixedT":
+    case "fixed_temperature":
 	double Twall = getJSONdouble(jsonData, "Twall", 300.0);
 	newBIE = new BIE_FixedT(blk_id, boundary, Twall);
 	break;
-    case "updateThermoTransCoeffs":
+    case "update_thermo_trans_coeffs":
 	newBIE = new BIE_UpdateThermoTransCoeffs(blk_id, boundary);
 	break;
-    case "wallKOmega":
+    case "wall_k_omega":
 	newBIE = new BIE_WallKOmega(blk_id, boundary);
 	break;
     // case "user_defined":
