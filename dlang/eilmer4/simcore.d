@@ -15,7 +15,6 @@ import std.format;
 import std.string;
 import std.algorithm;
 import std.datetime;
-import std.parallelism;
 
 import fileutil;
 import geom;
@@ -55,28 +54,16 @@ double init_simulation(int tindx)
     read_config_file();  // most of the configuration is in here
     read_control_file(); // some of the configuration is in here
     current_tindx = tindx;
-    double[] sim_times_from_solutions;
     double sim_time;
     auto job_name = GlobalConfig.base_file_name;
     foreach (ref myblk; myBlocks) {
 	myblk.assemble_arrays();
-    }
-    writeln("totalCPUs= ", totalCPUs);
-    foreach (ref myblk; parallel(myBlocks, 1)) { // try parallelism
 	myblk.bind_faces_and_vertices_to_cells();
 	writeln("myblk=", myblk);
 	myblk.read_grid(make_file_name!"grid"(job_name, myblk.id, tindx), 0);
+	sim_time = myblk.read_solution(make_file_name!"flow"(job_name, myblk.id, tindx));
     }
-    sim_times_from_solutions.length = myBlocks.length;
-    writeln("About to read solutions.");
-    foreach (i, ref myblk; myBlocks) { // segmentation fault if parallel; would like to merge with loop above
-	sim_times_from_solutions[i] = 
-	    myblk.read_solution(make_file_name!"flow"(job_name, myblk.id, tindx));
-    }
-    writeln("After reading solutions.");
-    sim_time = sim_times_from_solutions[0]; // arbitrarily pick the first
-
-    foreach (ref myblk; parallel(myBlocks, 1)) {
+    foreach (ref myblk; myBlocks) {
 	myblk.compute_primary_cell_geometric_data(0);
 	myblk.compute_distance_to_nearest_wall_for_all_cells(0);
 	myblk.compute_secondary_cell_geometric_data(0);
@@ -88,17 +75,9 @@ double init_simulation(int tindx)
 	    // Even though the following call appears redundant at this point,
 	    // fills in some gas properties such as Prandtl number that is
 	    // needed for both the cfd_check and the BLomax turbulence model.
-	    // cell.decode_conserved(0, 0, myblk.omegaz); // <--- caused segfault
+	    cell.decode_conserved(0, 0, myblk.omegaz); // <--- caused segfault
 	}
 	myblk.set_cell_dt_chem(-1.0);
-    }
-    foreach (ref myblk; myBlocks) { // segmentation fault if parallel; would like to merge with loop above
-	foreach (ref cell; myblk.active_cells) {
-	    // Even though the following call appears redundant at this point,
-	    // fills in some gas properties such as Prandtl number that is
-	    // needed for both the cfd_check and the BLomax turbulence model.
-	    cell.decode_conserved(0, 0, myblk.omegaz);
-	}
     }
     // [TODO] Is it appropriate to disable this?
     //exchange_shared_boundary_data();
