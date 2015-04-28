@@ -35,7 +35,7 @@ public:
 	_lua = lua;
     }
 
-    override void apply(double t, int tLevel)
+    override void apply(double t, int gtl, int ftl)
     {
 	size_t i, j, k;
 	FVCell ghostCell0, ghostCell1;
@@ -52,7 +52,7 @@ public:
 		    ghostCell0 = blk.get_cell(i,j+1,k);
 		    ghostCell1 = blk.get_cell(i,j+2,k);
 		    IFace = ghostCell0.iface[Face.south];
-		    callGhostCellUDF(t, tLevel, i, j, k, IFace, ghostCell0, ghostCell1);
+		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1);
 		} // end i loop
 	    } // end k loop
 	    break;
@@ -63,7 +63,7 @@ public:
 		    ghostCell0 = blk.get_cell(i+1,j,k);
 		    ghostCell1 = blk.get_cell(i+2,j,k);
 		    IFace = ghostCell0.iface[Face.west];
-		    callGhostCellUDF(t, tLevel, i, j, k, IFace, ghostCell0, ghostCell1);
+		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1);
 		} // end j loop
 	    } // end k loop
 	    break;
@@ -74,7 +74,7 @@ public:
 		    ghostCell0 = blk.get_cell(i,j-1,k);
 		    ghostCell1 = blk.get_cell(i,j-2,k);
 		    IFace = ghostCell0.iface[Face.north];
-		    callGhostCellUDF(t, tLevel, i, j, k, IFace, ghostCell0, ghostCell1);
+		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1);
 		} // end i loop
 	    } // end j loop
 	    break;
@@ -85,7 +85,7 @@ public:
 		    ghostCell0 = blk.get_cell(i-1,j,k);
 		    ghostCell1 = blk.get_cell(i-2,j,k);
 		    IFace = ghostCell0.iface[Face.east];
-		    callGhostCellUDF(t, tLevel, i, j, k, IFace, ghostCell0, ghostCell1);
+		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1);
 		} // end j loop
 	    } // end k loop
 	    break;
@@ -96,7 +96,7 @@ public:
 		    ghostCell0 = blk.get_cell(i,j,k+1);
 		    ghostCell1 = blk.get_cell(i,j,k+2);
 		    IFace = ghostCell0.iface[Face.bottom];
-		    callGhostCellUDF(t, tLevel, i, j, k, IFace, ghostCell0, ghostCell1);
+		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1);
 		} // end j loop
 	    } // end i loop
 	    break;
@@ -107,7 +107,7 @@ public:
 		    ghostCell0 = blk.get_cell(i,j,k-1);
 		    ghostCell1 = blk.get_cell(i,j,k-2);
 		    IFace = ghostCell0.iface[Face.top];
-		    callGhostCellUDF(t, tLevel, i, j, k, IFace, ghostCell0, ghostCell1);
+		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1);
 		} // end j loop
 	    } // end i loop
 	    break;
@@ -139,7 +139,7 @@ private:
 	ghostCell.fs.omega = getDouble(t, "omega", 0.0);
     }
 
-    void callGhostCellUDF(double t, int tLevel, size_t i, size_t j, size_t k,
+    void callGhostCellUDF(double t, int gtl, int ftl, size_t i, size_t j, size_t k,
 			  in FVInterface IFace, FVCell ghostCell0, FVCell ghostCell1)
     {
 	// 1. Set useful values for caller in table
@@ -147,7 +147,8 @@ private:
 	args["t"] = t; 
 	args["dt"] = dt_global;
 	args["timeStep"] = step;
-	args["timeLevel"] = tLevel;
+	args["gridTimeLevel"] = gtl;
+	args["flowTimeLevel"] = ftl;
 	args["x"] = IFace.pos.x;
 	args["y"] = IFace.pos.y;
 	args["z"] = IFace.pos.z;

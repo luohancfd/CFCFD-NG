@@ -85,19 +85,6 @@ double init_simulation(int tindx)
     return sim_time;
 } // end init_simulation()
 
-/* For shared memory code, boundary condition
-   does copy directly.
-void exchange_shared_boundary_data()
-{
-    foreach (ref myblk; myBlocks) {
-	foreach (face; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
-	    if (myblk.bc[face].type_code == BCCode.full_face_exchange) {
-		myblk.bc[face].do_copy_into_boundary();
-	    }
-	} // end foreach face
-    } // end foreach myblk
-} // end exchange_shared_boundary_data()
-*/
 void update_times_file()
 {
     auto writer = appender!string();
@@ -313,40 +300,38 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	blk.clear_fluxes_of_conserved_quantities();
 	foreach (cell; blk.active_cells) cell.clear_source_vector();
     }
+    // First-stage of gas-dynamic update.
+    int ftl = 0; // time-level within the overall convective-update
+    int gtl = 0; // grid time-level remains at zero for the non-moving grid
     foreach (blk; myBlocks) {
 	if (!blk.active) continue;
-	blk.applyPreReconAction(sim_time, 0);
+	blk.applyPreReconAction(sim_time, gtl, ftl);
 	// We've put this detector step here because it needs the ghost-cell data
 	// to be current, as it should be just after a call to apply_convective_bc().
 	if (GlobalConfig.flux_calculator == FluxCalculator.adaptive)
 	    blk.detect_shock_points();
     }
-    // First-stage of gas-dynamic update.
-    int t_level = 0; // within the overall convective-update
     foreach (blk; myBlocks) {
 	if (!blk.active) continue;
 	blk.convective_flux();
 	if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-	    // [TODO] Replace with applyPreSpatialDeriv
-	    //blk.apply_viscous_bc(sim_time);
-	    if (GlobalConfig.turbulence_model == TurbulenceModel.k_omega)
-		blk.apply_menter_boundary_correction(0);
-	    blk.viscous_derivatives(0); 
+	    blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+	    blk.viscous_derivatives(gtl); 
 	    blk.estimate_turbulence_viscosity();
 	    blk.viscous_flux();
 	} // end if viscous
 	foreach (cell; blk.active_cells) {
-	    cell.add_inviscid_source_vector(0, blk.omegaz);
+	    cell.add_inviscid_source_vector(gtl, blk.omegaz);
 	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 		cell.add_viscous_source_vector(with_k_omega);
 	    }
 	    if (GlobalConfig.udf_source_terms) {
-		addUDFSourceTermsToCell(cell, 0, sim_time);
+		addUDFSourceTermsToCell(cell, gtl, sim_time);
 	    }
-	    cell.time_derivatives(0, 0, GlobalConfig.dimensions, with_k_omega);
+	    cell.time_derivatives(gtl, ftl, GlobalConfig.dimensions, with_k_omega);
 	    bool force_euler = false;
 	    cell.stage_1_update_for_flow_on_fixed_grid(dt_global, force_euler, with_k_omega);
-	    cell.decode_conserved(0, 1, blk.omegaz);
+	    cell.decode_conserved(gtl, ftl+1, blk.omegaz);
 	} // end foreach cell
     } // end foreach blk
     //
@@ -359,39 +344,36 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    foreach (cell; blk.active_cells) cell.clear_source_vector();
 	}
 	// Second stage of gas-dynamic update.
-	t_level = 1;
-	// Apply preReconAction to all blocks first.
-	// We might be relying on exchangine boundary data
+	ftl = 1;
+	// We are relying on exchangine boundary data
 	// as a pre-reconstruction activity.
-	// NOTE FOR PJ: This replaces exchange. Good idea or no?
+	// NOTE FOR PJ: This replaces exchange. Good idea or no? 
+	// Reply from PJ: YES
 	foreach (blk; myBlocks) {
 	    if (!blk.active) continue;
-	    blk.applyPreReconAction(sim_time, t_level);
+	    blk.applyPreReconAction(sim_time, gtl, ftl);
 	}
 	foreach (blk; myBlocks) {
 	    if (!blk.active) continue;
 	    blk.convective_flux();
 	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-		// [TODO] Replace with applyPreSpatialDeriv
-		//		blk.apply_viscous_bc(sim_time);
-		if (GlobalConfig.turbulence_model == TurbulenceModel.k_omega)
-		    blk.apply_menter_boundary_correction(1);
-		blk.viscous_derivatives(0); 
+		blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+		blk.viscous_derivatives(gtl); 
 		blk.estimate_turbulence_viscosity();
 		blk.viscous_flux();
 	    } // end if viscous
 	    foreach (cell; blk.active_cells) {
-		cell.add_inviscid_source_vector(0, blk.omegaz);
+		cell.add_inviscid_source_vector(gtl, blk.omegaz);
 		if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 		    cell.add_viscous_source_vector(with_k_omega);
 		}
 		if (GlobalConfig.udf_source_terms) {
-		    addUDFSourceTermsToCell(cell, 0, sim_time);
+		    addUDFSourceTermsToCell(cell, gtl, sim_time);
 		}
-		cell.time_derivatives(0, 1, GlobalConfig.dimensions, with_k_omega);
+		cell.time_derivatives(gtl, ftl, GlobalConfig.dimensions, with_k_omega);
 		bool force_euler = false;
 		cell.stage_2_update_for_flow_on_fixed_grid(dt_global, with_k_omega);
-		cell.decode_conserved(0, 2, blk.omegaz);
+		cell.decode_conserved(gtl, ftl+1, blk.omegaz);
 	    } // end foreach cell
 	} // end foreach blk
     } // end if number_of_stages_for_update_scheme >= 2 
@@ -404,38 +386,34 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    blk.clear_fluxes_of_conserved_quantities();
 	    foreach (cell; blk.active_cells) cell.clear_source_vector();
 	}
-	t_level = 2;
-	// Apply preReconAction to all blocks first.
-	// We might be relying on exchangine boundary data
+	ftl = 2;
+	// We are relying on exchangine boundary data
 	// as a pre-reconstruction activity.
-	// NOTE FOR PJ: This replaces exchange. Good idea or no?
 	foreach (blk; myBlocks) {
 	    if (!blk.active) continue;
-	    blk.applyPreReconAction(sim_time, t_level);
+	    blk.applyPreReconAction(sim_time, gtl, ftl);
 	}
 	foreach (blk; myBlocks) {
 	    if (!blk.active) continue;
 	    blk.convective_flux();
-	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {         // [TODO] Replace with applyPreSpatialDeriv
-		//blk.apply_viscous_bc(sim_time);
-		if (GlobalConfig.turbulence_model == TurbulenceModel.k_omega)
-		    blk.apply_menter_boundary_correction(2);
-		blk.viscous_derivatives(0); 
+	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
+		blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+		blk.viscous_derivatives(gtl); 
 		blk.estimate_turbulence_viscosity();
 		blk.viscous_flux();
 	    } // end if viscous
 	    foreach (cell; blk.active_cells) {
-		cell.add_inviscid_source_vector(0, blk.omegaz);
+		cell.add_inviscid_source_vector(gtl, blk.omegaz);
 		if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 		    cell.add_viscous_source_vector(with_k_omega);
 		}
 		if (GlobalConfig.udf_source_terms) {
-		    addUDFSourceTermsToCell(cell, 0, sim_time);
+		    addUDFSourceTermsToCell(cell, gtl, sim_time);
 		}
-		cell.time_derivatives(0, 2, GlobalConfig.dimensions, with_k_omega);
+		cell.time_derivatives(gtl, ftl, GlobalConfig.dimensions, with_k_omega);
 		bool force_euler = false;
 		cell.stage_2_update_for_flow_on_fixed_grid(dt_global, with_k_omega);
-		cell.decode_conserved(0, 3, blk.omegaz);
+		cell.decode_conserved(gtl, ftl+1, blk.omegaz);
 	    } // end foreach cell
 	} // end foreach blk
     } // end if number_of_stages_for_update_scheme >= 3
@@ -528,4 +506,4 @@ void solidDomainExplicitIncrement()
     } // end foreach block
     // Finally, update the the globally known simulation time for whole step.
     sim_time = t0 + dt_global;
-}
+} // end solidDomainExplicitIncrement()

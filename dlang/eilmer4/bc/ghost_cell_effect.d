@@ -97,7 +97,7 @@ public:
     {
 	return "GhostCellEffect()";
     }
-    abstract void apply(double t, int tLevel);
+    abstract void apply(double t, int gtl, int ftl);
 } // end class GhostCellEffect
 
 class GhostCellInternalCopyThenReflect : GhostCellEffect {
@@ -113,7 +113,7 @@ public:
 	return "InternalCopyThenReflect()";
     }
 
-    override void apply(double t, int tLevel)
+    override void apply(double t, int gtl, int ftl)
     {
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
@@ -285,7 +285,7 @@ public:
 	return "flowStateCopy(fstate=" ~ to!string(fstate) ~ ")";
     }
 
-    override void apply(double t, int tLevel)
+    override void apply(double t, int gtl, int ftl)
     {
     	// Fill ghost cells with data from just inside the boundary
 	// using zero-order extrapolation (i.e. just copy the data).
@@ -381,7 +381,7 @@ public:
 	return "ExtrapolateCopy(x_order=" ~ to!string(xOrder) ~ ")";
     }
     
-    override void apply(double t, int tLevel)
+    override void apply(double t, int gtl, int ftl)
     {
 	// Fill ghost cells with data from just inside the boundary
 	// using zero-order extrapolation (i.e. just copy the data).
@@ -871,7 +871,7 @@ public:
 	return "FixedP(p_out=" ~ to!string(Pout) ~ ", T_out=" ~ to!string(Tout) ~")";
     }
     
-    override void apply(double t, int tLevel)
+    override void apply(double t, int gtl, int ftl)
     {
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
@@ -1000,7 +1000,7 @@ public:
 	    ", orient=" ~ to!string(neighbourOrientation) ~ ")";
     }
 
-    override void apply(double t, int tLevel)
+    override void apply(double t, int gtl, int ftl)
     {
 	// TODO Check me!  This is a work-around.
 	// We should be able to directly reference the BCs block as blk.

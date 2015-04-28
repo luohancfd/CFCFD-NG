@@ -75,7 +75,7 @@ public:
     {
 	return "BoundaryInterfaceEffect()";
     }
-    abstract void apply(double t, int tLevel);
+    abstract void apply(double t, int gtl, int ftl);
 } // end class BoundaryInterfaceEffect
 
 
@@ -90,7 +90,7 @@ class BIE_CopyCellData : BoundaryInterfaceEffect {
 	return "CopyCellData()";
     }
 
-    override void apply(double t, int tLevel)
+    override void apply(double t, int gtl, int ftl)
     {
 	size_t i, j, k;
 	FVCell cell;
@@ -181,7 +181,7 @@ class BIE_ZeroVelocity : BoundaryInterfaceEffect {
 	return "ZeroVelocity()";
     }
 
-    override void apply(double t, int tLevel)
+    override void apply(double t, int gtl, int ftl)
     {
 	size_t i, j, k;
 	FVCell cell;
@@ -276,7 +276,7 @@ public:
 	return "FixedT(Twall=" ~ to!string(Twall) ~ ")";
     }
 
-    override void apply(double t, int tLevel)
+    override void apply(double t, int gtl, int ftl)
     {
 	size_t i, j, k;
 	FVCell cell;
@@ -367,7 +367,7 @@ class BIE_UpdateThermoTransCoeffs : BoundaryInterfaceEffect {
 	return "UpdateThermoTransCoeffs()";
     }
 
-    override void apply(double t, int tLevel)
+    override void apply(double t, int gtl, int ftl)
     {
 	size_t i, j, k;
 	FVCell cell;
@@ -470,7 +470,7 @@ class BIE_WallKOmega : BoundaryInterfaceEffect {
 	return "WallKOmega()";
     }
 
-    override void apply(double t, int tLevel)
+    override void apply(double t, int gtl, int ftl)
     {
 	size_t i, j, k;
 	FVCell cell;

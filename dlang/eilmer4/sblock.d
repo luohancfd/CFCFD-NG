@@ -2108,41 +2108,34 @@ public:
     }
 
     @nogc
-    override void apply_menter_boundary_correction(int ftl)
-    {
-	assert(false, "[TODO apply_menter_boundary_correction() not yet implemented.");
-    }
-
-    @nogc
     override void estimate_turbulence_viscosity()
     {
 	assert(false, "[TODO] estimate_turbulence_viscosity() not implemented yet.");
     }
 
-    override void applyPreReconAction(double t, int tLevel)
+    override void applyPreReconAction(double t, int gtl, int ftl)
     {
-	bc[Face.north].applyPreReconAction(t, tLevel);
-	bc[Face.east].applyPreReconAction(t, tLevel);
-	bc[Face.south].applyPreReconAction(t, tLevel);
-	bc[Face.west].applyPreReconAction(t, tLevel);
+	bc[Face.north].applyPreReconAction(t, gtl, ftl);
+	bc[Face.east].applyPreReconAction(t, gtl, ftl);
+	bc[Face.south].applyPreReconAction(t, gtl, ftl);
+	bc[Face.west].applyPreReconAction(t, gtl, ftl);
 	if ( GlobalConfig.dimensions == 3 ) {
-	    bc[Face.top].applyPreReconAction(t, tLevel);
-	    bc[Face.bottom].applyPreReconAction(t, tLevel);
+	    bc[Face.top].applyPreReconAction(t, gtl, ftl);
+	    bc[Face.bottom].applyPreReconAction(t, gtl, ftl);
 	}
-    } // end apply_convective_bc()
-    /*
-    override void apply_viscous_bc(double t)
+    } // end applyPreReconAction()
+
+    override void applyPreSpatialDerivAction(double t, int gtl, int ftl)
     {
-	bc[Face.north].apply_viscous(t);
-	bc[Face.east].apply_viscous(t);
-	bc[Face.south].apply_viscous(t);
-	bc[Face.west].apply_viscous(t);
+	bc[Face.north].applyPreSpatialDerivAction(t, gtl, ftl);
+	bc[Face.east].applyPreSpatialDerivAction(t, gtl, ftl);
+	bc[Face.south].applyPreSpatialDerivAction(t, gtl, ftl);
+	bc[Face.west].applyPreSpatialDerivAction(t, gtl, ftl);
 	if ( GlobalConfig.dimensions == 3 ) {
-	    bc[Face.top].apply_viscous(t);
-	    bc[Face.bottom].apply_viscous(t);
+	    bc[Face.top].applyPreSpatialDerivAction(t, gtl, ftl);
+	    bc[Face.bottom].applyPreSpatialDerivAction(t, gtl, ftl);
 	}
-    } // end apply_convective_bc
-    */
+    } // end applyPreSpatialDerivAction()
 
     @nogc
     void copy_into_ghost_cells(int destination_face,

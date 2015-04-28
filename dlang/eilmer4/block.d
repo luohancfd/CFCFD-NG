@@ -52,9 +52,9 @@ public:
     abstract void convective_flux();
     abstract void viscous_flux();
     abstract void viscous_derivatives(int gtl);
-    abstract void apply_menter_boundary_correction(int ftl);
     abstract void estimate_turbulence_viscosity();
-    abstract void applyPreReconAction(double t, int tLevel);
+    abstract void applyPreReconAction(double t, int gtl, int ftl);
+    abstract void applyPreSpatialDerivAction(double t, int gtl, int ftl);
     void set_cell_dt_chem(double dt_chem)
     {
 	foreach ( cell; active_cells ) cell.dt_chem = dt_chem;

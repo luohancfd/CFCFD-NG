@@ -115,9 +115,9 @@ public:
 	return to!string(repr);
     }
 
-    final void applyPreReconAction(double t, int tLevel)
+    final void applyPreReconAction(double t, int gtl, int ftl)
     {
-	foreach ( gce; preReconAction ) gce.apply(t, tLevel);
+	foreach ( gce; preReconAction ) gce.apply(t, gtl, ftl);
     }
     /*
     final void applyPostConvFluxAction(double t)
@@ -125,9 +125,9 @@ public:
 	foreach ( bfe; postConvFluxAction ) bfe.apply(t);
     }
     */
-    final void applyPreSpatialDerivAction(double t, int tLevel)
+    final void applyPreSpatialDerivAction(double t, int gtl, int ftl)
     {
-	foreach ( bie; preSpatialDerivAction ) bie.apply(t, tLevel);
+	foreach ( bie; preSpatialDerivAction ) bie.apply(t, gtl, ftl);
     }
     /*
     final void applyPostDiffFluxAction(double t)
