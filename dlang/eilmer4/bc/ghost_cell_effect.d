@@ -56,6 +56,11 @@ GhostCellEffect make_GCE_from_json(JSONValue jsonData, int blk_id, int boundary)
 	int xOrder = getJSONint(jsonData, "x_order", 0);
 	newGCE = new GhostCellExtrapolateCopy(blk_id, boundary, xOrder);
 	break;
+    case "fixed_p":
+	double POut = getJSONdouble(jsonData, "p_out", 1.0e5);
+	double TOut = getJSONdouble(jsonData, "T_out", 300.0);
+	newGCE = new GhostCellFixedPT(blk_id, boundary, POut, TOut);
+	break;
     case "full_face_exchange_copy":
 	int otherBlock = getJSONint(jsonData, "other_block", -1);
 	string otherFaceName = getJSONstring(jsonData, "other_face", "none");
@@ -93,7 +98,7 @@ public:
 	return "GhostCellEffect()";
     }
     abstract void apply(double t, int tLevel);
-}
+} // end class GhostCellEffect
 
 class GhostCellInternalCopyThenReflect : GhostCellEffect {
 public:
@@ -848,6 +853,130 @@ public:
 	} // end switch
     } // end apply()
 } // end class GhostCellExtrapolateCopy
+
+class GhostCellFixedPT : GhostCellEffect {
+public:
+    double Pout;
+    double Tout;
+    
+    this(int id, int boundary, double Pout, double Tout)
+    {
+	super(id, boundary, "FixedPT");
+	this.Pout = Pout;
+	this.Tout = Tout;
+    }
+
+    override string toString() const 
+    {
+	return "FixedP(p_out=" ~ to!string(Pout) ~ ", T_out=" ~ to!string(Tout) ~")";
+    }
+    
+    override void apply(double t, int tLevel)
+    {
+	size_t i, j, k;
+	FVCell src_cell, dest_cell;
+	auto gmodel = GlobalConfig.gmodel;
+	auto blk = allBlocks[blk_id];
+
+	final switch (which_boundary) {
+	case Face.north:
+	    j = blk.jmax;
+	    for (k = blk.kmin; k <= blk.kmax; ++k) {
+		for (i = blk.imin; i <= blk.imax; ++i) {
+		    src_cell = blk.get_cell(i,j,k);
+		    dest_cell = blk.get_cell(i,j+1,k);
+		    dest_cell.fs.gas.p = Pout;
+		    foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
+		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
+		    dest_cell = blk.get_cell(i,j+2,k);
+		    dest_cell.fs.gas.p = Pout;
+		    foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
+		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
+		} // end i loop
+	    } // for k
+	    break;
+	case Face.east:
+	    i = blk.imax;
+	    for (k = blk.kmin; k <= blk.kmax; ++k) {
+		for (j = blk.jmin; j <= blk.jmax; ++j) {
+		    src_cell = blk.get_cell(i,j,k);
+		    dest_cell = blk.get_cell(i+1,j,k);
+		    dest_cell.fs.gas.p = Pout;
+		    foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
+		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
+		    dest_cell = blk.get_cell(i+2,j,k);
+		    dest_cell.fs.gas.p = Pout;
+		    foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
+		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
+		} // end j loop
+	    } // for k
+	    break;
+	case Face.south:
+	    j = blk.jmin;
+	    for (k = blk.kmin; k <= blk.kmax; ++k) {
+		for (i = blk.imin; i <= blk.imax; ++i) {
+		    src_cell = blk.get_cell(i,j,k);
+		    dest_cell = blk.get_cell(i,j-1,k);
+		    dest_cell.fs.gas.p = Pout;
+		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
+		    dest_cell = blk.get_cell(i,j-2,k);
+		    dest_cell.fs.gas.p = Pout;
+		    foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
+		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
+		} // end i loop
+	    } // for k
+	    break;
+	case Face.west:
+	    i = blk.imin;
+	    for (k = blk.kmin; k <= blk.kmax; ++k) {
+		for (j = blk.jmin; j <= blk.jmax; ++j) {
+		    src_cell = blk.get_cell(i,j,k);
+		    dest_cell = blk.get_cell(i-1,j,k);
+		    dest_cell.fs.gas.p = Pout;
+		    foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
+		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
+		    dest_cell = blk.get_cell(i-2,j,k);
+		    dest_cell.fs.gas.p = Pout;
+		    foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
+		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
+		} // end j loop
+	    } // for k
+	    break;
+	case Face.top:
+	    k = blk.kmax;
+	    for (i = blk.imin; i <= blk.imax; ++i) {
+		for (j = blk.jmin; j <= blk.jmax; ++j) {
+		    src_cell = blk.get_cell(i,j,k);
+		    dest_cell = blk.get_cell(i,j,k+1);
+		    dest_cell.fs.gas.p = Pout;
+		    foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
+		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
+		    dest_cell = blk.get_cell(i,j,k+2);
+		    dest_cell.fs.gas.p = Pout;
+		    foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
+		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
+		} // end j loop
+	    } // for i
+	    break;
+	case Face.bottom:
+	    k = blk.kmin;
+	    for (i = blk.imin; i <= blk.imax; ++i) {
+		for (j = blk.jmin; j <= blk.jmax; ++j) {
+		    src_cell = blk.get_cell(i,j,k);
+		    dest_cell = blk.get_cell(i,j,k-1);
+		    dest_cell.fs.gas.p = Pout;
+		    foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
+		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
+		    dest_cell = blk.get_cell(i,j,k-2);
+		    dest_cell.fs.gas.p = Pout;
+		    foreach(ref elem; dest_cell.fs.gas.T) elem = Tout; 
+		    gmodel.update_thermo_from_pT(dest_cell.fs.gas);
+		} // end j loop
+	    } // for i
+	    break;
+	} // end switch
+    } // end apply()
+} // end class GhostCellFixedPT
 
 class GhostCellFullFaceExchangeCopy : GhostCellEffect {
 public:

@@ -12,7 +12,8 @@ DEMO_PROGRAMS := globalconfig_demo flowstate_demo fv_demo block_demo \
 
 BC_FILES := bc/bc.d \
 	bc/ghost_cell_effect.d \
-	bc/user_defined_effects.d
+	bc/user_defined_effects.d \
+	bc/boundary_interface_effect.d
 
 SOLID_FILES := solid/solidbc.d \
 	solid/solidblock.d \
