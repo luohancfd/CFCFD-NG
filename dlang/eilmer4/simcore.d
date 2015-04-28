@@ -214,7 +214,7 @@ double integrate_in_time(double target_time, int maxWallClock)
 	}
 	// 2e.
 	// Update the temperature values in the solid domain.
-	solidDomainExplicitIncrement();
+//	solidDomainExplicitIncrement();
         // 3. Update the time record and (occasionally) print status.
         ++step;
         output_just_written = false;
