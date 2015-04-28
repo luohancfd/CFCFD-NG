@@ -30,30 +30,30 @@ public:
     BoundaryCondition[] bc; // collection of references to the boundary conditions
 
     override string toString() const { return "Block(id=" ~ to!string(id) ~ ")"; }
-    void assemble_arrays() {}
-    void bind_faces_and_vertices_to_cells() {}
-    void identify_reaction_zones(int gtl) {}
-    void identify_turbulent_zones(int gtl) {}
-    void clear_fluxes_of_conserved_quantities() {}
-    int count_invalid_cells(int gtl) { return 0; }
-    void init_residuals() {}
-    void compute_residuals(int gtl) {}
-    double determine_time_step_size(double dt_current) { return 0.0; }
-    void detect_shock_points() {}
-    void compute_primary_cell_geometric_data(int gtl) {}
-    void compute_distance_to_nearest_wall_for_all_cells(int gtl) {}
-    void compute_secondary_cell_geometric_data(int gtl) {}
-    void read_grid(string filename, size_t gtl=0) {}
-    void write_grid(string filename, double sim_time, size_t gtl=0) {}
-    double read_solution(string filename) { return 0.0; }
-    void write_solution(string filename, double sim_time) {}
-    void write_history(string filename, double sim_time, bool write_header=false) {}
-    void set_grid_velocities(double sim_time) {}
-    void convective_flux() {}
-    void viscous_flux() {}
-    void viscous_derivatives(int gtl) {}
-    void apply_menter_boundary_correction(int ftl) {}
-    void estimate_turbulence_viscosity() {}
+    abstract void assemble_arrays();
+    abstract void bind_faces_and_vertices_to_cells();
+    abstract void identify_reaction_zones(int gtl);
+    abstract void identify_turbulent_zones(int gtl);
+    abstract void clear_fluxes_of_conserved_quantities();
+    abstract int count_invalid_cells(int gtl);
+    abstract void init_residuals();
+    abstract void compute_residuals(int gtl);
+    abstract double determine_time_step_size(double dt_current);
+    abstract void detect_shock_points();
+    abstract void compute_primary_cell_geometric_data(int gtl);
+    abstract void compute_distance_to_nearest_wall_for_all_cells(int gtl);
+    abstract void compute_secondary_cell_geometric_data(int gtl);
+    abstract void read_grid(string filename, size_t gtl=0);
+    abstract void write_grid(string filename, double sim_time, size_t gtl=0);
+    abstract double read_solution(string filename);
+    abstract void write_solution(string filename, double sim_time);
+    abstract void write_history(string filename, double sim_time, bool write_header=false);
+    abstract void set_grid_velocities(double sim_time);
+    abstract void convective_flux();
+    abstract void viscous_flux();
+    abstract void viscous_derivatives(int gtl);
+    abstract void apply_menter_boundary_correction(int ftl);
+    abstract void estimate_turbulence_viscosity();
     abstract void applyPreReconAction(double t, int tLevel);
     void set_cell_dt_chem(double dt_chem)
     {
