@@ -67,7 +67,12 @@ GhostCellEffect make_GCE_from_json(JSONValue jsonData, int blk_id, int boundary)
 	
 	int neighbourOrientation = getJSONint(jsonData, "neighbour_orientation", 0);
 	newGCE = new GhostCellFullFaceExchangeCopy(blk_id, boundary,
-						   otherBlock, face_index(otherFaceName), neighbourOrientation);
+						   otherBlock, face_index(otherFaceName),
+						   neighbourOrientation);
+	break;
+    case "mapped_cell_exchange_copy":
+	int[][] mapped_cells;
+	newGCE = new GhostCellMappedCellExchangeCopy(blk_id, boundary, mapped_cells);
 	break;
     case "user_defined":
 	string fname = getJSONstring(jsonData, "filename", "none");
@@ -1011,3 +1016,32 @@ public:
 				  CopyDataOption.all, true);
     }
 } // end class GhostCellFullFaceExchangeCopy
+
+class GhostCellMappedCellExchangeCopy : GhostCellEffect {
+public:
+    // For each ghost cell associated with the boundary.
+    // the following data structure stores 4 integers,
+    // specifying the mapped-cell block and its ijk-indices,
+    int[][] mapped_cells;
+    // These data are (i,j,k)-triples indexed by [other_block][other_face]
+    // and are used by the distributed-memory mapped-cell copying functions
+    // to marshall and send the requested data.
+    int[][][] incoming_mapped_cells; 
+    int[][][] outgoing_mapped_cells;
+
+    this(int id, int boundary, int[][] mapped_cells)
+    {
+	super(id, boundary, "MappedCellExchangeCopy");
+	assert(false, "Not implemented yet");
+    }
+
+    override string toString() const
+    { 
+	return "MappedCellExchangeCopy(" ~ ")";
+    }
+
+    override void apply(double t, int gtl, int ftl)
+    {
+    }
+} // end class GhostCellMappedCellExchangeCopy
+
