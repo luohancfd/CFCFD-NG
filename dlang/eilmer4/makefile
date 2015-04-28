@@ -14,6 +14,17 @@ BC_FILES := bc/bc.d \
 	bc/ghost_cell_effect.d \
 	bc/user_defined_effects.d
 
+SOLID_FILES := solid/solidbc.d \
+	solid/solidblock.d \
+	solid/solid_boundary_flux_effect.d \
+	solid/solid_boundary_interface_effect.d \
+	solid/ssolidblock.d \
+	solid/solidfvcore.d \
+	solid/solidfvcell.d \
+	solid/solidfvinterface.d \
+	solid/solidfvvertex.d \
+	solid/solidprops.d
+
 GAS_DIR := ../gas
 
 GAS_MODEL_FILES := \
@@ -234,7 +245,7 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 	globalconfig.d luaglobalconfig.d globaldata.d \
 	block.d sblock.d ublock.d \
 	lua_helper.d user_defined_source_terms.d \
-	$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
+	$(BC_FILES) $(SOLID_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
 	$(KINETICS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
 	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' main.d > main_with_rev_string.d
 	$(DMD) $(DFLAGS) $(OF)e4shared \
@@ -245,6 +256,6 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 		globalconfig.d luaglobalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
 		lua_helper.d user_defined_source_terms.d \
-		$(BC_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
+		$(BC_FILES) $(SOLID_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)
 

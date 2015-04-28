@@ -11,6 +11,9 @@ print("Loading prep.lua...")
 -- Storage for later definitions of Block objects
 blocks = {}
 
+-- Storgage for later definitions of SolidBlock objects
+solidBlocks = {}
+
 -- Symbolic names for identifying boundaries
 north = "north"; NORTH = "north"
 east = "east"; EAST = "east"
@@ -629,6 +632,131 @@ function identifyBlockConnections(blockList, excludeList, tolerance)
 end
 
 -- ---------------------------------------------------------------------------
+-- Classes related to Solid blocks and boundary conditions
+SolidBoundaryInterfaceEffect = {
+   type = ""
+}
+function SolidBoundaryInterfaceEffect:new(o)
+   o = o or {}
+   setmetatable(o, self)
+   self.__index = self
+   return o
+end
+
+FixedTInterfaceEffect = SolidBoundaryInterfaceEffect:new{Twall=300.0}
+FixedTInterfaceEffect.type = "fixed_T_interface_effect"
+function FixedTInterfaceEffect:tojson()
+   local str = string.format('          {"type": "%s",\n', self.type)
+   str = str .. string.format('           "Twall": %12.6e }', self.Twall)
+   return str
+end
+
+-- Class for SolidBoundaryCondition
+-- This class is a convenience class: it translates a high-level
+-- user name for the boundary condition into a sequence of
+-- lower-level operators.
+SolidBoundaryCondition = {
+   label = "",
+   myType = "",
+   preSpatialDerivAction = {}
+}
+function SolidBoundaryCondition:new(o)
+   o = o or {}
+   setmetatable(o, self)
+   self.__index = self
+   return o
+end
+function SolidBoundaryCondition:tojson()
+   local str = '{'
+   str = str .. string.format('"label": "%s", \n', self.label)
+   str = str .. '        "pre_spatial_deriv_action": [\n'
+   for i,effect in ipairs(self.preSpatialDerivAction) do
+      str = str .. effect:tojson()
+      -- Extra code to deal with annoying JSON trailing comma deficiency
+      if i ~= #self.preSpatialDerivAction then str = str .. "," end
+   end
+   str = str .. '\n        ]\n    }'
+   return str
+end
+
+SolidFixedTBC = SolidBoundaryCondition:new()
+SolidFixedTBC.myType = "SolidFixedT"
+function SolidFixedTBC:new(o)
+   o = SolidBoundaryCondition.new(self, o)
+   o.preSpatialDerivAction = { FixedTInterfaceEffect:new{Twall = o.Twall} }
+   return o
+end
+
+-- Class for SolidBlock construction (based on a StructuredGrid)
+SSolidBlock = {
+   myType = "SSolidBlock"
+} -- end SSolidBlock
+
+function SSolidBlock:new(o)
+   o = o or {}
+   setmetatable(o, self)
+   self.__index = self
+   -- Make a record of the new block for later construction of the config file.
+   -- Note that we want the block id to start at zero for the D code.
+   o.id = #solidBlocks
+   solidBlocks[#solidBlocks+1] = o
+   -- Must have a grid and initial temperature
+   assert(o.grid, "need to supply a grid")
+   assert(o.initTemperature, "need to supply an initTemperature")
+   -- Fill in some defaults, if not already set
+   o.active = o.active or true
+   o.label = o.label or string.format("SOLIDBLOCK-%d", o.id)
+   o.bcList = o.bcList or {} -- boundary conditions
+   for _,face in ipairs(faceList(config.dimensions)) do
+      o.bcList[face] = o.bcList[face] or SolidFixedTBC:new{Twall=300}
+   end
+   -- Extract some information from the StructuredGrid
+   o.nic = o.grid:get_niv() - 1
+   o.njc = o.grid:get_njv() - 1
+   if config.dimensions == 3 then
+      o.nkc = o.grid.get_nkv() - 1
+   else
+      o.nkc = 1
+   end
+   -- The following table p for the corner locations,
+   -- is to be used later for testing for block connections.
+   o.p = {}
+   if config.dimensions == 3 then
+      o.p[0] = o.grid:get_vtx(0, 0, 0)
+      o.p[1] = o.grid:get_vtx(o.nic, 0, 0)
+      o.p[2] = o.grid:get_vtx(o.nic, o.njc, 0)
+      o.p[3] = o.grid:get_vtx(0, o.njc, 0)
+      o.p[4] = o.grid:get_vtx(0, 0, o.nkc)
+      o.p[5] = o.grid:get_vtx(o.nic, 0, o.nkc)
+      o.p[6] = o.grid:get_vtx(o.nic, o.njc, o.nkc)
+      o.p[7] = o.grid:get_vtx(0, o.njc, o.nkc)
+   else
+      o.p[0] = o.grid:get_vtx(0, 0)
+      o.p[1] = o.grid:get_vtx(o.nic, 0)
+      o.p[2] = o.grid:get_vtx(o.nic, o.njc)
+      o.p[3] = o.grid:get_vtx(0, o.njc)
+   end
+   return o
+end
+
+function SSolidBlock:tojson()
+   local str = string.format('"solid_block_%d": {\n', self.id)
+   str = str .. string.format('    "label": "%s",\n', self.label)
+   str = str .. string.format('    "active": %s,\n', tostring(self.active))
+   str = str .. string.format('    "nic": %d,\n', self.nic)
+   str = str .. string.format('    "njc": %d,\n', self.njc)
+   str = str .. string.format('    "nkc": %d,\n', self.nkc)
+   -- Boundary conditions
+      for _,face in ipairs(faceList(config.dimensions)) do
+      str = str .. string.format('    "face_%s": ', face) ..
+	 self.bcList[face]:tojson() .. ',\n'
+   end
+   str = str .. '    "dummy_entry_without_trailing_comma": 0\n'
+   str = str .. '},\n'
+   return str
+end
+
+-- --------------------------------------------------------------------
 
 function write_control_file(fileName)
    local f = assert(io.open(fileName, "w"))
@@ -699,11 +827,18 @@ function write_config_file(fileName)
    f:write(string.format('"udf_source_terms": %s,\n', tostring(config.udf_source_terms)))
 
    f:write(string.format('"nblock": %d,\n', #(blocks)))
+   f:write(string.format('"nsolidblock": %d,\n', #solidBlocks))
    for i = 1, #blocks do
       f:write(blocks[i]:tojson())
    end
    f:write('"dummy_entry_without_trailing_comma": 0\n') -- no comma on last entry
    f:write("}\n")
+      for i = 1, #solidBlocks do
+      f:write(solidBlocks[i]:tojson())
+   end
+   f:write('"dummy_entry_without_trailing_comma": 0\n') -- no comma on last entry
+   f:write("}\n")
+
    f:close()
 end
 

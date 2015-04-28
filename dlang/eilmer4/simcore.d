@@ -26,6 +26,8 @@ import readconfig;
 import globaldata;
 import flowstate;
 import sblock;
+import ssolidblock;
+import solidfvcore;
 import bc;
 import user_defined_source_terms;
 
@@ -210,6 +212,9 @@ double integrate_in_time(double target_time, int maxWallClock)
 		}
 	    }
 	}
+	// 2e.
+	// Update the temperature values in the solid domain.
+	solidDomainExplicitIncrement();
         // 3. Update the time record and (occasionally) print status.
         ++step;
         output_just_written = false;
@@ -476,3 +481,72 @@ void gasdynamic_explicit_increment_with_fixed_grid()
     // Finally, update the globally know simulation time for the whole step.
     sim_time = t0 + dt_global;
 } // end gasdynamic_explicit_increment_with_fixed_grid()
+
+void solidDomainExplicitIncrement()
+{
+    double t0 = sim_time;
+    // Set the time-step coefficients for the stages of the update scheme.
+    // Below are defaults for predictor-corrector update.
+    double c2 = 1.0; 
+    double c3 = 1.0;
+    int tLevel = 0;
+    // Apply boundary condition
+    foreach (blk; mySolidBlocks) {
+	if (!blk.active) continue;
+	blk.applyPreSpatialDerivAction(sim_time, tLevel);
+    }
+    // First stage of update
+    foreach (blk; mySolidBlocks) {
+	if (!blk.active) continue;
+	blk.computeSpatialDerivatives(tLevel);
+	blk.applyPostFluxAction(sim_time, tLevel);
+	blk.computeFluxes();
+	foreach (cell; blk.activeCells) {
+	    //	    if (GlobalConfig.udfSolidSourceTerms) {
+	    //		addUDFSolidSourceTermsToCell(cell, sim_time);
+	    //	    }
+	    cell.timeDerivatives(0, GlobalConfig.dimensions);
+	    cell.stage1Update(dt_global);
+	} // end foreach cell
+    } // end foreach blk
+
+    if ( numberOfStagesForUpdateScheme(GlobalConfig.solidDomainUpdateScheme) >= 2 ) {
+	// Second stage of solid domain update
+	tLevel = 1;
+	// Apply boundary condition
+	foreach (blk; mySolidBlocks) {
+	    if (!blk.active) continue;
+	    blk.applyPreSpatialDerivAction(sim_time, tLevel);
+	}
+	// First stage of update
+	foreach (blk; mySolidBlocks) {
+	    if (!blk.active) continue;
+	    blk.computeSpatialDerivatives(tLevel);
+	    blk.applyPostFluxAction(sim_time, tLevel);
+	    blk.computeFluxes();
+	    foreach (cell; blk.activeCells) {
+		//if (GlobalConfig.udfSolidSourceTerms) {
+		    //addUDFSolidSourceTermsToCell(cell, sim_time);
+		//}
+		cell.timeDerivatives(1, GlobalConfig.dimensions);
+		cell.stage2Update(dt_global);
+	    } // end foreach cell
+	} // end foreach blk
+    } // end if numberOfStagesForUpdateScheme >= 2
+
+    // Get the final bit of conserved data in U[0] for next step
+    size_t endIdx = 2;
+    final switch (GlobalConfig.solidDomainUpdateScheme) {
+    case SolidDomainUpdate.euler: endIdx = 1; break;
+    case SolidDomainUpdate.pc: endIdx = 2; break;
+    }
+    foreach (blk; mySolidBlocks) {
+	if (!blk.active) continue;
+	foreach (cell; blk.activeCells) {
+	    cell.e[0] = cell.e[endIdx];
+	    cell.T[0] = cell.T[endIdx];
+	} 
+    } // end foreach block
+    // Finally, update the the globally known simulation time for whole step.
+    sim_time = t0 + dt_global;
+}
