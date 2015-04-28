@@ -132,11 +132,11 @@ public:
 	repr ~= ", nicell=" ~ to!string(nicell);
 	repr ~= ", njcell=" ~ to!string(njcell);
 	repr ~= ", nkcell=" ~ to!string(nkcell);
-	repr ~= ", bc=[";
-	foreach (i; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
-	    repr ~= to!string(bc[i]) ~ ",";
+	repr ~= ", \n    bc=["~ face_name[0] ~ "=" ~ to!string(bc[0]);
+	foreach (i; 1 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
+	    repr ~= ",\n        " ~ face_name[i] ~ "=" ~ to!string(bc[i]);
 	}
-	repr ~= "]";
+	repr ~= "\n       ]"; // end bc list
 	repr ~= ")";
 	return to!string(repr);
     }

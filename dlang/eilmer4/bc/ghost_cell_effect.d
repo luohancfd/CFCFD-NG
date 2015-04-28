@@ -4,6 +4,7 @@
 
 import std.json;
 import std.string;
+import std.conv;
 
 import geom;
 import json_helper;
@@ -87,7 +88,10 @@ public:
 	which_boundary = boundary;
 	type = _type;
     }
-    
+    override string toString() const
+    {
+	return "GhostCellEffect()";
+    }
     abstract void apply(double t, int tLevel);
 }
 
@@ -97,6 +101,11 @@ public:
     this(int id, int boundary)
     {
 	super(id, boundary, "InternalCopyThenReflect");
+    }
+
+    override string toString() const 
+    {
+	return "InternalCopyThenReflect()";
     }
 
     override void apply(double t, int tLevel)
@@ -253,8 +262,8 @@ public:
 	    } // for i
 	    break;
 	} // end switch which_boundary
-    }
-}
+    } // end apply()
+} // end class GhostCellInternalCopyThenReflect
 
 class GhostCellFlowStateCopy : GhostCellEffect {
 public:
@@ -264,6 +273,11 @@ public:
     {
 	super(id, boundary, "flowStateCopy");
 	fstate = new FlowState(_fstate);
+    }
+
+    override string toString() const
+    {
+	return "flowStateCopy(fstate=" ~ to!string(fstate) ~ ")";
     }
 
     override void apply(double t, int tLevel)
@@ -345,7 +359,7 @@ public:
 	} // end switch
     } // end apply()
 
-}
+} // end class GhostCellFlowStateCopy
 
 class GhostCellExtrapolateCopy : GhostCellEffect {
 public:
@@ -355,6 +369,11 @@ public:
     {
 	super(id, boundary, "ExtrapolateCopy");
 	xOrder = x_order;
+    }
+
+    override string toString() const 
+    {
+	return "ExtrapolateCopy(x_order=" ~ to!string(xOrder) ~ ")";
     }
     
     override void apply(double t, int tLevel)
@@ -828,7 +847,7 @@ public:
 	    break;
 	} // end switch
     } // end apply()
-}
+} // end class GhostCellExtrapolateCopy
 
 class GhostCellFullFaceExchangeCopy : GhostCellEffect {
 public:
@@ -845,6 +864,13 @@ public:
 	neighbourOrientation = orient;
     }
 
+    override string toString() const
+    { 
+	return "FullFaceExchangeCopy(otherBlock=" ~ to!string(neighbourBlock) ~ 
+	    ", otherFace=" ~ to!string(neighbourFace) ~ 
+	    ", orient=" ~ to!string(neighbourOrientation) ~ ")";
+    }
+
     override void apply(double t, int tLevel)
     {
 	// TODO Check me!  This is a work-around.
@@ -855,4 +881,4 @@ public:
 				  neighbourFace, neighbourOrientation,
 				  CopyDataOption.all, true);
     }
-}
+} // end class GhostCellFullFaceExchangeCopy

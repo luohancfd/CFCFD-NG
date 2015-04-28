@@ -154,7 +154,13 @@ public:
     {
 	char[] repr;
 	repr ~= "BoundaryCondition(";
-	//repr ~= "type_code=" ~ to!string(type_code);
+	if ( preReconAction.length > 0 ) {
+	    repr ~= "preReconAction=[" ~ to!string(preReconAction[0]);
+	    foreach (i; 1 .. preReconAction.length) {
+		repr ~= ", " ~ to!string(preReconAction[i]);
+	    }
+	    repr ~= "]";
+	}
 	repr ~= ")";
 	return to!string(repr);
     }
