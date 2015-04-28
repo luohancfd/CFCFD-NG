@@ -1855,6 +1855,7 @@ public:
     override double read_solution(string filename)
     // Note that the position data is read into grid-time-level 0
     // by scan_values_from_string(). 
+    // Returns sim_time from file.
     {
 	size_t ni, nj, nk;
 	double sim_time;
@@ -1883,9 +1884,7 @@ public:
 	    } // for j
 	} // for k
 	return sim_time;
-    }
-
-    // Returns sim_time from file.
+    } // end read_solution()
 
     override void write_solution(string filename, double sim_time)
     // Write the flow solution (i.e. the primary variables at the cell centers)

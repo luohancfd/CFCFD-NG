@@ -276,7 +276,7 @@ public:
     // Note that the position data is read into grid_time_level 0.
     {
 	auto items = split(buffer);
-	auto gm = GlobalConfig.gmodel;
+	const gm = GlobalConfig.gmodel;
 	pos[0].refx = to!double(items.front); items.popFront();
 	pos[0].refy = to!double(items.front); items.popFront();
 	pos[0].refz = to!double(items.front); items.popFront();
@@ -421,7 +421,7 @@ public:
     void decode_conserved(int gtl, int ftl, double omegaz) 
     {
 	ConservedQuantities myU = U[ftl];
-	auto gmodel = GlobalConfig.gmodel;
+	const gmodel = GlobalConfig.gmodel;
 	bool with_k_omega = (GlobalConfig.turbulence_model == TurbulenceModel.k_omega);
 	double e, ke, dinv, rE, me;
 	// Mass / unit volume = Density
