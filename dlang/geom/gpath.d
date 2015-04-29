@@ -285,7 +285,7 @@ private:
 	// let's try to find a point to the left of L_target.
 	// If the value is out of range, this should just result in
 	// us extrapolating one of the end segments -- that's OK.
-	int i = arc_length.length - 1;
+	int i = to!int(arc_length.length) - 1;
 	double dt = 1.0 / arc_length.length;
 	while ( L_target < arc_length[i] && i > 0 ) i--;
 	double frac = (L_target - arc_length[i]) / (arc_length[i+1] - arc_length[i]);
@@ -418,7 +418,7 @@ private:
 	// let's try to find a point to the left of L_target.
 	// If the value is out of range, this should just result in
 	// us extrapolating one of the end segments -- that's OK.
-	int i = arc_length.length - 1;
+	int i = to!int(arc_length.length) - 1;
 	double dt = 1.0 / arc_length.length;
 	while ( L_target < arc_length[i] && i > 0 ) i--;
 	double frac = (L_target - arc_length[i]) / (arc_length[i+1] - arc_length[i]);
