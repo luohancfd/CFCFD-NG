@@ -83,7 +83,6 @@ public:
 	njcell = getJSONint(json_data, "njc", 0);
 	nkcell = getJSONint(json_data, "nkc", 0);
 	this(id, nicell, njcell, nkcell);
-	fill_in_other_size_data();
 	label = getJSONstring(json_data, "label", "");
 	active = getJSONbool(json_data, "active", true);
 	omegaz = getJSONdouble(json_data, "omegaz", 0.0);
