@@ -7,6 +7,9 @@
 
 module solidfvcore;
 
+import std.string;
+import std.format;
+
 enum SolidDomainUpdate {
     euler,
     pc
@@ -25,5 +28,18 @@ int numberOfStagesForUpdateScheme(SolidDomainUpdate sdupdate)
     final switch ( sdupdate ) {
     case SolidDomainUpdate.euler: return 1;
     case SolidDomainUpdate.pc: return 2;
+    }
+}
+
+SolidDomainUpdate solidDomainUpdateSchemeFromName(string name)
+{
+    switch (name) {
+    case "euler": return SolidDomainUpdate.euler;
+    case "pc": return SolidDomainUpdate.pc;
+    case "predictor-corrector": return SolidDomainUpdate.pc;
+    case "predictor_corrector": return SolidDomainUpdate.pc;
+    default:
+	string errMsg = format("Invalid solid domain updated scheme name: %s", name);
+	throw new Error(errMsg);
     }
 }

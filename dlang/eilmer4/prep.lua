@@ -574,7 +574,9 @@ function SBlock:new(o)
    assert(o.grid, "need to supply a grid")
    assert(o.fillCondition, "need to supply a fillCondition")
    -- Fill in default values, if already not set
-   o.active = o.active or true
+   if o.active == nil then
+      o.active = true
+   end
    o.label = o.label or string.format("BLOCK-%d", o.id)
    o.omegaz = o.omegaz or 0.0
    o.bcList = o.bcList or {} -- boundary conditions
@@ -749,9 +751,9 @@ function SolidBoundaryInterfaceEffect:new(o)
    return o
 end
 
-FixedTInterfaceEffect = SolidBoundaryInterfaceEffect:new{Twall=300.0}
-FixedTInterfaceEffect.type = "fixed_T_interface_effect"
-function FixedTInterfaceEffect:tojson()
+SolidBIE_FixedT = SolidBoundaryInterfaceEffect:new{Twall=300.0}
+SolidBIE_FixedT.type = "fixed_temperature"
+function SolidBIE_FixedT:tojson()
    local str = string.format('          {"type": "%s",\n', self.type)
    str = str .. string.format('           "Twall": %12.6e }', self.Twall)
    return str
@@ -789,7 +791,7 @@ SolidFixedTBC = SolidBoundaryCondition:new()
 SolidFixedTBC.myType = "SolidFixedT"
 function SolidFixedTBC:new(o)
    o = SolidBoundaryCondition.new(self, o)
-   o.preSpatialDerivAction = { FixedTInterfaceEffect:new{Twall = o.Twall} }
+   o.preSpatialDerivAction = { SolidBIE_FixedT:new{Twall = o.Twall} }
    return o
 end
 
@@ -811,7 +813,9 @@ function SSolidBlock:new(o)
    assert(o.initTemperature, "need to supply an initTemperature")
    assert(o.properties, "need to supply physical properties for the block")
    -- Fill in some defaults, if not already set
-   o.active = o.active or true
+   if o.active == nil then
+      o.active = true
+   end
    o.label = o.label or string.format("SOLIDBLOCK-%d", o.id)
    o.bcList = o.bcList or {} -- boundary conditions
    for _,face in ipairs(faceList(config.dimensions)) do
@@ -853,6 +857,11 @@ function SSolidBlock:tojson()
    str = str .. string.format('    "nic": %d,\n', self.nic)
    str = str .. string.format('    "njc": %d,\n', self.njc)
    str = str .. string.format('    "nkc": %d,\n', self.nkc)
+   str = str .. '    "properties": {\n'
+   str = str .. string.format('       "rho": %.6e,\n', self.properties.rho)
+   str = str .. string.format('       "k": %.6e,\n', self.properties.k)
+   str = str .. string.format('       "Cp": %.6e\n', self.properties.Cp)
+   str = str .. '    },\n'
    -- Boundary conditions
       for _,face in ipairs(faceList(config.dimensions)) do
       str = str .. string.format('    "face_%s": ', face) ..
@@ -887,8 +896,9 @@ function write_control_file(fileName)
    f:write(string.format('"dt_plot": %e,\n', config.dt_plot))
    f:write(string.format('"dt_history": %e,\n', config.dt_history))
    f:write(string.format('"write_at_step": %d,\n', config.write_at_step))
-   f:write(string.format('"halt_now": %d\n', config.halt_now))
-   -- Note, also, no comma on last entry in JSON object.
+   f:write(string.format('"halt_now": %d\n,', config.halt_now))
+   f:write(string.format('"solid_domain_update_scheme": "%s"\n', config.solid_domain_update_scheme))
+   -- Note, also, no comma on last entry in JSON object. (^^^: Look up one line and check!)
    f:write("}\n")
    f:close()
 end
@@ -938,9 +948,7 @@ function write_config_file(fileName)
    for i = 1, #blocks do
       f:write(blocks[i]:tojson())
    end
-   f:write('"dummy_entry_without_trailing_comma": 0\n') -- no comma on last entry
-   f:write("}\n")
-      for i = 1, #solidBlocks do
+   for i = 1, #solidBlocks do
       f:write(solidBlocks[i]:tojson())
    end
    f:write('"dummy_entry_without_trailing_comma": 0\n') -- no comma on last entry
@@ -990,7 +998,7 @@ function build_job_files(job)
    for i = 1, #solidBlocks do
       local id = solidBlocks[i].id
       print("SolidBlock id=", id)
-      local fileName = "solid-grid/t0000/" .. job .. string.format(".grid.b%04d.t0000", id)
+      local fileName = "solid-grid/t0000/" .. job .. string.format(".solid-grid.b%04d.t0000", id)
       solidBlocks[i].grid:write_to_text_file(fileName)
       os.execute("gzip -f " .. fileName)
       local fileName = "solid/t0000/" .. job .. string.format(".solid.b%04d.t0000", id)

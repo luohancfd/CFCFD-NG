@@ -22,6 +22,8 @@ import globalconfig;
 import globaldata;
 import flowstate;
 import sblock;
+import ssolidblock;
+import solidfvcore;
 import bc;
 import user_defined_source_terms;
 
@@ -174,6 +176,19 @@ void read_config_file()
 	    writeln("  Block[", i, "]: ", myBlocks[i]);
 	}
     }
+    // Finally, read in any blocks in the solid domain.
+    GlobalConfig.nSolidBlocks = getJSONint(jsonData, "nsolidblock", 0);
+    if (GlobalConfig.verbosity_level > 1) { writeln("  nSolidBlocks: ", GlobalConfig.nSolidBlocks); }
+    foreach (i; 0 .. GlobalConfig.nSolidBlocks) {
+	auto blk = new SSolidBlock(i, jsonData["solid_block_" ~ to!string(i)]);
+	allSolidBlocks ~= blk;
+	mySolidBlocks ~= blk; // Just make a copy, until we have to deal with MPI.
+	if (GlobalConfig.verbosity_level > 1) {
+	    writeln("  SolidBlock[", i, "]: ", mySolidBlocks[i]);
+	}
+    }
+
+
 } // end read_config_file()
 
 void read_control_file()
@@ -218,6 +233,13 @@ void read_control_file()
     GlobalConfig.write_at_step = getJSONint(jsonData, "write_at_step", 0);
     GlobalConfig.dt_plot = getJSONdouble(jsonData, "dt_plot", 1.0e-3);
     GlobalConfig.dt_history = getJSONdouble(jsonData, "dt_history", 1.0e-3);
+    try {
+	string name = jsonData["solid_domain_update_scheme"].str;
+	GlobalConfig.solidDomainUpdateScheme = solidDomainUpdateSchemeFromName(name);
+    } catch (Exception e) {
+	GlobalConfig.solidDomainUpdateScheme = SolidDomainUpdate.pc;
+    }
+
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  interpolation_order: ", GlobalConfig.interpolation_order);
 	writeln("  gasdynamic_update_scheme: ",
@@ -237,5 +259,8 @@ void read_control_file()
 	writeln("  write_at_step: ", GlobalConfig.write_at_step);
 	writeln("  dt_plot: ", GlobalConfig.dt_plot);
 	writeln("  dt_history: ", GlobalConfig.dt_history);
+	writeln("  solid_domain_update_scheme: ",
+		solidDomainUpdateSchemeName(GlobalConfig.solidDomainUpdateScheme));
+
     }
 } // end read_control_file()

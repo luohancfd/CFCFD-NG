@@ -10,6 +10,9 @@ module solidprops;
 import std.stdio;
 import std.array;
 import std.format;
+import std.json;
+
+import json_helper;
 import sgrid;
 import globalconfig;
 import solidfvcell;
@@ -33,6 +36,14 @@ public:
 	k12 = k12_;
 	k22 = k22_;
     }
+}
+
+SolidProps makeSolidPropsFromJson(JSONValue jsonData)
+{
+    auto rho = getJSONdouble(jsonData, "rho", 8960.0);
+    auto k = getJSONdouble(jsonData, "k", 401.0);
+    auto Cp = getJSONdouble(jsonData, "Cp", 386.0);
+    return new SolidProps(rho, k, Cp);
 }
 
 double updateEnergy(SolidProps sp, double T)

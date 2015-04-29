@@ -1,8 +1,29 @@
 module solid_boundary_interface_effect;
 
+import std.json;
+import std.string;
+import std.format;
+
+import json_helper;
 import geom;
 import globaldata;
 import solidfvinterface;
+
+SolidBoundaryInterfaceEffect makeSolidBIEfromJson(JSONValue jsonData, int blk_id, int boundary)
+{
+    string bieType = jsonData["type"].str;
+    SolidBoundaryInterfaceEffect newBIE;
+    switch (bieType) {
+    case "fixed_temperature":
+	double Twall = getJSONdouble(jsonData, "Twall", 300.0);
+	newBIE = new SolidBIE_FixedT(blk_id, boundary, Twall);
+	break;
+    default:
+	string errMsg = format("ERROR: The SolidBoundaryInterfaceEffect type: '%s' is unknown.", bieType);
+	throw new Exception(errMsg);
+    }
+    return newBIE;
+}
 
 class SolidBoundaryInterfaceEffect {
 public:
@@ -17,7 +38,7 @@ public:
     void apply(double t, int tLevel) {}
 }
 
-class FixedTInterfaceEffect : SolidBoundaryInterfaceEffect {
+class SolidBIE_FixedT : SolidBoundaryInterfaceEffect {
 public:
     this(int id, int boundary, double Twall)
     {

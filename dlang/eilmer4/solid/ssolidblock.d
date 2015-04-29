@@ -12,15 +12,18 @@ import std.conv;
 import std.format;
 import std.array;
 import std.math;
+import std.json;
+import json_helper;
 import gzip;
 import geom;
 import globalconfig;
+import block;
 import solidblock;
 import solidfvcell;
 import solidfvinterface;
 import solidfvvertex;
 import solidbc;
-
+import solidprops;
 
 class SSolidBlock : SolidBlock {
 public:
@@ -48,7 +51,59 @@ private:
     SolidFVInterface[] _sifk;
 
 public:
-    // [TODO] Constructors
+    // Constructors
+    this(int id, size_t nicell, size_t njcell, size_t nkcell)
+    {
+	this.id = id;
+	this.nicell = nicell;
+	this.njcell = njcell;
+	this.nkcell = nkcell;
+	fillInOtherSizeData();
+    }
+
+    this(int id, JSONValue jsonData)
+    {
+	this.id = id;
+	nicell = getJSONint(jsonData, "nic", 0);
+	njcell = getJSONint(jsonData, "njc", 0);
+	nkcell = getJSONint(jsonData, "nkc", 0);
+	this(id, nicell, njcell, nkcell);
+	label = getJSONstring(jsonData, "label", "");
+	active = getJSONbool(jsonData, "active", true);
+	sp = makeSolidPropsFromJson(jsonData["properties"]);
+	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
+	    string jsonKey = "face_" ~ face_name[boundary];
+	    auto bcJsonData = jsonData[jsonKey];
+	    bc[boundary] = makeSolidBCFromJson(bcJsonData, id, boundary,
+					       nicell, njcell, nkcell);
+	}
+    }
+
+    void fillInOtherSizeData()
+    // Helper function for the constructor
+    {
+	_nidim = nicell + 2 * nghost;
+	_njdim = njcell + 2 * nghost;
+	// Indices, in each grid direction for the active cells.
+	// These limits are inclusive. The mincell and max cell
+	// are both within the active set of cells.
+	imin = nghost; imax = imin + nicell - 1;
+	jmin = nghost; jmax = jmin + njcell - 1;
+	if ( GlobalConfig.dimensions == 2 ) {
+	    // In 2D simulations, the k range is from 0 to 0 for the
+	    // storage arrays of cells and relevant faces.
+	    if ( nkcell != 1 ) {
+		writeln("Warning: inconsistent dimensions nkcell set to 1 for 2D");
+		nkcell = 1;
+	    }
+	    _nkdim = 1;
+	    kmin = 0; kmax = 0;
+	} else {
+	    // In 3D simulations the k index is just like the i and j indices.
+	    _nkdim = nkcell + 2 * nghost;
+	    kmin = nghost; kmax = kmin + nkcell - 1;
+	}
+    } // end fill_in_other_size_data()
 
     // -- Service methods
     @nogc
@@ -885,7 +940,6 @@ public:
 	SolidFVVertex vtx1, vtx2;
 	double dTdx, dTdy;
 	double qx, qy;
-	double k_eff;
 	// East-facing interfaces
 	for ( j = jmin; j <= jmax; ++j ) {
 	    for ( i = imin; i <= imax + 1; ++i ) {

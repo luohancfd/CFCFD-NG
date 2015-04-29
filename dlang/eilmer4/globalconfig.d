@@ -83,6 +83,7 @@ final class GlobalConfig {
     static GasModel gmodel;
 
     static int nBlocks; // Number of blocks in the overall simulation.
+    static int nSolidBlocks; // Number of solid blocks in the overall simulation.
     static int dimensions = 2; // default is 2, other valid option is 3
     static bool axisymmetric = false;
 

@@ -192,7 +192,7 @@ double integrate_in_time(double target_time, int maxWallClock)
 	}
 	// 2e.
 	// Update the temperature values in the solid domain.
-//	solidDomainExplicitIncrement();
+	solidDomainExplicitIncrement();
         // 3. Update the time record and (occasionally) print status.
         ++step;
         output_just_written = false;
@@ -219,6 +219,7 @@ double integrate_in_time(double target_time, int maxWallClock)
 		auto file_name = make_file_name!"flow"(job_name, myblk.id, current_tindx);
 		myblk.write_solution(file_name, sim_time);
 	    }
+	    ensure_directory_is_present(make_path_name!"solid"(current_tindx));
 	    foreach (ref mySolidBlk; mySolidBlocks) {
 		auto fileName = make_file_name!"solid"(job_name, mySolidBlk.id, current_tindx);
 		mySolidBlk.writeSolution(fileName, sim_time);
