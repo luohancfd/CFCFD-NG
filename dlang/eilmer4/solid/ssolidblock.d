@@ -729,7 +729,7 @@ public:
 	for ( j = jmin+1; j <= jmax; ++j ) {
 	    for ( i = imin+1; i <= imax; ++i ) {
 		vtx = getVtx(i,j);
-		areaInv = 1.0/vtx.area;
+		areaInv = 1.0/vtx.areaxy;
 		// Corners of secondary cells
 		xA = getCell(i,j-1).pos.x;
 		yA = getCell(i,j-1).pos.y;
@@ -759,7 +759,7 @@ public:
 	i = imax + 1;
 	for ( j = jmin+1; j <= jmax; ++j ) {
 	    vtx = getVtx(i,j);
-	    areaInv = 1.0 / vtx.area;
+	    areaInv = 1.0 / vtx.areaxy;
 	    // Corners for the secondary cell
 	    xA = getIfi(i, j-1).pos.x;
 	    yA = getIfi(i, j-1).pos.y;
@@ -787,7 +787,7 @@ public:
 	i = imin;
 	for ( j = jmin+1; j <= jmax; ++j ) {
 	    vtx = getVtx(i, j);
-	    areaInv = 1.0 / vtx.area;
+	    areaInv = 1.0 / vtx.areaxy;
 	    // Corners of the secondary cell
 	    xA = getCell(i, j-1).pos.x;
 	    yA = getCell(i, j-1).pos.y;
@@ -815,7 +815,7 @@ public:
 	j = jmax + 1;
 	for ( i = imin+1; i <= imax; ++i ) {
 	    vtx = getVtx(i, j);
-	    areaInv = 1.0 / vtx.area;
+	    areaInv = 1.0 / vtx.areaxy;
 	    // Corners of the secondary cell
 	    xA = getCell(i, j-1).pos.x;
 	    yA = getCell(i, j-1).pos.y;
@@ -842,7 +842,7 @@ public:
 	j = jmin;
 	for ( i = imin+1; i <= imax; ++i ) {
 	    vtx = getVtx(i, j);
-	    areaInv = 1.0 / vtx.area;
+	    areaInv = 1.0 / vtx.areaxy;
 	    // Corners of the secondary cell
 	    xA = getIfj(i, j).pos.x;
 	    yA = getIfj(i, j).pos.y;

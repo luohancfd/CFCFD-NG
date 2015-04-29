@@ -89,7 +89,7 @@ void writeInitialSolidFile(string fileName, ref StructuredGrid grid,
 	// Should match SolidFVCell.writeValuesToString()
 	auto writer = appender!string();
 	formattedWrite(writer, "%.16e %.16e %.16e %.16e %.16e %.16e",
-		       pos.x, pos.y, pos.z, volume, T, e);
+		       pos.x, pos.y, pos.z, volume, e, T);
 	return writer.data;
     }
 
