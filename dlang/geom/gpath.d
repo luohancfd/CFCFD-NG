@@ -112,7 +112,7 @@ public:
 	double tdsh = t0 + (t1-t0)*t; // subrange t
 	double L;
 	Vector3 p;
-	evaluate_position_and_length(t, p, L);
+	evaluate_position_and_length(tdsh, p, L);
 	return p;
     }
     override string toString() const
@@ -238,6 +238,7 @@ public:
 	    throw new Error(text("Bezier.opCall() No control points present."));
 	}
 	if ( B.length == 1 ) return B[0];
+    t = t0 + (t1 - t0)*t; // subrange t
 	if ( arc_length_param_flag ) {
 	    t = t_from_arc_length(t);
 	}
