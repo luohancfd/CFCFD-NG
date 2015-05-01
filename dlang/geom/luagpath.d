@@ -350,12 +350,11 @@ public:
     {
 	return new LuaFnPath(L, luaFnName, t0, t1);
     }
-    override Vector3 opCall(double t) const 
+    override Vector3 raw_eval(double t) const 
     {
-	double tdsh = t0 + (t1-t0)*t; // subrange t
 	// Call back to the Lua function.
 	lua_getglobal(cast(lua_State*)L, luaFnName.toStringz);
-	lua_pushnumber(cast(lua_State*)L, tdsh);
+	lua_pushnumber(cast(lua_State*)L, t);
 	if ( lua_pcall(cast(lua_State*)L, 1, 1, 0) != 0 ) {
 	    string errMsg = "Error in call to " ~ luaFnName ~ 
 		" from LuaFnPath:opCall(): " ~ 

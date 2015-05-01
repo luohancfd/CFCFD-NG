@@ -23,11 +23,11 @@ public:
     abstract Vector3 raw_eval(double t) const;
     Vector3 opCall(double t) const
     {
-    t = t0 + (t1 - t0)*t; // subrange t
-    if ( arc_length_param_flag ) {
-        t = t_from_arc_length(t);
-    }
-    return raw_eval(t);
+	t = t0 + (t1 - t0)*t; // subrange t
+	if ( arc_length_param_flag ) {
+	    t = t_from_arc_length(t);
+	}
+	return raw_eval(t);
     }
     abstract override string toString() const;
     double length() const
@@ -49,38 +49,38 @@ protected:
     double[] arc_length;
     void set_arc_length_vector(int N)
     {
-    // Compute the arc_lengths for a number of sample points 
-    // so that these can later be used to do a reverse interpolation
-    // on the evaluation parameter.
-    arc_length.length = 0;
-    if ( N == 0 ) return;
-    double dt = 1.0 / N;
-    double L = 0.0;
-    arc_length ~= L;
-    Vector3 p0 = raw_eval(0.0);
-    Vector3 p1;
-    foreach (i; 1 .. N+1) {
-        p1 = raw_eval(dt * i);
-        L += abs(p1 - p0);
-        arc_length ~= L;
-        p0 = p1;
-    }
+	// Compute the arc_lengths for a number of sample points 
+	// so that these can later be used to do a reverse interpolation
+	// on the evaluation parameter.
+	arc_length.length = 0;
+	if ( N == 0 ) return;
+	double dt = 1.0 / N;
+	double L = 0.0;
+	arc_length ~= L;
+	Vector3 p0 = raw_eval(0.0);
+	Vector3 p1;
+	foreach (i; 1 .. N+1) {
+	    p1 = raw_eval(dt * i);
+	    L += abs(p1 - p0);
+	    arc_length ~= L;
+	    p0 = p1;
+	}
     } // end set_arc_length_vector()
     double t_from_arc_length(double t) const
     {
-    // The incoming parameter value, t, is proportional to arc_length.
-    // Do a reverse look-up from the arc_length to the original t parameter
-    // of the Bezier curve.
-    double L_target = t * arc_length[$-1];
-    // Starting from the right-hand end,
-    // let's try to find a point to the left of L_target.
-    // If the value is out of range, this should just result in
-    // us extrapolating one of the end segments -- that's OK.
-    int i = to!int(arc_length.length) - 1;
-    double dt = 1.0 / arc_length.length;
-    while ( L_target < arc_length[i] && i > 0 ) i--;
-    double frac = (L_target - arc_length[i]) / (arc_length[i+1] - arc_length[i]);
-    return (1.0 - frac) * dt*i + frac * dt*(i+1);
+	// The incoming parameter value, t, is proportional to arc_length.
+	// Do a reverse look-up from the arc_length to the original t parameter
+	// of the Bezier curve.
+	double L_target = t * arc_length[$-1];
+	// Starting from the right-hand end,
+	// let's try to find a point to the left of L_target.
+	// If the value is out of range, this should just result in
+	// us extrapolating one of the end segments -- that's OK.
+	int i = to!int(arc_length.length) - 1;
+	double dt = 1.0 / arc_length.length;
+	while ( L_target < arc_length[i] && i > 0 ) i--;
+	double frac = (L_target - arc_length[i]) / (arc_length[i+1] - arc_length[i]);
+	return (1.0 - frac) * dt*i + frac * dt*(i+1);
     } // end t_from_arc_length()
 } // end class Path
 
@@ -157,10 +157,10 @@ public:
     }
     override Vector3 raw_eval(double t) const 
     {
-    double L;
-    Vector3 p;
-    evaluate_position_and_length(t, p, L);
-    return p;
+	double L;
+	Vector3 p;
+	evaluate_position_and_length(t, p, L);
+	return p;
     }
     override string toString() const
     {
