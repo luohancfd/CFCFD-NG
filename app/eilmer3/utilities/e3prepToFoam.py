@@ -790,7 +790,7 @@ def main(uoDict):
         for n in range(len(N_list_out)):
             write_U_Boundary(OFFile0,N_list_out[n],'zeroGradient')
         for n in range(len(N_list_wall)):
-            write_U_Boundary(OFFile0,N_list_wall[n],'zeroGradient')
+            write_U_Boundary(OFFile0,N_list_wall[n],'fixedValue')
         for n in range(len(N_list_sym)):
             write_U_Boundary(OFFile0,N_list_sym[n],'symmetry')
         if dimensions == 2:

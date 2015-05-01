@@ -125,13 +125,14 @@ verbosity_level = 0
 
 shortOptions = ""
 longOptions = ["help", "job=", "clean-start", "do-svg", "do-vrml", 
-               "zip-files", "no-zip-files", "show-names", "verbosity="]
+               "zip-files", "no-zip-files", "show-names", "verbosity=", "openfoam"]
 
 def printUsage():
     print ""
     print "Usage: e3prep.py [--help] [--job=<jobFileName>] [--clean-start]"
     print "       [--do-svg] [--do-vrml] [--zip-files|--no-zip-files]"
     print "       [--show-names] [--split-input-file] [--verbosity=<int>]"
+    print "       [--openfoam]"
     return
 
 #----------------------------------------------------------------------
@@ -1614,6 +1615,18 @@ def render_to_vrml(rootName):
 
 # --------------------------------------------------------------------
 
+def set_OF_fill_condition(blockList):
+    """
+    for --openfoam option. 
+    Write default FlowCondition() as fill_condition if not specified. 
+    """
+    for b in blockList:
+        if b.fill_condition == None:
+            b.fill_condition = FlowCondition()
+    return
+
+# --------------------------------------------------------------------
+
 def main(uoDict):
     """
     Top-level function for the e3prep application.
@@ -1641,6 +1654,10 @@ def main(uoDict):
         for path in ["flow", "grid", "master"]:
             if os.path.exists(path) and os.path.isdir(path):
                 subprocess.check_call(['rm', '-r', path], stderr=subprocess.STDOUT)
+    if uoDict.has_key("--openfoam"):
+        select_gas_model(model='ideal gas', species=['air'])
+        # In e3prep files for e3prepToFoam, gas model definition is optional. 
+        # Default ideal gas model is used.
     #
     # The user-specified input comes in the form of Python code.
     # In a parallel calculation, all processes should see the same setup.
@@ -1651,6 +1668,11 @@ def main(uoDict):
         # Split input file
         split_input_file(Block.blockList)
         sys.exit(0)
+    #
+    if uoDict.has_key("--openfoam"):
+        set_OF_fill_condition(Block.blockList)
+        # In e3prep files for e3prepToFoam, initial conditions are optional. 
+        # if not defined, default conditions will be set 
     #
     locate_history_cells()
     locate_monitor_cells()
