@@ -219,7 +219,7 @@ fv_demo: fv_demo.d fvcore.d fvcell.d fvvertex.d fvinterface.d onedinterp.d fluxc
 block_demo: block_demo.d \
 	block.d sblock.d ublock.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d \
-	fluxcalc.d onedinterp.d \
+	fluxcalc.d onedinterp.d viscousflux.d \
 	conservedquantities.d flowstate.d luaflowstate.d \
 	globalconfig.d globaldata.d \
 	block.d sblock.d ublock.d \
@@ -230,7 +230,7 @@ block_demo: block_demo.d \
 	$(DMD) $(DFLAGS) $(OF)block_demo \
 		block_demo.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
-		fluxcalc.d onedinterp.d \
+		fluxcalc.d onedinterp.d viscousflux.d \
 		conservedquantities.d flowstate.d luaflowstate.d \
 		globalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
@@ -241,7 +241,7 @@ block_demo: block_demo.d \
 
 e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 	block.d sblock.d ublock.d \
-	fluxcalc.d onedinterp.d \
+	fluxcalc.d onedinterp.d viscousflux.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d \
 	conservedquantities.d flowstate.d luaflowstate.d \
 	globalconfig.d luaglobalconfig.d globaldata.d \
@@ -253,7 +253,7 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 	$(DMD) $(DFLAGS) $(OF)e4shared \
 		main_with_rev_string.d simcore.d fileutil.d readconfig.d json_helper.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
-		fluxcalc.d onedinterp.d \
+		fluxcalc.d onedinterp.d viscousflux.d \
 		conservedquantities.d flowstate.d luaflowstate.d \
 		globalconfig.d luaglobalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \

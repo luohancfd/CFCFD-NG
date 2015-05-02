@@ -1123,12 +1123,14 @@ public:
 	return signal;
     } // end signal_frequency()
 
+    @nogc
     void turbulence_viscosity_zero() 
     {
 	fs.mu_t = 0.0;
 	fs.k_t = 0.0;
     }
 
+    @nogc
     void turbulence_viscosity_zero_if_not_in_zone() 
     {
 	if ( in_turbulent_zone ) {
@@ -1140,6 +1142,7 @@ public:
 	}
     }
 
+    @nogc
     void turbulence_viscosity_limit(double factor) 
     // Limit the turbulent viscosity to reasonable values relative to
     // the local molecular viscosity.
@@ -1150,6 +1153,7 @@ public:
 	fs.k_t = fmin(fs.k_t, factor * fs.gas.k[0]); // ASSUMPTION re k[0]
     }
 
+    @nogc
     void turbulence_viscosity_factor(double factor) 
     // Scale the turbulent viscosity to model effects
     // such as not-fully-developed turbulence that might be expected

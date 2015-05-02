@@ -1,6 +1,6 @@
 /**
  * fluxcalc.d
- * Flux calculators, for use in the CFD codes.
+ * Convective-Flux calculators, for use in the CFD codes.
  *
  * Author: Peter J. and Rowan G.
  * Version: 2014-07-23: initial cut, to explore options.
