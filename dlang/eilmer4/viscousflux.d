@@ -291,14 +291,15 @@ void gradients_xy(ref FVVertex vtx,
 // We can then double-up on one of the points and still get an estimate
 // for the flow gradients.
 {
-    // [TODO] Definitely compute our own estimate of area in xy plane here
-    // if we continue to allow the function to be used for triangles... 
-    double area_inv = 1.0 / vtx.areaxy;
     // Geometric data for the corners.
     double xA = posA.x; double yA = posA.y;
     double xB = posB.x; double yB = posB.y;
     double xC = posC.x; double yC = posC.y;
     double xD = posD.x; double yD = posD.y;
+    // Compute our own estimate of area in xy plane here. 
+    double areaxy = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
+			   (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
+    double area_inv = 1.0 / areaxy;
     // Functions based on divergence theorem to get gradients in 2D
     @nogc double gradient_x(double qA, double qB, double qC, double qD) {
 	return 0.5 * area_inv *
