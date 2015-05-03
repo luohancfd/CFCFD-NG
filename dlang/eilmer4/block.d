@@ -6,6 +6,7 @@ module block;
 
 import std.conv;
 import geom;
+import globalconfig;
 import fvcore;
 import fvcell;
 import bc;
@@ -30,6 +31,7 @@ public:
     BoundaryCondition[] bc; // collection of references to the boundary conditions
 
     override string toString() const { return "Block(id=" ~ to!string(id) ~ ")"; }
+
     abstract void assemble_arrays();
     abstract void bind_faces_and_vertices_to_cells();
     abstract void identify_reaction_zones(int gtl);
@@ -51,10 +53,32 @@ public:
     abstract void set_grid_velocities(double sim_time);
     abstract void convective_flux();
     abstract void viscous_flux();
-    abstract void viscous_derivatives(int gtl);
-    abstract void estimate_turbulence_viscosity();
+    abstract void flow_property_derivatives(int gtl);
+
+    void estimate_turbulence_viscosity()
+    {
+	final switch (GlobalConfig.turbulence_model) {
+	case TurbulenceModel.none:
+	    foreach (cell; active_cells) cell.turbulence_viscosity_zero();
+	    return;
+	case TurbulenceModel.baldwin_lomax:
+	    throw new Error("need to port baldwin_lomax_turbulence_model");
+	case TurbulenceModel.spalart_allmaras:
+	    throw new Error("Should implement Spalart-Allmaras some day.");
+	case TurbulenceModel.k_omega:
+	    foreach (cell; active_cells) cell.turbulence_viscosity_k_omega();
+	    break;
+	}
+	foreach (cell; active_cells) {
+	    cell.turbulence_viscosity_factor(GlobalConfig.transient_mu_t_factor);
+	    cell.turbulence_viscosity_limit(GlobalConfig.max_mu_t_factor);
+	    cell.turbulence_viscosity_zero_if_not_in_zone();
+	}
+    } // end estimate_turbulence_viscosity()
+
     abstract void applyPreReconAction(double t, int gtl, int ftl);
     abstract void applyPreSpatialDerivAction(double t, int gtl, int ftl);
+
     void set_cell_dt_chem(double dt_chem)
     {
 	foreach ( cell; active_cells ) cell.dt_chem = dt_chem;

@@ -4,6 +4,7 @@
  *
  * Author: Peter J. and Rowan G.
  * Version: 2015-05-02: port essentials from Eilmer3 and refactor (a lot).
+ *          2015-05-03: added gradient estimation for 2D flow
  */
 
 module viscousflux;
@@ -263,3 +264,102 @@ public:
     } // end average_vertex_values_3D()
 
 } // end class ViscousFluxData
+
+
+// Stand-alone functions for the computation of gradients.
+
+@nogc
+void gradients_xy(ref FVVertex vtx,
+		  const ref Vector3 posA, const ref Vector3 posB,
+		  const ref Vector3 posC, const ref Vector3 posD,
+		  const ref FlowState fsA, const ref FlowState fsB,
+		  const ref FlowState fsC, const ref FlowState fsD)
+// Using the divergence theorem (I think), compute the average gradients
+// for the flow conditions over a quadrilateral in the xy-plane.
+//     C-----B
+//     |     |
+//     |     |
+//     D-----A
+//  y
+//  |
+//  o--x
+//
+// Since we are embedding this function in a nominally 3D code,
+// the z-coordinate derivatives are set to zero.
+// [TODO] Check that this contour-integral approach works when the 
+// quadrilateral degenerates to a triangle in the plane. 
+// We can then double-up on one of the points and still get an estimate
+// for the flow gradients.
+{
+    // [TODO] Definitely compute our own estimate of area in xy plane here
+    // if we continue to allow the function to be used for triangles... 
+    double area_inv = 1.0 / vtx.areaxy;
+    // Geometric data for the corners.
+    double xA = posA.x; double yA = posA.y;
+    double xB = posB.x; double yB = posB.y;
+    double xC = posC.x; double yC = posC.y;
+    double xD = posD.x; double yD = posD.y;
+    // Functions based on divergence theorem to get gradients in 2D
+    @nogc double gradient_x(double qA, double qB, double qC, double qD) {
+	return 0.5 * area_inv *
+	    ((qB + qA) * (yB - yA) + (qC + qB) * (yC - yB) +
+	     (qD + qC) * (yD - yC) + (qA + qD) * (yA - yD));
+    }
+    @nogc double gradient_y(double qA, double qB, double qC, double qD) {
+	return -0.5 * area_inv *
+	    ((qB + qA) * (xB - xA) + (qC + qB) * (xC - xB) +
+	     (qD + qC) * (xD - xC) + (qA + qD) * (xA - xD));
+    }
+    // Flow properties at the corners.
+    double uA = fsA.vel.x; double uB = fsB.vel.x;
+    double uC = fsC.vel.x; double uD = fsD.vel.x;
+    // Apply divergence theorem to get gradient.
+    vtx.grad_vel[0][0] = gradient_x(uA, uB, uC, uD);
+    vtx.grad_vel[0][1] = gradient_y(uA, uB, uC, uD);
+    vtx.grad_vel[0][2] = 0.0;
+    //
+    double vA = fsA.vel.y; double vB = fsB.vel.y;
+    double vC = fsC.vel.y; double vD = fsD.vel.y;
+    vtx.grad_vel[1][0] = gradient_x(vA, vB, vC, vD);
+    vtx.grad_vel[1][1] = gradient_y(vA, vB, vC, vD);
+    vtx.grad_vel[1][2] = 0.0;
+    //
+    vtx.grad_vel[2][0] = 0.0;
+    vtx.grad_vel[2][1] = 0.0;
+    vtx.grad_vel[2][2] = 0.0;
+    //
+    double TA = fsA.gas.T[0]; double TB = fsB.gas.T[0];
+    double TC = fsC.gas.T[0]; double TD = fsD.gas.T[0];
+    vtx.grad_T.refx = gradient_x(TA, TB, TC, TD);
+    vtx.grad_T.refy = gradient_y(TA, TB, TC, TD);
+    vtx.grad_T.refz = 0.0;
+    //
+    if (GlobalConfig.diffusion) {
+	foreach(isp; 0 .. GlobalConfig.gmodel.n_species) {
+	    double fA = fsA.gas.massf[isp]; double fB = fsB.gas.massf[isp];
+	    double fC = fsC.gas.massf[isp]; double fD = fsD.gas.massf[isp];
+	    vtx.grad_f[isp].refx = gradient_x(fA, fB, fC, fD);
+	    vtx.grad_f[isp].refy = gradient_y(fA, fB, fC, fD);
+	    vtx.grad_f[isp].refz = 0.0;
+	}
+    } else {
+	foreach(isp; 0 .. GlobalConfig.gmodel.n_species) {
+	    vtx.grad_f[isp].refx = 0.0;
+	    vtx.grad_f[isp].refy = 0.0;
+	    vtx.grad_f[isp].refz = 0.0;
+	}
+    }
+    //
+    double tkeA = fsA.tke; double tkeB = fsB.tke;
+    double tkeC = fsC.tke; double tkeD = fsD.tke;
+    vtx.grad_tke.refx = gradient_x(tkeA, tkeB, tkeC, tkeD);
+    vtx.grad_tke.refy = gradient_y(tkeA, tkeB, tkeC, tkeD);
+    vtx.grad_tke.refz = 0.0;
+    //
+    double omegaA = fsA.omega; double omegaB = fsB.omega;
+    double omegaC = fsC.omega; double omegaD = fsD.omega;
+    vtx.grad_omega.refx = gradient_x(omegaA, omegaB, omegaC, omegaD);
+    vtx.grad_omega.refy = gradient_y(omegaA, omegaB, omegaC, omegaD);
+    vtx.grad_omega.refz = 0.0;
+} // end gradients_xy()
+

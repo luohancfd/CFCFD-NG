@@ -2173,31 +2173,129 @@ public:
     } // end viscous_flux()
 
     @nogc
-    override void viscous_derivatives(int gtl)
+    override void flow_property_derivatives(int gtl)
     {
-	assert(false, "[TODO] viscous_derivatives() not implemented yet.");
+	size_t i, j, k;
+	if (GlobalConfig.dimensions == 2) {
+	    // First, do all of the internal secondary cells.
+	    // i.e. Those not on a boundary.
+	    for ( i = imin+1; i <= imax; ++i ) {
+		for ( j = jmin+1; j <= jmax; ++j ) {
+		    // Secondary-cell centre is a primary-cell vertex.
+		    FVVertex vtx = get_vtx(i,j);
+		    // These are the corners of the secondary cell.
+		    FVCell A = get_cell(i,j-1);
+		    FVCell B = get_cell(i,j);
+		    FVCell C = get_cell(i-1,j);
+		    FVCell D = get_cell(i-1,j-1);
+		    // Delegate the work of computing the actual gradients.
+		    gradients_xy(vtx, A.pos[gtl], B.pos[gtl], C.pos[gtl], D.pos[gtl],
+				 A.fs, B.fs, C.fs, D.fs);
+		} // j loop
+	    } // i loop
+	    // Half-cells along the edges of the block.
+	    // [TODO] Check that the secondary-cell geometry functions actually
+	    // compute the correct xy-plane area for these "half-cells" or, maybe,
+	    // the divergence function needs to compute its own copy of area.
+	    // It will be a bit of extra work but then we can pass it all sorts of 
+	    // shapes and it will look after itself, even if the grid moves.
+	    // East boundary
+	    i = imax+1;
+	    for (j = jmin+1; j <= jmax; ++j) {
+		FVVertex vtx = get_vtx(i,j);
+		FVInterface A = get_ifi(i,j-1);
+		FVInterface B = get_ifi(i,j);
+		FVCell C = get_cell(i-1,j);
+		FVCell D = get_cell(i-1,j-1);
+		gradients_xy(vtx, A.pos, B.pos, C.pos[gtl], D.pos[gtl],
+			     A.fs, B.fs, C.fs, D.fs);
+	    } // j loop
+	    // West boundary
+	    i = imin;
+	    for (j = jmin+1; j <= jmax; ++j) {
+		FVVertex vtx = get_vtx(i,j);
+		// These are the corners of the secondary cell.
+		FVCell A = get_cell(i,j-1);
+		FVCell B = get_cell(i,j);
+		FVInterface C = get_ifi(i,j);
+		FVInterface D = get_ifi(i,j-1);
+		// Delegate the work of computing the actual gradients.
+		gradients_xy(vtx, A.pos[gtl], B.pos[gtl], C.pos, D.pos,
+			     A.fs, B.fs, C.fs, D.fs);
+	    } // j loop
+	    // North boundary
+	    j = jmax+1;
+	    for (i = imin+1; i <= imax; ++i) {
+		FVVertex vtx = get_vtx(i,j);
+		FVCell A = get_cell(i,j-1);
+		FVInterface B = get_ifj(i,j);
+		FVInterface C = get_ifj(i-1,j);
+		FVCell D = get_cell(i-1,j-1);
+		gradients_xy(vtx, A.pos[gtl], B.pos, C.pos, D.pos[gtl],
+			     A.fs, B.fs, C.fs, D.fs);
+	    } // i loop
+	    // South boundary
+	    j = jmin;
+	    for (i = imin+1; i <= imax; ++i) {
+		FVVertex vtx = get_vtx(i,j);
+		FVInterface A = get_ifj(i,j);
+		FVCell B = get_cell(i,j);
+		FVCell C = get_cell(i-1,j);
+		FVInterface D = get_ifj(i-1,j);
+		gradients_xy(vtx, A.pos, B.pos[gtl], C.pos[gtl], D.pos,
+			     A.fs, B.fs, C.fs, D.fs);
+	    } // i loop
+	    // For the corners, we are going to use the same divergence-theorem-based
+	    // gradient calculator and let one edge collapse to a point, thus giving
+	    // it a triangle to compute over.  This should be fine. 
+	    // North-east corner
+	    {
+		i = imax+1; j = jmax+1;
+		FVVertex vtx = get_vtx(i,j);
+		FVInterface A = get_ifi(i,j-1);
+		FVInterface B = get_ifj(i-1,j);
+		FVInterface C = get_ifj(i-1,j);
+		FVCell D = get_cell(i-1,j-1);
+		gradients_xy(vtx, A.pos, B.pos, C.pos, D.pos[gtl],
+			     A.fs, B.fs, C.fs, D.fs);
+	    }
+	    // South-east corner
+	    {
+		i = imax+1; j = jmin;
+		FVVertex vtx = get_vtx(i,j);
+		FVInterface A = get_ifi(i,j);
+		FVInterface B = get_ifi(i,j);
+		FVCell C = get_cell(i-1,j);
+		FVInterface D = get_ifj(i-1,j);
+		gradients_xy(vtx, A.pos, B.pos, C.pos[gtl], D.pos,
+			     A.fs, B.fs, C.fs, D.fs);
+	    }
+	    // South-west corner
+	    {
+		i = imin; j = jmin;
+		FVVertex vtx = get_vtx(i,j);
+		FVInterface A = get_ifj(i,j);
+		FVCell B = get_cell(i,j);
+		FVInterface C = get_ifi(i,j);
+		FVInterface D = A;
+		gradients_xy(vtx, A.pos, B.pos[gtl], C.pos, D.pos,
+			     A.fs, B.fs, C.fs, D.fs);
+	    }
+	    // North-west corner
+	    {
+		i = imin; j = jmax+1;
+		FVVertex vtx = get_vtx(i,j);
+		FVCell A = get_cell(i,j-1);
+		FVInterface B = get_ifj(i,j);
+		FVInterface C = B;
+		FVInterface D = get_ifi(i,j-1);
+		gradients_xy(vtx, A.pos[gtl], B.pos, C.pos, D.pos,
+			     A.fs, B.fs, C.fs, D.fs);
+	    }
+	} else {
+	    assert(false, "[TODO] flow_property_derivatives() in 3D not implemented yet.");
+	}
     }
-
-    override void estimate_turbulence_viscosity()
-    {
-	final switch (GlobalConfig.turbulence_model) {
-	case TurbulenceModel.none:
-	    foreach (cell; active_cells) cell.turbulence_viscosity_zero();
-	    return;
-	case TurbulenceModel.baldwin_lomax:
-	    throw new Error("need to port baldwin_lomax_turbulence_model");
-	case TurbulenceModel.spalart_allmaras:
-	    throw new Error("Should implement Spalart-Allmaras some day.");
-	case TurbulenceModel.k_omega:
-	    foreach (cell; active_cells) cell.turbulence_viscosity_k_omega();
-	    break;
-	}
-	foreach (cell; active_cells) {
-	    cell.turbulence_viscosity_factor(GlobalConfig.transient_mu_t_factor);
-	    cell.turbulence_viscosity_limit(GlobalConfig.max_mu_t_factor);
-	    cell.turbulence_viscosity_zero_if_not_in_zone();
-	}
-    } // end estimate_turbulence_viscosity()
 
     override void applyPreReconAction(double t, int gtl, int ftl)
     {
@@ -2914,7 +3012,6 @@ public:
 	} // end switch destination_face
     } // end copy_to_ghost_cells()
 } // end class SBlock
-
 
 
 /** Indexing of the data in 2D.

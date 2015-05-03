@@ -333,7 +333,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	blk.convective_flux();
 	if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 	    blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
-	    blk.viscous_derivatives(gtl); 
+	    blk.flow_property_derivatives(gtl); 
 	    blk.estimate_turbulence_viscosity();
 	    blk.viscous_flux();
 	} // end if viscous
@@ -375,7 +375,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    blk.convective_flux();
 	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 		blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
-		blk.viscous_derivatives(gtl); 
+		blk.flow_property_derivatives(gtl); 
 		blk.estimate_turbulence_viscosity();
 		blk.viscous_flux();
 	    } // end if viscous
@@ -415,7 +415,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    blk.convective_flux();
 	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 		blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
-		blk.viscous_derivatives(gtl); 
+		blk.flow_property_derivatives(gtl); 
 		blk.estimate_turbulence_viscosity();
 		blk.viscous_flux();
 	    } // end if viscous
