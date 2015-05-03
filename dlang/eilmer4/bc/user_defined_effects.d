@@ -143,7 +143,7 @@ private:
 			  in FVInterface IFace, FVCell ghostCell0, FVCell ghostCell1)
     {
 	// 1. Set useful values for caller in table
-	auto args = _lua.newTable(0, 19);
+	auto args = _lua.newTable(0, 20);
 	args["t"] = t; 
 	args["dt"] = dt_global;
 	args["timeStep"] = step;

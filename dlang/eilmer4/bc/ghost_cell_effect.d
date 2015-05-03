@@ -76,7 +76,6 @@ GhostCellEffect make_GCE_from_json(JSONValue jsonData, int blk_id, int boundary)
 	break;
     case "user_defined":
 	string fname = getJSONstring(jsonData, "filename", "none");
-	
 	newGCE = new UserDefinedGhostCell(blk_id, boundary, fname);
 	break;
     default:

@@ -754,8 +754,16 @@ end
 SolidBIE_FixedT = SolidBoundaryInterfaceEffect:new{Twall=300.0}
 SolidBIE_FixedT.type = "fixed_temperature"
 function SolidBIE_FixedT:tojson()
-   local str = string.format('          {"type": "%s",\n', self.type)
-   str = str .. string.format('           "Twall": %12.6e }', self.Twall)
+   local str = string.format('          {"type": "%s", ', self.type)
+   str = str .. string.format('"Twall": %12.6e }', self.Twall)
+   return str
+end
+
+SolidBIE_UserDefined = SolidBoundaryInterfaceEffect:new{fileName='user-defined-solid-bc.lua'}
+SolidBIE_UserDefined.type = "user_defined"
+function SolidBIE_UserDefined:tojson()
+   local str = string.format('          {"type": "%s", ', self.type)
+   str = str .. string.format('"filename": "%s" }', self.fileName)
    return str
 end
 
@@ -791,7 +799,15 @@ SolidFixedTBC = SolidBoundaryCondition:new()
 SolidFixedTBC.myType = "SolidFixedT"
 function SolidFixedTBC:new(o)
    o = SolidBoundaryCondition.new(self, o)
-   o.preSpatialDerivAction = { SolidBIE_FixedT:new{Twall = o.Twall} }
+   o.preSpatialDerivAction = { SolidBIE_FixedT:new{Twall=o.Twall} }
+   return o
+end
+
+SolidUserDefinedBC = SolidBoundaryCondition:new()
+SolidUserDefinedBC.myType = "SolidUserDefined"
+function SolidUserDefinedBC:new(o)
+   o = SolidBoundaryCondition.new(self, o)
+   o.preSpatialDerivAction = { SolidBIE_UserDefined:new{fileName=o.fileName} }
    return o
 end
 
