@@ -103,9 +103,13 @@ INSTALL_DIR ?= $(HOME)/e3bin
 REVISION_STRING := $(shell hg identify --id --num --branch --tags)
 
 ifeq ($(DMD), dmd)
-    # DFLAGS := -unittest -debug -gc -w
-    # DFLAGS := -profile -vgc -w -O -release -inline -boundscheck=off
-    DFLAGS := -gc -w -O -release -inline -boundscheck=off \
+    # (1) For debug build.  ([TODO] fix -unittest build.)
+    #     DFLAGS := -debug -gc -w
+    # (2) For profiling the debugged code.
+    #     DFLAGS := -profile -vgc -w -O -release -inline -boundscheck=off
+    # (3) For releasing a fast code.
+    #     DFLAGS := -w -O -release -inline -boundscheck=off
+    DFLAGS := -w -O -release -inline -boundscheck=off \
 	-I.. -I$(LUAD_DIR) -I$(NM_DIR) -I$(UTIL_DIR) -I$(GEOM_DIR) -I$(GZIP_DIR)
     OF := -of
     DLINKFLAGS := -L-L$(LIBLUAPATH) -L-llua -L-ldl

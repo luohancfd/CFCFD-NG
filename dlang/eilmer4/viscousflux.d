@@ -31,6 +31,8 @@ public:
 
     this() {
 	nsp = GlobalConfig.gmodel.n_species;
+	grad_vel.length = 3;
+	foreach (ref e; grad_vel) e.length = 3;
 	grad_f.length = nsp; 
 	if ( GlobalConfig.diffusion ) {
 	    jx.length = nsp;
@@ -188,7 +190,7 @@ public:
     @nogc
     void average_vertex_values_2D(const FVVertex vtx1, const FVVertex vtx2)
     {
-	grad_vel[0][0] = 0.5*(vtx1.grad_vel[0][0] + vtx1.grad_vel[0][0]); // du/dx
+	grad_vel[0][0] = 0.5*(vtx1.grad_vel[0][0] + vtx2.grad_vel[0][0]); // du/dx
 	grad_vel[0][1] = 0.5*(vtx1.grad_vel[0][1] + vtx2.grad_vel[0][1]); // du/dy
 	grad_vel[0][2] = 0.0; // du/dz
 	grad_vel[1][0] = 0.5*(vtx1.grad_vel[1][0] + vtx2.grad_vel[1][0]); // dv/dx
