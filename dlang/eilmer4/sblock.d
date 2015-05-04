@@ -191,9 +191,24 @@ public:
 		    active_cells ~= _ctr[gid];
 		}
 		_ifi ~= new FVInterface(gm); _ifi[gid].id = gid;
+		if ( ijk[0] >= imin && ijk[0] <= imax+1 && 
+		     ijk[1] >= jmin && ijk[1] <= jmax && 
+		     ijk[2] >= kmin && ijk[2] <= kmax ) {
+		    active_ifaces ~= _ifi[gid];
+		}
 		_ifj ~= new FVInterface(gm); _ifj[gid].id = gid;
+		if ( ijk[0] >= imin && ijk[0] <= imax && 
+		     ijk[1] >= jmin && ijk[1] <= jmax+1 && 
+		     ijk[2] >= kmin && ijk[2] <= kmax ) {
+		    active_ifaces ~= _ifj[gid];
+		}
 		if ( GlobalConfig.dimensions == 3 ) {
 		    _ifk ~= new FVInterface(gm); _ifk[gid].id = gid;
+		    if ( ijk[0] >= imin && ijk[0] <= imax && 
+			 ijk[1] >= jmin && ijk[1] <= jmax && 
+			 ijk[2] >= kmin && ijk[2] <= kmax+1 ) {
+			active_ifaces ~= _ifk[gid];
+		    }
 		}
 		_vtx ~= new FVVertex(gm); _vtx[gid].id = gid;
 		_sifi ~= new FVInterface(gm); _sifi[gid].id = gid;
@@ -216,7 +231,7 @@ public:
 	}
     } // end of assemble_arrays()
 
-    override void bind_faces_and_vertices_to_cells()
+    override void bind_interfaces_and_vertices_to_cells()
     // There is a fixed order of faces and vertices for each cell.
     // Refer to fvcore.d
     {
@@ -254,35 +269,85 @@ public:
 	} // for k
     } // end bind_faces_and_vertices_to_cells()
 
-    override void clear_fluxes_of_conserved_quantities()
+    override void bind_vertices_and_cells_to_interfaces()
+    // Sometimes it is convenient for an interface to come complete 
+    // with information about the vertices that define it and the cells
+    // that adjoin it.
     {
+	// ifi interfaces are East-facing interfaces.
+	// In 2D, vtx0==p11, vtx1==p10.
+	// In 3D, the cycle [vtx0,vtx1,vtx2,vtx3] progresses counter-clockwise around 
+	// the periphery of the face when the normal unit vector is pointing toward you.
+	// t1 vector aligned with j-index direction
+	// t2 vector aligned with k-index direction
+	// The i,j,k indices are effectively cell indices in the following loops.
 	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for (size_t j = jmin; j <= jmax; ++j) {
-		for (size_t i = imin; i <= imax+1; ++i) {
-		    get_ifi(i,j,k).F.clear_values();
-		} // for i
-	    } // for j
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t i = imin-1; i <= imax; ++i ) {
+		    auto IFace = get_ifi(i+1,j,k);
+		    if (GlobalConfig.dimensions == 3) {
+			IFace.vtx ~= get_vtx(i+1,j,k);
+			IFace.vtx ~= get_vtx(i+1,j+1,k);
+			IFace.vtx ~= get_vtx(i+1,j+1,k+1);
+			IFace.vtx ~= get_vtx(i+1,j,k+1);
+			IFace.left_cell = get_cell(i,j,k);
+			IFace.right_cell = get_cell(i+1,j,k);
+		    } else {
+			IFace.vtx ~= get_vtx(i+1,j+1);
+			IFace.vtx ~= get_vtx(i+1,j);
+			IFace.left_cell = get_cell(i,j);
+			IFace.right_cell = get_cell(i+1,j);
+		    }
+		} // i loop
+	    } // j loop
 	} // for k
+	// ifj interfaces are North-facing interfaces.
+	// In 2D, vtx0==p01, vtx1==p11.
+	// t1 vector aligned with k-index direction
+	// t2 vector aligned with i-index direction
 	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for (size_t j = jmin; j <= jmax+1; ++j) {
-		for (size_t i = imin; i <= imax; ++i) {
-		    get_ifj(i,j,k).F.clear_values();
-		} // for i
-	    } // for j
+	    for ( size_t i = imin; i <= imax; ++i ) {
+		for ( size_t j = jmin-1; j <= jmax; ++j ) {
+		    auto IFace = get_ifj(i,j+1,k);
+		    if (GlobalConfig.dimensions == 3) {
+			IFace.vtx ~= get_vtx(i,j+1,k);
+			IFace.vtx ~= get_vtx(i,j+1,k+1);
+			IFace.vtx ~= get_vtx(i+1,j+1,k+1);
+			IFace.vtx ~= get_vtx(i+1,j+1,k);
+			IFace.left_cell = get_cell(i,j,k);
+			IFace.right_cell = get_cell(i,j+1,k);
+		    } else {
+			IFace.vtx ~= get_vtx(i,j+1);
+			IFace.vtx ~= get_vtx(i+1,j+1);
+			IFace.left_cell = get_cell(i,j);
+			IFace.right_cell = get_cell(i,j+1);
+		    }
+		} // j loop
+	    } // i loop
 	} // for k
-	if ( GlobalConfig.dimensions == 3 ) {
-	    for ( size_t k = kmin; k <= kmax+1; ++k ) {
-		for (size_t j = jmin; j <= jmax; ++j) {
-		    for (size_t i = imin; i <= imax; ++i) {
-			get_ifk(i,j,k).F.clear_values();
-		    } // for i
-		} // for j
-	    } // for k
-	} // end if G.dimensions == 3
-    } // end clear_fluxes_of_conserved_quantities()
+	if (GlobalConfig.dimensions == 2) return;
+	// ifk interfaces are Top-facing interfaces.
+	// t1 vector aligned with i-index direction
+	// t2 vector aligned with j-index direction
+	for ( size_t i = imin; i <= imax; ++i ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t k = kmin-1; k <= kmax; ++k ) {
+		    auto IFace = get_ifk(i,j,k+1);
+		    IFace.vtx ~= get_vtx(i,j,k+1);
+		    IFace.vtx ~= get_vtx(i+1,j,k+1);
+		    IFace.vtx ~= get_vtx(i+1,j+1,k+1);
+		    IFace.vtx ~= get_vtx(i,j+1,k+1);
+		    IFace.left_cell = get_cell(i,j,k);
+		    IFace.right_cell = get_cell(i,j,k+1);
+		} // for k 
+	    } // j loop
+	} // i loop
+	return;
+    } // end bind_vertices_and_cells_to_interfaces()
 
     override int count_invalid_cells(int gtl)
-    // Returns the number of cells that contain invalid data.
+    // Returns the number of cells that contain invalid data,
+    // optionally patching bad cell data as it goes.
     //
     // This data can be identified by the density of internal energy 
     // being on the minimum limit or the velocity being very large.
@@ -330,101 +395,6 @@ public:
 	} // foreach cell
 	return number_of_invalid_cells;
     } // end count_invalid_cells()
-
-    @nogc
-    override void detect_shock_points()
-    // Detects shocks by looking for compression between adjacent cells.
-    //
-    // The velocity component normal to the cell interfaces
-    // is used as the indicating variable.
-    {
-	double uL, uR, aL, aR, a_min;
-
-	// Change in normalised velocity to indicate a shock.
-	// A value of -0.05 has been found suitable to detect the levels of
-	// shock compression observed in the "sod" and "cone20" test cases.
-	// It may need to be tuned for other situations, especially when
-	// viscous effects are important.
-	double tol = GlobalConfig.compression_tolerance;
-
-	// First, work across North interfaces and
-	// locate shocks using the (local) normal velocity.
-	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for ( size_t i = imin; i <= imax; ++i ) {
-		for ( size_t j = jmin-1; j <= jmax; ++j ) {
-		    auto cL = get_cell(i,j,k);
-		    auto cR = get_cell(i,j+1,k);
-		    auto IFace = cL.iface[Face.north];
-		    uL = cL.fs.vel.x * IFace.n.x + cL.fs.vel.y * IFace.n.y + cL.fs.vel.z * IFace.n.z;
-		    uR = cR.fs.vel.x * IFace.n.x + cR.fs.vel.y * IFace.n.y + cR.fs.vel.z * IFace.n.z;
-		    aL = cL.fs.gas.a;
-		    aR = cR.fs.gas.a;
-		    if (aL < aR)
-			a_min = aL;
-		    else
-			a_min = aR;
-		    IFace.fs.S = ((uR - uL) / a_min < tol);
-		} // j loop
-	    } // i loop
-	} // for k
-    
-	// Second, work across East interfaces and
-	// locate shocks using the (local) normal velocity.
-	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for ( size_t i = imin-1; i <= imax; ++i ) {
-		for ( size_t j = jmin; j <= jmax; ++j ) {
-		    auto cL = get_cell(i,j,k);
-		    auto cR = get_cell(i+1,j,k);
-		    auto IFace = cL.iface[Face.east];
-		    uL = cL.fs.vel.x * IFace.n.x + cL.fs.vel.y * IFace.n.y + cL.fs.vel.z * IFace.n.z;
-		    uR = cR.fs.vel.x * IFace.n.x + cR.fs.vel.y * IFace.n.y + cR.fs.vel.z * IFace.n.z;
-		    aL = cL.fs.gas.a;
-		    aR = cR.fs.gas.a;
-		    if (aL < aR)
-			a_min = aL;
-		    else
-			a_min = aR;
-		    IFace.fs.S = ((uR - uL) / a_min < tol);
-		} // j loop
-	    } // i loop
-	} // for k
-    
-	if ( GlobalConfig.dimensions == 3 ) {
-	    // Third, work across Top interfaces.
-	    for ( size_t i = imin; i <= imax; ++i ) {
-		for ( size_t j = jmin; j <= jmax; ++j ) {
-		    for ( size_t k = kmin-1; k <= kmax; ++k ) {
-			auto cL = get_cell(i,j,k);
-			auto cR = get_cell(i,j,k+1);
-			auto IFace = cL.iface[Face.top];
-			uL = cL.fs.vel.x * IFace.n.x + cL.fs.vel.y * IFace.n.y + cL.fs.vel.z * IFace.n.z;
-			uR = cR.fs.vel.x * IFace.n.x + cR.fs.vel.y * IFace.n.y + cR.fs.vel.z * IFace.n.z;
-			aL = cL.fs.gas.a;
-			aR = cR.fs.gas.a;
-			if (aL < aR)
-			    a_min = aL;
-			else
-			    a_min = aR;
-			IFace.fs.S = ((uR - uL) / a_min < tol);
-		    } // for k
-		} // j loop
-	    } // i loop
-	} // if ( dimensions == 3 )
-    
-	// Finally, mark cells as shock points if any of their
-	// interfaces are shock points.
-	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for ( size_t i = imin; i <= imax; ++i ) {
-		for ( size_t j = jmin; j <= jmax; ++j ) {
-		    auto cell = get_cell(i,j,k);
-		    cell.fs.S = cell.iface[Face.east].fs.S || cell.iface[Face.west].fs.S ||
-			cell.iface[Face.north].fs.S || cell.iface[Face.south].fs.S ||
-			( GlobalConfig.dimensions == 3 && 
-			  (cell.iface[Face.bottom].fs.S || cell.iface[Face.top].fs.S) );
-		} // j loop
-	    } // i loop
-	} // for k
-    } // end detect_shock_points()
 
     override void compute_primary_cell_geometric_data(int gtl)
     // Compute cell and interface geometric properties.
@@ -1586,50 +1556,6 @@ public:
 	outfile.finish();
     } // end write_solution()
 
-    override void write_history(string filename, double sim_time, bool write_header=false)
-    {
-	throw new Error("[TODO] Not implemented yet.");
-    }
-
-    @nogc
-    override void set_grid_velocities(double sim_time)
-    // Presently sets the grid velocities at cell interfaces to zero.
-    // [TODO] Insert the moving-grid code some day...
-    {
-	if (GlobalConfig.moving_grid) {
-	    assert(false, "SBlock.set_grid_velocities(): moving grid is not yet implemented.");
-	}
-	// ifi interfaces are East-facing interfaces.
-	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for ( size_t j = jmin; j <= jmax; ++j ) {
-		for ( size_t i = imin; i <= imax+1; ++i ) {
-		    auto IFace = get_ifi(i,j,k);
-		    IFace.gvel = Vector3(0.0, 0.0, 0.0);
-		} // i loop
-	    } // j loop
-	} // for k
-	// ifj interfaces are North-facing interfaces.
-	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for ( size_t i = imin; i <= imax; ++i ) {
-		for ( size_t j = jmin; j <= jmax+1; ++j ) {
-		    auto IFace = get_ifj(i,j,k);
-		    IFace.gvel = Vector3(0.0, 0.0, 0.0);
-		} // j loop
-	    } // i loop
-	} // for k
-	if (GlobalConfig.dimensions == 2) return;
-	// ifk interfaces are TOP-facing interfaces.
-	for ( size_t i = imin; i <= imax; ++i ) {
-	    for ( size_t j = jmin; j <= jmax; ++j ) {
-		for ( size_t k = kmin; k <= kmax+1; ++k ) {
-		    auto IFace = get_ifk(i,j,k);
-		    IFace.gvel = Vector3(0.0, 0.0, 0.0);
-		} // for k 
-	    } // j loop
-	} // i loop
-	return;
-    } // end set_grid_velocities()
-
     override void convective_flux()
     {
 	FVCell cL1, cL0, cR0, cR1;
@@ -1763,83 +1689,6 @@ public:
 	} // i loop
 	return;
     } // end convective_flux()
-
-    override void viscous_flux()
-    {
-	auto vfwork = new ViscousFluxData();
-	// ifi interfaces are East-facing interfaces.
-	// In 2D, vtx1==p11, vtx2==p10.
-	// In 3D, the cycle [Vtx1,Vtx2,Vtx3,Vtx4] progresses counter-clockwise around 
-	// the periphery of the face when the normal unit vector is pointing toward you.
-	// t1 vector aligned with j-index direction
-	// t2 vector aligned with k-index direction
-	// The i,j,k indices are effectively cell indices in the following loops.
-	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for ( size_t j = jmin; j <= jmax; ++j ) {
-		for ( size_t i = imin-1; i <= imax; ++i ) {
-		    auto IFace = get_ifi(i+1,j,k);
-		    if (GlobalConfig.dimensions == 3) {
-			auto vtx1 = get_vtx(i+1,j,k);
-			auto vtx2 = get_vtx(i+1,j+1,k);
-			auto vtx3 = get_vtx(i+1,j+1,k+1);
-			auto vtx4 = get_vtx(i+1,j,k+1);
-			vfwork.average_vertex_values_3D(vtx1,vtx2,vtx3,vtx4);
-			vfwork.viscous_flux_calc(IFace);
-		    } else {
-			auto vtx1 = get_vtx(i+1,j+1);
-			auto vtx2 = get_vtx(i+1,j);
-			vfwork.average_vertex_values_2D(vtx1,vtx2);
-			vfwork.viscous_flux_calc(IFace);
-		    }
-		} // i loop
-	    } // j loop
-	} // for k
-
-	// ifj interfaces are North-facing interfaces.
-	// In 2D, vtx1==p01, vtx2==p11.
-	// t1 vector aligned with k-index direction
-	// t2 vector aligned with i-index direction
-	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for ( size_t i = imin; i <= imax; ++i ) {
-		for ( size_t j = jmin-1; j <= jmax; ++j ) {
-		    auto IFace = get_ifj(i,j+1,k);
-		    if (GlobalConfig.dimensions == 3) {
-			auto vtx1 = get_vtx(i,j+1,k);
-			auto vtx2 = get_vtx(i,j+1,k+1);
-			auto vtx3 = get_vtx(i+1,j+1,k+1);
-			auto vtx4 = get_vtx(i+1,j+1,k);
-			vfwork.average_vertex_values_3D(vtx1,vtx2,vtx3,vtx4);
-			vfwork.viscous_flux_calc(IFace);
-		    } else {
-			auto vtx1 = get_vtx(i,j+1);
-			auto vtx2 = get_vtx(i+1,j+1);
-			vfwork.average_vertex_values_2D(vtx1,vtx2);
-			vfwork.viscous_flux_calc(IFace);
-		    }
-		} // j loop
-	    } // i loop
-	} // for k
-
-	if (GlobalConfig.dimensions == 2) return;
-    
-	// ifk interfaces are Top-facing interfaces.
-	// t1 vector aligned with i-index direction
-	// t2 vector aligned with j-index direction
-	for ( size_t i = imin; i <= imax; ++i ) {
-	    for ( size_t j = jmin; j <= jmax; ++j ) {
-		for ( size_t k = kmin-1; k <= kmax; ++k ) {
-		    auto IFace = get_ifk(i,j,k+1);
-		    auto vtx1 = get_vtx(i,j,k+1);
-		    auto vtx2 = get_vtx(i+1,j,k+1);
-		    auto vtx3 = get_vtx(i+1,j+1,k+1);
-		    auto vtx4 = get_vtx(i,j+1,k+1);
-		    vfwork.average_vertex_values_3D(vtx1,vtx2,vtx3,vtx4);
-		    vfwork.viscous_flux_calc(IFace);
-		} // for k 
-	    } // j loop
-	} // i loop
-	return;
-    } // end viscous_flux()
 
     @nogc
     override void flow_property_derivatives(int gtl)
@@ -2680,6 +2529,7 @@ public:
 	    } // j loop
 	} // end switch destination_face
     } // end copy_to_ghost_cells()
+
 } // end class SBlock
 
 

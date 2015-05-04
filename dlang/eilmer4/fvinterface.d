@@ -6,6 +6,7 @@
  * Author: Peter J. and Rowan G.
  * Version: 2014-07-17: initial cut, to explore options.
  *          2015-02-13: Keep an eye on the future of the moving_grid option.
+ *          2015-05-04: keep references to adjoining cells and defining vertices.
  */
 
 module fvinterface;
@@ -14,6 +15,8 @@ import std.conv;
 import geom;
 import gas;
 import fvcore;
+import fvvertex;
+import fvcell;
 import flowstate;
 import conservedquantities;
 
@@ -30,10 +33,12 @@ public:
     Vector3 n;             // Direction cosines for unit normal
     Vector3 t1;            // tangent vector 1 (aka p)
     Vector3 t2;            // tangent vector 2 (aka q)
+    FVVertex[] vtx;        // references to vertices for line (2D) and quadrilateral (3D) faces
+    FVCell left_cell;      // interface normal points out of this adjoining cell
+    FVCell right_cell;     // interface normal points into this adjoining cell
     // Flow
     FlowState fs;          // Flow properties
     ConservedQuantities F; // Flux conserved quantity per unit area
-    // [TODO] Point-implicit variables
 
     this(GasModel gm, size_t id_init=0)
     {

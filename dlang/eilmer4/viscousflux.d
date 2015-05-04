@@ -188,82 +188,88 @@ public:
     } // end viscous_flux_calc()
 
     @nogc
-    void average_vertex_values_2D(const FVVertex vtx1, const FVVertex vtx2)
+    void average_vertex_values(const FVInterface IFace)
     {
-	grad_vel[0][0] = 0.5*(vtx1.grad_vel[0][0] + vtx2.grad_vel[0][0]); // du/dx
-	grad_vel[0][1] = 0.5*(vtx1.grad_vel[0][1] + vtx2.grad_vel[0][1]); // du/dy
-	grad_vel[0][2] = 0.0; // du/dz
-	grad_vel[1][0] = 0.5*(vtx1.grad_vel[1][0] + vtx2.grad_vel[1][0]); // dv/dx
-	grad_vel[1][1] = 0.5*(vtx1.grad_vel[1][1] + vtx2.grad_vel[1][1]); // dv/dy
-	grad_vel[1][2] = 0.0; // dv/dz
-	grad_vel[2][0] = 0.0; // dw/dx
-	grad_vel[2][1] = 0.0; // dw/dy
-	grad_vel[2][2] = 0.0; // dw/dz
-	grad_tke.refx = 0.5*(vtx1.grad_tke.x + vtx2.grad_tke.x);
-	grad_tke.refy = 0.5*(vtx1.grad_tke.y + vtx2.grad_tke.y);
-	grad_tke.refz = 0.0;
-	grad_omega.refx = 0.5*(vtx1.grad_omega.x + vtx2.grad_omega.x);
-	grad_omega.refy = 0.5*(vtx1.grad_omega.y + vtx2.grad_omega.y);
-	grad_omega.refz = 0.0;
-	grad_T.refx = 0.5*(vtx1.grad_T.x + vtx2.grad_T.x);
-	grad_T.refy = 0.5*(vtx1.grad_T.y + vtx2.grad_T.y);
-	grad_T.refz = 0.0;
-	for (size_t isp = 0; isp < nsp; ++isp) {
-	    grad_f[isp].refx = 0.5*(vtx1.grad_f[isp].x + vtx2.grad_f[isp].x);
-	    grad_f[isp].refy = 0.5*(vtx1.grad_f[isp].y + vtx2.grad_f[isp].y);
-	    grad_f[isp].refz = 0.0;
-	}
-    } // end average_vertex_values_2D()
-
-    @nogc
-    void average_vertex_values_3D(const FVVertex vtx1, const FVVertex vtx2,
-				  const FVVertex vtx3, const FVVertex vtx4)
-    {
-	grad_vel[0][0] = 0.25*(vtx1.grad_vel[0][0] + vtx2.grad_vel[0][0] +
-			       vtx3.grad_vel[0][0] + vtx4.grad_vel[0][0]); // du/dx
-	grad_vel[0][1] = 0.25*(vtx1.grad_vel[0][1] + vtx2.grad_vel[0][1] +
-			       vtx3.grad_vel[0][1] + vtx4.grad_vel[0][1]); // du/dy
-	grad_vel[0][2] = 0.25*(vtx1.grad_vel[0][2] + vtx2.grad_vel[0][2] +
-			       vtx3.grad_vel[0][2] + vtx4.grad_vel[0][2]); // du/dz
-	grad_vel[1][0] = 0.25*(vtx1.grad_vel[1][0] + vtx2.grad_vel[1][0] + 
-			       vtx3.grad_vel[1][0] + vtx4.grad_vel[1][0]); // dv/dx
-	grad_vel[1][1] = 0.25*(vtx1.grad_vel[1][1] + vtx2.grad_vel[1][1] + 
-			       vtx3.grad_vel[1][1] + vtx4.grad_vel[1][1]); // dv/dy
-	grad_vel[1][2] = 0.25*(vtx1.grad_vel[1][2] + vtx2.grad_vel[1][2] + 
-			       vtx3.grad_vel[1][2] + vtx4.grad_vel[1][2]); // dv/dz
-	grad_vel[2][0] = 0.25*(vtx1.grad_vel[1][0] + vtx2.grad_vel[1][0] + 
-			       vtx3.grad_vel[1][0] + vtx4.grad_vel[1][0]); // dw/dx
-	grad_vel[2][1] = 0.25*(vtx1.grad_vel[2][1] + vtx2.grad_vel[2][1] + 
-			       vtx3.grad_vel[2][1] + vtx4.grad_vel[2][1]); // dw/dy
-	grad_vel[2][2] = 0.25*(vtx1.grad_vel[2][2] + vtx2.grad_vel[2][2] + 
-			       vtx3.grad_vel[2][2] + vtx4.grad_vel[2][2]); // dw/dz
-	grad_tke.refx = 0.25*(vtx1.grad_tke.x + vtx2.grad_tke.x + 
-			      vtx3.grad_tke.x + vtx4.grad_tke.x);
-	grad_tke.refy = 0.25*(vtx1.grad_tke.y + vtx2.grad_tke.y +
-			      vtx3.grad_tke.y + vtx4.grad_tke.y);
-	grad_tke.refz = 0.25*(vtx1.grad_tke.z + vtx2.grad_tke.z +
-			      vtx3.grad_tke.z + vtx4.grad_tke.z);
-	grad_omega.refx = 0.25*(vtx1.grad_omega.x + vtx2.grad_omega.x +
-				vtx3.grad_omega.x + vtx4.grad_omega.x);
-	grad_omega.refy = 0.25*(vtx1.grad_omega.y + vtx2.grad_omega.y +
-				vtx3.grad_omega.y + vtx4.grad_omega.y);
-	grad_omega.refz = 0.25*(vtx1.grad_omega.z + vtx2.grad_omega.z +
-				vtx3.grad_omega.z + vtx4.grad_omega.z);
-	grad_T.refx = 0.25*(vtx1.grad_T.x + vtx2.grad_T.x +
-			    vtx3.grad_T.x + vtx4.grad_T.x);
-	grad_T.refy = 0.25*(vtx1.grad_T.y + vtx2.grad_T.y +
-			    vtx3.grad_T.y + vtx4.grad_T.y);
-	grad_T.refz = 0.25*(vtx1.grad_T.z + vtx2.grad_T.z +
-			    vtx3.grad_T.z + vtx4.grad_T.z);
-	for (size_t isp = 0; isp < nsp; ++isp) {
-	    grad_f[isp].refx = 0.25*(vtx1.grad_f[isp].x + vtx2.grad_f[isp].x +
-				     vtx3.grad_f[isp].x + vtx4.grad_f[isp].x);
-	    grad_f[isp].refy = 0.25*(vtx1.grad_f[isp].y + vtx2.grad_f[isp].y +
-				     vtx3.grad_f[isp].y + vtx4.grad_f[isp].y);
-	    grad_f[isp].refz = 0.25*(vtx1.grad_f[isp].z + vtx2.grad_f[isp].z +
-				     vtx3.grad_f[isp].z + vtx4.grad_f[isp].z);
-	}
-    } // end average_vertex_values_3D()
+	// [TODO] should tidy up by handling arbitrary lengths of vertex arrays.
+	if (GlobalConfig.dimensions == 2) {
+	    // For 2D, each interface is a straight line between two vertices.
+	    const FVVertex vtx0 = IFace.vtx[0];
+	    const FVVertex vtx1 = IFace.vtx[1];
+	    grad_vel[0][0] = 0.5*(vtx0.grad_vel[0][0] + vtx1.grad_vel[0][0]); // du/dx
+	    grad_vel[0][1] = 0.5*(vtx0.grad_vel[0][1] + vtx1.grad_vel[0][1]); // du/dy
+	    grad_vel[0][2] = 0.0; // du/dz
+	    grad_vel[1][0] = 0.5*(vtx0.grad_vel[1][0] + vtx1.grad_vel[1][0]); // dv/dx
+	    grad_vel[1][1] = 0.5*(vtx0.grad_vel[1][1] + vtx1.grad_vel[1][1]); // dv/dy
+	    grad_vel[1][2] = 0.0; // dv/dz
+	    grad_vel[2][0] = 0.0; // dw/dx
+	    grad_vel[2][1] = 0.0; // dw/dy
+	    grad_vel[2][2] = 0.0; // dw/dz
+	    grad_tke.refx = 0.5*(vtx0.grad_tke.x + vtx1.grad_tke.x);
+	    grad_tke.refy = 0.5*(vtx0.grad_tke.y + vtx1.grad_tke.y);
+	    grad_tke.refz = 0.0;
+	    grad_omega.refx = 0.5*(vtx0.grad_omega.x + vtx1.grad_omega.x);
+	    grad_omega.refy = 0.5*(vtx0.grad_omega.y + vtx1.grad_omega.y);
+	    grad_omega.refz = 0.0;
+	    grad_T.refx = 0.5*(vtx0.grad_T.x + vtx1.grad_T.x);
+	    grad_T.refy = 0.5*(vtx0.grad_T.y + vtx1.grad_T.y);
+	    grad_T.refz = 0.0;
+	    for (size_t isp = 0; isp < nsp; ++isp) {
+		grad_f[isp].refx = 0.5*(vtx0.grad_f[isp].x + vtx1.grad_f[isp].x);
+		grad_f[isp].refy = 0.5*(vtx0.grad_f[isp].y + vtx1.grad_f[isp].y);
+		grad_f[isp].refz = 0.0;
+	    }
+	} else {
+	    // For 3D, assume quad faces with 4 vertices each.
+	    const FVVertex vtx0 = IFace.vtx[0];
+	    const FVVertex vtx1 = IFace.vtx[1];
+	    const FVVertex vtx2 = IFace.vtx[2];
+	    const FVVertex vtx3 = IFace.vtx[3];
+	    grad_vel[0][0] = 0.25*(vtx0.grad_vel[0][0] + vtx1.grad_vel[0][0] +
+				   vtx2.grad_vel[0][0] + vtx3.grad_vel[0][0]); // du/dx
+	    grad_vel[0][1] = 0.25*(vtx0.grad_vel[0][1] + vtx1.grad_vel[0][1] +
+				   vtx2.grad_vel[0][1] + vtx3.grad_vel[0][1]); // du/dy
+	    grad_vel[0][2] = 0.25*(vtx0.grad_vel[0][2] + vtx1.grad_vel[0][2] +
+				   vtx2.grad_vel[0][2] + vtx3.grad_vel[0][2]); // du/dz
+	    grad_vel[1][0] = 0.25*(vtx0.grad_vel[1][0] + vtx1.grad_vel[1][0] + 
+				   vtx2.grad_vel[1][0] + vtx3.grad_vel[1][0]); // dv/dx
+	    grad_vel[1][1] = 0.25*(vtx0.grad_vel[1][1] + vtx1.grad_vel[1][1] + 
+				   vtx2.grad_vel[1][1] + vtx3.grad_vel[1][1]); // dv/dy
+	    grad_vel[1][2] = 0.25*(vtx0.grad_vel[1][2] + vtx1.grad_vel[1][2] + 
+				   vtx2.grad_vel[1][2] + vtx3.grad_vel[1][2]); // dv/dz
+	    grad_vel[2][0] = 0.25*(vtx0.grad_vel[1][0] + vtx1.grad_vel[1][0] + 
+				   vtx2.grad_vel[1][0] + vtx3.grad_vel[1][0]); // dw/dx
+	    grad_vel[2][1] = 0.25*(vtx0.grad_vel[2][1] + vtx1.grad_vel[2][1] + 
+				   vtx2.grad_vel[2][1] + vtx3.grad_vel[2][1]); // dw/dy
+	    grad_vel[2][2] = 0.25*(vtx0.grad_vel[2][2] + vtx1.grad_vel[2][2] + 
+				   vtx2.grad_vel[2][2] + vtx3.grad_vel[2][2]); // dw/dz
+	    grad_tke.refx = 0.25*(vtx0.grad_tke.x + vtx1.grad_tke.x + 
+				  vtx2.grad_tke.x + vtx3.grad_tke.x);
+	    grad_tke.refy = 0.25*(vtx0.grad_tke.y + vtx1.grad_tke.y +
+				  vtx2.grad_tke.y + vtx3.grad_tke.y);
+	    grad_tke.refz = 0.25*(vtx0.grad_tke.z + vtx1.grad_tke.z +
+				  vtx2.grad_tke.z + vtx3.grad_tke.z);
+	    grad_omega.refx = 0.25*(vtx0.grad_omega.x + vtx1.grad_omega.x +
+				    vtx2.grad_omega.x + vtx3.grad_omega.x);
+	    grad_omega.refy = 0.25*(vtx0.grad_omega.y + vtx1.grad_omega.y +
+				    vtx2.grad_omega.y + vtx3.grad_omega.y);
+	    grad_omega.refz = 0.25*(vtx0.grad_omega.z + vtx1.grad_omega.z +
+				    vtx2.grad_omega.z + vtx3.grad_omega.z);
+	    grad_T.refx = 0.25*(vtx0.grad_T.x + vtx1.grad_T.x +
+				vtx2.grad_T.x + vtx3.grad_T.x);
+	    grad_T.refy = 0.25*(vtx0.grad_T.y + vtx1.grad_T.y +
+				vtx2.grad_T.y + vtx3.grad_T.y);
+	    grad_T.refz = 0.25*(vtx0.grad_T.z + vtx1.grad_T.z +
+				vtx2.grad_T.z + vtx3.grad_T.z);
+	    for (size_t isp = 0; isp < nsp; ++isp) {
+		grad_f[isp].refx = 0.25*(vtx0.grad_f[isp].x + vtx1.grad_f[isp].x +
+					 vtx2.grad_f[isp].x + vtx3.grad_f[isp].x);
+		grad_f[isp].refy = 0.25*(vtx0.grad_f[isp].y + vtx1.grad_f[isp].y +
+					 vtx2.grad_f[isp].y + vtx3.grad_f[isp].y);
+		grad_f[isp].refz = 0.25*(vtx0.grad_f[isp].z + vtx1.grad_f[isp].z +
+					 vtx2.grad_f[isp].z + vtx3.grad_f[isp].z);
+	    }
+	} // end if (Dimensions
+    } // end average_vertex_values()
 
 } // end class ViscousFluxData
 

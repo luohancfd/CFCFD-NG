@@ -59,7 +59,8 @@ double init_simulation(int tindx)
     auto job_name = GlobalConfig.base_file_name;
     foreach (ref myblk; myBlocks) {
 	myblk.assemble_arrays();
-	myblk.bind_faces_and_vertices_to_cells();
+	myblk.bind_interfaces_and_vertices_to_cells();
+	myblk.bind_vertices_and_cells_to_interfaces();
 	writeln("myblk=", myblk);
 	myblk.read_grid(make_file_name!"grid"(job_name, myblk.id, tindx), 0);
 	sim_time = myblk.read_solution(make_file_name!"flow"(job_name, myblk.id, tindx));
