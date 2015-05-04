@@ -11,6 +11,8 @@ import geom;
 import globalconfig;
 import fvcore;
 import fvcell;
+import fvinterface;
+import viscousflux;
 import bc;
 
 enum
@@ -30,6 +32,7 @@ public:
     int mncell;                 // number of monitor cells
     double[] initial_T_value; // for monitor cells to check against
     FVCell[] active_cells; // collection of references to be used in foreach statements.
+    FVInterface[] active_ifaces; // collection of references to all in-use interfaces
     BoundaryCondition[] bc; // collection of references to the boundary conditions
 
     override string toString() const { return "Block(id=" ~ to!string(id) ~ ")"; }
@@ -37,9 +40,7 @@ public:
     abstract void assemble_arrays();
     abstract void bind_interfaces_and_vertices_to_cells();
     abstract void bind_vertices_and_cells_to_interfaces();
-    abstract void clear_fluxes_of_conserved_quantities();
     abstract int count_invalid_cells(int gtl);
-    abstract void detect_shock_points();
     abstract void compute_primary_cell_geometric_data(int gtl);
     abstract void compute_distance_to_nearest_wall_for_all_cells(int gtl);
     abstract void compute_secondary_cell_geometric_data(int gtl);
@@ -47,10 +48,7 @@ public:
     abstract void write_grid(string filename, double sim_time, size_t gtl=0);
     abstract double read_solution(string filename);
     abstract void write_solution(string filename, double sim_time);
-    abstract void write_history(string filename, double sim_time, bool write_header=false);
-    abstract void set_grid_velocities(double sim_time);
     abstract void convective_flux();
-    abstract void viscous_flux();
     abstract void flow_property_derivatives(int gtl);
     abstract void applyPreReconAction(double t, int gtl, int ftl);
     abstract void applyPreSpatialDerivAction(double t, int gtl, int ftl);
@@ -137,9 +135,68 @@ public:
 	}
     } // end estimate_turbulence_viscosity()
 
+    void set_grid_velocities(double sim_time)
+    {
+	if (GlobalConfig.moving_grid) {
+	    throw new Error("Block.set_grid_velocities(): moving grid is not yet implemented.");
+	    // [TODO] Insert the moving-grid code some day...
+	}
+	foreach (iface; active_ifaces) iface.gvel = Vector3(0.0, 0.0, 0.0);
+	return;
+    } // end set_grid_velocities()
+
+    @nogc
     void set_cell_dt_chem(double dt_chem)
     {
 	foreach ( cell; active_cells ) cell.dt_chem = dt_chem;
+    }
+
+    @nogc
+    void detect_shock_points()
+    // Detects shocks by looking for compression between adjacent cells.
+    //
+    // The velocity component normal to the cell interfaces
+    // is used as the indicating variable.
+    {
+	// Change in normalised velocity to indicate a shock.
+	// A value of -0.05 has been found suitable to detect the levels of
+	// shock compression observed in the "sod" and "cone20" test cases.
+	// It may need to be tuned for other situations, especially when
+	// viscous effects are important.
+	double tol = GlobalConfig.compression_tolerance;
+	// First, work across interfaces and locate shocks using the (local) normal velocity.
+	foreach (iface; active_ifaces) {
+	    FVCell cL = iface.left_cell;
+	    FVCell cR = iface.right_cell;
+	    double uL = cL.fs.vel.x * iface.n.x + cL.fs.vel.y * iface.n.y + cL.fs.vel.z * iface.n.z;
+	    double uR = cR.fs.vel.x * iface.n.x + cR.fs.vel.y * iface.n.y + cR.fs.vel.z * iface.n.z;
+	    double aL = cL.fs.gas.a;
+	    double aR = cR.fs.gas.a;
+	    double a_min = fmin(aL, aR);
+	    iface.fs.S = ((uR - uL) / a_min < tol);
+	}
+	// Finally, mark cells as shock points if any of their interfaces are shock points.
+	foreach (cell; active_cells) {
+	    cell.fs.S = false;
+	    foreach (face; cell.iface) {
+		if (face.fs.S) cell.fs.S = true;
+	    }
+	}
+    } // end detect_shock_points()
+
+    @nogc
+    void clear_fluxes_of_conserved_quantities()
+    {
+	foreach (iface; active_ifaces) iface.F.clear_values();
+    }
+
+    void viscous_flux()
+    {
+	auto vfwork = new ViscousFluxData();
+	foreach (iface; active_ifaces) {
+	    vfwork.average_vertex_values(iface);
+	    vfwork.viscous_flux_calc(iface);
+	}
     }
 
     @nogc
@@ -248,5 +305,10 @@ public:
 	}
 	return dt_allow;
     } // end determine_time_step_size()
+
+    void write_history(string filename, double sim_time, bool write_header=false)
+    {
+	throw new Error("[TODO] Block.write_history() not implemented yet.");
+    }
 
 } // end class Block
