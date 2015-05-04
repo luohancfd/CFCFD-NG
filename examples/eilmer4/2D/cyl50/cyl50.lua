@@ -30,10 +30,10 @@ grd = StructuredGrid:new{psurface=makePatch{nth, est, sth, wst, gridType="ao"},
 
 -- Assemble the block from the grid and boundary data.
 blk = SBlock:new{grid=grd, fillCondition=inflow,
-		 bcList={SupInBC:new{flowCondition=inflow},
-			 ExtrapolateOutBC:new{},
-			 FixedTWallBC:new{Twall=222.0},
-			 SupInBC:new{flowCondition=inflow}}}
+		 bcList={north=SupInBC:new{flowCondition=inflow},
+			 east=ExtrapolateOutBC:new{},
+			 south=FixedTWallBC:new{Twall=222.0},
+			 west=SupInBC:new{flowCondition=inflow}}}
 
 -- Do a little more setting of the simulation configuration data.
 config.viscous = true
