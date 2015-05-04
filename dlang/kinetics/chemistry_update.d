@@ -36,7 +36,7 @@ final class ReactionUpdateScheme {
     int maxSubcycles;
     int maxAttempts;
 
-    this(string fname, in GasModel gmodel)
+    this(string fname, GasModel gmodel)
     {
 	auto lua = initLuaState(fname);
 	auto t = lua.get!LuaTable("reaction");
@@ -48,7 +48,7 @@ final class ReactionUpdateScheme {
 	maxAttempts = MAX_STEP_ATTEMPTS;
     }
 
-    void update_state(GasState Q, double tInterval, ref double dtSuggest, in GasModel gmodel)
+    void update_state(GasState Q, double tInterval, ref double dtSuggest, GasModel gmodel)
     {
 	if ( update_chemistry(Q, tInterval, dtSuggest, gmodel, rmech, cstep,
 			      tightTempCoupling, maxSubcycles, maxAttempts) != 0 ) {
@@ -60,7 +60,7 @@ final class ReactionUpdateScheme {
 }
 
 int update_chemistry(GasState Q, double tInterval, ref double dtSuggest,
-		     in GasModel gmodel, ReactionMechanism rmech, ChemODEStep cstep,
+		     GasModel gmodel, ReactionMechanism rmech, ChemODEStep cstep,
 		     bool tightTempCoupling, int maxSubcycles=MAX_SUBCYCLES, int maxAttempts=MAX_STEP_ATTEMPTS)
 {
     // 0. On entry take a copy of the GasState in case we bugger it up.

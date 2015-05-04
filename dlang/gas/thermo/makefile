@@ -32,5 +32,5 @@ ${LIBLUA}:
 cea_thermo_curves : cea_thermo_curves.d $(LIBGAS) $(LIBLUA)
 	dmd -main -unittest cea_thermo_curves.d $(LIBGAS) $(LUAD_FILES) -I../../ -I$(UTIL_DIR) $(DLINKFLAGS)
 
-therm_perf_gas_mix_EOS : therm_perf_gas_mix_EOS.d $(LIBGAS) $(LIBLUA) $(NM_FILES)
-	dmd -main -unittest therm_perf_gas_mix_EOS.d $(LIBGAS) $(LUAD_FILES) $(NM_FILES) -I../../ -I$(UTIL_DIR) $(DLINKFLAGS)
+therm_perf_gas_mix_eos : therm_perf_gas_mix_eos.d $(LIBGAS) $(LIBLUA) $(NM_FILES)
+	dmd -main -unittest therm_perf_gas_mix_eos.d $(LIBGAS) $(LUAD_FILES) $(NM_FILES) -I../../ -I$(UTIL_DIR) $(DLINKFLAGS)

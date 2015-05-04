@@ -32,7 +32,7 @@ public:
     double k_t;    // turbulence thermal-conductivity
     int S;         // shock indicator, value 0 or 1
 
-    this(in GasModel gm, in double p_init, in double[] T_init, in Vector3 vel_init,
+    this(GasModel gm, in double p_init, in double[] T_init, in Vector3 vel_init,
 	 in double[] massf_init=[1.0,], in double quality_init=1.0,
 	 in Vector3 B_init=(0.0,0.0,0.0),
 	 in double tke_init=0.0, in double omega_init=1.0,
@@ -49,7 +49,7 @@ public:
 	S = S_init;
     }
 
-    this(in FlowState other, in GasModel gm)
+    this(in FlowState other, GasModel gm)
     {
 	gas = new GasState(gm, other.gas.p, other.gas.T, other.gas.massf, other.gas.quality); 
 	vel = other.vel;
@@ -74,7 +74,7 @@ public:
 	S = other.S;
     }
 
-    this(in GasModel gm)
+    this(GasModel gm)
     {
 	gas = new GasState(gm, 100.0e3, [300.0,], [1.0,], 1.0); 
 	vel = Vector3(0.0,0.0,0.0);
@@ -86,7 +86,7 @@ public:
 	S = 0;
     }
 
-    this(in JSONValue json_data, in GasModel gm)
+    this(in JSONValue json_data, GasModel gm)
     {
 	double p = getJSONdouble(json_data, "p", 100.0e3);
 	double[] T = getJSONdoublearray(json_data, "T", [300.0,]);
@@ -145,7 +145,7 @@ public:
 	k_t = 0.5 * (fs0.k_t + fs1.k_t);
     } // end copy_average_values_from()
 
-    void copy_average_values_from(in FlowState[] others, in GasModel gm)
+    void copy_average_values_from(in FlowState[] others, GasModel gm)
     // Note that we must not send the current object in the others list as well.
     // Involves some memory allocation.
     {

@@ -35,7 +35,7 @@ public:
 	_n_species = cast(uint) _species_names.length;
 	_n_modes = 1;
 	
-	// 0. Initialise static work arrays
+	// 0. Initialise private work arrays
 	_Cp.length = _n_species;
 	_Cv.length = _n_species;
 	_h.length = _n_species;
@@ -81,31 +81,31 @@ public:
 	return "";
     }
 
-    override void update_thermo_from_pT(GasState Q) const 
+    override void update_thermo_from_pT(GasState Q) 
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	_pgMixEOS.update_density(Q);
 	_tpgMixEOS.update_energy(Q);
     }
-    override void update_thermo_from_rhoe(GasState Q) const
+    override void update_thermo_from_rhoe(GasState Q)
     {
 	assert(Q.e.length == 1, "incorrect length of energy array");
 	_tpgMixEOS.update_temperature(Q);
 	_pgMixEOS.update_pressure(Q);
     }
-    override void update_thermo_from_rhoT(GasState Q) const
+    override void update_thermo_from_rhoT(GasState Q)
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	_tpgMixEOS.update_energy(Q);
 	_pgMixEOS.update_pressure(Q);
     }
-    override void update_thermo_from_rhop(GasState Q) const
+    override void update_thermo_from_rhop(GasState Q)
     {
 	assert(Q.T.length == 1, "incorrect length of temperature array");
 	_pgMixEOS.update_temperature(Q);
 	_tpgMixEOS.update_energy(Q);
     }
-    override void update_thermo_from_ps(GasState Q, double s) const
+    override void update_thermo_from_ps(GasState Q, double s)
     {
 	double TOL = 1.0e-6;
 	double delT = 100.0;
@@ -146,7 +146,7 @@ public:
 	_tpgMixEOS.update_energy(Q);
 	_pgMixEOS.update_density(Q);
     }
-    override void update_thermo_from_hs(GasState Q, double h, double s) const
+    override void update_thermo_from_hs(GasState Q, double h, double s)
     {
 	// We do this in two stages.
 	// First, from enthalpy we compute temperature.
@@ -228,7 +228,7 @@ public:
 	_tpgMixEOS.update_energy(Q);
 	_pgMixEOS.update_density(Q);
     }
-    override void update_sound_speed(GasState Q) const
+    override void update_sound_speed(GasState Q)
     {
 	// Reference:
 	// Cengel and Boles (1998)
@@ -239,7 +239,7 @@ public:
 	// "frozen" sound speed
 	Q.a = sqrt(gamma(Q)*dpdrho_const_T(Q));
     }
-    override void update_trans_coeffs(GasState Q) const
+    override void update_trans_coeffs(GasState Q)
     {
 	assert(Q.T.length == 1, "incorrect number of modes");
 	assert(Q.k.length == 1, "incorrect number of modes");
@@ -251,38 +251,38 @@ public:
 	throw new Exception("not implemented");
     }
     */
-    override double dedT_const_v(in GasState Q) const
+    override double dedT_const_v(in GasState Q)
     {
 	// Noting that Cv = Cp - R
 	foreach ( i; 0.._n_species ) _Cv[i] = _curves[i].eval_Cp(Q.T[0]) - _R[i];
 	return mass_average(Q, _Cv);
     }
-    override double dhdT_const_p(in GasState Q) const
+    override double dhdT_const_p(in GasState Q)
     {
 	foreach ( i; 0.._n_species ) _Cp[i] = _curves[i].eval_Cp(Q.T[0]);
 	return mass_average(Q, _Cp);
     }
-    override double dpdrho_const_T(in GasState Q) const
+    override double dpdrho_const_T(in GasState Q)
     {
 	double R = gas_constant(Q);
 	return R*Q.T[0];
     }
-    override double gas_constant(in GasState Q) const
+    override double gas_constant(in GasState Q)
     {
 	return mass_average(Q, _R);
     }
-    override double internal_energy(in GasState Q) const
+    override double internal_energy(in GasState Q)
     {
 	return Q.e[0];
     }
-    override double enthalpy(in GasState Q) const
+    override double enthalpy(in GasState Q)
     {
 	foreach ( isp; 0.._n_species) {
 	    _h[isp] = _curves[isp].eval_h(Q.T[0]);
 	}
 	return mass_average(Q, _h);
     }
-    override double entropy(in GasState Q) const
+    override double entropy(in GasState Q)
     {
 	foreach ( isp; 0.._n_species ) {
 	    _s[isp] = _curves[isp].eval_s(Q.T[0]) - _R[isp]*log(Q.p/P_atm);
@@ -290,8 +290,6 @@ public:
 	return mass_average(Q, _s);
     }
 
-    // Working array space
-    static double[] _Cp, _Cv, _h, _s;
 private:
     double[] _R;
     PerfectGasMixEOS _pgMixEOS;
@@ -299,6 +297,8 @@ private:
     CEAThermo[] _curves;
     WilkeMixingViscosity _viscModel;
     WilkeMixingThermCond _thermCondModel;
+    // Working array space
+    double[] _Cp, _Cv, _h, _s;
 } // end class Ideal_gas
 
 unittest 

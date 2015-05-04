@@ -77,7 +77,7 @@ public:
     double rho_at_start_of_step, rE_at_start_of_step;
     // [TODO] implicit variables
 
-    this(in GasModel gm, int id_init=0)
+    this(GasModel gm, int id_init=0)
     {
 	id = id_init;
 	pos.length = n_time_levels;
@@ -421,7 +421,7 @@ public:
     void decode_conserved(int gtl, int ftl, double omegaz) 
     {
 	ConservedQuantities myU = U[ftl];
-	const gmodel = GlobalConfig.gmodel;
+	auto gmodel = GlobalConfig.gmodel;
 	bool with_k_omega = (GlobalConfig.turbulence_model == TurbulenceModel.k_omega);
 	double e, ke, dinv, rE, me;
 	// Mass / unit volume = Density

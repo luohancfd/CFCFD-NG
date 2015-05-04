@@ -35,7 +35,7 @@ public:
     ConservedQuantities F; // Flux conserved quantity per unit area
     // [TODO] Point-implicit variables
 
-    this(in GasModel gm, size_t id_init=0)
+    this(GasModel gm, size_t id_init=0)
     {
 	id = id_init;
 	area.length = n_time_levels;
@@ -44,7 +44,7 @@ public:
 	F = new ConservedQuantities(gm);
     }
 
-    this(in FVInterface other, in GasModel gm)
+    this(in FVInterface other, GasModel gm)
     {
 	id = other.id;
 	pos = other.pos;

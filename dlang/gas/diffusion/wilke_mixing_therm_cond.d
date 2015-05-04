@@ -26,11 +26,6 @@ import gas.diffusion.therm_cond;
 import util.msg_service;
 
 class WilkeMixingThermCond : ThermalConductivity {
-    // Working array space
-    static double[] _x;
-    static double[] _k;
-    static double[][] _phi;
-
 public:
     this(in ThermalConductivity[] tcms, in double[] mol_masses)
     in {
@@ -64,7 +59,7 @@ public:
 	return new WilkeMixingThermCond(this);
     }
 
-    override double eval(in GasState Q, int imode) const {
+    override double eval(in GasState Q, int imode) {
 	// 1. Evaluate the mole fractions
 	massf2molef(Q.massf, _mol_masses, _x);
 	// 2. Calculate the component viscosities
@@ -97,6 +92,10 @@ public:
 private:
     ThermalConductivity[] _tcms; // component viscosity models
     double[] _mol_masses; // component molecular weights
+    // Working array space
+    double[] _x;
+    double[] _k;
+    double[][] _phi;
 }
 
 unittest {
@@ -108,7 +107,7 @@ unittest {
     auto tcm_O2 = new SutherlandThermCond(273.0, 0.0244, 240.0);
     auto tcm = new WilkeMixingThermCond([tcm_N2, tcm_O2], [28.0e-3, 32.0e-3]);
 
-    auto gd = GasState(2, 1);
+    auto gd = new GasState(2, 1);
     gd.T[0] = T;
     gd.massf[0] = 0.8;
     gd.massf[1] = 0.2;
