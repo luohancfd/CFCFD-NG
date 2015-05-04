@@ -41,7 +41,10 @@ BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary
 	// We need to connect the Lua state back to the parent BC container.
 	if ( newBC.preReconAction[$-1].type == "UserDefined" ) {
 	    auto gce = to!UserDefinedGhostCell(newBC.preReconAction[$-1]);
-	    newBC.initUserDefinedLuaState(gce, nicell, njcell, nkcell);
+	    if ( gce.luafname !in newBC.luaStates ) {
+		newBC.initUserDefinedLuaState(gce.luafname, nicell, njcell, nkcell);
+	    }
+	    gce.setLuaState(newBC.luaStates[gce.luafname]);
 	    newBC.ghost_cell_data_available = true;
 	}
     }
@@ -58,7 +61,6 @@ BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary
 
 class BoundaryCondition {
     // Boundary condition is built from composable pieces.
-   
 public:
     // Location of the boundary condition.
     int blk_id; // index of the structured-grid block to which this BC is applied
@@ -71,6 +73,12 @@ public:
     bool ghost_cell_data_available = true;
     double emissivity = 0.0;
 
+    // Storage for various LuaStates in the case of user-defined boundary
+    // conditions. We store these in the BoundaryCondition object
+    // so that the composable pieces might reference the same LuaState.
+    // Conversely, for each different Lua file, a different LuaState exists.
+    LuaState[string] luaStates;
+
     this(int id, int boundary, bool isWall=true, bool ghostCellDataAvailable=true, double _emissivity=0.0)
     {
 	blk_id = id;
@@ -80,13 +88,12 @@ public:
 	emissivity = _emissivity;
     }
 
-    void initUserDefinedLuaState(UserDefinedGhostCell udgc, size_t nicell, size_t njcell, size_t nkcell)
+    void initUserDefinedLuaState(string luafname, size_t nicell, size_t njcell, size_t nkcell)
     {
-	_lua = new LuaState();
-	_lua.openLibs();
-	setGlobalsInLuaState(nicell, njcell, nkcell);
-	_lua.doFile(udgc.luafname);
-	udgc.setLuaState(_lua);
+	luaStates[luafname] = new LuaState();
+	luaStates[luafname].openLibs();
+	setGlobalsInLuaState(luaStates[luafname], nicell, njcell, nkcell);
+	luaStates[luafname].doFile(luafname);
     }
     // Action lists.
     // The BoundaryCondition is called at four stages in a global timestep.
@@ -149,26 +156,22 @@ public:
     }
     */
 private:
-    // We need a place to hold a lua state in memory that might
-    // possibly be used by various stages of the boundary condition
-    // action.
-    LuaState _lua;
-    void setGlobalsInLuaState(size_t nicell, size_t njcell, size_t nkcell)
+    void setGlobalsInLuaState(LuaState lua, size_t nicell, size_t njcell, size_t nkcell)
     {
-	_lua["blkId"] = blk_id;
-	_lua["whichBoundary"] = which_boundary;
-	_lua["n_species"] = GlobalConfig.gmodel.n_species;
-	_lua["n_modes"] = GlobalConfig.gmodel.n_modes;
-	_lua["nicell"] = nicell;
-	_lua["njcell"] = njcell;
-	_lua["nkcell"] = nkcell;
-	_lua["north"] = Face.north;
-	_lua["east"] = Face.east;
-	_lua["south"] = Face.south;
-	_lua["west"] = Face.west;
-	_lua["top"] = Face.top;
-	_lua["bottom"] = Face.bottom;
-	_lua["sampleFlow"] = &luafn_sampleFlow;
+	lua["blkId"] = blk_id;
+	lua["whichBoundary"] = which_boundary;
+	lua["n_species"] = GlobalConfig.gmodel.n_species;
+	lua["n_modes"] = GlobalConfig.gmodel.n_modes;
+	lua["nicell"] = nicell;
+	lua["njcell"] = njcell;
+	lua["nkcell"] = nkcell;
+	lua["north"] = Face.north;
+	lua["east"] = Face.east;
+	lua["south"] = Face.south;
+	lua["west"] = Face.west;
+	lua["top"] = Face.top;
+	lua["bottom"] = Face.bottom;
+	lua["sampleFlow"] = &luafn_sampleFlow;
     }
     
 

@@ -37,8 +37,8 @@ blk1 = SBlock:new{grid=grid1, fillCondition=initial, label="BLOCK-1",
 		  hcellList={{9,0}}, xforceList={0,0,1,0}}
 -- Set boundary conditions.
 identifyBlockConnections()
-blk0.bcList[west] = UserDefinedBC:new{fileName="udf-supersonic-in.lua"}
-blk1.bcList[east] = ExtrapolateOutBC:new{label="outflow-boundary"}
+blk0.bcList[west] = UserDefinedBC:new{fileName="udf-bc.lua"}
+blk1.bcList[east] = UserDefinedBC:new{fileName="udf-bc.lua"}
 
 -- Do a little more setting of global data.
 config.max_time = 5.0e-3  -- seconds
