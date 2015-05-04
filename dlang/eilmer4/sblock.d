@@ -216,7 +216,7 @@ public:
 	}
     } // end of assemble_arrays()
 
-    override void bind_faces_and_vertices_to_cells()
+    override void bind_interfaces_and_vertices_to_cells()
     // There is a fixed order of faces and vertices for each cell.
     // Refer to fvcore.d
     {
@@ -253,6 +253,82 @@ public:
 	    } // for j
 	} // for k
     } // end bind_faces_and_vertices_to_cells()
+
+    override void bind_vertices_and_cells_to_interfaces()
+    // Sometimes it is convenient for an interface to come complete 
+    // with information about the vertices that define it and the cells
+    // that adjoin it.
+    {
+	// ifi interfaces are East-facing interfaces.
+	// In 2D, vtx0==p11, vtx1==p10.
+	// In 3D, the cycle [vtx0,vtx1,vtx2,vtx3] progresses counter-clockwise around 
+	// the periphery of the face when the normal unit vector is pointing toward you.
+	// t1 vector aligned with j-index direction
+	// t2 vector aligned with k-index direction
+	// The i,j,k indices are effectively cell indices in the following loops.
+	for ( size_t k = kmin; k <= kmax; ++k ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t i = imin-1; i <= imax; ++i ) {
+		    auto IFace = get_ifi(i+1,j,k);
+		    if (GlobalConfig.dimensions == 3) {
+			IFace.vtx ~= get_vtx(i+1,j,k);
+			IFace.vtx ~= get_vtx(i+1,j+1,k);
+			IFace.vtx ~= get_vtx(i+1,j+1,k+1);
+			IFace.vtx ~= get_vtx(i+1,j,k+1);
+			IFace.left_cell = get_cell(i,j,k);
+			IFace.right_cell = get_cell(i+1,j,k);
+		    } else {
+			IFace.vtx ~= get_vtx(i+1,j+1);
+			IFace.vtx ~= get_vtx(i+1,j);
+			IFace.left_cell = get_cell(i,j);
+			IFace.right_cell = get_cell(i+1,j);
+		    }
+		} // i loop
+	    } // j loop
+	} // for k
+	// ifj interfaces are North-facing interfaces.
+	// In 2D, vtx0==p01, vtx1==p11.
+	// t1 vector aligned with k-index direction
+	// t2 vector aligned with i-index direction
+	for ( size_t k = kmin; k <= kmax; ++k ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
+		for ( size_t j = jmin-1; j <= jmax; ++j ) {
+		    auto IFace = get_ifj(i,j+1,k);
+		    if (GlobalConfig.dimensions == 3) {
+			IFace.vtx ~= get_vtx(i,j+1,k);
+			IFace.vtx ~= get_vtx(i,j+1,k+1);
+			IFace.vtx ~= get_vtx(i+1,j+1,k+1);
+			IFace.vtx ~= get_vtx(i+1,j+1,k);
+			IFace.left_cell = get_cell(i,j,k);
+			IFace.right_cell = get_cell(i,j+1,k);
+		    } else {
+			IFace.vtx ~= get_vtx(i,j+1);
+			IFace.vtx ~= get_vtx(i+1,j+1);
+			IFace.left_cell = get_cell(i,j);
+			IFace.right_cell = get_cell(i,j+1);
+		    }
+		} // j loop
+	    } // i loop
+	} // for k
+	if (GlobalConfig.dimensions == 2) return;
+	// ifk interfaces are Top-facing interfaces.
+	// t1 vector aligned with i-index direction
+	// t2 vector aligned with j-index direction
+	for ( size_t i = imin; i <= imax; ++i ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t k = kmin-1; k <= kmax; ++k ) {
+		    auto IFace = get_ifk(i,j,k+1);
+		    IFace.vtx ~= get_vtx(i,j,k+1);
+		    IFace.vtx ~= get_vtx(i+1,j,k+1);
+		    IFace.vtx ~= get_vtx(i+1,j+1,k+1);
+		    IFace.vtx ~= get_vtx(i,j+1,k+1);
+		    IFace.left_cell = get_cell(i,j,k);
+		    IFace.right_cell = get_cell(i,j,k+1);
+		} // for k 
+	    } // j loop
+	} // i loop
+	return;
+    } // end bind_vertices_and_cells_to_interfaces()
 
     override void clear_fluxes_of_conserved_quantities()
     {
@@ -1768,72 +1844,32 @@ public:
     {
 	auto vfwork = new ViscousFluxData();
 	// ifi interfaces are East-facing interfaces.
-	// In 2D, vtx1==p11, vtx2==p10.
-	// In 3D, the cycle [Vtx1,Vtx2,Vtx3,Vtx4] progresses counter-clockwise around 
-	// the periphery of the face when the normal unit vector is pointing toward you.
-	// t1 vector aligned with j-index direction
-	// t2 vector aligned with k-index direction
-	// The i,j,k indices are effectively cell indices in the following loops.
 	for ( size_t k = kmin; k <= kmax; ++k ) {
 	    for ( size_t j = jmin; j <= jmax; ++j ) {
 		for ( size_t i = imin-1; i <= imax; ++i ) {
 		    auto IFace = get_ifi(i+1,j,k);
-		    if (GlobalConfig.dimensions == 3) {
-			auto vtx1 = get_vtx(i+1,j,k);
-			auto vtx2 = get_vtx(i+1,j+1,k);
-			auto vtx3 = get_vtx(i+1,j+1,k+1);
-			auto vtx4 = get_vtx(i+1,j,k+1);
-			vfwork.average_vertex_values_3D(vtx1,vtx2,vtx3,vtx4);
-			vfwork.viscous_flux_calc(IFace);
-		    } else {
-			auto vtx1 = get_vtx(i+1,j+1);
-			auto vtx2 = get_vtx(i+1,j);
-			vfwork.average_vertex_values_2D(vtx1,vtx2);
-			vfwork.viscous_flux_calc(IFace);
-		    }
+		    vfwork.average_vertex_values(IFace);
+		    vfwork.viscous_flux_calc(IFace);
 		} // i loop
 	    } // j loop
 	} // for k
-
 	// ifj interfaces are North-facing interfaces.
-	// In 2D, vtx1==p01, vtx2==p11.
-	// t1 vector aligned with k-index direction
-	// t2 vector aligned with i-index direction
 	for ( size_t k = kmin; k <= kmax; ++k ) {
 	    for ( size_t i = imin; i <= imax; ++i ) {
 		for ( size_t j = jmin-1; j <= jmax; ++j ) {
 		    auto IFace = get_ifj(i,j+1,k);
-		    if (GlobalConfig.dimensions == 3) {
-			auto vtx1 = get_vtx(i,j+1,k);
-			auto vtx2 = get_vtx(i,j+1,k+1);
-			auto vtx3 = get_vtx(i+1,j+1,k+1);
-			auto vtx4 = get_vtx(i+1,j+1,k);
-			vfwork.average_vertex_values_3D(vtx1,vtx2,vtx3,vtx4);
-			vfwork.viscous_flux_calc(IFace);
-		    } else {
-			auto vtx1 = get_vtx(i,j+1);
-			auto vtx2 = get_vtx(i+1,j+1);
-			vfwork.average_vertex_values_2D(vtx1,vtx2);
-			vfwork.viscous_flux_calc(IFace);
-		    }
+		    vfwork.average_vertex_values(IFace);
+		    vfwork.viscous_flux_calc(IFace);
 		} // j loop
 	    } // i loop
 	} // for k
-
 	if (GlobalConfig.dimensions == 2) return;
-    
 	// ifk interfaces are Top-facing interfaces.
-	// t1 vector aligned with i-index direction
-	// t2 vector aligned with j-index direction
 	for ( size_t i = imin; i <= imax; ++i ) {
 	    for ( size_t j = jmin; j <= jmax; ++j ) {
 		for ( size_t k = kmin-1; k <= kmax; ++k ) {
 		    auto IFace = get_ifk(i,j,k+1);
-		    auto vtx1 = get_vtx(i,j,k+1);
-		    auto vtx2 = get_vtx(i+1,j,k+1);
-		    auto vtx3 = get_vtx(i+1,j+1,k+1);
-		    auto vtx4 = get_vtx(i,j+1,k+1);
-		    vfwork.average_vertex_values_3D(vtx1,vtx2,vtx3,vtx4);
+		    vfwork.average_vertex_values(IFace);
 		    vfwork.viscous_flux_calc(IFace);
 		} // for k 
 	    } // j loop

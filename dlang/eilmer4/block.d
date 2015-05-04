@@ -35,7 +35,8 @@ public:
     override string toString() const { return "Block(id=" ~ to!string(id) ~ ")"; }
 
     abstract void assemble_arrays();
-    abstract void bind_faces_and_vertices_to_cells();
+    abstract void bind_interfaces_and_vertices_to_cells();
+    abstract void bind_vertices_and_cells_to_interfaces();
     abstract void clear_fluxes_of_conserved_quantities();
     abstract int count_invalid_cells(int gtl);
     abstract void detect_shock_points();
