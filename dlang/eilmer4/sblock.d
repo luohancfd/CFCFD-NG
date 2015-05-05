@@ -20,6 +20,7 @@ import json_helper;
 import gzip;
 import geom;
 import gas;
+import kinetics;
 import globalconfig;
 import flowstate;
 import fluxcalc;
@@ -66,38 +67,23 @@ private:
     FVInterface[] _sifi;
     FVInterface[] _sifj;
     FVInterface[] _sifk;
+    // Work-space that gets reused.
+    // The following objects are used in the convective_flux method.
+    FlowState Lft;
+    FlowState Rght;
+    OneDInterpolator one_d;
 
 public:
     this(int id, size_t nicell, size_t njcell, size_t nkcell)
     {
 	this.id = id;
+	gmodel = init_gas_model(GlobalConfig.gas_model_file);
+	if ( GlobalConfig.reacting )
+	    reaction_update = new ReactionUpdateScheme(GlobalConfig.reactions_file, gmodel);
 	this.nicell = nicell;
 	this.njcell = njcell;
 	this.nkcell = nkcell;
-	fill_in_other_size_data();
-    } // end constructor
-
-    this(in int id, JSONValue json_data)
-    {
-	this.id = id;
-	nicell = getJSONint(json_data, "nic", 0);
-	njcell = getJSONint(json_data, "njc", 0);
-	nkcell = getJSONint(json_data, "nkc", 0);
-	this(id, nicell, njcell, nkcell);
-	label = getJSONstring(json_data, "label", "");
-	active = getJSONbool(json_data, "active", true);
-	omegaz = getJSONdouble(json_data, "omegaz", 0.0);
-	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
-	    string json_key = "face_" ~ face_name[boundary];
-	    auto bc_json_data = json_data[json_key];
-	    bc[boundary] = make_BC_from_json(bc_json_data, id, boundary,
-					     nicell, njcell, nkcell);
-	}
-    } // end constructor from json
-
-    void fill_in_other_size_data()
-    // Helper function for the constructor
-    {
+	// Fill in other data sizes.
 	_nidim = nicell + 2 * nghost;
 	_njdim = njcell + 2 * nghost;
 	// Indices, in each grid direction for the active cells.
@@ -119,7 +105,29 @@ public:
 	    _nkdim = nkcell + 2 * nghost;
 	    kmin = nghost; kmax = kmin + nkcell - 1;
 	}
-    } // end fill_in_other_size_data()
+	// Workspace for flux_calc method.
+	Lft = new FlowState(gmodel);
+	Rght = new FlowState(gmodel);
+	one_d = new OneDInterpolator(gmodel);
+    } // end constructor
+
+    this(in int id, JSONValue json_data)
+    {
+	this.id = id;
+	nicell = getJSONint(json_data, "nic", 0);
+	njcell = getJSONint(json_data, "njc", 0);
+	nkcell = getJSONint(json_data, "nkc", 0);
+	this(id, nicell, njcell, nkcell);
+	label = getJSONstring(json_data, "label", "");
+	active = getJSONbool(json_data, "active", true);
+	omegaz = getJSONdouble(json_data, "omegaz", 0.0);
+	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
+	    string json_key = "face_" ~ face_name[boundary];
+	    auto bc_json_data = json_data[json_key];
+	    bc[boundary] = make_BC_from_json(bc_json_data, id, boundary,
+					     nicell, njcell, nkcell);
+	}
+    } // end constructor from json
 
     override string toString() const
     {
@@ -173,7 +181,6 @@ public:
     {
 	if ( GlobalConfig.verbosity_level >= 2 ) 
 	    writefln("assemble_arrays(): Begin for block %d", id);
-	auto gm = GlobalConfig.gmodel;
 	// Check for obvious errors.
 	if ( _nidim <= 0 || _njdim <= 0 || _nkdim <= 0 ) {
 	    throw new Error(text("resize_arrays(): invalid dimensions nidim=",
@@ -183,38 +190,38 @@ public:
 	try {
 	    // Create the cell and interface objects for the entire block.
 	    foreach (gid; 0 .. ntot) {
-		_ctr ~= new FVCell(gm); _ctr[gid].id = to!int(gid);
+		_ctr ~= new FVCell(gmodel); _ctr[gid].id = to!int(gid);
 		auto ijk = to_ijk_indices(gid);
 		if ( ijk[0] >= imin && ijk[0] <= imax && 
 		     ijk[1] >= jmin && ijk[1] <= jmax && 
 		     ijk[2] >= kmin && ijk[2] <= kmax ) {
 		    active_cells ~= _ctr[gid];
 		}
-		_ifi ~= new FVInterface(gm); _ifi[gid].id = gid;
+		_ifi ~= new FVInterface(gmodel); _ifi[gid].id = gid;
 		if ( ijk[0] >= imin && ijk[0] <= imax+1 && 
 		     ijk[1] >= jmin && ijk[1] <= jmax && 
 		     ijk[2] >= kmin && ijk[2] <= kmax ) {
 		    active_ifaces ~= _ifi[gid];
 		}
-		_ifj ~= new FVInterface(gm); _ifj[gid].id = gid;
+		_ifj ~= new FVInterface(gmodel); _ifj[gid].id = gid;
 		if ( ijk[0] >= imin && ijk[0] <= imax && 
 		     ijk[1] >= jmin && ijk[1] <= jmax+1 && 
 		     ijk[2] >= kmin && ijk[2] <= kmax ) {
 		    active_ifaces ~= _ifj[gid];
 		}
 		if ( GlobalConfig.dimensions == 3 ) {
-		    _ifk ~= new FVInterface(gm); _ifk[gid].id = gid;
+		    _ifk ~= new FVInterface(gmodel); _ifk[gid].id = gid;
 		    if ( ijk[0] >= imin && ijk[0] <= imax && 
 			 ijk[1] >= jmin && ijk[1] <= jmax && 
 			 ijk[2] >= kmin && ijk[2] <= kmax+1 ) {
 			active_ifaces ~= _ifk[gid];
 		    }
 		}
-		_vtx ~= new FVVertex(gm); _vtx[gid].id = gid;
-		_sifi ~= new FVInterface(gm); _sifi[gid].id = gid;
-		_sifj ~= new FVInterface(gm); _sifj[gid].id = gid;
+		_vtx ~= new FVVertex(gmodel); _vtx[gid].id = gid;
+		_sifi ~= new FVInterface(gmodel); _sifi[gid].id = gid;
+		_sifj ~= new FVInterface(gmodel); _sifj[gid].id = gid;
 		if ( GlobalConfig.dimensions == 3 ) {
-		    _sifk ~= new FVInterface(gm); _sifk[gid].id = gid;
+		    _sifk ~= new FVInterface(gmodel); _sifk[gid].id = gid;
 		}
 	    } // gid loop
 	} catch (Error err) {
@@ -384,9 +391,9 @@ public:
 			throw new Error(text("Block::count_invalid_cells(): "
 					     "There were no valid neighbours to replace cell data."));
 		    }
-		    cell.replace_flow_data_with_average(neighbours);
+		    cell.replace_flow_data_with_average(neighbours, gmodel);
 		    cell.encode_conserved(gtl, 0, omegaz);
-		    cell.decode_conserved(gtl, 0, omegaz);
+		    cell.decode_conserved(gtl, 0, omegaz, gmodel);
 		    writefln("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n",
 			     id, i, j, k);
 		    writeln(cell);
@@ -1518,7 +1525,7 @@ public:
 	    for ( size_t j = jmin; j <= jmax; ++j ) {
 		for ( size_t i = imin; i <= imax; ++i ) {
 		    line = byLine.front; byLine.popFront();
-		    get_cell(i,j,k).scan_values_from_string(line);
+		    get_cell(i,j,k).scan_values_from_string(line, gmodel);
 		} // for i
 	    } // for j
 	} // for k
@@ -1538,7 +1545,7 @@ public:
 	formattedWrite(writer, "%20.12e\n", sim_time);
 	outfile.compress(writer.data);
 	writer = appender!string();
-	foreach(varname; variable_list_for_cell()) {
+	foreach(varname; variable_list_for_cell(gmodel)) {
 	    formattedWrite(writer, " \"%s\"", varname);
 	}
 	formattedWrite(writer, "\n");
@@ -1560,13 +1567,6 @@ public:
     {
 	FVCell cL1, cL0, cR0, cR1;
 	FVInterface IFace;
-	// Maybe the following two FlowState objects should be in the Block object
-	// and initialised there so that we don't thrash the memory so much.
-	static FlowState Lft;
-	static FlowState Rght;
-	if (!Lft) Lft = new FlowState(GlobalConfig.gmodel);
-	if (!Rght) Rght = new FlowState(GlobalConfig.gmodel);
-    
 	// ifi interfaces are East-facing interfaces.
 	for ( size_t k = kmin; k <= kmax; ++k ) {
 	    for ( size_t j = jmin; j <= jmax; ++j ) {
@@ -1579,15 +1579,15 @@ public:
 		    // Compute the flux from data on either-side of the interface.
 		    // First, interpolate LEFT and RIGHT interface states from cell-center properties.
 		    if ( (i == imin+1) && (bc[Face.west].ghost_cell_data_available == false) ) {
-			one_d_interp_right(IFace, cL0, cR0, cR1, 
+			one_d.interp_right(IFace, cL0, cR0, cR1, 
 					   cL0.iLength, cR0.iLength, cR1.iLength,
 					   Lft, Rght);
 		    } else if ( (i == imax) && (bc[Face.east].ghost_cell_data_available == false) ) {
-			one_d_interp_left(IFace, cL1, cL0, cR0, 
+			one_d.interp_left(IFace, cL1, cL0, cR0, 
 					  cL1.iLength, cL0.iLength, cR0.iLength,
 					  Lft, Rght);
 		    } else { // General symmetric reconstruction.
-			one_d_interp_both(IFace, cL1, cL0, cR0, cR1,
+			one_d.interp_both(IFace, cL1, cL0, cR0, cR1,
 					  cL1.iLength, cL0.iLength, cR0.iLength, cR1.iLength,
 					  Lft, Rght);
 		    }
@@ -1600,13 +1600,10 @@ public:
 		    } else {
 			IFace.fs.copy_average_values_from(Lft, Rght);
 		    }
-
-		    compute_interface_flux(Lft, Rght, IFace, omegaz);
-
+		    compute_interface_flux(Lft, Rght, IFace, gmodel, omegaz);
 		} // i loop
 	    } // j loop
 	} // for k
-
 	// ifj interfaces are North-facing interfaces.
 	for ( size_t k = kmin; k <= kmax; ++k ) {
 	    for ( size_t i = imin; i <= imax; ++i ) {
@@ -1618,15 +1615,15 @@ public:
 		    cR1 = get_cell(i,j+1,k);
 		    // Interpolate LEFT and RIGHT interface states from the cell-center properties.
 		    if ( (j == jmin+1) && (bc[Face.south].ghost_cell_data_available == false) ) {
-			one_d_interp_right(IFace, cL0, cR0, cR1, 
+			one_d.interp_right(IFace, cL0, cR0, cR1, 
 					   cL0.jLength, cR0.jLength, cR1.jLength,
 					   Lft, Rght);
 		    } else if ( (j == jmax) && (bc[Face.north].ghost_cell_data_available == false) ) {
-			one_d_interp_left(IFace, cL1, cL0, cR0, 
+			one_d.interp_left(IFace, cL1, cL0, cR0, 
 					  cL1.jLength, cL0.jLength, cR0.jLength,
 					  Lft, Rght);
 		    } else { // General symmetric reconstruction.
-			one_d_interp_both(IFace, cL1, cL0, cR0, cR1,
+			one_d.interp_both(IFace, cL1, cL0, cR0, cR1,
 					  cL1.jLength, cL0.jLength, cR0.jLength, cR1.jLength,
 					  Lft, Rght);
 		    }
@@ -1639,10 +1636,7 @@ public:
 		    } else {
 			IFace.fs.copy_average_values_from(Lft, Rght);
 		    }
-		    // Finally, the flux calculation.
-
-		    compute_interface_flux(Lft, Rght, IFace, omegaz);
-
+		    compute_interface_flux(Lft, Rght, IFace, gmodel, omegaz);
 		} // j loop
 	    } // i loop
 	} // for k
@@ -1660,15 +1654,15 @@ public:
 		    cR1 = get_cell(i,j,k+1);
 		    // Interpolate LEFT and RIGHT interface states from the cell-center properties.
 		    if ( (k == kmin+1) && (bc[Face.bottom].ghost_cell_data_available == false) ) {
-			one_d_interp_right(IFace, cL0, cR0, cR1, 
+			one_d.interp_right(IFace, cL0, cR0, cR1, 
 					   cL0.kLength, cR0.kLength, cR1.kLength,
 					   Lft, Rght);
 		    } else if ( (k == kmax) && (bc[Face.top].ghost_cell_data_available == false) ) {
-			one_d_interp_left(IFace, cL1, cL0, cR0, 
+			one_d.interp_left(IFace, cL1, cL0, cR0, 
 					  cL1.kLength, cL0.kLength, cR0.kLength,
 					  Lft, Rght);
 		    } else { // General symmetric reconstruction.
-			one_d_interp_both(IFace, cL1, cL0, cR0, cR1,
+			one_d.interp_both(IFace, cL1, cL0, cR0, cR1,
 					  cL1.kLength, cL0.kLength, cR0.kLength, cR1.kLength,
 					  Lft, Rght);
 		    }
@@ -1681,9 +1675,7 @@ public:
 		    } else {
 			IFace.fs.copy_average_values_from(Lft, Rght);
 		    }
-
-		    compute_interface_flux(Lft, Rght, IFace, omegaz);
-
+		    compute_interface_flux(Lft, Rght, IFace, gmodel, omegaz);
 		} // for k 
 	    } // j loop
 	} // i loop

@@ -29,8 +29,8 @@ public:
     double[] jx, jy, jz;
     size_t nsp;
 
-    this() {
-	nsp = GlobalConfig.gmodel.n_species;
+    this(size_t n_species) {
+	nsp = n_species;
 	grad_vel.length = 3;
 	foreach (ref e; grad_vel) e.length = 3;
 	grad_f.length = nsp; 
@@ -126,7 +126,7 @@ public:
 	if ( GlobalConfig.diffusion ) {
 	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		double h = 0.0; // [TODO] Rowan, transport of species enthalpies?
-		// double h = GlobalConfig.gmodel.enthalpy(fs.gas, isp);
+		// double h = gm.enthalpy(fs.gas, isp);
 		qx -= jx[isp] * h;
 		qy -= jy[isp] * h;
 		qz -= jz[isp] * h;
@@ -343,8 +343,9 @@ void gradients_xy(ref FVVertex vtx,
     vtx.grad_T.refy = gradient_y(TA, TB, TC, TD);
     vtx.grad_T.refz = 0.0;
     //
+    size_t nsp = fsA.gas.massf.length;
     if (GlobalConfig.diffusion) {
-	foreach(isp; 0 .. GlobalConfig.gmodel.n_species) {
+	foreach(isp; 0 .. nsp) {
 	    double fA = fsA.gas.massf[isp]; double fB = fsB.gas.massf[isp];
 	    double fC = fsC.gas.massf[isp]; double fD = fsD.gas.massf[isp];
 	    vtx.grad_f[isp].refx = gradient_x(fA, fB, fC, fD);
@@ -352,7 +353,7 @@ void gradients_xy(ref FVVertex vtx,
 	    vtx.grad_f[isp].refz = 0.0;
 	}
     } else {
-	foreach(isp; 0 .. GlobalConfig.gmodel.n_species) {
+	foreach(isp; 0 .. nsp) {
 	    vtx.grad_f[isp].refx = 0.0;
 	    vtx.grad_f[isp].refy = 0.0;
 	    vtx.grad_f[isp].refz = 0.0;

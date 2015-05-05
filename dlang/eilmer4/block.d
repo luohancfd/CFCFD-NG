@@ -8,6 +8,8 @@ import std.conv;
 import std.stdio;
 import std.math;
 import geom;
+import gas;
+import kinetics;
 import globalconfig;
 import fvcore;
 import fvcell;
@@ -24,6 +26,8 @@ public:
     int id; // block identifier: assumed to be the same as the block number.
     string label;
     bool active; // if true, block participates in the time integration
+    GasModel gmodel;
+    ReactionUpdateScheme reaction_update;
     double omegaz; // Angular velocity (in rad/s) of the rotating frame.
                    // There is only one component, about the z-axis.
     double mass_residual, energy_residual; // monitor these for steady state
@@ -125,7 +129,7 @@ public:
 	case TurbulenceModel.spalart_allmaras:
 	    throw new Error("Should implement Spalart-Allmaras some day.");
 	case TurbulenceModel.k_omega:
-	    foreach (cell; active_cells) cell.turbulence_viscosity_k_omega();
+	    foreach (cell; active_cells) cell.turbulence_viscosity_k_omega(gmodel);
 	    break;
 	}
 	foreach (cell; active_cells) {
@@ -192,7 +196,7 @@ public:
 
     void viscous_flux()
     {
-	auto vfwork = new ViscousFluxData();
+	auto vfwork = new ViscousFluxData(gmodel.n_species);
 	foreach (iface; active_ifaces) {
 	    vfwork.average_vertex_values(iface);
 	    vfwork.viscous_flux_calc(iface);
@@ -277,7 +281,7 @@ public:
 	}
 	bool first = true;
 	foreach(FVCell cell; active_cells) {
-	    signal = cell.signal_frequency();
+	    signal = cell.signal_frequency(gmodel);
 	    cfl_local = dt_current * signal; // Current (Local) CFL number
 	    dt_local = GlobalConfig.cfl_value / signal; // Recommend a time step size.
 	    if ( first ) {

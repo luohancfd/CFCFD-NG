@@ -60,7 +60,7 @@ FlowState checkFlowState(lua_State* L, int index)
  */
 extern(C) int newFlowState(lua_State* L)
 {
-    auto managedGasModel = GlobalConfig.gmodel;
+    auto managedGasModel = GlobalConfig.gmodel_master;
     if ( managedGasModel is null ) {
 	string errMsg = `Error in call to FlowState:new.
 It appears that you have not yet set the GasModel.
@@ -303,19 +303,23 @@ extern(C) int fromTable(lua_State* L)
     mixin(checkGasVar("quality"));
     // Look for arrays of gas variables: "massf" and "T"
     mixin(checkGasVarArray("massf"));
-    if ( fs.gas.massf.length != GlobalConfig.gmodel.n_species ) {
-	string errMsg = "The mass fraction array ('massf') did not contain the correct number of entries.\n";
-	errMsg ~= format("massf.length= %d; n_species= %d\n", fs.gas.massf.length, GlobalConfig.gmodel.n_species);
+    if ( fs.gas.massf.length != GlobalConfig.gmodel_master.n_species ) {
+	string errMsg = "The mass fraction array ('massf') did not contain"~
+	    " the correct number of entries.\n";
+	errMsg ~= format("massf.length= %d; n_species= %d\n", fs.gas.massf.length,
+			 GlobalConfig.gmodel_master.n_species);
 	luaL_error(L, errMsg.toStringz);
     }
     mixin(checkGasVarArray("T"));
-    if ( fs.gas.T.length != GlobalConfig.gmodel.n_modes ) {
-	string errMsg = "The temperature array ('T') did not contain the correct number of entries.\n";
-	errMsg ~= format("T.length= %d; n_modes= %d\n", fs.gas.T.length, GlobalConfig.gmodel.n_modes);
+    if ( fs.gas.T.length != GlobalConfig.gmodel_master.n_modes ) {
+	string errMsg = "The temperature array ('T') did not contain"~
+	    " the correct number of entries.\n";
+	errMsg ~= format("T.length= %d; n_modes= %d\n", fs.gas.T.length,
+			 GlobalConfig.gmodel_master.n_modes);
 	luaL_error(L, errMsg.toStringz);
     }
     // We should call equation of state to make sure gas state is consistent.
-    GlobalConfig.gmodel.update_thermo_from_pT(fs.gas);
+    GlobalConfig.gmodel_master.update_thermo_from_pT(fs.gas);
 
     // Look for velocity components: "velx", "vely", "velz"
     lua_getfield(L, 2, "velx");
@@ -372,7 +376,7 @@ extern(C) int write_initial_flow_file_from_lua(lua_State* L)
     auto grid = checkStructuredGrid(L, 2);
     auto fs = checkFlowState(L, 3);
     double t0 = luaL_checknumber(L, 4);
-    write_initial_flow_file(fname, grid, fs, t0);
+    write_initial_flow_file(fname, grid, fs, t0, GlobalConfig.gmodel_master);
     return 0;
 }
 

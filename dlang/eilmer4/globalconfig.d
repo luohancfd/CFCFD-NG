@@ -11,9 +11,8 @@ module globalconfig;
 import std.conv;
 import std.stdio;
 
-import geom;
 import gas;
-import kinetics;
+import geom;
 import fvcore;
 import solidfvcore;
 
@@ -80,7 +79,10 @@ final class GlobalConfig {
     static string base_file_name = "job"; // Change this to suit at run time.
     static string title = "Eilmer4 simulation"; // Change this to suit at run time.
     static string gas_model_file = "gas-model.lua";
-    static GasModel gmodel;
+    static GasModel gmodel_master; // to provide GasModel access to the Lua domain
+    // Presumably, we won't be accessing this particular gas model from the 
+    // individual block computations, so that parallel computations for the blocks
+    // don't trip over each other.
 
     static int nBlocks; // Number of blocks in the overall simulation.
     static int nSolidBlocks; // Number of solid blocks in the overall simulation.
@@ -198,7 +200,6 @@ final class GlobalConfig {
     // chemical update function call.
     static bool reacting = false;
     static string reactions_file = "chemistry.lua";
-    static ReactionUpdateScheme reaction_update = null;
 
     // With this flag on, finite-rate evolution of the vibrational energies 
     // (and in turn the total energy) is computed.

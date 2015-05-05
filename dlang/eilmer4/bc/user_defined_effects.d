@@ -120,6 +120,8 @@ private:
 
     void putFlowStateIntoGhostCell(LuaTable t, FVCell ghostCell)
     {
+	auto blk = allBlocks[blk_id];
+	auto gmodel = blk.gmodel;
 	try {
 	    ghostCell.fs.gas.p = t.get!double("p");
 	    getArray!double(t.get!LuaTable("T"), ghostCell.fs.gas.T, "T");
@@ -131,8 +133,8 @@ private:
 	    errMsg ~= e.toString();
 	    throw new Exception(errMsg);
 	}
-	GlobalConfig.gmodel.update_thermo_from_pT(ghostCell.fs.gas);
-	GlobalConfig.gmodel.update_sound_speed(ghostCell.fs.gas);
+	gmodel.update_thermo_from_pT(ghostCell.fs.gas);
+	gmodel.update_sound_speed(ghostCell.fs.gas);
 	ghostCell.fs.vel.refx = getDouble(t, "velx", 0.0);
 	ghostCell.fs.vel.refy = getDouble(t, "vely", 0.0);
 	ghostCell.fs.vel.refz = getDouble(t, "velz", 0.0);

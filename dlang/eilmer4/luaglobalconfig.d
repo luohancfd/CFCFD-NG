@@ -464,29 +464,29 @@ extern(C) int setGasModel(lua_State* L)
 {
     string fname = to!string(luaL_checkstring(L, 1));
     GlobalConfig.gas_model_file = fname;
-    GlobalConfig.gmodel = init_gas_model(fname);
-    lua_pushinteger(L, GlobalConfig.gmodel.n_species);
-    lua_pushinteger(L, GlobalConfig.gmodel.n_modes);
+    GlobalConfig.gmodel_master = init_gas_model(fname);
+    lua_pushinteger(L, GlobalConfig.gmodel_master.n_species);
+    lua_pushinteger(L, GlobalConfig.gmodel_master.n_modes);
     return 2;
     
 }
 
 extern(C) int get_nspecies(lua_State* L)
 {
-    lua_pushinteger(L, GlobalConfig.gmodel.n_species);
+    lua_pushinteger(L, GlobalConfig.gmodel_master.n_species);
     return 1;
 }
 
 extern(C) int get_nmodes(lua_State* L)
 {
-    lua_pushinteger(L, GlobalConfig.gmodel.n_modes);
+    lua_pushinteger(L, GlobalConfig.gmodel_master.n_modes);
     return 1;
 }
 
 extern(C) int species_name(lua_State* L)
 {
     int i = to!int(luaL_checkinteger(L, 1));
-    lua_pushstring(L, GlobalConfig.gmodel.species_name(i).toStringz);
+    lua_pushstring(L, GlobalConfig.gmodel_master.species_name(i).toStringz);
     return 1;
 }
 

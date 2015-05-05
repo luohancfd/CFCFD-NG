@@ -77,7 +77,7 @@ double init_simulation(int tindx)
 	    // Even though the following call appears redundant at this point,
 	    // fills in some gas properties such as Prandtl number that is
 	    // needed for both the cfd_check and the BLomax turbulence model.
-	    cell.decode_conserved(0, 0, myblk.omegaz); // <--- caused segfault
+	    cell.decode_conserved(0, 0, myblk.omegaz, myblk.gmodel);
 	}
 	myblk.set_cell_dt_chem(-1.0);
     }
@@ -174,20 +174,10 @@ double integrate_in_time(double target_time, int maxWallClock)
 	//     separately to the convective terms.
         // 2d. Chemistry step. 
 	if ( GlobalConfig.reacting ) {
-	    //writeln("Performing chemistry calculation for all blocks.");
 	    foreach (blk; myBlocks) {
 		if (!blk.active) continue;
 		foreach ( i, cell; blk.active_cells) {
-		    /*if ( i == 60 ) {
-			writeln("Before chemistry....");
-			writeln(cell.fs.gas);
-			}*/
-		    cell.chemical_increment(dt_global, 300.0);
-		    /*if ( i == 60 ) {
-			writeln("After chemistry....");
-			writeln(cell.fs.gas);
-			}*/
-		    // Hard-code Tfrozen
+		    cell.chemical_increment(dt_global, 300.0, blk.gmodel, blk.reaction_update);
 		}
 	    }
 	}
@@ -344,12 +334,12 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		cell.add_viscous_source_vector(with_k_omega);
 	    }
 	    if (GlobalConfig.udf_source_terms) {
-		addUDFSourceTermsToCell(cell, gtl, sim_time);
+		addUDFSourceTermsToCell(cell, gtl, sim_time, blk.gmodel);
 	    }
 	    cell.time_derivatives(gtl, ftl, GlobalConfig.dimensions, with_k_omega);
 	    bool force_euler = false;
 	    cell.stage_1_update_for_flow_on_fixed_grid(dt_global, force_euler, with_k_omega);
-	    cell.decode_conserved(gtl, ftl+1, blk.omegaz);
+	    cell.decode_conserved(gtl, ftl+1, blk.omegaz, blk.gmodel);
 	} // end foreach cell
     } // end foreach blk
     //
@@ -386,12 +376,12 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		    cell.add_viscous_source_vector(with_k_omega);
 		}
 		if (GlobalConfig.udf_source_terms) {
-		    addUDFSourceTermsToCell(cell, gtl, sim_time);
+		    addUDFSourceTermsToCell(cell, gtl, sim_time, blk.gmodel);
 		}
 		cell.time_derivatives(gtl, ftl, GlobalConfig.dimensions, with_k_omega);
 		bool force_euler = false;
 		cell.stage_2_update_for_flow_on_fixed_grid(dt_global, with_k_omega);
-		cell.decode_conserved(gtl, ftl+1, blk.omegaz);
+		cell.decode_conserved(gtl, ftl+1, blk.omegaz, blk.gmodel);
 	    } // end foreach cell
 	} // end foreach blk
     } // end if number_of_stages_for_update_scheme >= 2 
@@ -426,12 +416,12 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		    cell.add_viscous_source_vector(with_k_omega);
 		}
 		if (GlobalConfig.udf_source_terms) {
-		    addUDFSourceTermsToCell(cell, gtl, sim_time);
+		    addUDFSourceTermsToCell(cell, gtl, sim_time, blk.gmodel);
 		}
 		cell.time_derivatives(gtl, ftl, GlobalConfig.dimensions, with_k_omega);
 		bool force_euler = false;
 		cell.stage_2_update_for_flow_on_fixed_grid(dt_global, with_k_omega);
-		cell.decode_conserved(gtl, ftl+1, blk.omegaz);
+		cell.decode_conserved(gtl, ftl+1, blk.omegaz, blk.gmodel);
 	    } // end foreach cell
 	} // end foreach blk
     } // end if number_of_stages_for_update_scheme >= 3

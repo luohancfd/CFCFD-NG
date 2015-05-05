@@ -50,7 +50,7 @@ void read_config_file()
     //
     GlobalConfig.title = jsonData["title"].str;
     GlobalConfig.gas_model_file = jsonData["gas_model_file"].str;
-    GlobalConfig.gmodel = init_gas_model(GlobalConfig.gas_model_file);
+    GlobalConfig.gmodel_master = init_gas_model(GlobalConfig.gas_model_file);
     GlobalConfig.dimensions = getJSONint(jsonData, "dimensions", 2);
     GlobalConfig.axisymmetric = getJSONbool(jsonData, "axisymmetric", false);
     if (GlobalConfig.verbosity_level > 1) {
@@ -138,8 +138,6 @@ void read_config_file()
     //
     GlobalConfig.reacting = getJSONbool(jsonData, "reacting", false);
     GlobalConfig.reactions_file = jsonData["reactions_file"].str;
-    if ( GlobalConfig.reacting )
-	GlobalConfig.reaction_update = new ReactionUpdateScheme(GlobalConfig.reactions_file, GlobalConfig.gmodel);
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  reacting: ", GlobalConfig.reacting);
 	writeln("  reactions_file: ", GlobalConfig.reactions_file);

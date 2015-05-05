@@ -13,6 +13,7 @@ import std.string;
 import luad.all;
 import util.lua_service;
 import lua_helper;
+import gas;
 import fvcell;
 import globalconfig;
 
@@ -25,10 +26,10 @@ void initUDFSourceTerms(string fname)
     lua = initLuaState(fname);
 }
 
-void addUDFSourceTermsToCell(FVCell cell, size_t gtl, double t)
+void addUDFSourceTermsToCell(FVCell cell, size_t gtl, double t, GasModel gmodel)
 {
-    size_t n_species = GlobalConfig.gmodel.n_species;
-    size_t n_modes = GlobalConfig.gmodel.n_modes;
+    size_t n_species = gmodel.n_species;
+    size_t n_modes = gmodel.n_modes;
 
     // Push cell data into an args table.
     auto args = lua.newTable();

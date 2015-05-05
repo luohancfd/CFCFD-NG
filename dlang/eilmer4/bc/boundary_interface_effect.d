@@ -29,6 +29,8 @@ import user_defined_effects;
 BoundaryInterfaceEffect make_BIE_from_json(JSONValue jsonData, int blk_id, int boundary)
 {
     string bieType = jsonData["type"].str;
+    // If we need access to a gas model in here, 
+    // be sure to use GlobalConfig.gmodel_master.
     BoundaryInterfaceEffect newBIE;
     switch (bieType) {
     case "copy_cell_data":
@@ -95,8 +97,8 @@ class BIE_CopyCellData : BoundaryInterfaceEffect {
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto gmodel = GlobalConfig.gmodel;
 	auto blk = allBlocks[blk_id];
+	auto gmodel = blk.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -186,8 +188,8 @@ class BIE_ZeroVelocity : BoundaryInterfaceEffect {
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto gmodel = GlobalConfig.gmodel;
 	auto blk = allBlocks[blk_id];
+	auto gmodel = blk.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -281,8 +283,8 @@ public:
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto gmodel = GlobalConfig.gmodel;
 	auto blk = allBlocks[blk_id];
+	auto gmodel = blk.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -372,8 +374,8 @@ class BIE_UpdateThermoTransCoeffs : BoundaryInterfaceEffect {
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto gmodel = GlobalConfig.gmodel;
 	auto blk = allBlocks[blk_id];
+	auto gmodel = blk.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -475,8 +477,8 @@ class BIE_WallKOmega : BoundaryInterfaceEffect {
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto gmodel = GlobalConfig.gmodel;
 	auto blk = allBlocks[blk_id];
+	auto gmodel = blk.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:

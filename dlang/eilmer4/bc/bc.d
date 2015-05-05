@@ -165,10 +165,12 @@ public:
 private:
     void setGlobalsInLuaState(LuaState lua, size_t nicell, size_t njcell, size_t nkcell)
     {
+	auto blk = allBlocks[blk_id];
+	auto gmodel = blk.gmodel;
 	lua["blkId"] = blk_id;
 	lua["whichBoundary"] = which_boundary;
-	lua["n_species"] = GlobalConfig.gmodel.n_species;
-	lua["n_modes"] = GlobalConfig.gmodel.n_modes;
+	lua["n_species"] = gmodel.n_species;
+	lua["n_modes"] = gmodel.n_modes;
 	lua["nicell"] = nicell;
 	lua["njcell"] = njcell;
 	lua["nkcell"] = nkcell;

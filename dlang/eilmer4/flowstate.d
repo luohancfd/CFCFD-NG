@@ -246,7 +246,7 @@ public:
 } // end class FlowState
 
 void write_initial_flow_file(string fileName, ref StructuredGrid grid,
-			     in FlowState fs, double t0)
+			     in FlowState fs, double t0, GasModel gmodel)
 {
     // Numbers of cells derived from numbers of vertices.
     int nic = grid.niv - 1;
@@ -280,8 +280,7 @@ void write_initial_flow_file(string fileName, ref StructuredGrid grid,
 	if (GlobalConfig.MHD)
 	    formattedWrite(writer, " %.12e %.12e %.12e", fs.B.x, fs.B.y, fs.B.z); 
 	formattedWrite(writer, " %.12e %.12e %.12e", fs.gas.p, fs.gas.a, fs.gas.mu);
-	auto gm = GlobalConfig.gmodel;
-	foreach (imode; 0 .. gm.n_modes) formattedWrite(writer, " %.12e", fs.gas.k[imode]); 
+	foreach (kvalue; fs.gas.k) formattedWrite(writer, " %.12e", kvalue); 
 	int S = 0;  // zero for shock detector
 	formattedWrite(writer, " %.12e %.12e %d", fs.mu_t, fs.k_t, S);
 	if (GlobalConfig.radiation) {
@@ -289,14 +288,13 @@ void write_initial_flow_file(string fileName, ref StructuredGrid grid,
 	    formattedWrite(writer, " %.12e %.12e %.12e", Q_rad_org, f_rad_org, Q_rE_rad);
 	}
 	formattedWrite(writer, " %.12e %.12e", fs.tke, fs.omega);
-	foreach (isp; 0 .. gm.n_species) 
-	    formattedWrite(writer, " %.12e", fs.gas.massf[isp]); 
+	foreach (massfvalue; fs.gas.massf) formattedWrite(writer, " %.12e", massfvalue); 
 	double dt_chem = -1.0;
-	if (gm.n_species > 1) formattedWrite(writer, " %.12e", dt_chem); 
-	foreach (imode; 0 .. gm.n_modes) 
+	if (fs.gas.massf.length > 1) formattedWrite(writer, " %.12e", dt_chem); 
+	foreach (imode; 0 .. fs.gas.e.length) 
 	    formattedWrite(writer, " %.12e %.12e", fs.gas.e[imode], fs.gas.T[imode]); 
 	double dt_therm = -1.0;
-	if (gm.n_modes > 1) formattedWrite(writer, " %.12e", dt_therm); 
+	if (fs.gas.e.length > 1) formattedWrite(writer, " %.12e", dt_therm); 
 	return writer.data;
     } // end  cell_data_as_string()
 
@@ -305,7 +303,7 @@ void write_initial_flow_file(string fileName, ref StructuredGrid grid,
     f.writefln("%20.12e", t0);
     // Variable list for cell on one line.
     auto writer = appender!string();
-    foreach(varname; variable_list_for_cell()) {
+    foreach(varname; variable_list_for_cell(gmodel)) {
 	formattedWrite(writer, " \"%s\"", varname);
     }
     f.writeln(writer.data);
