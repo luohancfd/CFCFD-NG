@@ -442,6 +442,16 @@ function WallKOmega:tojson()
    return str
 end
 
+UserDefinedInterface = BoundaryInterfaceEffect:new{fileName='user-defined-bc.lua'}
+UserDefinedInterface.type = "user_defined"
+function UserDefinedInterface:tojson()
+   local str = string.format('         {"type": "%s", ', self.type)
+   str = str .. string.format('"filename": "%s"', self.fileName)
+   str = str .. '}'
+   return str
+end
+
+
 -- Class for BoundaryCondition
 
 BoundaryCondition = {

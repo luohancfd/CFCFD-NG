@@ -51,8 +51,15 @@ BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary
     auto preSpatialDerivActionList = jsonData["pre_spatial_deriv_action"].array;
     foreach ( jsonObj; preSpatialDerivActionList ) {
 	newBC.preSpatialDerivAction ~= make_BIE_from_json(jsonObj, blk_id, boundary);
-	// [TODO] need to think about a way to connect to the user_defined BC
-	// as appropriate, or do we just have separate interpreters?
+	// Some extra configuration in the case of a UserDefined bc.
+	// We need to connect the Lua state back to the parent BC container.
+	if ( newBC.preSpatialDerivAction[$-1].type == "UserDefined" ) {
+	    auto bie = to!BIE_UserDefined(newBC.preSpatialDerivAction[$-1]);
+	    if ( bie.luafname !in newBC.luaStates ) {
+		newBC.initUserDefinedLuaState(bie.luafname, nicell, njcell, nkcell);
+	    }
+	    bie.setLuaState(newBC.luaStates[bie.luafname]);
+	}
     }
     // [TODO] We need to fill out the Action lists for other hook points.
     return newBC;

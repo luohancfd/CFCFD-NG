@@ -47,10 +47,10 @@ BoundaryInterfaceEffect make_BIE_from_json(JSONValue jsonData, int blk_id, int b
     case "wall_k_omega":
 	newBIE = new BIE_WallKOmega(blk_id, boundary);
 	break;
-    // case "user_defined":
-    // 	string fname = getJSONstring(jsonData, "filename", "none");
-    // 	newBIE = new UserDefinedInterfaceEffect(blk_id, boundary, fname);
-    // 	break;
+    case "user_defined":
+     	string fname = getJSONstring(jsonData, "filename", "none");
+	newBIE = new BIE_UserDefined(blk_id, boundary, fname);
+	break;
     default:
 	string errMsg = format("ERROR: The BoundaryInterfaceEffect type: '%s' is unknown.", bieType);
 	throw new Exception(errMsg);
