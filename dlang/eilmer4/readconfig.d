@@ -151,17 +151,6 @@ void read_config_file()
     }
     // TODO -- still have other entries such as nheatzone, nreactionzone, ...
 
-    // Parameters related to udf source terms
-    GlobalConfig.udf_source_terms = getJSONbool(jsonData, "udf_source_terms", false);
-    GlobalConfig.udf_source_terms_file = jsonData["udf_source_terms_file"].str;
-    if ( GlobalConfig.udf_source_terms ) {
-	initUDFSourceTerms(GlobalConfig.udf_source_terms_file);
-    }
-    if ( GlobalConfig.verbosity_level > 1 ) {
-	writeln("  udf_source_terms: ", GlobalConfig.udf_source_terms);
-	writeln("  udf_source_terms_file: ", GlobalConfig.udf_source_terms_file);
-    }
-
     // Now, configure blocks that make up the flow domain.
     //
     GlobalConfig.nBlocks = getJSONint(jsonData, "nblock", 0);
@@ -174,6 +163,22 @@ void read_config_file()
 	    writeln("  Block[", i, "]: ", myBlocks[i]);
 	}
     }
+
+    // Add LuaStates to each block for UDF source terms, if necessary
+        // Parameters related to udf source terms
+    auto udf_source_terms = getJSONbool(jsonData, "udf_source_terms", false);
+    auto udf_source_terms_file = jsonData["udf_source_terms_file"].str;
+    if ( udf_source_terms ) {
+	foreach (blk; myBlocks) {
+	    blk.udf_source_terms = initUDFSourceTerms(udf_source_terms_file, blk.id);
+	}
+    }
+    if ( GlobalConfig.verbosity_level > 1 ) {
+	writeln("  udf_source_terms: ", udf_source_terms);
+	writeln("  udf_source_terms_file: ", udf_source_terms_file);
+    }
+
+
     // Finally, read in any blocks in the solid domain.
     GlobalConfig.nSolidBlocks = getJSONint(jsonData, "nsolidblock", 0);
     if (GlobalConfig.verbosity_level > 1) { writeln("  nSolidBlocks: ", GlobalConfig.nSolidBlocks); }

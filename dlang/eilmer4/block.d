@@ -7,6 +7,7 @@ module block;
 import std.conv;
 import std.stdio;
 import std.math;
+import luad.all;
 import geom;
 import gas;
 import kinetics;
@@ -16,6 +17,7 @@ import fvcell;
 import fvinterface;
 import viscousflux;
 import bc;
+import user_defined_source_terms;
 
 enum
     nghost = 2; // Number of ghost cells surrounding the active cells.
@@ -28,6 +30,7 @@ public:
     bool active; // if true, block participates in the time integration
     GasModel gmodel;
     ReactionUpdateScheme reaction_update;
+    LuaState udf_source_terms;
     double omegaz; // Angular velocity (in rad/s) of the rotating frame.
                    // There is only one component, about the z-axis.
     double mass_residual, energy_residual; // monitor these for steady state

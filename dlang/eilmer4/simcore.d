@@ -333,8 +333,8 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 		cell.add_viscous_source_vector(with_k_omega);
 	    }
-	    if (GlobalConfig.udf_source_terms) {
-		addUDFSourceTermsToCell(cell, gtl, sim_time, blk.gmodel);
+	    if (blk.udf_source_terms) {
+		addUDFSourceTermsToCell(blk.udf_source_terms, cell, gtl, sim_time, blk.gmodel);
 	    }
 	    cell.time_derivatives(gtl, ftl, GlobalConfig.dimensions, with_k_omega);
 	    bool force_euler = false;
@@ -375,8 +375,8 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 		    cell.add_viscous_source_vector(with_k_omega);
 		}
-		if (GlobalConfig.udf_source_terms) {
-		    addUDFSourceTermsToCell(cell, gtl, sim_time, blk.gmodel);
+		if (blk.udf_source_terms) {
+		    addUDFSourceTermsToCell(blk.udf_source_terms, cell, gtl, sim_time, blk.gmodel);
 		}
 		cell.time_derivatives(gtl, ftl, GlobalConfig.dimensions, with_k_omega);
 		bool force_euler = false;
@@ -415,8 +415,8 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
 		    cell.add_viscous_source_vector(with_k_omega);
 		}
-		if (GlobalConfig.udf_source_terms) {
-		    addUDFSourceTermsToCell(cell, gtl, sim_time, blk.gmodel);
+		if (blk.udf_source_terms) {
+		    addUDFSourceTermsToCell(blk.udf_source_terms, cell, gtl, sim_time, blk.gmodel);
 		}
 		cell.time_derivatives(gtl, ftl, GlobalConfig.dimensions, with_k_omega);
 		bool force_euler = false;
