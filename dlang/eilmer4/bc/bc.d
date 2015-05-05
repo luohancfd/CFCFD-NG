@@ -31,8 +31,7 @@ import lua_helper;
 
 
 BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary,
-				    size_t nicell, size_t njcell, size_t nkcell,
-				    GasModel gmodel)
+				    size_t nicell, size_t njcell, size_t nkcell)
 {
     auto newBC = new BoundaryCondition(blk_id, boundary);
     // Assemble list of preReconAction effects
@@ -44,7 +43,7 @@ BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary
 	if ( newBC.preReconAction[$-1].type == "UserDefined" ) {
 	    auto gce = to!UserDefinedGhostCell(newBC.preReconAction[$-1]);
 	    if ( gce.luafname !in newBC.luaStates ) {
-		newBC.initUserDefinedLuaState(gce.luafname, nicell, njcell, nkcell, gmodel);
+		newBC.initUserDefinedLuaState(gce.luafname, nicell, njcell, nkcell);
 	    }
 	    gce.setLuaState(newBC.luaStates[gce.luafname]);
 	    newBC.ghost_cell_data_available = true;
@@ -58,7 +57,7 @@ BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary
 	if ( newBC.preSpatialDerivAction[$-1].type == "UserDefined" ) {
 	    auto bie = to!BIE_UserDefined(newBC.preSpatialDerivAction[$-1]);
 	    if ( bie.luafname !in newBC.luaStates ) {
-		newBC.initUserDefinedLuaState(bie.luafname, nicell, njcell, nkcell, gmodel);
+		newBC.initUserDefinedLuaState(bie.luafname, nicell, njcell, nkcell);
 	    }
 	    bie.setLuaState(newBC.luaStates[bie.luafname]);
 	}
@@ -97,11 +96,11 @@ public:
 	emissivity = _emissivity;
     }
 
-    void initUserDefinedLuaState(string luafname, size_t nicell, size_t njcell, size_t nkcell, GasModel gmodel)
+    void initUserDefinedLuaState(string luafname, size_t nicell, size_t njcell, size_t nkcell)
     {
 	luaStates[luafname] = new LuaState();
 	luaStates[luafname].openLibs();
-	setGlobalsInLuaState(luaStates[luafname], nicell, njcell, nkcell, gmodel);
+	setGlobalsInLuaState(luaStates[luafname], nicell, njcell, nkcell);
 	luaStates[luafname].doFile(luafname);
     }
     // Action lists.
@@ -165,9 +164,10 @@ public:
     }
     */
 private:
-    void setGlobalsInLuaState(LuaState lua, size_t nicell, size_t njcell, size_t nkcell, GasModel gmodel)
+    void setGlobalsInLuaState(LuaState lua, size_t nicell, size_t njcell, size_t nkcell)
     {
 	auto blk = allBlocks[blk_id];
+	auto gmodel = GlobalConfig.gmodel_master;
 	lua["blkId"] = blk_id;
 	lua["whichBoundary"] = which_boundary;
 	lua["n_species"] = gmodel.n_species;
