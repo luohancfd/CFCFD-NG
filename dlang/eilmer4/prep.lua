@@ -561,7 +561,7 @@ UserDefinedBC.myType = "UserDefined"
 function UserDefinedBC:new(o)
    o = BoundaryCondition.new(self, o)
    o.preReconAction = { UserDefinedGhostCell:new{fileName=o.fileName} }
-   o.preSpatialDerivAction = { CopyCellData:new() } -- [TODO] change when functions available
+   o.preSpatialDerivAction = { UserDefinedInterface:new{fileName=o.fileName} } 
    return o
 end
 

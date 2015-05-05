@@ -125,7 +125,7 @@ public:
 	    string json_key = "face_" ~ face_name[boundary];
 	    auto bc_json_data = json_data[json_key];
 	    bc[boundary] = make_BC_from_json(bc_json_data, id, boundary,
-					     nicell, njcell, nkcell);
+					     nicell, njcell, nkcell, gmodel);
 	}
     } // end constructor from json
 

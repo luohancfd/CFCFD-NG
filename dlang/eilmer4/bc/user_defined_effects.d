@@ -30,6 +30,10 @@ public:
 	super(id, boundary, "UserDefined");
 	luafname = fname;
     }
+    override string toString() const
+    {
+	return "UserDefinedGhostCellEffect(fname=" ~ luafname ~ ")";
+    }
 
     void setLuaState(LuaState lua)
     {
@@ -286,7 +290,6 @@ private:
 	// So we need to test every possibility and only set
 	// the non-nil values.
 	FlowState fs = iface.fs;
-	
 
 	if ( !t.get!LuaObject("p").isNil ) {
 	    fs.gas.p = t.get!double("p");
@@ -303,10 +306,10 @@ private:
 	    fs.vel.refx = t.get!double("velx");
 	}
 	if ( !t.get!LuaObject("vely").isNil ) {
-	    fs.vel.refx = t.get!double("vely");
+	    fs.vel.refy = t.get!double("vely");
 	}
 	if ( !t.get!LuaObject("velz").isNil ) {
-	    fs.vel.refx = t.get!double("velz");
+	    fs.vel.refz = t.get!double("velz");
 	}
 	if ( !t.get!LuaObject("tke").isNil ) {
 	    fs.tke = t.get!double("tke");

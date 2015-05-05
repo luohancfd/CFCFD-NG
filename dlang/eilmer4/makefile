@@ -35,7 +35,8 @@ GAS_MODEL_FILES := \
 	$(GAS_DIR)/gas_model_util.d \
 	$(GAS_DIR)/ideal_gas.d \
 	$(GAS_DIR)/physical_constants.d \
-	$(GAS_DIR)/therm_perf_gas.d
+	$(GAS_DIR)/therm_perf_gas.d \
+        $(GAS_DIR)/very_viscous_air.d
 
 THERMO_FILES := \
 	$(GAS_DIR)/thermo/cea_thermo_curves.d \
@@ -109,7 +110,7 @@ ifeq ($(DMD), dmd)
     #     DFLAGS := -profile -vgc -w -O -release -inline -boundscheck=off
     # (3) For releasing a fast code.
     #     DFLAGS := -w -O -release -inline -boundscheck=off
-    DFLAGS := -w -O -release -inline -boundscheck=off \
+    DFLAGS := -gc -w -O -release -inline -boundscheck=off \
 	-I.. -I$(LUAD_DIR) -I$(NM_DIR) -I$(UTIL_DIR) -I$(GEOM_DIR) -I$(GZIP_DIR)
     OF := -of
     DLINKFLAGS := -L-L$(LIBLUAPATH) -L-llua -L-ldl
