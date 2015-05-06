@@ -1423,7 +1423,7 @@ public:
     {
 	size_t nivtx, njvtx, nkvtx;
 	double x, y, z;
-	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
+	if (GlobalConfig.verbosity_level >= 1) {
 	    writeln("read_grid(): Start block ", id);
 	}
 	auto byLine = new GzipByLine(filename);
@@ -1470,7 +1470,7 @@ public:
 
     override void write_grid(string filename, double sim_time, size_t gtl=0)
     {
-	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
+	if (GlobalConfig.verbosity_level >= 1) {
 	    writeln("write_grid(): Start block ", id);
 	}
 	size_t kmaxrange;
@@ -1505,7 +1505,7 @@ public:
     {
 	size_t ni, nj, nk;
 	double sim_time;
-	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
+	if (GlobalConfig.verbosity_level >= 1) {
 	    writeln("read_solution(): Start block ", id);
 	}
 	auto byLine = new GzipByLine(filename);
@@ -1537,7 +1537,7 @@ public:
     // for a single block.
     // This is almost Tecplot POINT format.
     {
-	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
+	if (GlobalConfig.verbosity_level >= 1) {
 	    writeln("write_solution(): Start block ", id);
 	}
 	auto outfile = new GzipOut(filename);
