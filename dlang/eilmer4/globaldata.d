@@ -8,6 +8,7 @@
 
 module globaldata;
 
+import globalconfig;
 import sblock;
 import ssolidblock;
 
@@ -20,3 +21,8 @@ static SBlock[] myBlocks;  // Local collection that we can iterate over.
 
 static SSolidBlock[] allSolidBlocks;
 static SSolidBlock[] mySolidBlocks;
+
+// The current parallel code is based on having one SBlock per thread.
+// We need to hava a dedicated set of configuration parameters for each thread so that
+// there is no need to have memory barriers guarding their access.
+static LocalConfig[] myConfig;

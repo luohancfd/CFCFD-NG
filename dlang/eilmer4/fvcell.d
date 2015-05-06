@@ -942,7 +942,7 @@ public:
 	if (GlobalConfig.ignition_zone_active) {
 	    // When active, replace gas temperature with an effective ignition temperature
 	    foreach(zone; GlobalConfig.ignition_zones) {
-		if ( zone.is_inside(pos[0], GlobalConfig.dimensions) ) fs.gas.T[0] = zone._Tig; 
+		if ( zone.is_inside(pos[0], GlobalConfig.dimensions) ) fs.gas.T[0] = zone.Tig; 
 	    }
 	}
 	try {

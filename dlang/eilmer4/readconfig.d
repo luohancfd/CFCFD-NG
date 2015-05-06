@@ -63,7 +63,15 @@ void read_config_file()
 
     // Parameters controlling convective update
     //
-    // GlobalConfig.gasdynamic_update_scheme set from .control file.
+    GlobalConfig.interpolation_order = getJSONint(jsonData, "interpolation_order", 2);
+    try {
+	string name = jsonData["gasdynamic_update_scheme"].str;
+	GlobalConfig.gasdynamic_update_scheme = update_scheme_from_name(name);
+    } catch (Exception e) {
+	GlobalConfig.gasdynamic_update_scheme = GasdynamicUpdate.pc;
+    }
+    GlobalConfig.separate_update_for_viscous_terms =
+	getJSONbool(jsonData, "separate_update_for_viscous_terms", false);
     GlobalConfig.adjust_invalid_cell_data =
 	getJSONbool(jsonData, "adjust_invalid_cell_data", false);
     GlobalConfig.max_invalid_cells = getJSONint(jsonData, "max_invalid_cells", 0);
@@ -90,7 +98,18 @@ void read_config_file()
     GlobalConfig.moving_grid = getJSONbool(jsonData, "moving_grid", false);
     GlobalConfig.write_vertex_velocities = 
 	getJSONbool(jsonData, "write_vertex_velocities", false);
+    try {
+	string name = jsonData["solid_domain_update_scheme"].str;
+	GlobalConfig.solidDomainUpdateScheme = solidDomainUpdateSchemeFromName(name);
+    } catch (Exception e) {
+	GlobalConfig.solidDomainUpdateScheme = SolidDomainUpdate.pc;
+    }
+
     if (GlobalConfig.verbosity_level > 1) {
+	writeln("  interpolation_order: ", GlobalConfig.interpolation_order);
+	writeln("  gasdynamic_update_scheme: ",
+		gasdynamic_update_scheme_name(GlobalConfig.gasdynamic_update_scheme));
+	writeln("  separate_update_for_viscous_terms: ", GlobalConfig.separate_update_for_viscous_terms);
 	writeln("  adjust_invalid_cell_data: ", GlobalConfig.adjust_invalid_cell_data);
 	writeln("  max_invalid_cells: ", GlobalConfig.max_invalid_cells);
 	writeln("  thermo_interpolator: ",
@@ -104,6 +123,8 @@ void read_config_file()
 	writeln("  compression_tolerance: ", GlobalConfig.compression_tolerance);
 	writeln("  moving_grid: ", GlobalConfig.moving_grid);
 	writeln("  write_vertex_velocities: ", GlobalConfig.write_vertex_velocities);
+	writeln("  solid_domain_update_scheme: ",
+		solidDomainUpdateSchemeName(GlobalConfig.solidDomainUpdateScheme));
     }
 
     // Parameters controlling viscous/molecular transport
@@ -135,6 +156,14 @@ void read_config_file()
 	writeln("  transient_mu_t_factor: ", GlobalConfig.transient_mu_t_factor);
     }
 
+    // User-defined source terms
+    GlobalConfig.udf_source_terms = getJSONbool(jsonData, "udf_source_terms", false);
+    GlobalConfig.udf_source_terms_file = jsonData["udf_source_terms_file"].str;
+    if (GlobalConfig.verbosity_level > 1) {
+	writeln("  udf_source_terms: ", GlobalConfig.udf_source_terms);
+	writeln("  udf_source_terms_file: ", GlobalConfig.udf_source_terms_file);
+    }
+
     // Parameters controlling thermochemistry
     //
     GlobalConfig.reacting = getJSONbool(jsonData, "reacting", false);
@@ -158,28 +187,18 @@ void read_config_file()
     if (GlobalConfig.verbosity_level > 1) { writeln("  nBlocks: ", GlobalConfig.nBlocks); }
     foreach (i; 0 .. GlobalConfig.nBlocks) {
 	auto blk = new SBlock(i, jsonData["block_" ~ to!string(i)]);
-	allBlocks ~= blk;
-	myBlocks ~= blk; // Just make a copy, until we have to deal with MPI.
+	// Add LuaStates to each block for UDF source terms, if necessary
+	if (GlobalConfig.udf_source_terms) {
+	    blk.udf_source_terms = initUDFSourceTerms(GlobalConfig.udf_source_terms_file, blk.id);
+	}
 	if (GlobalConfig.verbosity_level > 1) {
 	    writeln("  Block[", i, "]: ", myBlocks[i]);
 	}
+	allBlocks ~= blk;
+	myBlocks ~= blk; // Just make a copy, until we have to deal with MPI.
     }
 
-    // Add LuaStates to each block for UDF source terms, if necessary
-    auto udf_source_terms = getJSONbool(jsonData, "udf_source_terms", false);
-    auto udf_source_terms_file = jsonData["udf_source_terms_file"].str;
-    if ( udf_source_terms ) {
-	foreach (blk; myBlocks) {
-	    blk.udf_source_terms = initUDFSourceTerms(udf_source_terms_file, blk.id);
-	}
-    }
-    if ( GlobalConfig.verbosity_level > 1 ) {
-	writeln("  udf_source_terms: ", udf_source_terms);
-	writeln("  udf_source_terms_file: ", udf_source_terms_file);
-    }
-
-
-    // Finally, read in any blocks in the solid domain.
+    // Read in any blocks in the solid domain.
     GlobalConfig.nSolidBlocks = getJSONint(jsonData, "nsolidblock", 0);
     if (GlobalConfig.verbosity_level > 1) { writeln("  nSolidBlocks: ", GlobalConfig.nSolidBlocks); }
     foreach (i; 0 .. GlobalConfig.nSolidBlocks) {
@@ -191,7 +210,6 @@ void read_config_file()
 	}
     }
     // Add LuaStates to each solid block for UDF source terms, if necessary
-    
     auto udf_solid_source_terms = getJSONbool(jsonData, "udf_solid_source_terms", false);
     auto udf_solid_source_terms_file = jsonData["udf_solid_source_terms_file"].str;
     if ( udf_solid_source_terms ) {
@@ -203,6 +221,10 @@ void read_config_file()
 	writeln("  udf_solid_source_terms: ", udf_solid_source_terms);
 	writeln("  udf_solid_source_terms_file: ", udf_solid_source_terms_file);
     }
+    
+    // Set up dedicated copies of the configuration parameters for the threads.
+    // [TODO] Rowan, should we do this for the Solid blocks as well.
+    foreach (i; 0 .. GlobalConfig.nBlocks) myConfig ~= new LocalConfig();
     
 } // end read_config_file()
 
@@ -225,15 +247,6 @@ void read_control_file()
 	exit(1);
     }
 
-    GlobalConfig.interpolation_order = getJSONint(jsonData, "interpolation_order", 2);
-    try {
-	string name = jsonData["gasdynamic_update_scheme"].str;
-	GlobalConfig.gasdynamic_update_scheme = update_scheme_from_name(name);
-    } catch (Exception e) {
-	GlobalConfig.gasdynamic_update_scheme = GasdynamicUpdate.pc;
-    }
-    GlobalConfig.separate_update_for_viscous_terms =
-	getJSONbool(jsonData, "separate_update_for_viscous_terms", false);
     GlobalConfig.max_step = getJSONint(jsonData, "max_step", 100);
     GlobalConfig.max_time = getJSONdouble(jsonData, "max_time", 1.0e-3);
     GlobalConfig.halt_now = getJSONint(jsonData, "halt_now", 0);
@@ -248,18 +261,8 @@ void read_control_file()
     GlobalConfig.write_at_step = getJSONint(jsonData, "write_at_step", 0);
     GlobalConfig.dt_plot = getJSONdouble(jsonData, "dt_plot", 1.0e-3);
     GlobalConfig.dt_history = getJSONdouble(jsonData, "dt_history", 1.0e-3);
-    try {
-	string name = jsonData["solid_domain_update_scheme"].str;
-	GlobalConfig.solidDomainUpdateScheme = solidDomainUpdateSchemeFromName(name);
-    } catch (Exception e) {
-	GlobalConfig.solidDomainUpdateScheme = SolidDomainUpdate.pc;
-    }
 
     if (GlobalConfig.verbosity_level > 1) {
-	writeln("  interpolation_order: ", GlobalConfig.interpolation_order);
-	writeln("  gasdynamic_update_scheme: ",
-		gasdynamic_update_scheme_name(GlobalConfig.gasdynamic_update_scheme));
-	writeln("  separate_update_for_viscous_terms: ", GlobalConfig.separate_update_for_viscous_terms);
 	writeln("  max_step: ", GlobalConfig.max_step);
 	writeln("  max_time: ", GlobalConfig.max_time);
 	writeln("  halt_now: ", GlobalConfig.halt_now);
@@ -274,8 +277,5 @@ void read_control_file()
 	writeln("  write_at_step: ", GlobalConfig.write_at_step);
 	writeln("  dt_plot: ", GlobalConfig.dt_plot);
 	writeln("  dt_history: ", GlobalConfig.dt_history);
-	writeln("  solid_domain_update_scheme: ",
-		solidDomainUpdateSchemeName(GlobalConfig.solidDomainUpdateScheme));
-
     }
 } // end read_control_file()

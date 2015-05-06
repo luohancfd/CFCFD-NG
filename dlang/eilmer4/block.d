@@ -29,6 +29,7 @@ public:
     string label;
     bool active; // if true, block participates in the time integration
     GasModel gmodel;
+    LocalConfig myConfig;
     ReactionUpdateScheme reaction_update;
     LuaState udf_source_terms;
     double omegaz; // Angular velocity (in rad/s) of the rotating frame.
