@@ -16,6 +16,7 @@ import std.stdio;
 import std.math;
 import geom;
 import gas;
+import kinetics;
 import fvcore;
 import flowstate;
 import conservedquantities;
@@ -77,7 +78,7 @@ public:
     double rho_at_start_of_step, rE_at_start_of_step;
     // [TODO] implicit variables
 
-    this(in GasModel gm, int id_init=0)
+    this(GasModel gm, int id_init=0)
     {
 	id = id_init;
 	pos.length = n_time_levels;
@@ -253,7 +254,7 @@ public:
 	assert(false, "[TODO] FVCell.copy_values_from_buffer() not yet implemented");
     }
 
-    void replace_flow_data_with_average(in FVCell[] others) 
+    void replace_flow_data_with_average(in FVCell[] others, GasModel gmodel) 
     {
 	size_t n = others.length;
 	if (n == 0) throw new Error("Need to average from a nonempty array.");
@@ -263,7 +264,7 @@ public:
 	    if ( this is other ) throw new Error("Must not include destination in source list.");
 	    fsList ~= cast(FlowState)other.fs;
 	}
-	fs.copy_average_values_from(fsList, GlobalConfig.gmodel);
+	fs.copy_average_values_from(fsList, gmodel);
 	// Accumulate from a clean slate and then divide.
 	Q_rE_rad = 0.0;
 	foreach(other; others) {
@@ -272,11 +273,10 @@ public:
 	Q_rE_rad /= n;
     }
 
-    void scan_values_from_string(string buffer)
+    void scan_values_from_string(string buffer, GasModel gm)
     // Note that the position data is read into grid_time_level 0.
     {
 	auto items = split(buffer);
-	const gm = GlobalConfig.gmodel;
 	pos[0].refx = to!double(items.front); items.popFront();
 	pos[0].refy = to!double(items.front); items.popFront();
 	pos[0].refz = to!double(items.front); items.popFront();
@@ -333,16 +333,16 @@ public:
 	if ( GlobalConfig.MHD ) 
 	    formattedWrite(writer, " %.12e %.12e %.12e", fs.B.x, fs.B.y, fs.B.z); 
 	formattedWrite(writer, " %.12e %.12e %.12e", fs.gas.p, fs.gas.a, fs.gas.mu);
-	auto gm = GlobalConfig.gmodel;
-	foreach(i; 0 .. gm.n_modes) formattedWrite(writer, " %.12e", fs.gas.k[i]); 
+	foreach(i; 0 .. fs.gas.k.length) formattedWrite(writer, " %.12e", fs.gas.k[i]); 
 	formattedWrite(writer, " %.12e %.12e %d", fs.mu_t, fs.k_t, fs.S);
 	if ( GlobalConfig.radiation ) 
 	    formattedWrite(writer, " %.12e %.12e %.12e", Q_rad_org, f_rad_org, Q_rE_rad); 
 	formattedWrite(writer, " %.12e %.12e", fs.tke, fs.omega);
-	foreach(i; 0 .. gm.n_species) formattedWrite(writer, " %.12e", fs.gas.massf[i]); 
-	if ( gm.n_species > 1 ) formattedWrite(writer, " %.12e", dt_chem); 
-	foreach(i; 0 .. gm.n_modes) formattedWrite(writer, " %.12e %.12e", fs.gas.e[i], fs.gas.T[i]); 
-	if ( gm.n_modes > 1 ) formattedWrite(writer, " %.12e", dt_therm);
+	foreach(i; 0 .. fs.gas.massf.length) formattedWrite(writer, " %.12e", fs.gas.massf[i]); 
+	if ( fs.gas.massf.length > 1 ) formattedWrite(writer, " %.12e", dt_chem); 
+	foreach(i; 0 .. fs.gas.e.length)
+	    formattedWrite(writer, " %.12e %.12e", fs.gas.e[i], fs.gas.T[i]); 
+	if ( fs.gas.e.length > 1 ) formattedWrite(writer, " %.12e", dt_therm);
 	return writer.data;
     }
 
@@ -418,10 +418,9 @@ public:
 	return;
     } // end encode_conserved()
 
-    void decode_conserved(int gtl, int ftl, double omegaz) 
+    void decode_conserved(int gtl, int ftl, double omegaz, GasModel gmodel) 
     {
 	ConservedQuantities myU = U[ftl];
-	const gmodel = GlobalConfig.gmodel;
 	bool with_k_omega = (GlobalConfig.turbulence_model == TurbulenceModel.k_omega);
 	double e, ke, dinv, rE, me;
 	// Mass / unit volume = Density
@@ -639,7 +638,7 @@ public:
 	// volume of species isp and
 	// the fluxes are mass/unit-time/unit-area.
 	// Units of DmassfDt are 1/sec.
-	foreach(isp; 0 .. GlobalConfig.gmodel.n_species) {
+	foreach(isp; 0 .. IFe.F.massf.length) {
 	    integral =
 		-IFe.F.massf[isp] * IFe.area[gtl]
 		- IFn.F.massf[isp] * IFn.area[gtl]
@@ -652,7 +651,7 @@ public:
 	// Individual energies.
 	// We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
 	// Instead we get this from the conservation of total energy
-	foreach(imode; 1 .. GlobalConfig.gmodel.n_modes) {
+	foreach(imode; 1 .. IFe.F.energies.length) {
 	    integral =
 		-IFe.F.energies[imode] * IFe.area[gtl]
 		- IFn.F.energies[imode] * IFn.area[gtl]
@@ -933,12 +932,12 @@ public:
 	assert(false, "[TODO] not yet ready for use");
     } // end stage_2_update_for_flow_on_moving_grid()
 
-    void chemical_increment(double dt, double T_frozen) 
+    void chemical_increment(double dt, double T_frozen, GasModel gmodel,
+			    ReactionUpdateScheme reaction_update) 
     // Use the finite-rate chemistry module to update the species fractions
     // and the other thermochemical properties.
     {
 	if (!fr_reactions_allowed || fs.gas.T[0] <= T_frozen) return;
-	auto gmodel = GlobalConfig.gmodel;
 	double T_save = fs.gas.T[0];
 	if (GlobalConfig.ignition_zone_active) {
 	    // When active, replace gas temperature with an effective ignition temperature
@@ -947,8 +946,7 @@ public:
 	    }
 	}
 	try {
-	    auto rupdate = GlobalConfig.reaction_update;
-	    rupdate.update_state(fs.gas, dt, dt_chem, gmodel);
+	    reaction_update.update_state(fs.gas, dt, dt_chem, gmodel);
 	    if (GlobalConfig.ignition_zone_active) {
 		// Restore actual gas temperature
 		fs.gas.T[0] = T_save;
@@ -977,14 +975,13 @@ public:
 
     } // end chemical_increment()
 
-    void thermal_increment(double dt, double T_frozen_energy) 
+    void thermal_increment(double dt, double T_frozen_energy, GasModel gmodel) 
     // Use the nonequilibrium multi-Temperature module to update the
     // energy values and the other thermochemical properties.
     // We are assuming that this is done after a successful gas-dynamic update
     // and that the current conserved quantities are held in U[0].
     {
 	if ( !fr_reactions_allowed || fs.gas.T[0] <= T_frozen_energy ) return;
-	auto gmodel = GlobalConfig.gmodel;
 	// [TODO] auto eeupdate = GlobalConfig.energy_exchange_update_scheme;
 	// [TODO] eeupdate.update_state(fs.gas, dt, dt_therm, gmodel);
 	// The update only changes modal energies, we need to impose
@@ -1004,7 +1001,7 @@ public:
 	assert(false, "[TODO] not yet ready for use");
     } // end thermal_increment()
 
-    double signal_frequency() const
+    double signal_frequency(GasModel gmodel) const
     {
 	bool with_k_omega = (GlobalConfig.turbulence_model == TurbulenceModel.k_omega && 
 			     !GlobalConfig.separate_update_for_k_omega_source);
@@ -1018,7 +1015,6 @@ public:
 	double cfast = 0.0;
 	double gam_eff;
 	int statusf;
-	auto gmodel = GlobalConfig.gmodel;
 	//
 	// Get the local normal velocities by rotating the local frame of reference.
 	// Also, compute the velocity magnitude and recall the minimum length.
@@ -1123,12 +1119,14 @@ public:
 	return signal;
     } // end signal_frequency()
 
+    @nogc
     void turbulence_viscosity_zero() 
     {
 	fs.mu_t = 0.0;
 	fs.k_t = 0.0;
     }
 
+    @nogc
     void turbulence_viscosity_zero_if_not_in_zone() 
     {
 	if ( in_turbulent_zone ) {
@@ -1140,6 +1138,7 @@ public:
 	}
     }
 
+    @nogc
     void turbulence_viscosity_limit(double factor) 
     // Limit the turbulent viscosity to reasonable values relative to
     // the local molecular viscosity.
@@ -1150,6 +1149,7 @@ public:
 	fs.k_t = fmin(fs.k_t, factor * fs.gas.k[0]); // ASSUMPTION re k[0]
     }
 
+    @nogc
     void turbulence_viscosity_factor(double factor) 
     // Scale the turbulent viscosity to model effects
     // such as not-fully-developed turbulence that might be expected
@@ -1159,7 +1159,7 @@ public:
 	fs.k_t *= factor;
     }
 
-    void turbulence_viscosity_k_omega() 
+    void turbulence_viscosity_k_omega(GasModel gmodel) 
     {
 	if ( GlobalConfig.turbulence_model != TurbulenceModel.k_omega ) {
 	    // [TODO] may have to do something better if another turbulence model is active.
@@ -1218,7 +1218,6 @@ public:
 	double omega_t = fmax(fs.omega, C_lim*sqrt(2.0*S_bar_squared/beta_star));
 	fs.mu_t = fs.gas.rho * fs.tke / omega_t;
 	double Pr_t = GlobalConfig.turbulence_prandtl_number;
-	auto gmodel = GlobalConfig.gmodel;
 	fs.k_t = gmodel.Cp(fs.gas) * fs.mu_t / Pr_t;
     } // end turbulence_viscosity_k_omega()
 
@@ -1552,11 +1551,10 @@ public:
 	return;
     } // end add_viscous_source_vector()
 
-    double calculate_wall_Reynolds_number(int which_boundary)
+    double calculate_wall_Reynolds_number(int which_boundary, GasModel gmodel)
     {
 	FVInterface IFace = iface[which_boundary];
-	GasModel gm = GlobalConfig.gmodel;
-	gm.update_thermo_from_rhoT(IFace.fs.gas); // Note that we adjust IFace here.
+	gmodel.update_thermo_from_rhoT(IFace.fs.gas); // Note that we adjust IFace here.
 	double a_wall = IFace.fs.gas.a;
 	double cell_width = 0.0;
 	if ( which_boundary == Face.east || which_boundary == Face.west )
@@ -1636,7 +1634,7 @@ int number_of_values_in_cell_copy(int type_of_copy)
     return 0; // [TODO] something sensible, eventually.
 } // end number_of_values_in_cell_copy()
 
-string[] variable_list_for_cell()
+string[] variable_list_for_cell(GasModel gmodel)
 {
     // This function needs to be kept consistent with functions
     // FVCell.write_values_to_string, FVCell.scan_values_from_string
@@ -1648,18 +1646,17 @@ string[] variable_list_for_cell()
     list ~= ["rho", "vel.x", "vel.y", "vel.z"];
     if ( GlobalConfig.MHD ) list ~= ["B.x", "B.y", "B.z"];
     list ~= ["p", "a", "mu"];
-    auto gm = GlobalConfig.gmodel;
-    foreach(i; 0 .. gm.n_modes) list ~= "k[" ~ to!string(i) ~ "]";
+    foreach(i; 0 .. gmodel.n_modes) list ~= "k[" ~ to!string(i) ~ "]";
     list ~= ["mu_t", "k_t", "S"];
     if ( GlobalConfig.radiation ) list ~= ["Q_rad_org", "f_rad_org", "Q_rE_rad"];
     list ~= ["tke", "omega"];
-    foreach(i; 0 .. gm.n_species) {
-	auto name = cast(char[]) gm.species_name(i);
+    foreach(i; 0 .. gmodel.n_species) {
+	auto name = cast(char[]) gmodel.species_name(i);
 	name = tr(name, " \t", "--", "s"); // Replace internal whitespace with dashes.
 	list ~= ["massf[" ~ to!string(i) ~ "]-" ~ to!string(name)];
     }
-    if ( gm.n_species > 1 ) list ~= ["dt_chem"];
-    foreach(i; 0 .. gm.n_modes) list ~= ["e[" ~ to!string(i) ~ "]", "T[" ~ to!string(i) ~ "]"];
-    if ( gm.n_modes > 1 ) list ~= ["dt_therm"];
+    if ( gmodel.n_species > 1 ) list ~= ["dt_chem"];
+    foreach(i; 0 .. gmodel.n_modes) list ~= ["e[" ~ to!string(i) ~ "]", "T[" ~ to!string(i) ~ "]"];
+    if ( gmodel.n_modes > 1 ) list ~= ["dt_therm"];
     return list;
 } // end variable_list_for_cell()

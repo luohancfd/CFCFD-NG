@@ -5,6 +5,7 @@
 import std.json;
 import std.string;
 import std.conv;
+import std.stdio;
 
 import geom;
 import json_helper;
@@ -43,13 +44,16 @@ void reflect_normal_magnetic_field(ref FVCell cell, in FVInterface IFace)
 GhostCellEffect make_GCE_from_json(JSONValue jsonData, int blk_id, int boundary)
 {
     string gceType = jsonData["type"].str;
+    // At the point at which we call this function, we may be inside the block-constructor.
+    // Don't attempt the use the block-owned gas model.
+    auto gmodel = GlobalConfig.gmodel_master; 
     GhostCellEffect newGCE;
     switch (gceType) {
     case "internal_copy_then_reflect":
 	newGCE = new GhostCellInternalCopyThenReflect(blk_id, boundary);
 	break;
     case "flowstate_copy":
-	auto flowstate = new FlowState(jsonData["flowstate"], GlobalConfig.gmodel);
+	auto flowstate = new FlowState(jsonData["flowstate"], gmodel);
 	newGCE = new GhostCellFlowStateCopy(blk_id, boundary, flowstate);
 	break;
     case "extrapolate_copy":
@@ -76,7 +80,6 @@ GhostCellEffect make_GCE_from_json(JSONValue jsonData, int blk_id, int boundary)
 	break;
     case "user_defined":
 	string fname = getJSONstring(jsonData, "filename", "none");
-	
 	newGCE = new UserDefinedGhostCell(blk_id, boundary, fname);
 	break;
     default:
@@ -394,10 +397,10 @@ public:
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
 	FVCell cell_1, cell_2;
-	auto gmodel = GlobalConfig.gmodel;
+	auto blk = allBlocks[blk_id];
+	auto gmodel = blk.gmodel;
 	size_t nsp = gmodel.n_species;
 	size_t nmodes = gmodel.n_modes;
-	auto blk = allBlocks[blk_id];
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -880,8 +883,8 @@ public:
     {
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
-	auto gmodel = GlobalConfig.gmodel;
 	auto blk = allBlocks[blk_id];
+	auto gmodel = blk.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:

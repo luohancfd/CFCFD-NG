@@ -30,53 +30,53 @@ public:
     final string species_name(int i) const { return _species_names[i]; }
 
     // Methods to be overridden.
-    abstract void update_thermo_from_pT(GasState Q) const {}
-    abstract void update_thermo_from_rhoe(GasState Q) const {}
-    abstract void update_thermo_from_rhoT(GasState Q) const {}
-    abstract void update_thermo_from_rhop(GasState Q) const {}
-    abstract void update_thermo_from_ps(GasState Q, double s) const {}
-    abstract void update_thermo_from_hs(GasState Q, double h, double s) const {}
-    abstract void update_sound_speed(GasState Q) const {}
-    abstract void update_trans_coeffs(GasState Q) const {}
+    abstract void update_thermo_from_pT(GasState Q);
+    abstract void update_thermo_from_rhoe(GasState Q);
+    abstract void update_thermo_from_rhoT(GasState Q);
+    abstract void update_thermo_from_rhop(GasState Q);
+    abstract void update_thermo_from_ps(GasState Q, double s);
+    abstract void update_thermo_from_hs(GasState Q, double h, double s);
+    abstract void update_sound_speed(GasState Q);
+    abstract void update_trans_coeffs(GasState Q);
     // const void update_diff_coeffs(ref GasState Q) {}
 
     // Methods to be overridden.
-    abstract double dedT_const_v(in GasState Q) const; 
-    abstract double dhdT_const_p(in GasState Q) const; 
-    abstract double dpdrho_const_T(in GasState Q) const; 
-    abstract double gas_constant(in GasState Q) const;
-    abstract double internal_energy(in GasState Q) const;
-    abstract double enthalpy(in GasState Q) const;
-    abstract double entropy(in GasState Q) const;
+    abstract double dedT_const_v(in GasState Q); 
+    abstract double dhdT_const_p(in GasState Q); 
+    abstract double dpdrho_const_T(in GasState Q); 
+    abstract double gas_constant(in GasState Q);
+    abstract double internal_energy(in GasState Q);
+    abstract double enthalpy(in GasState Q);
+    abstract double entropy(in GasState Q);
     
-    final double Cv(in GasState Q) const { return dedT_const_v(Q); }
-    final double Cp(in GasState Q) const { return dhdT_const_p(Q); }
-    final double R(in GasState Q) const { return gas_constant(Q); }
-    final double gamma(in GasState Q) const { return Cp(Q)/Cv(Q); }
-    final double molecular_mass(in GasState Q) const
+    final double Cv(in GasState Q) { return dedT_const_v(Q); }
+    final double Cp(in GasState Q) { return dhdT_const_p(Q); }
+    final double R(in GasState Q)  { return gas_constant(Q); }
+    final double gamma(in GasState Q) { return Cp(Q)/Cv(Q); }
+    final double molecular_mass(in GasState Q) 
     in {
 	assert(Q.massf.length == _mol_masses.length, brokenPreCondition("Inconsistent array lengths."));
     }
     body {
 	return mixture_molecular_mass(Q.massf, _mol_masses);
     }
-    final void massf2molef(in GasState Q, double[] molef) const
+    final void massf2molef(in GasState Q, double[] molef) 
     in {
 	assert(Q.massf.length == molef.length, brokenPreCondition("Inconsistent array lengths."));
     }
     body {
 	gas.gas_model.massf2molef(Q.massf, _mol_masses, molef);
     }
-    final void molef2massf(in double[] molef, GasState Q) const
+    final void molef2massf(in double[] molef, GasState Q) 
     in {
 	assert(Q.massf.length == molef.length, brokenPreCondition("Inconsistent array lengths."));
     }
     body {
 	gas.gas_model.molef2massf(molef, _mol_masses, Q.massf);
     }
-    final void massf2conc(in GasState Q, double[] conc) const
+    final void massf2conc(in GasState Q, double[] conc) 
     in {
-	assert(Q.massf.length == conc.length, brokenPreCondition("Inconsisten array lenghts."));
+	assert(Q.massf.length == conc.length, brokenPreCondition("Inconsistent array lenghts."));
     }
     body {
 	foreach ( i; 0.._n_species ) {
@@ -84,7 +84,7 @@ public:
 	    if ( conc[i] < MIN_MOLES ) conc[i] = 0.0;
 	}
     }
-    final void conc2massf(in double[] conc, GasState Q) const
+    final void conc2massf(in double[] conc, GasState Q) 
     in {
 	assert(Q.massf.length == conc.length, brokenPreCondition("Inconsisten array lenghts."));
     }
@@ -130,7 +130,7 @@ public:
 	k.length = n_modes;
     }
 
-    this(in GasModel gm, in double p_init, in double[] T_init, 
+    this(GasModel gm, in double p_init, in double[] T_init, 
 	 in double[] massf_init=[1.0,], in double quality_init=1.0,
 	 in double sigma_init=0.0)
     {
@@ -161,7 +161,7 @@ public:
 	gm.update_trans_coeffs(this);
     }
 
-    this(in GasModel gm, in double p_init, in double T_init, 
+    this(GasModel gm, in double p_init, in double T_init, 
 	 in double[] massf_init=[1.0,], in double quality_init=1.0,
 	 in double sigma_init=0.0)
     {
@@ -232,7 +232,7 @@ public:
 	quality = 0.5 * (gs0.quality + gs1.quality);
     }
 
-    void copy_average_values_from(in GasState[] others, in GasModel gm) 
+    void copy_average_values_from(in GasState[] others, GasModel gm) 
     // Note that we must not send the current object in the others list as well.
     {
 	size_t n = others.length;

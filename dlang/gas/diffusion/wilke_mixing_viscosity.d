@@ -59,7 +59,7 @@ public:
 	return new WilkeMixingViscosity(this);
     }
 
-    override double eval(in GasState Q) const {
+    override double eval(in GasState Q) {
 
 	// 1. Evaluate the mole fractions
 	massf2molef(Q.massf, _mol_masses, _x);
@@ -90,13 +90,13 @@ public:
 	return mu;
     }
 
-    // Working array space
-    static double[] _x;
-    static double[] _mu;
-    static double[][] _phi;
 private:
     Viscosity[] _vms; // component viscosity models
     double[] _mol_masses; // component molecular weights
+    // Working array space
+    double[] _x;
+    double[] _mu;
+    double[][] _phi;
 }
 
 unittest {
@@ -107,7 +107,7 @@ unittest {
     auto vm_O2 = new SutherlandViscosity(273.0, 1.919e-5, 139.0);
     auto vm = new WilkeMixingViscosity([vm_N2, vm_O2], [28.0e-3, 32.0e-3]);
 
-    auto gd = GasState(2, 1);
+    auto gd = new GasState(2, 1);
     gd.T[0] = T;
     gd.massf[0] = 0.8;
     gd.massf[1] = 0.2;

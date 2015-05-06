@@ -27,7 +27,7 @@ import gas.gas_model;
 
 +/
 interface EVT_EOS {
-    void update_energy(ref GasState Q) const;
-    void update_temperature(ref GasState Q) const;
+    void update_energy(ref GasState Q);
+    void update_temperature(ref GasState Q);
 }
 

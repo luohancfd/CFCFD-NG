@@ -32,7 +32,7 @@ public:
     double k_t;    // turbulence thermal-conductivity
     int S;         // shock indicator, value 0 or 1
 
-    this(in GasModel gm, in double p_init, in double[] T_init, in Vector3 vel_init,
+    this(GasModel gm, in double p_init, in double[] T_init, in Vector3 vel_init,
 	 in double[] massf_init=[1.0,], in double quality_init=1.0,
 	 in Vector3 B_init=(0.0,0.0,0.0),
 	 in double tke_init=0.0, in double omega_init=1.0,
@@ -49,7 +49,7 @@ public:
 	S = S_init;
     }
 
-    this(in FlowState other, in GasModel gm)
+    this(in FlowState other, GasModel gm)
     {
 	gas = new GasState(gm, other.gas.p, other.gas.T, other.gas.massf, other.gas.quality); 
 	vel = other.vel;
@@ -74,7 +74,7 @@ public:
 	S = other.S;
     }
 
-    this(in GasModel gm)
+    this(GasModel gm)
     {
 	gas = new GasState(gm, 100.0e3, [300.0,], [1.0,], 1.0); 
 	vel = Vector3(0.0,0.0,0.0);
@@ -86,7 +86,7 @@ public:
 	S = 0;
     }
 
-    this(in JSONValue json_data, in GasModel gm)
+    this(in JSONValue json_data, GasModel gm)
     {
 	double p = getJSONdouble(json_data, "p", 100.0e3);
 	double[] T = getJSONdoublearray(json_data, "T", [300.0,]);
@@ -145,7 +145,7 @@ public:
 	k_t = 0.5 * (fs0.k_t + fs1.k_t);
     } // end copy_average_values_from()
 
-    void copy_average_values_from(in FlowState[] others, in GasModel gm)
+    void copy_average_values_from(in FlowState[] others, GasModel gm)
     // Note that we must not send the current object in the others list as well.
     // Involves some memory allocation.
     {
@@ -246,7 +246,7 @@ public:
 } // end class FlowState
 
 void write_initial_flow_file(string fileName, ref StructuredGrid grid,
-			     in FlowState fs, double t0)
+			     in FlowState fs, double t0, GasModel gmodel)
 {
     // Numbers of cells derived from numbers of vertices.
     int nic = grid.niv - 1;
@@ -280,8 +280,7 @@ void write_initial_flow_file(string fileName, ref StructuredGrid grid,
 	if (GlobalConfig.MHD)
 	    formattedWrite(writer, " %.12e %.12e %.12e", fs.B.x, fs.B.y, fs.B.z); 
 	formattedWrite(writer, " %.12e %.12e %.12e", fs.gas.p, fs.gas.a, fs.gas.mu);
-	auto gm = GlobalConfig.gmodel;
-	foreach (imode; 0 .. gm.n_modes) formattedWrite(writer, " %.12e", fs.gas.k[imode]); 
+	foreach (kvalue; fs.gas.k) formattedWrite(writer, " %.12e", kvalue); 
 	int S = 0;  // zero for shock detector
 	formattedWrite(writer, " %.12e %.12e %d", fs.mu_t, fs.k_t, S);
 	if (GlobalConfig.radiation) {
@@ -289,14 +288,13 @@ void write_initial_flow_file(string fileName, ref StructuredGrid grid,
 	    formattedWrite(writer, " %.12e %.12e %.12e", Q_rad_org, f_rad_org, Q_rE_rad);
 	}
 	formattedWrite(writer, " %.12e %.12e", fs.tke, fs.omega);
-	foreach (isp; 0 .. gm.n_species) 
-	    formattedWrite(writer, " %.12e", fs.gas.massf[isp]); 
+	foreach (massfvalue; fs.gas.massf) formattedWrite(writer, " %.12e", massfvalue); 
 	double dt_chem = -1.0;
-	if (gm.n_species > 1) formattedWrite(writer, " %.12e", dt_chem); 
-	foreach (imode; 0 .. gm.n_modes) 
+	if (fs.gas.massf.length > 1) formattedWrite(writer, " %.12e", dt_chem); 
+	foreach (imode; 0 .. fs.gas.e.length) 
 	    formattedWrite(writer, " %.12e %.12e", fs.gas.e[imode], fs.gas.T[imode]); 
 	double dt_therm = -1.0;
-	if (gm.n_modes > 1) formattedWrite(writer, " %.12e", dt_therm); 
+	if (fs.gas.e.length > 1) formattedWrite(writer, " %.12e", dt_therm); 
 	return writer.data;
     } // end  cell_data_as_string()
 
@@ -305,7 +303,7 @@ void write_initial_flow_file(string fileName, ref StructuredGrid grid,
     f.writefln("%20.12e", t0);
     // Variable list for cell on one line.
     auto writer = appender!string();
-    foreach(varname; variable_list_for_cell()) {
+    foreach(varname; variable_list_for_cell(gmodel)) {
 	formattedWrite(writer, " \"%s\"", varname);
     }
     f.writeln(writer.data);

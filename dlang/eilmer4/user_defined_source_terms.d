@@ -8,27 +8,29 @@
  * Date: 2015-03-17
  */
 
+module user_defined_source_terms;
+
 import std.stdio;
 import std.string;
 import luad.all;
 import util.lua_service;
 import lua_helper;
+import gas;
 import fvcell;
 import globalconfig;
 
-// Keep a hold of the LuaState so that it
-// is reentrant during simulation.
-static LuaState lua;
-
-void initUDFSourceTerms(string fname)
+LuaState initUDFSourceTerms(string fname, int blkId)
 {
-    lua = initLuaState(fname);
+    auto lua = initLuaState(fname);
+    // Make blkId globally available in the user's script
+    lua["blkId"] = blkId;
+    return lua;
 }
 
-void addUDFSourceTermsToCell(FVCell cell, size_t gtl, double t)
+void addUDFSourceTermsToCell(LuaState lua, FVCell cell, size_t gtl, double t, GasModel gmodel)
 {
-    size_t n_species = GlobalConfig.gmodel.n_species;
-    size_t n_modes = GlobalConfig.gmodel.n_modes;
+    size_t n_species = gmodel.n_species;
+    size_t n_modes = gmodel.n_modes;
 
     // Push cell data into an args table.
     auto args = lua.newTable();

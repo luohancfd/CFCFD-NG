@@ -50,7 +50,7 @@ void read_config_file()
     //
     GlobalConfig.title = jsonData["title"].str;
     GlobalConfig.gas_model_file = jsonData["gas_model_file"].str;
-    GlobalConfig.gmodel = init_gas_model(GlobalConfig.gas_model_file);
+    GlobalConfig.gmodel_master = init_gas_model(GlobalConfig.gas_model_file);
     GlobalConfig.dimensions = getJSONint(jsonData, "dimensions", 2);
     GlobalConfig.axisymmetric = getJSONbool(jsonData, "axisymmetric", false);
     if (GlobalConfig.verbosity_level > 1) {
@@ -138,8 +138,6 @@ void read_config_file()
     //
     GlobalConfig.reacting = getJSONbool(jsonData, "reacting", false);
     GlobalConfig.reactions_file = jsonData["reactions_file"].str;
-    if ( GlobalConfig.reacting )
-	GlobalConfig.reaction_update = new ReactionUpdateScheme(GlobalConfig.reactions_file, GlobalConfig.gmodel);
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  reacting: ", GlobalConfig.reacting);
 	writeln("  reactions_file: ", GlobalConfig.reactions_file);
@@ -153,17 +151,6 @@ void read_config_file()
     }
     // TODO -- still have other entries such as nheatzone, nreactionzone, ...
 
-    // Parameters related to udf source terms
-    GlobalConfig.udf_source_terms = getJSONbool(jsonData, "udf_source_terms", false);
-    GlobalConfig.udf_source_terms_file = jsonData["udf_source_terms_file"].str;
-    if ( GlobalConfig.udf_source_terms ) {
-	initUDFSourceTerms(GlobalConfig.udf_source_terms_file);
-    }
-    if ( GlobalConfig.verbosity_level > 1 ) {
-	writeln("  udf_source_terms: ", GlobalConfig.udf_source_terms);
-	writeln("  udf_source_terms_file: ", GlobalConfig.udf_source_terms_file);
-    }
-
     // Now, configure blocks that make up the flow domain.
     //
     GlobalConfig.nBlocks = getJSONint(jsonData, "nblock", 0);
@@ -176,6 +163,22 @@ void read_config_file()
 	    writeln("  Block[", i, "]: ", myBlocks[i]);
 	}
     }
+
+    // Add LuaStates to each block for UDF source terms, if necessary
+        // Parameters related to udf source terms
+    auto udf_source_terms = getJSONbool(jsonData, "udf_source_terms", false);
+    auto udf_source_terms_file = jsonData["udf_source_terms_file"].str;
+    if ( udf_source_terms ) {
+	foreach (blk; myBlocks) {
+	    blk.udf_source_terms = initUDFSourceTerms(udf_source_terms_file, blk.id);
+	}
+    }
+    if ( GlobalConfig.verbosity_level > 1 ) {
+	writeln("  udf_source_terms: ", udf_source_terms);
+	writeln("  udf_source_terms_file: ", udf_source_terms_file);
+    }
+
+
     // Finally, read in any blocks in the solid domain.
     GlobalConfig.nSolidBlocks = getJSONint(jsonData, "nsolidblock", 0);
     if (GlobalConfig.verbosity_level > 1) { writeln("  nSolidBlocks: ", GlobalConfig.nSolidBlocks); }

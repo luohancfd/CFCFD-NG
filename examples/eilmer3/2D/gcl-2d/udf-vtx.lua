@@ -8,6 +8,14 @@
 function at_timestep_start(args) return nil end
 function at_timestep_end(args) return nil end
 
+function before_grid_update(args)
+    if (args.step == 1) then
+        print("HELLO")
+        print("block_id= ", args.block_id)
+    end
+    return nil
+end
+
 local imin = 2
 local jmin = 2
 local imax = 12

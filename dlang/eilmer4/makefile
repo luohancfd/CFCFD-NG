@@ -35,7 +35,8 @@ GAS_MODEL_FILES := \
 	$(GAS_DIR)/gas_model_util.d \
 	$(GAS_DIR)/ideal_gas.d \
 	$(GAS_DIR)/physical_constants.d \
-	$(GAS_DIR)/therm_perf_gas.d
+	$(GAS_DIR)/therm_perf_gas.d \
+        $(GAS_DIR)/very_viscous_air.d
 
 THERMO_FILES := \
 	$(GAS_DIR)/thermo/cea_thermo_curves.d \
@@ -103,8 +104,12 @@ INSTALL_DIR ?= $(HOME)/e3bin
 REVISION_STRING := $(shell hg identify --id --num --branch --tags)
 
 ifeq ($(DMD), dmd)
-    # DFLAGS := -unittest -debug -gc -w
-    # DFLAGS := -profile -vgc -w -O -release -inline -boundscheck=off
+    # (1) For debug build.  ([TODO] fix -unittest build.)
+    #     DFLAGS := -debug -gc -w
+    # (2) For profiling the debugged code.
+    #     DFLAGS := -profile -vgc -w -O -release -inline -boundscheck=off
+    # (3) For releasing a fast code.
+    #     DFLAGS := -w -O -release -inline -boundscheck=off
     DFLAGS := -gc -w -O -release -inline -boundscheck=off \
 	-I.. -I$(LUAD_DIR) -I$(NM_DIR) -I$(UTIL_DIR) -I$(GEOM_DIR) -I$(GZIP_DIR)
     OF := -of
@@ -219,7 +224,7 @@ fv_demo: fv_demo.d fvcore.d fvcell.d fvvertex.d fvinterface.d onedinterp.d fluxc
 block_demo: block_demo.d \
 	block.d sblock.d ublock.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d \
-	fluxcalc.d onedinterp.d \
+	fluxcalc.d onedinterp.d viscousflux.d \
 	conservedquantities.d flowstate.d luaflowstate.d \
 	globalconfig.d globaldata.d \
 	block.d sblock.d ublock.d \
@@ -230,7 +235,7 @@ block_demo: block_demo.d \
 	$(DMD) $(DFLAGS) $(OF)block_demo \
 		block_demo.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
-		fluxcalc.d onedinterp.d \
+		fluxcalc.d onedinterp.d viscousflux.d \
 		conservedquantities.d flowstate.d luaflowstate.d \
 		globalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
@@ -241,7 +246,7 @@ block_demo: block_demo.d \
 
 e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 	block.d sblock.d ublock.d \
-	fluxcalc.d onedinterp.d \
+	fluxcalc.d onedinterp.d viscousflux.d \
 	fvcore.d fvcell.d fvvertex.d fvinterface.d \
 	conservedquantities.d flowstate.d luaflowstate.d \
 	globalconfig.d luaglobalconfig.d globaldata.d \
@@ -253,7 +258,7 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 	$(DMD) $(DFLAGS) $(OF)e4shared \
 		main_with_rev_string.d simcore.d fileutil.d readconfig.d json_helper.d \
 		fvcore.d fvcell.d fvvertex.d fvinterface.d \
-		fluxcalc.d onedinterp.d \
+		fluxcalc.d onedinterp.d viscousflux.d \
 		conservedquantities.d flowstate.d luaflowstate.d \
 		globalconfig.d luaglobalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \

@@ -46,14 +46,14 @@ public:
 	_energy.length = R.length;
 	
     }
-    override void update_energy(ref GasState Q) const
+    override void update_energy(ref GasState Q)
     {
 	foreach ( isp, ref e; _energy ) {
 	    e = _curves[isp].eval_h(Q.T[0]) - _R[isp]*Q.T[0];
 	}
 	Q.e[0] = mass_average(Q, _energy);
     }
-    override void update_temperature(ref GasState Q) const
+    override void update_temperature(ref GasState Q)
     {
 	double TOL = 1.0e-6;
 	// The "target" energy is the value we will iterate to find.
@@ -107,8 +107,8 @@ public:
 private:
     double[] _R;
     CEAThermo[] _curves;
-    // Static working arrays
-    static double[] _energy;
+    // Private working arrays
+    double[] _energy;
 }
 
 ThermallyPerfectGasMixEOS createThermallyPerfectGasMixEOS(string[] species, ref LuaState lua)
@@ -135,7 +135,7 @@ unittest
     string[] species;
     getArray!string(lua.get!LuaTable("species"), species, "species");
     ThermallyPerfectGasMixEOS tpgm = createThermallyPerfectGasMixEOS(species, lua);
-    auto Q = GasState(3, 1);
+    auto Q = new GasState(3, 1);
     Q.massf[0] = 0.2; Q.massf[1] = 0.7; Q.massf[2] = 0.1;
     Q.T[0] = 1000.0;
     tpgm.update_energy(Q);

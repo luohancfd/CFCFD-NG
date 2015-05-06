@@ -20,9 +20,11 @@ import json_helper;
 import gzip;
 import geom;
 import gas;
+import kinetics;
 import globalconfig;
 import flowstate;
 import fluxcalc;
+import viscousflux;
 import fvcore;
 import fvvertex;
 import fvinterface;
@@ -65,38 +67,23 @@ private:
     FVInterface[] _sifi;
     FVInterface[] _sifj;
     FVInterface[] _sifk;
+    // Work-space that gets reused.
+    // The following objects are used in the convective_flux method.
+    FlowState Lft;
+    FlowState Rght;
+    OneDInterpolator one_d;
 
 public:
     this(int id, size_t nicell, size_t njcell, size_t nkcell)
     {
 	this.id = id;
+	gmodel = init_gas_model(GlobalConfig.gas_model_file);
+	if ( GlobalConfig.reacting )
+	    reaction_update = new ReactionUpdateScheme(GlobalConfig.reactions_file, gmodel);
 	this.nicell = nicell;
 	this.njcell = njcell;
 	this.nkcell = nkcell;
-	fill_in_other_size_data();
-    } // end constructor
-
-    this(in int id, JSONValue json_data)
-    {
-	this.id = id;
-	nicell = getJSONint(json_data, "nic", 0);
-	njcell = getJSONint(json_data, "njc", 0);
-	nkcell = getJSONint(json_data, "nkc", 0);
-	this(id, nicell, njcell, nkcell);
-	label = getJSONstring(json_data, "label", "");
-	active = getJSONbool(json_data, "active", true);
-	omegaz = getJSONdouble(json_data, "omegaz", 0.0);
-	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
-	    string json_key = "face_" ~ face_name[boundary];
-	    auto bc_json_data = json_data[json_key];
-	    bc[boundary] = make_BC_from_json(bc_json_data, id, boundary,
-					     nicell, njcell, nkcell);
-	}
-    } // end constructor from json
-
-    void fill_in_other_size_data()
-    // Helper function for the constructor
-    {
+	// Fill in other data sizes.
 	_nidim = nicell + 2 * nghost;
 	_njdim = njcell + 2 * nghost;
 	// Indices, in each grid direction for the active cells.
@@ -118,7 +105,29 @@ public:
 	    _nkdim = nkcell + 2 * nghost;
 	    kmin = nghost; kmax = kmin + nkcell - 1;
 	}
-    } // end fill_in_other_size_data()
+	// Workspace for flux_calc method.
+	Lft = new FlowState(gmodel);
+	Rght = new FlowState(gmodel);
+	one_d = new OneDInterpolator(gmodel);
+    } // end constructor
+
+    this(in int id, JSONValue json_data)
+    {
+	this.id = id;
+	nicell = getJSONint(json_data, "nic", 0);
+	njcell = getJSONint(json_data, "njc", 0);
+	nkcell = getJSONint(json_data, "nkc", 0);
+	this(id, nicell, njcell, nkcell);
+	label = getJSONstring(json_data, "label", "");
+	active = getJSONbool(json_data, "active", true);
+	omegaz = getJSONdouble(json_data, "omegaz", 0.0);
+	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
+	    string json_key = "face_" ~ face_name[boundary];
+	    auto bc_json_data = json_data[json_key];
+	    bc[boundary] = make_BC_from_json(bc_json_data, id, boundary,
+					     nicell, njcell, nkcell);
+	}
+    } // end constructor from json
 
     override string toString() const
     {
@@ -172,7 +181,6 @@ public:
     {
 	if ( GlobalConfig.verbosity_level >= 2 ) 
 	    writefln("assemble_arrays(): Begin for block %d", id);
-	auto gm = GlobalConfig.gmodel;
 	// Check for obvious errors.
 	if ( _nidim <= 0 || _njdim <= 0 || _nkdim <= 0 ) {
 	    throw new Error(text("resize_arrays(): invalid dimensions nidim=",
@@ -182,23 +190,38 @@ public:
 	try {
 	    // Create the cell and interface objects for the entire block.
 	    foreach (gid; 0 .. ntot) {
-		_ctr ~= new FVCell(gm); _ctr[gid].id = to!int(gid);
+		_ctr ~= new FVCell(gmodel); _ctr[gid].id = to!int(gid);
 		auto ijk = to_ijk_indices(gid);
 		if ( ijk[0] >= imin && ijk[0] <= imax && 
 		     ijk[1] >= jmin && ijk[1] <= jmax && 
 		     ijk[2] >= kmin && ijk[2] <= kmax ) {
 		    active_cells ~= _ctr[gid];
 		}
-		_ifi ~= new FVInterface(gm); _ifi[gid].id = gid;
-		_ifj ~= new FVInterface(gm); _ifj[gid].id = gid;
-		if ( GlobalConfig.dimensions == 3 ) {
-		    _ifk ~= new FVInterface(gm); _ifk[gid].id = gid;
+		_ifi ~= new FVInterface(gmodel); _ifi[gid].id = gid;
+		if ( ijk[0] >= imin && ijk[0] <= imax+1 && 
+		     ijk[1] >= jmin && ijk[1] <= jmax && 
+		     ijk[2] >= kmin && ijk[2] <= kmax ) {
+		    active_ifaces ~= _ifi[gid];
 		}
-		_vtx ~= new FVVertex(gm); _vtx[gid].id = gid;
-		_sifi ~= new FVInterface(gm); _sifi[gid].id = gid;
-		_sifj ~= new FVInterface(gm); _sifj[gid].id = gid;
+		_ifj ~= new FVInterface(gmodel); _ifj[gid].id = gid;
+		if ( ijk[0] >= imin && ijk[0] <= imax && 
+		     ijk[1] >= jmin && ijk[1] <= jmax+1 && 
+		     ijk[2] >= kmin && ijk[2] <= kmax ) {
+		    active_ifaces ~= _ifj[gid];
+		}
 		if ( GlobalConfig.dimensions == 3 ) {
-		    _sifk ~= new FVInterface(gm); _sifk[gid].id = gid;
+		    _ifk ~= new FVInterface(gmodel); _ifk[gid].id = gid;
+		    if ( ijk[0] >= imin && ijk[0] <= imax && 
+			 ijk[1] >= jmin && ijk[1] <= jmax && 
+			 ijk[2] >= kmin && ijk[2] <= kmax+1 ) {
+			active_ifaces ~= _ifk[gid];
+		    }
+		}
+		_vtx ~= new FVVertex(gmodel); _vtx[gid].id = gid;
+		_sifi ~= new FVInterface(gmodel); _sifi[gid].id = gid;
+		_sifj ~= new FVInterface(gmodel); _sifj[gid].id = gid;
+		if ( GlobalConfig.dimensions == 3 ) {
+		    _sifk ~= new FVInterface(gmodel); _sifk[gid].id = gid;
 		}
 	    } // gid loop
 	} catch (Error err) {
@@ -215,7 +238,7 @@ public:
 	}
     } // end of assemble_arrays()
 
-    override void bind_faces_and_vertices_to_cells()
+    override void bind_interfaces_and_vertices_to_cells()
     // There is a fixed order of faces and vertices for each cell.
     // Refer to fvcore.d
     {
@@ -253,96 +276,85 @@ public:
 	} // for k
     } // end bind_faces_and_vertices_to_cells()
 
-    override void identify_reaction_zones(int gtl)
-    // Set the reactions-allowed flag for cells in this block.
+    override void bind_vertices_and_cells_to_interfaces()
+    // Sometimes it is convenient for an interface to come complete 
+    // with information about the vertices that define it and the cells
+    // that adjoin it.
     {
-	size_t total_cells_in_reaction_zones = 0;
-	size_t total_cells = 0;
-	foreach(cell; active_cells) {
-	    if ( GlobalConfig.reaction_zones.length > 0 ) {
-		cell.fr_reactions_allowed = false;
-		foreach(rz; GlobalConfig.reaction_zones) {
-		    if ( rz.is_inside(cell.pos[gtl], GlobalConfig.dimensions) ) {
-			cell.fr_reactions_allowed = true;
-		    }
-		} // foreach rz
-	    } else {
-		cell.fr_reactions_allowed = true;
-	    }
-	    total_cells_in_reaction_zones += (cell.fr_reactions_allowed ? 1: 0);
-	    total_cells += 1;
-	} // foreach cell
-	if ( GlobalConfig.reacting && GlobalConfig.verbosity_level >= 2 ) {
-	    writeln("identify_reaction_zones(): block ", id,
-		    " cells inside zones = ", total_cells_in_reaction_zones, 
-		    " out of ", total_cells);
-	    if ( GlobalConfig.reaction_zones.length == 0 ) {
-		writeln("Note that for no user-specified zones,",
-			" the whole domain is allowed to be reacting.");
-	    }
-	}
-    } // end identify_reaction_zones()
-
-    override void identify_turbulent_zones(int gtl)
-    // Set the in-turbulent-zone flag for cells in this block.
-    {
-	size_t total_cells_in_turbulent_zones = 0;
-	size_t total_cells = 0;
-	foreach(cell; active_cells) {
-	    if ( GlobalConfig.turbulent_zones.length > 0 ) {
-		cell.in_turbulent_zone = false;
-		foreach(tz; GlobalConfig.turbulent_zones) {
-		    if ( tz.is_inside(cell.pos[gtl], GlobalConfig.dimensions) ) {
-			cell.in_turbulent_zone = true;
-		    }
-		} // foreach tz
-	    } else {
-		cell.in_turbulent_zone = true;
-	    }
-	    total_cells_in_turbulent_zones += (cell.in_turbulent_zone ? 1: 0);
-	    total_cells += 1;
-	} // foreach cell
-	if ( GlobalConfig.turbulence_model != TurbulenceModel.none && 
-	     GlobalConfig.verbosity_level >= 2 ) {
-	    writeln("identify_turbulent_zones(): block ", id,
-		    " cells inside zones = ", total_cells_in_turbulent_zones, 
-		    " out of ", total_cells);
-	    if ( GlobalConfig.turbulent_zones.length == 0 ) {
-		writeln("Note that for no user-specified zones,",
-			" the whole domain is allowed to be turbulent.");
-	    }
-	}
-    } // end identify_turbulent_zones()
-
-    override void clear_fluxes_of_conserved_quantities()
-    {
+	// ifi interfaces are East-facing interfaces.
+	// In 2D, vtx0==p11, vtx1==p10.
+	// In 3D, the cycle [vtx0,vtx1,vtx2,vtx3] progresses counter-clockwise around 
+	// the periphery of the face when the normal unit vector is pointing toward you.
+	// t1 vector aligned with j-index direction
+	// t2 vector aligned with k-index direction
+	// The i,j,k indices are effectively cell indices in the following loops.
 	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for (size_t j = jmin; j <= jmax; ++j) {
-		for (size_t i = imin; i <= imax+1; ++i) {
-		    get_ifi(i,j,k).F.clear_values();
-		} // for i
-	    } // for j
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t i = imin-1; i <= imax; ++i ) {
+		    auto IFace = get_ifi(i+1,j,k);
+		    if (GlobalConfig.dimensions == 3) {
+			IFace.vtx ~= get_vtx(i+1,j,k);
+			IFace.vtx ~= get_vtx(i+1,j+1,k);
+			IFace.vtx ~= get_vtx(i+1,j+1,k+1);
+			IFace.vtx ~= get_vtx(i+1,j,k+1);
+			IFace.left_cell = get_cell(i,j,k);
+			IFace.right_cell = get_cell(i+1,j,k);
+		    } else {
+			IFace.vtx ~= get_vtx(i+1,j+1);
+			IFace.vtx ~= get_vtx(i+1,j);
+			IFace.left_cell = get_cell(i,j);
+			IFace.right_cell = get_cell(i+1,j);
+		    }
+		} // i loop
+	    } // j loop
 	} // for k
+	// ifj interfaces are North-facing interfaces.
+	// In 2D, vtx0==p01, vtx1==p11.
+	// t1 vector aligned with k-index direction
+	// t2 vector aligned with i-index direction
 	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for (size_t j = jmin; j <= jmax+1; ++j) {
-		for (size_t i = imin; i <= imax; ++i) {
-		    get_ifj(i,j,k).F.clear_values();
-		} // for i
-	    } // for j
+	    for ( size_t i = imin; i <= imax; ++i ) {
+		for ( size_t j = jmin-1; j <= jmax; ++j ) {
+		    auto IFace = get_ifj(i,j+1,k);
+		    if (GlobalConfig.dimensions == 3) {
+			IFace.vtx ~= get_vtx(i,j+1,k);
+			IFace.vtx ~= get_vtx(i,j+1,k+1);
+			IFace.vtx ~= get_vtx(i+1,j+1,k+1);
+			IFace.vtx ~= get_vtx(i+1,j+1,k);
+			IFace.left_cell = get_cell(i,j,k);
+			IFace.right_cell = get_cell(i,j+1,k);
+		    } else {
+			IFace.vtx ~= get_vtx(i,j+1);
+			IFace.vtx ~= get_vtx(i+1,j+1);
+			IFace.left_cell = get_cell(i,j);
+			IFace.right_cell = get_cell(i,j+1);
+		    }
+		} // j loop
+	    } // i loop
 	} // for k
-	if ( GlobalConfig.dimensions == 3 ) {
-	    for ( size_t k = kmin; k <= kmax+1; ++k ) {
-		for (size_t j = jmin; j <= jmax; ++j) {
-		    for (size_t i = imin; i <= imax; ++i) {
-			get_ifk(i,j,k).F.clear_values();
-		    } // for i
-		} // for j
-	    } // for k
-	} // end if G.dimensions == 3
-    } // end clear_fluxes_of_conserved_quantities()
+	if (GlobalConfig.dimensions == 2) return;
+	// ifk interfaces are Top-facing interfaces.
+	// t1 vector aligned with i-index direction
+	// t2 vector aligned with j-index direction
+	for ( size_t i = imin; i <= imax; ++i ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t k = kmin-1; k <= kmax; ++k ) {
+		    auto IFace = get_ifk(i,j,k+1);
+		    IFace.vtx ~= get_vtx(i,j,k+1);
+		    IFace.vtx ~= get_vtx(i+1,j,k+1);
+		    IFace.vtx ~= get_vtx(i+1,j+1,k+1);
+		    IFace.vtx ~= get_vtx(i,j+1,k+1);
+		    IFace.left_cell = get_cell(i,j,k);
+		    IFace.right_cell = get_cell(i,j,k+1);
+		} // for k 
+	    } // j loop
+	} // i loop
+	return;
+    } // end bind_vertices_and_cells_to_interfaces()
 
     override int count_invalid_cells(int gtl)
-    // Returns the number of cells that contain invalid data.
+    // Returns the number of cells that contain invalid data,
+    // optionally patching bad cell data as it goes.
     //
     // This data can be identified by the density of internal energy 
     // being on the minimum limit or the velocity being very large.
@@ -379,9 +391,9 @@ public:
 			throw new Error(text("Block::count_invalid_cells(): "
 					     "There were no valid neighbours to replace cell data."));
 		    }
-		    cell.replace_flow_data_with_average(neighbours);
+		    cell.replace_flow_data_with_average(neighbours, gmodel);
 		    cell.encode_conserved(gtl, 0, omegaz);
-		    cell.decode_conserved(gtl, 0, omegaz);
+		    cell.decode_conserved(gtl, 0, omegaz, gmodel);
 		    writefln("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n",
 			     id, i, j, k);
 		    writeln(cell);
@@ -390,208 +402,6 @@ public:
 	} // foreach cell
 	return number_of_invalid_cells;
     } // end count_invalid_cells()
-
-    @nogc
-    override void init_residuals()
-    // Initialization of data for later computing residuals.
-    {
-	mass_residual = 0.0;
-	mass_residual_loc = Vector3(0.0, 0.0, 0.0);
-	energy_residual = 0.0;
-	energy_residual_loc = Vector3(0.0, 0.0, 0.0);
-	foreach(FVCell cell; active_cells) {
-	    cell.rho_at_start_of_step = cell.fs.gas.rho;
-	    cell.rE_at_start_of_step = cell.U[0].total_energy;
-	}
-    } // end init_residuals()
-
-    @nogc
-    override void compute_residuals(int gtl)
-    // Compute the residuals using previously stored data.
-    //
-    // The largest residual of density for all cells was the traditional way
-    // mbcns/Elmer estimated the approach to steady state.
-    // However, with the splitting up of the increments for different physical
-    // processes, this residual calculation code needed a bit of an update.
-    // Noting that the viscous-stress, chemical and radiation increments
-    // do not affect the mass within a cell, we now compute the residuals 
-    // for both mass and (total) energy for all cells, the record the largest
-    // with their location. 
-    {
-	mass_residual = 0.0;
-	mass_residual_loc = Vector3(0.0, 0.0, 0.0);
-	energy_residual = 0.0;
-	energy_residual_loc = Vector3(0.0, 0.0, 0.0);
-	foreach(FVCell cell; active_cells) {
-	    double local_residual = (cell.fs.gas.rho - cell.rho_at_start_of_step) 
-		/ cell.fs.gas.rho;
-	    local_residual = fabs(local_residual);
-	    if ( local_residual > mass_residual ) {
-		mass_residual = local_residual;
-		mass_residual_loc.refx = cell.pos[gtl].x;
-		mass_residual_loc.refy = cell.pos[gtl].y;
-		mass_residual_loc.refz = cell.pos[gtl].z;
-	    }
-	    // In the following line, the zero index is used because,
-	    // at the end of the gas-dynamic update, that index holds
-	    // the updated data.
-	    local_residual = (cell.U[0].total_energy - cell.rE_at_start_of_step) 
-		/ cell.U[0].total_energy;
-	    local_residual = fabs(local_residual);
-	    if ( local_residual > energy_residual ) {
-		energy_residual = local_residual;
-		energy_residual_loc.refx = cell.pos[gtl].x;
-		energy_residual_loc.refy = cell.pos[gtl].y;
-		energy_residual_loc.refz = cell.pos[gtl].z;
-	    }
-	} // for cell
-    } // end compute_residuals()
-
-    override double determine_time_step_size(double dt_current)
-    // Compute the local time step limit for all cells in the block.
-    // The overall time step is limited by the worst-case cell.
-    {
-	double dt_local;
-	double cfl_local;
-	double signal;
-	double cfl_allow; // allowable CFL number, t_order dependent
-	double dt_allow;
-	double cfl_min, cfl_max;
-
-	// The following limits allow the simulation of the sod shock tube
-	// to get just a little wobbly around the shock.
-	// Lower values of cfl should be used for a smooth solution.
-	switch (number_of_stages_for_update_scheme(GlobalConfig.gasdynamic_update_scheme)) {
-	case 1: cfl_allow = 0.9; break;
-	case 2: cfl_allow = 1.2; break;
-	case 3: cfl_allow = 1.6; break;
-	default: cfl_allow = 0.9;
-	}
-	bool first = true;
-	foreach(FVCell cell; active_cells) {
-	    signal = cell.signal_frequency();
-	    cfl_local = dt_current * signal; // Current (Local) CFL number
-	    dt_local = GlobalConfig.cfl_value / signal; // Recommend a time step size.
-	    if ( first ) {
-		cfl_min = cfl_local;
-		cfl_max = cfl_local;
-		dt_allow = dt_local;
-		first = false;
-	    } else {
-		cfl_min = fmin(cfl_min, cfl_local);
-		cfl_max = fmax(cfl_max, cfl_local);
-		dt_allow = fmin(dt_allow, dt_local);
-	    }
-	} // foreach cell
-	if ( cfl_max < 0.0 || cfl_max > cfl_allow ) {
-	    writeln( "determine_time_step_size(): bad CFL number was encountered");
-	    writeln( "    cfl_max=", cfl_max, " for Block ", id);
-	    writeln( "    If this cfl_max value is not much larger than 1.0,");
-	    writeln( "    your simulation could probably be restarted successfully");
-	    writeln( "    with some minor tweaking.");
-	    writeln( "    That tweaking should probably include a reduction");
-	    writeln( "    in the size of the initial time-step, dt");
-	    writeln( "    If this job is a restart/continuation of an old job, look in");
-	    writeln( "    the old-job.finish file for the value of dt at termination.");
-	    throw new Error(text("Bad cfl number encountered cfl_max=", cfl_max));
-	}
-	return dt_allow;
-    } // end determine_time_step_size()
-
-    @nogc
-    override void detect_shock_points()
-    // Detects shocks by looking for compression between adjacent cells.
-    //
-    // The velocity component normal to the cell interfaces
-    // is used as the indicating variable.
-    {
-	double uL, uR, aL, aR, a_min;
-
-	// Change in normalised velocity to indicate a shock.
-	// A value of -0.05 has been found suitable to detect the levels of
-	// shock compression observed in the "sod" and "cone20" test cases.
-	// It may need to be tuned for other situations, especially when
-	// viscous effects are important.
-	double tol = GlobalConfig.compression_tolerance;
-
-	// First, work across North interfaces and
-	// locate shocks using the (local) normal velocity.
-	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for ( size_t i = imin; i <= imax; ++i ) {
-		for ( size_t j = jmin-1; j <= jmax; ++j ) {
-		    auto cL = get_cell(i,j,k);
-		    auto cR = get_cell(i,j+1,k);
-		    auto IFace = cL.iface[Face.north];
-		    uL = cL.fs.vel.x * IFace.n.x + cL.fs.vel.y * IFace.n.y + cL.fs.vel.z * IFace.n.z;
-		    uR = cR.fs.vel.x * IFace.n.x + cR.fs.vel.y * IFace.n.y + cR.fs.vel.z * IFace.n.z;
-		    aL = cL.fs.gas.a;
-		    aR = cR.fs.gas.a;
-		    if (aL < aR)
-			a_min = aL;
-		    else
-			a_min = aR;
-		    IFace.fs.S = ((uR - uL) / a_min < tol);
-		} // j loop
-	    } // i loop
-	} // for k
-    
-	// Second, work across East interfaces and
-	// locate shocks using the (local) normal velocity.
-	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for ( size_t i = imin-1; i <= imax; ++i ) {
-		for ( size_t j = jmin; j <= jmax; ++j ) {
-		    auto cL = get_cell(i,j,k);
-		    auto cR = get_cell(i+1,j,k);
-		    auto IFace = cL.iface[Face.east];
-		    uL = cL.fs.vel.x * IFace.n.x + cL.fs.vel.y * IFace.n.y + cL.fs.vel.z * IFace.n.z;
-		    uR = cR.fs.vel.x * IFace.n.x + cR.fs.vel.y * IFace.n.y + cR.fs.vel.z * IFace.n.z;
-		    aL = cL.fs.gas.a;
-		    aR = cR.fs.gas.a;
-		    if (aL < aR)
-			a_min = aL;
-		    else
-			a_min = aR;
-		    IFace.fs.S = ((uR - uL) / a_min < tol);
-		} // j loop
-	    } // i loop
-	} // for k
-    
-	if ( GlobalConfig.dimensions == 3 ) {
-	    // Third, work across Top interfaces.
-	    for ( size_t i = imin; i <= imax; ++i ) {
-		for ( size_t j = jmin; j <= jmax; ++j ) {
-		    for ( size_t k = kmin-1; k <= kmax; ++k ) {
-			auto cL = get_cell(i,j,k);
-			auto cR = get_cell(i,j,k+1);
-			auto IFace = cL.iface[Face.top];
-			uL = cL.fs.vel.x * IFace.n.x + cL.fs.vel.y * IFace.n.y + cL.fs.vel.z * IFace.n.z;
-			uR = cR.fs.vel.x * IFace.n.x + cR.fs.vel.y * IFace.n.y + cR.fs.vel.z * IFace.n.z;
-			aL = cL.fs.gas.a;
-			aR = cR.fs.gas.a;
-			if (aL < aR)
-			    a_min = aL;
-			else
-			    a_min = aR;
-			IFace.fs.S = ((uR - uL) / a_min < tol);
-		    } // for k
-		} // j loop
-	    } // i loop
-	} // if ( dimensions == 3 )
-    
-	// Finally, mark cells as shock points if any of their
-	// interfaces are shock points.
-	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for ( size_t i = imin; i <= imax; ++i ) {
-		for ( size_t j = jmin; j <= jmax; ++j ) {
-		    auto cell = get_cell(i,j,k);
-		    cell.fs.S = cell.iface[Face.east].fs.S || cell.iface[Face.west].fs.S ||
-			cell.iface[Face.north].fs.S || cell.iface[Face.south].fs.S ||
-			( GlobalConfig.dimensions == 3 && 
-			  (cell.iface[Face.bottom].fs.S || cell.iface[Face.top].fs.S) );
-		} // j loop
-	    } // i loop
-	} // for k
-    } // end detect_shock_points()
 
     override void compute_primary_cell_geometric_data(int gtl)
     // Compute cell and interface geometric properties.
@@ -891,8 +701,9 @@ public:
 	double iLen, jLen, kLen;
 	Vector3 ds;
 	if ( GlobalConfig.dimensions == 2 ) {
-	    secondary_areas_2D(gtl);
-	    return;
+	    // nothing to do since areaxy is computed in the gradients_xy function
+	    // as of 2015-05-03
+	    return; 
 	}
 	/*
 	 * Internal secondary cell geometry information
@@ -1461,170 +1272,6 @@ public:
 	} // end for j
     } // end calc_volumes_2D()
 
-    void secondary_areas_2D(int gtl)
-    // Compute the secondary cell cell areas in the (x,y)-plane.
-    //
-    // The secondary cells are centred on the vertices of the 
-    // primary cells and have primary cell centres as their corners.
-    // For this particular secondary cell, centred on a vertex v (i,j),
-    // the near-by primary cell i,j is centred on B'.
-    //
-    //          +-----+
-    //          |     |
-    //       C'-+--B' |
-    //       |  |  |  |
-    //       |  v--+--+
-    //       |     |
-    //       D'----A'
-    //
-    {
-	size_t i, j;
-	double xA, yA, xB, yB, xC, yC, xD, yD;
-	double xyarea, max_area, min_area;
-
-	max_area = 0.0;
-	min_area = 1.0e6;   // arbitrarily large
-	// First, do all of the internal secondary cells.
-	// i.e. The ones centred on primary vertices which 
-	// are not on a boundary.
-	for (i = imin+1; i <= imax; ++i) {
-	    for (j = jmin+1; j <= jmax; ++j) {
-		// These are the corners.
-		xA = get_cell(i,j-1).pos[gtl].x;
-		yA = get_cell(i,j-1).pos[gtl].y;
-		xB = get_cell(i,j).pos[gtl].x;
-		yB = get_cell(i,j).pos[gtl].y;
-		xC = get_cell(i-1,j).pos[gtl].x;
-		yC = get_cell(i-1,j).pos[gtl].y;
-		xD = get_cell(i-1,j-1).pos[gtl].x;
-		yD = get_cell(i-1,j-1).pos[gtl].y;
-		// Cell area in the (x,y)-plane.
-		xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
-				(xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
-		if (xyarea < 0.0) {
-		    throw new Error(text("Negative secondary-cell area: Block ", id,
-					 " vtx[", i, " ,", j, "]= ", xyarea));
-		}
-		if (xyarea > max_area) max_area = xyarea;
-		if (xyarea < min_area) min_area = xyarea;
-		get_vtx(i,j).areaxy = xyarea;
-	    } // j loop
-	} // i loop
-
-	// Note that the secondary cells along block boundaries are HALF cells.
-	//
-	// East boundary.
-	i = imax+1;
-	for (j = jmin+1; j <= jmax; ++j) {
-	    xA = get_ifi(i,j-1).pos.x;
-	    yA = get_ifi(i,j-1).pos.y;
-	    xB = get_ifi(i,j).pos.x;
-	    yB = get_ifi(i,j).pos.y;
-	    xC = get_cell(i-1,j).pos[gtl].x;
-	    yC = get_cell(i-1,j).pos[gtl].y;
-	    xD = get_cell(i-1,j-1).pos[gtl].x;
-	    yD = get_cell(i-1,j-1).pos[gtl].y;
-	    // Cell area in the (x,y)-plane.
-	    xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
-			    (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
-	    if (xyarea < 0.0) {
-		throw new Error(text("Negative secondary-cell area: Block ", id,
-				     " vtx[", i, " ,", j, "]= ", xyarea));
-	    }
-	    if (xyarea > max_area) max_area = xyarea;
-	    if (xyarea < min_area) min_area = xyarea;
-	    get_vtx(i,j).areaxy = xyarea;
-	} // j loop 
-
-	// Fudge corners -- not expecting to use this data.
-	get_vtx(i,jmin).areaxy = 0.5 * get_vtx(i,jmin+1).areaxy;
-	get_vtx(i,jmax+1).areaxy = 0.5 * get_vtx(i,jmax).areaxy;
-    
-	// West boundary.
-	i = imin;
-	for (j = jmin+1; j <= jmax; ++j) {
-	    xA = get_cell(i,j-1).pos[gtl].x;
-	    yA = get_cell(i,j-1).pos[gtl].y;
-	    xB = get_cell(i,j).pos[gtl].x;
-	    yB = get_cell(i,j).pos[gtl].y;
-	    xC = get_ifi(i,j).pos.x;
-	    yC = get_ifi(i,j).pos.y;
-	    xD = get_ifi(i,j-1).pos.x;
-	    yD = get_ifi(i,j-1).pos.y;
-	    // Cell area in the (x,y)-plane.
-	    xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
-			    (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
-	    if (xyarea < 0.0) {
-		throw new Error(text("Negative secondary-cell area: Block ", id,
-				     " vtx[", i, " ,", j, "]= ", xyarea));
-	    }
-	    if (xyarea > max_area) max_area = xyarea;
-	    if (xyarea < min_area) min_area = xyarea;
-	    get_vtx(i,j).areaxy = xyarea;
-	} // j loop 
-
-	// Fudge corners.
-	get_vtx(i,jmin).areaxy = 0.5 * get_vtx(i,jmin+1).areaxy;
-	get_vtx(i,jmax+1).areaxy = 0.5 * get_vtx(i,jmax).areaxy;
-
-	// North boundary.
-	j = jmax+1;
-	for (i = imin+1; i <= imax; ++i) {
-	    // These are the corners.
-	    xA = get_cell(i,j-1).pos[gtl].x;
-	    yA = get_cell(i,j-1).pos[gtl].y;
-	    xB = get_ifj(i,j).pos.x;
-	    yB = get_ifj(i,j).pos.y;
-	    xC = get_ifj(i-1,j).pos.x;
-	    yC = get_ifj(i-1,j).pos.y;
-	    xD = get_cell(i-1,j-1).pos[gtl].x;
-	    yD = get_cell(i-1,j-1).pos[gtl].y;
-	    // Cell area in the (x,y)-plane.
-	    xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
-			    (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
-	    if (xyarea < 0.0) {
-		throw new Error(text("Negative secondary-cell area: Block ", id,
-				     " vtx[", i, " ,", j, "]= ", xyarea));
-	    }
-	    if (xyarea > max_area) max_area = xyarea;
-	    if (xyarea < min_area) min_area = xyarea;
-	    get_vtx(i,j).areaxy = xyarea;
-	} // i loop 
-
-	// Fudge corners.
-	get_vtx(imin,j).areaxy = 0.5 * get_vtx(imin+1,j).areaxy;
-	get_vtx(imax+1,j).areaxy = 0.5 * get_vtx(imax,j).areaxy;
-
-	// South boundary.
-	j = jmin;
-	for (i = imin+1; i <= imax; ++i) {
-	    xA = get_ifj(i,j).pos.x;
-	    yA = get_ifj(i,j).pos.y;
-	    xB = get_cell(i,j).pos[gtl].x;
-	    yB = get_cell(i,j).pos[gtl].y;
-	    xC = get_cell(i-1,j).pos[gtl].x;
-	    yC = get_cell(i-1,j).pos[gtl].y;
-	    xD = get_ifj(i-1,j).pos.x;
-	    yD = get_ifj(i-1,j).pos.y;
-	    // Cell area in the (x,y)-plane.
-	    xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
-			    (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
-	    if (xyarea < 0.0) {
-		throw new Error(text("Negative secondary-cell area: Block ", id,
-				     " vtx[", i, " ,", j, "]= ", xyarea));
-	    }
-	    if (xyarea > max_area) max_area = xyarea;
-	    if (xyarea < min_area) min_area = xyarea;
-	    get_vtx(i,j).areaxy = xyarea;
-	} // i loop
-
-	// Fudge corners.
-	get_vtx(imin,j).areaxy = 0.5 * get_vtx(imin+1,j).areaxy;
-	get_vtx(imax+1,j).areaxy = 0.5 * get_vtx(imax,j).areaxy;
-
-	// writefln("Max area = %e, Min area = %e", max_area, min_area);
-    } // end secondary_areas_2D()
-
     void calc_faces_2D(int gtl)
     {
 	FVInterface iface;
@@ -1776,7 +1423,7 @@ public:
     {
 	size_t nivtx, njvtx, nkvtx;
 	double x, y, z;
-	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
+	if (GlobalConfig.verbosity_level >= 1) {
 	    writeln("read_grid(): Start block ", id);
 	}
 	auto byLine = new GzipByLine(filename);
@@ -1823,7 +1470,7 @@ public:
 
     override void write_grid(string filename, double sim_time, size_t gtl=0)
     {
-	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
+	if (GlobalConfig.verbosity_level >= 1) {
 	    writeln("write_grid(): Start block ", id);
 	}
 	size_t kmaxrange;
@@ -1858,7 +1505,7 @@ public:
     {
 	size_t ni, nj, nk;
 	double sim_time;
-	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
+	if (GlobalConfig.verbosity_level >= 1) {
 	    writeln("read_solution(): Start block ", id);
 	}
 	auto byLine = new GzipByLine(filename);
@@ -1878,7 +1525,7 @@ public:
 	    for ( size_t j = jmin; j <= jmax; ++j ) {
 		for ( size_t i = imin; i <= imax; ++i ) {
 		    line = byLine.front; byLine.popFront();
-		    get_cell(i,j,k).scan_values_from_string(line);
+		    get_cell(i,j,k).scan_values_from_string(line, gmodel);
 		} // for i
 	    } // for j
 	} // for k
@@ -1890,7 +1537,7 @@ public:
     // for a single block.
     // This is almost Tecplot POINT format.
     {
-	if ( GlobalConfig.verbosity_level >= 1 && id == 0 ) {
+	if (GlobalConfig.verbosity_level >= 1) {
 	    writeln("write_solution(): Start block ", id);
 	}
 	auto outfile = new GzipOut(filename);
@@ -1898,7 +1545,7 @@ public:
 	formattedWrite(writer, "%20.12e\n", sim_time);
 	outfile.compress(writer.data);
 	writer = appender!string();
-	foreach(varname; variable_list_for_cell()) {
+	foreach(varname; variable_list_for_cell(gmodel)) {
 	    formattedWrite(writer, " \"%s\"", varname);
 	}
 	formattedWrite(writer, "\n");
@@ -1916,61 +1563,10 @@ public:
 	outfile.finish();
     } // end write_solution()
 
-    override void write_history(string filename, double sim_time, bool write_header=false)
-    {
-	throw new Error("[TODO] Not implemented yet.");
-    }
-
-    @nogc
-    override void set_grid_velocities(double sim_time)
-    // Presently sets the grid velocities at cell interfaces to zero.
-    // [TODO] Insert the moving-grid code some day...
-    {
-	if (GlobalConfig.moving_grid) {
-	    assert(false, "SBlock.set_grid_velocities(): moving grid is not yet implemented.");
-	}
-	// ifi interfaces are East-facing interfaces.
-	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for ( size_t j = jmin; j <= jmax; ++j ) {
-		for ( size_t i = imin; i <= imax+1; ++i ) {
-		    auto IFace = get_ifi(i,j,k);
-		    IFace.gvel = Vector3(0.0, 0.0, 0.0);
-		} // i loop
-	    } // j loop
-	} // for k
-	// ifj interfaces are North-facing interfaces.
-	for ( size_t k = kmin; k <= kmax; ++k ) {
-	    for ( size_t i = imin; i <= imax; ++i ) {
-		for ( size_t j = jmin; j <= jmax+1; ++j ) {
-		    auto IFace = get_ifj(i,j,k);
-		    IFace.gvel = Vector3(0.0, 0.0, 0.0);
-		} // j loop
-	    } // i loop
-	} // for k
-	if (GlobalConfig.dimensions == 2) return;
-	// ifk interfaces are TOP-facing interfaces.
-	for ( size_t i = imin; i <= imax; ++i ) {
-	    for ( size_t j = jmin; j <= jmax; ++j ) {
-		for ( size_t k = kmin; k <= kmax+1; ++k ) {
-		    auto IFace = get_ifk(i,j,k);
-		    IFace.gvel = Vector3(0.0, 0.0, 0.0);
-		} // for k 
-	    } // j loop
-	} // i loop
-	return;
-    } // end set_grid_velocities()
-
     override void convective_flux()
     {
 	FVCell cL1, cL0, cR0, cR1;
 	FVInterface IFace;
-	// Maybe the following two FlowState objects should be in the Block object
-	// and initialised there so that we don't thrash the memory so much.
-	static FlowState Lft;
-	static FlowState Rght;
-	if (!Lft) Lft = new FlowState(GlobalConfig.gmodel);
-	if (!Rght) Rght = new FlowState(GlobalConfig.gmodel);
-    
 	// ifi interfaces are East-facing interfaces.
 	for ( size_t k = kmin; k <= kmax; ++k ) {
 	    for ( size_t j = jmin; j <= jmax; ++j ) {
@@ -1983,15 +1579,15 @@ public:
 		    // Compute the flux from data on either-side of the interface.
 		    // First, interpolate LEFT and RIGHT interface states from cell-center properties.
 		    if ( (i == imin+1) && (bc[Face.west].ghost_cell_data_available == false) ) {
-			one_d_interp_right(IFace, cL0, cR0, cR1, 
+			one_d.interp_right(IFace, cL0, cR0, cR1, 
 					   cL0.iLength, cR0.iLength, cR1.iLength,
 					   Lft, Rght);
 		    } else if ( (i == imax) && (bc[Face.east].ghost_cell_data_available == false) ) {
-			one_d_interp_left(IFace, cL1, cL0, cR0, 
+			one_d.interp_left(IFace, cL1, cL0, cR0, 
 					  cL1.iLength, cL0.iLength, cR0.iLength,
 					  Lft, Rght);
 		    } else { // General symmetric reconstruction.
-			one_d_interp_both(IFace, cL1, cL0, cR0, cR1,
+			one_d.interp_both(IFace, cL1, cL0, cR0, cR1,
 					  cL1.iLength, cL0.iLength, cR0.iLength, cR1.iLength,
 					  Lft, Rght);
 		    }
@@ -2004,13 +1600,10 @@ public:
 		    } else {
 			IFace.fs.copy_average_values_from(Lft, Rght);
 		    }
-
-		    compute_interface_flux(Lft, Rght, IFace, omegaz);
-
+		    compute_interface_flux(Lft, Rght, IFace, gmodel, omegaz);
 		} // i loop
 	    } // j loop
 	} // for k
-
 	// ifj interfaces are North-facing interfaces.
 	for ( size_t k = kmin; k <= kmax; ++k ) {
 	    for ( size_t i = imin; i <= imax; ++i ) {
@@ -2022,15 +1615,15 @@ public:
 		    cR1 = get_cell(i,j+1,k);
 		    // Interpolate LEFT and RIGHT interface states from the cell-center properties.
 		    if ( (j == jmin+1) && (bc[Face.south].ghost_cell_data_available == false) ) {
-			one_d_interp_right(IFace, cL0, cR0, cR1, 
+			one_d.interp_right(IFace, cL0, cR0, cR1, 
 					   cL0.jLength, cR0.jLength, cR1.jLength,
 					   Lft, Rght);
 		    } else if ( (j == jmax) && (bc[Face.north].ghost_cell_data_available == false) ) {
-			one_d_interp_left(IFace, cL1, cL0, cR0, 
+			one_d.interp_left(IFace, cL1, cL0, cR0, 
 					  cL1.jLength, cL0.jLength, cR0.jLength,
 					  Lft, Rght);
 		    } else { // General symmetric reconstruction.
-			one_d_interp_both(IFace, cL1, cL0, cR0, cR1,
+			one_d.interp_both(IFace, cL1, cL0, cR0, cR1,
 					  cL1.jLength, cL0.jLength, cR0.jLength, cR1.jLength,
 					  Lft, Rght);
 		    }
@@ -2043,17 +1636,14 @@ public:
 		    } else {
 			IFace.fs.copy_average_values_from(Lft, Rght);
 		    }
-		    // Finally, the flux calculation.
-
-		    compute_interface_flux(Lft, Rght, IFace, omegaz);
-
+		    compute_interface_flux(Lft, Rght, IFace, gmodel, omegaz);
 		} // j loop
 	    } // i loop
 	} // for k
     
 	if (GlobalConfig.dimensions == 2) return;
     
-	// ifk interfaces are TOP-facing interfaces.
+	// ifk interfaces are Top-facing interfaces.
 	for ( size_t i = imin; i <= imax; ++i ) {
 	    for ( size_t j = jmin; j <= jmax; ++j ) {
 		for ( size_t k = kmin; k <= kmax+1; ++k ) {
@@ -2064,15 +1654,15 @@ public:
 		    cR1 = get_cell(i,j,k+1);
 		    // Interpolate LEFT and RIGHT interface states from the cell-center properties.
 		    if ( (k == kmin+1) && (bc[Face.bottom].ghost_cell_data_available == false) ) {
-			one_d_interp_right(IFace, cL0, cR0, cR1, 
+			one_d.interp_right(IFace, cL0, cR0, cR1, 
 					   cL0.kLength, cR0.kLength, cR1.kLength,
 					   Lft, Rght);
 		    } else if ( (k == kmax) && (bc[Face.top].ghost_cell_data_available == false) ) {
-			one_d_interp_left(IFace, cL1, cL0, cR0, 
+			one_d.interp_left(IFace, cL1, cL0, cR0, 
 					  cL1.kLength, cL0.kLength, cR0.kLength,
 					  Lft, Rght);
 		    } else { // General symmetric reconstruction.
-			one_d_interp_both(IFace, cL1, cL0, cR0, cR1,
+			one_d.interp_both(IFace, cL1, cL0, cR0, cR1,
 					  cL1.kLength, cL0.kLength, cR0.kLength, cR1.kLength,
 					  Lft, Rght);
 		    }
@@ -2085,9 +1675,7 @@ public:
 		    } else {
 			IFace.fs.copy_average_values_from(Lft, Rght);
 		    }
-
-		    compute_interface_flux(Lft, Rght, IFace, omegaz);
-
+		    compute_interface_flux(Lft, Rght, IFace, gmodel, omegaz);
 		} // for k 
 	    } // j loop
 	} // i loop
@@ -2095,21 +1683,128 @@ public:
     } // end convective_flux()
 
     @nogc
-    override void viscous_flux()
+    override void flow_property_derivatives(int gtl)
     {
-	assert(false, "[TODO] viscous_flux() not implemented yet.");
-    } // end viscous_flux()
-
-    @nogc
-    override void viscous_derivatives(int gtl)
-    {
-	assert(false, "[TODO] viscous_derivatives() not implemented yet.");
-    }
-
-    @nogc
-    override void estimate_turbulence_viscosity()
-    {
-	assert(false, "[TODO] estimate_turbulence_viscosity() not implemented yet.");
+	size_t i, j, k;
+	if (GlobalConfig.dimensions == 2) {
+	    // First, do all of the internal secondary cells.
+	    // i.e. Those not on a boundary.
+	    for ( i = imin+1; i <= imax; ++i ) {
+		for ( j = jmin+1; j <= jmax; ++j ) {
+		    // Secondary-cell centre is a primary-cell vertex.
+		    FVVertex vtx = get_vtx(i,j);
+		    // These are the corners of the secondary cell.
+		    FVCell A = get_cell(i,j-1);
+		    FVCell B = get_cell(i,j);
+		    FVCell C = get_cell(i-1,j);
+		    FVCell D = get_cell(i-1,j-1);
+		    // Delegate the work of computing the actual gradients.
+		    gradients_xy(vtx, A.pos[gtl], B.pos[gtl], C.pos[gtl], D.pos[gtl],
+				 A.fs, B.fs, C.fs, D.fs);
+		} // j loop
+	    } // i loop
+	    // Half-cells along the edges of the block.
+	    // [TODO] Check that the secondary-cell geometry functions actually
+	    // compute the correct xy-plane area for these "half-cells" or, maybe,
+	    // the divergence function needs to compute its own copy of area.
+	    // It will be a bit of extra work but then we can pass it all sorts of 
+	    // shapes and it will look after itself, even if the grid moves.
+	    // East boundary
+	    i = imax+1;
+	    for (j = jmin+1; j <= jmax; ++j) {
+		FVVertex vtx = get_vtx(i,j);
+		FVInterface A = get_ifi(i,j-1);
+		FVInterface B = get_ifi(i,j);
+		FVCell C = get_cell(i-1,j);
+		FVCell D = get_cell(i-1,j-1);
+		gradients_xy(vtx, A.pos, B.pos, C.pos[gtl], D.pos[gtl],
+			     A.fs, B.fs, C.fs, D.fs);
+	    } // j loop
+	    // West boundary
+	    i = imin;
+	    for (j = jmin+1; j <= jmax; ++j) {
+		FVVertex vtx = get_vtx(i,j);
+		// These are the corners of the secondary cell.
+		FVCell A = get_cell(i,j-1);
+		FVCell B = get_cell(i,j);
+		FVInterface C = get_ifi(i,j);
+		FVInterface D = get_ifi(i,j-1);
+		// Delegate the work of computing the actual gradients.
+		gradients_xy(vtx, A.pos[gtl], B.pos[gtl], C.pos, D.pos,
+			     A.fs, B.fs, C.fs, D.fs);
+	    } // j loop
+	    // North boundary
+	    j = jmax+1;
+	    for (i = imin+1; i <= imax; ++i) {
+		FVVertex vtx = get_vtx(i,j);
+		FVCell A = get_cell(i,j-1);
+		FVInterface B = get_ifj(i,j);
+		FVInterface C = get_ifj(i-1,j);
+		FVCell D = get_cell(i-1,j-1);
+		gradients_xy(vtx, A.pos[gtl], B.pos, C.pos, D.pos[gtl],
+			     A.fs, B.fs, C.fs, D.fs);
+	    } // i loop
+	    // South boundary
+	    j = jmin;
+	    for (i = imin+1; i <= imax; ++i) {
+		FVVertex vtx = get_vtx(i,j);
+		FVInterface A = get_ifj(i,j);
+		FVCell B = get_cell(i,j);
+		FVCell C = get_cell(i-1,j);
+		FVInterface D = get_ifj(i-1,j);
+		gradients_xy(vtx, A.pos, B.pos[gtl], C.pos[gtl], D.pos,
+			     A.fs, B.fs, C.fs, D.fs);
+	    } // i loop
+	    // For the corners, we are going to use the same divergence-theorem-based
+	    // gradient calculator and let one edge collapse to a point, thus giving
+	    // it a triangle to compute over.  This should be fine. 
+	    // North-east corner
+	    {
+		i = imax+1; j = jmax+1;
+		FVVertex vtx = get_vtx(i,j);
+		FVInterface A = get_ifi(i,j-1);
+		FVInterface B = get_ifj(i-1,j);
+		FVInterface C = get_ifj(i-1,j);
+		FVCell D = get_cell(i-1,j-1);
+		gradients_xy(vtx, A.pos, B.pos, C.pos, D.pos[gtl],
+			     A.fs, B.fs, C.fs, D.fs);
+	    }
+	    // South-east corner
+	    {
+		i = imax+1; j = jmin;
+		FVVertex vtx = get_vtx(i,j);
+		FVInterface A = get_ifi(i,j);
+		FVInterface B = get_ifi(i,j);
+		FVCell C = get_cell(i-1,j);
+		FVInterface D = get_ifj(i-1,j);
+		gradients_xy(vtx, A.pos, B.pos, C.pos[gtl], D.pos,
+			     A.fs, B.fs, C.fs, D.fs);
+	    }
+	    // South-west corner
+	    {
+		i = imin; j = jmin;
+		FVVertex vtx = get_vtx(i,j);
+		FVInterface A = get_ifj(i,j);
+		FVCell B = get_cell(i,j);
+		FVInterface C = get_ifi(i,j);
+		FVInterface D = A;
+		gradients_xy(vtx, A.pos, B.pos[gtl], C.pos, D.pos,
+			     A.fs, B.fs, C.fs, D.fs);
+	    }
+	    // North-west corner
+	    {
+		i = imin; j = jmax+1;
+		FVVertex vtx = get_vtx(i,j);
+		FVCell A = get_cell(i,j-1);
+		FVInterface B = get_ifj(i,j);
+		FVInterface C = B;
+		FVInterface D = get_ifi(i,j-1);
+		gradients_xy(vtx, A.pos[gtl], B.pos, C.pos, D.pos,
+			     A.fs, B.fs, C.fs, D.fs);
+	    }
+	} else {
+	    assert(false, "[TODO] flow_property_derivatives() in 3D not implemented yet.");
+	}
     }
 
     override void applyPreReconAction(double t, int gtl, int ftl)
@@ -2826,8 +2521,8 @@ public:
 	    } // j loop
 	} // end switch destination_face
     } // end copy_to_ghost_cells()
-} // end class SBlock
 
+} // end class SBlock
 
 
 /** Indexing of the data in 2D.
