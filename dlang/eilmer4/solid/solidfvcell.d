@@ -30,6 +30,8 @@ public:
     double[] T;
     double[] e;
     double[] dedt;
+    // Cell source term
+    double Q;
     // Connections
     SolidFVInterface[] iface;
     SolidFVVertex[] vtx;
@@ -80,7 +82,7 @@ public:
 	integral = -IFe.flux * IFe.area - IFn.flux * IFn.area
 	    + IFw.flux * IFw.area + IFs.flux * IFs.area;
 
-	dedt[ftl] = volInv * integral;
+	dedt[ftl] = volInv * integral + Q;
     }
     void stage1Update(double dt)
     {

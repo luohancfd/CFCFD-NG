@@ -968,7 +968,8 @@ function write_config_file(fileName)
    f:write(string.format('"control_count": %d,\n', config.control_count))
    f:write(string.format('"udf_source_terms_file": "%s",\n', config.udf_source_terms_file))
    f:write(string.format('"udf_source_terms": %s,\n', tostring(config.udf_source_terms)))
-
+   f:write(string.format('"udf_solid_source_terms_file": "%s",\n', config.udf_solid_source_terms_file))
+   f:write(string.format('"udf_solid_source_terms": %s,\n', tostring(config.udf_solid_source_terms)))
    f:write(string.format('"nblock": %d,\n', #(blocks)))
    f:write(string.format('"nsolidblock": %d,\n', #solidBlocks))
    for i = 1, #blocks do
@@ -977,6 +978,7 @@ function write_config_file(fileName)
    for i = 1, #solidBlocks do
       f:write(solidBlocks[i]:tojson())
    end
+  
    f:write('"dummy_entry_without_trailing_comma": 0\n') -- no comma on last entry
    f:write("}\n")
 

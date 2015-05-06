@@ -26,6 +26,7 @@ import ssolidblock;
 import solidfvcore;
 import bc;
 import user_defined_source_terms;
+import solid_udf_source_terms;
 
 void read_config_file()
 {
@@ -165,7 +166,6 @@ void read_config_file()
     }
 
     // Add LuaStates to each block for UDF source terms, if necessary
-        // Parameters related to udf source terms
     auto udf_source_terms = getJSONbool(jsonData, "udf_source_terms", false);
     auto udf_source_terms_file = jsonData["udf_source_terms_file"].str;
     if ( udf_source_terms ) {
@@ -190,8 +190,20 @@ void read_config_file()
 	    writeln("  SolidBlock[", i, "]: ", mySolidBlocks[i]);
 	}
     }
-
-
+    // Add LuaStates to each solid block for UDF source terms, if necessary
+    
+    auto udf_solid_source_terms = getJSONbool(jsonData, "udf_solid_source_terms", false);
+    auto udf_solid_source_terms_file = jsonData["udf_solid_source_terms_file"].str;
+    if ( udf_solid_source_terms ) {
+	foreach (blk; mySolidBlocks) {
+	    blk.udfSourceTerms = initUDFSolidSourceTerms(udf_solid_source_terms_file, blk.id);
+	}
+    }
+    if ( GlobalConfig.verbosity_level > 1 ) {
+	writeln("  udf_solid_source_terms: ", udf_solid_source_terms);
+	writeln("  udf_solid_source_terms_file: ", udf_solid_source_terms_file);
+    }
+    
 } // end read_config_file()
 
 void read_control_file()

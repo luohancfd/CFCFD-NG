@@ -233,6 +233,14 @@ extern(C) int configSetFromTable(lua_State* L)
 	GlobalConfig.solidDomainUpdateScheme = solidDomainUpdateSchemeFromName(name);
     }
 
+    lua_getfield(L, 1, "udf_solid_source_terms_file");
+    if (!lua_isnil(L, -1)) GlobalConfig.udfSolidSourceTermsFile = to!string(luaL_checkstring(L, -1));
+    lua_pop(L, 1);
+    lua_getfield(L, 1, "udf_solid_source_terms");
+    if (!lua_isnil(L, -1)) GlobalConfig.udfSolidSourceTerms = to!bool(lua_toboolean(L, -1));
+    lua_pop(L, 1);
+
+
     return 0;
 } // end configSetFromTable()
 
@@ -417,6 +425,12 @@ extern(C) int configGet(lua_State* L)
     case "solid_domain_update_scheme":
 	string name = solidDomainUpdateSchemeName(GlobalConfig.solidDomainUpdateScheme);
 	lua_pushstring(L, name.toStringz);
+	break;
+    case "udf_solid_source_terms_file":
+	lua_pushstring(L, GlobalConfig.udfSolidSourceTermsFile.toStringz);
+	break;
+    case "udf_solid_source_terms":
+	lua_pushboolean(L, GlobalConfig.udfSolidSourceTerms);
 	break;
     default:
 	lua_pushnil(L);

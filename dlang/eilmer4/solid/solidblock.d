@@ -13,10 +13,12 @@
 module solidblock;
 
 import std.conv;
+import luad.all;
 import geom;
 import solidfvcell;
 import solidbc;
 import solidprops;
+
 
 class SolidBlock {
 public:
@@ -27,6 +29,7 @@ public:
     Vector3 energyResidualLoc; // location of worst case
     int hncell; // number of history cells
     SolidProps sp; // material properties for whole block
+    LuaState udfSourceTerms;
 
     SolidFVCell[] activeCells; // collection of references to active cells in the domain
     SolidBoundaryCondition[] bc; // collection of references to boundary conditions

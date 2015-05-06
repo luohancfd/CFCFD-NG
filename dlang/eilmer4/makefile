@@ -25,6 +25,7 @@ SOLID_FILES := solid/solidbc.d \
 	solid/solidfvinterface.d \
 	solid/solidfvvertex.d \
 	solid/solidprops.d \
+	solid/solid_udf_source_terms.d \
 	solid/luasolidprops.d
 
 GAS_DIR := ../gas
@@ -266,3 +267,23 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 		$(BC_FILES) $(SOLID_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)
 
+compute-error: compute_error.d simcore.d fileutil.d readconfig.d json_helper.d \
+	block.d sblock.d ublock.d \
+	fluxcalc.d onedinterp.d viscousflux.d \
+	fvcore.d fvcell.d fvvertex.d fvinterface.d \
+	conservedquantities.d flowstate.d luaflowstate.d \
+	globalconfig.d luaglobalconfig.d globaldata.d \
+	block.d sblock.d ublock.d \
+	lua_helper.d user_defined_source_terms.d \
+	$(BC_FILES) $(SOLID_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
+	$(KINETICS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
+	$(DMD) $(DFLAGS) $(OF)compute-error \
+		compute_error.d simcore.d fileutil.d readconfig.d json_helper.d \
+		fvcore.d fvcell.d fvvertex.d fvinterface.d \
+		fluxcalc.d onedinterp.d viscousflux.d \
+		conservedquantities.d flowstate.d luaflowstate.d \
+		globalconfig.d luaglobalconfig.d globaldata.d \
+		block.d sblock.d ublock.d \
+		lua_helper.d user_defined_source_terms.d \
+		$(BC_FILES) $(SOLID_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
+		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)

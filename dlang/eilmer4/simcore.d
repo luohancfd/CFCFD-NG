@@ -31,6 +31,7 @@ import solidfvcore;
 import solidprops;
 import bc;
 import user_defined_source_terms;
+import solid_udf_source_terms;
 
 // State data for simulation.
 // Needs to be seen by all of the coordination functions.
@@ -496,9 +497,9 @@ void solidDomainExplicitIncrement()
 	blk.applyPostFluxAction(sim_time, tLevel);
 	blk.computeFluxes();
 	foreach (cell; blk.activeCells) {
-	    //	    if (GlobalConfig.udfSolidSourceTerms) {
-	    //		addUDFSolidSourceTermsToCell(cell, sim_time);
-	    //	    }
+	    if (blk.udfSourceTerms) {
+		addUDFSourceTermsToSolidCell(blk.udfSourceTerms, cell, sim_time);
+	    }
 	    cell.timeDerivatives(0, GlobalConfig.dimensions);
 	    cell.stage1Update(dt_global);
 	    cell.T[1] = updateTemperature(blk.sp, cell.e[1]);
@@ -513,16 +514,16 @@ void solidDomainExplicitIncrement()
 	    if (!blk.active) continue;
 	    blk.applyPreSpatialDerivAction(sim_time, tLevel);
 	}
-	// First stage of update
+	// Second stage of update
 	foreach (blk; mySolidBlocks) {
 	    if (!blk.active) continue;
 	    blk.computeSpatialDerivatives(tLevel);
 	    blk.applyPostFluxAction(sim_time, tLevel);
 	    blk.computeFluxes();
 	    foreach (cell; blk.activeCells) {
-		//if (GlobalConfig.udfSolidSourceTerms) {
-		    //addUDFSolidSourceTermsToCell(cell, sim_time);
-		//}
+		if (blk.udfSourceTerms) {
+		    addUDFSourceTermsToSolidCell(blk.udfSourceTerms, cell, sim_time);
+		}
 		cell.timeDerivatives(1, GlobalConfig.dimensions);
 		cell.stage2Update(dt_global);
 		cell.T[2] = updateTemperature(blk.sp, cell.e[2]);

@@ -285,5 +285,6 @@ final class GlobalConfig {
     // Parameters related to the solid domain and conjugate coupling
     shared static SolidDomainUpdate solidDomainUpdateScheme = SolidDomainUpdate.pc;
     shared static bool udfSolidSourceTerms = false;
+    shared static string udfSolidSourceTermsFile = "dummy-solid-source-terms.txt";
 
 } // end class GlobalConfig
