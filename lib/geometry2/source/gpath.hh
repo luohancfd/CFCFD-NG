@@ -131,13 +131,68 @@ double error_in_radius( double s );
 class Arc3 : public Arc {
 public:
     /// Arc constructed through three points, starting at a, 
-    /// going through b and endin at c.
+    /// going through b and ending at c.
     Arc3( const Vector3 &a, const Vector3 &b, const Vector3 &c, 
 	  const string label="", double t0=0.0, double t1=1.0 );
     /// Arc constructed as a copy of another Arc.
     Arc3( const Arc3 &arc );
     virtual ~Arc3();
 };
+
+
+/** \brief Circular arc constructed through three points,
+ *
+ * Underneath, it is actually stored as start-point, end-point and centre.
+ */
+class Arc3seg : public Arc {
+public:
+    /// Arc constructed through three points, starting at a, ending at b, 
+    /// and then going through c. 
+    Arc3seg( const Vector3 &a, const Vector3 &b, const Vector3 &c, 
+	  const string label="", double t0=0.0, double t1=1.0 );
+    /// Arc constructed as a copy of another Arc.
+    Arc3seg( const Arc3seg &arc );
+    virtual ~Arc3seg();
+};
+
+
+/** \brief Elliptical arc,  
+ *
+ * Defined as start point, end point and centre.
+ */
+class Ellipse : public Path {
+public:
+    Vector3 a; ///< beginning point (t = 0)
+    Vector3 b; ///< end point (t = 1)
+    Vector3 c; ///< focal point of two tangents
+    /// Ellipse constructed from start-point a, end-point b and focal point of tangents.
+    Ellipse( const Vector3 &a, const Vector3 &b, const Vector3 &c, 
+	 const string label="", double t0=0.0, double t1=1.0 );
+    /// Ellipse constructed as a copy.
+    Ellipse( const Ellipse &ellipse );
+    virtual ~Ellipse();
+    virtual Ellipse* clone() const; 
+    virtual Ellipse* copy(int direction=1) const; 
+    virtual Vector3 eval( double t ) const;
+    virtual double length() const;
+    virtual string str() const;
+    virtual Ellipse* translate( const Vector3 &v );
+    virtual Ellipse* translate( double vx, double vy, double vz );
+    virtual Ellipse* reverse();
+    virtual Ellipse* mirror_image( const Vector3 &point, const Vector3 &normal );
+    virtual Ellipse* rotate_about_zaxis( double dtheta );
+    int evaluate_position_and_length( double t, Vector3& loc, double &L ) const;
+
+private:
+    // Don't expect users to access these
+    void set_arc_length_vector();
+    double t_from_arc_length(double t) const;
+    //vector<double> arc_length;
+    //int n_arc_length; // Number of pieces in the arc_length vector, if used.
+};
+
+
+
 
 
 /** \brief Helix. */

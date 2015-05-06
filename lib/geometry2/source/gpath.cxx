@@ -457,6 +457,322 @@ Arc3::Arc3( const Arc3 &arc )
     : Arc(arc.a, arc.b, arc.c, arc.label, arc.t0, arc.t1) {} 
 Arc3::~Arc3() {}
 
+
+//------------------------------------------------------------------------------
+// Circular arcs with start-, end-point, and a third point.
+Arc3seg::Arc3seg( const Vector3 &_a, const Vector3 &_b, const Vector3 &_c, 
+	    const string label, double _t0, double _t1 )
+    : Arc(_a,_b, Vector3(), label, _t0, _t1) 
+{
+    // Compute normal vector to the plane of the circle.
+    global_a = _a; // start of Arc3
+    global_b = _c; // third point of Arc3
+    Vector3 n = cross(_b - _a, _b - _c);
+    if ( vabs(n) <= 1.0e-11 ) {
+	cout << "Arc3seg: Points appear colinear." << endl;
+    }
+    // The centre of the circle lies along the bisector of ab (and bc).
+    ab_mid = 0.5 * (_a + _b);
+    nab = cross(_b - _a, n);
+    int result_flag;
+    double s = secant_solve(error_in_radius, 1.0, 1.01, result_flag);
+    c = locate_centre(s);  // member c is ultimately the centre
+}
+// Already in start-end-centre form.
+Arc3seg::Arc3seg( const Arc3seg &arc )
+    : Arc(arc.a, arc.c, arc.b, arc.label, arc.t0, arc.t1) {} 
+Arc3seg::~Arc3seg() {}
+
+//------------------------------------------------------------------------------
+
+// Ellipse with start, end and conrner points.
+Ellipse::Ellipse( const Vector3 &a, const Vector3 &b, const Vector3 &c, 
+	  const string label, double t0, double t1 )
+    : Path(label, t0, t1), a(a), b(b), c(c) 
+{
+    //n_arc_length = 100;
+    //set_arc_length_vector();
+}
+Ellipse::Ellipse( const Ellipse &ellipse )
+    : Path(ellipse.label, ellipse.t0, ellipse.t1), a(ellipse.a), b(ellipse.b), c(ellipse.c) {}
+Ellipse::~Ellipse() {}
+Ellipse* Ellipse::clone() const
+{
+    return new Ellipse(*this);
+} 
+Ellipse* Ellipse::copy(int direction) const
+{
+    Ellipse* new_path = new Ellipse(*this);
+    if (direction==-1) new_path->reverse();
+    return new_path;
+}
+Vector3 Ellipse::eval( double t ) const
+{
+    Vector3 p;
+    t = t0 + t * (t1 - t0); // scale to subrange
+    double L = 0.0;
+    if ( evaluate_position_and_length(t, p, L) == 0 ) {
+	return p;
+    } else {
+	return Vector3(0.0, 0.0, 0.0);
+    }
+}
+double Ellipse::length() const
+{
+    Vector3 p;
+    double L;
+    if ( evaluate_position_and_length(1.0, p, L) == 0 ) {
+	return fabs(t1 - t0) * L;
+    } else {
+	return 0.0;
+    }
+}
+string Ellipse::str() const
+{
+    ostringstream ost;
+    ost << "Ellipse(" << a << ", " << b << ", " << c 
+	<< ", \"" << label << "\", " << t0 << ", " << t1 << ")";
+    return ost.str();
+}
+Ellipse* Ellipse::translate( const Vector3 &v )
+{
+    a += v; b += v; c += v;
+    return this;
+}
+Ellipse* Ellipse::translate( double vx, double vy, double vz )
+{
+    translate(Vector3(vx, vy, vz));
+    return this;
+}
+Ellipse* Ellipse::reverse()
+{
+    Vector3 tmp;
+    tmp = a; a = b; b = tmp;
+    double t0_old = t0;
+    double t1_old = t1;
+    t0 = 1.0 - t1_old;
+    t1 = 1.0 - t0_old;
+    return this;
+}
+Ellipse* Ellipse::mirror_image( const Vector3 &point, const Vector3 &normal ) 
+{
+    a.mirror_image(point, normal);
+    b.mirror_image(point, normal);
+    c.mirror_image(point, normal);
+    return this;
+}
+Ellipse* Ellipse::rotate_about_zaxis( double dtheta )
+{
+    a.rotate_about_zaxis(dtheta);
+    b.rotate_about_zaxis(dtheta);
+    c.rotate_about_zaxis(dtheta);
+    return this;
+}
+int Ellipse::evaluate_position_and_length( double t, Vector3& loc, double &L ) const
+{
+    // Both the position of the point and the length of the full ellipse are evaluated
+    // using mostly the same process of transforming to the plane local to the ellipse.
+    Vector3 d, da, db, tangent1, tangent2, n, db_local;
+    double da_mag, db_mag, theta;
+    // Construct location of ellipse centre
+    d = a + (b-c);
+    // cout << "a=" << a << ", b=" << b << endl;
+    // cout << "d=" << d << endl;
+    da = a - d; da_mag = vabs(da);
+    db = b - d; db_mag = vabs(db);
+    // cout << "da=" << da << ", db=" << db << endl;
+    // cout << "da_mag=" << da_mag << ", db_mag=" << db_mag << endl;
+    // First vector in plane.
+    tangent1 = Vector3(da); tangent1.norm(); 
+    // cout << "tangent1=" << tangent1 << endl;
+    // Compute unit normal to plane of all three points.
+    n = cross(da, db); // cout << "n=" << n << endl;
+    if ( vabs(n) > 0.0 ) {
+	n.norm();
+    } else {
+	cout << "Ellipse.eval(): cannot find plane of three points." << endl;
+	return -2;
+    }
+    // Third (orthogonal) vector is in the original plane.
+    tangent2 = cross(n, tangent1); 
+    // cout << "tangent2=" << tangent2 << endl;
+    // Now transform to local coordinates so that we can do 
+    // the calculation of the point along the arc in 
+    // the local xy-plane, with ca along the x-axis.
+    db_local = db;
+    Vector3 zero = Vector3(0.0,0.0,0.0);
+    db_local.transform_to_local(tangent1, tangent2, n, zero);
+    // cout << "db_local=" << db_local << endl;
+    if ( fabs(db_local.z) > 1.0e-6 ) {
+	cout << "Ellipse.eval(): problems with transformation cb_local=" 
+	     << db_local << endl;
+	return -3;
+    }
+    // we now have da along the x-axis and db at an angle relative to the x-axis
+    // change from Arc approach for Ellipse
+    // Angle between two conjugate diameters
+    theta = atan2(db_local.y, db_local.x);
+    // cout << "theta=" << theta << endl;
+    //Check if lines are orthogonal. (this is eqivalent to db_lcoal.x = 0)
+    Vector3 aa = Vector3(0.0,0.0,0.0);
+    Vector3 bb = Vector3(0.0,0.0,0.0);
+    if ( fabs(db_local.x) < 1.0e-9) {
+        aa = Vector3(da_mag,0.0,0.0);
+        bb = db_local;
+        cout << "here" << endl;
+    } else {
+        // Rotate b by 90 degree about origin
+        Vector3 ur =  Vector3(db_local.y,-db_local.x,0.0);
+        // Vector3 ur = db_local;
+        // cout << "ur=" << ur << endl;
+        // Midpoint between ur and  
+        Vector3 s = 0.5 * ( ur + Vector3(da_mag,0.0,0.0) );
+        // cout << "s=" << s << endl;
+        // Draw circle 
+        double s_mag = vabs(s);
+        // cout << "s_mag=" << s_mag << endl;
+        Vector3 dir = ur - s;
+        dir.norm(); 
+        // cout << "dir=" << dir << endl;
+        Vector3 r = s + dir*s_mag;
+        Vector3 l = s - dir*s_mag;
+        // cout << "r=" << r << endl;
+        // cout << "l=" << l << endl;
+        double tempaa = vabs( Vector3(da_mag,0.0,0.0) - r);
+        double tempbb = vabs( Vector3(da_mag,0.0,0.0) - l); 
+        r.norm();
+        l.norm();
+        aa = l * tempaa;
+        bb = r * tempbb;
+    }
+    double aa_mag = vabs(aa);
+    double bb_mag = vabs(bb);
+    // pick major axis (swap aa and bb if necessary)
+    // cout << "aa=" << aa << ", aa_mag=" << aa_mag << endl;
+    // cout << "bb=" << bb << ", bb_mag=" << bb_mag << endl;
+    double psi;
+    if (aa_mag < bb_mag ) {
+        //calculate direction of major axis relative to x-axis
+        psi = atan2(bb.y,bb.x);
+        Vector3 temp = aa;
+        aa = bb;
+        bb = temp;
+    } else {
+        //calculate direction of major axis relative to x-axis
+        psi = atan2(aa.y,aa.x);
+    }
+    // cout << "psi=" << psi << endl;
+    // this section does what set_arc_length() would normally do 
+    // Compute the arc_lengths for a number of sample points 
+    // so that these can later be used to do a reverse interpolation
+    // on the evaluation parameter.
+    int n_arc_length = 100;
+    // if ( n_arc_length == 0 ) return;
+    double dt = 1.0 / n_arc_length;
+    vector<double> arc_length;
+    arc_length.resize(0);
+    arc_length.push_back(L);
+    Vector3 p0 = Vector3(da_mag,0.0,0.0);
+    Vector3 p1 = Vector3(0.0,0.0,0.0);
+    for ( int i = 1; i <= n_arc_length; ++i ) {
+    double t_angle = -atan( - (aa_mag/bb_mag) * tan( - psi + i*dt*theta) );
+    p1.x = aa_mag * cos(t_angle) * cos(psi) - bb_mag * sin(t_angle) * sin(psi);
+    p1.y = aa_mag * cos(t_angle) * sin(psi) + bb_mag * sin(t_angle) * cos(psi);
+    // cout << "segment=" << vabs(p1 - p0) << endl;
+	L += vabs(p1 - p0); // This creates output for full length of arc
+	arc_length.push_back(L);
+	p0 = p1;
+    // cout << "t_angle=" << t_angle << ", p1=" << p1 << endl;
+    }
+    // cout << "L=" << L << endl;
+    // cout << "dt=" << dt << endl;
+    // cout << "arc_length=" << arc_length << endl;
+    // this section does what t_from_arc_length() would normally do.
+    // The incoming parameter value, t, is proportional to arc_length.
+    // Do a reverse look-up from the arc_length to the original theta parameter of the ellipse
+    double L_target = t * arc_length[n_arc_length];
+    // Starting from the right-hand end,
+    // let's try to find a point to the left of L_target.
+    // If the value is out of range, this should just result in
+    // us extrapolating one of the end segments -- that's OK.
+    int i = n_arc_length - 1;
+    // double dt = 1.0 / n_arc_length;
+    dt = 1.0 / n_arc_length;
+    double frac = 0.0;
+    double tt = 1.0;
+    // cout << "L_target=" << L_target << ", arc_length[i]=" << arc_length[i] << endl; 
+    while ( L_target < arc_length[i] && i > 0 ) {
+    i--;
+    frac = (L_target - arc_length[i]) / (arc_length[i+1] - arc_length[i]);
+    tt = (1.0 - frac) * dt*i + frac * dt*(i+1);
+    }
+    // cout << "t=" << t << endl; 
+    // cout << "tt=" << tt << endl;    
+    // Calculate angle for point
+    theta *= tt;
+    // cout << "theta=" << theta << endl; 
+    // Calculate position of output1
+    double pi = 3.141592653589793238462643383;
+    double t_angle = 0.0;
+    if ( fabs(- psi + theta) <= pi/2.) {
+        t_angle = -atan( - (aa_mag/bb_mag) * tan( - psi + theta));
+        // cout << "here less than 90" << endl;
+    } else {
+        t_angle = -atan( - (aa_mag/bb_mag) * tan( - psi + theta));
+        t_angle += pi; 
+        // cout << "here more than 90" << endl;
+    }
+    // cout << "tangle= " << t_angle << endl;    
+    loc.x = aa_mag * cos(t_angle) * cos(psi) - bb_mag * sin(t_angle) * sin(psi);
+    loc.y = aa_mag * cos(t_angle) * sin(psi) + bb_mag * sin(t_angle) * cos(psi);
+    loc.z = 0.0;
+    // cout << "d=" << d << endl;
+    // cout << "in local plane: loc=" << loc << endl;
+    // Transform back to global xyz coordinates
+    // and remember to add the centre coordinates.
+    loc.transform_to_global(tangent1, tangent2, n, d);
+    // cout << "in global coords: loc=" << loc << endl;
+    return 0;
+}
+void Ellipse::set_arc_length_vector()
+{
+//    // Compute the arc_lengths for a number of sample points 
+//    // so that these can later be used to do a reverse interpolation
+//    // on the evaluation parameter.
+//    if ( n_arc_length == 0 ) return;
+//    double dt = 1.0 / n_arc_length;
+//    arc_length.resize(0);
+//    double L = 0.0;
+//    arc_length.push_back(L);
+//    Vector3 p0 = Vector3(0.0,0.0,0.0);
+//    Vector3 p1;
+//    for ( int i = 1; i <= n_arc_length; ++i ) {
+//	p1 = Vector3(0.0,0.0,0.0);
+//	L += vabs(p1 - p0);
+//	arc_length.push_back(L);
+//	p0 = p1;
+//    }
+    return;
+}
+double Ellipse::t_from_arc_length(double t) const
+{
+//    // The incoming parameter value, t, is proportional to arc_length.
+//    // Do a reverse look-up from the arc_length to the original t parameter
+//    // of the Bezier curve.
+//    double L_target = t * arc_length[n_arc_length];
+//    // Starting from the right-hand end,
+//    // let's try to find a point to the left of L_target.
+//    // If the value is out of range, this should just result in
+//    // us extrapolating one of the end segments -- that's OK.
+//    int i = n_arc_length - 1;
+//    double dt = 1.0 / n_arc_length;
+//    while ( L_target < arc_length[i] && i > 0 ) i--;
+//    double frac = (L_target - arc_length[i]) / (arc_length[i+1] - arc_length[i]);
+//    return (1.0 - frac) * dt*i + frac * dt*(i+1);
+    return 0;
+}
+
+
 //------------------------------------------------------------------------------
 // Helix
 
