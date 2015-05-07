@@ -903,12 +903,6 @@ end
 function write_control_file(fileName)
    local f = assert(io.open(fileName, "w"))
    f:write("{\n")
-   f:write(string.format('"interpolation_order": %d,\n', config.interpolation_order))
-   f:write(string.format('"gasdynamic_update_scheme": "%s",\n',
-			 config.gasdynamic_update_scheme))
-   f:write(string.format('"separate_update_for_viscous_terms": %s,\n',
-			 tostring(config.separate_update_for_viscous_terms)))
-   --f:write(string.format('"implicit_flag": %s,\n', tostring(config.implicit_flag)))
    f:write(string.format('"dt_init": %e,\n', config.dt_init))
    f:write(string.format('"dt_max": %e,\n', config.dt_max))
    f:write(string.format('"cfl_value": %e,\n', config.cfl_value))
@@ -922,8 +916,7 @@ function write_control_file(fileName)
    f:write(string.format('"dt_plot": %e,\n', config.dt_plot))
    f:write(string.format('"dt_history": %e,\n', config.dt_history))
    f:write(string.format('"write_at_step": %d,\n', config.write_at_step))
-   f:write(string.format('"halt_now": %d\n,', config.halt_now))
-   f:write(string.format('"solid_domain_update_scheme": "%s"\n', config.solid_domain_update_scheme))
+   f:write(string.format('"halt_now": %d\n', config.halt_now))
    -- Note, also, no comma on last entry in JSON object. (^^^: Look up one line and check!)
    f:write("}\n")
    f:close()
@@ -933,11 +926,19 @@ function write_config_file(fileName)
    local f = assert(io.open(fileName, "w"))
    f:write("{\n")
    f:write(string.format('"title": "%s",\n', config.title))
+   f:write(string.format('"gas_model_file": "%s",\n', config.gas_model_file))
    f:write(string.format('"dimensions": %d,\n', config.dimensions))
    f:write(string.format('"axisymmetric": %s,\n',
 			 tostring(config.axisymmetric)))
-   f:write(string.format('"gas_model_file": "%s",\n', config.gas_model_file))
-
+   f:write(string.format('"interpolation_order": %d,\n', config.interpolation_order))
+   f:write(string.format('"gasdynamic_update_scheme": "%s",\n',
+			 config.gasdynamic_update_scheme))
+   f:write(string.format('"separate_update_for_viscous_terms": %s,\n',
+			 tostring(config.separate_update_for_viscous_terms)))
+   f:write(string.format('"separate_update_for_k_omega_source": %s,\n', 
+			 tostring(config.separate_update_for_k_omega_source)))
+   --f:write(string.format('"implicit_flag": %s,\n', tostring(config.implicit_flag)))
+   f:write(string.format('"max_invalid_cells": %d,\n', config.max_invalid_cells))
    f:write(string.format('"thermo_interpolator": "%s",\n', 
 			 string.lower(config.thermo_interpolator)))
    f:write(string.format('"interpolate_in_local_frame": %s,\n', 
@@ -949,6 +950,7 @@ function write_config_file(fileName)
    f:write(string.format('"compression_tolerance": %e,\n', config.compression_tolerance))
    f:write(string.format('"shear_tolerance": %e,\n', config.shear_tolerance))
    f:write(string.format('"M_inf": %e,\n', config.M_inf))
+
    f:write(string.format('"viscous": %s,\n', tostring(config.viscous)))
 
    f:write(string.format('"turbulence_model": "%s",\n',
@@ -959,18 +961,19 @@ function write_config_file(fileName)
 			 config.turbulence_schmidt_number))
    f:write(string.format('"max_mu_t_factor": %e,\n', config.max_mu_t_factor))
    f:write(string.format('"transient_mu_t_factor": %e,\n', config.transient_mu_t_factor))
-   f:write(string.format('"separate_update_for_k_omega_source": %s,\n', 
-			 tostring(config.separate_update_for_k_omega_source)))
+
+   f:write(string.format('"udf_source_terms_file": "%s",\n', config.udf_source_terms_file))
+   f:write(string.format('"udf_source_terms": %s,\n', tostring(config.udf_source_terms)))
 
    f:write(string.format('"reacting": %s,\n', tostring(config.reacting)))
    f:write(string.format('"reactions_file": "%s",\n', config.reactions_file))
-   f:write(string.format('"max_invalid_cells": %d,\n', config.max_invalid_cells))
+
    f:write(string.format('"control_count": %d,\n', config.control_count))
-   f:write(string.format('"udf_source_terms_file": "%s",\n', config.udf_source_terms_file))
-   f:write(string.format('"udf_source_terms": %s,\n', tostring(config.udf_source_terms)))
+   f:write(string.format('"nblock": %d,\n', #(blocks)))
+
+   f:write(string.format('"solid_domain_update_scheme": "%s",\n', config.solid_domain_update_scheme))
    f:write(string.format('"udf_solid_source_terms_file": "%s",\n', config.udf_solid_source_terms_file))
    f:write(string.format('"udf_solid_source_terms": %s,\n', tostring(config.udf_solid_source_terms)))
-   f:write(string.format('"nblock": %d,\n', #(blocks)))
    f:write(string.format('"nsolidblock": %d,\n', #solidBlocks))
    for i = 1, #blocks do
       f:write(blocks[i]:tojson())

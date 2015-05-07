@@ -72,6 +72,8 @@ void read_config_file()
     }
     GlobalConfig.separate_update_for_viscous_terms =
 	getJSONbool(jsonData, "separate_update_for_viscous_terms", false);
+    GlobalConfig.separate_update_for_k_omega_source =
+	getJSONbool(jsonData, "separate_update_for_k_omega_source", false);
     GlobalConfig.stringent_cfl = getJSONbool(jsonData, "stringent_cfl", false);
     GlobalConfig.adjust_invalid_cell_data =
 	getJSONbool(jsonData, "adjust_invalid_cell_data", false);
@@ -83,7 +85,7 @@ void read_config_file()
 	GlobalConfig.thermo_interpolator = InterpolateOption.rhoe;
     }
     GlobalConfig.apply_limiter = getJSONbool(jsonData, "apply_limiter", true);
-    GlobalConfig.extrema_clipping = getJSONbool(jsonData, "extreme_clipping", true);
+    GlobalConfig.extrema_clipping = getJSONbool(jsonData, "extrema_clipping", true);
     GlobalConfig.interpolate_in_local_frame = 
 	getJSONbool(jsonData, "interpolate_in_local_frame", true);
     try {
@@ -99,18 +101,15 @@ void read_config_file()
     GlobalConfig.moving_grid = getJSONbool(jsonData, "moving_grid", false);
     GlobalConfig.write_vertex_velocities = 
 	getJSONbool(jsonData, "write_vertex_velocities", false);
-    try {
-	string name = jsonData["solid_domain_update_scheme"].str;
-	GlobalConfig.solidDomainUpdateScheme = solidDomainUpdateSchemeFromName(name);
-    } catch (Exception e) {
-	GlobalConfig.solidDomainUpdateScheme = SolidDomainUpdate.pc;
-    }
 
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  interpolation_order: ", GlobalConfig.interpolation_order);
 	writeln("  gasdynamic_update_scheme: ",
 		gasdynamic_update_scheme_name(GlobalConfig.gasdynamic_update_scheme));
-	writeln("  separate_update_for_viscous_terms: ", GlobalConfig.separate_update_for_viscous_terms);
+	writeln("  separate_update_for_viscous_terms: ",
+		GlobalConfig.separate_update_for_viscous_terms);
+	writeln("  separate_update_for_k_omega_source: ",
+		GlobalConfig.separate_update_for_k_omega_source);
 	writeln("  stringent_cfl: ", GlobalConfig.stringent_cfl);
 	writeln("  adjust_invalid_cell_data: ", GlobalConfig.adjust_invalid_cell_data);
 	writeln("  max_invalid_cells: ", GlobalConfig.max_invalid_cells);
@@ -125,8 +124,6 @@ void read_config_file()
 	writeln("  compression_tolerance: ", GlobalConfig.compression_tolerance);
 	writeln("  moving_grid: ", GlobalConfig.moving_grid);
 	writeln("  write_vertex_velocities: ", GlobalConfig.write_vertex_velocities);
-	writeln("  solid_domain_update_scheme: ",
-		solidDomainUpdateSchemeName(GlobalConfig.solidDomainUpdateScheme));
     }
 
     // Parameters controlling viscous/molecular transport
@@ -202,27 +199,33 @@ void read_config_file()
     }
 
     // Read in any blocks in the solid domain.
+    try {
+	string name = jsonData["solid_domain_update_scheme"].str;
+	GlobalConfig.solidDomainUpdateScheme = solidDomainUpdateSchemeFromName(name);
+    } catch (Exception e) {
+	GlobalConfig.solidDomainUpdateScheme = SolidDomainUpdate.pc;
+    }
+    auto udf_solid_source_terms = getJSONbool(jsonData, "udf_solid_source_terms", false);
+    auto udf_solid_source_terms_file = jsonData["udf_solid_source_terms_file"].str;
     GlobalConfig.nSolidBlocks = getJSONint(jsonData, "nsolidblock", 0);
-    if (GlobalConfig.verbosity_level > 1) { writeln("  nSolidBlocks: ", GlobalConfig.nSolidBlocks); }
+    if (GlobalConfig.verbosity_level > 1) {
+	writeln("  solid_domain_update_scheme: ",
+		solidDomainUpdateSchemeName(GlobalConfig.solidDomainUpdateScheme));
+	writeln("  nSolidBlocks: ", GlobalConfig.nSolidBlocks);
+	writeln("  udf_solid_source_terms: ", udf_solid_source_terms);
+	writeln("  udf_solid_source_terms_file: ", udf_solid_source_terms_file);
+    }
     foreach (i; 0 .. GlobalConfig.nSolidBlocks) {
 	auto blk = new SSolidBlock(i, jsonData["solid_block_" ~ to!string(i)]);
+	if ( udf_solid_source_terms ) {
+	    // Add LuaStates to each solid block for UDF source terms, if necessary
+	    blk.udfSourceTerms = initUDFSolidSourceTerms(udf_solid_source_terms_file, blk.id);
+	}
 	allSolidBlocks ~= blk;
 	mySolidBlocks ~= blk; // Just make a copy, until we have to deal with MPI.
 	if (GlobalConfig.verbosity_level > 1) {
 	    writeln("  SolidBlock[", i, "]: ", mySolidBlocks[i]);
 	}
-    }
-    // Add LuaStates to each solid block for UDF source terms, if necessary
-    auto udf_solid_source_terms = getJSONbool(jsonData, "udf_solid_source_terms", false);
-    auto udf_solid_source_terms_file = jsonData["udf_solid_source_terms_file"].str;
-    if ( udf_solid_source_terms ) {
-	foreach (blk; mySolidBlocks) {
-	    blk.udfSourceTerms = initUDFSolidSourceTerms(udf_solid_source_terms_file, blk.id);
-	}
-    }
-    if ( GlobalConfig.verbosity_level > 1 ) {
-	writeln("  udf_solid_source_terms: ", udf_solid_source_terms);
-	writeln("  udf_solid_source_terms_file: ", udf_solid_source_terms_file);
     }
     
 } // end read_config_file()
