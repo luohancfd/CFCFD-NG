@@ -50,7 +50,7 @@ static SysTime wall_clock_start;
 
 //----------------------------------------------------------------------------
 
-double init_simulation(int tindx)
+double init_simulation(int tindx, int maxCPUs)
 {
     if (GlobalConfig.verbosity_level > 0) writeln("Begin init_simulation()...");
     wall_clock_start = Clock.currTime();
@@ -59,7 +59,8 @@ double init_simulation(int tindx)
     current_tindx = tindx;
     shared double sim_time;
     auto job_name = GlobalConfig.base_file_name;
-    writeln("Parallel version running on ", totalCPUs, " CPUs");
+    defaultPoolThreads(maxCPUs-1); // total = main thread + threads-in-Pool
+    writeln("Running on ", maxCPUs, " CPUs");
     foreach (myblk; parallel(myBlocks,1)) {
 	myblk.assemble_arrays();
 	myblk.bind_interfaces_and_vertices_to_cells();
