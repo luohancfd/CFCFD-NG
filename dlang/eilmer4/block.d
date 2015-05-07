@@ -12,6 +12,7 @@ import geom;
 import gas;
 import kinetics;
 import globalconfig;
+import globaldata;
 import fvcore;
 import fvcell;
 import fvinterface;
@@ -27,11 +28,10 @@ class Block {
 public:
     int id; // block identifier: assumed to be the same as the block number.
     string label;
-    bool active; // if true, block participates in the time integration
-    GasModel gmodel;
     LocalConfig myConfig;
-    ReactionUpdateScheme reaction_update;
     LuaState udf_source_terms;
+
+    bool active; // if true, block participates in the time integration
     double omegaz; // Angular velocity (in rad/s) of the rotating frame.
                    // There is only one component, about the z-axis.
     double mass_residual, energy_residual; // monitor these for steady state
@@ -42,6 +42,16 @@ public:
     FVCell[] active_cells; // collection of references to be used in foreach statements.
     FVInterface[] active_ifaces; // collection of references to all in-use interfaces
     BoundaryCondition[] bc; // collection of references to the boundary conditions
+
+    this(int id, string label)
+    {
+	this.id = id;
+	this.label = label;
+	myConfig = dedicatedConfig[id];
+	if (GlobalConfig.udf_source_terms) {
+	    udf_source_terms = initUDFSourceTerms(GlobalConfig.udf_source_terms_file, id);
+	}
+    }
 
     override string toString() const { return "Block(id=" ~ to!string(id) ~ ")"; }
 
@@ -67,10 +77,10 @@ public:
 	size_t total_cells_in_reaction_zones = 0;
 	size_t total_cells = 0;
 	foreach(cell; active_cells) {
-	    if ( GlobalConfig.reaction_zones.length > 0 ) {
+	    if ( myConfig.reaction_zones.length > 0 ) {
 		cell.fr_reactions_allowed = false;
-		foreach(rz; GlobalConfig.reaction_zones) {
-		    if ( rz.is_inside(cell.pos[gtl], GlobalConfig.dimensions) ) {
+		foreach(rz; myConfig.reaction_zones) {
+		    if ( rz.is_inside(cell.pos[gtl], myConfig.dimensions) ) {
 			cell.fr_reactions_allowed = true;
 		    }
 		} // foreach rz
@@ -97,10 +107,10 @@ public:
 	size_t total_cells_in_turbulent_zones = 0;
 	size_t total_cells = 0;
 	foreach(cell; active_cells) {
-	    if ( GlobalConfig.turbulent_zones.length > 0 ) {
+	    if ( myConfig.turbulent_zones.length > 0 ) {
 		cell.in_turbulent_zone = false;
-		foreach(tz; GlobalConfig.turbulent_zones) {
-		    if ( tz.is_inside(cell.pos[gtl], GlobalConfig.dimensions) ) {
+		foreach(tz; myConfig.turbulent_zones) {
+		    if ( tz.is_inside(cell.pos[gtl], myConfig.dimensions) ) {
 			cell.in_turbulent_zone = true;
 		    }
 		} // foreach tz
@@ -124,7 +134,7 @@ public:
 
     void estimate_turbulence_viscosity()
     {
-	final switch (GlobalConfig.turbulence_model) {
+	final switch (myConfig.turbulence_model) {
 	case TurbulenceModel.none:
 	    foreach (cell; active_cells) cell.turbulence_viscosity_zero();
 	    return;
@@ -133,12 +143,14 @@ public:
 	case TurbulenceModel.spalart_allmaras:
 	    throw new Error("Should implement Spalart-Allmaras some day.");
 	case TurbulenceModel.k_omega:
-	    foreach (cell; active_cells) cell.turbulence_viscosity_k_omega(gmodel);
+	    foreach (cell; active_cells) cell.turbulence_viscosity_k_omega();
 	    break;
 	}
+	auto transient_mu_t_factor = GlobalConfig.transient_mu_t_factor;
+	auto max_mu_t_factor = GlobalConfig.max_mu_t_factor;
 	foreach (cell; active_cells) {
-	    cell.turbulence_viscosity_factor(GlobalConfig.transient_mu_t_factor);
-	    cell.turbulence_viscosity_limit(GlobalConfig.max_mu_t_factor);
+	    cell.turbulence_viscosity_factor(transient_mu_t_factor);
+	    cell.turbulence_viscosity_limit(max_mu_t_factor);
 	    cell.turbulence_viscosity_zero_if_not_in_zone();
 	}
     } // end estimate_turbulence_viscosity()
@@ -200,7 +212,7 @@ public:
 
     void viscous_flux()
     {
-	auto vfwork = new ViscousFluxData(gmodel.n_species);
+	auto vfwork = new ViscousFluxData(myConfig.gmodel.n_species);
 	foreach (iface; active_ifaces) {
 	    vfwork.average_vertex_values(iface);
 	    vfwork.viscous_flux_calc(iface);
@@ -267,13 +279,13 @@ public:
     // Compute the local time step limit for all cells in the block.
     // The overall time step is limited by the worst-case cell.
     {
+	double cfl_value = GlobalConfig.cfl_value;
 	double dt_local;
 	double cfl_local;
 	double signal;
 	double cfl_allow; // allowable CFL number, t_order dependent
 	double dt_allow;
 	double cfl_min, cfl_max;
-
 	// The following limits allow the simulation of the sod shock tube
 	// to get just a little wobbly around the shock.
 	// Lower values of cfl should be used for a smooth solution.
@@ -285,9 +297,9 @@ public:
 	}
 	bool first = true;
 	foreach(FVCell cell; active_cells) {
-	    signal = cell.signal_frequency(gmodel);
+	    signal = cell.signal_frequency();
 	    cfl_local = dt_current * signal; // Current (Local) CFL number
-	    dt_local = GlobalConfig.cfl_value / signal; // Recommend a time step size.
+	    dt_local = cfl_value / signal; // Recommend a time step size.
 	    if ( first ) {
 		cfl_min = cfl_local;
 		cfl_max = cfl_local;

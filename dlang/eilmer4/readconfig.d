@@ -72,6 +72,7 @@ void read_config_file()
     }
     GlobalConfig.separate_update_for_viscous_terms =
 	getJSONbool(jsonData, "separate_update_for_viscous_terms", false);
+    GlobalConfig.stringent_cfl = getJSONbool(jsonData, "stringent_cfl", false);
     GlobalConfig.adjust_invalid_cell_data =
 	getJSONbool(jsonData, "adjust_invalid_cell_data", false);
     GlobalConfig.max_invalid_cells = getJSONint(jsonData, "max_invalid_cells", 0);
@@ -110,6 +111,7 @@ void read_config_file()
 	writeln("  gasdynamic_update_scheme: ",
 		gasdynamic_update_scheme_name(GlobalConfig.gasdynamic_update_scheme));
 	writeln("  separate_update_for_viscous_terms: ", GlobalConfig.separate_update_for_viscous_terms);
+	writeln("  stringent_cfl: ", GlobalConfig.stringent_cfl);
 	writeln("  adjust_invalid_cell_data: ", GlobalConfig.adjust_invalid_cell_data);
 	writeln("  max_invalid_cells: ", GlobalConfig.max_invalid_cells);
 	writeln("  thermo_interpolator: ",
@@ -185,12 +187,13 @@ void read_config_file()
     //
     GlobalConfig.nBlocks = getJSONint(jsonData, "nblock", 0);
     if (GlobalConfig.verbosity_level > 1) { writeln("  nBlocks: ", GlobalConfig.nBlocks); }
+    
+    // Set up dedicated copies of the configuration parameters for the threads.
+    // [TODO] Rowan, should we do this for the Solid blocks as well.
+    foreach (i; 0 .. GlobalConfig.nBlocks) dedicatedConfig ~= new LocalConfig();
+
     foreach (i; 0 .. GlobalConfig.nBlocks) {
 	auto blk = new SBlock(i, jsonData["block_" ~ to!string(i)]);
-	// Add LuaStates to each block for UDF source terms, if necessary
-	if (GlobalConfig.udf_source_terms) {
-	    blk.udf_source_terms = initUDFSourceTerms(GlobalConfig.udf_source_terms_file, blk.id);
-	}
 	if (GlobalConfig.verbosity_level > 1) {
 	    writeln("  Block[", i, "]: ", myBlocks[i]);
 	}
@@ -222,10 +225,6 @@ void read_config_file()
 	writeln("  udf_solid_source_terms_file: ", udf_solid_source_terms_file);
     }
     
-    // Set up dedicated copies of the configuration parameters for the threads.
-    // [TODO] Rowan, should we do this for the Solid blocks as well.
-    foreach (i; 0 .. GlobalConfig.nBlocks) myConfig ~= new LocalConfig();
-    
 } // end read_config_file()
 
 void read_control_file()
@@ -255,7 +254,6 @@ void read_control_file()
     GlobalConfig.dt_init = getJSONdouble(jsonData, "dt_init", 1.0e-6);
     GlobalConfig.dt_max = getJSONdouble(jsonData, "dt_max", 1.0-3);
     GlobalConfig.cfl_value = getJSONdouble(jsonData, "cfl_value", 0.5);
-    GlobalConfig.stringent_cfl = getJSONbool(jsonData, "stringent_cfl", false);
     GlobalConfig.fixed_time_step = getJSONbool(jsonData, "fixed_time_step", false);
     GlobalConfig.dt_reduction_factor = getJSONdouble(jsonData, "dt_reduction_factor", 0.2);
     GlobalConfig.write_at_step = getJSONint(jsonData, "write_at_step", 0);
@@ -271,7 +269,6 @@ void read_control_file()
 	writeln("  dt_init: ", GlobalConfig.dt_init);
 	writeln("  dt_max: ", GlobalConfig.dt_max);
 	writeln("  cfl_value: ", GlobalConfig.cfl_value);
-	writeln("  stringent_cfl: ", GlobalConfig.stringent_cfl);
 	writeln("  dt_reduction_factor: ", GlobalConfig.dt_reduction_factor);
 	writeln("  fixed_time_step: ", GlobalConfig.fixed_time_step);
 	writeln("  write_at_step: ", GlobalConfig.write_at_step);

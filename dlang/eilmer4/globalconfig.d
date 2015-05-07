@@ -13,6 +13,7 @@ import std.stdio;
 import std.string;
 
 import gas;
+import kinetics;
 import geom;
 import fvcore;
 import solidfvcore;
@@ -301,15 +302,23 @@ final class GlobalConfig {
 } // end class GlobalConfig
 
 
-// A place to store configuration parameters that are in memory dedicated to a thread.
-// We will want to access them frequently at the lower levels of the code without
-// having to guard them with memory barriers.
+// A place to store configuration parameters that are in memory that can be 
+// dedicated to a thread.   We will want to access them frequently 
+// at the lower levels of the code without having to guard them with memory barriers.
 class LocalConfig {
 public:
     int dimensions;
     bool axisymmetric;
     GasdynamicUpdate gasdynamic_update_scheme;
     bool separate_update_for_viscous_terms;
+    bool separate_update_for_k_omega_source;
+    bool adjust_invalid_cell_data;
+    int interpolation_order;
+    InterpolateOption thermo_interpolator;
+    bool apply_limiter;
+    bool extrema_clipping;
+    bool interpolate_in_local_frame;
+    FluxCalculator flux_calculator;
     double shear_tolerance;
     double M_inf;
     double compression_tolerance;
@@ -344,12 +353,25 @@ public:
     bool MHD;
     int BGK;
 
+    bool stringent_cfl;
+
+    GasModel gmodel;
+    ReactionUpdateScheme reaction_update;
+
     this() 
     {
 	dimensions = GlobalConfig.dimensions;
 	axisymmetric = GlobalConfig.axisymmetric;
 	gasdynamic_update_scheme = GlobalConfig.gasdynamic_update_scheme;
 	separate_update_for_viscous_terms = GlobalConfig.separate_update_for_viscous_terms;
+	separate_update_for_k_omega_source = GlobalConfig.separate_update_for_k_omega_source;
+	adjust_invalid_cell_data = GlobalConfig.adjust_invalid_cell_data;
+	interpolation_order = GlobalConfig.interpolation_order;
+	thermo_interpolator = GlobalConfig.thermo_interpolator;
+	apply_limiter = GlobalConfig.apply_limiter;
+	extrema_clipping = GlobalConfig.extrema_clipping;
+	interpolate_in_local_frame = GlobalConfig.interpolate_in_local_frame;
+	flux_calculator = GlobalConfig.flux_calculator;
 	shear_tolerance = GlobalConfig.shear_tolerance;
 	M_inf = GlobalConfig.M_inf;
 	compression_tolerance = GlobalConfig.compression_tolerance;
@@ -383,5 +405,11 @@ public:
 	electric_field_work = GlobalConfig.electric_field_work;
 	MHD = GlobalConfig.MHD;
 	BGK = GlobalConfig.BGK;
+
+	stringent_cfl = GlobalConfig.stringent_cfl;
+
+	gmodel = init_gas_model(GlobalConfig.gas_model_file);
+	if (GlobalConfig.reacting)
+	    reaction_update = new ReactionUpdateScheme(GlobalConfig.reactions_file, gmodel);
     }
 } // end class LocalConfig

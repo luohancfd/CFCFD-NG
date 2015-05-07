@@ -25,4 +25,4 @@ static SSolidBlock[] mySolidBlocks;
 // The current parallel code is based on having one SBlock per thread.
 // We need to hava a dedicated set of configuration parameters for each thread so that
 // there is no need to have memory barriers guarding their access.
-static LocalConfig[] myConfig;
+static LocalConfig[] dedicatedConfig;

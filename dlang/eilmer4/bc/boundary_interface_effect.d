@@ -98,7 +98,7 @@ class BIE_CopyCellData : BoundaryInterfaceEffect {
 	FVCell cell;
 	FVInterface IFace;
 	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -189,7 +189,7 @@ class BIE_ZeroVelocity : BoundaryInterfaceEffect {
 	FVCell cell;
 	FVInterface IFace;
 	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -284,7 +284,7 @@ public:
 	FVCell cell;
 	FVInterface IFace;
 	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -375,7 +375,7 @@ class BIE_UpdateThermoTransCoeffs : BoundaryInterfaceEffect {
 	FVCell cell;
 	FVInterface IFace;
 	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -478,7 +478,7 @@ class BIE_WallKOmega : BoundaryInterfaceEffect {
 	FVCell cell;
 	FVInterface IFace;
 	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:

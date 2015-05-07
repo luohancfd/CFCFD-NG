@@ -125,7 +125,7 @@ private:
     void putFlowStateIntoGhostCell(LuaTable t, FVCell ghostCell)
     {
 	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 	try {
 	    ghostCell.fs.gas.p = t.get!double("p");
 	    getArray!double(t.get!LuaTable("T"), ghostCell.fs.gas.T, "T");

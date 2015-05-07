@@ -28,18 +28,12 @@ private:
     double two_over_lenR1_plus_lenR0;
     double two_lenL0_plus_lenL1;
     double two_lenR0_plus_lenR1;
-    GasModel gmodel;
-    size_t nsp;
-    size_t nmodes;
-
+    LocalConfig myConfig;
 
 public:
-    this(GasModel gmodel) 
+    this(LocalConfig myConfig) 
     {
-	this.gmodel = gmodel;
-	nsp = gmodel.n_species;
-	nmodes = gmodel.n_modes;
-
+	this.myConfig = myConfig;
     }
 
     @nogc void both_prepare(double lenL1, double lenL0, double lenR0, double lenR1)
@@ -75,7 +69,7 @@ public:
 	delLminus = (qL0 - qL1) * two_over_lenL0_plus_lenL1;
 	del = (qR0 - qL0) * two_over_lenR0_plus_lenL0;
 	delRplus = (qR1 - qR0) * two_over_lenR1_plus_lenR0;
-	if ( GlobalConfig.apply_limiter ) {
+	if ( myConfig.apply_limiter ) {
 	    // val Albada limiter as per Ian Johnston's thesis.
 	    sL = (delLminus*del + fabs(delLminus*del)) / 
 		(delLminus*delLminus + del*del + epsilon_van_albada);
@@ -89,7 +83,7 @@ public:
 	// The actual high-order reconstruction, possibly limited.
 	qL = qL0 + sL * aL0 * ( del * two_lenL0_plus_lenL1 + delLminus * lenR0_ );
 	qR = qR0 - sR * aR0 * ( delRplus * lenL0_ + del * two_lenR0_plus_lenR1 );
-	if ( GlobalConfig.extrema_clipping ) {
+	if ( myConfig.extrema_clipping ) {
 	    // An extra limiting filter to ensure that we do not compute new extreme values.
 	    // This was introduced to deal with very sharp transitions in species.
 	    qL = clip_to_limits(qL, qL0, qR0);
@@ -112,14 +106,14 @@ public:
 	double delLminus, del, sL;
 	delLminus = (qL0 - qL1) * two_over_lenL0_plus_lenL1;
 	del = (qR0 - qL0) * two_over_lenR0_plus_lenL0;
-	if ( GlobalConfig.apply_limiter ) {
+	if ( myConfig.apply_limiter ) {
 	    sL = (delLminus*del + fabs(delLminus*del)) /
 		(delLminus*delLminus + del*del + epsilon_van_albada);
 	} else {
 	    sL = 1.0;
 	}
 	qL = qL0 + sL * aL0 * ( del * two_lenL0_plus_lenL1 + delLminus * lenR0_ );
-	if ( GlobalConfig.extrema_clipping ) {
+	if ( myConfig.extrema_clipping ) {
 	    qL = clip_to_limits(qL, qL0, qR0);
 	}
     } // end of interp_left_scalar()
@@ -139,14 +133,14 @@ public:
 	double del, delRplus, sR;
 	del = (qR0 - qL0) * two_over_lenR0_plus_lenL0;
 	delRplus = (qR1 - qR0) * two_over_lenR1_plus_lenR0;
-	if ( GlobalConfig.apply_limiter ) {
+	if ( myConfig.apply_limiter ) {
 	    sR = (del*delRplus + fabs(del*delRplus)) /
 		(del*del + delRplus*delRplus + epsilon_van_albada);
 	} else {
 	    sR = 1.0;
 	}
 	qR = qR0 - sR * aR0 * ( delRplus * lenL0_ + del * two_lenR0_plus_lenR1 );
-	if ( GlobalConfig.extrema_clipping ) {
+	if ( myConfig.extrema_clipping ) {
 	    qR = clip_to_limits(qR, qL0, qR0);
 	}
     } // end of interp_right_scalar()
@@ -159,14 +153,17 @@ public:
 			   in double cR0Length, in double cR1Length, 
 			   ref FlowState Lft, ref FlowState Rght)
     {
+	auto gmodel = myConfig.gmodel;
+	auto nsp = gmodel.n_species;
+	auto nmodes = gmodel.n_modes;
 	// Low-order reconstruction just copies data from adjacent FV_Cell.
 	// Even for high-order reconstruction, we depend upon this copy for
 	// the viscous-transport and diffusion coefficients.
 	Lft.copy_values_from(cL0.fs);
 	Rght.copy_values_from(cR0.fs);
-	if ( GlobalConfig.interpolation_order > 1 ) {
+	if ( myConfig.interpolation_order > 1 ) {
 	    // High-order reconstruction for some properties.
-	    if ( GlobalConfig.interpolate_in_local_frame ) {
+	    if ( myConfig.interpolate_in_local_frame ) {
 		// Paul Petrie-Repar and Jason Qin have noted that the velocity needs
 		// to be reconstructed in the interface-local frame of reference so that
 		// the normal velocities are not messed up for mirror-image at walls.
@@ -183,7 +180,7 @@ public:
 			       Lft.vel.refy, Rght.vel.refy);
 	    interp_both_scalar(cL1.fs.vel.z, cL0.fs.vel.z, cR0.fs.vel.z, cR1.fs.vel.z,
 			       Lft.vel.refz, Rght.vel.refz);
-	    if ( GlobalConfig.MHD ) {
+	    if ( myConfig.MHD ) {
 		interp_both_scalar(cL1.fs.B.x, cL0.fs.B.x, cR0.fs.B.x, cR1.fs.B.x,
 				   Lft.B.refx, Rght.B.refx);
 		interp_both_scalar(cL1.fs.B.y, cL0.fs.B.y, cR0.fs.B.y, cR1.fs.B.y,
@@ -191,7 +188,7 @@ public:
 		interp_both_scalar(cL1.fs.B.z, cL0.fs.B.z, cR0.fs.B.z, cR1.fs.B.z,
 				   Lft.B.refz, Rght.B.refz);
 	    }
-	    if ( GlobalConfig.turbulence_model == TurbulenceModel.k_omega ) {
+	    if ( myConfig.turbulence_model == TurbulenceModel.k_omega ) {
 		interp_both_scalar(cL1.fs.tke, cL0.fs.tke, cR0.fs.tke, cR1.fs.tke,
 				   Lft.tke, Rght.tke);
 		interp_both_scalar(cL1.fs.omega, cL0.fs.omega, cR0.fs.omega, cR1.fs.omega,
@@ -226,7 +223,7 @@ public:
 	    // and fill in the rest based on an EOS call. 
 	    // If an EOS call fails, fall back to just copying cell-centre data.
 	    // This does presume that the cell-centre data is valid. 
-	    final switch ( GlobalConfig.thermo_interpolator ) {
+	    final switch ( myConfig.thermo_interpolator ) {
 	    case InterpolateOption.pt: 
 		interp_both_scalar(gL1.p, gL0.p, gR0.p, gR1.p, Lft.gas.p, Rght.gas.p);
 		for ( size_t i = 0; i < nmodes; ++i ) {
@@ -290,7 +287,7 @@ public:
 		}
 		break;
 	    } // end switch thermo_interpolator
-	    if ( GlobalConfig.interpolate_in_local_frame ) {
+	    if ( myConfig.interpolate_in_local_frame ) {
 		// Undo the transformation made earlier. PJ 21-feb-2012
 		Lft.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
 		Rght.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
@@ -308,14 +305,17 @@ public:
 		     in double cL1Length, in double cL0Length, in double cR0Length,
 		     ref FlowState Lft, ref FlowState Rght)
     {
+	auto gmodel = myConfig.gmodel;
+	auto nsp = gmodel.n_species;
+	auto nmodes = gmodel.n_modes;
 	// Low-order reconstruction just copies data from adjacent FV_Cell.
 	// Even for high-order reconstruction, we depend upon this copy for
 	// the viscous-transport and diffusion coefficients.
 	Lft.copy_values_from(cL0.fs);
 	Rght.copy_values_from(cR0.fs);
-	if ( GlobalConfig.interpolation_order > 1 ) {
+	if ( myConfig.interpolation_order > 1 ) {
 	    // High-order reconstruction for some properties.
-	    if ( GlobalConfig.interpolate_in_local_frame ) {
+	    if ( myConfig.interpolate_in_local_frame ) {
 		// In the interface-local frame.
 		cL1.fs.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
 		cL0.fs.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
@@ -325,12 +325,12 @@ public:
 	    interp_left_scalar(cL1.fs.vel.x, cL0.fs.vel.x, cR0.fs.vel.x, Lft.vel.refx);
 	    interp_left_scalar(cL1.fs.vel.y, cL0.fs.vel.y, cR0.fs.vel.y, Lft.vel.refy);
 	    interp_left_scalar(cL1.fs.vel.z, cL0.fs.vel.z, cR0.fs.vel.z, Lft.vel.refz);
-	    if ( GlobalConfig.MHD ) {
+	    if ( myConfig.MHD ) {
 		interp_left_scalar(cL1.fs.B.x, cL0.fs.B.x, cR0.fs.B.x, Lft.B.refx);
 		interp_left_scalar(cL1.fs.B.y, cL0.fs.B.y, cR0.fs.B.y, Lft.B.refy);
 		interp_left_scalar(cL1.fs.B.z, cL0.fs.B.z, cR0.fs.B.z, Lft.B.refz);
 	    }
-	    if ( GlobalConfig.turbulence_model == TurbulenceModel.k_omega ) {
+	    if ( myConfig.turbulence_model == TurbulenceModel.k_omega ) {
 		interp_left_scalar(cL1.fs.tke, cL0.fs.tke, cR0.fs.tke, Lft.tke);
 		interp_left_scalar(cL1.fs.omega, cL0.fs.omega, cR0.fs.omega, Lft.omega);
 	    }
@@ -353,7 +353,7 @@ public:
 	    // and fill in the rest based on an EOS call. 
 	    // If an EOS call fails, fall back to just copying cell-centre data.
 	    // This does presume that the cell-centre data is valid. 
-	    final switch ( GlobalConfig.thermo_interpolator ) {
+	    final switch ( myConfig.thermo_interpolator ) {
 	    case InterpolateOption.pt: 
 		interp_left_scalar(gL1.p, gL0.p, gR0.p, Lft.gas.p);
 		for ( size_t i = 0; i < nmodes; ++i ) {
@@ -397,7 +397,7 @@ public:
 		}
 		break;
 	    } // end switch thermo_interpolator
-	    if ( GlobalConfig.interpolate_in_local_frame ) {
+	    if ( myConfig.interpolate_in_local_frame ) {
 		// Undo the transformation made earlier.
 		Lft.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
 		cL1.fs.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
@@ -417,14 +417,17 @@ public:
     // This is essentially a one-dimensional interpolation process.  It needs only
     // the cell-average data and the lengths of the cells in the interpolation direction.
     {
+	auto gmodel = myConfig.gmodel;
+	auto nsp = gmodel.n_species;
+	auto nmodes = gmodel.n_modes;
 	// Low-order reconstruction just copies data from adjacent FV_Cell.
 	// Even for high-order reconstruction, we depend upon this copy for
 	// the viscous-transport and diffusion coefficients.
 	Lft.copy_values_from(cL0.fs);
 	Rght.copy_values_from(cR0.fs);
-	if ( GlobalConfig.interpolation_order > 1 ) {
+	if ( myConfig.interpolation_order > 1 ) {
 	    // High-order reconstruction for some properties.
-	    if ( GlobalConfig.interpolate_in_local_frame ) {
+	    if ( myConfig.interpolate_in_local_frame ) {
 		// In the interface-local frame.
 		cL0.fs.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
 		cR0.fs.vel.transform_to_local_frame(IFace.n, IFace.t1, IFace.t2);
@@ -434,12 +437,12 @@ public:
 	    interp_right_scalar(cL0.fs.vel.x, cR0.fs.vel.x, cR1.fs.vel.x, Rght.vel.refx);
 	    interp_right_scalar(cL0.fs.vel.y, cR0.fs.vel.y, cR1.fs.vel.y, Rght.vel.refy);
 	    interp_right_scalar(cL0.fs.vel.z, cR0.fs.vel.z, cR1.fs.vel.z, Rght.vel.refz);
-	    if ( GlobalConfig.MHD ) {
+	    if ( myConfig.MHD ) {
 		interp_right_scalar(cL0.fs.B.x, cR0.fs.B.x, cR1.fs.B.x, Rght.B.refx);
 		interp_right_scalar(cL0.fs.B.y, cR0.fs.B.y, cR1.fs.B.y, Rght.B.refy);
 		interp_right_scalar(cL0.fs.B.z, cR0.fs.B.z, cR1.fs.B.z, Rght.B.refz);
 	    }
-	    if ( GlobalConfig.turbulence_model == TurbulenceModel.k_omega ) {
+	    if ( myConfig.turbulence_model == TurbulenceModel.k_omega ) {
 		interp_right_scalar(cL0.fs.tke, cR0.fs.tke, cR1.fs.tke, Rght.tke);
 		interp_right_scalar(cL0.fs.omega, cR0.fs.omega, cR1.fs.omega, Rght.omega);
 	    }
@@ -462,7 +465,7 @@ public:
 	    // and fill in the rest based on an EOS call. 
 	    // If an EOS call fails, fall back to just copying cell-centre data.
 	    // This does presume that the cell-centre data is valid. 
-	    final switch ( GlobalConfig.thermo_interpolator ) {
+	    final switch ( myConfig.thermo_interpolator ) {
 	    case InterpolateOption.pt: 
 		interp_right_scalar(gL0.p, gR0.p, gR1.p, Rght.gas.p);
 		for ( size_t i = 0; i < nmodes; ++i ) {
@@ -506,7 +509,7 @@ public:
 		}
 		break;
 	    } // end switch thermo_interpolator
-	    if ( GlobalConfig.interpolate_in_local_frame ) {
+	    if ( myConfig.interpolate_in_local_frame ) {
 		// Undo the transformation made earlier.
 		Rght.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);
 		cL0.fs.vel.transform_to_global_frame(IFace.n, IFace.t1, IFace.t2);

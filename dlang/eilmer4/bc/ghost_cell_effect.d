@@ -398,7 +398,7 @@ public:
 	FVCell src_cell, dest_cell;
 	FVCell cell_1, cell_2;
 	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 	size_t nsp = gmodel.n_species;
 	size_t nmodes = gmodel.n_modes;
 
@@ -884,7 +884,7 @@ public:
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
 	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:

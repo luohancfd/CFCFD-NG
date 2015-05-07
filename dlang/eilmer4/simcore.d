@@ -60,7 +60,7 @@ double init_simulation(int tindx)
     shared double sim_time;
     auto job_name = GlobalConfig.base_file_name;
     writeln("Parallel version running on ", totalCPUs, " CPUs");
-    foreach (ref myblk; parallel(myBlocks,1)) {
+    foreach (myblk; parallel(myBlocks,1)) {
 	myblk.assemble_arrays();
 	myblk.bind_interfaces_and_vertices_to_cells();
 	myblk.bind_vertices_and_cells_to_interfaces();
@@ -70,19 +70,19 @@ double init_simulation(int tindx)
 	// They should all have the same value for it.
 	sim_time = myblk.read_solution(make_file_name!"flow"(job_name, myblk.id, tindx));
     }
-    foreach (ref myblk; parallel(myBlocks,1)) {
+    foreach (myblk; parallel(myBlocks,1)) {
 	myblk.compute_primary_cell_geometric_data(0);
 	myblk.compute_distance_to_nearest_wall_for_all_cells(0);
 	myblk.compute_secondary_cell_geometric_data(0);
 	myblk.identify_reaction_zones(0);
 	myblk.identify_turbulent_zones(0);
 	myblk.set_grid_velocities(sim_time);
-	foreach (ref cell; myblk.active_cells) {
+	foreach (cell; myblk.active_cells) {
 	    cell.encode_conserved(0, 0, myblk.omegaz);
 	    // Even though the following call appears redundant at this point,
 	    // fills in some gas properties such as Prandtl number that is
 	    // needed for both the cfd_check and the BLomax turbulence model.
-	    cell.decode_conserved(0, 0, myblk.omegaz, myblk.gmodel);
+	    cell.decode_conserved(0, 0, myblk.omegaz);
 	}
 	myblk.set_cell_dt_chem(-1.0);
     }
@@ -150,7 +150,7 @@ double integrate_in_time(double target_time, int maxWallClock)
 	    // Adjust the time step  
 	    shared double dt_allow = 1.0e9; // Start with too large a guess to ensure it is replaced.
 	    // [TODO] for parallel, need to reduce across myBlocks
-	    foreach (ref myblk; myBlocks) {
+	    foreach (myblk; myBlocks) {
 		if (!myblk.active) continue;
 		dt_allow = min(dt_allow, myblk.determine_time_step_size(dt_global)); 
 	    }
@@ -168,7 +168,7 @@ double integrate_in_time(double target_time, int maxWallClock)
 	} // end if do_cfl_check_now 
 
         // 2. Attempt a time step.
-	foreach (ref myblk; parallel(myBlocks,1)) {
+	foreach (myblk; parallel(myBlocks,1)) {
 	    myblk.set_grid_velocities(sim_time); 
 	    // [TODO] We will need to attend to moving grid properly.
 	}
@@ -182,8 +182,9 @@ double integrate_in_time(double target_time, int maxWallClock)
 	if ( GlobalConfig.reacting ) {
 	    foreach (blk; parallel(myBlocks,1)) {
 		if (!blk.active) continue;
-		foreach ( i, cell; blk.active_cells) {
-		    cell.chemical_increment(dt_global, 300.0, blk.gmodel, blk.reaction_update);
+		double local_dt_global = dt_global;
+		foreach (cell; blk.active_cells) {
+		    cell.chemical_increment(local_dt_global, 300.0);
 		}
 	    }
 	}
@@ -329,7 +330,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
     foreach (blk; parallel(myBlocks,1)) {
 	if (!blk.active) continue;
 	blk.convective_flux();
-	if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
+	if (blk.myConfig.viscous && !blk.myConfig.separate_update_for_viscous_terms) {
 	    blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
 	    blk.flow_property_derivatives(gtl); 
 	    blk.estimate_turbulence_viscosity();
@@ -345,16 +346,18 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	double local_sim_time = sim_time;
 	foreach (cell; blk.active_cells) {
 	    cell.add_inviscid_source_vector(local_gtl, blk.omegaz);
-	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
+	    if (blk.myConfig.viscous && !blk.myConfig.separate_update_for_viscous_terms) {
 		cell.add_viscous_source_vector(local_with_k_omega);
 	    }
 	    if (blk.udf_source_terms) {
-		addUDFSourceTermsToCell(blk.udf_source_terms, cell, local_gtl, local_sim_time, blk.gmodel);
+		addUDFSourceTermsToCell(blk.udf_source_terms, cell, local_gtl, local_sim_time,
+					blk.myConfig.gmodel);
 	    }
-	    cell.time_derivatives(local_gtl, local_ftl, GlobalConfig.dimensions, local_with_k_omega);
+	    cell.time_derivatives(local_gtl, local_ftl, local_with_k_omega);
 	    bool force_euler = false;
-	    cell.stage_1_update_for_flow_on_fixed_grid(local_dt_global, force_euler, local_with_k_omega);
-	    cell.decode_conserved(local_gtl, local_ftl+1, blk.omegaz, blk.gmodel);
+	    cell.stage_1_update_for_flow_on_fixed_grid(local_dt_global, force_euler,
+						       local_with_k_omega);
+	    cell.decode_conserved(local_gtl, local_ftl+1, blk.omegaz);
 	} // end foreach cell
     } // end foreach blk
     //
@@ -379,7 +382,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	foreach (blk; parallel(myBlocks,1)) {
 	    if (!blk.active) continue;
 	    blk.convective_flux();
-	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
+	    if (blk.myConfig.viscous && !blk.myConfig.separate_update_for_viscous_terms) {
 		blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
 		blk.flow_property_derivatives(gtl); 
 		blk.estimate_turbulence_viscosity();
@@ -395,15 +398,16 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    double local_sim_time = sim_time;
 	    foreach (cell; blk.active_cells) {
 		cell.add_inviscid_source_vector(local_gtl, blk.omegaz);
-		if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
+		if (blk.myConfig.viscous && !blk.myConfig.separate_update_for_viscous_terms) {
 		    cell.add_viscous_source_vector(local_with_k_omega);
 		}
 		if (blk.udf_source_terms) {
-		    addUDFSourceTermsToCell(blk.udf_source_terms, cell, local_gtl, local_sim_time, blk.gmodel);
+		    addUDFSourceTermsToCell(blk.udf_source_terms, cell, local_gtl,
+					    local_sim_time, blk.myConfig.gmodel);
 		}
-		cell.time_derivatives(local_gtl, local_ftl, GlobalConfig.dimensions, local_with_k_omega);
+		cell.time_derivatives(local_gtl, local_ftl, local_with_k_omega);
 		cell.stage_2_update_for_flow_on_fixed_grid(dt_global, local_with_k_omega);
-		cell.decode_conserved(local_gtl, local_ftl+1, blk.omegaz, blk.gmodel);
+		cell.decode_conserved(local_gtl, local_ftl+1, blk.omegaz);
 	    } // end foreach cell
 	} // end foreach blk
     } // end if number_of_stages_for_update_scheme >= 2 
@@ -426,7 +430,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	foreach (blk; parallel(myBlocks,1)) {
 	    if (!blk.active) continue;
 	    blk.convective_flux();
-	    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
+	    if (blk.myConfig.viscous && !blk.myConfig.separate_update_for_viscous_terms) {
 		blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
 		blk.flow_property_derivatives(gtl); 
 		blk.estimate_turbulence_viscosity();
@@ -442,32 +446,33 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    double local_sim_time = sim_time;
 	    foreach (cell; blk.active_cells) {
 		cell.add_inviscid_source_vector(local_gtl, blk.omegaz);
-		if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
+		if (blk.myConfig.viscous && !blk.myConfig.separate_update_for_viscous_terms) {
 		    cell.add_viscous_source_vector(local_with_k_omega);
 		}
 		if (blk.udf_source_terms) {
-		    addUDFSourceTermsToCell(blk.udf_source_terms, cell, local_gtl, local_sim_time, blk.gmodel);
+		    addUDFSourceTermsToCell(blk.udf_source_terms, cell, local_gtl,
+					    local_sim_time, blk.myConfig.gmodel);
 		}
-		cell.time_derivatives(local_gtl, local_ftl, GlobalConfig.dimensions, local_with_k_omega);
+		cell.time_derivatives(local_gtl, local_ftl, local_with_k_omega);
 		bool force_euler = false;
 		cell.stage_2_update_for_flow_on_fixed_grid(local_dt_global, with_k_omega);
-		cell.decode_conserved(local_gtl, local_ftl+1, blk.omegaz, blk.gmodel);
+		cell.decode_conserved(local_gtl, local_ftl+1, blk.omegaz);
 	    } // end foreach cell
 	} // end foreach blk
     } // end if number_of_stages_for_update_scheme >= 3
     //
     // Get the end conserved data into U[0] for next step.
-    size_t end_indx = 2;
-    final switch (GlobalConfig.gasdynamic_update_scheme) {
-    case GasdynamicUpdate.euler: end_indx = 1; break;
-    case GasdynamicUpdate.pc: 
-    case GasdynamicUpdate.midpoint: end_indx = 2; break;
-    case GasdynamicUpdate.tvd_rk3:
-    case GasdynamicUpdate.classic_rk3:
-    case GasdynamicUpdate.denman_rk3: end_indx = 3; break;
-    }
     foreach (blk; parallel(myBlocks,1)) {
 	if (!blk.active) continue;
+	size_t end_indx = 2;
+	final switch (GlobalConfig.gasdynamic_update_scheme) {
+	case GasdynamicUpdate.euler: end_indx = 1; break;
+	case GasdynamicUpdate.pc: 
+	case GasdynamicUpdate.midpoint: end_indx = 2; break;
+	case GasdynamicUpdate.tvd_rk3:
+	case GasdynamicUpdate.classic_rk3:
+	case GasdynamicUpdate.denman_rk3: end_indx = 3; break;
+	}
 	foreach (cell; blk.active_cells) {
 	    swap(cell.U[0], cell.U[end_indx]);
 	}

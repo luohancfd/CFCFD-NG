@@ -22,6 +22,7 @@ import geom;
 import gas;
 import kinetics;
 import globalconfig;
+import globaldata;
 import flowstate;
 import fluxcalc;
 import viscousflux;
@@ -74,12 +75,9 @@ private:
     OneDInterpolator one_d;
 
 public:
-    this(int id, size_t nicell, size_t njcell, size_t nkcell)
+    this(int id, size_t nicell, size_t njcell, size_t nkcell, string label)
     {
-	this.id = id;
-	gmodel = init_gas_model(GlobalConfig.gas_model_file);
-	if ( GlobalConfig.reacting )
-	    reaction_update = new ReactionUpdateScheme(GlobalConfig.reactions_file, gmodel);
+	super(id, label);
 	this.nicell = nicell;
 	this.njcell = njcell;
 	this.nkcell = nkcell;
@@ -106,19 +104,18 @@ public:
 	    kmin = nghost; kmax = kmin + nkcell - 1;
 	}
 	// Workspace for flux_calc method.
-	Lft = new FlowState(gmodel);
-	Rght = new FlowState(gmodel);
-	one_d = new OneDInterpolator(gmodel);
+	Lft = new FlowState(dedicatedConfig[id].gmodel);
+	Rght = new FlowState(dedicatedConfig[id].gmodel);
+	one_d = new OneDInterpolator(dedicatedConfig[id]);
     } // end constructor
 
     this(in int id, JSONValue json_data)
     {
-	this.id = id;
 	nicell = getJSONint(json_data, "nic", 0);
 	njcell = getJSONint(json_data, "njc", 0);
 	nkcell = getJSONint(json_data, "nkc", 0);
-	this(id, nicell, njcell, nkcell);
 	label = getJSONstring(json_data, "label", "");
+	this(id, nicell, njcell, nkcell, label);
 	active = getJSONbool(json_data, "active", true);
 	omegaz = getJSONdouble(json_data, "omegaz", 0.0);
 	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
@@ -141,7 +138,7 @@ public:
 	repr ~= ", njcell=" ~ to!string(njcell);
 	repr ~= ", nkcell=" ~ to!string(nkcell);
 	repr ~= ", \n    bc=["~ face_name[0] ~ "=" ~ to!string(bc[0]);
-	foreach (i; 1 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
+	foreach (i; 1 .. (myConfig.dimensions == 3 ? 6 : 4)) {
 	    repr ~= ",\n        " ~ face_name[i] ~ "=" ~ to!string(bc[i]);
 	}
 	repr ~= "\n       ]"; // end bc list
@@ -190,38 +187,38 @@ public:
 	try {
 	    // Create the cell and interface objects for the entire block.
 	    foreach (gid; 0 .. ntot) {
-		_ctr ~= new FVCell(gmodel); _ctr[gid].id = to!int(gid);
+		_ctr ~= new FVCell(myConfig); _ctr[gid].id = to!int(gid);
 		auto ijk = to_ijk_indices(gid);
 		if ( ijk[0] >= imin && ijk[0] <= imax && 
 		     ijk[1] >= jmin && ijk[1] <= jmax && 
 		     ijk[2] >= kmin && ijk[2] <= kmax ) {
 		    active_cells ~= _ctr[gid];
 		}
-		_ifi ~= new FVInterface(gmodel); _ifi[gid].id = gid;
+		_ifi ~= new FVInterface(myConfig.gmodel); _ifi[gid].id = gid;
 		if ( ijk[0] >= imin && ijk[0] <= imax+1 && 
 		     ijk[1] >= jmin && ijk[1] <= jmax && 
 		     ijk[2] >= kmin && ijk[2] <= kmax ) {
 		    active_ifaces ~= _ifi[gid];
 		}
-		_ifj ~= new FVInterface(gmodel); _ifj[gid].id = gid;
+		_ifj ~= new FVInterface(myConfig.gmodel); _ifj[gid].id = gid;
 		if ( ijk[0] >= imin && ijk[0] <= imax && 
 		     ijk[1] >= jmin && ijk[1] <= jmax+1 && 
 		     ijk[2] >= kmin && ijk[2] <= kmax ) {
 		    active_ifaces ~= _ifj[gid];
 		}
-		if ( GlobalConfig.dimensions == 3 ) {
-		    _ifk ~= new FVInterface(gmodel); _ifk[gid].id = gid;
+		if ( myConfig.dimensions == 3 ) {
+		    _ifk ~= new FVInterface(myConfig.gmodel); _ifk[gid].id = gid;
 		    if ( ijk[0] >= imin && ijk[0] <= imax && 
 			 ijk[1] >= jmin && ijk[1] <= jmax && 
 			 ijk[2] >= kmin && ijk[2] <= kmax+1 ) {
 			active_ifaces ~= _ifk[gid];
 		    }
 		}
-		_vtx ~= new FVVertex(gmodel); _vtx[gid].id = gid;
-		_sifi ~= new FVInterface(gmodel); _sifi[gid].id = gid;
-		_sifj ~= new FVInterface(gmodel); _sifj[gid].id = gid;
-		if ( GlobalConfig.dimensions == 3 ) {
-		    _sifk ~= new FVInterface(gmodel); _sifk[gid].id = gid;
+		_vtx ~= new FVVertex(myConfig.gmodel); _vtx[gid].id = gid;
+		_sifi ~= new FVInterface(myConfig.gmodel); _sifi[gid].id = gid;
+		_sifj ~= new FVInterface(myConfig.gmodel); _sifj[gid].id = gid;
+		if ( myConfig.dimensions == 3 ) {
+		    _sifk ~= new FVInterface(myConfig.gmodel); _sifk[gid].id = gid;
 		}
 	    } // gid loop
 	} catch (Error err) {
@@ -263,7 +260,7 @@ public:
 		    cell.vtx ~= get_vtx(i+1,j,k);
 		    cell.vtx ~= get_vtx(i+1,j+1,k);
 		    cell.vtx ~= get_vtx(i,j+1,k);
-		    if ( GlobalConfig.dimensions == 3 ) {
+		    if ( myConfig.dimensions == 3 ) {
 			cell.iface ~= get_ifk(i,j,k+1); // top
 			cell.iface ~= get_ifk(i,j,k); // bottom
 			cell.vtx ~= get_vtx(i,j,k+1);
@@ -292,7 +289,7 @@ public:
 	    for ( size_t j = jmin; j <= jmax; ++j ) {
 		for ( size_t i = imin-1; i <= imax; ++i ) {
 		    auto IFace = get_ifi(i+1,j,k);
-		    if (GlobalConfig.dimensions == 3) {
+		    if (myConfig.dimensions == 3) {
 			IFace.vtx ~= get_vtx(i+1,j,k);
 			IFace.vtx ~= get_vtx(i+1,j+1,k);
 			IFace.vtx ~= get_vtx(i+1,j+1,k+1);
@@ -316,7 +313,7 @@ public:
 	    for ( size_t i = imin; i <= imax; ++i ) {
 		for ( size_t j = jmin-1; j <= jmax; ++j ) {
 		    auto IFace = get_ifj(i,j+1,k);
-		    if (GlobalConfig.dimensions == 3) {
+		    if (myConfig.dimensions == 3) {
 			IFace.vtx ~= get_vtx(i,j+1,k);
 			IFace.vtx ~= get_vtx(i,j+1,k+1);
 			IFace.vtx ~= get_vtx(i+1,j+1,k+1);
@@ -332,7 +329,7 @@ public:
 		} // j loop
 	    } // i loop
 	} // for k
-	if (GlobalConfig.dimensions == 2) return;
+	if (myConfig.dimensions == 2) return;
 	// ifk interfaces are Top-facing interfaces.
 	// t1 vector aligned with i-index direction
 	// t2 vector aligned with j-index direction
@@ -367,7 +364,7 @@ public:
 		size_t i = ijk[0]; size_t j = ijk[1]; size_t k = ijk[2];
 		writefln("count_invalid_cells: block_id = %d, cell[%d,%d,%d]\n", id, i, j, k);
 		writeln(cell);
-		if ( GlobalConfig.adjust_invalid_cell_data ) {
+		if ( myConfig.adjust_invalid_cell_data ) {
 		    // We shall set the cell data to something that
 		    // is valid (and self consistent).
 		    FVCell other_cell;
@@ -381,7 +378,7 @@ public:
 		    if ( other_cell.check_flow_data() ) neighbours ~= other_cell;
 		    other_cell = get_cell(i,j+1,k);
 		    if ( other_cell.check_flow_data() ) neighbours ~= other_cell;
-		    if ( GlobalConfig.dimensions == 3 ) {
+		    if ( myConfig.dimensions == 3 ) {
 			other_cell = get_cell(i,j,k-1);
 			if ( other_cell.check_flow_data() ) neighbours ~= other_cell;
 			other_cell = get_cell(i,j,k+1);
@@ -391,9 +388,9 @@ public:
 			throw new Error(text("Block::count_invalid_cells(): "
 					     "There were no valid neighbours to replace cell data."));
 		    }
-		    cell.replace_flow_data_with_average(neighbours, gmodel);
+		    cell.replace_flow_data_with_average(neighbours);
 		    cell.encode_conserved(gtl, 0, omegaz);
-		    cell.decode_conserved(gtl, 0, omegaz, gmodel);
+		    cell.decode_conserved(gtl, 0, omegaz);
 		    writefln("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n",
 			     id, i, j, k);
 		    writeln(cell);
@@ -409,7 +406,7 @@ public:
 	size_t i, j, k;
 	Vector3 dummy;
 	Vector3 ds;
-	if ( GlobalConfig.dimensions == 2 ) {
+	if ( myConfig.dimensions == 2 ) {
 	    calc_volumes_2D(gtl);
 	    calc_faces_2D(gtl);
 	    calc_ghost_cell_geom_2D(gtl);
@@ -642,7 +639,7 @@ public:
 	    dist[Face.west] = abs(cell.pos[gtl] - face_at_wall.pos);
 	    cell_at_wall[Face.west] = get_cell(imin,j,k);
 	    half_width[Face.west] = abs(cell_at_wall[Face.west].pos[gtl] - face_at_wall.pos);
-	    if ( GlobalConfig.dimensions == 3 ) {
+	    if ( myConfig.dimensions == 3 ) {
 		// Top
 		face_at_wall = get_ifk(i,j,kmax+1);
 		dist[Face.top] = abs(cell.pos[gtl] - face_at_wall.pos);
@@ -661,7 +658,7 @@ public:
 	    // corresponding wall-cell half-width so that we have 
 	    // a relatively large distance in case there are no walls
 	    // on the boundary of the block.
-	    size_t num_faces = (GlobalConfig.dimensions == 3) ? 6 : 4;
+	    size_t num_faces = (myConfig.dimensions == 3) ? 6 : 4;
 	    cell.distance_to_nearest_wall = dist[0];
 	    cell.half_cell_width_at_wall = half_width[0];
 	    for ( size_t iface = 1; iface < num_faces; ++iface ) {
@@ -700,7 +697,7 @@ public:
 	Vector3 dummy;
 	double iLen, jLen, kLen;
 	Vector3 ds;
-	if ( GlobalConfig.dimensions == 2 ) {
+	if ( myConfig.dimensions == 2 ) {
 	    // nothing to do since areaxy is computed in the gradients_xy function
 	    // as of 2015-05-03
 	    return; 
@@ -1155,7 +1152,7 @@ public:
 		     (xA - xD) * (yD * yD + yD * yA + yA * yA));
 		cell.pos[gtl].refz = 0.0;
 		// Cell Volume.
-		if ( GlobalConfig.axisymmetric ) {
+		if ( myConfig.axisymmetric ) {
 		    // Volume per radian = centroid y-ordinate * cell area
 		    vol = xyarea * cell.pos[gtl].y;
 		} else {
@@ -1302,7 +1299,7 @@ public:
 		iface.length = LAB;
 		// Mid-point and area.
 		iface.Ybar = 0.5 * (yA + yB);
-		if ( GlobalConfig.axisymmetric ) {
+		if ( myConfig.axisymmetric ) {
 		    // Interface area per radian.
 		    iface.area[gtl] = LAB * iface.Ybar;
 		} else {
@@ -1337,7 +1334,7 @@ public:
 		iface.length = LBC;
 		// Mid-point and area.
 		iface.Ybar = 0.5 * (yC + yB);
-		if ( GlobalConfig.axisymmetric ) {
+		if ( myConfig.axisymmetric ) {
 		    // Interface area per radian.
 		    iface.area[gtl] = LBC * iface.Ybar;
 		} else {
@@ -1429,7 +1426,7 @@ public:
 	auto byLine = new GzipByLine(filename);
 	auto line = byLine.front; byLine.popFront();
 	formattedRead(line, "%d %d %d", &nivtx, &njvtx, &nkvtx);
-	if ( GlobalConfig.dimensions == 3 ) {
+	if ( myConfig.dimensions == 3 ) {
 	    if ( nivtx-1 != nicell || njvtx-1 != njcell || nkvtx-1 != nkcell ) {
 		throw new Error(text("For block[", id, "] we have a mismatch in 3D grid size.",
                                      " Have read nivtx=", nivtx, " njvtx=", njvtx,
@@ -1517,7 +1514,7 @@ public:
 	line = byLine.front; byLine.popFront();
 	formattedRead(line, "%d %d %d", &ni, &nj, &nk);
 	if ( ni != nicell || nj != njcell || 
-	     nk != ((GlobalConfig.dimensions == 3) ? nkcell : 1) ) {
+	     nk != ((myConfig.dimensions == 3) ? nkcell : 1) ) {
 	    throw new Error(text("For block[", id, "] we have a mismatch in solution size.",
 				 " Have read ni=", ni, " nj=", nj, " nk=", nk));
 	}	
@@ -1525,7 +1522,7 @@ public:
 	    for ( size_t j = jmin; j <= jmax; ++j ) {
 		for ( size_t i = imin; i <= imax; ++i ) {
 		    line = byLine.front; byLine.popFront();
-		    get_cell(i,j,k).scan_values_from_string(line, gmodel);
+		    get_cell(i,j,k).scan_values_from_string(line);
 		} // for i
 	    } // for j
 	} // for k
@@ -1545,7 +1542,7 @@ public:
 	formattedWrite(writer, "%20.12e\n", sim_time);
 	outfile.compress(writer.data);
 	writer = appender!string();
-	foreach(varname; variable_list_for_cell(gmodel)) {
+	foreach(varname; variable_list_for_cell(myConfig.gmodel)) {
 	    formattedWrite(writer, " \"%s\"", varname);
 	}
 	formattedWrite(writer, "\n");
@@ -1600,7 +1597,7 @@ public:
 		    } else {
 			IFace.fs.copy_average_values_from(Lft, Rght);
 		    }
-		    compute_interface_flux(Lft, Rght, IFace, gmodel, omegaz);
+		    compute_interface_flux(Lft, Rght, IFace, myConfig.gmodel, omegaz);
 		} // i loop
 	    } // j loop
 	} // for k
@@ -1636,7 +1633,7 @@ public:
 		    } else {
 			IFace.fs.copy_average_values_from(Lft, Rght);
 		    }
-		    compute_interface_flux(Lft, Rght, IFace, gmodel, omegaz);
+		    compute_interface_flux(Lft, Rght, IFace, myConfig.gmodel, omegaz);
 		} // j loop
 	    } // i loop
 	} // for k
@@ -1675,7 +1672,7 @@ public:
 		    } else {
 			IFace.fs.copy_average_values_from(Lft, Rght);
 		    }
-		    compute_interface_flux(Lft, Rght, IFace, gmodel, omegaz);
+		    compute_interface_flux(Lft, Rght, IFace, myConfig.gmodel, omegaz);
 		} // for k 
 	    } // j loop
 	} // i loop
@@ -1686,7 +1683,7 @@ public:
     override void flow_property_derivatives(int gtl)
     {
 	size_t i, j, k;
-	if (GlobalConfig.dimensions == 2) {
+	if (myConfig.dimensions == 2) {
 	    // First, do all of the internal secondary cells.
 	    // i.e. Those not on a boundary.
 	    for ( i = imin+1; i <= imax; ++i ) {
@@ -1813,7 +1810,7 @@ public:
 	bc[Face.east].applyPreReconAction(t, gtl, ftl);
 	bc[Face.south].applyPreReconAction(t, gtl, ftl);
 	bc[Face.west].applyPreReconAction(t, gtl, ftl);
-	if ( GlobalConfig.dimensions == 3 ) {
+	if ( myConfig.dimensions == 3 ) {
 	    bc[Face.top].applyPreReconAction(t, gtl, ftl);
 	    bc[Face.bottom].applyPreReconAction(t, gtl, ftl);
 	}
@@ -1825,7 +1822,7 @@ public:
 	bc[Face.east].applyPreSpatialDerivAction(t, gtl, ftl);
 	bc[Face.south].applyPreSpatialDerivAction(t, gtl, ftl);
 	bc[Face.west].applyPreSpatialDerivAction(t, gtl, ftl);
-	if ( GlobalConfig.dimensions == 3 ) {
+	if ( myConfig.dimensions == 3 ) {
 	    bc[Face.top].applyPreSpatialDerivAction(t, gtl, ftl);
 	    bc[Face.bottom].applyPreSpatialDerivAction(t, gtl, ftl);
 	}
@@ -1841,8 +1838,8 @@ public:
 	int gtl = 0; // Do the encode only for grid-time-level zero.
 	//
 	@nogc
-	void copy_pair_of_cells(const FVCell src0, FVCell dest0, 
-				const FVCell src1, FVCell dest1,
+	void copy_pair_of_cells(FVCell src0, FVCell dest0, 
+				FVCell src1, FVCell dest1,
 				bool with_encode)
 	{
 	    dest0.copy_values_from(src0, type_of_copy);
@@ -1851,7 +1848,7 @@ public:
 	    if (with_encode) dest1.encode_conserved(gtl, 0, omegaz);
 	}
 	//
-	if (GlobalConfig.dimensions == 2) {
+	if (myConfig.dimensions == 2) {
 	    // Handle the 2D case separately.
 	    switch (destination_face) {
 	    case Face.north:

@@ -11,7 +11,7 @@ class UBlock: Block {
 public:
     this(int id)
     {
-	id = id;
+	super(id, "dummy UBlock");
     }
 
 
