@@ -87,6 +87,31 @@ extern(C) int get_vtx(T, string MTname)(lua_State* L)
     return pushVector3(L, vtx);
 }
 
+extern(C) int subgrid(T, string MTname)(lua_State* L)
+{
+    int narg = lua_gettop(L);
+    auto grid = checkObj!(T, MTname)(L, 1);
+    size_t i0 = to!size_t(luaL_checkint(L, 2)); // Note that we expect 0 <= i0 < niv
+    size_t ni = to!size_t(luaL_checkint(L, 3));
+    size_t j0 = to!size_t(luaL_checkint(L, 4)); // Note that we expect 0 <= j0 < njv
+    size_t nj = to!size_t(luaL_checkint(L, 5));
+    size_t k0;
+    if (narg > 5) { 
+	k0 = to!size_t(luaL_checkint(L, 6));
+    } else {
+	k0 = 0; // Assume 2D grid
+    }
+    size_t nk;
+    if (narg > 6) { 
+	nk = to!size_t(luaL_checkint(L, 7));
+    } else {
+	nk = 1; // Assume 2D grid
+    }
+    auto new_subgrid = grid.subgrid(i0,ni,j0,nj,k0,nk);
+    structuredGridStore ~= pushObj!(T, MTname)(L, new_subgrid);
+    return 1;
+} // end subgrid()
+
 extern(C) int write_to_text_file(T, string MTname)(lua_State* L)
 {
     int narg = lua_gettop(L); // assume narg == 2;
@@ -247,6 +272,8 @@ void registerStructuredGrid(LuaState lua)
     lua_setfield(L, -2, "get_nkv");
     lua_pushcfunction(L, &get_vtx!(StructuredGrid, StructuredGridMT));
     lua_setfield(L, -2, "get_vtx");
+    lua_pushcfunction(L, &subgrid!(StructuredGrid, StructuredGridMT));
+    lua_setfield(L, -2, "subgrid");
     lua_pushcfunction(L, &write_to_text_file!(StructuredGrid, StructuredGridMT));
     lua_setfield(L, -2, "write_to_text_file");
 

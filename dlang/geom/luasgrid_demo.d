@@ -50,6 +50,8 @@ pArray = {Vector3:new{0.0, 0.1, 0.0}, Vector3:new{1.0, 0.1, 0.0},
 volume = TFIVolume:new{vertices=pArray}
 grid3D = StructuredGrid:new{pvolume=volume, niv=11, njv=21, nkv=11}
 print("somewhere in the middle=", grid3D:get_vtx(5,10,5))
+subgrid3D = grid3D:subgrid(5,3,10,3,5,3)
+print("same point in subgrid=", subgrid3D:get_vtx(0,0,0))
 --
 print("Try Gridpro import")
 grids = importGridproGrid("../../examples/eilmer3/3D/gridpro-import/blk.tmp", 0.001)

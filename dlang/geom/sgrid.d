@@ -36,7 +36,7 @@ public:
     Vector3[][][] grid;
     string label;
 
-    // Blank grid, ready of import of data.
+    // Blank grid, ready for import of data.
     this(int niv, int njv, int nkv=1, string label="empty-label")
     {
 	this.niv = niv; this.njv = njv; this.nkv = nkv;
@@ -131,6 +131,30 @@ public:
     body {
 	return grid[i][j][k];
     }
+
+    StructuredGrid subgrid(size_t i0, size_t ni,
+			   size_t j0, size_t nj,
+			   size_t k0=0, size_t nk=1) const
+    // Partition on vertex indices.
+    {
+	if (i0+ni > niv)
+	    throw new Error(text("Sgrid.subgrid overrun i0=",i0,", ni=",ni,", niv=",niv));
+	if (j0+nj > njv)
+	    throw new Error(text("Sgrid.subgrid overrun j0=",j0,", nj=",nj,", njv=",njv));
+	if (k0+nk > nkv)
+	    throw new Error(text("Sgrid.subgrid overrun k0=",k0,", nk=",nk,", nkv=",nkv));
+	auto new_grd = new StructuredGrid(ni, nj, nk);
+	foreach (i; 0 .. ni) {
+	    foreach (j; 0 .. nj) {
+		foreach (k; 0 .. nk) {
+		    new_grd.grid[i][j][k].refx = grid[i0+i][j0+j][k0+k].x;
+		    new_grd.grid[i][j][k].refy = grid[i0+i][j0+j][k0+k].y;
+		    new_grd.grid[i][j][k].refz = grid[i0+i][j0+j][k0+k].z;
+		}
+	    }
+	}
+	return new_grd;
+    } // end subgrid()
 
     void make_grid_from_surface(const ParametricSurface surf,
 				const(UnivariateFunction)[] clusterf)
@@ -340,6 +364,9 @@ unittest {
     auto my_grid = new StructuredGrid(my_patch, 11, 21, cf);
     assert(approxEqualVectors(my_grid[5,5], Vector3(0.5, 0.35, 0.0)),
 			      "StructuredGrid sample point");
+    auto my_subgrid = my_grid.subgrid(4, 3, 4, 5);
+    assert(approxEqualVectors(my_subgrid[1,1], Vector3(0.5, 0.35, 0.0)),
+			      "subgrid sample point");    
 }
 
 //-----------------------------------------------------------------
