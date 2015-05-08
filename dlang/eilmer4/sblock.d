@@ -1828,6 +1828,18 @@ public:
 	}
     } // end applyPreSpatialDerivAction()
 
+    override void applyPostDiffFluxAction(double t, int gtl, int ftl)
+    {
+	bc[Face.north].applyPostDiffFluxAction(t, gtl, ftl);
+	bc[Face.east].applyPostDiffFluxAction(t, gtl, ftl);
+	bc[Face.south].applyPostDiffFluxAction(t, gtl, ftl);
+	bc[Face.west].applyPostDiffFluxAction(t, gtl, ftl);
+	if ( myConfig.dimensions == 3 ) {
+	    bc[Face.top].applyPostDiffFluxAction(t, gtl, ftl);
+	    bc[Face.bottom].applyPostDiffFluxAction(t, gtl, ftl);
+	}
+    } // end applyPreSpatialDerivAction()
+
     @nogc
     void copy_into_ghost_cells(int destination_face,
 			       ref SBlock src_blk, int src_face, int src_orientation,

@@ -451,6 +451,27 @@ function UserDefinedInterface:tojson()
    return str
 end
 
+-- Base class and subclasses for BoundaryFluxEffect
+BoundaryFluxEffect = {
+   type = ""
+}
+function BoundaryFluxEffect:new(o)
+   o = o or {}
+   setmetatable(o, self)
+   self.__index = self
+   return o
+end
+
+EnergyFluxFromAdjacentSolid = BoundaryFluxEffect:new{otherBlock=nil, otherFace=nil, orientation=-1}
+EnergyFluxFromAdjacentSolid.type = "energy_flux_from_adjacent_solid"
+function EnergyFluxFromAdjacentSolid:tojson()
+   local str = string.format('          {"type": "%s", ', self.type)
+   str = str .. string.format('"other_block": %d, ', self.otherBlock)
+   str = str .. string.format('"other_face": "%s", ', self.otherFace)
+   str = str .. string.format('"orientation": %d', self.orientation)
+   str = str .. '}'
+   return str
+end
 
 -- Class for BoundaryCondition
 
@@ -458,7 +479,8 @@ BoundaryCondition = {
    label = "",
    myType = "",
    preReconAction = {},
-   preSpatialDerivAction = {}
+   preSpatialDerivAction = {},
+   postDiffFluxAction = {}
 }
 function BoundaryCondition:new(o)
    o = o or {}
@@ -480,6 +502,12 @@ function BoundaryCondition:tojson()
    for i,effect in ipairs(self.preSpatialDerivAction) do
       str = str .. effect:tojson()
       if i ~= #self.preSpatialDerivAction then str = str .. "," end
+   end
+   str = str .. '\n        ],\n'
+   str = str .. '        "post_diff_flux_action": [\n'
+   for i,effect in ipairs(self.postDiffFluxAction) do
+      str = str .. effect:tojson()
+      if i ~= #self.postDiffFluxAction then str = str .. "," end
    end
    str = str .. '\n        ]\n'
    str = str .. '    }'
@@ -562,6 +590,20 @@ function UserDefinedBC:new(o)
    o = BoundaryCondition.new(self, o)
    o.preReconAction = { UserDefinedGhostCell:new{fileName=o.fileName} }
    o.preSpatialDerivAction = { UserDefinedInterface:new{fileName=o.fileName} } 
+   return o
+end
+
+AdjacentToSolidBC = BoundaryCondition:new()
+AdjacentToSolidBC.myType = "AdjacentToSolid"
+function AdjacentToSolidBC:new(o)
+   o = BoundaryCondition.new(self, o)
+   o.preReconAction = { InternalCopyThenReflect:new() }
+   o.preSpatialDerivAction = { CopyCellData:new(), ZeroVelocity:new(),
+			       WallKOmega:new() }
+   o.postDiffFluxAction = { EnergyFluxFromAdjacentSolid:new{otherBlock=o.otherBlock,
+							    otherFace=o.otherFace,
+							    orientation=o.orientation }
+   }
    return o
 end
 

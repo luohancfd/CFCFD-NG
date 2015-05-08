@@ -70,6 +70,7 @@ public:
     abstract void flow_property_derivatives(int gtl);
     abstract void applyPreReconAction(double t, int gtl, int ftl);
     abstract void applyPreSpatialDerivAction(double t, int gtl, int ftl);
+    abstract void applyPostDiffFluxAction(double t, int gtl, int ftl);
 
     void identify_reaction_zones(int gtl)
     // Set the reactions-allowed flag for cells in this block.

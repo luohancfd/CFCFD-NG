@@ -1,0 +1,185 @@
+/**
+ * boundary_flux_effct.d
+ *
+ * Authors: RG and PJ
+ * Date: 2015-05-07
+ **/
+
+module boundary_flux_effect;
+
+import std.json;
+import std.string;
+import std.conv;
+
+import globalconfig;
+import globaldata;
+import block;
+import geom;
+import json_helper;
+import fvcore;
+import fvcell;
+import fvinterface;
+import solidfvcore;
+import solidfvcell;
+import solidfvinterface;
+//import gas_solid_interface;
+
+BoundaryFluxEffect make_BFE_from_json(JSONValue jsonData, int blk_id, int boundary)
+{
+    string bfeType = jsonData["type"].str;
+    BoundaryFluxEffect newBFE;
+    /*
+    switch ( bfeType ) {
+    case "energy_flux_from_adjacent_solid":
+	int otherBlock = getJSONint(jsonData, "other_block", -1);
+	string otherFaceName = getJSONstring(jsonData, "other_face", "none");
+	int neighbourOrientation = getJSONint(jsonData, "neighbour_orientation", 0);
+	newBFE = new BFE_EnergyFluxFromAdjacentSolid(blk_id, boundary,
+						     otherBlock, face_index(otherFaceName),
+						     neighbourOrientation);
+	break;
+    default:
+	string errMsg = format("ERROR: The BoundaryFluxEffect type: '%s' is unknown.", bfeType);
+	throw new Error(errMsg);
+    }
+    */
+    return newBFE;
+}
+
+class BoundaryFluxEffect {
+public:
+    int blk_id;
+    int which_boundary;
+    string type;
+    
+    this(int id, int boundary, string _type)
+    {
+	blk_id = id;
+	which_boundary = boundary;
+	type = _type;
+    }
+    override string toString() const
+    {
+	return "BoundaryFluxEffect()";
+    }
+    abstract void apply(double t, int gtl, int ftl);
+} // end class BoundaryFluxEffect()
+
+// NOTE: This GAS DOMAIN boundary effect has a large
+//       and important side-effect:
+//       IT ALSO SETS THE FLUX IN THE ADJACENT SOLID DOMAIN
+//       AT THE TIME IT IS CALLED.
+/*
+class BFE_EnergyFluxFromAdjacentSolid : BoundaryFluxEffect {
+public:
+    int neighbourSolidBlk;
+    int neighbourSolidFace;
+    int neighbourOrientation;
+
+    this(int id, int boundary,
+	 int otherBlock, int otherFace, int orient)
+    {
+	super(id, boundary, "EnergyFluxFromAdjacentSolid");
+	neighbourSolidBlk = otherBlock;
+	neighbourSolidFace = otherFace;
+	neighbourOrientation = orient;
+    }
+    
+    override void apply(double t, int gtl, int ftl)
+    {
+	
+	//size_t i, j, k;
+	//FVCell gasCell;
+	//SolidFVCell solidCell;
+	auto blk = allBlocks[blk_id];
+	/*
+	// First, grab a copy of near-wall gas cells
+	switch ( which_boundary ) {
+	case Face.north:
+	    j = blk.jmax;
+	    for (k = blk.kmin; k <= blk.kmax; ++k) {
+		for (i = blk.imin; i <= blk.imax; ++i) {
+		    gasCell = blk.get_cell(i, j, k);
+		    _gasCells[i-nghost].copy_values_from(gasCell, CopyDataOption.minimal_flow);
+		    _gasIFaces[i-nghost].copy_values_from(gasCell.iface[Face.north], CopyDataOption.minimal_flow);
+		}
+	    }
+	    break;
+	default:
+	    throw new Error("[TODO] EnergyFluxFromAdjacentSolid only implemented for NORTH boundary.");
+	}
+	// Second, grab a copy of near-wall solid cells
+	auto solidBlk = allSolidBlocks[neighbourSolidBlk];
+	switch ( neighbourSolidFace ) {
+	case Face.south:
+	    j = solidBlk.jmin;
+	    for (k = solidBlk.kmin; k <= solidBlk.kmax; ++k) {
+		for (i = solidBlk.imin; i <= solidBlk.imax; ++i) {
+		    solidCell = solidBlk.getCell(i, j, k);
+		    _solidCells[i-nghost].copyValuesFrom(solidCell, SolidCopyOption.stateOnly);
+		    _solidIFaces[i-nghost].copyValuesFrom(solidCell.iface[Face.south], SolidCopyOption.stateOnly);
+		}
+	    }
+	    break;
+	default:
+	    throw new Error("[TODO]: EnergyFluxFromAdjacentSolid only implemented for SOUTH boundary.");
+	}
+	//
+	double kS = allSolidBlocks[neighbourSolidBlk].sp.k;
+	computeFluxesAndTemperatures(ftl, kS,
+				     _gasCells, _gasIFaces,
+				     _solidCells, _solidIFaces);
+
+    }
+
+private:
+    // Some private working arrays.
+    // We'll pack data into these can pass out
+    // to a routine that can compute the flux and
+    // temperatures that balance at the interface.
+    FVCell[] _gasCells;
+    FVInterface[] _gasIFaces;
+    SolidFVCell[] _solidCells;
+    SolidFVInterface[] _solidIFaces;
+
+public:
+    void initSolidCellsAndIFaces()
+    {
+	size_t i, j, k;
+	auto blk = allSolidBlocks[neighbourSolidBlk];
+	switch ( neighbourSolidFace ) {
+	case Face.south:
+	    j = blk.jmin;
+	    for (k = blk.kmin; k <= blk.kmax; ++k) {
+		for (i = blk.imin; i <= blk.imax; ++i) {
+		    _solidCells ~= blk.getCell(i, j, k);
+		    _solidIFaces ~= _solidCells[$-1].iface[Face.south];
+		}
+	    }
+	    break;
+	default:
+	    throw new Error("initSolidCellsAndIFaces() only implemented for SOUTH face.");
+	}
+    }
+
+    void initGasCellsAndIFaces()
+    {
+	size_t i, j, k;
+	auto blk = allBlocks[blk_id];
+	switch ( which_boundary ) {
+	case Face.north:
+	    j = blk.jmax;
+	    for (k = blk.kmin; k <= blk.kmax; ++k) {
+		for (i = blk.imin; i <= blk.imax; ++i) {
+		    _gasCells ~= blk.get_cell(i, j, k);
+		    _gasIFaces ~= _gasCells[$-1].iface[Face.north];
+		}
+	    }
+	    break;
+	default:
+	    throw new Error("initGasCellsAndIFaces() only implemented for NORTH gas face.");
+	}
+    }
+
+}
+*/

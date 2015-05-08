@@ -26,6 +26,7 @@ import block;
 import sblock;
 import ghost_cell_effect;
 import boundary_interface_effect;
+import boundary_flux_effect;
 import user_defined_effects;
 import lua_helper;
 
@@ -62,7 +63,11 @@ BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary
 	    bie.setLuaState(newBC.luaStates[bie.luafname]);
 	}
     }
-    // [TODO] We need to fill out the Action lists for other hook points.
+    auto postDiffFluxActionList = jsonData["post_diff_flux_action"].array;
+    foreach ( jsonObj; postDiffFluxActionList ) {
+	newBC.postDiffFluxAction ~= make_BFE_from_json(jsonObj, blk_id, boundary);
+    }
+    // [TODO] Only need to the post convective flux option now.
     return newBC;
 } // end make_BC_from_json()
 
@@ -118,7 +123,7 @@ public:
     GhostCellEffect[] preReconAction;
     //    BoundaryFluxEffect[] postConvFluxAction;
     BoundaryInterfaceEffect[] preSpatialDerivAction;
-    //    BoundaryFluxEffect[] postDiffFluxAction;
+    BoundaryFluxEffect[] postDiffFluxAction;
 
     override string toString() const
     {
@@ -136,6 +141,14 @@ public:
 	    repr ~= "preSpatialDerivAction=[" ~ to!string(preSpatialDerivAction[0]);
 	    foreach (i; 1 .. preSpatialDerivAction.length) {
 		repr ~= ", " ~ to!string(preSpatialDerivAction[i]);
+	    }
+	    repr ~= "]";
+	}
+	repr ~= ", ";
+	if ( postDiffFluxAction.length > 0 ) {
+	    repr ~= "postDiffFluxAction=[" ~ to!string(postDiffFluxAction[0]);
+	    foreach (i; 1 .. postDiffFluxAction.length) {
+		repr ~= ", " ~ to!string(postDiffFluxAction[i]);
 	    }
 	    repr ~= "]";
 	}
@@ -157,12 +170,12 @@ public:
     {
 	foreach ( bie; preSpatialDerivAction ) bie.apply(t, gtl, ftl);
     }
-    /*
-    final void applyPostDiffFluxAction(double t)
+    
+    final void applyPostDiffFluxAction(double t, int gtl, int ftl)
     {
-	foreach ( bfe; postSpatialDerivAction ) bfe.apply(t);
+	foreach ( bfe; postDiffFluxAction ) bfe.apply(t, gtl, ftl);
     }
-    */
+    
 private:
     void setGlobalsInLuaState(LuaState lua, size_t nicell, size_t njcell, size_t nkcell)
     {
