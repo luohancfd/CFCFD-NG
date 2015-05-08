@@ -1532,7 +1532,7 @@ class SuperBlock2D(object):
     """
 
     __slots__ = 'psurf', 'grid', 'bc_list', 'nni', 'nnj', 'nbi', 'nbj', 'cf_list',\
-                'fill_condition', 'label', 'blks', 'wc_bc_list'
+                'fill_condition', 'label', 'blks', 'wc_bc_list', 'xforce_list'
     
     def __init__(self,
                  psurf=None,
@@ -1548,6 +1548,7 @@ class SuperBlock2D(object):
                  fill_condition=None,
                  hcell_list=[],
                  transient_profile_faces=[],
+                 xforce_list=[0,]*4,
                  label="sblk",
                  active=1,
                  verbosity_level=0
@@ -1586,22 +1587,28 @@ class SuperBlock2D(object):
                 bc_newlist=[SlipWallBC(), SlipWallBC(), SlipWallBC(), SlipWallBC()]
                 wc_bc_newlist = [NonCatalyticWBC(), NonCatalyticWBC(),
                                  NonCatalyticWBC(), NonCatalyticWBC()]
+                xforce_newlist = [0,]*4
                 if i == 0:
                     bc_newlist[WEST] = copy.copy(bc_list[WEST])
                     wc_bc_newlist[WEST] = copy.copy(wc_bc_list[WEST])
+                    xforce_newlist[WEST] = xforce_list[WEST]
                 if i == nbi - 1:
                     bc_newlist[EAST] = copy.copy(bc_list[EAST])
                     wc_bc_newlist[EAST] = copy.copy(wc_bc_list[EAST])
+                    xforce_newlist[EAST] = xforce_list[EAST]
                 if j == 0:
                     bc_newlist[SOUTH] = copy.copy(bc_list[SOUTH])
                     wc_bc_newlist[SOUTH] = copy.copy(wc_bc_list[SOUTH])
+                    xforce_newlist[SOUTH] = xforce_list[SOUTH]
                 if j == nbj - 1:
                     bc_newlist[NORTH] = copy.copy(bc_list[NORTH])
                     wc_bc_newlist[NORTH] = copy.copy(wc_bc_list[NORTH])
+                    xforce_newlist[NORTH] = xforce_list[NORTH]
                 #
                 new_blk = Block2D(grid=subgrid, bc_list=bc_newlist,
                                   nni=imax-imin, nnj=jmax-jmin, 
                                   wc_bc_list=wc_bc_newlist,
+                                  xforce_list = xforce_newlist,
                                   fill_condition=fill_condition,
                                   label=sublabel, active=active)
                 self.blks[i].append(new_blk)
@@ -2018,7 +2025,7 @@ class SuperBlock3D(object):
 
     __slots__ = 'parametric_volume', 'grid', 'bc_list', 'nni', 'nnj', 'nnk',\
                 'nbi', 'nbj', 'nbk', 'cf_list', 'fill_condition',\
-                'label', 'blks', 'wc_bc_list'
+                'label', 'blks', 'wc_bc_list', 'xforce_list'
 
     def __init__(self,
                  parametric_volume=None,
@@ -2037,6 +2044,7 @@ class SuperBlock3D(object):
                              NonCatalyticWBC(), NonCatalyticWBC()],
                  fill_condition=None,
                  hcell_list=[],
+                 xforce_list=[0,]*6,
                  transient_profile_faces=[],
                  label="sblk",
                  omegaz = 0.0,
@@ -2081,28 +2089,36 @@ class SuperBlock3D(object):
                     wc_bc_newlist = [NonCatalyticWBC(), NonCatalyticWBC(),
                                      NonCatalyticWBC(), NonCatalyticWBC(),
                                      NonCatalyticWBC(), NonCatalyticWBC()]
+                    xforce_list=[0,]*6
                     if i == 0:
                         bc_newlist[WEST] = copy.copy(bc_list[WEST])
                         wc_bc_newlist[WEST] = copy.copy(wc_bc_list[WEST])
+                        xforce_newlist[WEST] = xforce_list[WEST]
                     if i == nbi - 1:
                         bc_newlist[EAST] = copy.copy(bc_list[EAST])
                         wc_bc_newlist[EAST] = copy.copy(wc_bc_list[EAST])
+                        xforce_newlist[EAST] = xforce_list[EAST]
                     if j == 0:
                         bc_newlist[SOUTH] = copy.copy(bc_list[SOUTH])
                         wc_bc_newlist[SOUTH] = copy.copy(wc_bc_list[SOUTH])
+                        xforce_newlist[SOUTH] = xforce_list[SOUTH]
                     if j == nbj - 1:
                         bc_newlist[NORTH] = copy.copy(bc_list[NORTH])
                         wc_bc_newlist[NORTH] = copy.copy(wc_bc_list[NORTH])
+                        xforce_newlist[NORTH] = xforce_list[NORTH]
                     if k == 0:
                         bc_newlist[BOTTOM] = copy.copy(bc_list[BOTTOM])
                         wc_bc_newlist[BOTTOM] = copy.copy(wc_bc_list[BOTTOM])
+                        xforce_newlist[BOTTOM] = xforce_list[BOTTOM]
                     if k == nbk - 1:
                         bc_newlist[TOP] = copy.copy(bc_list[TOP])
                         wc_bc_newlist[TOP] = copy.copy(wc_bc_list[TOP])
+                        xforce_newlist[TOP] = xforce_list[TOP]
                     # Create the actual subblock.
                     new_blk = Block3D(grid=subgrid, bc_list=bc_newlist,
                                       nni=imax-imin, nnj=jmax-jmin, nnk=kmax-kmin,
                                       wc_bc_list=wc_bc_newlist,
+                                      xforce_list=xforce_newlist,
                                       fill_condition=fill_condition,
                                       label=sublabel, omegaz=omegaz, active=active)
                     column_of_blocks.append(new_blk)
