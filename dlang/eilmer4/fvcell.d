@@ -85,16 +85,19 @@ public:
     this(LocalConfig myConfig, int id_init=0)
     {
 	this.myConfig = myConfig;
+	auto gmodel = myConfig.gmodel;
+	int n_species = gmodel.n_species;
+	int n_modes = gmodel.n_modes;
 	id = id_init;
 	pos.length = n_time_levels;
 	volume.length = n_time_levels;
 	areaxy.length = n_time_levels;
-	fs = new FlowState(myConfig.gmodel, 100.0e3, [300.0,], Vector3(0.0,0.0,0.0));
+	fs = new FlowState(gmodel, 100.0e3, [300.0,], Vector3(0.0,0.0,0.0));
 	foreach(i; 0 .. n_time_levels) {
-	    U ~= new ConservedQuantities(myConfig.gmodel);
-	    dUdt ~= new ConservedQuantities(myConfig.gmodel);
+	    U ~= new ConservedQuantities(n_species, n_modes);
+	    dUdt ~= new ConservedQuantities(n_species, n_modes);
 	}
-	Q = new ConservedQuantities(myConfig.gmodel);
+	Q = new ConservedQuantities(n_species, n_modes);
     }
 
     @nogc

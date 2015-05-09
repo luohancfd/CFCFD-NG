@@ -1697,7 +1697,7 @@ public:
 		    FVCell D = get_cell(i-1,j-1);
 		    // Delegate the work of computing the actual gradients.
 		    gradients_xy(vtx, A.pos[gtl], B.pos[gtl], C.pos[gtl], D.pos[gtl],
-				 A.fs, B.fs, C.fs, D.fs);
+				 A.fs, B.fs, C.fs, D.fs, myConfig.diffusion);
 		} // j loop
 	    } // i loop
 	    // Half-cells along the edges of the block.
@@ -1715,7 +1715,7 @@ public:
 		FVCell C = get_cell(i-1,j);
 		FVCell D = get_cell(i-1,j-1);
 		gradients_xy(vtx, A.pos, B.pos, C.pos[gtl], D.pos[gtl],
-			     A.fs, B.fs, C.fs, D.fs);
+			     A.fs, B.fs, C.fs, D.fs, myConfig.diffusion);
 	    } // j loop
 	    // West boundary
 	    i = imin;
@@ -1728,7 +1728,7 @@ public:
 		FVInterface D = get_ifi(i,j-1);
 		// Delegate the work of computing the actual gradients.
 		gradients_xy(vtx, A.pos[gtl], B.pos[gtl], C.pos, D.pos,
-			     A.fs, B.fs, C.fs, D.fs);
+			     A.fs, B.fs, C.fs, D.fs, myConfig.diffusion);
 	    } // j loop
 	    // North boundary
 	    j = jmax+1;
@@ -1739,7 +1739,7 @@ public:
 		FVInterface C = get_ifj(i-1,j);
 		FVCell D = get_cell(i-1,j-1);
 		gradients_xy(vtx, A.pos[gtl], B.pos, C.pos, D.pos[gtl],
-			     A.fs, B.fs, C.fs, D.fs);
+			     A.fs, B.fs, C.fs, D.fs, myConfig.diffusion);
 	    } // i loop
 	    // South boundary
 	    j = jmin;
@@ -1750,7 +1750,7 @@ public:
 		FVCell C = get_cell(i-1,j);
 		FVInterface D = get_ifj(i-1,j);
 		gradients_xy(vtx, A.pos, B.pos[gtl], C.pos[gtl], D.pos,
-			     A.fs, B.fs, C.fs, D.fs);
+			     A.fs, B.fs, C.fs, D.fs, myConfig.diffusion);
 	    } // i loop
 	    // For the corners, we are going to use the same divergence-theorem-based
 	    // gradient calculator and let one edge collapse to a point, thus giving
@@ -1764,7 +1764,7 @@ public:
 		FVInterface C = get_ifj(i-1,j);
 		FVCell D = get_cell(i-1,j-1);
 		gradients_xy(vtx, A.pos, B.pos, C.pos, D.pos[gtl],
-			     A.fs, B.fs, C.fs, D.fs);
+			     A.fs, B.fs, C.fs, D.fs, myConfig.diffusion);
 	    }
 	    // South-east corner
 	    {
@@ -1775,7 +1775,7 @@ public:
 		FVCell C = get_cell(i-1,j);
 		FVInterface D = get_ifj(i-1,j);
 		gradients_xy(vtx, A.pos, B.pos, C.pos[gtl], D.pos,
-			     A.fs, B.fs, C.fs, D.fs);
+			     A.fs, B.fs, C.fs, D.fs, myConfig.diffusion);
 	    }
 	    // South-west corner
 	    {
@@ -1786,7 +1786,7 @@ public:
 		FVInterface C = get_ifi(i,j);
 		FVInterface D = A;
 		gradients_xy(vtx, A.pos, B.pos[gtl], C.pos, D.pos,
-			     A.fs, B.fs, C.fs, D.fs);
+			     A.fs, B.fs, C.fs, D.fs, myConfig.diffusion);
 	    }
 	    // North-west corner
 	    {
@@ -1797,7 +1797,7 @@ public:
 		FVInterface C = B;
 		FVInterface D = get_ifi(i,j-1);
 		gradients_xy(vtx, A.pos[gtl], B.pos, C.pos, D.pos,
-			     A.fs, B.fs, C.fs, D.fs);
+			     A.fs, B.fs, C.fs, D.fs, myConfig.diffusion);
 	    }
 	} else {
 	    assert(false, "[TODO] flow_property_derivatives() in 3D not implemented yet.");

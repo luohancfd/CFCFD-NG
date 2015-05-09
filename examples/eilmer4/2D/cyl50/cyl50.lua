@@ -29,7 +29,8 @@ grd = StructuredGrid:new{psurface=makePatch{nth, est, sth, wst, gridType="ao"},
 			 niv=51, njv=51}
 
 -- Assemble the block from the grid and boundary data.
-blks = SBlockArray{grid=grd, fillCondition=inflow,
+blks = SBlockArray{grid=grd, nib=2, njb=2, 
+		   fillCondition=inflow,
 		   bcList={north=SupInBC:new{flowCondition=inflow},
 			   east=ExtrapolateOutBC:new{},
 			   south=FixedTWallBC:new{Twall=222.0},

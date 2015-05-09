@@ -213,7 +213,7 @@ public:
 
     void viscous_flux()
     {
-	auto vfwork = new ViscousFluxData(myConfig.gmodel.n_species);
+	auto vfwork = new ViscousFluxData(myConfig);
 	foreach (iface; active_ifaces) {
 	    vfwork.average_vertex_values(iface);
 	    vfwork.viscous_flux_calc(iface);

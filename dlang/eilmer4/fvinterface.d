@@ -46,7 +46,7 @@ public:
 	area.length = n_time_levels;
 	gvel = Vector3(0.0,0.0,0.0); // default to fixed grid
 	fs = new FlowState(gm, 100.0e3, [300.0,], Vector3(0.0,0.0,0.0));
-	F = new ConservedQuantities(gm);
+	F = new ConservedQuantities(gm.n_species, gm.n_modes);
     }
 
     this(in FVInterface other, GasModel gm)
