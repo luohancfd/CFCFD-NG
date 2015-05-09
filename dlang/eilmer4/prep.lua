@@ -787,8 +787,119 @@ function identifyBlockConnections(blockList, excludeList, tolerance)
 	 end -- if (A ~= B...
       end -- for _,B
    end -- for _,A
-   -- Hard-code the cone20 connection for the moment.
-   -- connectBlocks(blocks[1], east, blocks[2], west, 0)
+end
+
+-- ---------------------------------------------------------------------------
+
+function SBlockArray(t)
+   -- Expect one table as argument, with named fields.
+   -- Returns an array of blocks defined over a single region.
+   assert(t.grid, "need to supply a grid")
+   assert(t.fillCondition, "need to supply a fillCondition")
+   t.omegaz = t.omegaz or 0.0
+   t.bcList = t.bcList or {} -- boundary conditions
+   for _,face in ipairs(faceList(config.dimensions)) do
+      t.bcList[face] = t.bcList[face] or SlipWallBC:new()
+   end
+   t.xforceList = t.xforceList or {}
+   -- Numbers of subblocks in each coordinate direction
+   t.nib = t.nib or 1
+   t.njb = t.njb or 1
+   t.nkb = t.nkb or 1
+   if config.dimensions == 2 then
+      t.nkb = 1
+   end
+   -- Extract some information from the StructuredGrid
+   -- Note 0-based indexing for vertices and cells in the D-domain.
+   local nic_total = t.grid:get_niv() - 1
+   local dnic = math.floor(nic_total/t.nib)
+   local njc_total = t.grid:get_njv() - 1
+   local dnjc = math.floor(njc_total/t.njb)
+   local nkc_total = t.grid:get_nkv() - 1
+   local dnkc = math.floor(nkc_total/t.nkb)
+   if config.dimensions == 2 then
+      nkc_total = 1
+      dnk = 1
+   end
+   local blockArray = {} -- will be a multi-dimensional array indexed as [i][j][k]
+   local blockCollection = {} -- will be a single-dimensional array
+   for ib = 1, t.nib do
+      blockArray[ib] = {}
+      local i0 = (ib-1) * dnic
+      if (ib == t.nib) then
+	 -- Last block has to pick up remaining cells.
+	 dnic = nic_total - i0
+      end
+      for jb = 1, t.njb do
+	 local j0 = (jb-1) * dnjc
+	 if (jb == t.njb) then
+	    dnjc = njc_total - j0
+	 end
+	 if config.dimensions == 2 then
+	    -- 2D flow
+	    local subgrid = t.grid:subgrid(i0,dnic+1,j0,dnjc+1)
+	    local bcList = {north=SlipWallBC:new(), east=SlipWallBC:new(),
+			    south=SlipWallBC:new(), west=SlipWallBC:new()}
+	    if ib == 1 then
+	       bcList[west] = t.bcList[west]
+	    end
+	    if ib == t.nib then
+	       bcList[east] = t.bcList[east]
+	    end
+	    if jb == 1 then
+	       bcList[south] = t.bcList[south]
+	    end
+	    if jb == t.njb then
+	       bcList[north] = t.bcList[north]
+	    end
+	    new_block = SBlock:new{grid=subgrid, omegaz=t.omegaz,
+				   fillCondition=t.fillCondition, bcList=bcList}
+	    blockArray[ib][jb] = new_block
+	    blockCollection[#blockCollection+1] = new_block
+	 else
+	    -- 3D flow, need one more level in the array
+	    blockArray[ib][jb] = {}
+	    for kb = 1, t.nkb do
+	       local k0 = (kb-1) * dnkc
+	       if (kb == t.nkb) then
+		  dnkc = nkc_total - k0
+	       end
+	       local subgrid = t.grid:subgrid(i0,dnic+1,j0,dnjc+1,k0,dnkc+1)
+	       local bcList = {north=SlipWallBC:new(), east=SlipWallBC:new(),
+			       south=SlipWallBC:new(), west=SlipWallBC:new(),
+			       top=SlipWallBC:new(), bottom=SlipWallBC:new()}
+	       if ib == 1 then
+		  bcList[west] = t.bcList[west]
+	       end
+	       if ib == t.nib then
+		  bcList[east] = t.bcList[east]
+	       end
+	       if jb == 1 then
+		  bcList[south] = t.bcList[south]
+	       end
+	       if jb == t.njb then
+		  bcList[north] = t.bcList[north]
+	       end
+	       if kb == 1 then
+		  bcList[bottom] = t.bcList[bottom]
+	       end
+	       if kb == t.nkb then
+		  bcList[top] = t.bcList[top]
+	       end
+	       new_block = SBlock:new{grid=subgrid, omegaz=t.omegaz,
+				      fillCondition=t.fillCondition,
+				      bcList=bcList}
+	       blockArray[i][j][k] = new_block
+	       blockCollection[#blockCollection+1] = new_block
+	    end -- kb loop
+	 end -- dimensions
+      end -- jb loop
+   end -- ib loop
+   -- Make the inter-subblock connections
+   if #blockCollection > 1 then
+      identifyBlockConnections(blockCollection)
+   end
+   return blockArray
 end
 
 -- ---------------------------------------------------------------------------
