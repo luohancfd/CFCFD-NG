@@ -179,7 +179,6 @@ public:
 private:
     void setGlobalsInLuaState(LuaState lua, size_t nicell, size_t njcell, size_t nkcell)
     {
-	auto blk = allBlocks[blk_id];
 	auto gmodel = GlobalConfig.gmodel_master;
 	lua["blkId"] = blk_id;
 	lua["whichBoundary"] = which_boundary;

@@ -326,8 +326,8 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	if (!blk.active) continue;
 	blk.applyPreReconAction(sim_time, gtl, ftl);
     }
-    // And we'll do first-pass solid domain bc's too in case we need
-    // up-to-date flow info.
+    // And we'll do a first pass on solid domain bc's too in case we need
+    // up-to-date info.
     foreach (sblk; mySolidBlocks) {
 	if (!sblk.active) continue;
 	sblk.applyPreSpatialDerivAction(sim_time, ftl);
@@ -415,7 +415,15 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    if (!blk.active) continue;
 	    blk.applyPreReconAction(sim_time, gtl, ftl);
 	}
-	foreach (blk; parallel(myBlocks,1)) {
+	// Let's set up solid domain bc's also before
+	// changing any flow properties.
+	foreach (sblk; mySolidBlocks) {
+	    if (!sblk.active) continue;
+	    sblk.applyPreSpatialDerivAction(sim_time, ftl);
+	}
+
+	foreach (blk; myBlocks) { // [TODO] [FIXME] parallel caused segmentation fault
+	    //	foreach (blk; parallel(myBlocks,1)) {
 	    if (!blk.active) continue;
 	    blk.convective_flux();
 	}
@@ -455,6 +463,22 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		cell.decode_conserved(local_gtl, local_ftl+1, blk.omegaz);
 	    } // end foreach cell
 	} // end foreach blk
+	// Do solid domain update IMMEDIATELY after at same flow time level
+	foreach (sblk; mySolidBlocks) {
+	    if (!sblk.active) continue;
+	    sblk.clearSources();
+	    sblk.computeSpatialDerivatives(ftl);
+	    sblk.applyPostFluxAction(sim_time, ftl);
+	    sblk.computeFluxes();
+	    foreach (scell; sblk.activeCells) {
+		if (sblk.udfSourceTerms) {
+		    addUDFSourceTermsToSolidCell(sblk.udfSourceTerms, scell, sim_time);
+		}
+		scell.timeDerivatives(1, GlobalConfig.dimensions);
+		scell.stage2Update(dt_global);
+		scell.T[2] = updateTemperature(sblk.sp, scell.e[2]);
+	    } // end foreach cell
+	} // end foreach blk
     } // end if number_of_stages_for_update_scheme >= 2 
     //
     if ( number_of_stages_for_update_scheme(GlobalConfig.gasdynamic_update_scheme) >= 3 ) {
@@ -472,7 +496,8 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    if (!blk.active) continue;
 	    blk.applyPreReconAction(sim_time, gtl, ftl);
 	}
-	foreach (blk; parallel(myBlocks,1)) {
+	foreach (blk; myBlocks) { // [TODO] parallel
+	    //	foreach (blk; parallel(myBlocks,1)) {
 	    if (!blk.active) continue;
 	    blk.convective_flux();
 	}
