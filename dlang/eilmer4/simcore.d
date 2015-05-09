@@ -335,17 +335,29 @@ void gasdynamic_explicit_increment_with_fixed_grid()
     // We've put this detector step here because it needs the ghost-cell data
     // to be current, as it should be just after a call to apply_convective_bc().
     if (GlobalConfig.flux_calculator == FluxCalculator.adaptive) {
-	foreach (blk; parallel(myBlocks,1)) { blk.detect_shock_points(); }
+	foreach (blk; parallel(myBlocks,1)) {
+	    if (!blk.active) continue;
+	    blk.detect_shock_points();
+	}
     }
     foreach (blk; parallel(myBlocks,1)) {
 	if (!blk.active) continue;
 	blk.convective_flux();
-	if (blk.myConfig.viscous && !blk.myConfig.separate_update_for_viscous_terms) {
+    }
+    if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
+	foreach (blk; myBlocks) { // not parallel, yet
+	    if (!blk.active) continue;
 	    blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+	}
+	foreach (blk; parallel(myBlocks,1)) {
+	    if (!blk.active) continue;
 	    blk.flow_property_derivatives(gtl); 
 	    blk.estimate_turbulence_viscosity();
 	    blk.viscous_flux();
-	} // end if viscous
+	}
+    } // end if viscous
+    foreach (blk; parallel(myBlocks,1)) {
+	if (!blk.active) continue;
 	// [TODO] [FIXME] push the fine loop here into the Block class.
 	// The cone20 run time has gone from 21 to 28 seconds, maybe because of
 	// many memory barriers on the shared variables like gtl, ftl, with_k_omega.
@@ -398,23 +410,29 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	}
 	// Second stage of gas-dynamic update.
 	ftl = 1;
-	// We are relying on exchangine boundary data
-	// as a pre-reconstruction activity.
-	// NOTE FOR PJ: This replaces exchange. Good idea or no? 
-	// Reply from PJ: YES
-	foreach (blk; myBlocks) { // # [TODO] [FIXME] parallel caused segmentation fault
+	// We are relying on exchangine boundary data as a pre-reconstruction activity.
+	foreach (blk; myBlocks) { // # [TODO] not parallel, yet
 	    if (!blk.active) continue;
 	    blk.applyPreReconAction(sim_time, gtl, ftl);
 	}
 	foreach (blk; parallel(myBlocks,1)) {
 	    if (!blk.active) continue;
 	    blk.convective_flux();
-	    if (blk.myConfig.viscous && !blk.myConfig.separate_update_for_viscous_terms) {
+	}
+	if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
+	    foreach (blk; myBlocks) { // [TODO] not parallel, yet
+		if (!blk.active) continue;
 		blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+	    }
+	    foreach (blk; parallel(myBlocks,1)) {
+		if (!blk.active) continue;
 		blk.flow_property_derivatives(gtl); 
 		blk.estimate_turbulence_viscosity();
 		blk.viscous_flux();
-	    } // end if viscous
+	    }
+	} // end if viscous
+	foreach (blk; parallel(myBlocks,1)) {
+	    if (!blk.active) continue;
 	    // [TODO] [FIXME] push the fine loop here into the Block class.
 	    // The cone20 run time has gone from 21 to 28 seconds, maybe because of
 	    // many memory barriers on the shared variables like gtl, ftl, with_k_omega.
@@ -450,19 +468,28 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	ftl = 2;
 	// We are relying on exchangine boundary data
 	// as a pre-reconstruction activity.
-	foreach (blk; myBlocks) { // [TODO] parallel
+	foreach (blk; myBlocks) { // [TODO] not parallel, yet
 	    if (!blk.active) continue;
 	    blk.applyPreReconAction(sim_time, gtl, ftl);
 	}
 	foreach (blk; parallel(myBlocks,1)) {
 	    if (!blk.active) continue;
 	    blk.convective_flux();
-	    if (blk.myConfig.viscous && !blk.myConfig.separate_update_for_viscous_terms) {
+	}
+	if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
+	    foreach (blk; myBlocks) { // [TODO] not parallel, yet
+		if (!blk.active) continue;
 		blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+	    }
+	    foreach (blk; parallel(myBlocks,1)) {
+		if (!blk.active) continue;
 		blk.flow_property_derivatives(gtl); 
 		blk.estimate_turbulence_viscosity();
 		blk.viscous_flux();
-	    } // end if viscous
+	    }
+	} // end if viscous
+	foreach (blk; parallel(myBlocks,1)) {
+	    if (!blk.active) continue;
 	    // [TODO] [FIXME] push the fine loop here into the Block class.
 	    // The cone20 run time has gone from 21 to 28 seconds, maybe because of
 	    // many memory barriers on the shared variables like gtl, ftl, with_k_omega.

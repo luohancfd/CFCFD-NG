@@ -11,6 +11,7 @@ module boundary_interface_effect;
 import std.json;
 import std.string;
 import std.conv;
+import std.stdio;
 
 import geom;
 import json_helper;
@@ -97,6 +98,11 @@ class BIE_CopyCellData : BoundaryInterfaceEffect {
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
+	// [TODO] [FIXME] PJ
+	// writeln("BoundaryInterfaceEffect.apply(): blk_id=", blk_id, " length=", allBlocks.length);
+	// The following is going to be a problem, when running in parallel 
+	// allBlocks is not shared, so not all threads see the filled array.
+	// Some see a zero-length array.
 	auto blk = allBlocks[blk_id];
 	auto gmodel = blk.myConfig.gmodel;
 
