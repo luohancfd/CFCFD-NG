@@ -17,7 +17,7 @@ import ssolidblock;
 // that may or may not be sequentially numbered.
 
 static SBlock[] allBlocks; // The array of Block objects, holding arrays of cells.
-static SBlock[] myBlocks;  // Local collection that we can iterate over.
+static SBlock[] myBlocks;  // Local collection that we can iterate over in parallel.
 
 static SSolidBlock[] allSolidBlocks;
 static SSolidBlock[] mySolidBlocks;

@@ -421,9 +421,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    if (!sblk.active) continue;
 	    sblk.applyPreSpatialDerivAction(sim_time, ftl);
 	}
-
-	foreach (blk; myBlocks) { // [TODO] [FIXME] parallel caused segmentation fault
-	    //	foreach (blk; parallel(myBlocks,1)) {
+	foreach (blk; parallel(myBlocks,1)) {
 	    if (!blk.active) continue;
 	    blk.convective_flux();
 	}
@@ -496,8 +494,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    if (!blk.active) continue;
 	    blk.applyPreReconAction(sim_time, gtl, ftl);
 	}
-	foreach (blk; myBlocks) { // [TODO] parallel
-	    //	foreach (blk; parallel(myBlocks,1)) {
+	foreach (blk; parallel(myBlocks,1)) {
 	    if (!blk.active) continue;
 	    blk.convective_flux();
 	}
