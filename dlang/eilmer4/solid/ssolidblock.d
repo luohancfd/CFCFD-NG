@@ -968,4 +968,8 @@ public:
 	}
     }
 
+    override void clearSources()
+    {
+	foreach ( cell; activeCells ) cell.Q = 0.0;
+    }
 }

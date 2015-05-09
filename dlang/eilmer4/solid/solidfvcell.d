@@ -18,6 +18,7 @@ import fvcore;
 import solidfvinterface;
 import solidfvvertex;
 import solidprops;
+import std.stdio;
 
 class SolidFVCell {
 public:
@@ -81,7 +82,6 @@ public:
 	// Sum up fluxes (of form q.n)
 	integral = -IFe.flux * IFe.area - IFn.flux * IFn.area
 	    + IFw.flux * IFw.area + IFs.flux * IFs.area;
-
 	dedt[ftl] = volInv * integral + Q;
     }
     void stage1Update(double dt)

@@ -48,5 +48,6 @@ public:
     abstract void applyPostFluxAction(double t, int tLevel);
     abstract void computeSpatialDerivatives(int ftl);
     abstract void computeFluxes();
+    abstract void clearSources();
 }
 

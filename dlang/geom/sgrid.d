@@ -143,7 +143,7 @@ public:
 	    throw new Error(text("Sgrid.subgrid overrun j0=",j0,", nj=",nj,", njv=",njv));
 	if (k0+nk > nkv)
 	    throw new Error(text("Sgrid.subgrid overrun k0=",k0,", nk=",nk,", nkv=",nkv));
-	auto new_grd = new StructuredGrid(ni, nj, nk);
+	auto new_grd = new StructuredGrid(to!int(ni), to!int(nj), to!int(nk));
 	foreach (i; 0 .. ni) {
 	    foreach (j; 0 .. nj) {
 		foreach (k; 0 .. nk) {
