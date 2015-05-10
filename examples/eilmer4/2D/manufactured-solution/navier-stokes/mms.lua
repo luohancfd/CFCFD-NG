@@ -4,58 +4,31 @@
 -- Date: 2015-05-05
 --
 
-title = "Method of Manufactured Solutions, Navier-Stokes case."
-print(title)
+config.title = "Method of Manufactured Solutions, Navier-Stokes case."
+print(config.title)
 config.dimensions = 2
-config.title = title
 
 setGasModel('very-viscous-air.lua')
-
-R = 287.0
-
-p0 = 1.0e5
-T0 = p0/R
-u0 = 70.0
-v0 = 90.0
-
+R = 287.0; p0 = 1.0e5; T0 = p0/R; u0 = 70.0; v0 = 90.0;
 initial = FlowState:new{p=p0, T=T0, velx=u0, vely=v0}
 
-a = Vector3:new{0.0, 0.0}
-b = Vector3:new{1.0, 0.0}
-c = Vector3:new{0.0, 1.0}
-d = Vector3:new{1.0, 1.0}
+p00 = Vector3:new{0.0, 0.0}
+p10 = Vector3:new{1.0, 0.0}
+p01 = Vector3:new{0.0, 1.0}
+p11 = Vector3:new{1.0, 1.0}
+nicell = 16; njcell = 16
+grid = StructuredGrid:new{psurface=CoonsPatch:new{p00=p00, p10=p10, p11=p11, p01=p01},
+			  niv=nicell+1, njv=njcell+1}
 
-nx0 = 16
-ny0 = 16
-
-grid = StructuredGrid:new{psurface=makePatch{Line:new{c,d}, Line:new{b,d}, Line:new{a,b}, Line:new{a,c}},
-			  niv=nx0+1, njv=ny0+1}
-
-blk = SBlock:new{grid=grid, fillCondition=initial, label="blk"}
-blk.bcList[north] = BoundaryCondition:new{
-   preReconAction = { UserDefinedGhostCell:new{fileName='udf-bc.lua'} },
-   preSpatialDerivAction = { UserDefinedInterface:new{fileName='udf-bc.lua'},
-			     UpdateThermoTransCoeffs:new()
+bcList = {}
+for _,face in ipairs{north, east, south, west} do
+   bcList[face] = BoundaryCondition:new{
+      preReconAction = { UserDefinedGhostCell:new{fileName='udf-bc.lua'} },
+      preSpatialDerivAction = { UserDefinedInterface:new{fileName='udf-bc.lua'},
+				UpdateThermoTransCoeffs:new() }
    }
-}
-blk.bcList[east] = BoundaryCondition:new{
-   preReconAction = { UserDefinedGhostCell:new{fileName='udf-bc.lua'} },
-   preSpatialDerivAction = { UserDefinedInterface:new{fileName='udf-bc.lua'},
-			     UpdateThermoTransCoeffs:new()
-   }
-}
-blk.bcList[south] = BoundaryCondition:new{
-   preReconAction = { UserDefinedGhostCell:new{fileName='udf-bc.lua'} },
-   preSpatialDerivAction = { UserDefinedInterface:new{fileName='udf-bc.lua'},
-			     UpdateThermoTransCoeffs:new()
-   }
-}
-blk.bcList[west] = BoundaryCondition:new{
-   preReconAction = { UserDefinedGhostCell:new{fileName='udf-bc.lua'} },
-   preSpatialDerivAction = { UserDefinedInterface:new{fileName='udf-bc.lua'},
-			     UpdateThermoTransCoeffs:new()
-   }
-}
+end
+blk = SBlockArray{grid=grid, fillCondition=initial, bcList=bcList, nib=2, njb=2, label="blk"}
 
 config.interpolation_order = 2
 config.gasdynamic_update_scheme = "predictor-corrector"
