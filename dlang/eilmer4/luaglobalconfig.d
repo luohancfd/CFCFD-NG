@@ -17,7 +17,6 @@ import util.lua_service;
 
 import gas;
 import fvcore;
-import solidfvcore;
 import globalconfig;
 
 // -------------------------------------------------------------------------------
@@ -227,12 +226,6 @@ extern(C) int configSetFromTable(lua_State* L)
     if (!lua_isnil(L, -1)) GlobalConfig.udf_source_terms = to!bool(lua_toboolean(L, -1));
     lua_pop(L, 1);
 
-    lua_getfield(L, 1, "solid_domain_update_scheme");
-    if (!lua_isnil(L, -1)) {
-	string name = to!string(luaL_checkstring(L, -1));
-	GlobalConfig.solidDomainUpdateScheme = solidDomainUpdateSchemeFromName(name);
-    }
-
     lua_getfield(L, 1, "udf_solid_source_terms_file");
     if (!lua_isnil(L, -1)) GlobalConfig.udfSolidSourceTermsFile = to!string(luaL_checkstring(L, -1));
     lua_pop(L, 1);
@@ -421,10 +414,6 @@ extern(C) int configGet(lua_State* L)
 	break;
     case "udf_source_terms":
 	lua_pushboolean(L, GlobalConfig.udf_source_terms);
-	break;
-    case "solid_domain_update_scheme":
-	string name = solidDomainUpdateSchemeName(GlobalConfig.solidDomainUpdateScheme);
-	lua_pushstring(L, name.toStringz);
 	break;
     case "udf_solid_source_terms_file":
 	lua_pushstring(L, GlobalConfig.udfSolidSourceTermsFile.toStringz);

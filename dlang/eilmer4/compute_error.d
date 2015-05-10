@@ -13,15 +13,16 @@ import globaldata;
 
 void main(string[] args)
 {
-    writeln("args.length= ", args.length);
     string jobName = args[1];
     string luafname = args[2];
-    writeln("jobName= ", jobName, " luafname= ", luafname);
+    string luafname2 = args[3];
+    writeln("jobName= ", jobName, " luafname= ", luafname, " luafname2= ", luafname2);
     int tindx = 30;
     
     GlobalConfig.base_file_name = jobName;
     read_config_file();
-    
+
+    // First work on solid block
     auto blk = mySolidBlocks[0];
     blk.assembleArrays();
     blk.bindFacesAndVerticesToCells();
@@ -33,16 +34,39 @@ void main(string[] args)
 
     double LInf_norm = 0.0;
     double sum = 0.0;
-    int N = 0;
+    double total_volume = 0;
 
     foreach (cell; blk.activeCells) {
 	double T_ex = T_analytical(lfunc, cell.pos.x, cell.pos.y);
 	double abs_diff = fabs(cell.T[0] - T_ex);
+	double volume = cell.volume;
+	writeln("T_ex= ", T_ex, " T_n= ", cell.T[0], " diff= ", abs_diff);
+	writeln("volume= ", volume);
 	LInf_norm = max(LInf_norm, abs_diff);
-	sum += abs_diff^^2;
-	N += 1;
+	sum += volume*abs_diff^^2;
+	total_volume += volume;
     }
-    double L2_norm = sqrt(sum/N);
+
+    // Second, work on gas block
+    auto gblk = myBlocks[0];
+    gblk.assemble_arrays();
+    gblk.bind_interfaces_and_vertices_to_cells();
+    gblk.bind_vertices_and_cells_to_interfaces();
+    gblk.read_grid(make_file_name!"grid"(jobName, gblk.id, 0), 0);
+    auto sim_time = gblk.read_solution(make_file_name!"flow"(jobName, gblk.id, tindx));
+    auto lua2 = initLuaState(luafname2);
+    auto lfunc2 = lua2.get!LuaFunction("T");
+    foreach (cell; gblk.active_cells) {
+	double T_ex = T_analytical(lfunc2, cell.pos[0].x, cell.pos[0].y);
+	double abs_diff = fabs(cell.fs.gas.T[0] - T_ex);
+	double volume = cell.volume[0];
+	writeln("T_ex= ", T_ex, " T_n= ", cell.fs.gas.T[0], " diff= ", abs_diff);
+	LInf_norm = max(LInf_norm, abs_diff);
+	sum += volume*abs_diff^^2;
+	total_volume += volume;
+    }
+
+    double L2_norm = sqrt(sum/total_volume);
 
     writeln(format("L2-norm = %20.12e", L2_norm));
     writeln(format("L-inf-norm = %20.12e", LInf_norm));

@@ -937,6 +937,7 @@ end
 SolidBoundaryCondition = {
    label = "",
    myType = "",
+   setsFluxDirectly = false,
    preSpatialDerivAction = {}
 }
 function SolidBoundaryCondition:new(o)
@@ -948,6 +949,7 @@ end
 function SolidBoundaryCondition:tojson()
    local str = '{'
    str = str .. string.format('"label": "%s", \n', self.label)
+   str = str .. string.format('        "sets_flux_directly": %s,\n', tostring(self.setsFluxDirectly))
    str = str .. '        "pre_spatial_deriv_action": [\n'
    for i,effect in ipairs(self.preSpatialDerivAction) do
       str = str .. effect:tojson()
@@ -971,6 +973,14 @@ SolidUserDefinedBC.myType = "SolidUserDefined"
 function SolidUserDefinedBC:new(o)
    o = SolidBoundaryCondition.new(self, o)
    o.preSpatialDerivAction = { SolidBIE_UserDefined:new{fileName=o.fileName} }
+   return o
+end
+
+SolidAdjacentToGasBC = SolidBoundaryCondition:new()
+SolidAdjacentToGasBC.myType = "SolidAdjacentToGas"
+function SolidAdjacentToGasBC:new(o)
+   o = SolidBoundaryCondition.new(self, o)
+   o.setsFluxDirectly = true
    return o
 end
 
@@ -1124,7 +1134,6 @@ function write_config_file(fileName)
    f:write(string.format('"control_count": %d,\n', config.control_count))
    f:write(string.format('"nblock": %d,\n', #(blocks)))
 
-   f:write(string.format('"solid_domain_update_scheme": "%s",\n', config.solid_domain_update_scheme))
    f:write(string.format('"udf_solid_source_terms_file": "%s",\n', config.udf_solid_source_terms_file))
    f:write(string.format('"udf_solid_source_terms": %s,\n', tostring(config.udf_solid_source_terms)))
    f:write(string.format('"nsolidblock": %d,\n', #solidBlocks))

@@ -23,7 +23,6 @@ import globaldata;
 import flowstate;
 import sblock;
 import ssolidblock;
-import solidfvcore;
 import bc;
 import user_defined_source_terms;
 import solid_udf_source_terms;
@@ -199,18 +198,10 @@ void read_config_file()
     }
 
     // Read in any blocks in the solid domain.
-    try {
-	string name = jsonData["solid_domain_update_scheme"].str;
-	GlobalConfig.solidDomainUpdateScheme = solidDomainUpdateSchemeFromName(name);
-    } catch (Exception e) {
-	GlobalConfig.solidDomainUpdateScheme = SolidDomainUpdate.pc;
-    }
     auto udf_solid_source_terms = getJSONbool(jsonData, "udf_solid_source_terms", false);
     auto udf_solid_source_terms_file = jsonData["udf_solid_source_terms_file"].str;
     GlobalConfig.nSolidBlocks = getJSONint(jsonData, "nsolidblock", 0);
     if (GlobalConfig.verbosity_level > 1) {
-	writeln("  solid_domain_update_scheme: ",
-		solidDomainUpdateSchemeName(GlobalConfig.solidDomainUpdateScheme));
 	writeln("  nSolidBlocks: ", GlobalConfig.nSolidBlocks);
 	writeln("  udf_solid_source_terms: ", udf_solid_source_terms);
 	writeln("  udf_solid_source_terms_file: ", udf_solid_source_terms_file);

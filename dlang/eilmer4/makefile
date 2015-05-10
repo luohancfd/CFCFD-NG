@@ -21,7 +21,6 @@ SOLID_FILES := solid/solidbc.d \
 	solid/solid_boundary_flux_effect.d \
 	solid/solid_boundary_interface_effect.d \
 	solid/ssolidblock.d \
-	solid/solidfvcore.d \
 	solid/solidfvcell.d \
 	solid/solidfvinterface.d \
 	solid/solidfvvertex.d \
@@ -253,7 +252,7 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 	conservedquantities.d flowstate.d luaflowstate.d \
 	globalconfig.d luaglobalconfig.d globaldata.d \
 	block.d sblock.d ublock.d \
-	lua_helper.d user_defined_source_terms.d \
+	lua_helper.d user_defined_source_terms.d gas_solid_interface.d \
 	$(BC_FILES) $(SOLID_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
 	$(KINETICS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
 	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' main.d > main_with_rev_string.d
@@ -264,7 +263,7 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 		conservedquantities.d flowstate.d luaflowstate.d \
 		globalconfig.d luaglobalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
-		lua_helper.d user_defined_source_terms.d \
+		lua_helper.d user_defined_source_terms.d gas_solid_interface.d \
 		$(BC_FILES) $(SOLID_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)
 
@@ -275,7 +274,7 @@ compute-error: compute_error.d simcore.d fileutil.d readconfig.d json_helper.d \
 	conservedquantities.d flowstate.d luaflowstate.d \
 	globalconfig.d luaglobalconfig.d globaldata.d \
 	block.d sblock.d ublock.d \
-	lua_helper.d user_defined_source_terms.d \
+	lua_helper.d user_defined_source_terms.d gas_solid_interface.d \
 	$(BC_FILES) $(SOLID_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
 	$(KINETICS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
 	$(DMD) $(DFLAGS) $(OF)compute-error \
@@ -285,6 +284,6 @@ compute-error: compute_error.d simcore.d fileutil.d readconfig.d json_helper.d \
 		conservedquantities.d flowstate.d luaflowstate.d \
 		globalconfig.d luaglobalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
-		lua_helper.d user_defined_source_terms.d \
+		lua_helper.d user_defined_source_terms.d gas_solid_interface.d \
 		$(BC_FILES) $(SOLID_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)

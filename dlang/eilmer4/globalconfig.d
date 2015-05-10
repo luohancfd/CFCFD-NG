@@ -16,7 +16,6 @@ import gas;
 import kinetics;
 import geom;
 import fvcore;
-import solidfvcore;
 
 // Symbolic names for turbulence models.
 enum TurbulenceModel { none, baldwin_lomax, k_omega, spalart_allmaras }
@@ -295,7 +294,6 @@ final class GlobalConfig {
     shared static int filter_npass;
 
     // Parameters related to the solid domain and conjugate coupling
-    shared static SolidDomainUpdate solidDomainUpdateScheme = SolidDomainUpdate.pc;
     shared static bool udfSolidSourceTerms = false;
     shared static string udfSolidSourceTermsFile = "dummy-solid-source-terms.txt";
 

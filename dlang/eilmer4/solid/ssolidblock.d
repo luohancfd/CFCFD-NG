@@ -943,6 +943,10 @@ public:
 	// East-facing interfaces
 	for ( j = jmin; j <= jmax; ++j ) {
 	    for ( i = imin; i <= imax + 1; ++i ) {
+		if ( i == imin && bc[Face.west].setsFluxDirectly )
+		    continue;
+		if ( i == imax && bc[Face.east].setsFluxDirectly )
+		    continue;
 		IFace = getIfi(i, j);
 		vtx1 = getVtx(i, j+1);
 		vtx2 = getVtx(i, j);
@@ -956,6 +960,10 @@ public:
 	// North-facing interfaces
 	for ( j = jmin; j <= jmax + 1; ++j ) {
 	    for ( i = imin; i <= imax; ++i ) {
+		if ( j == jmin && bc[Face.south].setsFluxDirectly ) 
+		    continue;
+		if ( j == jmax && bc[Face.north].setsFluxDirectly )
+		    continue;
 		IFace = getIfj(i, j);
 		vtx1 = getVtx(i, j);
 		vtx2 = getVtx(i+1, j);

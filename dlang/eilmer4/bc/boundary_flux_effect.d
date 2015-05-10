@@ -7,6 +7,7 @@
 
 module boundary_flux_effect;
 
+import std.stdio;
 import std.json;
 import std.string;
 import std.conv;
@@ -19,16 +20,15 @@ import json_helper;
 import fvcore;
 import fvcell;
 import fvinterface;
-import solidfvcore;
 import solidfvcell;
 import solidfvinterface;
-//import gas_solid_interface;
+import gas_solid_interface;
 
 BoundaryFluxEffect make_BFE_from_json(JSONValue jsonData, int blk_id, int boundary)
 {
     string bfeType = jsonData["type"].str;
     BoundaryFluxEffect newBFE;
-    /*
+    
     switch ( bfeType ) {
     case "energy_flux_from_adjacent_solid":
 	int otherBlock = getJSONint(jsonData, "other_block", -1);
@@ -42,7 +42,7 @@ BoundaryFluxEffect make_BFE_from_json(JSONValue jsonData, int blk_id, int bounda
 	string errMsg = format("ERROR: The BoundaryFluxEffect type: '%s' is unknown.", bfeType);
 	throw new Error(errMsg);
     }
-    */
+    
     return newBFE;
 }
 
@@ -69,7 +69,7 @@ public:
 //       and important side-effect:
 //       IT ALSO SETS THE FLUX IN THE ADJACENT SOLID DOMAIN
 //       AT THE TIME IT IS CALLED.
-/*
+
 class BFE_EnergyFluxFromAdjacentSolid : BoundaryFluxEffect {
 public:
     int neighbourSolidBlk;
@@ -84,52 +84,18 @@ public:
 	neighbourSolidFace = otherFace;
 	neighbourOrientation = orient;
     }
+
+    override string toString() const 
+    {
+	return "BFE_EnergyFluxFromAdjacentSolid()";
+    }
     
     override void apply(double t, int gtl, int ftl)
     {
-	
-	//size_t i, j, k;
-	//FVCell gasCell;
-	//SolidFVCell solidCell;
-	auto blk = allBlocks[blk_id];
-	/*
-	// First, grab a copy of near-wall gas cells
-	switch ( which_boundary ) {
-	case Face.north:
-	    j = blk.jmax;
-	    for (k = blk.kmin; k <= blk.kmax; ++k) {
-		for (i = blk.imin; i <= blk.imax; ++i) {
-		    gasCell = blk.get_cell(i, j, k);
-		    _gasCells[i-nghost].copy_values_from(gasCell, CopyDataOption.minimal_flow);
-		    _gasIFaces[i-nghost].copy_values_from(gasCell.iface[Face.north], CopyDataOption.minimal_flow);
-		}
-	    }
-	    break;
-	default:
-	    throw new Error("[TODO] EnergyFluxFromAdjacentSolid only implemented for NORTH boundary.");
-	}
-	// Second, grab a copy of near-wall solid cells
-	auto solidBlk = allSolidBlocks[neighbourSolidBlk];
-	switch ( neighbourSolidFace ) {
-	case Face.south:
-	    j = solidBlk.jmin;
-	    for (k = solidBlk.kmin; k <= solidBlk.kmax; ++k) {
-		for (i = solidBlk.imin; i <= solidBlk.imax; ++i) {
-		    solidCell = solidBlk.getCell(i, j, k);
-		    _solidCells[i-nghost].copyValuesFrom(solidCell, SolidCopyOption.stateOnly);
-		    _solidIFaces[i-nghost].copyValuesFrom(solidCell.iface[Face.south], SolidCopyOption.stateOnly);
-		}
-	    }
-	    break;
-	default:
-	    throw new Error("[TODO]: EnergyFluxFromAdjacentSolid only implemented for SOUTH boundary.");
-	}
-	//
 	double kS = allSolidBlocks[neighbourSolidBlk].sp.k;
 	computeFluxesAndTemperatures(ftl, kS,
 				     _gasCells, _gasIFaces,
 				     _solidCells, _solidIFaces);
-
     }
 
 private:
@@ -180,6 +146,5 @@ public:
 	    throw new Error("initGasCellsAndIFaces() only implemented for NORTH gas face.");
 	}
     }
-
 }
-*/
+
