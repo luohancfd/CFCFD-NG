@@ -127,7 +127,7 @@ public:
 	FVCell src_cell, dest_cell;
 	FVInterface IFace;
 	auto copy_opt = CopyDataOption.minimal_flow;
-	auto blk = allBlocks[blk_id];
+	auto blk = gasBlocks[blk_id];
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -300,7 +300,7 @@ public:
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
 	FVInterface dest_face;
-	auto blk = allBlocks[blk_id];
+	auto blk = gasBlocks[blk_id];
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -397,7 +397,7 @@ public:
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
 	FVCell cell_1, cell_2;
-	auto blk = allBlocks[blk_id];
+	auto blk = gasBlocks[blk_id];
 	auto gmodel = blk.myConfig.gmodel;
 	size_t nsp = gmodel.n_species;
 	size_t nmodes = gmodel.n_modes;
@@ -883,7 +883,7 @@ public:
     {
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
-	auto blk = allBlocks[blk_id];
+	auto blk = gasBlocks[blk_id];
 	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
@@ -1012,9 +1012,9 @@ public:
     {
 	// TODO Check me!  This is a work-around.
 	// We should be able to directly reference the BCs block as blk.
-	auto blk = allBlocks[blk_id];
+	auto blk = gasBlocks[blk_id];
 	blk.copy_into_ghost_cells(which_boundary, 
-				  allBlocks[neighbourBlock],
+				  gasBlocks[neighbourBlock],
 				  neighbourFace, neighbourOrientation,
 				  CopyDataOption.all, true);
     }

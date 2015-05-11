@@ -61,7 +61,7 @@ double init_simulation(int tindx, int maxCPUs)
     auto job_name = GlobalConfig.base_file_name;
     defaultPoolThreads(maxCPUs-1); // total = main thread + threads-in-Pool
     writeln("Running on ", maxCPUs, " CPUs");
-    foreach (myblk; parallel(myBlocks,1)) {
+    foreach (myblk; parallel(gasBlocks,1)) {
 	myblk.assemble_arrays();
 	myblk.bind_interfaces_and_vertices_to_cells();
 	myblk.bind_vertices_and_cells_to_interfaces();
@@ -71,7 +71,7 @@ double init_simulation(int tindx, int maxCPUs)
 	// They should all have the same value for it.
 	sim_time = myblk.read_solution(make_file_name!"flow"(job_name, myblk.id, tindx));
     }
-    foreach (myblk; parallel(myBlocks,1)) {
+    foreach (myblk; parallel(gasBlocks,1)) {
 	myblk.compute_primary_cell_geometric_data(0);
 	myblk.compute_distance_to_nearest_wall_for_all_cells(0);
 	myblk.compute_secondary_cell_geometric_data(0);
@@ -87,14 +87,14 @@ double init_simulation(int tindx, int maxCPUs)
 	}
 	myblk.set_cell_dt_chem(-1.0);
     }
-    foreach (ref mySolidBlk; mySolidBlocks) {
+    foreach (ref mySolidBlk; solidBlocks) {
 	mySolidBlk.assembleArrays();
 	mySolidBlk.bindFacesAndVerticesToCells();
 	writeln("mySolidBlk= ", mySolidBlk);
 	mySolidBlk.readGrid(make_file_name!"solid-grid"(job_name, mySolidBlk.id, tindx));
 	mySolidBlk.readSolution(make_file_name!"solid"(job_name, mySolidBlk.id, tindx));
     }
-    foreach (ref mySolidBlk; mySolidBlocks) {
+    foreach (ref mySolidBlk; solidBlocks) {
 	mySolidBlk.computePrimaryCellGeometricData();
 	mySolidBlk.computeSecondaryCellGeometricData();
     }
@@ -103,7 +103,7 @@ double init_simulation(int tindx, int maxCPUs)
     // then we can set up the cells and interfaces that
     // internal to the bc. They are only known after
     // this point.
-    foreach ( myblk; parallel(myBlocks,1) ) {
+    foreach ( myblk; parallel(gasBlocks,1) ) {
 	foreach ( i; 0 .. (myblk.myConfig.dimensions == 3 ? 6 : 4) ) {
 	    auto bc = myblk.bc[i];
 	    foreach ( bfe; bc.postDiffFluxAction ) {
@@ -165,8 +165,8 @@ double integrate_in_time(double target_time, int maxWallClock)
 	if (do_cfl_check_now) {
 	    // Adjust the time step  
 	    shared double dt_allow = 1.0e9; // Start with too large a guess to ensure it is replaced.
-	    // [TODO] for parallel, need to reduce across myBlocks
-	    foreach (myblk; myBlocks) {
+	    // [TODO] for parallel, need to reduce across gasBlocks
+	    foreach (myblk; gasBlocks) {
 		if (!myblk.active) continue;
 		dt_allow = min(dt_allow, myblk.determine_time_step_size(dt_global)); 
 	    }
@@ -184,7 +184,7 @@ double integrate_in_time(double target_time, int maxWallClock)
 	} // end if do_cfl_check_now 
 
         // 2. Attempt a time step.
-	foreach (myblk; parallel(myBlocks,1)) {
+	foreach (myblk; parallel(gasBlocks,1)) {
 	    myblk.set_grid_velocities(sim_time); 
 	    // [TODO] We will need to attend to moving grid properly.
 	}
@@ -196,7 +196,7 @@ double integrate_in_time(double target_time, int maxWallClock)
 	//     separately to the convective terms.
         // 2d. Chemistry step. 
 	if ( GlobalConfig.reacting ) {
-	    foreach (blk; parallel(myBlocks,1)) {
+	    foreach (blk; parallel(gasBlocks,1)) {
 		if (!blk.active) continue;
 		double local_dt_global = dt_global;
 		foreach (cell; blk.active_cells) {
@@ -227,12 +227,12 @@ double integrate_in_time(double target_time, int maxWallClock)
 	    current_tindx = current_tindx + 1;
 	    ensure_directory_is_present(make_path_name!"flow"(current_tindx));
 	    auto job_name = GlobalConfig.base_file_name;
-	    foreach (ref myblk; parallel(myBlocks,1)) {
+	    foreach (ref myblk; parallel(gasBlocks,1)) {
 		auto file_name = make_file_name!"flow"(job_name, myblk.id, current_tindx);
 		myblk.write_solution(file_name, sim_time);
 	    }
 	    ensure_directory_is_present(make_path_name!"solid"(current_tindx));
-	    foreach (ref mySolidBlk; mySolidBlocks) {
+	    foreach (ref mySolidBlk; solidBlocks) {
 		auto fileName = make_file_name!"solid"(job_name, mySolidBlk.id, current_tindx);
 		mySolidBlk.writeSolution(fileName, sim_time);
 	    }
@@ -295,12 +295,12 @@ void finalize_simulation(double sim_time)
 	current_tindx = current_tindx + 1;
 	ensure_directory_is_present(make_path_name!"flow"(current_tindx));
 	auto job_name = GlobalConfig.base_file_name;
-	foreach (ref myblk; myBlocks) {
+	foreach (ref myblk; gasBlocks) {
 	    auto file_name = make_file_name!"flow"(job_name, myblk.id, current_tindx);
 	    myblk.write_solution(file_name, sim_time);
 	}
 	ensure_directory_is_present(make_path_name!"solid"(current_tindx));
-	foreach (ref mySolidBlk; mySolidBlocks) {
+	foreach (ref mySolidBlk; solidBlocks) {
 	    auto fileName = make_file_name!"solid"(job_name, mySolidBlk.id, current_tindx);
 	    mySolidBlk.writeSolution(fileName, sim_time);
 	}
@@ -329,7 +329,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
     case GasdynamicUpdate.denman_rk3: c2 = 1.0; c3 = 0.5; break; 
     }
     // Preparation for the predictor-stage of inviscid gas-dynamic flow update.
-    foreach (blk; parallel(myBlocks,1)) {
+    foreach (blk; parallel(gasBlocks,1)) {
 	if (!blk.active) continue;
 	blk.clear_fluxes_of_conserved_quantities();
 	foreach (cell; blk.active_cells) cell.clear_source_vector();
@@ -337,45 +337,45 @@ void gasdynamic_explicit_increment_with_fixed_grid()
     // First-stage of gas-dynamic update.
     shared int ftl = 0; // time-level within the overall convective-update
     shared int gtl = 0; // grid time-level remains at zero for the non-moving grid
-    foreach (blk; myBlocks) { // # [TODO] [FIXME] parallel caused segmentation fault
+    foreach (blk; gasBlocks) { // # [TODO] [FIXME] parallel caused segmentation fault
 	if (!blk.active) continue;
 	blk.applyPreReconAction(sim_time, gtl, ftl);
     }
     // And we'll do a first pass on solid domain bc's too in case we need
     // up-to-date info.
-    foreach (sblk; mySolidBlocks) {
+    foreach (sblk; solidBlocks) {
 	if (!sblk.active) continue;
 	sblk.applyPreSpatialDerivAction(sim_time, ftl);
     }
     // We've put this detector step here because it needs the ghost-cell data
     // to be current, as it should be just after a call to apply_convective_bc().
     if (GlobalConfig.flux_calculator == FluxCalculator.adaptive) {
-	foreach (blk; parallel(myBlocks,1)) {
+	foreach (blk; parallel(gasBlocks,1)) {
 	    if (!blk.active) continue;
 	    blk.detect_shock_points();
 	}
     }
-    foreach (blk; parallel(myBlocks,1)) {
+    foreach (blk; parallel(gasBlocks,1)) {
 	if (!blk.active) continue;
 	blk.convective_flux();
     }
     if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-	foreach (blk; myBlocks) { // not parallel, yet
+	foreach (blk; gasBlocks) { // not parallel, yet
 	    if (!blk.active) continue;
 	    blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
 	}
-	foreach (blk; parallel(myBlocks,1)) {
+	foreach (blk; parallel(gasBlocks,1)) {
 	    if (!blk.active) continue;
 	    blk.flow_property_derivatives(gtl); 
 	    blk.estimate_turbulence_viscosity();
 	    blk.viscous_flux();
 	}
-	foreach (blk; myBlocks) { // not parallel, yet
+	foreach (blk; gasBlocks) { // not parallel, yet
 	    if (!blk.active) continue;
 	    blk.applyPostDiffFluxAction(sim_time, gtl, ftl);
 	}
     } // end if viscous
-    foreach (blk; parallel(myBlocks,1)) {
+    foreach (blk; parallel(gasBlocks,1)) {
 	if (!blk.active) continue;
 	int local_ftl = ftl;
 	int local_gtl = gtl;
@@ -399,7 +399,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	} // end foreach cell
     } // end foreach blk
     // Next do solid domain update IMMEDIATELY after at same flow time level
-    foreach (sblk; mySolidBlocks) {
+    foreach (sblk; solidBlocks) {
 	if (!sblk.active) continue;
 	sblk.clearSources();
 	sblk.computeSpatialDerivatives(ftl);
@@ -419,7 +419,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
     if ( number_of_stages_for_update_scheme(GlobalConfig.gasdynamic_update_scheme) >= 2 ) {
 	// Preparation for second-stage of gas-dynamic update.
 	sim_time = t0 + c2 * dt_global;
-	foreach (blk; parallel(myBlocks,1)) {
+	foreach (blk; parallel(gasBlocks,1)) {
 	    if (!blk.active ) continue;
 	    blk.clear_fluxes_of_conserved_quantities();
 	    foreach (cell; blk.active_cells) cell.clear_source_vector();
@@ -427,36 +427,36 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	// Second stage of gas-dynamic update.
 	ftl = 1;
 	// We are relying on exchangine boundary data as a pre-reconstruction activity.
-	foreach (blk; myBlocks) { // # [TODO] not parallel, yet
+	foreach (blk; gasBlocks) { // # [TODO] not parallel, yet
 	    if (!blk.active) continue;
 	    blk.applyPreReconAction(sim_time, gtl, ftl);
 	}
 	// Let's set up solid domain bc's also before changing any flow properties.
-	foreach (sblk; mySolidBlocks) {
+	foreach (sblk; solidBlocks) {
 	    if (!sblk.active) continue;
 	    sblk.applyPreSpatialDerivAction(sim_time, ftl);
 	}
-	foreach (blk; parallel(myBlocks,1)) {
+	foreach (blk; parallel(gasBlocks,1)) {
 	    if (!blk.active) continue;
 	    blk.convective_flux();
 	}
 	if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-	    foreach (blk; myBlocks) { // [TODO] not parallel, yet
+	    foreach (blk; gasBlocks) { // [TODO] not parallel, yet
 		if (!blk.active) continue;
 		blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
 	    }
-	    foreach (blk; parallel(myBlocks,1)) {
+	    foreach (blk; parallel(gasBlocks,1)) {
 		if (!blk.active) continue;
 		blk.flow_property_derivatives(gtl); 
 		blk.estimate_turbulence_viscosity();
 		blk.viscous_flux();
 	    }
-	    foreach (blk; myBlocks) { // not parallel, yet
+	    foreach (blk; gasBlocks) { // not parallel, yet
 		if (!blk.active) continue;
 		blk.applyPostDiffFluxAction(sim_time, gtl, ftl);
 	    }
 	} // end if viscous
-	foreach (blk; parallel(myBlocks,1)) {
+	foreach (blk; parallel(gasBlocks,1)) {
 	    if (!blk.active) continue;
 	    int local_ftl = ftl;
 	    int local_gtl = gtl;
@@ -478,7 +478,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    } // end foreach cell
 	} // end foreach blk
 	// Do solid domain update IMMEDIATELY after at same flow time level
-	foreach (sblk; mySolidBlocks) {
+	foreach (sblk; solidBlocks) {
 	    if (!sblk.active) continue;
 	    sblk.clearSources();
 	    sblk.computeSpatialDerivatives(ftl);
@@ -498,7 +498,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
     if ( number_of_stages_for_update_scheme(GlobalConfig.gasdynamic_update_scheme) >= 3 ) {
 	// Preparation for third stage of gasdynamic update.
 	sim_time = t0 + c3 * dt_global;
-	foreach (blk; parallel(myBlocks,1)) {
+	foreach (blk; parallel(gasBlocks,1)) {
 	    if (!blk.active ) continue;
 	    blk.clear_fluxes_of_conserved_quantities();
 	    foreach (cell; blk.active_cells) cell.clear_source_vector();
@@ -506,31 +506,31 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	ftl = 2;
 	// We are relying on exchangine boundary data
 	// as a pre-reconstruction activity.
-	foreach (blk; myBlocks) { // [TODO] not parallel, yet
+	foreach (blk; gasBlocks) { // [TODO] not parallel, yet
 	    if (!blk.active) continue;
 	    blk.applyPreReconAction(sim_time, gtl, ftl);
 	}
-	foreach (blk; parallel(myBlocks,1)) {
+	foreach (blk; parallel(gasBlocks,1)) {
 	    if (!blk.active) continue;
 	    blk.convective_flux();
 	}
 	if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-	    foreach (blk; myBlocks) { // [TODO] not parallel, yet
+	    foreach (blk; gasBlocks) { // [TODO] not parallel, yet
 		if (!blk.active) continue;
 		blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
 	    }
-	    foreach (blk; parallel(myBlocks,1)) {
+	    foreach (blk; parallel(gasBlocks,1)) {
 		if (!blk.active) continue;
 		blk.flow_property_derivatives(gtl); 
 		blk.estimate_turbulence_viscosity();
 		blk.viscous_flux();
 	    }
-	    foreach (blk; myBlocks) { // not parallel, yet
+	    foreach (blk; gasBlocks) { // not parallel, yet
 		if (!blk.active) continue;
 		blk.applyPostDiffFluxAction(sim_time, gtl, ftl);
 	    }
 	} // end if viscous
-	foreach (blk; parallel(myBlocks,1)) {
+	foreach (blk; parallel(gasBlocks,1)) {
 	    if (!blk.active) continue;
 	    int local_ftl = ftl;
 	    int local_gtl = gtl;
@@ -555,7 +555,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
     } // end if number_of_stages_for_update_scheme >= 3
     //
     // Get the end conserved data into U[0] for next step.
-    foreach (blk; parallel(myBlocks,1)) {
+    foreach (blk; parallel(gasBlocks,1)) {
 	if (!blk.active) continue;
 	size_t end_indx = 2;
 	final switch (GlobalConfig.gasdynamic_update_scheme) {
@@ -571,7 +571,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	}
     } // end foreach blk
     
-    foreach (sblk; mySolidBlocks) {
+    foreach (sblk; solidBlocks) {
 	if (!sblk.active) continue;
 	size_t end_indx = 2;
 	final switch (GlobalConfig.gasdynamic_update_scheme) {

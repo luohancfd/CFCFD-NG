@@ -92,7 +92,7 @@ public:
     
     override void apply(double t, int gtl, int ftl)
     {
-	double kS = allSolidBlocks[neighbourSolidBlk].sp.k;
+	double kS = solidBlocks[neighbourSolidBlk].sp.k;
 	computeFluxesAndTemperatures(ftl, kS,
 				     _gasCells, _gasIFaces,
 				     _solidCells, _solidIFaces);
@@ -112,7 +112,7 @@ public:
     void initSolidCellsAndIFaces()
     {
 	size_t i, j, k;
-	auto blk = allSolidBlocks[neighbourSolidBlk];
+	auto blk = solidBlocks[neighbourSolidBlk];
 	switch ( neighbourSolidFace ) {
 	case Face.south:
 	    j = blk.jmin;
@@ -131,7 +131,7 @@ public:
     void initGasCellsAndIFaces()
     {
 	size_t i, j, k;
-	auto blk = allBlocks[blk_id];
+	auto blk = gasBlocks[blk_id];
 	switch ( which_boundary ) {
 	case Face.north:
 	    j = blk.jmax;

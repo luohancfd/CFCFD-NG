@@ -189,12 +189,10 @@ void read_config_file()
     foreach (i; 0 .. GlobalConfig.nBlocks) dedicatedConfig ~= new LocalConfig();
 
     foreach (i; 0 .. GlobalConfig.nBlocks) {
-	auto blk = new SBlock(i, jsonData["block_" ~ to!string(i)]);
+	gasBlocks ~= new SBlock(i, jsonData["block_" ~ to!string(i)]);
 	if (GlobalConfig.verbosity_level > 1) {
-	    writeln("  Block[", i, "]: ", myBlocks[i]);
+	    writeln("  Block[", i, "]: ", gasBlocks[i]);
 	}
-	allBlocks ~= blk;
-	myBlocks ~= blk; // Just make a copy, until we have to deal with MPI.
     }
 
     // Read in any blocks in the solid domain.
@@ -212,10 +210,9 @@ void read_config_file()
 	    // Add LuaStates to each solid block for UDF source terms, if necessary
 	    blk.udfSourceTerms = initUDFSolidSourceTerms(udf_solid_source_terms_file, blk.id);
 	}
-	allSolidBlocks ~= blk;
-	mySolidBlocks ~= blk; // Just make a copy, until we have to deal with MPI.
+	solidBlocks ~= blk;
 	if (GlobalConfig.verbosity_level > 1) {
-	    writeln("  SolidBlock[", i, "]: ", mySolidBlocks[i]);
+	    writeln("  SolidBlock[", i, "]: ", solidBlocks[i]);
 	}
     }
     

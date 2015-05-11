@@ -99,11 +99,11 @@ class BIE_CopyCellData : BoundaryInterfaceEffect {
 	FVCell cell;
 	FVInterface IFace;
 	// [TODO] [FIXME] PJ
-	// writeln("BoundaryInterfaceEffect.apply(): blk_id=", blk_id, " length=", allBlocks.length);
+	// writeln("BoundaryInterfaceEffect.apply(): blk_id=", blk_id, " length=", gasBlocks.length);
 	// The following is going to be a problem, when running in parallel 
-	// allBlocks is not shared, so not all threads see the filled array.
+	// gasBlocks is not shared, so not all threads see the filled array.
 	// Some see a zero-length array.
-	auto blk = allBlocks[blk_id];
+	auto blk = gasBlocks[blk_id];
 	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
@@ -194,7 +194,7 @@ class BIE_ZeroVelocity : BoundaryInterfaceEffect {
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto blk = allBlocks[blk_id];
+	auto blk = gasBlocks[blk_id];
 	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
@@ -289,7 +289,7 @@ public:
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto blk = allBlocks[blk_id];
+	auto blk = gasBlocks[blk_id];
 	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
@@ -380,7 +380,7 @@ class BIE_UpdateThermoTransCoeffs : BoundaryInterfaceEffect {
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto blk = allBlocks[blk_id];
+	auto blk = gasBlocks[blk_id];
 	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
@@ -483,7 +483,7 @@ class BIE_WallKOmega : BoundaryInterfaceEffect {
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto blk = allBlocks[blk_id];
+	auto blk = gasBlocks[blk_id];
 	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {

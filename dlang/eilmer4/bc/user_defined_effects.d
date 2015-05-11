@@ -45,7 +45,7 @@ public:
 	size_t i, j, k;
 	FVCell ghostCell0, ghostCell1;
 	FVInterface IFace;
-	auto blk = allBlocks[blk_id];
+	auto blk = gasBlocks[blk_id];
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -124,7 +124,7 @@ private:
 
     void putFlowStateIntoGhostCell(LuaTable t, FVCell ghostCell)
     {
-	auto blk = allBlocks[blk_id];
+	auto blk = gasBlocks[blk_id];
 	auto gmodel = blk.myConfig.gmodel;
 	try {
 	    ghostCell.fs.gas.p = t.get!double("p");
@@ -212,7 +212,7 @@ public:
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto blk = allBlocks[blk_id];
+	auto blk = gasBlocks[blk_id];
 
 	final switch (which_boundary) {
 	case Face.north:

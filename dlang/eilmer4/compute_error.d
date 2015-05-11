@@ -27,8 +27,8 @@ void main(string[] args)
     double total_volume = 0;
 
     // First work on solid block
-    if ( mySolidBlocks.length > 0 ) {
-	auto blk = mySolidBlocks[0];
+    if ( solidBlocks.length > 0 ) {
+	auto blk = solidBlocks[0];
 	blk.assembleArrays();
 	blk.bindFacesAndVerticesToCells();
 	blk.readGrid(make_file_name!"solid-grid"(jobName, blk.id, 0));
@@ -49,8 +49,8 @@ void main(string[] args)
     }
 
     // Second, work on gas block
-    if ( myBlocks.length > 0 ) {
-	auto gblk = myBlocks[0];
+    if ( gasBlocks.length > 0 ) {
+	auto gblk = gasBlocks[0];
 	gblk.assemble_arrays();
 	gblk.bind_interfaces_and_vertices_to_cells();
 	gblk.bind_vertices_and_cells_to_interfaces();
