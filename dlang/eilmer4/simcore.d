@@ -377,9 +377,6 @@ void gasdynamic_explicit_increment_with_fixed_grid()
     } // end if viscous
     foreach (blk; parallel(myBlocks,1)) {
 	if (!blk.active) continue;
-	// [TODO] [FIXME] push the fine loop here into the Block class.
-	// The cone20 run time has gone from 21 to 28 seconds, maybe because of
-	// many memory barriers on the shared variables like gtl, ftl, with_k_omega.
 	int local_ftl = ftl;
 	int local_gtl = gtl;
 	bool local_with_k_omega = with_k_omega;
@@ -434,8 +431,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    if (!blk.active) continue;
 	    blk.applyPreReconAction(sim_time, gtl, ftl);
 	}
-	// Let's set up solid domain bc's also before
-	// changing any flow properties.
+	// Let's set up solid domain bc's also before changing any flow properties.
 	foreach (sblk; mySolidBlocks) {
 	    if (!sblk.active) continue;
 	    sblk.applyPreSpatialDerivAction(sim_time, ftl);
@@ -462,9 +458,6 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	} // end if viscous
 	foreach (blk; parallel(myBlocks,1)) {
 	    if (!blk.active) continue;
-	    // [TODO] [FIXME] push the fine loop here into the Block class.
-	    // The cone20 run time has gone from 21 to 28 seconds, maybe because of
-	    // many memory barriers on the shared variables like gtl, ftl, with_k_omega.
 	    int local_ftl = ftl;
 	    int local_gtl = gtl;
 	    bool local_with_k_omega = with_k_omega;
@@ -539,9 +532,6 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	} // end if viscous
 	foreach (blk; parallel(myBlocks,1)) {
 	    if (!blk.active) continue;
-	    // [TODO] [FIXME] push the fine loop here into the Block class.
-	    // The cone20 run time has gone from 21 to 28 seconds, maybe because of
-	    // many memory barriers on the shared variables like gtl, ftl, with_k_omega.
 	    int local_ftl = ftl;
 	    int local_gtl = gtl;
 	    bool local_with_k_omega = with_k_omega;
@@ -558,7 +548,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		}
 		cell.time_derivatives(local_gtl, local_ftl, local_with_k_omega);
 		bool force_euler = false;
-		cell.stage_2_update_for_flow_on_fixed_grid(local_dt_global, with_k_omega);
+		cell.stage_2_update_for_flow_on_fixed_grid(local_dt_global, local_with_k_omega);
 		cell.decode_conserved(local_gtl, local_ftl+1, blk.omegaz);
 	    } // end foreach cell
 	} // end foreach blk
@@ -575,7 +565,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	case GasdynamicUpdate.tvd_rk3:
 	case GasdynamicUpdate.classic_rk3:
 	case GasdynamicUpdate.denman_rk3: end_indx = 3; break;
-	}
+	} // end switch
 	foreach (cell; blk.active_cells) {
 	    swap(cell.U[0], cell.U[end_indx]);
 	}
