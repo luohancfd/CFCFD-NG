@@ -7,6 +7,7 @@ module block;
 import std.conv;
 import std.stdio;
 import std.math;
+import std.json;
 import luad.all;
 import geom;
 import gas;
@@ -48,13 +49,11 @@ public:
 	this.id = id;
 	this.label = label;
 	myConfig = dedicatedConfig[id];
-	if (GlobalConfig.udf_source_terms) {
-	    udf_source_terms = initUDFSourceTerms(GlobalConfig.udf_source_terms_file, id);
-	}
     }
 
     override string toString() const { return "Block(id=" ~ to!string(id) ~ ")"; }
 
+    abstract void init_boundary_conditions(JSONValue json_data);
     abstract void assemble_arrays();
     abstract void bind_interfaces_and_vertices_to_cells();
     abstract void bind_vertices_and_cells_to_interfaces();
@@ -71,6 +70,11 @@ public:
     abstract void applyPreReconAction(double t, int gtl, int ftl);
     abstract void applyPreSpatialDerivAction(double t, int gtl, int ftl);
     abstract void applyPostDiffFluxAction(double t, int gtl, int ftl);
+
+    void init_udf_source_terms(string filename)
+    {
+	udf_source_terms = initUDFSourceTerms(filename, id);
+    }
 
     void identify_reaction_zones(int gtl)
     // Set the reactions-allowed flag for cells in this block.

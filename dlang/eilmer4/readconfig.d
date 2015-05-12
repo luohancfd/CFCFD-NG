@@ -177,23 +177,31 @@ void read_config_file()
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  control_count: ", GlobalConfig.control_count);
     }
+
     // TODO -- still have other entries such as nheatzone, nreactionzone, ...
 
     // Now, configure blocks that make up the flow domain.
     //
+    // This is done in phases.  The blocks need valid references to LocalConfig objects
+    // and the boundary conditions need valid references to Sblock objects.
     GlobalConfig.nBlocks = getJSONint(jsonData, "nblock", 0);
     if (GlobalConfig.verbosity_level > 1) { writeln("  nBlocks: ", GlobalConfig.nBlocks); }
-    
     // Set up dedicated copies of the configuration parameters for the threads.
-    // [TODO] Rowan, should we do this for the Solid blocks as well.
-    foreach (i; 0 .. GlobalConfig.nBlocks) dedicatedConfig ~= new LocalConfig();
-
+    foreach (i; 0 .. GlobalConfig.nBlocks) {
+	dedicatedConfig ~= new LocalConfig();
+    }
     foreach (i; 0 .. GlobalConfig.nBlocks) {
 	gasBlocks ~= new SBlock(i, jsonData["block_" ~ to!string(i)]);
 	if (GlobalConfig.verbosity_level > 1) {
 	    writeln("  Block[", i, "]: ", gasBlocks[i]);
 	}
     }
+    foreach (blk; gasBlocks) {
+	blk.init_boundary_conditions(jsonData["block_" ~ to!string(blk.id)]);
+	if (GlobalConfig.udf_source_terms) {
+	    blk.init_udf_source_terms(GlobalConfig.udf_source_terms_file);
+	}
+    } 
 
     // Read in any blocks in the solid domain.
     auto udf_solid_source_terms = getJSONbool(jsonData, "udf_solid_source_terms", false);

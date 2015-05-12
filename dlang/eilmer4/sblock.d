@@ -118,13 +118,19 @@ public:
 	this(id, nicell, njcell, nkcell, label);
 	active = getJSONbool(json_data, "active", true);
 	omegaz = getJSONdouble(json_data, "omegaz", 0.0);
+    } // end constructor from json
+
+    override void init_boundary_conditions(JSONValue json_data)
+    // Initialize boundary conditions after the blocks are fully constructed,
+    // because we want access to the full collection of valid block references.
+    {
 	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
 	    string json_key = "face_" ~ face_name[boundary];
 	    auto bc_json_data = json_data[json_key];
 	    bc[boundary] = make_BC_from_json(bc_json_data, id, boundary,
 					     nicell, njcell, nkcell);
 	}
-    } // end constructor from json
+    }
 
     override string toString() const
     {
