@@ -78,41 +78,84 @@ function fillTable(t, x, y)
 end
 
 
-function ghostCells(args)
+function ghostCells_north(args)
    -- Function that returns the flow states for a ghost cells.
    -- For use in the inviscid flux calculations.
-   --
-   -- args contains {t, x, y, z, csX, csY, csZ, i, j, k}
-   -- Set constant conditions across the whole boundary.
    x = args.x; y = args.y
    i = args.i; j = args.j; k = args.k
    ghost1 = {}
    ghost2 = {}
-   if whichBoundary == north then
-      cell = sampleFlow(blkId, i, j+1, k)
-      ghost1 = fillTable(ghost1, cell.x, cell.y)
-      cell = sampleFlow(blkId, i, j+2, k)
-      ghost2 = fillTable(ghost2, cell.x, cell.y)
-   elseif whichBoundary == south then
-      cell = sampleFlow(blkId, i, j-1, k)
-      ghost1 = fillTable(ghost1, cell.x, cell.y)
-      cell = sampleFlow(blkId, i, j-2, k)
-      ghost2 = fillTable(ghost2, cell.x, cell.y)
-   elseif whichBoundary == east then
-      cell = sampleFlow(blkId, i+1, j, k)
-      ghost1 = fillTable(ghost1, cell.x, cell.y)
-      cell = sampleFlow(blkId, i+2, j, k)
-      ghost2 = fillTable(ghost2, cell.x, cell.y)
-   else -- WEST
-      cell = sampleFlow(blkId, i-1, j, k)
-      ghost1 = fillTable(ghost1, cell.x, cell.y)
-      cell = sampleFlow(blkId, i-2, j, k)
-      ghost2 = fillTable(ghost2, cell.x, cell.y)
-   end
+   cell = sampleFlow(blkId, i, j+1, k)
+   ghost1 = fillTable(ghost1, cell.x, cell.y)
+   cell = sampleFlow(blkId, i, j+2, k)
+   ghost2 = fillTable(ghost2, cell.x, cell.y)
    return ghost1, ghost2
 end
 
-function interface(args)
+function ghostCells_east(args)
+   -- Function that returns the flow states for a ghost cells.
+   -- For use in the inviscid flux calculations.
+   x = args.x; y = args.y
+   i = args.i; j = args.j; k = args.k
+   ghost1 = {}
+   ghost2 = {}
+   cell = sampleFlow(blkId, i+1, j, k)
+   ghost1 = fillTable(ghost1, cell.x, cell.y)
+   cell = sampleFlow(blkId, i+2, j, k)
+   ghost2 = fillTable(ghost2, cell.x, cell.y)
+   return ghost1, ghost2
+end
+
+function ghostCells_south(args)
+   -- Function that returns the flow states for a ghost cells.
+   -- For use in the inviscid flux calculations.
+   x = args.x; y = args.y
+   i = args.i; j = args.j; k = args.k
+   ghost1 = {}
+   ghost2 = {}
+   cell = sampleFlow(blkId, i, j-1, k)
+   ghost1 = fillTable(ghost1, cell.x, cell.y)
+   cell = sampleFlow(blkId, i, j-2, k)
+   ghost2 = fillTable(ghost2, cell.x, cell.y)
+   return ghost1, ghost2
+end
+
+function ghostCells_west(args)
+   -- Function that returns the flow states for a ghost cells.
+   -- For use in the inviscid flux calculations.
+   x = args.x; y = args.y
+   i = args.i; j = args.j; k = args.k
+   ghost1 = {}
+   ghost2 = {}
+   cell = sampleFlow(blkId, i-1, j, k)
+   ghost1 = fillTable(ghost1, cell.x, cell.y)
+   cell = sampleFlow(blkId, i-2, j, k)
+   ghost2 = fillTable(ghost2, cell.x, cell.y)
+   return ghost1, ghost2
+end
+
+function interface_north(args)
+   x = args.x; y = args.y;
+   iface = {}
+   fillTable(iface, x, y);
+   return iface
+end
+
+function interface_east(args)
+   x = args.x; y = args.y;
+   iface = {}
+   fillTable(iface, x, y);
+   return iface
+end
+
+function interface_south(args)
+   x = args.x; y = args.y;
+   iface = {}
+   fillTable(iface, x, y);
+   return iface
+end
+
+function interface_west(args)
    x = args.x; y = args.y;
    iface = {}
    fillTable(iface, x, y);

@@ -39,29 +39,11 @@ BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary
     auto preReconActionList = jsonData["pre_recon_action"].array;
     foreach ( jsonObj; preReconActionList ) {
 	newBC.preReconAction ~= make_GCE_from_json(jsonObj, blk_id, boundary);
-	// Some extra configuration in the case of a UserDefined bc.
-	// We need to connect the Lua state back to the parent BC container.
-	if ( newBC.preReconAction[$-1].type == "UserDefined" ) {
-	    auto gce = to!UserDefinedGhostCell(newBC.preReconAction[$-1]);
-	    if ( gce.luafname !in newBC.luaStates ) {
-		newBC.initUserDefinedLuaState(gce.luafname, nicell, njcell, nkcell);
-	    }
-	    gce.setLuaState(newBC.luaStates[gce.luafname]);
-	    newBC.ghost_cell_data_available = true;
-	}
+	newBC.ghost_cell_data_available = true;
     }
     auto preSpatialDerivActionList = jsonData["pre_spatial_deriv_action"].array;
     foreach ( jsonObj; preSpatialDerivActionList ) {
 	newBC.preSpatialDerivAction ~= make_BIE_from_json(jsonObj, blk_id, boundary);
-	// Some extra configuration in the case of a UserDefined bc.
-	// We need to connect the Lua state back to the parent BC container.
-	if ( newBC.preSpatialDerivAction[$-1].type == "UserDefined" ) {
-	    auto bie = to!BIE_UserDefined(newBC.preSpatialDerivAction[$-1]);
-	    if ( bie.luafname !in newBC.luaStates ) {
-		newBC.initUserDefinedLuaState(bie.luafname, nicell, njcell, nkcell);
-	    }
-	    bie.setLuaState(newBC.luaStates[bie.luafname]);
-	}
     }
     auto postDiffFluxActionList = jsonData["post_diff_flux_action"].array;
     foreach ( jsonObj; postDiffFluxActionList ) {
@@ -86,12 +68,6 @@ public:
     bool ghost_cell_data_available = true;
     double emissivity = 0.0;
 
-    // Storage for various LuaStates in the case of user-defined boundary
-    // conditions. We store these in the BoundaryCondition object
-    // so that the composable pieces might reference the same LuaState.
-    // Conversely, for each different Lua file, a different LuaState exists.
-    LuaState[string] luaStates;
-
     this(int id, int boundary, bool isWall=true, bool ghostCellDataAvailable=true, double _emissivity=0.0)
     {
 	blk = gasBlocks[id];  // pick the relevant block out of the collection
@@ -99,18 +75,8 @@ public:
 	is_wall = isWall;
 	ghost_cell_data_available = ghostCellDataAvailable;
 	emissivity = _emissivity;
-	// [TODO] Yesterday (11-May-2015) we decided to have one Lua interpreter
-	// per block rather than a Lua interpreter per Lua boundary condition file.
-	// We should get the LuaState initialization from just below.
     }
 
-    void initUserDefinedLuaState(string luafname, size_t nicell, size_t njcell, size_t nkcell)
-    {
-	luaStates[luafname] = new LuaState();
-	luaStates[luafname].openLibs();
-	setGlobalsInLuaState(luaStates[luafname], nicell, njcell, nkcell);
-	luaStates[luafname].doFile(luafname);
-    }
     // Action lists.
     // The BoundaryCondition is called at four stages in a global timestep.
     // Those stages are:
@@ -178,27 +144,5 @@ public:
     {
 	foreach ( bfe; postDiffFluxAction ) bfe.apply(t, gtl, ftl);
     }
-    
-private:
-    void setGlobalsInLuaState(LuaState lua, size_t nicell, size_t njcell, size_t nkcell)
-    {
-	auto gmodel = GlobalConfig.gmodel_master;
-	lua["blkId"] = blk.id;
-	lua["whichBoundary"] = which_boundary;
-	lua["n_species"] = gmodel.n_species;
-	lua["n_modes"] = gmodel.n_modes;
-	lua["nicell"] = nicell;
-	lua["njcell"] = njcell;
-	lua["nkcell"] = nkcell;
-	lua["north"] = Face.north;
-	lua["east"] = Face.east;
-	lua["south"] = Face.south;
-	lua["west"] = Face.west;
-	lua["top"] = Face.top;
-	lua["bottom"] = Face.bottom;
-	lua["sampleFlow"] = &luafn_sampleFlow;
-    }
-    
-
 } // end class BoundaryCondition
 

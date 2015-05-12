@@ -18,6 +18,9 @@ import globaldata;
 // -----------------------------------------------------
 // Convenience functions for user's Lua script
 
+// [TODO] [FIXME] the following function won't work in parallel loops
+// because the gasBlocks array probably won't be initialized correctly
+// for any thread other than the main thread.
 extern(C) int luafn_sampleFlow(lua_State *L)
 {
     // Get arguments from lua_stack

@@ -17,6 +17,7 @@ import std.array;
 import std.math;
 import std.json;
 import json_helper;
+import lua_helper;
 import gzip;
 import geom;
 import gas;
@@ -124,6 +125,17 @@ public:
     // Initialize boundary conditions after the blocks are fully constructed,
     // because we want access to the full collection of valid block references.
     {
+	myLua["nicell"] = nicell;
+	myLua["njcell"] = njcell;
+	myLua["nkcell"] = nkcell;
+	myLua["north"] = Face.north;
+	myLua["east"] = Face.east;
+	myLua["south"] = Face.south;
+	myLua["west"] = Face.west;
+	myLua["top"] = Face.top;
+	myLua["bottom"] = Face.bottom;
+	myLua["sampleFlow"] = &luafn_sampleFlow; // will only work in serial code
+	//
 	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
 	    string json_key = "face_" ~ face_name[boundary];
 	    auto bc_json_data = json_data[json_key];

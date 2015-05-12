@@ -52,6 +52,8 @@ public:
 	myLua = new LuaState();
 	myLua.openLibs();
 	myLua["blkId"] = id;
+	myLua["n_species"] = dedicatedConfig[id].gmodel.n_species;
+	myLua["n_modes"] = dedicatedConfig[id].gmodel.n_modes;
     }
 
     override string toString() const { return "Block(id=" ~ to!string(id) ~ ")"; }
