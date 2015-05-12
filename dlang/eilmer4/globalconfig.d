@@ -335,6 +335,8 @@ public:
     double transient_mu_t_factor;
     BlockZone[] turbulent_zones;
 
+    bool udf_source_terms;
+
     bool reacting;
     double reaction_time_start;
     double T_frozen;
@@ -387,6 +389,8 @@ public:
 	max_mu_t_factor = GlobalConfig.max_mu_t_factor;
 	transient_mu_t_factor = GlobalConfig.transient_mu_t_factor;
 	foreach (bz; GlobalConfig.turbulent_zones) turbulent_zones ~= new BlockZone(bz);
+
+	udf_source_terms = GlobalConfig.udf_source_terms;
 
 	reacting = GlobalConfig.reacting;
 	reaction_time_start = GlobalConfig.reaction_time_start;

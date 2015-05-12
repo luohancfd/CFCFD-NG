@@ -30,7 +30,7 @@ public:
     int id; // block identifier: assumed to be the same as the block number.
     string label;
     LocalConfig myConfig;
-    LuaState udf_source_terms;
+    LuaState myLua;
 
     bool active; // if true, block participates in the time integration
     double omegaz; // Angular velocity (in rad/s) of the rotating frame.
@@ -49,6 +49,9 @@ public:
 	this.id = id;
 	this.label = label;
 	myConfig = dedicatedConfig[id];
+	myLua = new LuaState();
+	myLua.openLibs();
+	myLua["blkId"] = id;
     }
 
     override string toString() const { return "Block(id=" ~ to!string(id) ~ ")"; }
@@ -70,11 +73,6 @@ public:
     abstract void applyPreReconAction(double t, int gtl, int ftl);
     abstract void applyPreSpatialDerivAction(double t, int gtl, int ftl);
     abstract void applyPostDiffFluxAction(double t, int gtl, int ftl);
-
-    void init_udf_source_terms(string filename)
-    {
-	udf_source_terms = initUDFSourceTerms(filename, id);
-    }
 
     void identify_reaction_zones(int gtl)
     // Set the reactions-allowed flag for cells in this block.
