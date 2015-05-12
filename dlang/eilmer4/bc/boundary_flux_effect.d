@@ -15,6 +15,7 @@ import std.conv;
 import globalconfig;
 import globaldata;
 import block;
+import sblock;
 import geom;
 import json_helper;
 import fvcore;
@@ -48,13 +49,13 @@ BoundaryFluxEffect make_BFE_from_json(JSONValue jsonData, int blk_id, int bounda
 
 class BoundaryFluxEffect {
 public:
-    int blk_id;
+    SBlock blk;
     int which_boundary;
     string type;
     
     this(int id, int boundary, string _type)
     {
-	blk_id = id;
+	blk = gasBlocks[id];
 	which_boundary = boundary;
 	type = _type;
     }
@@ -131,7 +132,6 @@ public:
     void initGasCellsAndIFaces()
     {
 	size_t i, j, k;
-	auto blk = gasBlocks[blk_id];
 	switch ( which_boundary ) {
 	case Face.north:
 	    j = blk.jmax;

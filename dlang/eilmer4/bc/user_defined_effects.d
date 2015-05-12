@@ -45,7 +45,6 @@ public:
 	size_t i, j, k;
 	FVCell ghostCell0, ghostCell1;
 	FVInterface IFace;
-	auto blk = gasBlocks[blk_id];
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -124,7 +123,6 @@ private:
 
     void putFlowStateIntoGhostCell(LuaTable t, FVCell ghostCell)
     {
-	auto blk = gasBlocks[blk_id];
 	auto gmodel = blk.myConfig.gmodel;
 	try {
 	    ghostCell.fs.gas.p = t.get!double("p");
@@ -177,7 +175,7 @@ private:
 	LuaObject[] ret = f(args);
 	if ( ret.length < 2 ) {
 	    string errMsg = "ERROR: There was a problem in the call to the user-defined ghost cell boundary condition.\n";
-	    errMsg ~= format("ERROR: This occurred for block [%d] on the %s boundary.", blk_id, face_name[which_boundary]);
+	    errMsg ~= format("ERROR: This occurred for block [%d] on the %s boundary.", blk.id, face_name[which_boundary]);
 	    errMsg ~= "ERROR: Two tables of flow state for the ghost cells are expected\n";
 	    errMsg ~= "ERROR: but were not received.\n";
 	    throw new Exception(errMsg);
@@ -212,7 +210,6 @@ public:
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto blk = gasBlocks[blk_id];
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -350,7 +347,7 @@ private:
 	LuaObject[] ret = f(args);
 	if ( ret.length < 1 ) {
 	    string errMsg = "ERROR: There was a problem in the call to the user-defined interface boundary condition.\n";
-	    errMsg ~= format("ERROR: This occurred for block [%d] on the %s boundary.", blk_id, face_name[which_boundary]);
+	    errMsg ~= format("ERROR: This occurred for block [%d] on the %s boundary.", blk.id, face_name[which_boundary]);
 	    errMsg ~= "ERROR: One table of flow state for the interface is expected\n";
 	    errMsg ~= "ERROR: but zero were not received.\n";
 	    throw new Exception(errMsg);

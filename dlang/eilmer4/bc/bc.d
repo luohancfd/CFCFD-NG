@@ -76,7 +76,7 @@ class BoundaryCondition {
     // Boundary condition is built from composable pieces.
 public:
     // Location of the boundary condition.
-    int blk_id; // index of the structured-grid block to which this BC is applied
+    SBlock blk; // the block to which this BC is applied
     int which_boundary; // identity/index of the relevant boundary
 
     // Nature of the boundary condition that may be checked 
@@ -94,11 +94,14 @@ public:
 
     this(int id, int boundary, bool isWall=true, bool ghostCellDataAvailable=true, double _emissivity=0.0)
     {
-	blk_id = id;
+	blk = gasBlocks[id];  // pick the relevant block out of the collection
 	which_boundary = boundary;
 	is_wall = isWall;
 	ghost_cell_data_available = ghostCellDataAvailable;
 	emissivity = _emissivity;
+	// [TODO] Yesterday (11-May-2015) we decided to have one Lua interpreter
+	// per block rather than a Lua interpreter per Lua boundary condition file.
+	// We should get the LuaState initialization from just below.
     }
 
     void initUserDefinedLuaState(string luafname, size_t nicell, size_t njcell, size_t nkcell)
@@ -180,7 +183,7 @@ private:
     void setGlobalsInLuaState(LuaState lua, size_t nicell, size_t njcell, size_t nkcell)
     {
 	auto gmodel = GlobalConfig.gmodel_master;
-	lua["blkId"] = blk_id;
+	lua["blkId"] = blk.id;
 	lua["whichBoundary"] = which_boundary;
 	lua["n_species"] = gmodel.n_species;
 	lua["n_modes"] = gmodel.n_modes;
