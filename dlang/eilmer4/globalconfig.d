@@ -113,6 +113,10 @@ final class GlobalConfig {
     shared static bool separate_update_for_viscous_terms = false;
     shared static bool separate_update_for_k_omega_source = false;
 
+    // Some of the user-defined functionality depends on having access to all blocks
+    // from a single thread.  For safety, in those cases, do not use parallel loops. 
+    shared static bool apply_bcs_in_parallel = true;
+
     /// When decoding the array of conserved quantities, 
     /// the temperature or the density may try to go negative.  
     /// If it does and adjust_invalid_cell_data == true, the cell data

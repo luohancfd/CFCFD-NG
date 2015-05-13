@@ -30,6 +30,7 @@ for _,face in ipairs{north, east, south, west} do
 end
 blk = SBlockArray{grid=grid, fillCondition=initial, bcList=bcList, nib=2, njb=2, label="blk"}
 
+config.apply_bcs_in_parallel = false
 config.interpolation_order = 2
 config.gasdynamic_update_scheme = "predictor-corrector"
 config.flux_calculator = 'ausmdv'

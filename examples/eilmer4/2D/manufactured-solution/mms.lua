@@ -26,6 +26,7 @@ bcList[north] = ExtrapolateOutBC:new{xOrder=1}
 bcList[east] = ExtrapolateOutBC:new{xOrder=1}
 bcList[south] = UserDefinedBC:new{fileName='udf-bc.lua'}
 bcList[west] = UserDefinedBC:new{fileName='udf-bc.lua'}
+config.apply_bcs_in_parallel = false
 blks = SBlockArray{grid=grid, fillCondition=initial, bcList=bcList, 
 		   nib=2, njb=2, label="blk"}
 

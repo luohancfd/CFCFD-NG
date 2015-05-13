@@ -73,6 +73,8 @@ void read_config_file()
 	getJSONbool(jsonData, "separate_update_for_viscous_terms", false);
     GlobalConfig.separate_update_for_k_omega_source =
 	getJSONbool(jsonData, "separate_update_for_k_omega_source", false);
+    GlobalConfig.apply_bcs_in_parallel =
+	getJSONbool(jsonData, "apply_bcs_in_parallel", true);
     GlobalConfig.stringent_cfl = getJSONbool(jsonData, "stringent_cfl", false);
     GlobalConfig.adjust_invalid_cell_data =
 	getJSONbool(jsonData, "adjust_invalid_cell_data", false);
@@ -109,6 +111,7 @@ void read_config_file()
 		GlobalConfig.separate_update_for_viscous_terms);
 	writeln("  separate_update_for_k_omega_source: ",
 		GlobalConfig.separate_update_for_k_omega_source);
+	writeln("  apply_bcs_in_parallel: ", GlobalConfig.apply_bcs_in_parallel);
 	writeln("  stringent_cfl: ", GlobalConfig.stringent_cfl);
 	writeln("  adjust_invalid_cell_data: ", GlobalConfig.adjust_invalid_cell_data);
 	writeln("  max_invalid_cells: ", GlobalConfig.max_invalid_cells);

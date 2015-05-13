@@ -337,12 +337,18 @@ void gasdynamic_explicit_increment_with_fixed_grid()
     // First-stage of gas-dynamic update.
     shared int ftl = 0; // time-level within the overall convective-update
     shared int gtl = 0; // grid time-level remains at zero for the non-moving grid
-    foreach (blk; gasBlocks) { // # [TODO] [FIXME] parallel caused segmentation fault
-	if (!blk.active) continue;
-	blk.applyPreReconAction(sim_time, gtl, ftl);
+    if (GlobalConfig.apply_bcs_in_parallel) {
+	foreach (blk; parallel(gasBlocks,1)) {
+	    if (!blk.active) continue;
+	    blk.applyPreReconAction(sim_time, gtl, ftl);
+	}
+    } else {
+	foreach (blk; gasBlocks) {
+	    if (!blk.active) continue;
+	    blk.applyPreReconAction(sim_time, gtl, ftl);
+	}
     }
-    // And we'll do a first pass on solid domain bc's too in case we need
-    // up-to-date info.
+    // And we'll do a first pass on solid domain bc's too in case we need up-to-date info.
     foreach (sblk; solidBlocks) {
 	if (!sblk.active) continue;
 	sblk.applyPreSpatialDerivAction(sim_time, ftl);
@@ -360,9 +366,16 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	blk.convective_flux();
     }
     if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-	foreach (blk; gasBlocks) { // not parallel, yet
-	    if (!blk.active) continue;
-	    blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+	if (GlobalConfig.apply_bcs_in_parallel) {
+	    foreach (blk; parallel(gasBlocks,1)) {
+		if (!blk.active) continue;
+		blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+	    }
+	} else {
+	    foreach (blk; gasBlocks) {
+		if (!blk.active) continue;
+		blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+	    }
 	}
 	foreach (blk; parallel(gasBlocks,1)) {
 	    if (!blk.active) continue;
@@ -370,9 +383,16 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    blk.estimate_turbulence_viscosity();
 	    blk.viscous_flux();
 	}
-	foreach (blk; gasBlocks) { // not parallel, yet
-	    if (!blk.active) continue;
-	    blk.applyPostDiffFluxAction(sim_time, gtl, ftl);
+	if (GlobalConfig.apply_bcs_in_parallel) {
+	    foreach (blk; parallel(gasBlocks,1)) {
+		if (!blk.active) continue;
+		blk.applyPostDiffFluxAction(sim_time, gtl, ftl);
+	    }
+	} else {
+	    foreach (blk; gasBlocks) {
+		if (!blk.active) continue;
+		blk.applyPostDiffFluxAction(sim_time, gtl, ftl);
+	    }
 	}
     } // end if viscous
     foreach (blk; parallel(gasBlocks,1)) {
@@ -387,7 +407,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    if (blk.myConfig.viscous && !blk.myConfig.separate_update_for_viscous_terms) {
 		cell.add_viscous_source_vector(local_with_k_omega);
 	    }
-	    if (blk.myConfig.udf_source_terms) {
+	    if (blk.myConfig.udf_source_terms) { // [TODO] may want to apply serially
 		addUDFSourceTermsToCell(blk.myLua, cell, local_gtl, 
 					local_sim_time, blk.myConfig.gmodel);
 	    }
@@ -426,10 +446,17 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	}
 	// Second stage of gas-dynamic update.
 	ftl = 1;
-	// We are relying on exchangine boundary data as a pre-reconstruction activity.
-	foreach (blk; gasBlocks) { // # [TODO] not parallel, yet
-	    if (!blk.active) continue;
-	    blk.applyPreReconAction(sim_time, gtl, ftl);
+	// We are relying on exchanging boundary data as a pre-reconstruction activity.
+	if (GlobalConfig.apply_bcs_in_parallel) {
+	    foreach (blk; parallel(gasBlocks,1)) {
+		if (!blk.active) continue;
+		blk.applyPreReconAction(sim_time, gtl, ftl);
+	    }
+	} else {
+	    foreach (blk; gasBlocks) {
+		if (!blk.active) continue;
+		blk.applyPreReconAction(sim_time, gtl, ftl);
+	    }
 	}
 	// Let's set up solid domain bc's also before changing any flow properties.
 	foreach (sblk; solidBlocks) {
@@ -441,9 +468,16 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    blk.convective_flux();
 	}
 	if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-	    foreach (blk; gasBlocks) { // [TODO] not parallel, yet
-		if (!blk.active) continue;
-		blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+	    if (GlobalConfig.apply_bcs_in_parallel) {
+		foreach (blk; parallel(gasBlocks,1)) {
+		    if (!blk.active) continue;
+		    blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+		}
+	    } else {
+		foreach (blk; gasBlocks) {
+		    if (!blk.active) continue;
+		    blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+		}
 	    }
 	    foreach (blk; parallel(gasBlocks,1)) {
 		if (!blk.active) continue;
@@ -451,9 +485,16 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		blk.estimate_turbulence_viscosity();
 		blk.viscous_flux();
 	    }
-	    foreach (blk; gasBlocks) { // not parallel, yet
-		if (!blk.active) continue;
-		blk.applyPostDiffFluxAction(sim_time, gtl, ftl);
+	    if (GlobalConfig.apply_bcs_in_parallel) {
+		foreach (blk; parallel(gasBlocks,1)) {
+		    if (!blk.active) continue;
+		    blk.applyPostDiffFluxAction(sim_time, gtl, ftl);
+		}
+	    } else {
+		foreach (blk; gasBlocks) {
+		    if (!blk.active) continue;
+		    blk.applyPostDiffFluxAction(sim_time, gtl, ftl);
+		}
 	    }
 	} // end if viscous
 	foreach (blk; parallel(gasBlocks,1)) {
@@ -504,20 +545,33 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    foreach (cell; blk.active_cells) cell.clear_source_vector();
 	}
 	ftl = 2;
-	// We are relying on exchangine boundary data
-	// as a pre-reconstruction activity.
-	foreach (blk; gasBlocks) { // [TODO] not parallel, yet
-	    if (!blk.active) continue;
-	    blk.applyPreReconAction(sim_time, gtl, ftl);
+	// We are relying on exchanging boundary data as a pre-reconstruction activity.
+	if (GlobalConfig.apply_bcs_in_parallel) {
+	    foreach (blk; parallel(gasBlocks,1)) {
+		if (!blk.active) continue;
+		blk.applyPreReconAction(sim_time, gtl, ftl);
+	    }
+	} else {
+	    foreach (blk; gasBlocks) {
+		if (!blk.active) continue;
+		blk.applyPreReconAction(sim_time, gtl, ftl);
+	    }
 	}
 	foreach (blk; parallel(gasBlocks,1)) {
 	    if (!blk.active) continue;
 	    blk.convective_flux();
 	}
 	if (GlobalConfig.viscous && !GlobalConfig.separate_update_for_viscous_terms) {
-	    foreach (blk; gasBlocks) { // [TODO] not parallel, yet
-		if (!blk.active) continue;
-		blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+	    if (GlobalConfig.apply_bcs_in_parallel) {
+		foreach (blk; parallel(gasBlocks,1)) {
+		    if (!blk.active) continue;
+		    blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+		}
+	    } else {
+		foreach (blk; gasBlocks) {
+		    if (!blk.active) continue;
+		    blk.applyPreSpatialDerivAction(sim_time, gtl, ftl);
+		}
 	    }
 	    foreach (blk; parallel(gasBlocks,1)) {
 		if (!blk.active) continue;
@@ -525,9 +579,16 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		blk.estimate_turbulence_viscosity();
 		blk.viscous_flux();
 	    }
-	    foreach (blk; gasBlocks) { // not parallel, yet
-		if (!blk.active) continue;
-		blk.applyPostDiffFluxAction(sim_time, gtl, ftl);
+	    if (GlobalConfig.apply_bcs_in_parallel) {
+		foreach (blk; parallel(gasBlocks,1)) {
+		    if (!blk.active) continue;
+		    blk.applyPostDiffFluxAction(sim_time, gtl, ftl);
+		}
+	    } else {
+		foreach (blk; gasBlocks) {
+		    if (!blk.active) continue;
+		    blk.applyPostDiffFluxAction(sim_time, gtl, ftl);
+		}
 	    }
 	} // end if viscous
 	foreach (blk; parallel(gasBlocks,1)) {
@@ -547,7 +608,6 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 					    local_sim_time, blk.myConfig.gmodel);
 		}
 		cell.time_derivatives(local_gtl, local_ftl, local_with_k_omega);
-		bool force_euler = false;
 		cell.stage_2_update_for_flow_on_fixed_grid(local_dt_global, local_with_k_omega);
 		cell.decode_conserved(local_gtl, local_ftl+1, blk.omegaz);
 	    } // end foreach cell

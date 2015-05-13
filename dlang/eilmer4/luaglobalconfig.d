@@ -61,6 +61,10 @@ extern(C) int configSetFromTable(lua_State* L)
     if (!lua_isnil(L, -1)) 
 	GlobalConfig.separate_update_for_k_omega_source = to!bool(lua_toboolean(L, -1));
     lua_pop(L, 1);
+    lua_getfield(L, 1, "apply_bcs_in_parallel");
+    if (!lua_isnil(L, -1)) 
+	GlobalConfig.apply_bcs_in_parallel = to!bool(lua_toboolean(L, -1));
+    lua_pop(L, 1);
     lua_getfield(L, 1, "adjust_invalid_cell_data");
     if (!lua_isnil(L, -1))
 	GlobalConfig.adjust_invalid_cell_data = to!bool(lua_toboolean(L, -1));
@@ -272,6 +276,9 @@ extern(C) int configGet(lua_State* L)
 	break;
     case "separate_update_for_k_omega_source":
 	lua_pushboolean(L, GlobalConfig.separate_update_for_k_omega_source);
+	break;
+    case "apply_bcs_in_parallel":
+	lua_pushboolean(L, GlobalConfig.apply_bcs_in_parallel);
 	break;
     case "adjust_invalid_cell_data":
 	lua_pushboolean(L, GlobalConfig.adjust_invalid_cell_data);

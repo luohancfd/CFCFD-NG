@@ -1100,7 +1100,8 @@ function write_config_file(fileName)
 			 tostring(config.separate_update_for_viscous_terms)))
    f:write(string.format('"separate_update_for_k_omega_source": %s,\n', 
 			 tostring(config.separate_update_for_k_omega_source)))
-   --f:write(string.format('"implicit_flag": %s,\n', tostring(config.implicit_flag)))
+   f:write(string.format('"apply_bcs_in_parallel": %s,\n',
+			 tostring(config.apply_bcs_in_parallel)))
    f:write(string.format('"max_invalid_cells": %d,\n', config.max_invalid_cells))
    f:write(string.format('"thermo_interpolator": "%s",\n', 
 			 string.lower(config.thermo_interpolator)))
