@@ -2089,7 +2089,7 @@ class SuperBlock3D(object):
                     wc_bc_newlist = [NonCatalyticWBC(), NonCatalyticWBC(),
                                      NonCatalyticWBC(), NonCatalyticWBC(),
                                      NonCatalyticWBC(), NonCatalyticWBC()]
-                    xforce_list=[0,]*6
+                    xforce_newlist=[0,]*6
                     if i == 0:
                         bc_newlist[WEST] = copy.copy(bc_list[WEST])
                         wc_bc_newlist[WEST] = copy.copy(wc_bc_list[WEST])
