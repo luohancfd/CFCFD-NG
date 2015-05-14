@@ -66,7 +66,7 @@ double init_simulation(int tindx, int maxCPUs)
 	myblk.bind_interfaces_and_vertices_to_cells();
 	myblk.bind_vertices_and_cells_to_interfaces();
 	writeln("myblk=", myblk);
-	myblk.read_grid(make_file_name!"grid"(job_name, myblk.id, tindx), 0);
+	myblk.read_grid(make_file_name!"grid"(job_name, myblk.id, 0), 0); // tindx==0 fixed-grid
 	// I don't mind if blocks write over sim_time.  
 	// They should all have the same value for it.
 	sim_time = myblk.read_solution(make_file_name!"flow"(job_name, myblk.id, tindx));
