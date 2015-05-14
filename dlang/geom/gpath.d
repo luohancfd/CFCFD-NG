@@ -14,21 +14,90 @@ import std.math;
 import geom;
 //import numeric : findRoot;
 
-class Path {
+interface Parameterizable {
+    // any public functions that use or change 't'
+    // intended to have raw_ equivalents that can be overwritten if desired
+    Vector3 opCall(double t) const;
+    Vector3 dpdt(double t) const;
+    Vector3 d2pdt2(double t) const;
+    //double locate(ref const Vector3 p, double tolerance, int max_iterations, out int result_flag) const;
+    double length() const;
+    double partial_length(double ta, double tb) const;
+    Vector3 point_from_length(double length, out double t) const;
+    //Parameterizable reverse();
+}
+
+//interface Path : Parameterizable {
+//    Path dup() const;
+//    //Path translate(ref const Vector3 v);
+//    //Path translate(double vx, double vy, double vz);
+//    //Path mirror_image(ref const Vector3 point, ref const Vector3 normal);
+//    //Path rotate_about_zaxis(double dtheta);
+//}
+
+class Path : Parameterizable{
 public:
     double t0; // to subrange t, when evaluating a point on the Path
     double t1;
     bool arc_length_param_flag;
+    double arc_length;
     this(double t0=0.0, double t1=1.0, bool arc_length_param=false){
 	this.t0 = t0;
 	this.t1 = t1;
 	this.arc_length_param_flag = arc_length_param;
+	if (arc_length_param){
+	    arc_length = raw_length();
+	}
     }
     this(const(Path) other)
     {
 	this(other.t0, other.t1, other.arc_length_param_flag);
     }
     abstract Path dup() const;
+    
+    final Vector3 opCall(double t) const
+    {
+	t = get_raw_t(t);
+	return raw_eval(t);
+    }
+    final Vector3 dpdt(double t) const
+    {
+	t = get_raw_t(t);
+	return raw_dpdt(t)*d_raw_t_dt(t);
+    }
+    final Vector3 d2pdt2(double t) const
+    {
+	t = get_raw_t(t);
+	return raw_d2pdt2(t)*pow(d_raw_t_dt(t), 2) + raw_dpdt(t)*d2_raw_t_dt2(t);
+    }
+    
+    final double partial_length(double ta, double tb) const
+    {
+	double raw_ta = get_raw_t(ta);
+	double raw_tb = get_raw_t(tb);
+	return raw_partial_length(ta, tb);
+    }
+    final double length() const
+    {
+	return partial_length(0, 1);
+    }
+    final Vector3 point_from_length(double length, out double t) const
+    {
+	double raw_length = length + raw_partial_length(0, t0);
+	double raw_t;
+	Vector3 point = raw_point_from_length(raw_length, raw_t);
+	t = get_t_from_raw(raw_t);
+	return point;
+    }
+    //final Path reverse() 
+    //{
+    //    double t0_old = t0;
+    //    double t1_old = t1;
+    //    t0 = 1.0 - t1_old;
+    //    t1 = 1.0 - t0_old;
+    //    raw_reverse();
+    //    return this;
+    //}
     
     abstract Vector3 raw_eval(double t) const;
     Vector3 raw_dpdt(double t) const
@@ -77,28 +146,47 @@ public:
 	}
 	return derivative;
     }
-    Vector3 opCall(double t) const
+    double raw_partial_length(double ta, double tb) const
     {
-	t = get_raw_t(t);
-	return raw_eval(t);
-    }
-    Vector3 dpdt(double t) const
-    {
-	t = get_raw_t(t);
-	if ( arc_length_param_flag ) {
-	    return raw_dpdt(t)*d_t_from_arc_dt(t)*d_t_from_subrange_dt(t);
+	if( tb < ta ) {
+	    double tmp = ta; ta = tb; tb = tmp;
 	}
-	return raw_dpdt(t)*d_t_from_subrange_dt(t);
-    }
-    Vector3 d2pdt2(double t) const
-    {
-	t = get_raw_t(t);
-	if ( arc_length_param_flag ) {
-	    return (raw_d2pdt2(t)*pow(d_t_from_arc_dt(t),2) + raw_dpdt(t)*d2_t_from_arc_dt2(t))*pow(d_t_from_subrange_dt(t),2);
+	double L = 0.0;
+	int n = 100;
+	double dt = (tb - ta) / n;
+	Vector3 p0 = this.raw_eval(ta);
+	Vector3 p1;
+	foreach (i; 1 .. n+1) {
+	    p1 = this.raw_eval(ta + dt * i);
+	    L += abs(p1 - p0);
+	    p0 = p1;
 	}
-	return raw_d2pdt2(t)*pow(d_t_from_subrange_dt(t),2);
+	return L;
     }
-    
+    double raw_length() const
+    {
+	return raw_partial_length(0, 1);
+    }
+    Vector3 raw_point_from_length(double length, out double t) const
+    {
+	double L = 0.0;
+	int n = 1000;
+	double dt = 1.0 / n;
+	Vector3 p0 = this.raw_eval(0.0);
+	Vector3 p1;
+	foreach (i; 1 .. n+1) {
+	    p1 = this.raw_eval(dt * i);
+	    L += abs(p1 - p0);
+	    p0 = p1;
+	    if( L > length ) {
+		t = dt * i;
+		return p1;
+	    }
+	}
+	t = dt * n;
+	return p1;
+    }
+    //abstract Path raw_reverse();
     
     // A global piece of data so that we can
     // create a minimum function for the optimiser
@@ -133,87 +221,81 @@ public:
 
     //    return t;
     //}
-    abstract override string toString() const;
-    double length() const
-    {
-	// Returns the geometric length of the Path.
-	double L = 0.0;
-	int n = 20;
-	double dt = 1.0 / n;
-	Vector3 p0 = this.opCall(0.0);
-	Vector3 p1;
-	foreach (i; 1 .. n+1) {
-	    p1 = this.opCall(dt * i);
-	    L += abs(p1 - p0);
-	    p0 = p1;
-	}
-	return L;
-    } // end length()
-    double partial_length(double ta, double tb) const
-    {
-	if( tb < ta ) {
-	    double tmp = ta; ta = tb; tb = tmp;
-	}
-	double L = 0.0;
-	int n = 100;
-	double dt = (tb - ta) / n;
-	Vector3 p0 = this.opCall(ta);
-	Vector3 p1;
-	foreach (i; 1 .. n+1) {
-	    p1 = this.opCall(ta + dt * i);
-	    L += abs(p1 - p0);
-	    p0 = p1;
-	}
-	return L;
-    }
-    Vector3 point_from_length(double length, out double t) const
-    {
-	double L = 0.0;
-	int n = 1000;
-	double dt = 1.0 / n;
-	Vector3 p0 = this.opCall(0.0);
-	Vector3 p1;
-	foreach (i; 1 .. n+1) {
-	    p1 = this.opCall(dt * i);
-	    L += abs(p1 - p0);
-	    p0 = p1;
-	    if( L > length ) {
-		t = dt * i;
-		return p1;
-	    }
-	}
-	t = dt * n;
-	return p1;
-    }
     //abstract Path translate(ref const Vector3 v);
     //abstract Path translate(double vx, double vy, double vz);
     //abstract Path mirror_image(ref const Vector3 point, ref const Vector3 normal);
     //abstract Path rotate_about_zaxis(double dtheta);
-    //abstract Path reverse() 
-    //{
-    //    double t0_old = t0;
-    //    double t1_old = t1;
-    //    t0 = 1.0 - t1_old;
-    //    t1 = 1.0 - t0_old;
-    //    return this;
-    //}
+    abstract override string toString() const;
 protected:
+    double[] arc_length_vector;
+    void set_arc_length_vector(int N)
+    {
+	// Compute the arc_lengths for a number of sample points 
+	// so that these can later be used to do a reverse interpolation
+	// on the evaluation parameter.
+	arc_length = raw_length();
+	arc_length_vector.length = 0;
+	if ( N == 0 ) return;
+	double dt = 1.0 / N;
+	double L = 0.0;
+	arc_length_vector ~= L;
+	Vector3 p0 = raw_eval(0.0);
+	Vector3 p1;
+	foreach (i; 1 .. N+1) {
+	    p1 = raw_eval(dt * i);
+	    L += abs(p1 - p0);
+	    arc_length_vector ~= L;
+	    p0 = p1;
+	}
+    } // end set_arc_length_vector()
+    double t_from_arc_length_f(double t) const
+    {
+	// The incoming parameter value, t, is proportional to arc_length.
+	// Do a reverse look-up from the arc_length to the original t parameter
+	// of the Bezier curve.
+	double L_target = t * arc_length_vector[$-1];
+	// Starting from the right-hand end,
+	// let's try to find a point to the left of L_target.
+	// If the value is out of range, this should just result in
+	// us extrapolating one of the end segments -- that's OK.
+	int i = to!int(arc_length_vector.length) - 1;
+	double dt = 1.0 / arc_length_vector.length;
+	while ( L_target < arc_length_vector[i] && i > 0 ) i--;
+	double frac = (L_target - arc_length_vector[i]) / (arc_length_vector[i+1] - arc_length_vector[i]);
+	return (1.0 - frac) * dt*i + frac * dt*(i+1);
+    } // end t_from_arc_length_f()
+private:
     double get_raw_t(double t) const
     {
 	t = t_from_subrange(t);
 	if ( arc_length_param_flag ) {
-	    t = t_from_arc_length(t);
+	    t = t_from_arc_length_f(t);
 	}
 	return t;
     }
-    //double get_t_from_raw(double t) const
-    //{
-    //    if ( arc_length_param_flag ) {
-    //        t = partial_length(0,t);
-    //    }
-    //    t = t_to_subrange(t);
-    //    return t;
-    //}
+    double get_t_from_raw(double t) const
+    {
+	if ( arc_length_param_flag ) {
+	    t = raw_partial_length(0,t)/arc_length;
+	}
+	t = t_to_subrange(t);
+	return t;
+    }
+    double d_raw_t_dt(double t) const
+    {
+	if ( arc_length_param_flag ) {
+	    return d_t_from_subrange_dt(t)*d_t_from_arc_f_dt(t);
+	}
+	return d_t_from_subrange_dt(t);
+    }
+    double d2_raw_t_dt2(double t) const
+    {
+	// d2_t_from_subrange_dt2 == 0
+	if ( arc_length_param_flag ) {
+	    return pow(d_t_from_subrange_dt(t),2)*d2_t_from_arc_f_dt2(t);
+	}
+	return 0.0;
+    }
     double t_from_subrange(double t) const
     {
 	return t0 + (t1 - t0)*t;
@@ -226,62 +308,26 @@ protected:
     {
 	return (t - t0)/(t1 - t0);
     }
-    double[] arc_length;
-    void set_arc_length_vector(int N)
+    double d_arc_f_dt(double t) const
     {
-	// Compute the arc_lengths for a number of sample points 
-	// so that these can later be used to do a reverse interpolation
-	// on the evaluation parameter.
-	arc_length.length = 0;
-	if ( N == 0 ) return;
-	double dt = 1.0 / N;
-	double L = 0.0;
-	arc_length ~= L;
-	Vector3 p0 = raw_eval(0.0);
-	Vector3 p1;
-	foreach (i; 1 .. N+1) {
-	    p1 = raw_eval(dt * i);
-	    L += abs(p1 - p0);
-	    arc_length ~= L;
-	    p0 = p1;
-	}
-    } // end set_arc_length_vector()
-    double t_from_arc_length(double t) const
-    {
-	// The incoming parameter value, t, is proportional to arc_length.
-	// Do a reverse look-up from the arc_length to the original t parameter
-	// of the Bezier curve.
-	double L_target = t * arc_length[$-1];
-	// Starting from the right-hand end,
-	// let's try to find a point to the left of L_target.
-	// If the value is out of range, this should just result in
-	// us extrapolating one of the end segments -- that's OK.
-	int i = to!int(arc_length.length) - 1;
-	double dt = 1.0 / arc_length.length;
-	while ( L_target < arc_length[i] && i > 0 ) i--;
-	double frac = (L_target - arc_length[i]) / (arc_length[i+1] - arc_length[i]);
-	return (1.0 - frac) * dt*i + frac * dt*(i+1);
-    } // end t_from_arc_length()
-    double d_arc_dt(double t) const
-    {
-	return abs(raw_dpdt(t));
+	return abs(raw_dpdt(t))/arc_length;
     }
-    double d2_arc_dt2(double t) const
+    double d2_arc_f_dt2(double t) const
     {
-	//chain rule on d_arc_dt
-	return dot(unit(raw_dpdt(t)),raw_d2pdt2(t));
+	//chain rule on d_arc_f_dt
+	return dot(unit(raw_dpdt(t)),raw_d2pdt2(t))/arc_length;
     }
-    double d_t_from_arc_dt(double t) const
+    double d_t_from_arc_f_dt(double t) const
     {
 	// input is parameter t not arclength fraction
 	// derivative of inverse fn
-	return 1.0/d_arc_dt(t);
+	return 1.0/d_arc_f_dt(t);
     }
-    double d2_t_from_arc_dt2(double t) const
+    double d2_t_from_arc_f_dt2(double t) const
     {
 	// input is parameter t not arclength fraction
 	// derivative of inverse fn
-	return -d2_arc_dt2(t)/pow(d_arc_dt(t),3);
+	return -d2_arc_f_dt2(t)/pow(d_arc_f_dt(t),3);
     }
 } // end class Path
 
@@ -321,23 +367,24 @@ public:
 	return "Line(p0=" ~ to!string(p0) ~ ", p1=" ~ to!string(p1) ~
 	    ", t0=" ~ to!string(t0) ~ ", t1=" ~ to!string(t1) ~ ")";
     }
-    override double length() const
+    override double raw_partial_length(double ta, double tb) const
     {
-	// Returns the geometric length.
-	return partial_length(0, 1);
+	return fabs(tb - ta) * abs(p1 - p0);
     }
-    override double partial_length(double ta, double tb) const
+    override Vector3 raw_point_from_length(double length, out double t) const
     {
-	return fabs(tb - ta) * fabs(t1 - t0) * abs(p1 - p0);
+	t = length/(abs(p1 - p0));
+	return raw_eval(t);
     }
-    override Vector3 point_from_length(double L, out double t) const
-    {
-	t = L/(abs(p1 - p0)*fabs(t1 - t0));
-	return opCall(t);
-    }
+    //override Line raw_reverse()
+    //{
+    //    Vector3 tmp;
+    //    tmp = p0; p0 = p1; p1 = tmp;
+    //    return this;
+    //}
 protected:
     override void set_arc_length_vector(int N){}
-    override double t_from_arc_length(double t) const {return t;}
+    override double t_from_arc_length_f(double t) const {return t;}
 } // end class Line
 
 
@@ -385,13 +432,13 @@ public:
 	return "Arc(a=" ~ to!string(a) ~ ", b=" ~ to!string(b) ~ ", c=" ~ to!string(c)
 	    ~ ", t0=" ~ to!string(t0) ~ ", t1=" ~ to!string(t1) ~ ")";
     }
-    override double length() const
+    override double raw_length() const
     {
 	// Returns the geometric length.
 	double L;
 	Vector3 p;
 	evaluate_position_and_length(1.0, p, L);
-	return fabs(t1 - t0) * L;
+	return L;
     }
     
     void evaluate_position_and_length(in double t, out Vector3 loc, out double L) const
@@ -466,14 +513,11 @@ public:
     }
     this(ref const(Bezier) other)
     {
-	B = other.B.dup();
-	t0 = other.t0; t1 = other.t1;
-	arc_length_param_flag = other.arc_length_param_flag;
-	if ( arc_length_param_flag ) arc_length = other.arc_length.dup();
+	this(other.B, other.t0, other.t1, other.arc_length_param_flag);
     }
     override Bezier dup() const
     {
-	return new Bezier(B, t0, t1);
+	return new Bezier(B, t0, t1, arc_length_param_flag);
     }
     override Vector3 raw_eval(double t) const 
     {
@@ -532,16 +576,11 @@ public:
     }
     this(ref const(Polyline) other)
     {
-	foreach (myseg; other.segments) segments ~= myseg.dup(); 
-	t_values = other.t_values.dup();
-	t0 = other.t0; t1 = other.t1;
-	arc_length_param_flag = other.arc_length_param_flag;
-	if ( arc_length_param_flag ) arc_length = other.arc_length.dup();
-	reset_breakpoints();
+	this(other.segments, other.t0, other.t1, other.arc_length_param_flag);
     }
     override Polyline dup() const
     {
-	return new Polyline(segments, t0, t1);
+	return new Polyline(segments, t0, t1, arc_length_param_flag);
     }
 
     override Vector3 raw_eval(double t) const 
