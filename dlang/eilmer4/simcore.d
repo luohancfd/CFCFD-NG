@@ -164,10 +164,10 @@ void integrate_in_time(double target_time, int maxWallClock)
 	if (do_cfl_check_now) {
 	    // Adjust the time step  
 	    shared double dt_allow = 1.0e9; // Start with too large a guess to ensure it is replaced.
-	    // [TODO] for parallel, need to reduce across gasBlocks
-	    foreach (myblk; gasBlocks) {
+	    foreach (myblk; parallel(gasBlocks,1)) {
 		if (!myblk.active) continue;
-		dt_allow = min(dt_allow, myblk.determine_time_step_size(dt_global)); 
+		double local_dt_allow = myblk.determine_time_step_size(dt_global);
+		dt_allow = min(dt_allow, local_dt_allow); 
 	    }
 	    // Change the actual time step, as needed.
 	    if (dt_allow <= dt_global) {
@@ -226,7 +226,7 @@ void integrate_in_time(double target_time, int maxWallClock)
 	    current_tindx = current_tindx + 1;
 	    ensure_directory_is_present(make_path_name!"flow"(current_tindx));
 	    auto job_name = GlobalConfig.base_file_name;
-	    foreach (ref myblk; parallel(gasBlocks,1)) {
+	    foreach (myblk; parallel(gasBlocks,1)) {
 		auto file_name = make_file_name!"flow"(job_name, myblk.id, current_tindx);
 		myblk.write_solution(file_name, sim_time);
 	    }
@@ -294,7 +294,7 @@ void finalize_simulation()
 	current_tindx = current_tindx + 1;
 	ensure_directory_is_present(make_path_name!"flow"(current_tindx));
 	auto job_name = GlobalConfig.base_file_name;
-	foreach (ref myblk; gasBlocks) {
+	foreach (myblk; parallel(gasBlocks,1)) {
 	    auto file_name = make_file_name!"flow"(job_name, myblk.id, current_tindx);
 	    myblk.write_solution(file_name, sim_time);
 	}
