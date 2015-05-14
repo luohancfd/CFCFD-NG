@@ -200,6 +200,7 @@ void read_config_file()
 	}
     }
     foreach (blk; gasBlocks) {
+	blk.init_myLua_globals();
 	blk.init_boundary_conditions(jsonData["block_" ~ to!string(blk.id)]);
 	if (GlobalConfig.udf_source_terms) {
 	    blk.myLua.doFile(GlobalConfig.udf_source_terms_file);

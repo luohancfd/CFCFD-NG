@@ -362,6 +362,8 @@ public:
     GasModel gmodel;
     ReactionUpdateScheme reaction_update;
 
+    int verbosity_level;
+
     this() 
     {
 	dimensions = GlobalConfig.dimensions;
@@ -417,5 +419,7 @@ public:
 	gmodel = init_gas_model(GlobalConfig.gas_model_file);
 	if (GlobalConfig.reacting)
 	    reaction_update = new ReactionUpdateScheme(GlobalConfig.reactions_file, gmodel);
+
+	verbosity_level = GlobalConfig.verbosity_level;
     }
 } // end class LocalConfig

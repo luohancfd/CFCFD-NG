@@ -121,9 +121,7 @@ public:
 	omegaz = getJSONdouble(json_data, "omegaz", 0.0);
     } // end constructor from json
 
-    override void init_boundary_conditions(JSONValue json_data)
-    // Initialize boundary conditions after the blocks are fully constructed,
-    // because we want access to the full collection of valid block references.
+    override void init_myLua_globals()
     {
 	myLua["nicell"] = nicell;
 	myLua["njcell"] = njcell;
@@ -135,14 +133,19 @@ public:
 	myLua["top"] = Face.top;
 	myLua["bottom"] = Face.bottom;
 	myLua["sampleFlow"] = &luafn_sampleFlow; // will only work in serial code
-	//
-	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
+    } // end init_myLua_globals()
+
+    override void init_boundary_conditions(JSONValue json_data)
+    // Initialize boundary conditions after the blocks are fully constructed,
+    // because we want access to the full collection of valid block references.
+    {
+	foreach (boundary; 0 .. (myConfig.dimensions == 3 ? 6 : 4)) {
 	    string json_key = "face_" ~ face_name[boundary];
 	    auto bc_json_data = json_data[json_key];
 	    bc[boundary] = make_BC_from_json(bc_json_data, id, boundary,
 					     nicell, njcell, nkcell);
 	}
-    }
+    } // end init_boundary_conditions()
 
     override string toString() const
     {
@@ -162,7 +165,7 @@ public:
 	repr ~= "\n       ]"; // end bc list
 	repr ~= ")";
 	return to!string(repr);
-    }
+    } // end toString()
 
     @nogc
     size_t to_global_index(size_t i, size_t j, size_t k) const
@@ -171,7 +174,7 @@ public:
     }
     body {
 	return k * (_njdim * _nidim) + j * _nidim + i; 
-    }
+    } // end to_global_index()
 
     size_t[] to_ijk_indices(size_t gid) const
     {
@@ -179,7 +182,7 @@ public:
 	size_t j = (gid - k * (_njdim * _nidim)) / _nidim;
 	size_t i = gid - k * (_njdim * _nidim) - j * _nidim;
 	return [i, j, k];
-    }
+    } // end to_ijk_indices()
 
     @nogc ref FVCell get_cell(size_t i, size_t j, size_t k=0) { return _ctr[to_global_index(i,j,k)]; }
     @nogc ref FVInterface get_ifi(size_t i, size_t j, size_t k=0) { return _ifi[to_global_index(i,j,k)]; }
@@ -194,7 +197,7 @@ public:
     // We shouldn't be calling this until the essential bits of the GlobalConfig
     // have been set up.
     {
-	if ( GlobalConfig.verbosity_level >= 2 ) 
+	if ( myConfig.verbosity_level >= 2 ) 
 	    writefln("assemble_arrays(): Begin for block %d", id);
 	// Check for obvious errors.
 	if ( _nidim <= 0 || _njdim <= 0 || _nkdim <= 0 ) {
@@ -248,7 +251,7 @@ public:
 	    writefln("System message: %s", err.msg);
 	    throw new Error("Block.assemble_arrays() failed.");
 	}
-	if ( GlobalConfig.verbosity_level >= 2 ) {
+	if ( myConfig.verbosity_level >= 2 ) {
 	    writefln("Done assembling arrays for %d cells.", ntot);
 	}
     } // end of assemble_arrays()
@@ -258,7 +261,7 @@ public:
     // Refer to fvcore.d
     {
 	size_t kstart, kend;
-	if ( GlobalConfig.dimensions == 3 ) {
+	if ( myConfig.dimensions == 3 ) {
 	    kstart = kmin - 1;
 	    kend = kmax + 1;
 	} else {
@@ -1438,7 +1441,7 @@ public:
     {
 	size_t nivtx, njvtx, nkvtx;
 	double x, y, z;
-	if (GlobalConfig.verbosity_level >= 1) {
+	if (myConfig.verbosity_level >= 1) {
 	    writeln("read_grid(): Start block ", id);
 	}
 	auto byLine = new GzipByLine(filename);
@@ -1485,13 +1488,13 @@ public:
 
     override void write_grid(string filename, double sim_time, size_t gtl=0)
     {
-	if (GlobalConfig.verbosity_level >= 1) {
+	if (myConfig.verbosity_level >= 1) {
 	    writeln("write_grid(): Start block ", id);
 	}
 	size_t kmaxrange;
 	auto outfile = new GzipOut(filename);
 	auto writer = appender!string();
-	if ( GlobalConfig.dimensions == 3 ) {
+	if ( myConfig.dimensions == 3 ) {
 	    formattedWrite(writer, "%d %d %d  # ni nj nk\n", nicell+1, njcell+1, nkcell+1);
 	    kmaxrange = kmax + 1;
 	} else { // 2D case
@@ -1520,7 +1523,7 @@ public:
     {
 	size_t ni, nj, nk;
 	double sim_time;
-	if (GlobalConfig.verbosity_level >= 1) {
+	if (myConfig.verbosity_level >= 1) {
 	    writeln("read_solution(): Start block ", id);
 	}
 	auto byLine = new GzipByLine(filename);
@@ -1552,7 +1555,7 @@ public:
     // for a single block.
     // This is almost Tecplot POINT format.
     {
-	if (GlobalConfig.verbosity_level >= 1) {
+	if (myConfig.verbosity_level >= 1) {
 	    writeln("write_solution(): Start block ", id);
 	}
 	auto outfile = new GzipOut(filename);
@@ -1656,7 +1659,7 @@ public:
 	    } // i loop
 	} // for k
     
-	if (GlobalConfig.dimensions == 2) return;
+	if (myConfig.dimensions == 2) return;
     
 	// ifk interfaces are Top-facing interfaces.
 	for ( size_t i = imin; i <= imax; ++i ) {

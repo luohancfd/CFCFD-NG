@@ -58,6 +58,7 @@ public:
 
     override string toString() const { return "Block(id=" ~ to!string(id) ~ ")"; }
 
+    abstract void init_myLua_globals();
     abstract void init_boundary_conditions(JSONValue json_data);
     abstract void assemble_arrays();
     abstract void bind_interfaces_and_vertices_to_cells();
@@ -95,11 +96,11 @@ public:
 	    total_cells_in_reaction_zones += (cell.fr_reactions_allowed ? 1: 0);
 	    total_cells += 1;
 	} // foreach cell
-	if ( GlobalConfig.reacting && GlobalConfig.verbosity_level >= 2 ) {
+	if ( myConfig.reacting && myConfig.verbosity_level >= 2 ) {
 	    writeln("identify_reaction_zones(): block ", id,
 		    " cells inside zones = ", total_cells_in_reaction_zones, 
 		    " out of ", total_cells);
-	    if ( GlobalConfig.reaction_zones.length == 0 ) {
+	    if ( myConfig.reaction_zones.length == 0 ) {
 		writeln("Note that for no user-specified zones,",
 			" the whole domain is allowed to be reacting.");
 	    }
@@ -125,12 +126,12 @@ public:
 	    total_cells_in_turbulent_zones += (cell.in_turbulent_zone ? 1: 0);
 	    total_cells += 1;
 	} // foreach cell
-	if ( GlobalConfig.turbulence_model != TurbulenceModel.none && 
-	     GlobalConfig.verbosity_level >= 2 ) {
+	if ( myConfig.turbulence_model != TurbulenceModel.none && 
+	     myConfig.verbosity_level >= 2 ) {
 	    writeln("identify_turbulent_zones(): block ", id,
 		    " cells inside zones = ", total_cells_in_turbulent_zones, 
 		    " out of ", total_cells);
-	    if ( GlobalConfig.turbulent_zones.length == 0 ) {
+	    if ( myConfig.turbulent_zones.length == 0 ) {
 		writeln("Note that for no user-specified zones,",
 			" the whole domain is allowed to be turbulent.");
 	    }
@@ -151,18 +152,16 @@ public:
 	    foreach (cell; active_cells) cell.turbulence_viscosity_k_omega();
 	    break;
 	}
-	auto transient_mu_t_factor = GlobalConfig.transient_mu_t_factor;
-	auto max_mu_t_factor = GlobalConfig.max_mu_t_factor;
 	foreach (cell; active_cells) {
-	    cell.turbulence_viscosity_factor(transient_mu_t_factor);
-	    cell.turbulence_viscosity_limit(max_mu_t_factor);
+	    cell.turbulence_viscosity_factor(myConfig.transient_mu_t_factor);
+	    cell.turbulence_viscosity_limit(myConfig.max_mu_t_factor);
 	    cell.turbulence_viscosity_zero_if_not_in_zone();
 	}
     } // end estimate_turbulence_viscosity()
 
     void set_grid_velocities(double sim_time)
     {
-	if (GlobalConfig.moving_grid) {
+	if (myConfig.moving_grid) {
 	    throw new Error("Block.set_grid_velocities(): moving grid is not yet implemented.");
 	    // [TODO] Insert the moving-grid code some day...
 	}
@@ -188,7 +187,7 @@ public:
 	// shock compression observed in the "sod" and "cone20" test cases.
 	// It may need to be tuned for other situations, especially when
 	// viscous effects are important.
-	double tol = GlobalConfig.compression_tolerance;
+	double tol = myConfig.compression_tolerance;
 	// First, work across interfaces and locate shocks using the (local) normal velocity.
 	foreach (iface; active_ifaces) {
 	    FVCell cL = iface.left_cell;
@@ -294,7 +293,7 @@ public:
 	// The following limits allow the simulation of the sod shock tube
 	// to get just a little wobbly around the shock.
 	// Lower values of cfl should be used for a smooth solution.
-	switch (number_of_stages_for_update_scheme(GlobalConfig.gasdynamic_update_scheme)) {
+	switch (number_of_stages_for_update_scheme(myConfig.gasdynamic_update_scheme)) {
 	case 1: cfl_allow = 0.9; break;
 	case 2: cfl_allow = 1.2; break;
 	case 3: cfl_allow = 1.6; break;

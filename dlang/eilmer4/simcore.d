@@ -35,9 +35,9 @@ import solid_udf_source_terms;
 
 // State data for simulation.
 // Needs to be seen by all of the coordination functions.
-shared static int current_tindx = 0;
-shared static double sim_time = 0;  // present simulation time, tracked by code
-shared static int step = 0;
+shared static int current_tindx;
+shared static double sim_time;  // present simulation time, tracked by code
+shared static int step;
 shared static double dt_global;     // simulation time step determined by code
 shared static double dt_allow;      // allowable global time step determined by code
 shared static double t_plot;        // time to write next soln
@@ -50,14 +50,13 @@ static SysTime wall_clock_start;
 
 //----------------------------------------------------------------------------
 
-double init_simulation(int tindx, int maxCPUs)
+void init_simulation(int tindx, int maxCPUs)
 {
     if (GlobalConfig.verbosity_level > 0) writeln("Begin init_simulation()...");
     wall_clock_start = Clock.currTime();
     read_config_file();  // most of the configuration is in here
     read_control_file(); // some of the configuration is in here
     current_tindx = tindx;
-    shared double sim_time;
     auto job_name = GlobalConfig.base_file_name;
     defaultPoolThreads(maxCPUs-1); // total = main thread + threads-in-Pool
     writeln("Running on ", maxCPUs, " CPUs");
@@ -116,7 +115,7 @@ double init_simulation(int tindx, int maxCPUs)
 	}
     }
     if (GlobalConfig.verbosity_level > 0) writeln("Done init_simulation().");
-    return sim_time;
+    return;
 } // end init_simulation()
 
 void update_times_file()
@@ -126,7 +125,7 @@ void update_times_file()
     append(GlobalConfig.base_file_name ~ ".times", writer.data);
 }
 
-double integrate_in_time(double target_time, int maxWallClock)
+void integrate_in_time(double target_time, int maxWallClock)
 {
     if (GlobalConfig.verbosity_level > 0) writeln("Integrate in time.");
     // The next time for output...
@@ -285,10 +284,10 @@ double integrate_in_time(double target_time, int maxWallClock)
     } // end while !finished_time_stepping
 
     if (GlobalConfig.verbosity_level > 0) writeln("Done integrate_in_time().");
-    return sim_time;
+    return;
 } // end integrate_in_time()
 
-void finalize_simulation(double sim_time)
+void finalize_simulation()
 {
     if (GlobalConfig.verbosity_level > 0) writeln("Finalize the simulation.");
     if (!output_just_written) {
