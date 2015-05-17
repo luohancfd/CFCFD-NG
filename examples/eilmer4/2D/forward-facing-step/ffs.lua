@@ -40,7 +40,7 @@ bcList1 = {north=nil, east=nil, south=nil,
 bcList2 = {north=nil, east=ExtrapolateOutBC:new{label="outflow-boundary"},
 	   south=nil, west=nil}
 
--- Define the flow-solution blocks and sticth them together.
+-- Define the flow-solution blocks and stitch them together.
 blk0 = SBlockArray{grid=grid0, nib=1, njb=1, 
 		   fillCondition=inflow, bcList=bcList0, label="BLOCK-0"}
 blk1 = SBlockArray{grid=grid1, nib=1, njb=4,
