@@ -10,6 +10,9 @@ import std.stdio;
 import std.file;
 import std.path;
 import std.getopt;
+import std.conv;
+import std.parallelism;
+import std.algorithm.comparison;
 
 import geom;
 import gas;
@@ -37,6 +40,8 @@ void main(string[] args)
     msg       ~= "         [--prep]                    prepare config, grid and flow files\n";
     msg       ~= "         [--run]                     run the simulation over time\n";
     msg       ~= "         [--tindx=<int>]             defaults to 0\n";
+    msg       ~= "         [--max-cpus=<int>]          defaults to ";
+    msg       ~= to!string(totalCPUs) ~" on this machine\n";
     msg       ~= "         [--verbosity=<int>]         defaults to 0\n";
     msg       ~= "         [--max-wall-clock=<int>]    in seconds\n";
     msg       ~= "         [--help]                    writes this message\n";
@@ -52,6 +57,7 @@ void main(string[] args)
     int tindxStart = 0;
     int maxWallClock = 5*24*3600; // 5 days default
     bool helpWanted = false;
+    int maxCPUs = totalCPUs;
     try {
 	getopt(args,
 	       "job", &jobName,
@@ -60,6 +66,7 @@ void main(string[] args)
 	       "run", &runFlag,
 	       "tindx", &tindxStart,
 	       "max-wall-clock", &maxWallClock,
+	       "max-cpus", &maxCPUs,
 	       "help", &helpWanted
 	       );
     } catch (Exception e) {
@@ -101,19 +108,21 @@ void main(string[] args)
     }
     if (runFlag) {
 	GlobalConfig.base_file_name = jobName;
+	maxCPUs = min(max(maxCPUs, 1), totalCPUs); // don't ask for more than available
 	if (verbosityLevel > 0) {
 	    writeln("Begin simulation with command-line arguments.");
 	    writeln("  jobName: ", jobName);
 	    writeln("  tindxStart: ", tindxStart);
 	    writeln("  maxWallClock: ", maxWallClock);
 	    writeln("  verbosityLevel: ", verbosityLevel);
+	    writeln("  maxCPUs: ", maxCPUs);
 	}
 	GlobalConfig.verbosity_level = verbosityLevel;
 	
-	double sim_time = init_simulation(tindxStart);
-	writeln("starting simulation time= ", sim_time);
-	sim_time = integrate_in_time(GlobalConfig.max_time, maxWallClock);
-	finalize_simulation(sim_time);
+	init_simulation(tindxStart, maxCPUs);
+	writeln("starting simulation time= ", simcore.sim_time);
+	integrate_in_time(GlobalConfig.max_time, maxWallClock);
+	finalize_simulation();
     }
     writeln("Done.");
 } // end main()

@@ -451,6 +451,27 @@ function UserDefinedInterface:tojson()
    return str
 end
 
+-- Base class and subclasses for BoundaryFluxEffect
+BoundaryFluxEffect = {
+   type = ""
+}
+function BoundaryFluxEffect:new(o)
+   o = o or {}
+   setmetatable(o, self)
+   self.__index = self
+   return o
+end
+
+EnergyFluxFromAdjacentSolid = BoundaryFluxEffect:new{otherBlock=nil, otherFace=nil, orientation=-1}
+EnergyFluxFromAdjacentSolid.type = "energy_flux_from_adjacent_solid"
+function EnergyFluxFromAdjacentSolid:tojson()
+   local str = string.format('          {"type": "%s", ', self.type)
+   str = str .. string.format('"other_block": %d, ', self.otherBlock)
+   str = str .. string.format('"other_face": "%s", ', self.otherFace)
+   str = str .. string.format('"orientation": %d', self.orientation)
+   str = str .. '}'
+   return str
+end
 
 -- Class for BoundaryCondition
 
@@ -458,7 +479,8 @@ BoundaryCondition = {
    label = "",
    myType = "",
    preReconAction = {},
-   preSpatialDerivAction = {}
+   preSpatialDerivAction = {},
+   postDiffFluxAction = {}
 }
 function BoundaryCondition:new(o)
    o = o or {}
@@ -480,6 +502,12 @@ function BoundaryCondition:tojson()
    for i,effect in ipairs(self.preSpatialDerivAction) do
       str = str .. effect:tojson()
       if i ~= #self.preSpatialDerivAction then str = str .. "," end
+   end
+   str = str .. '\n        ],\n'
+   str = str .. '        "post_diff_flux_action": [\n'
+   for i,effect in ipairs(self.postDiffFluxAction) do
+      str = str .. effect:tojson()
+      if i ~= #self.postDiffFluxAction then str = str .. "," end
    end
    str = str .. '\n        ]\n'
    str = str .. '    }'
@@ -562,6 +590,20 @@ function UserDefinedBC:new(o)
    o = BoundaryCondition.new(self, o)
    o.preReconAction = { UserDefinedGhostCell:new{fileName=o.fileName} }
    o.preSpatialDerivAction = { UserDefinedInterface:new{fileName=o.fileName} } 
+   return o
+end
+
+AdjacentToSolidBC = BoundaryCondition:new()
+AdjacentToSolidBC.myType = "AdjacentToSolid"
+function AdjacentToSolidBC:new(o)
+   o = BoundaryCondition.new(self, o)
+   o.preReconAction = { InternalCopyThenReflect:new() }
+   o.preSpatialDerivAction = { CopyCellData:new(), ZeroVelocity:new(),
+			       WallKOmega:new() }
+   o.postDiffFluxAction = { EnergyFluxFromAdjacentSolid:new{otherBlock=o.otherBlock,
+							    otherFace=o.otherFace,
+							    orientation=o.orientation }
+   }
    return o
 end
 
@@ -745,8 +787,119 @@ function identifyBlockConnections(blockList, excludeList, tolerance)
 	 end -- if (A ~= B...
       end -- for _,B
    end -- for _,A
-   -- Hard-code the cone20 connection for the moment.
-   -- connectBlocks(blocks[1], east, blocks[2], west, 0)
+end
+
+-- ---------------------------------------------------------------------------
+
+function SBlockArray(t)
+   -- Expect one table as argument, with named fields.
+   -- Returns an array of blocks defined over a single region.
+   assert(t.grid, "need to supply a grid")
+   assert(t.fillCondition, "need to supply a fillCondition")
+   t.omegaz = t.omegaz or 0.0
+   t.bcList = t.bcList or {} -- boundary conditions
+   for _,face in ipairs(faceList(config.dimensions)) do
+      t.bcList[face] = t.bcList[face] or SlipWallBC:new()
+   end
+   t.xforceList = t.xforceList or {}
+   -- Numbers of subblocks in each coordinate direction
+   t.nib = t.nib or 1
+   t.njb = t.njb or 1
+   t.nkb = t.nkb or 1
+   if config.dimensions == 2 then
+      t.nkb = 1
+   end
+   -- Extract some information from the StructuredGrid
+   -- Note 0-based indexing for vertices and cells in the D-domain.
+   local nic_total = t.grid:get_niv() - 1
+   local dnic = math.floor(nic_total/t.nib)
+   local njc_total = t.grid:get_njv() - 1
+   local dnjc = math.floor(njc_total/t.njb)
+   local nkc_total = t.grid:get_nkv() - 1
+   local dnkc = math.floor(nkc_total/t.nkb)
+   if config.dimensions == 2 then
+      nkc_total = 1
+      dnk = 1
+   end
+   local blockArray = {} -- will be a multi-dimensional array indexed as [i][j][k]
+   local blockCollection = {} -- will be a single-dimensional array
+   for ib = 1, t.nib do
+      blockArray[ib] = {}
+      local i0 = (ib-1) * dnic
+      if (ib == t.nib) then
+	 -- Last block has to pick up remaining cells.
+	 dnic = nic_total - i0
+      end
+      for jb = 1, t.njb do
+	 local j0 = (jb-1) * dnjc
+	 if (jb == t.njb) then
+	    dnjc = njc_total - j0
+	 end
+	 if config.dimensions == 2 then
+	    -- 2D flow
+	    local subgrid = t.grid:subgrid(i0,dnic+1,j0,dnjc+1)
+	    local bcList = {north=SlipWallBC:new(), east=SlipWallBC:new(),
+			    south=SlipWallBC:new(), west=SlipWallBC:new()}
+	    if ib == 1 then
+	       bcList[west] = t.bcList[west]
+	    end
+	    if ib == t.nib then
+	       bcList[east] = t.bcList[east]
+	    end
+	    if jb == 1 then
+	       bcList[south] = t.bcList[south]
+	    end
+	    if jb == t.njb then
+	       bcList[north] = t.bcList[north]
+	    end
+	    new_block = SBlock:new{grid=subgrid, omegaz=t.omegaz,
+				   fillCondition=t.fillCondition, bcList=bcList}
+	    blockArray[ib][jb] = new_block
+	    blockCollection[#blockCollection+1] = new_block
+	 else
+	    -- 3D flow, need one more level in the array
+	    blockArray[ib][jb] = {}
+	    for kb = 1, t.nkb do
+	       local k0 = (kb-1) * dnkc
+	       if (kb == t.nkb) then
+		  dnkc = nkc_total - k0
+	       end
+	       local subgrid = t.grid:subgrid(i0,dnic+1,j0,dnjc+1,k0,dnkc+1)
+	       local bcList = {north=SlipWallBC:new(), east=SlipWallBC:new(),
+			       south=SlipWallBC:new(), west=SlipWallBC:new(),
+			       top=SlipWallBC:new(), bottom=SlipWallBC:new()}
+	       if ib == 1 then
+		  bcList[west] = t.bcList[west]
+	       end
+	       if ib == t.nib then
+		  bcList[east] = t.bcList[east]
+	       end
+	       if jb == 1 then
+		  bcList[south] = t.bcList[south]
+	       end
+	       if jb == t.njb then
+		  bcList[north] = t.bcList[north]
+	       end
+	       if kb == 1 then
+		  bcList[bottom] = t.bcList[bottom]
+	       end
+	       if kb == t.nkb then
+		  bcList[top] = t.bcList[top]
+	       end
+	       new_block = SBlock:new{grid=subgrid, omegaz=t.omegaz,
+				      fillCondition=t.fillCondition,
+				      bcList=bcList}
+	       blockArray[i][j][k] = new_block
+	       blockCollection[#blockCollection+1] = new_block
+	    end -- kb loop
+	 end -- dimensions
+      end -- jb loop
+   end -- ib loop
+   -- Make the inter-subblock connections
+   if #blockCollection > 1 then
+      identifyBlockConnections(blockCollection)
+   end
+   return blockArray
 end
 
 -- ---------------------------------------------------------------------------
@@ -784,6 +937,7 @@ end
 SolidBoundaryCondition = {
    label = "",
    myType = "",
+   setsFluxDirectly = false,
    preSpatialDerivAction = {}
 }
 function SolidBoundaryCondition:new(o)
@@ -795,6 +949,7 @@ end
 function SolidBoundaryCondition:tojson()
    local str = '{'
    str = str .. string.format('"label": "%s", \n', self.label)
+   str = str .. string.format('        "sets_flux_directly": %s,\n', tostring(self.setsFluxDirectly))
    str = str .. '        "pre_spatial_deriv_action": [\n'
    for i,effect in ipairs(self.preSpatialDerivAction) do
       str = str .. effect:tojson()
@@ -818,6 +973,14 @@ SolidUserDefinedBC.myType = "SolidUserDefined"
 function SolidUserDefinedBC:new(o)
    o = SolidBoundaryCondition.new(self, o)
    o.preSpatialDerivAction = { SolidBIE_UserDefined:new{fileName=o.fileName} }
+   return o
+end
+
+SolidAdjacentToGasBC = SolidBoundaryCondition:new()
+SolidAdjacentToGasBC.myType = "SolidAdjacentToGas"
+function SolidAdjacentToGasBC:new(o)
+   o = SolidBoundaryCondition.new(self, o)
+   o.setsFluxDirectly = true
    return o
 end
 
@@ -903,12 +1066,6 @@ end
 function write_control_file(fileName)
    local f = assert(io.open(fileName, "w"))
    f:write("{\n")
-   f:write(string.format('"interpolation_order": %d,\n', config.interpolation_order))
-   f:write(string.format('"gasdynamic_update_scheme": "%s",\n',
-			 config.gasdynamic_update_scheme))
-   f:write(string.format('"separate_update_for_viscous_terms": %s,\n',
-			 tostring(config.separate_update_for_viscous_terms)))
-   --f:write(string.format('"implicit_flag": %s,\n', tostring(config.implicit_flag)))
    f:write(string.format('"dt_init": %e,\n', config.dt_init))
    f:write(string.format('"dt_max": %e,\n', config.dt_max))
    f:write(string.format('"cfl_value": %e,\n', config.cfl_value))
@@ -922,8 +1079,7 @@ function write_control_file(fileName)
    f:write(string.format('"dt_plot": %e,\n', config.dt_plot))
    f:write(string.format('"dt_history": %e,\n', config.dt_history))
    f:write(string.format('"write_at_step": %d,\n', config.write_at_step))
-   f:write(string.format('"halt_now": %d\n,', config.halt_now))
-   f:write(string.format('"solid_domain_update_scheme": "%s"\n', config.solid_domain_update_scheme))
+   f:write(string.format('"halt_now": %d\n', config.halt_now))
    -- Note, also, no comma on last entry in JSON object. (^^^: Look up one line and check!)
    f:write("}\n")
    f:close()
@@ -933,11 +1089,20 @@ function write_config_file(fileName)
    local f = assert(io.open(fileName, "w"))
    f:write("{\n")
    f:write(string.format('"title": "%s",\n', config.title))
+   f:write(string.format('"gas_model_file": "%s",\n', config.gas_model_file))
    f:write(string.format('"dimensions": %d,\n', config.dimensions))
    f:write(string.format('"axisymmetric": %s,\n',
 			 tostring(config.axisymmetric)))
-   f:write(string.format('"gas_model_file": "%s",\n', config.gas_model_file))
-
+   f:write(string.format('"interpolation_order": %d,\n', config.interpolation_order))
+   f:write(string.format('"gasdynamic_update_scheme": "%s",\n',
+			 config.gasdynamic_update_scheme))
+   f:write(string.format('"separate_update_for_viscous_terms": %s,\n',
+			 tostring(config.separate_update_for_viscous_terms)))
+   f:write(string.format('"separate_update_for_k_omega_source": %s,\n', 
+			 tostring(config.separate_update_for_k_omega_source)))
+   f:write(string.format('"apply_bcs_in_parallel": %s,\n',
+			 tostring(config.apply_bcs_in_parallel)))
+   f:write(string.format('"max_invalid_cells": %d,\n', config.max_invalid_cells))
    f:write(string.format('"thermo_interpolator": "%s",\n', 
 			 string.lower(config.thermo_interpolator)))
    f:write(string.format('"interpolate_in_local_frame": %s,\n', 
@@ -949,6 +1114,7 @@ function write_config_file(fileName)
    f:write(string.format('"compression_tolerance": %e,\n', config.compression_tolerance))
    f:write(string.format('"shear_tolerance": %e,\n', config.shear_tolerance))
    f:write(string.format('"M_inf": %e,\n', config.M_inf))
+
    f:write(string.format('"viscous": %s,\n', tostring(config.viscous)))
 
    f:write(string.format('"turbulence_model": "%s",\n',
@@ -959,17 +1125,18 @@ function write_config_file(fileName)
 			 config.turbulence_schmidt_number))
    f:write(string.format('"max_mu_t_factor": %e,\n', config.max_mu_t_factor))
    f:write(string.format('"transient_mu_t_factor": %e,\n', config.transient_mu_t_factor))
-   f:write(string.format('"separate_update_for_k_omega_source": %s,\n', 
-			 tostring(config.separate_update_for_k_omega_source)))
 
-   f:write(string.format('"reacting": %s,\n', tostring(config.reacting)))
-   f:write(string.format('"reactions_file": "%s",\n', config.reactions_file))
-   f:write(string.format('"max_invalid_cells": %d,\n', config.max_invalid_cells))
-   f:write(string.format('"control_count": %d,\n', config.control_count))
    f:write(string.format('"udf_source_terms_file": "%s",\n', config.udf_source_terms_file))
    f:write(string.format('"udf_source_terms": %s,\n', tostring(config.udf_source_terms)))
 
+   f:write(string.format('"reacting": %s,\n', tostring(config.reacting)))
+   f:write(string.format('"reactions_file": "%s",\n', config.reactions_file))
+
+   f:write(string.format('"control_count": %d,\n', config.control_count))
    f:write(string.format('"nblock": %d,\n', #(blocks)))
+
+   f:write(string.format('"udf_solid_source_terms_file": "%s",\n', config.udf_solid_source_terms_file))
+   f:write(string.format('"udf_solid_source_terms": %s,\n', tostring(config.udf_solid_source_terms)))
    f:write(string.format('"nsolidblock": %d,\n', #solidBlocks))
    for i = 1, #blocks do
       f:write(blocks[i]:tojson())
@@ -977,6 +1144,7 @@ function write_config_file(fileName)
    for i = 1, #solidBlocks do
       f:write(solidBlocks[i]:tojson())
    end
+  
    f:write('"dummy_entry_without_trailing_comma": 0\n') -- no comma on last entry
    f:write("}\n")
 

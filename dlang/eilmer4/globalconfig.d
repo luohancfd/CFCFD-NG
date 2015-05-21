@@ -13,9 +13,9 @@ import std.stdio;
 import std.string;
 
 import gas;
+import kinetics;
 import geom;
 import fvcore;
-import solidfvcore;
 
 // Symbolic names for turbulence models.
 enum TurbulenceModel { none, baldwin_lomax, k_omega, spalart_allmaras }
@@ -41,21 +41,27 @@ TurbulenceModel turbulence_model_from_name(string name)
 } // end turbulence_model_from_name()
 
 class BlockZone {
-    shared double p0x, p0y, p0z;
-    shared double p1x, p1y, p1z;
+    // Note that these data are not shared across threads
+    // because we will want to access them frequently at the lower levels of the code.
+    Vector3 p0, p1;
     this(in Vector3 p0, in Vector3 p1) {
-	p0x = p0.x; p0y = p0.y; p0z = p0.z;
-	p1x = p1.x; p1y = p1.y; p1z = p1.z;  
+	this.p0 = p0;
+	this.p1 = p1;
+    }
+    this(const BlockZone other)
+    {
+	p0 = other.p0;
+	p1 = other.p1;
     }
     override string toString() {
-	return format("BlockZone([%g,%g,%g], [%g,%g,%g])", p0x,p0y,p0z,p1x,p1y,p1z);
+	return text("BlockZone(p0=", to!string(p0), ", p1=", to!string(p1), ")");
     }
-    shared bool is_inside(in Vector3 p, int dimensions) {
-	if ( p.x >= p0x && p.x <= p1x &&
-	     p.y >= p0y && p.y <= p1y ) {
+    bool is_inside(in Vector3 p, int dimensions) {
+	if ( p.x >= p0.x && p.x <= p1.x &&
+	     p.y >= p0.y && p.y <= p1.y ) {
 	    if ( dimensions == 2 ) {
 		return true;
-	    } else if ( p.z >= p0z && p.z <= p1z ) {
+	    } else if ( p.z >= p0.z && p.z <= p1.z ) {
 		return true;
 	    }
 	}
@@ -64,13 +70,19 @@ class BlockZone {
 }
 
 class IgnitionZone : BlockZone {
-    double _Tig; // temperature to apply within reaction_update ensure ignition
+    double Tig; // temperature to apply within reaction_update ensure ignition
     this(in Vector3 p0, in Vector3 p1, double Tig) {
 	super(p0, p1);
-	_Tig = Tig;
+	this.Tig = Tig;
+    }
+    this(const IgnitionZone other)
+    {
+	super(other.p0, other.p1);
+	Tig = other.Tig;
     }
     override string toString() {
-	return format("IgnitionZone([%g,%g,%g], [%g,%g,%g],%g)", p0x,p0y,p0z,p1x,p1y,p1z,_Tig);
+	return text("IgnitionZone(p0=", to!string(p0), ", p1=", to!string(p1), 
+		    ", Tig=", Tig, ")");
     }
 }
 
@@ -80,6 +92,7 @@ final class GlobalConfig {
     shared static string title = "Eilmer4 simulation"; // Change this to suit at run time.
     shared static string gas_model_file = "gas-model.lua";
     // Note that the following reference to the GasModel is NOT shared.
+    // Do not use this one from within a thread.
     static GasModel gmodel_master; // to provide GasModel access to the Lua domain
     // Presumably, we won't be accessing this particular gas model from the 
     // individual block computations, so that parallel computations for the blocks
@@ -99,6 +112,10 @@ final class GlobalConfig {
     // like the chemistry update.
     shared static bool separate_update_for_viscous_terms = false;
     shared static bool separate_update_for_k_omega_source = false;
+
+    // Some of the user-defined functionality depends on having access to all blocks
+    // from a single thread.  For safety, in those cases, do not use parallel loops. 
+    shared static bool apply_bcs_in_parallel = true;
 
     /// When decoding the array of conserved quantities, 
     /// the temperature or the density may try to go negative.  
@@ -192,7 +209,11 @@ final class GlobalConfig {
     shared static double turbulence_schmidt_number = 0.75;
     shared static double max_mu_t_factor = 300.0;
     shared static double transient_mu_t_factor = 1.0;
-    shared static BlockZone[] turbulent_zones;
+    static BlockZone[] turbulent_zones;
+
+    // Indicate presence of user-defined source terms
+    shared static string udf_source_terms_file = "dummy-source-terms.txt";
+    shared static bool udf_source_terms = false;
 
     // Parameters controlling thermochemistry
     //
@@ -201,6 +222,14 @@ final class GlobalConfig {
     // chemical update function call.
     shared static bool reacting = false;
     shared static string reactions_file = "chemistry.lua";
+    shared static double reaction_time_start = 0.0;
+    shared static double T_frozen; // temperature (in K) below which reactions are frozen
+    shared static double T_frozen_energy; // temperature (in K) below which energy exchanges are skipped
+    static BlockZone[] reaction_zones;
+    shared static double ignition_time_start = 0.0;
+    shared static double ignition_time_stop = 0.0;
+    static IgnitionZone[] ignition_zones;
+    shared static bool ignition_zone_active = false;
 
     // With this flag on, finite-rate evolution of the vibrational energies 
     // (and in turn the total energy) is computed.
@@ -224,16 +253,6 @@ final class GlobalConfig {
 
     // Parameters controlling other simulation options
     //
-    shared static double ignition_time_start = 0.0;
-    shared static double ignition_time_stop = 0.0;
-    shared static IgnitionZone[] ignition_zones;
-    shared static bool ignition_zone_active = false;
-
-    shared static double reaction_time_start = 0.0;
-    shared static double T_frozen; // temperature (in K) below which reactions are frozen
-    shared static double T_frozen_energy; // temperature (in K) below which energy exchanges are skipped
-    shared static BlockZone[] reaction_zones;
-
     shared static int max_step = 10;       // iteration limit
     shared static int t_level;             // time level within update
     shared static int halt_now = 0;        // flag for premature halt
@@ -278,12 +297,129 @@ final class GlobalConfig {
     shared static double filter_mu;
     shared static int filter_npass;
 
-    // Indicate presence of user-defined source terms
-    shared static string udf_source_terms_file = "dummy-source-terms.txt";
-    shared static bool udf_source_terms = false;
-
     // Parameters related to the solid domain and conjugate coupling
-    shared static SolidDomainUpdate solidDomainUpdateScheme = SolidDomainUpdate.pc;
     shared static bool udfSolidSourceTerms = false;
+    shared static string udfSolidSourceTermsFile = "dummy-solid-source-terms.txt";
 
 } // end class GlobalConfig
+
+
+// A place to store configuration parameters that are in memory that can be 
+// dedicated to a thread.   We will want to access them frequently 
+// at the lower levels of the code without having to guard them with memory barriers.
+class LocalConfig {
+public:
+    int dimensions;
+    bool axisymmetric;
+    GasdynamicUpdate gasdynamic_update_scheme;
+    bool separate_update_for_viscous_terms;
+    bool separate_update_for_k_omega_source;
+    bool adjust_invalid_cell_data;
+    int interpolation_order;
+    InterpolateOption thermo_interpolator;
+    bool apply_limiter;
+    bool extrema_clipping;
+    bool interpolate_in_local_frame;
+    FluxCalculator flux_calculator;
+    double shear_tolerance;
+    double M_inf;
+    double compression_tolerance;
+    bool moving_grid;
+    bool viscous;
+    double viscous_factor;
+    bool diffusion;
+    double diffusion_factor;
+    double diffusion_lewis;
+    double diffusion_schmidt;
+
+    TurbulenceModel turbulence_model;
+    double turbulence_prandtl_number;
+    double turbulence_schmidt_number;
+    double max_mu_t_factor;
+    double transient_mu_t_factor;
+    BlockZone[] turbulent_zones;
+
+    bool udf_source_terms;
+
+    bool reacting;
+    double reaction_time_start;
+    double T_frozen;
+    double T_frozen_energy;
+    BlockZone[] reaction_zones;
+
+    double ignition_time_start;
+    double ignition_time_stop;
+    IgnitionZone[] ignition_zones;
+    bool ignition_zone_active;
+
+    bool radiation;
+    bool electric_field_work;
+    bool MHD;
+    int BGK;
+
+    bool stringent_cfl;
+
+    GasModel gmodel;
+    ReactionUpdateScheme reaction_update;
+
+    int verbosity_level;
+
+    this() 
+    {
+	dimensions = GlobalConfig.dimensions;
+	axisymmetric = GlobalConfig.axisymmetric;
+	gasdynamic_update_scheme = GlobalConfig.gasdynamic_update_scheme;
+	separate_update_for_viscous_terms = GlobalConfig.separate_update_for_viscous_terms;
+	separate_update_for_k_omega_source = GlobalConfig.separate_update_for_k_omega_source;
+	adjust_invalid_cell_data = GlobalConfig.adjust_invalid_cell_data;
+	interpolation_order = GlobalConfig.interpolation_order;
+	thermo_interpolator = GlobalConfig.thermo_interpolator;
+	apply_limiter = GlobalConfig.apply_limiter;
+	extrema_clipping = GlobalConfig.extrema_clipping;
+	interpolate_in_local_frame = GlobalConfig.interpolate_in_local_frame;
+	flux_calculator = GlobalConfig.flux_calculator;
+	shear_tolerance = GlobalConfig.shear_tolerance;
+	M_inf = GlobalConfig.M_inf;
+	compression_tolerance = GlobalConfig.compression_tolerance;
+	moving_grid = GlobalConfig.moving_grid;
+	viscous = GlobalConfig.viscous;
+	viscous_factor = GlobalConfig.viscous_factor;
+	diffusion = GlobalConfig.diffusion;
+	diffusion_factor = GlobalConfig.diffusion_factor;
+	diffusion_lewis = GlobalConfig.diffusion_lewis;
+	diffusion_schmidt = GlobalConfig.diffusion_schmidt;
+
+	turbulence_model = GlobalConfig.turbulence_model;
+	turbulence_prandtl_number = GlobalConfig.turbulence_prandtl_number;
+	turbulence_schmidt_number = GlobalConfig.turbulence_schmidt_number;
+	max_mu_t_factor = GlobalConfig.max_mu_t_factor;
+	transient_mu_t_factor = GlobalConfig.transient_mu_t_factor;
+	foreach (bz; GlobalConfig.turbulent_zones) turbulent_zones ~= new BlockZone(bz);
+
+	udf_source_terms = GlobalConfig.udf_source_terms;
+
+	reacting = GlobalConfig.reacting;
+	reaction_time_start = GlobalConfig.reaction_time_start;
+	T_frozen = GlobalConfig.T_frozen;
+	T_frozen_energy = GlobalConfig.T_frozen_energy;
+	foreach (rz; GlobalConfig.reaction_zones) reaction_zones ~= new BlockZone(rz);
+
+	ignition_time_start = GlobalConfig.ignition_time_start;
+	ignition_time_stop = GlobalConfig.ignition_time_stop;
+	ignition_zone_active = GlobalConfig.ignition_zone_active;
+	foreach (iz; GlobalConfig.ignition_zones) ignition_zones ~= new IgnitionZone(iz);
+
+	radiation = GlobalConfig.radiation;
+	electric_field_work = GlobalConfig.electric_field_work;
+	MHD = GlobalConfig.MHD;
+	BGK = GlobalConfig.BGK;
+
+	stringent_cfl = GlobalConfig.stringent_cfl;
+
+	gmodel = init_gas_model(GlobalConfig.gas_model_file);
+	if (GlobalConfig.reacting)
+	    reaction_update = new ReactionUpdateScheme(GlobalConfig.reactions_file, gmodel);
+
+	verbosity_level = GlobalConfig.verbosity_level;
+    }
+} // end class LocalConfig

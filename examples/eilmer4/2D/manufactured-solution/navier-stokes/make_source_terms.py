@@ -25,7 +25,7 @@ mu, k = symbols('mu k')
 mu = 10.0
 k = Cp*mu/Prandtl
 
-# Thermodynamic behvaiour, equation of state and energy equation
+# Thermodynamic behaviour, equation of state and energy equation
 e, T, et = symbols('e T et')
 e = p/rho/(g-1)
 T = e/Cv

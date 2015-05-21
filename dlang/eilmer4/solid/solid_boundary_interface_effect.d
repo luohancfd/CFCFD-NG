@@ -61,7 +61,7 @@ public:
     {
 	size_t i, j, k;
 	SolidFVInterface IFace;
-	auto blk = allSolidBlocks[blkId];
+	auto blk = solidBlocks[blkId];
 
 	final switch (whichBoundary) {
 	case Face.north:
@@ -135,7 +135,7 @@ public:
     {
 	size_t i, j, k;
 	SolidFVInterface IFace;
-	auto blk = allSolidBlocks[blkId];
+	auto blk = solidBlocks[blkId];
 
 	final switch (whichBoundary) {
 	case Face.north:

@@ -13,6 +13,7 @@ DEMO_PROGRAMS := globalconfig_demo flowstate_demo fv_demo block_demo \
 BC_FILES := bc/bc.d \
 	bc/ghost_cell_effect.d \
 	bc/user_defined_effects.d \
+	bc/boundary_flux_effect.d \
 	bc/boundary_interface_effect.d
 
 SOLID_FILES := solid/solidbc.d \
@@ -20,11 +21,11 @@ SOLID_FILES := solid/solidbc.d \
 	solid/solid_boundary_flux_effect.d \
 	solid/solid_boundary_interface_effect.d \
 	solid/ssolidblock.d \
-	solid/solidfvcore.d \
 	solid/solidfvcell.d \
 	solid/solidfvinterface.d \
 	solid/solidfvvertex.d \
 	solid/solidprops.d \
+	solid/solid_udf_source_terms.d \
 	solid/luasolidprops.d
 
 GAS_DIR := ../gas
@@ -110,7 +111,7 @@ ifeq ($(DMD), dmd)
     #     DFLAGS := -profile -vgc -w -O -release -inline -boundscheck=off
     # (3) For releasing a fast code.
     #     DFLAGS := -w -O -release -inline -boundscheck=off
-    DFLAGS := -gc -w -O -release -inline -boundscheck=off \
+    DFLAGS := -w -O -release -inline -boundscheck=off \
 	-I.. -I$(LUAD_DIR) -I$(NM_DIR) -I$(UTIL_DIR) -I$(GEOM_DIR) -I$(GZIP_DIR)
     OF := -of
     DLINKFLAGS := -L-L$(LIBLUAPATH) -L-llua -L-ldl
@@ -251,7 +252,7 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 	conservedquantities.d flowstate.d luaflowstate.d \
 	globalconfig.d luaglobalconfig.d globaldata.d \
 	block.d sblock.d ublock.d \
-	lua_helper.d user_defined_source_terms.d \
+	lua_helper.d user_defined_source_terms.d gas_solid_interface.d \
 	$(BC_FILES) $(SOLID_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
 	$(KINETICS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
 	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' main.d > main_with_rev_string.d
@@ -262,7 +263,27 @@ e4shared: main.d simcore.d fileutil.d readconfig.d json_helper.d \
 		conservedquantities.d flowstate.d luaflowstate.d \
 		globalconfig.d luaglobalconfig.d globaldata.d \
 		block.d sblock.d ublock.d \
-		lua_helper.d user_defined_source_terms.d \
+		lua_helper.d user_defined_source_terms.d gas_solid_interface.d \
 		$(BC_FILES) $(SOLID_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
 		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)
 
+compute-error: compute_error.d simcore.d fileutil.d readconfig.d json_helper.d \
+	block.d sblock.d ublock.d \
+	fluxcalc.d onedinterp.d viscousflux.d \
+	fvcore.d fvcell.d fvvertex.d fvinterface.d \
+	conservedquantities.d flowstate.d luaflowstate.d \
+	globalconfig.d luaglobalconfig.d globaldata.d \
+	block.d sblock.d ublock.d \
+	lua_helper.d user_defined_source_terms.d gas_solid_interface.d \
+	$(BC_FILES) $(SOLID_FILES) $(GEOM_FILES) $(GAS_FILES) $(LIBLUA) $(GZIP_FILES) \
+	$(KINETICS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
+	$(DMD) $(DFLAGS) $(OF)compute-error \
+		compute_error.d simcore.d fileutil.d readconfig.d json_helper.d \
+		fvcore.d fvcell.d fvvertex.d fvinterface.d \
+		fluxcalc.d onedinterp.d viscousflux.d \
+		conservedquantities.d flowstate.d luaflowstate.d \
+		globalconfig.d luaglobalconfig.d globaldata.d \
+		block.d sblock.d ublock.d \
+		lua_helper.d user_defined_source_terms.d gas_solid_interface.d \
+		$(BC_FILES) $(SOLID_FILES) $(GEOM_FILES) $(GAS_FILES) $(LUAD_FILES) $(GZIP_FILES) \
+		$(UTIL_FILES) $(NM_FILES) $(KINETICS_FILES) $(DLINKFLAGS)

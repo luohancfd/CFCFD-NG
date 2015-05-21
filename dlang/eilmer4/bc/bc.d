@@ -26,6 +26,7 @@ import block;
 import sblock;
 import ghost_cell_effect;
 import boundary_interface_effect;
+import boundary_flux_effect;
 import user_defined_effects;
 import lua_helper;
 
@@ -38,31 +39,17 @@ BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary
     auto preReconActionList = jsonData["pre_recon_action"].array;
     foreach ( jsonObj; preReconActionList ) {
 	newBC.preReconAction ~= make_GCE_from_json(jsonObj, blk_id, boundary);
-	// Some extra configuration in the case of a UserDefined bc.
-	// We need to connect the Lua state back to the parent BC container.
-	if ( newBC.preReconAction[$-1].type == "UserDefined" ) {
-	    auto gce = to!UserDefinedGhostCell(newBC.preReconAction[$-1]);
-	    if ( gce.luafname !in newBC.luaStates ) {
-		newBC.initUserDefinedLuaState(gce.luafname, nicell, njcell, nkcell);
-	    }
-	    gce.setLuaState(newBC.luaStates[gce.luafname]);
-	    newBC.ghost_cell_data_available = true;
-	}
+	newBC.ghost_cell_data_available = true;
     }
     auto preSpatialDerivActionList = jsonData["pre_spatial_deriv_action"].array;
     foreach ( jsonObj; preSpatialDerivActionList ) {
 	newBC.preSpatialDerivAction ~= make_BIE_from_json(jsonObj, blk_id, boundary);
-	// Some extra configuration in the case of a UserDefined bc.
-	// We need to connect the Lua state back to the parent BC container.
-	if ( newBC.preSpatialDerivAction[$-1].type == "UserDefined" ) {
-	    auto bie = to!BIE_UserDefined(newBC.preSpatialDerivAction[$-1]);
-	    if ( bie.luafname !in newBC.luaStates ) {
-		newBC.initUserDefinedLuaState(bie.luafname, nicell, njcell, nkcell);
-	    }
-	    bie.setLuaState(newBC.luaStates[bie.luafname]);
-	}
     }
-    // [TODO] We need to fill out the Action lists for other hook points.
+    auto postDiffFluxActionList = jsonData["post_diff_flux_action"].array;
+    foreach ( jsonObj; postDiffFluxActionList ) {
+	newBC.postDiffFluxAction ~= make_BFE_from_json(jsonObj, blk_id, boundary);
+    }
+    // [TODO] Only need to the post convective flux option now.
     return newBC;
 } // end make_BC_from_json()
 
@@ -71,7 +58,7 @@ class BoundaryCondition {
     // Boundary condition is built from composable pieces.
 public:
     // Location of the boundary condition.
-    int blk_id; // index of the structured-grid block to which this BC is applied
+    SBlock blk; // the block to which this BC is applied
     int which_boundary; // identity/index of the relevant boundary
 
     // Nature of the boundary condition that may be checked 
@@ -81,28 +68,15 @@ public:
     bool ghost_cell_data_available = true;
     double emissivity = 0.0;
 
-    // Storage for various LuaStates in the case of user-defined boundary
-    // conditions. We store these in the BoundaryCondition object
-    // so that the composable pieces might reference the same LuaState.
-    // Conversely, for each different Lua file, a different LuaState exists.
-    LuaState[string] luaStates;
-
     this(int id, int boundary, bool isWall=true, bool ghostCellDataAvailable=true, double _emissivity=0.0)
     {
-	blk_id = id;
+	blk = gasBlocks[id];  // pick the relevant block out of the collection
 	which_boundary = boundary;
 	is_wall = isWall;
 	ghost_cell_data_available = ghostCellDataAvailable;
 	emissivity = _emissivity;
     }
 
-    void initUserDefinedLuaState(string luafname, size_t nicell, size_t njcell, size_t nkcell)
-    {
-	luaStates[luafname] = new LuaState();
-	luaStates[luafname].openLibs();
-	setGlobalsInLuaState(luaStates[luafname], nicell, njcell, nkcell);
-	luaStates[luafname].doFile(luafname);
-    }
     // Action lists.
     // The BoundaryCondition is called at four stages in a global timestep.
     // Those stages are:
@@ -118,7 +92,7 @@ public:
     GhostCellEffect[] preReconAction;
     //    BoundaryFluxEffect[] postConvFluxAction;
     BoundaryInterfaceEffect[] preSpatialDerivAction;
-    //    BoundaryFluxEffect[] postDiffFluxAction;
+    BoundaryFluxEffect[] postDiffFluxAction;
 
     override string toString() const
     {
@@ -136,6 +110,14 @@ public:
 	    repr ~= "preSpatialDerivAction=[" ~ to!string(preSpatialDerivAction[0]);
 	    foreach (i; 1 .. preSpatialDerivAction.length) {
 		repr ~= ", " ~ to!string(preSpatialDerivAction[i]);
+	    }
+	    repr ~= "]";
+	}
+	repr ~= ", ";
+	if ( postDiffFluxAction.length > 0 ) {
+	    repr ~= "postDiffFluxAction=[" ~ to!string(postDiffFluxAction[0]);
+	    foreach (i; 1 .. postDiffFluxAction.length) {
+		repr ~= ", " ~ to!string(postDiffFluxAction[i]);
 	    }
 	    repr ~= "]";
 	}
@@ -157,33 +139,10 @@ public:
     {
 	foreach ( bie; preSpatialDerivAction ) bie.apply(t, gtl, ftl);
     }
-    /*
-    final void applyPostDiffFluxAction(double t)
-    {
-	foreach ( bfe; postSpatialDerivAction ) bfe.apply(t);
-    }
-    */
-private:
-    void setGlobalsInLuaState(LuaState lua, size_t nicell, size_t njcell, size_t nkcell)
-    {
-	auto blk = allBlocks[blk_id];
-	auto gmodel = GlobalConfig.gmodel_master;
-	lua["blkId"] = blk_id;
-	lua["whichBoundary"] = which_boundary;
-	lua["n_species"] = gmodel.n_species;
-	lua["n_modes"] = gmodel.n_modes;
-	lua["nicell"] = nicell;
-	lua["njcell"] = njcell;
-	lua["nkcell"] = nkcell;
-	lua["north"] = Face.north;
-	lua["east"] = Face.east;
-	lua["south"] = Face.south;
-	lua["west"] = Face.west;
-	lua["top"] = Face.top;
-	lua["bottom"] = Face.bottom;
-	lua["sampleFlow"] = &luafn_sampleFlow;
-    }
     
-
+    final void applyPostDiffFluxAction(double t, int gtl, int ftl)
+    {
+	foreach ( bfe; postDiffFluxAction ) bfe.apply(t, gtl, ftl);
+    }
 } // end class BoundaryCondition
 

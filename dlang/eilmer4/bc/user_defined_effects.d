@@ -29,15 +29,11 @@ public:
     {
 	super(id, boundary, "UserDefined");
 	luafname = fname;
+	gasBlocks[id].myLua.doFile(fname);
     }
     override string toString() const
     {
 	return "UserDefinedGhostCellEffect(fname=" ~ luafname ~ ")";
-    }
-
-    void setLuaState(LuaState lua)
-    {
-	_lua = lua;
     }
 
     override void apply(double t, int gtl, int ftl)
@@ -45,7 +41,6 @@ public:
 	size_t i, j, k;
 	FVCell ghostCell0, ghostCell1;
 	FVInterface IFace;
-	auto blk = allBlocks[blk_id];
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -57,7 +52,7 @@ public:
 		    ghostCell0 = blk.get_cell(i,j+1,k);
 		    ghostCell1 = blk.get_cell(i,j+2,k);
 		    IFace = ghostCell0.iface[Face.south];
-		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1);
+		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1, "north");
 		} // end i loop
 	    } // end k loop
 	    break;
@@ -68,7 +63,7 @@ public:
 		    ghostCell0 = blk.get_cell(i+1,j,k);
 		    ghostCell1 = blk.get_cell(i+2,j,k);
 		    IFace = ghostCell0.iface[Face.west];
-		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1);
+		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1, "east");
 		} // end j loop
 	    } // end k loop
 	    break;
@@ -79,7 +74,7 @@ public:
 		    ghostCell0 = blk.get_cell(i,j-1,k);
 		    ghostCell1 = blk.get_cell(i,j-2,k);
 		    IFace = ghostCell0.iface[Face.north];
-		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1);
+		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1, "south");
 		} // end i loop
 	    } // end j loop
 	    break;
@@ -90,7 +85,7 @@ public:
 		    ghostCell0 = blk.get_cell(i-1,j,k);
 		    ghostCell1 = blk.get_cell(i-2,j,k);
 		    IFace = ghostCell0.iface[Face.east];
-		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1);
+		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1, "west");
 		} // end j loop
 	    } // end k loop
 	    break;
@@ -101,7 +96,7 @@ public:
 		    ghostCell0 = blk.get_cell(i,j,k+1);
 		    ghostCell1 = blk.get_cell(i,j,k+2);
 		    IFace = ghostCell0.iface[Face.bottom];
-		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1);
+		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1, "top");
 		} // end j loop
 	    } // end i loop
 	    break;
@@ -112,7 +107,7 @@ public:
 		    ghostCell0 = blk.get_cell(i,j,k-1);
 		    ghostCell1 = blk.get_cell(i,j,k-2);
 		    IFace = ghostCell0.iface[Face.top];
-		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1);
+		    callGhostCellUDF(t, gtl, ftl, i, j, k, IFace, ghostCell0, ghostCell1, "bottom");
 		} // end j loop
 	    } // end i loop
 	    break;
@@ -120,12 +115,9 @@ public:
     }
 			
 private:
-    LuaState _lua;
-
     void putFlowStateIntoGhostCell(LuaTable t, FVCell ghostCell)
     {
-	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 	try {
 	    ghostCell.fs.gas.p = t.get!double("p");
 	    getArray!double(t.get!LuaTable("T"), ghostCell.fs.gas.T, "T");
@@ -147,10 +139,11 @@ private:
     }
 
     void callGhostCellUDF(double t, int gtl, int ftl, size_t i, size_t j, size_t k,
-			  in FVInterface IFace, FVCell ghostCell0, FVCell ghostCell1)
+			  in FVInterface IFace, FVCell ghostCell0, FVCell ghostCell1,
+			  string boundaryName)
     {
 	// 1. Set useful values for caller in table
-	auto args = _lua.newTable(0, 20);
+	auto args = blk.myLua.newTable(0, 20);
 	args["t"] = t; 
 	args["dt"] = dt_global;
 	args["timeStep"] = step;
@@ -173,11 +166,11 @@ private:
 	args["k"] = k;
 	
 	// 2. Call LuaFunction and expect two tables of ghost cell flow state
-	auto f = _lua.get!LuaFunction("ghostCells");
+	auto f = blk.myLua.get!LuaFunction("ghostCells_"~boundaryName);
 	LuaObject[] ret = f(args);
 	if ( ret.length < 2 ) {
 	    string errMsg = "ERROR: There was a problem in the call to the user-defined ghost cell boundary condition.\n";
-	    errMsg ~= format("ERROR: This occurred for block [%d] on the %s boundary.", blk_id, face_name[which_boundary]);
+	    errMsg ~= format("ERROR: This occurred for block [%d] on the %s boundary.", blk.id, face_name[which_boundary]);
 	    errMsg ~= "ERROR: Two tables of flow state for the ghost cells are expected\n";
 	    errMsg ~= "ERROR: but were not received.\n";
 	    throw new Exception(errMsg);
@@ -186,7 +179,8 @@ private:
 	putFlowStateIntoGhostCell(ret[0].to!LuaTable(), ghostCell0);
 	putFlowStateIntoGhostCell(ret[1].to!LuaTable(), ghostCell1);
     }
-}
+} // end class UserDefinedGhostCell
+
 
 class BIE_UserDefined : BoundaryInterfaceEffect {
 public:
@@ -195,6 +189,7 @@ public:
     {
 	super(id, boundary, "UserDefined");
 	luafname = fname;
+	gasBlocks[id].myLua.doFile(fname);
     }
 
     override string toString() const
@@ -202,17 +197,11 @@ public:
 	return "UserDefined(fname=" ~ luafname ~ ")";
     }
 
-    void setLuaState(LuaState lua)
-    {
-	_lua = lua;
-    }
-
     override void apply(double t, int gtl, int ftl)
     {
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto blk = allBlocks[blk_id];
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -221,7 +210,7 @@ public:
 		for (i = blk.imin; i <= blk.imax; ++i) {
 		    cell = blk.get_cell(i,j,k);
 		    IFace = cell.iface[Face.north];
-		    callInterfaceUDF(t, gtl, ftl, i, j, k, IFace);
+		    callInterfaceUDF(t, gtl, ftl, i, j, k, IFace, "north");
 		} // end i loop
 	    } // end k loop
 	    break;
@@ -231,7 +220,7 @@ public:
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    cell = blk.get_cell(i,j,k);
 		    IFace = cell.iface[Face.east];
-		    callInterfaceUDF(t, gtl, ftl, i, j, k, IFace);
+		    callInterfaceUDF(t, gtl, ftl, i, j, k, IFace, "east");
 		} // end j loop
 	    } // end k loop
 	    break;
@@ -241,7 +230,7 @@ public:
 		for (i=blk.imin; i <= blk.imax; ++i) {
 		    cell = blk.get_cell(i,j,k);
 		    IFace = cell.iface[Face.south];
-		    callInterfaceUDF(t, gtl, ftl, i, j, k, IFace);
+		    callInterfaceUDF(t, gtl, ftl, i, j, k, IFace, "south");
 		} // end i loop
 	    } // end j loop
 	    break;
@@ -251,7 +240,7 @@ public:
 		for (j=blk.jmin; j <= blk.jmax; ++j) {
 		    cell = blk.get_cell(i,j,k);
 		    IFace = cell.iface[Face.west];
-		    callInterfaceUDF(t, gtl, ftl, i, j, k, IFace);
+		    callInterfaceUDF(t, gtl, ftl, i, j, k, IFace, "west");
 		} // end j loop
 	    } // end k loop
 	    break;
@@ -261,7 +250,7 @@ public:
 		for (j=blk.jmin; j <= blk.jmax; ++j) {
 		    cell = blk.get_cell(i,j,k);
 		    IFace = cell.iface[Face.top];
-		    callInterfaceUDF(t, gtl, ftl, i, j, k, IFace);
+		    callInterfaceUDF(t, gtl, ftl, i, j, k, IFace, "top");
 		} // end j loop
 	    } // end i loop
 	    break;
@@ -271,15 +260,13 @@ public:
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    cell = blk.get_cell(i,j,k);
 		    IFace = cell.iface[Face.bottom];
-		    callInterfaceUDF(t, gtl, ftl, i, j, k, IFace);
+		    callInterfaceUDF(t, gtl, ftl, i, j, k, IFace, "bottom");
 		} // end j loop
 	    } // end i loop
 	    break;
 	} // end switch which boundary
     }
 private:
-    LuaState _lua;
-
     void putFlowStateIntoInterface(LuaTable t, FVInterface iface)
     {
 	// [TODO] It would be more elegant to iterate over
@@ -320,10 +307,10 @@ private:
     }
 	    
     void callInterfaceUDF(double t, int gtl, int ftl, size_t i, size_t j, size_t k,
-			  FVInterface IFace)
+			  FVInterface IFace, string boundaryName)
     {
 	// 1. Set useful values for caller in table
-	auto args = _lua.newTable(0, 20);
+	auto args = blk.myLua.newTable(0, 20);
 	args["t"] = t; 
 	args["dt"] = dt_global;
 	args["timeStep"] = step;
@@ -346,11 +333,11 @@ private:
 	args["k"] = k;
 	
 	// 2. Call LuaFunction and expect a table of values for flow state
-	auto f = _lua.get!LuaFunction("interface");
+	auto f = blk.myLua.get!LuaFunction("interface_"~boundaryName);
 	LuaObject[] ret = f(args);
 	if ( ret.length < 1 ) {
 	    string errMsg = "ERROR: There was a problem in the call to the user-defined interface boundary condition.\n";
-	    errMsg ~= format("ERROR: This occurred for block [%d] on the %s boundary.", blk_id, face_name[which_boundary]);
+	    errMsg ~= format("ERROR: This occurred for block [%d] on the %s boundary.", blk.id, face_name[which_boundary]);
 	    errMsg ~= "ERROR: One table of flow state for the interface is expected\n";
 	    errMsg ~= "ERROR: but zero were not received.\n";
 	    throw new Exception(errMsg);
@@ -359,4 +346,4 @@ private:
 	putFlowStateIntoInterface(ret[0].to!LuaTable(), IFace);
     }
 
-}
+} // end class BIE_UserDefined

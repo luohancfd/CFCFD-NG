@@ -19,14 +19,6 @@ import gas;
 import fvcell;
 import globalconfig;
 
-LuaState initUDFSourceTerms(string fname, int blkId)
-{
-    auto lua = initLuaState(fname);
-    // Make blkId globally available in the user's script
-    lua["blkId"] = blkId;
-    return lua;
-}
-
 void addUDFSourceTermsToCell(LuaState lua, FVCell cell, size_t gtl, double t, GasModel gmodel)
 {
     size_t n_species = gmodel.n_species;

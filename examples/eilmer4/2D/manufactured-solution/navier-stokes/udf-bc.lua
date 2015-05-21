@@ -10,10 +10,10 @@ local sin = math.sin
 local exp = math.exp
 
 local L = 1.0
-local R = 287.10325
+local R = 287.0
 local gam = 1.4
 
-local case = 1
+local case = 2
 --file = io.open("case.txt", "r")
 --case = file:read("*n")
 --file:close()
@@ -123,9 +123,6 @@ end
 function ghostCells_west(args)
    -- Function that returns the flow states for a ghost cells.
    -- For use in the inviscid flux calculations.
-   --
-   -- args contains {t, x, y, z, csX, csY, csZ, i, j, k}
-   -- Set constant conditions across the whole boundary.
    x = args.x; y = args.y
    i = args.i; j = args.j; k = args.k
    ghost1 = {}
@@ -135,5 +132,33 @@ function ghostCells_west(args)
    cell = sampleFlow(blkId, i-2, j, k)
    ghost2 = fillTable(ghost2, cell.x, cell.y)
    return ghost1, ghost2
+end
+
+function interface_north(args)
+   x = args.x; y = args.y;
+   iface = {}
+   fillTable(iface, x, y);
+   return iface
+end
+
+function interface_east(args)
+   x = args.x; y = args.y;
+   iface = {}
+   fillTable(iface, x, y);
+   return iface
+end
+
+function interface_south(args)
+   x = args.x; y = args.y;
+   iface = {}
+   fillTable(iface, x, y);
+   return iface
+end
+
+function interface_west(args)
+   x = args.x; y = args.y;
+   iface = {}
+   fillTable(iface, x, y);
+   return iface
 end
 

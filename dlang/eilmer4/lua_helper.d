@@ -18,6 +18,9 @@ import globaldata;
 // -----------------------------------------------------
 // Convenience functions for user's Lua script
 
+// [TODO] [FIXME] the following function won't work in parallel loops
+// because the gasBlocks array probably won't be initialized correctly
+// for any thread other than the main thread.
 extern(C) int luafn_sampleFlow(lua_State *L)
 {
     // Get arguments from lua_stack
@@ -27,7 +30,7 @@ extern(C) int luafn_sampleFlow(lua_State *L)
     auto k = lua_tointeger(L, 4);
     
     // Grab the appropriate cell
-    auto cell = allBlocks[blkId].get_cell(i, j, k);
+    auto cell = gasBlocks[blkId].get_cell(i, j, k);
     
     // Return the interesting bits as a table.
     lua_newtable(L);

@@ -91,13 +91,13 @@ GhostCellEffect make_GCE_from_json(JSONValue jsonData, int blk_id, int boundary)
 
 class GhostCellEffect {
 public:
-    int blk_id;
+    SBlock blk;
     int which_boundary;
     string type;
 
     this(int id, int boundary, string _type)
     {
-	blk_id = id;
+	blk = gasBlocks[id];
 	which_boundary = boundary;
 	type = _type;
     }
@@ -127,7 +127,6 @@ public:
 	FVCell src_cell, dest_cell;
 	FVInterface IFace;
 	auto copy_opt = CopyDataOption.minimal_flow;
-	auto blk = allBlocks[blk_id];
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -300,7 +299,6 @@ public:
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
 	FVInterface dest_face;
-	auto blk = allBlocks[blk_id];
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -397,8 +395,7 @@ public:
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
 	FVCell cell_1, cell_2;
-	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 	size_t nsp = gmodel.n_species;
 	size_t nmodes = gmodel.n_modes;
 
@@ -883,8 +880,7 @@ public:
     {
 	size_t i, j, k;
 	FVCell src_cell, dest_cell;
-	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -988,7 +984,7 @@ public:
 
 class GhostCellFullFaceExchangeCopy : GhostCellEffect {
 public:
-    int neighbourBlock;
+    SBlock neighbourBlock;
     int neighbourFace;
     int neighbourOrientation;
 
@@ -996,14 +992,14 @@ public:
 	 int otherBlock, int otherFace, int orient)
     {
 	super(id, boundary, "FullFaceExchangeCopy");
-	neighbourBlock = otherBlock;
+	neighbourBlock = gasBlocks[otherBlock];
 	neighbourFace = otherFace;
 	neighbourOrientation = orient;
     }
 
     override string toString() const
     { 
-	return "FullFaceExchangeCopy(otherBlock=" ~ to!string(neighbourBlock) ~ 
+	return "FullFaceExchangeCopy(otherBlock=" ~ to!string(neighbourBlock.id) ~ 
 	    ", otherFace=" ~ to!string(neighbourFace) ~ 
 	    ", orient=" ~ to!string(neighbourOrientation) ~ ")";
     }
@@ -1012,9 +1008,8 @@ public:
     {
 	// TODO Check me!  This is a work-around.
 	// We should be able to directly reference the BCs block as blk.
-	auto blk = allBlocks[blk_id];
 	blk.copy_into_ghost_cells(which_boundary, 
-				  allBlocks[neighbourBlock],
+				  neighbourBlock,
 				  neighbourFace, neighbourOrientation,
 				  CopyDataOption.all, true);
     }

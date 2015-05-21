@@ -1,13 +1,12 @@
 -- ffs.lua -- Forward-facing-step example
 -- PJ & RG  2015-03-08
 
-job_title = "Forward-facing step with supersonic flow."
-print(job_title)
-
 -- We can set individual attributes of the global data object.
+config.title = "Forward-facing step with supersonic flow."
+print(config.title)
 config.dimensions = 2
-config.title = job_title
 
+-- Gas model and flow conditions.
 nsp, nmodes = setGasModel('ideal-air-gas-model.lua')
 print("GasModel set to ideal air. nsp= ", nsp, " nmodes= ", nmodes)
 initial = FlowState:new{p=101.325e3, T=300.0}
@@ -15,6 +14,7 @@ sspeed = initial:toTable().a
 print("sound speed=", sspeed)
 inflow = FlowState:new{p=101.325e3, T=300.0, velx=3.0*sspeed, vely=0.0}
 
+-- Geometry of the flow domain.
 a0 = Vector3:new{0.0,0.0}; a1 = Vector3:new{0.0,0.2}; a2 = Vector3:new{0.0,1.0}
 b0 = Vector3:new{0.6,0.0}; b1 = Vector3:new{0.6,0.2}; b2 = Vector3:new{0.6,1.0}
 c1 = Vector3:new{3.0,0.2}; c2 = Vector3:new{3.0,1.0}
@@ -32,16 +32,22 @@ grid0 = StructuredGrid:new{psurface=surf0, niv=nab+1, njv=n01+1}
 grid1 = StructuredGrid:new{psurface=surf1, niv=nab+1, njv=n12+1}
 grid2 = StructuredGrid:new{psurface=surf2, niv=nbc+1, njv=n12+1}
 
--- Define the flow-solution blocks.
-blk0 = SBlock:new{grid=grid0, fillCondition=inflow, label="BLOCK-0"}
-blk1 = SBlock:new{grid=grid1, fillCondition=inflow, label="BLOCK-1"}
-blk2 = SBlock:new{grid=grid2, fillCondition=inflow, label="BLOCK-2"}
+-- Set boundary conditions that we care about.
+bcList0 = {north=nil, east=nil, south=nil, 
+	   west=SupInBC:new{flowCondition=inflow, label="inflow-boundary"}}
+bcList1 = {north=nil, east=nil, south=nil,
+	   west=SupInBC:new{flowCondition=inflow, label="inflow-boundary"}}
+bcList2 = {north=nil, east=ExtrapolateOutBC:new{label="outflow-boundary"},
+	   south=nil, west=nil}
 
--- Set boundary conditions.
+-- Define the flow-solution blocks and stitch them together.
+blk0 = SBlockArray{grid=grid0, nib=1, njb=1, 
+		   fillCondition=inflow, bcList=bcList0, label="BLOCK-0"}
+blk1 = SBlockArray{grid=grid1, nib=1, njb=4,
+		   fillCondition=inflow, bcList=bcList1, label="BLOCK-1"}
+blk2 = SBlockArray{grid=grid2, nib=4, njb=4,
+		   fillCondition=inflow, bcList=bcList2, label="BLOCK-2"}
 identifyBlockConnections()
-blk0.bcList[west] = SupInBC:new{flowCondition=inflow, label="inflow-boundary"}
-blk1.bcList[west] = SupInBC:new{flowCondition=inflow, label="inflow-boundary"}
-blk2.bcList[east] = ExtrapolateOutBC:new{label="outflow-boundary"}
 
 -- Do a little more setting of global data.
 config.max_time = 5.0e-3  -- seconds

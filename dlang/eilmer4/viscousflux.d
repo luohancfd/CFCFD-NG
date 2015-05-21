@@ -27,14 +27,16 @@ public:
     Vector3 grad_T, grad_tke, grad_omega;
     Vector3[] grad_f;
     double[] jx, jy, jz;
+    LocalConfig myConfig;
     size_t nsp;
 
-    this(size_t n_species) {
-	nsp = n_species;
+    this(LocalConfig myConfig) {
+	this.myConfig = myConfig;
+	nsp = myConfig.gmodel.n_species;
 	grad_vel.length = 3;
 	foreach (ref e; grad_vel) e.length = 3;
 	grad_f.length = nsp; 
-	if ( GlobalConfig.diffusion ) {
+	if ( myConfig.diffusion ) {
 	    jx.length = nsp;
 	    jy.length = nsp;
 	    jz.length = nsp;
@@ -46,16 +48,16 @@ public:
     // Unified 2D and 3D viscous-flux calculation.
     // Note that the gradient values need to be in place before calling this procedure.
     {
-	double viscous_factor = GlobalConfig.viscous_factor;
+	double viscous_factor = myConfig.viscous_factor;
 	FlowState fs = IFace.fs;
         double k_eff = viscous_factor * (fs.gas.k[0] + fs.k_t);
 	double mu_eff =  viscous_factor * (fs.gas.mu + fs.mu_t);
 	double lmbda = -2.0/3.0 * mu_eff;
-	if ( GlobalConfig.diffusion ) {
+	if ( myConfig.diffusion ) {
 	    // Apply a diffusion model
 	    double D_t = 0.0;
-	    if ( GlobalConfig.turbulence_model != TurbulenceModel.none ) {
-		double Sc_t = GlobalConfig.turbulence_schmidt_number;
+	    if ( myConfig.turbulence_model != TurbulenceModel.none ) {
+		double Sc_t = myConfig.turbulence_schmidt_number;
 		D_t = fs.mu_t / (fs.gas.rho * Sc_t);
 	    }
 	    // [TODO] Rowan, calculate_diffusion_fluxes(fs.gas, D_t, grad_f, jx, jy, jz);
@@ -76,7 +78,7 @@ public:
 	double tau_xy = 0.0;
 	double tau_xz = 0.0;
 	double tau_yz = 0.0;
-	if (GlobalConfig.dimensions == 3) {
+	if (myConfig.dimensions == 3) {
 	    double dudx = grad_vel[0][0];
 	    double dudy = grad_vel[0][1];
 	    double dudz = grad_vel[0][2];
@@ -99,7 +101,7 @@ public:
 	    double dudy = grad_vel[0][1];
 	    double dvdx = grad_vel[1][0];
 	    double dvdy = grad_vel[1][1];
-	    if (GlobalConfig.axisymmetric) {
+	    if (myConfig.axisymmetric) {
 		// Viscous stresses at the mid-point of the interface.
 		// Axisymmetric terms no longer include the radial multiplier
 		// as that has been absorbed into the interface area calculation.
@@ -123,7 +125,7 @@ public:
 	double qx = k_eff * grad_T.x;
 	double qy = k_eff * grad_T.y;
 	double qz = k_eff * grad_T.z;
-	if ( GlobalConfig.diffusion ) {
+	if ( myConfig.diffusion ) {
 	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		double h = 0.0; // [TODO] Rowan, transport of species enthalpies?
 		// double h = gm.enthalpy(fs.gas, isp);
@@ -139,26 +141,26 @@ public:
 	double tau_wx = 0.0;
 	double tau_wy = 0.0;
 	double tau_wz = 0.0;
-	if ( GlobalConfig.turbulence_model == TurbulenceModel.k_omega ) {
+	if ( myConfig.turbulence_model == TurbulenceModel.k_omega ) {
 	    // Turbulence contribution to the shear stresses.
 	    tau_xx -= 0.66667 * fs.gas.rho * fs.tke;
 	    tau_yy -= 0.66667 * fs.gas.rho * fs.tke;
-	    if (GlobalConfig.dimensions == 3) { tau_zz -= 0.66667 * fs.gas.rho * fs.tke; }
+	    if (myConfig.dimensions == 3) { tau_zz -= 0.66667 * fs.gas.rho * fs.tke; }
 	    // Turbulence contribution to heat transfer.
 	    double sigma_star = 0.6;
 	    double mu_effective = fs.gas.mu + sigma_star * fs.mu_t;
 	    qx += mu_effective * grad_tke.x;
 	    qy += mu_effective * grad_tke.y;
-	    if (GlobalConfig.dimensions == 3) { qz += mu_effective * grad_tke.z; }
+	    if (myConfig.dimensions == 3) { qz += mu_effective * grad_tke.z; }
 	    // Turbulence transport of the turbulence properties themselves.
 	    tau_kx = mu_effective * grad_tke.x; 
 	    tau_ky = mu_effective * grad_tke.y;
-	    if (GlobalConfig.dimensions == 3) { tau_kz = mu_effective * grad_tke.z; }
+	    if (myConfig.dimensions == 3) { tau_kz = mu_effective * grad_tke.z; }
 	    double sigma = 0.5;
 	    mu_effective = fs.gas.mu + sigma * fs.mu_t;
 	    tau_wx = mu_effective * grad_omega.x; 
 	    tau_wy = mu_effective * grad_omega.y; 
-	    if (GlobalConfig.dimensions == 3) { tau_wz = mu_effective * grad_omega.z; } 
+	    if (myConfig.dimensions == 3) { tau_wz = mu_effective * grad_omega.z; } 
 	}
 	// Combine into fluxes: store as the dot product (F.n).
 	ConservedQuantities F = IFace.F;
@@ -173,11 +175,11 @@ public:
 	    (tau_xx*fs.vel.x + tau_xy*fs.vel.y + tau_xz*fs.vel.z + qx)*nx +
 	    (tau_xy*fs.vel.x + tau_yy*fs.vel.y + tau_yz*fs.vel.z + qy)*ny +
 	    (tau_xz*fs.vel.x + tau_yz*fs.vel.y + tau_zz*fs.vel.z + qz)*nz;
-	if (GlobalConfig.turbulence_model == TurbulenceModel.k_omega) {
+	if (myConfig.turbulence_model == TurbulenceModel.k_omega) {
 	    F.tke -= tau_kx * nx + tau_ky * ny + tau_kz * nz;
 	    F.omega -= tau_wx * nx + tau_wy * ny + tau_wz * nz;
 	}
-	if (GlobalConfig.diffusion) {
+	if (myConfig.diffusion) {
 	    // Species mass flux
 	    // [TODO] Rowan, what happens with user-defined flux?
 	    for( size_t isp = 0; isp < nsp; ++isp ) {
@@ -191,7 +193,7 @@ public:
     void average_vertex_values(const FVInterface IFace)
     {
 	// [TODO] should tidy up by handling arbitrary lengths of vertex arrays.
-	if (GlobalConfig.dimensions == 2) {
+	if (myConfig.dimensions == 2) {
 	    // For 2D, each interface is a straight line between two vertices.
 	    const FVVertex vtx0 = IFace.vtx[0];
 	    const FVVertex vtx1 = IFace.vtx[1];
@@ -281,7 +283,8 @@ void gradients_xy(ref FVVertex vtx,
 		  const ref Vector3 posA, const ref Vector3 posB,
 		  const ref Vector3 posC, const ref Vector3 posD,
 		  const ref FlowState fsA, const ref FlowState fsB,
-		  const ref FlowState fsC, const ref FlowState fsD)
+		  const ref FlowState fsC, const ref FlowState fsD,
+		  bool diffusion)
 // Using the divergence theorem (I think), compute the average gradients
 // for the flow conditions over a quadrilateral in the xy-plane.
 //     C-----B
@@ -344,7 +347,7 @@ void gradients_xy(ref FVVertex vtx,
     vtx.grad_T.refz = 0.0;
     //
     size_t nsp = fsA.gas.massf.length;
-    if (GlobalConfig.diffusion) {
+    if (diffusion) {
 	foreach(isp; 0 .. nsp) {
 	    double fA = fsA.gas.massf[isp]; double fB = fsB.gas.massf[isp];
 	    double fC = fsC.gas.massf[isp]; double fD = fsD.gas.massf[isp];

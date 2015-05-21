@@ -11,6 +11,7 @@ module boundary_interface_effect;
 import std.json;
 import std.string;
 import std.conv;
+import std.stdio;
 
 import geom;
 import json_helper;
@@ -63,13 +64,13 @@ BoundaryInterfaceEffect make_BIE_from_json(JSONValue jsonData, int blk_id, int b
 
 class BoundaryInterfaceEffect {
 public:
-    int blk_id;
+    SBlock blk;
     int which_boundary;
     string type;
 
     this(int id, int boundary, string _type)
     {
-	blk_id = id;
+	blk = gasBlocks[id];
 	which_boundary = boundary;
 	type = _type;
     }
@@ -97,8 +98,7 @@ class BIE_CopyCellData : BoundaryInterfaceEffect {
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -188,8 +188,7 @@ class BIE_ZeroVelocity : BoundaryInterfaceEffect {
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -283,8 +282,7 @@ public:
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -374,8 +372,7 @@ class BIE_UpdateThermoTransCoeffs : BoundaryInterfaceEffect {
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:
@@ -477,8 +474,7 @@ class BIE_WallKOmega : BoundaryInterfaceEffect {
 	size_t i, j, k;
 	FVCell cell;
 	FVInterface IFace;
-	auto blk = allBlocks[blk_id];
-	auto gmodel = blk.gmodel;
+	auto gmodel = blk.myConfig.gmodel;
 
 	final switch (which_boundary) {
 	case Face.north:

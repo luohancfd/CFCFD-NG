@@ -180,7 +180,7 @@ A table with input parameters is expected as the first argument.`;
     }
     lua_pop(L, 1);
     // If we make it here, there's been an error in construction.
-    string errMsg = `There's a problem in call to CoonsPath.new.
+    string errMsg = `There's a problem in call to CoonsPatch.new.
 Neither a list of named paths ('north', 'east', 'south', 'west')
 nor a list of named corners ('p00', 'p10', 'p11', 'p01') were found.`;
     luaL_error(L, errMsg.toStringz);
@@ -256,7 +256,7 @@ A table with input parameters is expected as the first argument.`;
     }
     lua_pop(L, 1);
     // If we make it here, there's been an error in construction.
-    string errMsg = `There's a problem in call to CoonsPath.new.
+    string errMsg = `There's a problem in call to AOPatch.new.
 Neither a list of named paths ('north', 'east', 'south', 'west')
 nor a list of named corners ('p00', 'p10', 'p11', 'p01') were found.`;
     luaL_error(L, errMsg.toStringz);
