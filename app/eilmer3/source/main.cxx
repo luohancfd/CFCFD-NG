@@ -1726,12 +1726,14 @@ int integrate_in_time(double target_time)
 	    // The user might want to do some customization before the grid update step.
 	    // If so, we provide a user-defined function as the customization point.
 	    
-	    if ( G.udf_file.length() > 0 ) {
-		for ( Block *bdp : G.my_blocks ) {
-		    call_udf2( G.sim_time, G.step, bdp->id, "before_grid_update" );
-		}
-	    }
-	    // Place a barrier so that each rank has completed the call before moding on
+//	    if ( G.udf_file.length() > 0 ) {
+//		for ( Block *bdp : G.my_blocks ) {
+//		    call_udf2( G.sim_time, G.step, bdp->id, "before_grid_update" );
+//		}
+//	    }
+//      code has been moved to after G.sim_time >= G.t_moving.
+
+	    // Place a barrier so that each rank has completed the call before moving on
 #           ifdef _MPI	        
 	    MPI_Barrier( MPI_COMM_WORLD );
 #           endif	      
@@ -1748,6 +1750,20 @@ int integrate_in_time(double target_time)
                 }
             } // end if ( G.flow_induced_moving )   
 	    if ( G.sim_time >= G.t_moving ) { 
+	        // The user might want to do some customization before the grid update step.
+	        // If so, we provide a user-defined function as the customization point.
+ 
+	        //if ( G.udf_vtx_velocity_flag == 1 ) {  
+	        if ( G.udf_file.length() > 0 ) {
+		        for ( Block *bdp : G.my_blocks ) {
+		            call_udf2( G.sim_time, G.step, bdp->id, "before_grid_update" );
+		        }
+	        }
+	        // Place a barrier so that each rank has completed the call before moving on
+#               ifdef _MPI	        
+	        MPI_Barrier( MPI_COMM_WORLD );
+#               endif	  
+
 	        if ( G.flow_induced_moving ) { // flow induced grid movement
 	            write_temp_solution_data();
 #                   ifdef _MPI	        
