@@ -407,7 +407,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		cell.add_viscous_source_vector(local_with_k_omega);
 	    }
 	    if (blk.myConfig.udf_source_terms) { // [TODO] may want to apply serially
-		addUDFSourceTermsToCell(blk.myLua, cell, local_gtl, 
+		addUDFSourceTermsToCell(blk.myL, cell, local_gtl, 
 					local_sim_time, blk.myConfig.gmodel);
 	    }
 	    cell.time_derivatives(local_gtl, local_ftl, local_with_k_omega);
@@ -425,8 +425,8 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	sblk.applyPostFluxAction(sim_time, ftl);
 	sblk.computeFluxes();
 	foreach (scell; sblk.activeCells) {
-	    if (sblk.udfSourceTerms) {
-		addUDFSourceTermsToSolidCell(sblk.udfSourceTerms, scell, sim_time);
+	    if (GlobalConfig.udfSolidSourceTerms) {
+		addUDFSourceTermsToSolidCell(sblk.myL, scell, sim_time);
 	    }
 	    scell.timeDerivatives(ftl, GlobalConfig.dimensions);
 	    scell.stage1Update(dt_global);
@@ -509,7 +509,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		    cell.add_viscous_source_vector(local_with_k_omega);
 		}
 		if (blk.myConfig.udf_source_terms) {
-		    addUDFSourceTermsToCell(blk.myLua, cell, local_gtl,
+		    addUDFSourceTermsToCell(blk.myL, cell, local_gtl,
 					    local_sim_time, blk.myConfig.gmodel);
 		}
 		cell.time_derivatives(local_gtl, local_ftl, local_with_k_omega);
@@ -525,8 +525,8 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    sblk.applyPostFluxAction(sim_time, ftl);
 	    sblk.computeFluxes();
 	    foreach (scell; sblk.activeCells) {
-		if (sblk.udfSourceTerms) {
-		    addUDFSourceTermsToSolidCell(sblk.udfSourceTerms, scell, sim_time);
+		if (GlobalConfig.udfSolidSourceTerms) {
+		    addUDFSourceTermsToSolidCell(sblk.myL, scell, sim_time);
 		}
 		scell.timeDerivatives(ftl, GlobalConfig.dimensions);
 		scell.stage2Update(dt_global);
@@ -603,7 +603,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		    cell.add_viscous_source_vector(local_with_k_omega);
 		}
 		if (blk.myConfig.udf_source_terms) {
-		    addUDFSourceTermsToCell(blk.myLua, cell, local_gtl,
+		    addUDFSourceTermsToCell(blk.myL, cell, local_gtl,
 					    local_sim_time, blk.myConfig.gmodel);
 		}
 		cell.time_derivatives(local_gtl, local_ftl, local_with_k_omega);

@@ -8,7 +8,8 @@ UNITTEST_FILES := rate_constant_test \
 	reaction_test
 
 UTIL_DIR := ../util
-UTIL_FILES := $(UTIL_DIR)/lua_service.d \
+UTIL_FILES := $(UTIL_DIR)/lua.d \
+	$(UTIL_DIR)/lua_service.d \
 	$(UTIL_DIR)/msg_service.d
 
 NM_DIR := ../nm
@@ -20,10 +21,6 @@ LIBGAS := ${GAS_DIR}/libgas.a
 LUA_DIR := ../../extern/lua-5.1.4
 LIBLUA := ${LUA_DIR}/lib/liblua.a
 LIBLUAPATH := ${LUA_DIR}/lib
-LUAD_DIR := ../extern/LuaD
-LUAD_FILES := ${LUAD_DIR}/luad/*.d \
-	${LUAD_DIR}/luad/c/*.d \
-	${LUAD_DIR}/luad/conversions/*.d
 
 KINETICS_FILES := \
 	chemistry_update.d \
@@ -47,19 +44,19 @@ ${LIBGAS}:
 ${LIBLUA}:
 	cd ${LUA_DIR}; make linux local
 
-libkinetics.a : $(KINETICS_FILES) $(GAS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES)
-	dmd -lib -oflibkinetics.a $(KINETICS_FILES) $(GAS_FILES) $(UTIL_FILES) $(NM_FILES) $(LUAD_FILES) $(DFLAGS)
+libkinetics.a : $(KINETICS_FILES) $(GAS_FILES) $(UTIL_FILES) $(NM_FILES) 
+	dmd -lib -oflibkinetics.a $(KINETICS_FILES) $(GAS_FILES) $(UTIL_FILES) $(NM_FILES) $(DFLAGS)
 
-chemistry_update_test: chemistry_update.d libkinetics.a $(LIBGAS) $(LIBLUA) $(LUAD_FILES) $(NM_FILES)
-	dmd $(DFLAGS) -ofchemistry_update_test chemistry_update.d libkinetics.a ${LIBGAS} ${LIBLUA} $(LUAD_FILES) $(NM_FILES) $(DLINKFLAGS)
+chemistry_update_test: chemistry_update.d libkinetics.a $(LIBGAS) $(LIBLUA) $(NM_FILES)
+	dmd $(DFLAGS) -ofchemistry_update_test chemistry_update.d libkinetics.a ${LIBGAS} ${LIBLUA} $(NM_FILES) $(DLINKFLAGS)
 
-rate_constant_test: rate_constant.d $(LIBGAS) $(LIBLUA) $(LUAD_FILES)
-	dmd $(DFLAGS) -ofrate_constant_test rate_constant.d ${LIBGAS} ${LIBLUA} $(LUAD_FILES) $(DLINKFLAGS)
+rate_constant_test: rate_constant.d $(LIBGAS) $(LIBLUA) 
+	dmd $(DFLAGS) -ofrate_constant_test rate_constant.d ${LIBGAS} $(NM_FILES) ${LIBLUA} $(DLINKFLAGS)
 
-reaction_test: reaction.d $(LIBGAS) $(LIBLUA) $(LUAD_FILES)
-	dmd $(DFLAGS) -ofreaction_test reaction.d rate_constant.d ${LIBGAS} ${LIBLUA} $(LUAD_FILES) $(DLINKFLAGS)
+reaction_test: reaction.d $(LIBGAS) $(LIBLUA) 
+	dmd $(DFLAGS) -ofreaction_test reaction.d rate_constant.d ${LIBGAS} $(NM_FILES) ${LIBLUA} $(DLINKFLAGS)
 
-reaction_mechanism_test: reaction_mechanism.d libkinetics.a $(LIBGAS) $(LIBLUA) $(LUAD_FILES)
-	dmd $(DFLAGS) -ofreaction_mechanism_test reaction.d rate_constant.d ${LIBGAS} ${LIBLUA} $(LUAD_FILES) $(DLINKFLAGS)
+reaction_mechanism_test: reaction_mechanism.d libkinetics.a $(LIBGAS) $(LIBLUA) 
+	dmd $(DFLAGS) -ofreaction_mechanism_test reaction.d rate_constant.d $(NM_FILES) ${LIBGAS} ${LIBLUA} $(DLINKFLAGS)
 
 

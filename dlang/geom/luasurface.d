@@ -12,9 +12,7 @@ import std.stdio;
 import std.string;
 import std.conv;
 import std.uni;
-import luad.all;
-import luad.c.lua;
-import luad.c.lauxlib;
+import util.lua;
 import util.lua_service;
 import geom;
 import gpath;
@@ -312,10 +310,8 @@ The %s path is not a valid Path object.`;
     return 1;
 }
 
-void registerSurfaces(LuaState lua)
+void registerSurfaces(lua_State* L)
 {
-    auto L = lua.state;
-    
     // Register the CoonsPatch object
     luaL_newmetatable(L, CoonsPatchMT.toStringz);
     

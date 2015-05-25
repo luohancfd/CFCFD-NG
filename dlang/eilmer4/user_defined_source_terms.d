@@ -10,53 +10,62 @@
 
 module user_defined_source_terms;
 
+import std.conv;
 import std.stdio;
 import std.string;
-import luad.all;
+import util.lua;
 import util.lua_service;
 import lua_helper;
 import gas;
 import fvcell;
 import globalconfig;
 
-void addUDFSourceTermsToCell(LuaState lua, FVCell cell, size_t gtl, double t, GasModel gmodel)
+void addUDFSourceTermsToCell(lua_State* L, FVCell cell, size_t gtl, double t, GasModel gmodel)
 {
     size_t n_species = gmodel.n_species;
     size_t n_modes = gmodel.n_modes;
 
-    // Push cell data into an args table.
-    auto args = lua.newTable();
-    pushCellToLuaTable(cell, gtl, args);
-
+    // Push user function onto TOS
+    lua_getglobal(L, "soureTerms");
+    // Push sim_time onto TOS
+    lua_pushnumber(L, t);
+    // Push cell data into an args table and onto TOS
+    lua_newtable(L);
+    int tblIdx = lua_gettop(L);
+    pushCellToTable(L, tblIdx, cell, gtl);
     // Call sourceTerms function with (t, args)
-    auto sourceTerms = lua.get!LuaFunction("sourceTerms");
-    LuaObject[] ret = sourceTerms(t, args);
-    if ( ret.length < 1 ) {
-	string errMsg = "ERROR: There was a problem in the call to the user-defined source terms function.\n";
-	errMsg ~= format("ERROR: A table is expected, but nothing was returned.");
-	throw new Exception(errMsg);
+    int number_args = 2;
+    int number_results = 1;
+
+    if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
+	    luaL_error(L, "error running user soure terms function: %s\n",
+		       lua_tostring(L, -1));
     }
-    auto tab = ret[0].to!LuaTable();
+
+    // Grab values from user-returned table at TOS
     // For any missing values, put in 0.0
-    cell.Q.mass += getDouble(tab, "mass", 0.0);
-    cell.Q.momentum.refx += getDouble(tab, "momentum_x", 0.0);
-    cell.Q.momentum.refy += getDouble(tab, "momentum_y", 0.0);
-    cell.Q.momentum.refz += getDouble(tab, "momentum_z", 0.0);
-    cell.Q.total_energy += getDouble(tab, "total_energy", 0.0);
-    foreach ( isp; 0..n_species ) {
-	try {
-	    cell.Q.massf[isp] += tab.get!double("species", isp+1);
-	}
-	catch (Exception) {
-	    // Do nothing, add no value if we couldn't find any.
-	}
-    }
-    foreach ( i; 0..n_modes ) {
-	try {
-	    cell.Q.energies[i] += tab.get!double("energies", i+1);
-	}
-	catch (Exception) {
-	    // Do nothing, add no value if we couldn't find any.
+    cell.Q.mass += getNumberFromTable(L, -1, "mass", false, 0.0);
+    cell.Q.momentum.refx += getNumberFromTable(L, -1, "momentum_x", false, 0.0);
+    cell.Q.momentum.refy += getNumberFromTable(L, -1, "momentum_y", false, 0.0);
+    cell.Q.momentum.refz += getNumberFromTable(L, -1, "momentum_z", false, 0.0);
+    cell.Q.total_energy += getNumberFromTable(L, -1, "total_energy",false, 0.0);
+    lua_getfield(L, -1, "species");
+    if ( !lua_isnil(L, -1) ) {
+	foreach ( isp; 0 .. n_species ) {
+	    lua_rawgeti(L, -1, to!int(isp+1));
+	    cell.Q.massf[isp] += lua_tonumber(L, -1);
+	    lua_pop(L, 1);
 	}
     }
+    lua_pop(L, 1);
+
+    lua_getfield(L, -1, "energies");
+    if ( !lua_isnil(L, -1) ) {
+	foreach ( imode; 0 ..  n_modes ) {
+	    lua_rawgeti(L, -1, to!int(imode+1));
+	    cell.Q.energies[imode] += lua_tonumber(L, -1);
+	    lua_pop(L, 1);
+	}
+    }
+    lua_pop(L, 1);
 }

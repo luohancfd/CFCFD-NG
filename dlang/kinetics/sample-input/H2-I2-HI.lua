@@ -2,7 +2,7 @@ species = {'H2', 'I2', 'HI'}
 
 H2 = {}
 H2.M = 0.00201588
-H2.viscosity = {
+H2.ceaViscosity = {
    nsegments = 1,
    segment0 = {
       A = 0.74553182,
@@ -13,7 +13,7 @@ H2.viscosity = {
       D = 0.13556243,
     }
 }
-H2.therm_cond = {
+H2.ceaThermCond = {
    nsegments = 1,
    segment0 = {
       A = 1.0059461,
@@ -24,7 +24,7 @@ H2.therm_cond = {
       D = 1.1996252,
     },
 }
-H2.cea_thermo = {
+H2.ceaThermoCoeffs = {
    nsegments = 1,
    segment0 = {
     T_upper = 1000,
@@ -45,7 +45,7 @@ H2.cea_thermo = {
 
 I2 = {}
 I2.M =  0.25380894
-I2.viscosity = {
+I2.ceaViscosity = {
    nsegments = 1,
    segment0 = {
       A = 0.54929498,
@@ -56,7 +56,7 @@ I2.viscosity = {
       T_lower = 200,
     }
 }
-I2.therm_cond = {
+I2.ceaThermCond = {
    nsegments = 1,
    segment0 = {
       A = 0.29817264,
@@ -67,7 +67,7 @@ I2.therm_cond = {
       T_lower = 200,
     },
 }
-I2.cea_thermo = {
+I2.ceaThermoCoeffs = {
    nsegments = 1,
    segment0 = {
     T_upper = 1000,
@@ -88,7 +88,7 @@ I2.cea_thermo = {
 
 HI = {}
 HI.M =  0.12791241
-HI.viscosity = {
+HI.ceaViscosity = {
    nsegments = 1,
    segment0 = {
       A = 0.53718504,
@@ -99,7 +99,7 @@ HI.viscosity = {
       T_lower = 200,
     }
 }
-HI.therm_cond = {
+HI.ceaThermCond = {
    nsegments = 1,
    segment0 = {
       A = 0.83653272, 
@@ -110,7 +110,7 @@ HI.therm_cond = {
       T_lower = 200,
     },
 }
-HI.cea_thermo = {
+HI.ceaThermoCoeffs = {
    nsegments = 1,
    segment0 = {
     T_upper = 1000,

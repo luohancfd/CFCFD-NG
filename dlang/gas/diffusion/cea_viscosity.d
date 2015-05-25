@@ -11,7 +11,7 @@ module gas.diffusion.cea_viscosity;
 import gas.gas_model;
 import gas.diffusion.viscosity;
 import std.math;
-import luad.all;
+import util.lua;
 import util.lua_service;
 import std.c.stdlib : exit;
 import std.stdio;
@@ -111,17 +111,16 @@ private:
     double _T_highest;
 }
 
-CEAViscosity createCEAViscosity(LuaTable t)
+CEAViscosity createCEAViscosity(lua_State* L)
 {
-    string[6] plist = ["T_lower", "T_upper", "A", "B", "C", "D"];
+    string[6] pList = ["T_lower", "T_upper", "A", "B", "C", "D"];
     double[string] params;
-    auto nseg = t.get!int("nsegments");
+    auto nseg = getInt(L, -1, "nsegments");
     CEAViscCurve[] curves;
     foreach ( i; 0..nseg ) {
 	auto key = format("segment%d", i);
-	auto seg_t = t.get!LuaTable(key);
 	try {
-	    getValues(seg_t, plist, params, key);
+	    getAssocArrayOfDoubles(L, key, pList, params);
 	}
 	catch ( Exception e ) {
 	    writeln("ERROR: There was a problem reading in a value");
@@ -148,10 +147,11 @@ unittest
 
     /// Next, let's test the creation and functionality
     /// of a CEAViscosity object.
-    auto lua = initLuaState("sample-data/O2-viscosity.lua");
-    auto t = lua.get!LuaTable("cea");
-    auto o2CEA = createCEAViscosity(t);
-    auto Q = GasState(1, 1);
+    auto L = init_lua_State("sample-data/O2-viscosity.lua");
+    lua_getglobal(L, "cea");
+    auto o2CEA = createCEAViscosity(L);
+    lua_close(L);
+    auto Q = new GasState(1, 1);
     Q.T[0] = 1500.0;
     assert(approxEqual(6.407851e-05, o2CEA.eval(Q)), failedUnitTest());
 }

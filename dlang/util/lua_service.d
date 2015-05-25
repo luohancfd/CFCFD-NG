@@ -13,88 +13,135 @@ import std.c.stdlib : exit;
 import std.stdio;
 import std.string;
 import std.conv;
-import luad.all;
-import luad.c.lua;
-import luad.c.lauxlib;
 
-LuaState initLuaState(string fname)
+import util.lua;
+
+lua_State* init_lua_State(string fname)
 {
-    auto lua = new LuaState();
-    lua.openLibs();
-    lua.doFile(fname);
-    return lua;
+    lua_State* L = luaL_newstate();
+    luaL_openlibs(L);
+    luaL_dofile(L, fname.toStringz);
+    return L;
 }
 
-/++
- + Grab a set of values of the same type based on a set of (string) keys.
- +/
-void getValues(T)(LuaTable t, in string[] keys, out T[string] values, string tabName)
-{
-    foreach ( k; keys ) {
-	try {
-	    values[k] = t.get!T(k);
-	}
-	catch ( Exception e ) {
-	    string msg = format("The key: %s could not be found with a useful value of type: %s in table: %s", k, typeid(T), tabName);
-	    throw new Exception(msg);
-	}
-    }
-}
 
-/++
- + Grab an array of values of the same type out of a table in array format.
- +
- + Note 'tabName' is just used to report a useful error message.
- + The table is already passed as the first argument.
- +/
-void getArray(T)(LuaTable t, out T[] values, string tabName)
+string getString(lua_State* L, int tblIdx, string key)
 {
-    auto len = t.length;
-    values.length = len;
-    try {
-	foreach ( i; 1..len+1 ) {
-	    // Placed in i-1 because of 0-offset, 1-offset difference
-	    // between D and Lua.
-	    values[i-1] = t.get!T(i);
-	}
+    lua_getfield(L, tblIdx, key.toStringz);
+    if ( !lua_isstring(L, -1) ) {
+	string errMsg = format("A string was expected in field: %s", key);
+	lua_pop(L, 1);
+	throw new Error(errMsg);
     }
-    catch ( Exception e ) {
-	string msg = format("There was a problem looping over table: %s. An array of values was expected.\n", tabName);
-	throw new Exception(msg);
-    }
-}
-
-/++
- + Grab a double from t[k] or a defaul value.
- +/
-
-double getDouble(LuaTable t, string k, double defVal)
-{
-    double val;
-    try {
-	val = t.get!double(k);
-    }
-    catch (Exception e) {
-	val = defVal;
-    }
+    string val = to!string(lua_tostring(L, -1));
+    lua_pop(L, 1);
     return val;
 }
 
+double getDouble(lua_State* L, int tblIdx, string key)
+{
+    lua_getfield(L, tblIdx, key.toStringz);
+    if ( !lua_isnumber(L, -1) ) {
+	string errMsg = format("A double was expected in field: %s", key);
+	lua_pop(L, 1);
+	throw new Error(errMsg);
+    }
+    double val = lua_tonumber(L, -1);
+    lua_pop(L, 1);
+    return val;
+}
+
+int getInt(lua_State* L, int tblIdx, string key)
+{
+    lua_getfield(L, tblIdx, key.toStringz);
+    if ( !lua_isnumber(L, -1) ) {
+	string errMsg = format("An integer was expected in field: %s", key);
+	lua_pop(L, 1);
+	throw new Error(errMsg);
+    }
+    int val = to!int(lua_tointeger(L, -1));
+    lua_pop(L, 1);
+    return val;
+}
+
+void getArrayOfStrings(lua_State* L, int tblIdx, string key, out string[] values)
+{
+    values.length = 0;
+    lua_getfield(L, tblIdx, key.toStringz);
+    if ( !lua_istable(L, -1) ) {
+	string errMsg = format("A table of numbers was expected in field: %s", key);
+	lua_pop(L, 1);
+	throw new Error(errMsg);
+    }
+    auto n = to!int(lua_objlen(L, -1));
+    foreach ( i; 1..n+1 ) {
+	lua_rawgeti(L, -1, i);
+	if ( lua_isstring(L, -1) ) values ~= to!string(lua_tostring(L, -1));
+	// Silently ignore anything that isn't a string value.
+	lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+}
 
 /**
  * Get array of numbers from index in Lua stack.
  */
 
-void getArrayOfNumbers(lua_State* L, int index, out double[] values)
+void getArrayOfDoubles(lua_State* L, int tblIdx, string key, out double[] values)
 {
-    auto n = to!int(lua_objlen(L, index));
+    values.length = 0;
+    lua_getfield(L, tblIdx, key.toStringz);
+    if ( !lua_istable(L, -1) ) {
+	string errMsg = format("A table of numbers was expected in field: %s", key);
+	lua_pop(L, 1);
+	throw new Error(errMsg);
+    }
+    auto n = to!int(lua_objlen(L, -1));
     foreach ( i; 1..n+1 ) {
-	lua_rawgeti(L, index, i);
+	lua_rawgeti(L, -1, i);
 	if ( lua_isnumber(L, -1) ) values ~= lua_tonumber(L, -1);
 	// Silently ignore anything that isn't a value.
 	lua_pop(L, 1);
     }
+    lua_pop(L, 1);
 }
+
+/**
+ * Get array of numbers from index in Lua stack.
+ */
+
+void getArrayOfInts(lua_State* L, int tblIdx, string key, out int[] values)
+{
+    values.length = 0;
+    lua_getfield(L, tblIdx, key.toStringz);
+    if ( !lua_istable(L, -1) ) {
+	string errMsg = format("A table of integers was expected in field: %s", key);
+	lua_pop(L, 1);
+	throw new Error(errMsg);
+    }
+    auto n = to!int(lua_objlen(L, -1));
+    foreach ( i; 1..n+1 ) {
+	lua_rawgeti(L, -1, i);
+	if ( lua_isnumber(L, -1) ) values ~= to!int(lua_tointeger(L, -1));
+	// Silently ignore anything that isn't a value.
+	lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+}
+
+void getAssocArrayOfDoubles(lua_State* L, string key, string[] pList, out double[string] params)
+{
+    lua_getfield(L, -1, key.toStringz);
+    if ( !lua_istable(L, -1) ) {
+	string errMsg = format("A table with key and values (doubles) was expected in field: %s", key);
+	lua_pop(L, 1);
+	throw new Error(errMsg);
+    }
+    foreach (p; pList) {
+	params[p] = getDouble(L, -1, p);
+    }
+    lua_pop(L, 1);
+} 
 
 /**
  * This creates a new userdata spot on the Lua stack and
@@ -113,6 +160,7 @@ void getArrayOfNumbers(lua_State* L, int index, out double[] values)
  * We cannot tell how long the Lua interpreter will want 
  * to have access to the object. 
  */
+
 const(T) pushObj(T, string metatableName)(lua_State* L, T obj)
 {
     auto ptr = cast(T*) lua_newuserdata(L, obj.sizeof);
@@ -130,6 +178,7 @@ const(T) pushObj(T, string metatableName)(lua_State* L, T obj)
  * raised by luaL_checkudata is the object is not of type
  * FlowState.
  */
+
 T checkObj(T, string metatableName)(lua_State* L, int index)
 {
     auto ptr = cast(T*) luaL_checkudata(L, index, metatableName.toStringz);
@@ -149,28 +198,29 @@ T checkObj(T, string metatableName)(lua_State* L, int index)
  * The difference is that it only looks to see if the
  * metatable matches.
  */
+
 bool isObjType(lua_State* L, int index, string tname)
 {
     bool result;
     void *p = lua_touserdata(L, index);
-    if ( p ) {  /* value is a userdata? */
-	if (lua_getmetatable(L, index)) {  /* does it have a metatable? */
-	    luaL_getmetatable(L, tname.toStringz);  /* get correct metatable */
-	    if ( lua_rawequal(L, -1, -2) )  /* the same? */
+    if ( p ) {  // value is a userdata? 
+	if (lua_getmetatable(L, index)) {  // does it have a metatable? 
+	    luaL_getmetatable(L, tname.toStringz);  // get correct metatable 
+	    if ( lua_rawequal(L, -1, -2) )  // the same? 
 		result = true;
 	    else
 		result = false;
-	    lua_pop(L, 2);  /* remove both metatables */
+	    lua_pop(L, 2);  // remove both metatables 
 	    return result;
 	}
     }
-    return false;  /* value is not a userdata with a metatable */
+    return false;  // value is not a userdata with a metatable
 }
-
 
 /**
  * Call an object's toString method and push result on Lua stack.
  */
+
 extern(C) int toStringObj(T, string metatableName)(lua_State* L)
 {
     auto path = checkObj!(T, metatableName)(L, 1);
@@ -196,6 +246,7 @@ extern(C) int toStringObj(T, string metatableName)(lua_State* L)
  * If we really don't care if the attempt fails, then both bools should be set
  * to false. In this case, the value valIfError is returned and no errors are raised.
  */
+
 double getNumberFromTable(lua_State* L, int index, string field,
 			  bool errorIfNotFound=false, double valIfError=double.init,
 			  bool errorIfNotValid=false, string errMsg="")
@@ -206,6 +257,7 @@ double getNumberFromTable(lua_State* L, int index, string field,
 	    luaL_error(L, errMsg.toStringz);
 	}
 	else { // We didn't really care
+	    lua_pop(L, 1);
 	    return valIfError;
 	}
     }
@@ -220,8 +272,11 @@ double getNumberFromTable(lua_State* L, int index, string field,
 	luaL_error(L, errMsg.toStringz);
     }
     // We didn't want to fail, so give back double.init
+    lua_pop(L, 1);
     return valIfError;
 } // end getNumberFromTable()
+
+
 
 int getIntegerFromTable(lua_State* L, int index, string field,
 			bool errorIfNotFound=false, int valIfError=int.init,
@@ -296,7 +351,7 @@ class LuaInputException : Exception {
 }
 
 
-
+/*
 unittest
 {
     auto lua = new LuaState;
@@ -341,3 +396,4 @@ unittest
 	assert(e);
     }
 }
+*/

@@ -12,12 +12,10 @@ import std.array;
 import std.format;
 import std.stdio;
 import std.conv;
-import luad.all;
-import luad.stack;
-import luad.c.lua;
-import luad.c.lauxlib;
-import util.lua_service;
+import std.string;
 
+import util.lua;
+import util.lua_service;
 import globalconfig;
 import luasgrid;
 import solidfvcell;
@@ -27,9 +25,9 @@ extern(C) int writeInitialSolidFileFromLua(lua_State* L)
 {
     auto fname = to!string(luaL_checkstring(L, 1));
     auto grid = checkStructuredGrid(L, 2);
-    double rho = getNumberFromTable(L, 4, "rho", true);
-    double kS = getNumberFromTable(L, 4, "k", true);
-    double Cp = getNumberFromTable(L, 4, "Cp", true);
+    double rho = getDouble(L, 4, "rho");
+    double kS = getDouble(L, 4, "k");
+    double Cp = getDouble(L, 4, "Cp");
     auto sp = new SolidProps(rho, kS, Cp);
     double t0 = luaL_checknumber(L, 5);
 
@@ -114,9 +112,8 @@ extern(C) int writeInitialSolidFileFromLua(lua_State* L)
     return -1;
 }
 
-void registerSolidProps(LuaState lua)
+void registerSolidProps(lua_State* L)
 {
-    auto L = lua.state;
     lua_pushcfunction(L, &writeInitialSolidFileFromLua);
     lua_setglobal(L, "writeInitialSolidFile");
 }

@@ -12,9 +12,7 @@ import std.stdio;
 import std.string;
 import std.conv;
 import std.uni;
-import luad.all;
-import luad.c.lua;
-import luad.c.lauxlib;
+import util.lua;
 import util.lua_service;
 import geom;
 import gpath;
@@ -174,10 +172,8 @@ Neither the array of 6 surfaces nor a list of 8 vertices was found.`;
 } // end newTFIVolume()
 
 
-void registerVolumes(LuaState lua)
+void registerVolumes(lua_State* L)
 {
-    auto L = lua.state;
-    
     // Register the TFIVolume object
     luaL_newmetatable(L, TFIVolumeMT.toStringz);
     

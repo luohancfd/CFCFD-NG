@@ -11,7 +11,8 @@ GZIP_DIR := ../extern/gzip
 GZIP_FILES := $(GZIP_DIR)/gzip.d
 
 UTIL_DIR := ../util
-UTIL_FILES := $(UTIL_DIR)/lua_service.d \
+UTIL_FILES := $(UTIL_DIR)/lua.d \
+	$(UTIL_DIR)/lua_service.d \
 	$(UTIL_DIR)/msg_service.d
 
 LUA_DIR := ../../extern/lua-5.1.4
@@ -68,47 +69,47 @@ sgrid_demo: sgrid_demo.d sgrid.d volume.d surface.d gpath.d geom.d \
 		univariatefunctions.d \
 		$(GZIP_FILES) $(DLINKFLAGS)
 
-luageom_demo: luageom_demo.d luageom.d geom.d $(LUAD_FILES) $(LIBLUA)
+luageom_demo: luageom_demo.d luageom.d geom.d $(LIBLUA)
 	dmd $(DFLAGS_LUA) luageom_demo.d $(OF)luageom_demo \
-		luageom.d geom.d $(LUAD_FILES) $(DLINKFLAGS_LUA)
+		luageom.d geom.d $(UTIL_FILES) $(DLINKFLAGS_LUA)
 
 luagpath_demo: luagpath_demo.d luagpath.d luageom.d geom.d gpath.d \
-	$(UTIL_FILES) $(LUAD_FILES) $(LIBLUA)
+	$(UTIL_FILES) $(LIBLUA)
 	dmd $(DFLAGS_LUA) luagpath_demo.d $(OF)luagpath_demo \
 		luagpath.d luageom.d geom.d gpath.d \
-		$(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)
+		$(UTIL_FILES) $(DLINKFLAGS_LUA)
 
 luasurface_demo: luasurface_demo.d luasurface.d luagpath.d luageom.d \
 	geom.d gpath.d surface.d \
-	$(UTIL_FILES) $(LUAD_FILES) $(LIBLUA)
+	$(UTIL_FILES) $(LIBLUA)
 	dmd $(DFLAGS_LUA) luasurface_demo.d $(OF)luasurface_demo \
 		luasurface.d luagpath.d luageom.d \
 		surface.d geom.d gpath.d \
-		$(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)
+		$(UTIL_FILES) $(DLINKFLAGS_LUA)
 
 luavolume_demo: luavolume_demo.d luavolume.d luasurface.d luagpath.d luageom.d \
 	geom.d gpath.d surface.d volume.d \
-	$(UTIL_FILES) $(LUAD_FILES) $(LIBLUA)
+	$(UTIL_FILES) $(LIBLUA)
 	dmd $(DFLAGS_LUA) luavolume_demo.d $(OF)luavolume_demo \
 		luavolume.d luasurface.d luagpath.d luageom.d \
 		volume.d surface.d geom.d gpath.d \
-		$(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)
+		$(UTIL_FILES) $(DLINKFLAGS_LUA)
 
 luaunifunction_demo: luaunifunction_demo.d luaunifunction.d univariatefunctions.d \
-	$(UTIL_FILES) $(LUAD_FILES) $(LIBLUA)
+	$(UTIL_FILES) $(LIBLUA)
 	dmd $(DFLAGS_LUA) luaunifunction_demo.d $(OF)luaunifunction_demo \
 		luaunifunction.d univariatefunctions.d \
-		$(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)
+		$(UTIL_FILES) $(DLINKFLAGS_LUA)
 
 luasgrid_demo: luasgrid_demo.d sgrid.d volume.d surface.d gpath.d geom.d \
 	univariatefunctions.d \
 	luasgrid.d luavolume.d luasurface.d luagpath.d luageom.d \
 	luaunifunction.d \
-	$(GZIP_FILES) $(UTIL_FILES) $(LUAD_FILES)
+	$(GZIP_FILES) $(UTIL_FILES) 
 	dmd $(DFLAGS_LUA) luasgrid_demo.d $(OF)luasgrid_demo \
 		sgrid.d volume.d surface.d gpath.d geom.d \
 		univariatefunctions.d \
 		luasgrid.d luavolume.d luasurface.d luagpath.d luageom.d \
 		luaunifunction.d \
-		$(GZIP_FILES) $(UTIL_FILES) $(LUAD_FILES) $(DLINKFLAGS_LUA)
+		$(GZIP_FILES) $(UTIL_FILES) $(DLINKFLAGS_LUA)
 

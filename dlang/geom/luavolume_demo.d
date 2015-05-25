@@ -8,7 +8,7 @@
 
 import std.stdio;
 
-import luad.all;
+import util.lua;
 import luageom;
 import luagpath;
 import luasurface;
@@ -17,13 +17,13 @@ import luavolume;
 void main()
 {
     writeln("Begin demonstration of Lua connection to Volume objects.");
-    auto lua = new LuaState;
-    lua.openLibs();
-    registerVector3(lua);
-    registerPaths(lua);
-    registerSurfaces(lua);
-    registerVolumes(lua);
-    lua.doString(`
+    auto L = luaL_newstate();
+    luaL_openlibs(L);
+    registerVector3(L);
+    registerPaths(L);
+    registerSurfaces(L);
+    registerVolumes(L);
+    luaL_dostring(L, `
 p000 = Vector3:new{0.0, 0.1, 0.0}
 p100 = Vector3:new{1.0, 0.1, 0.0}
 p110 = Vector3:new{1.0, 1.1, 0.0}

@@ -7,6 +7,7 @@
 
 import core.memory;
 import std.stdio;
+import std.string;
 import std.file;
 import std.path;
 import std.getopt;
@@ -19,7 +20,7 @@ import gas;
 import globalconfig;
 import simcore;
 
-import luad.all;
+import util.lua;
 import luaglobalconfig;
 import luaflowstate;
 import luageom;
@@ -87,22 +88,22 @@ void main(string[] args)
 	exit(1);
     }
     if (prepFlag) {
-	writeln("Start LuaD connection.");
+	writeln("Start lua connection.");
 	// GC.disable(); // To avoid segfaults, just for the preparation via Lua.
-	auto lua = new LuaState;
-	lua.openLibs();
-	registerVector3(lua);
-	registerGlobalConfig(lua);
-	registerFlowState(lua);
-	registerPaths(lua);
-	registerSurfaces(lua);
-	registerVolumes(lua);
-	registerUnivariateFunctions(lua);
-	registerStructuredGrid(lua);
-	registerSolidProps(lua);
-	lua.doFile(dirName(thisExePath())~"/prep.lua");
-	lua.doFile(jobName~".lua");
-	lua.doString("build_job_files(\""~jobName~"\")");
+	auto L = luaL_newstate();
+	luaL_openlibs(L);
+	registerVector3(L);
+	registerGlobalConfig(L);
+	registerFlowState(L);
+	registerPaths(L);
+	registerSurfaces(L);
+	registerVolumes(L);
+	registerUnivariateFunctions(L);
+	registerStructuredGrid(L);
+	registerSolidProps(L);
+	luaL_dofile(L, toStringz(dirName(thisExePath())~"/prep.lua"));
+	luaL_dofile(L, toStringz(jobName~".lua"));
+	luaL_dostring(L, toStringz("build_job_files(\""~jobName~"\")"));
 	writeln("Done.");
 	// GC.enable();
     }

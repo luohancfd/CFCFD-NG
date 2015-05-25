@@ -16,6 +16,8 @@ import std.string;
 import std.array;
 import std.math;
 import std.json;
+
+import util.lua;
 import json_helper;
 import lua_helper;
 import gzip;
@@ -121,19 +123,19 @@ public:
 	omegaz = getJSONdouble(json_data, "omegaz", 0.0);
     } // end constructor from json
 
-    override void init_myLua_globals()
+    override void init_lua_globals()
     {
-	myLua["nicell"] = nicell;
-	myLua["njcell"] = njcell;
-	myLua["nkcell"] = nkcell;
-	myLua["north"] = Face.north;
-	myLua["east"] = Face.east;
-	myLua["south"] = Face.south;
-	myLua["west"] = Face.west;
-	myLua["top"] = Face.top;
-	myLua["bottom"] = Face.bottom;
-	myLua["sampleFlow"] = &luafn_sampleFlow; // will only work in serial code
-    } // end init_myLua_globals()
+	lua_pushinteger(myL, nicell); lua_setglobal(myL, "nicell");
+	lua_pushinteger(myL, njcell); lua_setglobal(myL, "njcell");
+	lua_pushinteger(myL, nkcell); lua_setglobal(myL, "nkcell");
+	lua_pushinteger(myL, Face.north); lua_setglobal(myL, "north");
+	lua_pushinteger(myL, Face.east); lua_setglobal(myL, "east");
+	lua_pushinteger(myL, Face.south); lua_setglobal(myL, "south");
+	lua_pushinteger(myL, Face.west); lua_setglobal(myL, "west");
+	lua_pushinteger(myL, Face.top); lua_setglobal(myL, "top");
+	lua_pushinteger(myL, Face.bottom); lua_setglobal(myL, "bottom");
+	lua_pushcfunction(myL, &luafn_sampleFlow); lua_setglobal(myL, "sampleFlow"); // will work only in serial mode
+    } // end init_lua_globals()
 
     override void init_boundary_conditions(JSONValue json_data)
     // Initialize boundary conditions after the blocks are fully constructed,

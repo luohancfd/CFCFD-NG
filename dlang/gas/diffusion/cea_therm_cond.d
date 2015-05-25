@@ -11,7 +11,7 @@ module gas.diffusion.cea_therm_cond;
 import gas.gas_model;
 import gas.diffusion.therm_cond;
 import std.math;
-import luad.all;
+import util.lua;
 import util.lua_service;
 import std.c.stdlib : exit;
 import std.stdio;
@@ -108,17 +108,16 @@ private:
     double _T_highest;
 }
 
-CEAThermalConductivity createCEAThermalConductivity(LuaTable t)
+CEAThermalConductivity createCEAThermalConductivity(lua_State* L)
 {
-    string[6] plist = ["T_lower", "T_upper", "A", "B", "C", "D"];
+    string[6] pList = ["T_lower", "T_upper", "A", "B", "C", "D"];
     double[string] params;
-    auto nseg = t.get!int("nsegments");
+    auto nseg = getInt(L, -1, "nsegments");
     CEAThermCondCurve[] curves;
     foreach ( i; 0..nseg ) {
 	auto key = format("segment%d", i);
-	auto seg_t = t.get!LuaTable(key);
 	try {
-	    getValues(seg_t, plist, params, key);
+	    getAssocArrayOfDoubles(L, key, pList, params);
 	}
 	catch ( Exception e ) {
 	    writeln("ERROR: There was a problem reading in a value");
@@ -145,12 +144,11 @@ unittest
 
     /// Next, let's test the creation and functionality
     /// of a CEAThermalConductivity object.
-    auto lua = new LuaState;
-    lua.openLibs();
-    lua.doFile("sample-data/CO2-therm-cond.lua");
-    auto t = lua.get!LuaTable("cea");
-    auto co2CEA = createCEAThermalConductivity(t);
-    auto Q = GasState(1, 1);
+    auto L = init_lua_State("sample-data/CO2-therm-cond.lua");
+    lua_getglobal(L, "cea");
+    auto co2CEA = createCEAThermalConductivity(L);
+    lua_close(L);
+    auto Q = new GasState(1, 1);
     Q.T[0] = 3500.0;
     assert(approxEqual(1.859070e-01, co2CEA.eval(Q, 0)), failedUnitTest(__LINE__, __FILE__));
 

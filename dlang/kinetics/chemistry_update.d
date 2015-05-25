@@ -10,7 +10,7 @@ module kinetics.chemistry_update;
 import std.stdio;
 import std.math;
 import std.algorithm;
-import luad.all;
+import util.lua;
 import util.lua_service;
 import gas;
 import kinetics.reaction_mechanism;
@@ -38,9 +38,10 @@ final class ReactionUpdateScheme {
 
     this(string fname, GasModel gmodel)
     {
-	auto lua = initLuaState(fname);
-	auto t = lua.get!LuaTable("reaction");
-	rmech = createReactionMechanism(t, gmodel);
+	auto L = init_lua_State(fname);
+	lua_getglobal(L, "reaction");
+	rmech = createReactionMechanism(L, gmodel);
+	lua_close(L);
 	// Just hard code selection of RKF for present.
 	cstep = new RKFStep(gmodel, rmech, 1.0e-3);
 	tightTempCoupling = false;

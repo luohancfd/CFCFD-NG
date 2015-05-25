@@ -13,6 +13,7 @@ import std.format;
 import std.array;
 import std.math;
 import std.json;
+import util.lua;
 import json_helper;
 import gzip;
 import geom;
@@ -52,9 +53,9 @@ private:
 
 public:
     // Constructors
-    this(int id, size_t nicell, size_t njcell, size_t nkcell)
+    this(int id, size_t nicell, size_t njcell, size_t nkcell, string label)
     {
-	this.id = id;
+	super(id, label);
 	this.nicell = nicell;
 	this.njcell = njcell;
 	this.nkcell = nkcell;
@@ -67,10 +68,33 @@ public:
 	nicell = getJSONint(jsonData, "nic", 0);
 	njcell = getJSONint(jsonData, "njc", 0);
 	nkcell = getJSONint(jsonData, "nkc", 0);
-	this(id, nicell, njcell, nkcell);
 	label = getJSONstring(jsonData, "label", "");
+	this(id, nicell, njcell, nkcell, label);
 	active = getJSONbool(jsonData, "active", true);
 	sp = makeSolidPropsFromJson(jsonData["properties"]);
+	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
+	    string jsonKey = "face_" ~ face_name[boundary];
+	    auto bcJsonData = jsonData[jsonKey];
+	    bc[boundary] = makeSolidBCFromJson(bcJsonData, id, boundary,
+					       nicell, njcell, nkcell);
+	}
+    }
+
+    override void initLuaGlobals()
+    {
+	lua_pushinteger(myL, nicell); lua_setglobal(myL, "nicell");
+	lua_pushinteger(myL, njcell); lua_setglobal(myL, "njcell");
+	lua_pushinteger(myL, nkcell); lua_setglobal(myL, "nkcell");
+	lua_pushinteger(myL, Face.north); lua_setglobal(myL, "north");
+	lua_pushinteger(myL, Face.east); lua_setglobal(myL, "east");
+	lua_pushinteger(myL, Face.south); lua_setglobal(myL, "south");
+	lua_pushinteger(myL, Face.west); lua_setglobal(myL, "west");
+	lua_pushinteger(myL, Face.top); lua_setglobal(myL, "top");
+	lua_pushinteger(myL, Face.bottom); lua_setglobal(myL, "bottom");
+    }
+
+    override void initBoundaryConditions(JSONValue jsonData)
+    {
 	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
 	    string jsonKey = "face_" ~ face_name[boundary];
 	    auto bcJsonData = jsonData[jsonKey];

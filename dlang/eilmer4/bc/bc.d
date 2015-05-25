@@ -11,8 +11,6 @@ import std.conv;
 import std.json;
 import std.stdio;
 import std.string;
-import luad.all;
-import util.lua_service;
 import gas;
 import json_helper;
 import geom;
@@ -28,8 +26,6 @@ import ghost_cell_effect;
 import boundary_interface_effect;
 import boundary_flux_effect;
 import user_defined_effects;
-import lua_helper;
-
 
 BoundaryCondition make_BC_from_json(JSONValue jsonData, int blk_id, int boundary,
 				    size_t nicell, size_t njcell, size_t nkcell)

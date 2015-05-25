@@ -4,15 +4,14 @@ import std.stdio;
 import std.json;
 import std.string;
 import std.format;
-import luad.all;
-import luad.c.lua;
-
+import util.lua;
 
 import simcore;
 import json_helper;
 import geom;
 import globaldata;
 import solidfvinterface;
+import ssolidblock;
 
 SolidBoundaryInterfaceEffect makeSolidBIEfromJson(JSONValue jsonData, int blk_id, int boundary)
 {
@@ -36,17 +35,17 @@ SolidBoundaryInterfaceEffect makeSolidBIEfromJson(JSONValue jsonData, int blk_id
 
 class SolidBoundaryInterfaceEffect {
 public:
-    int blkId;
+    SSolidBlock blk;
     int whichBoundary;
     string type;
     
     this(int id, int boundary, string _type) {
-	blkId = id;
+	blk = solidBlocks[id];
 	whichBoundary = boundary;
 	type = _type;
     }
 
-    void apply(double t, int tLevel) {}
+    abstract void apply(double t, int tLevel);
 }
 
 class SolidBIE_FixedT : SolidBoundaryInterfaceEffect {
@@ -61,8 +60,7 @@ public:
     {
 	size_t i, j, k;
 	SolidFVInterface IFace;
-	auto blk = solidBlocks[blkId];
-
+	
 	final switch (whichBoundary) {
 	case Face.north:
 	    j = blk.jmax + 1;
@@ -115,27 +113,16 @@ private:
 
 class SolidBIE_UserDefined : SolidBoundaryInterfaceEffect {
 public:
-    string luafname;
-private:
-    LuaState _lua;
-
-public:
     this(int id, int boundary, string fname)
     {
 	super(id, boundary, "UserDefined");
-	luafname = fname;
+	luaL_dofile(blk.myL, fname.toStringz);
     }
     
-    void setLuaState(LuaState lua)
-    {
-	_lua = lua;
-    }
-
     override void apply(double t, int tLevel)
     {
 	size_t i, j, k;
 	SolidFVInterface IFace;
-	auto blk = solidBlocks[blkId];
 
 	final switch (whichBoundary) {
 	case Face.north:
@@ -143,7 +130,7 @@ public:
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (i = blk.imin; i <= blk.imax; ++i) {
 		    IFace = blk.getIfj(i, j, k);
-		    callSolidIfaceUDF(t, tLevel, i, j, k, IFace);
+		    callSolidIfaceUDF(t, tLevel, i, j, k, IFace, "north");
 		}
 	    }
 	    break;
@@ -152,7 +139,7 @@ public:
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    IFace = blk.getIfi(i, j, k);
-		    callSolidIfaceUDF(t, tLevel, i, j, k, IFace);
+		    callSolidIfaceUDF(t, tLevel, i, j, k, IFace, "east");
 		}
 	    }
 	    break;
@@ -161,7 +148,7 @@ public:
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (i = blk.imin; i <= blk.imax; ++i) {
 		    IFace = blk.getIfj(i, j, k);
-		    callSolidIfaceUDF(t, tLevel, i, j, k, IFace);
+		    callSolidIfaceUDF(t, tLevel, i, j, k, IFace, "south");
 		}
 	    }
 	    break;
@@ -170,7 +157,7 @@ public:
 	    for (k = blk.kmin; k <= blk.kmax; ++k) {
 		for (j = blk.jmin; j <= blk.jmax; ++j) {
 		    IFace = blk.getIfi(i, j, k);
-		    callSolidIfaceUDF(t, tLevel, i, j, k, IFace);
+		    callSolidIfaceUDF(t, tLevel, i, j, k, IFace, "west");
 		}
 	    }
 	    break;
@@ -183,41 +170,41 @@ public:
     }
 
     void callSolidIfaceUDF(double t, int tLevel, size_t i, size_t j, size_t k,
-			   SolidFVInterface IFace)
+			   SolidFVInterface IFace, string boundaryName)
     {
+	auto L = blk.myL;
+	lua_getglobal(L, toStringz("solidInterface_"~boundaryName));
 	// Set some userful values for the caller in table
-	auto args = _lua.newTable(0, 19);
-	args["t"] = t;
-	args["dt"] = dt_global;
-	args["timeStep"] = step;
-	args["timeLevel"] = tLevel;
-	args["x"] = IFace.pos.x;
-	args["y"] = IFace.pos.y;
-	args["z"] = IFace.pos.z;
-	args["csX"] = IFace.n.x;
-	args["csY"] = IFace.n.y;
-	args["csZ"] = IFace.n.z;
-	args["csX1"] = IFace.t1.x;
-	args["csY1"] = IFace.t1.y;
-	args["csZ1"] = IFace.t1.z;
-	args["csX2"] = IFace.t2.x;
-	args["csY2"] = IFace.t2.y;
-	args["csZ2"] = IFace.t2.z;
-	args["i"] = i;
-	args["j"] = j;
-	args["k"] = k;
+	lua_newtable(L);
+	lua_pushnumber(L, t); lua_setfield(L, -2, "t");
+	lua_pushnumber(L, dt_global); lua_setfield(L, -2, "dt");
+	lua_pushinteger(L, step); lua_setfield(L, -2, "timeStep");
+	lua_pushinteger(L, tLevel); lua_setfield(L, -2, "timeLevel");
+	lua_pushnumber(L, IFace.pos.x); lua_setfield(L, -2, "x");
+	lua_pushnumber(L, IFace.pos.y); lua_setfield(L, -2, "y");
+	lua_pushnumber(L, IFace.pos.z); lua_setfield(L, -2, "z");
+	lua_pushnumber(L, IFace.n.x); lua_setfield(L, -2, "csX");
+	lua_pushnumber(L, IFace.n.y); lua_setfield(L, -2, "csY");
+	lua_pushnumber(L, IFace.n.z); lua_setfield(L, -2, "csZ");
+	lua_pushnumber(L, IFace.t1.x); lua_setfield(L, -2, "csX1");
+	lua_pushnumber(L, IFace.t1.y); lua_setfield(L, -2, "csY1");
+	lua_pushnumber(L, IFace.t1.z); lua_setfield(L, -2, "csZ1");
+	lua_pushnumber(L, IFace.t2.x); lua_setfield(L, -2, "csX2");
+	lua_pushnumber(L, IFace.t2.y); lua_setfield(L, -2, "csY2");
+	lua_pushnumber(L, IFace.t2.z); lua_setfield(L, -2, "csZ2");
+	lua_pushinteger(L, i); lua_setfield(L, -2, "i");
+	lua_pushinteger(L, j); lua_setfield(L, -2, "j");
+	lua_pushinteger(L, k); lua_setfield(L, -2, "k");
 
-	// Call LuaFunction and expect back a temperature value.
-	auto f = _lua.get!LuaFunction("solidInterface");
-	LuaObject[] ret = f(args);
-	if ( ret.length < 1 ) {
-	    string errMsg = "ERROR: There was a problem in the call to the user-defined solid interface boundary condition.\n";
-	    errMsg ~= format("ERROR: This occurred for solidblock [%d] on the %s boundary.", blkId, face_name[whichBoundary]);
-	    errMsg ~= "ERROR: A single float value for temperature was expected, but not received.\n";
-	    throw new Exception(errMsg);
+	// Call function and expect back a temperature value.
+	int number_args = 1;
+	int number_results = 1;
+	if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
+	    luaL_error(L, "error running user solid interface function: %s\n",
+		       lua_tostring(L, -1));
 	}
-
-	// Grab temperature and set interface with that value
-	IFace.T = ret[0].to!double();
+	
+	IFace.T = luaL_checknumber(L, -1);
+	lua_pop(L, 1);
     }
 }

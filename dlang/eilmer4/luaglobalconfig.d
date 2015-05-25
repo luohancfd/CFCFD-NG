@@ -6,13 +6,10 @@
 
 module luaglobalconfig;
 
-// We cheat to get the C Lua headers by using LuaD.
-import luad.all;
-import luad.c.lua;
-import luad.c.lauxlib;
 import std.stdio;
 import std.string;
 import std.conv;
+import util.lua;
 import util.lua_service;
 
 import gas;
@@ -504,10 +501,8 @@ extern(C) int species_name(lua_State* L)
 // Call the following function from the main program to get the
 // functions appearing in the Lua interpreter.
 
-void registerGlobalConfig(LuaState lua)
+void registerGlobalConfig(lua_State* L)
 {
-    auto L = lua.state;
-
     // Register global functions for setting configuration.
     lua_pushcfunction(L, &configSetFromTable);
     lua_setglobal(L, "configSet");

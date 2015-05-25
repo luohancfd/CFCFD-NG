@@ -9,9 +9,7 @@
 module luagpath;
 
 // We cheat to get the C Lua headers by using LuaD.
-import luad.all;
-import luad.c.lua;
-import luad.c.lauxlib;
+import util.lua;
 import std.stdio;
 import std.string;
 import std.conv;
@@ -434,10 +432,8 @@ The value, if present, should be a number.`;
 
 //-------------------------------------------------------------------------------------
 
-void registerPaths(LuaState lua)
+void registerPaths(lua_State* L)
 {
-    auto L = lua.state;
-
     // Register the Line object
     luaL_newmetatable(L, LineMT.toStringz);
     

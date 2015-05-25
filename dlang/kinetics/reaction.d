@@ -12,7 +12,7 @@ import std.math;
 import std.string;
 import std.typecons;
 import std.algorithm;
-import luad.all;
+import util.lua;
 import util.lua_service;
 import gas;
 import util.msg_service;
@@ -183,7 +183,7 @@ private:
 }
 
 /++
- + Creates a Reaction object from information in a LuaTable.
+ + Creates a Reaction object from information in a Lua table.
  +
  + The table format mirrors that created by reaction.lua::transformReaction()
  + Check that source also.
@@ -201,22 +201,26 @@ private:
  +          efficiencies = {}
  + }
  +/
-Reaction createReaction(LuaTable t, size_t n_species)
+Reaction createReaction(lua_State* L, size_t n_species)
 {
     // All Reactions have a forward and backward rate.
-    auto frc = createRateConstant(t.get!LuaTable("frc"));
-    auto brc = createRateConstant(t.get!LuaTable("brc"));
+    lua_getfield(L, -1, "frc");
+    auto frc = createRateConstant(L);
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "brc");
+    auto brc = createRateConstant(L);
+    lua_pop(L, 1);
 
     // And most use reacIdx, reacCoeffs, prodIdx and prodCoeffs lists.
     int[] reacIdx, reacCoeffs, prodIdx, prodCoeffs;
-    getArray(t.get!LuaTable("reacIdx"), reacIdx, "reacIdx");
-    getArray(t.get!LuaTable("reacCoeffs"), reacCoeffs, "reacCoeffs");
-    getArray(t.get!LuaTable("prodIdx"), prodIdx, "prodIdx");
-    getArray(t.get!LuaTable("prodCoeffs"), prodCoeffs, "prodCoeffs");
+    getArrayOfInts(L, -1, "reacIdx", reacIdx);
+    getArrayOfInts(L, -1, "reacCoeffs", reacCoeffs);
+    getArrayOfInts(L, -1, "prodIdx", prodIdx);
+    getArrayOfInts(L, -1, "prodCoeffs", prodCoeffs);
 
     // We need to specialise the creation of a Reaction
     // based on type.
-    auto type = t.get!string("type");
+    auto type = getString(L, -1, "type");
     switch (type) {
     case "elementary":
 	return new ElementaryReaction(frc, brc, reacIdx, reacCoeffs,

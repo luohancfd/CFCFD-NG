@@ -409,7 +409,7 @@ body {
 
 
 unittest {
-    auto gd = GasState(2, 1);
+    auto gd = new GasState(2, 1);
     gd.massf[0] = 0.8;
     gd.massf[1] = 0.2;
     double[] phi = [9.0, 16.0];

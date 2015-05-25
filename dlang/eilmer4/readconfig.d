@@ -13,6 +13,7 @@ import std.array;
 import std.format;
 import std.string;
 
+import util.lua;
 import json_helper;
 import geom;
 import gas;
@@ -200,10 +201,10 @@ void read_config_file()
 	}
     }
     foreach (blk; gasBlocks) {
-	blk.init_myLua_globals();
+	blk.init_lua_globals();
 	blk.init_boundary_conditions(jsonData["block_" ~ to!string(blk.id)]);
 	if (GlobalConfig.udf_source_terms) {
-	    blk.myLua.doFile(GlobalConfig.udf_source_terms_file);
+	    luaL_dofile(blk.myL, GlobalConfig.udf_source_terms_file.toStringz);
 	}
     } 
 
@@ -217,17 +218,18 @@ void read_config_file()
 	writeln("  udf_solid_source_terms_file: ", udf_solid_source_terms_file);
     }
     foreach (i; 0 .. GlobalConfig.nSolidBlocks) {
-	auto blk = new SSolidBlock(i, jsonData["solid_block_" ~ to!string(i)]);
-	if ( udf_solid_source_terms ) {
-	    // Add LuaStates to each solid block for UDF source terms, if necessary
-	    blk.udfSourceTerms = initUDFSolidSourceTerms(udf_solid_source_terms_file, blk.id);
-	}
-	solidBlocks ~= blk;
+	solidBlocks ~= new SSolidBlock(i, jsonData["solid_block_" ~ to!string(i)]);
 	if (GlobalConfig.verbosity_level > 1) {
 	    writeln("  SolidBlock[", i, "]: ", solidBlocks[i]);
 	}
     }
-    
+    foreach (sblk; solidBlocks) {
+	sblk.initLuaGlobals();
+	sblk.initBoundaryConditions(jsonData["solid_block_" ~ to!string(sblk.id)]);
+	if ( udf_solid_source_terms ) {
+	    initUDFSolidSourceTerms(sblk.myL, udf_solid_source_terms_file);
+	}
+    }
 } // end read_config_file()
 
 void read_control_file()

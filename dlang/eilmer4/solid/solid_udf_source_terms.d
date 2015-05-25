@@ -12,37 +12,36 @@ module solid_udf_source_terms;
 
 import std.stdio;
 import std.string;
-import luad.all;
+import util.lua;
 import util.lua_service;
 
 import solidfvcell;
 
-LuaState initUDFSolidSourceTerms(string fname, int blkId)
+void initUDFSolidSourceTerms(lua_State* L, string fname)
 {
-    auto lua = initLuaState(fname);
-    // Make blkId globally available in script
-    lua["blkId"] = blkId;
-    return lua;
+    luaL_dofile(L, fname.toStringz);
 }
 
-void addUDFSourceTermsToSolidCell(LuaState lua, SolidFVCell cell, double t)
+void addUDFSourceTermsToSolidCell(lua_State* L, SolidFVCell cell, double t)
 {
+    // Push user function onto TOS
+    lua_getglobal(L, "solidSourceTerms");
     // Push useful data into an arguments table
-    auto args = lua.newTable();
-    // Cell data
-    args["x"] = cell.pos.x;
-    args["y"] = cell.pos.y;
-    args["z"] = cell.pos.z;
-    args["vol"] = cell.volume;
-    
-    // Call solidSourceTerms function with (t, args)
-    auto solidSourceTerms = lua.get!LuaFunction("solidSourceTerms");
-    LuaObject[] ret = solidSourceTerms(t, args);
-    if ( ret.length < 1 ) {
-	string errMsg = "ERROR: There was a problem in the call to the user-defined source terms function\n";
-	errMsg ~= "ERROR: for the solid domain. A single double value is expected,\n";
-	errMsg ~= "ERROR: but nothing was returned.";
-	throw new Exception(errMsg);
+    lua_newtable(L);
+    lua_pushnumber(L, cell.pos.x); lua_setfield(L, -2, "x");
+    lua_pushnumber(L, cell.pos.y); lua_setfield(L, -2, "y");
+    lua_pushnumber(L, cell.pos.z); lua_setfield(L, -2, "z");
+    lua_pushnumber(L, cell.volume); lua_setfield(L, -2, "vol");
+    // Call solidSourceTerms function with (args)
+    int number_args = 1;
+    int number_results = 1;
+
+    if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
+	luaL_error(L, "error running solid source terms function: %s\n",
+		   lua_tostring(L, -1));
     }
-    cell.Q = ret[0].to!double();
+    
+    // Grab the energy source term
+    cell.Q = luaL_checknumber(L, -1);
+    lua_pop(L, 1);
 }

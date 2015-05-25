@@ -14,10 +14,7 @@ import std.stdio;
 import std.string;
 import std.conv;
 import std.traits;
-import luad.all;
-import luad.stack;
-import luad.c.lua;
-import luad.c.lauxlib;
+import util.lua;
 import util.lua_service;
 import gas;
 import flowstate;
@@ -101,7 +98,7 @@ The value should be a number.`;
 	foreach ( i; 0..managedGasModel.n_modes ) T ~= Tval;
     }
     else if ( lua_istable(L, -1 ) ) {
-	getArrayOfNumbers(L, -1, T);
+	getArrayOfDoubles(L, 1, "T", T);
 	if ( T.length != managedGasModel.n_modes ) {
 	    errMsg = "Error in call to FlowState:new.";
 	    errMsg ~= "Length of T vector does not match number of modes in gas model.";
@@ -137,7 +134,7 @@ The value should be a number.`;
 	massf ~= 1.0; // Nothing set, so massf = [1.0]
     }
     else if ( lua_istable(L, -1) ) {
-	getArrayOfNumbers(L, -1, massf);
+	getArrayOfDoubles(L, 1, "massf", massf);
 	if ( massf.length != managedGasModel.n_species ) {
 	    errMsg = "Error in call to FlowState:new.";
 	    errMsg ~= "Length of massf vector does not match number of species in gas model.";
@@ -194,7 +191,7 @@ The value should be a number.`;
 string pushGasVar(string var)
 {
     return `lua_pushnumber(L, fs.gas.` ~ var ~ `);
-lua_setfield(L, -2, "` ~ var ~`");`;
+lua_setfield(L, tblIdx-1, "` ~ var ~`");`;
 }
 
 string pushGasVarArray(string var)
@@ -203,29 +200,29 @@ string pushGasVarArray(string var)
 foreach ( i, val; fs.gas.` ~ var ~ `) {
     lua_pushnumber(L, val); lua_rawseti(L, -2,to!int(i+1));
 }
-lua_setfield(L, -2, "` ~ var ~`");`;
+lua_setfield(L, tblIdx-1, "` ~ var ~`");`;
 }
 
 string pushFSVar(string var)
 {
 return `lua_pushnumber(L, fs.` ~ var ~ `);
-lua_setfield(L, -2, "` ~ var ~`");`;
+lua_setfield(L, tblIdx-1, "` ~ var ~`");`;
 }
 
 string pushFSVecVar(string var)
 {
 return `lua_pushnumber(L, fs.`~var~`.x);
-lua_setfield(L, -2, "`~var~`x");
+lua_setfield(L, tblIdx-1, "`~var~`x");
 lua_pushnumber(L, fs.`~var~`.y);
-lua_setfield(L, -2, "`~var~`y");
+lua_setfield(L, tblIdx-1, "`~var~`y");
 lua_pushnumber(L, fs.`~var~`.z);
-lua_setfield(L, -2, "`~var~`z");`;
+lua_setfield(L, tblIdx-1, "`~var~`z");`;
 }
 
 /**
  * Push FlowState values to a table at TOS in lua_State.
  */
-void pushFlowStateToTable(in FlowState fs, lua_State* L)
+void pushFlowStateToTable(lua_State* L, int tblIdx, in FlowState fs)
 {
     mixin(pushGasVar("p"));
     mixin(pushGasVarArray("T"));
@@ -244,14 +241,6 @@ void pushFlowStateToTable(in FlowState fs, lua_State* L)
     mixin(pushFSVecVar("B"));
 }
 
-void pushFlowStateToLuaTable(in FlowState fs, LuaTable tab)
-{
-    auto L = tab.state();
-    pushValue!LuaTable(L, tab);
-    // Now tab is TOS
-    pushFlowStateToTable(fs, L);
-}
-
 /**
  * Gives the caller a table populated with FlowState values.
  *
@@ -263,7 +252,8 @@ extern(C) int toTable(lua_State* L)
 {
     auto fs = checkFlowState(L, 1);
     lua_newtable(L); // anonymous table { }
-    pushFlowStateToTable(fs, L);
+    int tblIdx = lua_gettop(L);
+    pushFlowStateToTable(L, tblIdx, fs);
     return 1;
 }
 
@@ -281,7 +271,7 @@ string checkGasVarArray(string var)
     return `lua_getfield(L, 2, "`~var~`");
 if ( lua_istable(L, -1 ) ) {
     fs.gas.`~var~`.length = 0;
-    getArrayOfNumbers(L, -1, fs.gas.`~var~`);
+    getArrayOfDoubles(L, -2, "`~var~`", fs.gas.`~var~`);
 }
 lua_pop(L, 1);`;
 }
@@ -363,8 +353,6 @@ extern(C) int fromTable(lua_State* L)
     mixin(checkFSVar("k_t"));
     return 0;
 }
-
-
 
 extern(C) int toJSONString(lua_State* L)
 {
@@ -482,9 +470,8 @@ extern(C) int write_initial_flow_file_from_lua(lua_State* L)
     return -1;
 }
 
-void registerFlowState(LuaState lua)
+void registerFlowState(lua_State* L)
 {
-    auto L = lua.state;
     luaL_newmetatable(L, FlowStateMT.toStringz);
     
     /* metatable.__index = metatable */

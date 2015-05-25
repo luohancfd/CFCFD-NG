@@ -22,16 +22,16 @@ import gas.diffusion.wilke_mixing_therm_cond;
 import std.math;
 import std.stdio;
 import std.string;
-import luad.all;
+import util.lua;
 import util.lua_service;
 import ridder;
 import std.c.stdlib : exit;
 
 class ThermallyPerfectGas: GasModel {
 public:
-    this(LuaState lua)
+    this(lua_State* L)
     {
-	getArray!string(lua.get!LuaTable("species"), _species_names, "species");
+	getArrayOfStrings(L, LUA_GLOBALSINDEX, "species", _species_names);
 	_n_species = cast(uint) _species_names.length;
 	_n_modes = 1;
 	
@@ -40,31 +40,44 @@ public:
 	_Cv.length = _n_species;
 	_h.length = _n_species;
 	_s.length = _n_species;
-	
 	// 1. Initialise gas constants from molecular mass
 	_R.length = _n_species;
 	_mol_masses.length = _n_species;
 	foreach ( isp; 0.._n_species ) {
-	    _mol_masses[isp] = lua.get!double(_species_names[isp], "M");
+	    lua_getglobal(L, _species_names[isp].toStringz);
+	    _mol_masses[isp] = getDouble(L, -1, "M");
 	    _R[isp] = R_universal/_mol_masses[isp];
+	    lua_pop(L, 1);
 	}
 	// 2. Set the p-v-T EOS
 	_pgMixEOS = new PerfectGasMixEOS(_R);
 	// 3. Set the e-v-T EOS (which in this case is an e-T relationship only)
 	foreach ( isp; 0.._n_species ) {
-	    _curves ~= createCEAThermo(lua.get!LuaTable(_species_names[isp], "ceaThermoCoeffs"), _R[isp]);
+	    lua_getglobal(L, _species_names[isp].toStringz);
+	    lua_getfield(L, -1, "ceaThermoCoeffs");
+	    _curves ~= createCEAThermo(L, _R[isp]);
+	    lua_pop(L, 1);
+	    lua_pop(L, 1);
 	}
 	_tpgMixEOS = new ThermallyPerfectGasMixEOS(_R, _curves);
 	// 4. Set the viscosity model
 	Viscosity[] vms;
 	foreach ( isp; 0.._n_species ) {
-	    vms ~= createCEAViscosity(lua.get!LuaTable(_species_names[isp], "ceaViscosity"));
+	    lua_getglobal(L, _species_names[isp].toStringz);
+	    lua_getfield(L, -1, "ceaViscosity");
+	    vms ~= createCEAViscosity(L);
+	    lua_pop(L, 1);
+	    lua_pop(L, 1);
 	}
 	_viscModel = new WilkeMixingViscosity(vms, _mol_masses);
 	// 5. Set the thermal conductivity model
 	ThermalConductivity[] tcms;
 	foreach (isp; 0.._n_species ) {
-	    tcms ~= createCEAThermalConductivity(lua.get!LuaTable(_species_names[isp], "ceaThermCond"));
+	    lua_getglobal(L, _species_names[isp].toStringz);
+	    lua_getfield(L, -1, "ceaThermCond");
+	    tcms ~= createCEAThermalConductivity(L);
+	    lua_pop(L, 1);
+	    lua_pop(L, 1);
 
 	}
 	_thermCondModel = new WilkeMixingThermCond(tcms, _mol_masses);
@@ -72,8 +85,9 @@ public:
 
     this(in string fname)
     {
-	auto lua = initLuaState(fname);
-	this(lua);
+	auto L = init_lua_State(fname);
+	this(L);
+	lua_close(L);
     }
 
     override string toString() const

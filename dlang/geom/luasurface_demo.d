@@ -8,7 +8,7 @@
 
 import std.stdio;
 
-import luad.all;
+import util.lua;
 import luageom;
 import luagpath;
 import luasurface;
@@ -16,12 +16,12 @@ import luasurface;
 void main()
 {
     writeln("Begin demonstration of Lua connection to Surface objects.");
-    auto lua = new LuaState;
-    lua.openLibs();
-    registerVector3(lua);
-    registerPaths(lua);
-    registerSurfaces(lua);
-    lua.doString(`
+    auto L = luaL_newstate();
+    luaL_openlibs(L);
+    registerVector3(L);
+    registerPaths(L);
+    registerSurfaces(L);
+    luaL_dostring(L, `
 a = Vector3:new{0.0, 0.0}
 b = Vector3:new{0.0, 1.0}
 c = Vector3:new{1.0, 0.0}

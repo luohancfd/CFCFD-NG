@@ -12,7 +12,7 @@ import std.math;
 import std.stdio;
 import std.c.stdlib : exit;
 import std.string;
-import luad.all;
+import util.lua;
 import util.lua_service;
 
 struct CEAThermoCurve
@@ -176,20 +176,20 @@ private:
     CEAThermoCurve[] _curves;
 }
 
-CEAThermo createCEAThermo(LuaTable t, double R)
+CEAThermo createCEAThermo(lua_State* L, double R)
 {
-    auto nseg = t.get!int("nsegments");
+    auto nseg = getInt(L, -1, "nsegments");
     CEAThermoCurve[] curves;
     foreach ( i; 0..nseg ) {
 	auto key = format("segment%d", i);
-	auto seg_t = t.get!LuaTable(key);
+	lua_getfield(L, -1, key.toStringz);
 	auto c = CEAThermoCurve();
 	try {
 	    c.R = R;
-	    c.T_lower = seg_t.get!double("T_lower");
-	    c.T_upper = seg_t.get!double("T_upper");
+	    c.T_lower = getDouble(L, -1, "T_lower");
+	    c.T_upper = getDouble(L, -1, "T_upper");
 	    double[] coeffs;
-	    getArray(seg_t.get!LuaTable("coeffs"), coeffs, "coeffs");
+	    getArrayOfDoubles(L, -1, "coeffs", coeffs);
 	    foreach ( ic; 0..c.a.length ) {
 		c.a[ic] = coeffs[ic];
 	    }
@@ -203,9 +203,9 @@ CEAThermo createCEAThermo(LuaTable t, double R)
 	    exit(1);
 	}
 	curves ~= c;
+	lua_pop(L, 1);
     }
     return new CEAThermo(curves);
-	    
 }
 
 unittest
@@ -221,12 +221,11 @@ unittest
     curve.a[6] = 1.277986024e-16; curve.a[7] = 2.550585618e+06; curve.a[8] = -5.848769753e+02;
     assert(approxEqual(2022.9958, curve.eval_Cp(7500.0)), failedUnitTest(__LINE__, __FILE__));
     // 2. Test full curve
-    auto lua = new LuaState;
-    lua.openLibs();
-    lua.doFile("sample-data/O-thermo.lua");
-    auto t = lua.get!LuaTable("CEA_coeffs");
+    auto L = init_lua_State("sample-data/O-thermo.lua");
+    lua_getglobal(L, "CEA_coeffs");
     double R = 8.31451/0.0159994;
-    auto oThermo = createCEAThermo(t, R);
+    auto oThermo = createCEAThermo(L, R);
+    lua_close(L);
     assert(approxEqual(1328.627, oThermo.eval_Cp(500.0)), failedUnitTest(__LINE__, __FILE__));
     assert(approxEqual(20030794.683, oThermo.eval_h(3700.0)), failedUnitTest(__LINE__, __FILE__));
     assert(approxEqual(14772.717, oThermo.eval_s(10000.0)), failedUnitTest(__LINE__, __FILE__));

@@ -8,7 +8,7 @@
 
 import std.stdio;
 
-import luad.all;
+import util.lua;
 import luageom;
 import luagpath;
 import luasurface;
@@ -19,15 +19,15 @@ import luasgrid;
 void main()
 {
     writeln("Begin demonstration of Lua connection to StructuredGrid objects.");
-    auto lua = new LuaState;
-    lua.openLibs();
-    registerVector3(lua);
-    registerPaths(lua);
-    registerSurfaces(lua);
-    registerVolumes(lua);
-    registerUnivariateFunctions(lua);
-    registerStructuredGrid(lua);
-    lua.doString(`
+    auto L = luaL_newstate();
+    luaL_openlibs(L);
+    registerVector3(L);
+    registerPaths(L);
+    registerSurfaces(L);
+    registerVolumes(L);
+    registerUnivariateFunctions(L);
+    registerStructuredGrid(L);
+    luaL_dostring(L, `
 print("2D grid")
 a = Vector3:new{0.0, 0.0}
 b = Vector3:new{0.0, 1.0}

@@ -1,6 +1,7 @@
 # makefile for the diffusion module
 UTIL_DIR := ../../util
-UTIL_FILES := $(UTIL_DIR)/lua_service.d \
+UTIL_FILES := $(UTIL_DIR)/lua.d \
+	$(UTIL_DIR)/lua_service.d \
 	$(UTIL_DIR)/msg_service.d
 
 LUA := ../../../extern/lua-5.1.4
@@ -31,11 +32,11 @@ ${LIBGAS}:
 ${LIBLUA}:
 	cd ${LUA_DIR}; make linux local
 
-sutherland_visc : sutherland_visc.d viscosity.d ../gasmodel.d $(UTIL_FILES) $(LIBLUA)
-	dmd -main -unittest sutherland_visc.d viscosity.d ../gasmodel.d -I../ $(UTIL_FILES) ${LUAD_FILES} -L-L$(LIBLUAPATH) -L-llua -L-ldl
+sutherland_viscosity : sutherland_viscosity.d viscosity.d ../gas_model.d $(UTIL_FILES) $(LIBLUA)
+	dmd -main -unittest sutherland_viscosity.d viscosity.d ../gas_model.d ../physical_constants.d -I../ $(UTIL_FILES) -L-L$(LIBLUAPATH) -L-llua -L-ldl
 
-sutherland_therm_cond : sutherland_therm_cond.d therm_cond.d ../gasmodel.d $(UTIL_FILES) $(LIBLUA)
-	dmd -main -unittest sutherland_therm_cond.d therm_cond.d ../gasmodel.d -I../ $(UTIL_FILES) ${LUAD_FILES} -L-L$(LIBLUAPATH) -L-llua -L-ldl
+sutherland_therm_cond : sutherland_therm_cond.d therm_cond.d ../gas_model.d $(UTIL_FILES) $(LIBLUA)
+	dmd -main -unittest sutherland_therm_cond.d therm_cond.d ../gas_model.d ../physical_constants.d -I../ $(UTIL_FILES) -L-L$(LIBLUAPATH) -L-llua -L-ldl
 
 wilke_mixing_viscosity : wilke_mixing_viscosity.d $(LIBGAS) $(LIBLUA)
 	dmd -main -unittest wilke_mixing_viscosity.d $(LIBGAS) $(LUAD_FILES) $(UTIL_FILES) -I../../ -I$(UTIL_DIR) $(DLINKFLAGS)

@@ -16,10 +16,9 @@
 module luageom;
 
 // We cheat to get the C Lua headers by using LuaD.
-import luad.all;
-import luad.c.lua;
-import luad.c.lauxlib;
+import util.lua;
 import std.stdio;
+import std.string;
 import geom;
 
 immutable string Vector3MT = "Vector3"; // Name of Vector3 metatable
@@ -349,9 +348,8 @@ extern(C) int toStringVector3(lua_State* L)
     return 1;
 }
 
-void registerVector3(LuaState lua)
+void registerVector3(lua_State* L)
 {
-    auto L = lua.state;
     luaL_newmetatable(L, Vector3MT.toStringz);
     
     /* metatable.__index = metatable */

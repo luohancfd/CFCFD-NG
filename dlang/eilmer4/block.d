@@ -8,7 +8,7 @@ import std.conv;
 import std.stdio;
 import std.math;
 import std.json;
-import luad.all;
+import util.lua;
 import geom;
 import gas;
 import kinetics;
@@ -30,7 +30,7 @@ public:
     int id; // block identifier: assumed to be the same as the block number.
     string label;
     LocalConfig myConfig;
-    LuaState myLua;
+    lua_State* myL;
 
     bool active; // if true, block participates in the time integration
     double omegaz; // Angular velocity (in rad/s) of the rotating frame.
@@ -49,16 +49,16 @@ public:
 	this.id = id;
 	this.label = label;
 	myConfig = dedicatedConfig[id];
-	myLua = new LuaState();
-	myLua.openLibs();
-	myLua["blkId"] = id;
-	myLua["n_species"] = dedicatedConfig[id].gmodel.n_species;
-	myLua["n_modes"] = dedicatedConfig[id].gmodel.n_modes;
+	myL = luaL_newstate();
+	luaL_openlibs(myL);
+	lua_pushinteger(myL, id); lua_setglobal(myL, "blkId");
+	lua_pushinteger(myL, dedicatedConfig[id].gmodel.n_species); lua_setglobal(myL, "n_species");
+	lua_pushinteger(myL, dedicatedConfig[id].gmodel.n_modes); lua_setglobal(myL, "n_modes");
     }
 
     override string toString() const { return "Block(id=" ~ to!string(id) ~ ")"; }
 
-    abstract void init_myLua_globals();
+    abstract void init_lua_globals();
     abstract void init_boundary_conditions(JSONValue json_data);
     abstract void assemble_arrays();
     abstract void bind_interfaces_and_vertices_to_cells();

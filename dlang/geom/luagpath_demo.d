@@ -6,7 +6,7 @@
  */
 
 import std.stdio;
-import luad.all;
+import util.lua;
 import geom;
 import gpath;
 import luageom;
@@ -15,11 +15,11 @@ import luagpath;
 void main()
 {
     writeln("Begin demonstration of LuaD connection to Paths.");
-    auto lua = new LuaState;
-    lua.openLibs();
-    registerVector3(lua);
-    registerPaths(lua);
-    lua.doString(`
+    auto L = luaL_newstate();
+    luaL_openlibs(L);
+    registerVector3(L);
+    registerPaths(L);
+    luaL_dostring(L, `
 -- Add a couple of points and alter their data.
 a = Vector3:new{x=1.0, y=2.0}
 b = Vector3:new(0.0, 5.0, 4.0)

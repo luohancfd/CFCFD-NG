@@ -5,8 +5,7 @@
 
 import std.string;
 import std.stdio;
-import luad.all;
-import luad.c.lua;
+import util.lua;
 import util.lua_service;
 
 import geom;
@@ -29,7 +28,7 @@ public:
     {
 	super(id, boundary, "UserDefined");
 	luafname = fname;
-	gasBlocks[id].myLua.doFile(fname);
+	luaL_dofile(gasBlocks[id].myL, fname.toStringz);
     }
     override string toString() const
     {
@@ -115,13 +114,13 @@ public:
     }
 			
 private:
-    void putFlowStateIntoGhostCell(LuaTable t, FVCell ghostCell)
+    void putFlowStateIntoGhostCell(lua_State* L, int tblIdx, FVCell ghostCell)
     {
 	auto gmodel = blk.myConfig.gmodel;
 	try {
-	    ghostCell.fs.gas.p = t.get!double("p");
-	    getArray!double(t.get!LuaTable("T"), ghostCell.fs.gas.T, "T");
-	    getArray!double(t.get!LuaTable("massf"), ghostCell.fs.gas.massf, "massf");
+	    ghostCell.fs.gas.p = getDouble(L, tblIdx, "p");
+	    getArrayOfDoubles(L, tblIdx, "T", ghostCell.fs.gas.T);
+	    getArrayOfDoubles(L, tblIdx, "massf", ghostCell.fs.gas.massf);
 	}
 	catch (Exception e) {
 	    string errMsg = "There was an error trying to read p, T or massf in user-supplied table.\n";
@@ -131,53 +130,62 @@ private:
 	}
 	gmodel.update_thermo_from_pT(ghostCell.fs.gas);
 	gmodel.update_sound_speed(ghostCell.fs.gas);
-	ghostCell.fs.vel.refx = getDouble(t, "velx", 0.0);
-	ghostCell.fs.vel.refy = getDouble(t, "vely", 0.0);
-	ghostCell.fs.vel.refz = getDouble(t, "velz", 0.0);
-	ghostCell.fs.tke = getDouble(t, "tke", 0.0);
-	ghostCell.fs.omega = getDouble(t, "omega", 0.0);
+	ghostCell.fs.vel.refx = getNumberFromTable(L, tblIdx, "velx", false, 0.0);
+	ghostCell.fs.vel.refy = getNumberFromTable(L, tblIdx, "vely", false, 0.0);
+	ghostCell.fs.vel.refz = getNumberFromTable(L, tblIdx, "velz", false, 0.0);
+	ghostCell.fs.tke = getNumberFromTable(L, tblIdx, "tke", false, 0.0);
+	ghostCell.fs.omega = getNumberFromTable(L, tblIdx, "omega", false, 0.0);
     }
 
     void callGhostCellUDF(double t, int gtl, int ftl, size_t i, size_t j, size_t k,
 			  in FVInterface IFace, FVCell ghostCell0, FVCell ghostCell1,
 			  string boundaryName)
     {
-	// 1. Set useful values for caller in table
-	auto args = blk.myLua.newTable(0, 20);
-	args["t"] = t; 
-	args["dt"] = dt_global;
-	args["timeStep"] = step;
-	args["gridTimeLevel"] = gtl;
-	args["flowTimeLevel"] = ftl;
-	args["x"] = IFace.pos.x;
-	args["y"] = IFace.pos.y;
-	args["z"] = IFace.pos.z;
-	args["csX"] = IFace.n.x;
-	args["csY"] = IFace.n.y;
-	args["csZ"] = IFace.n.z;
-	args["csX1"] = IFace.t1.x;
-	args["csY1"] = IFace.t1.y;
-	args["csZ1"] = IFace.t1.z;
-	args["csX2"] = IFace.t2.x;
-	args["csY2"] = IFace.t2.y;
-	args["csZ2"] = IFace.t2.z;
-	args["i"] = i;
-	args["j"] = j;
-	args["k"] = k;
+	// 1. Set up for calling function
+	auto L = blk.myL;
+	// 1a. Place function to call at TOS
+	lua_getglobal(L, toStringz("ghostCells_"~boundaryName));
+	// 1b. Then put arguments (as single table) at TOS
+	lua_newtable(L);
+	lua_pushnumber(L, t); lua_setfield(L, -2, "t");
+	lua_pushnumber(L, dt_global); lua_setfield(L, -2, "dt");
+	lua_pushinteger(L, step); lua_setfield(L, -2, "timeStep");
+	lua_pushinteger(L, gtl); lua_setfield(L, -2, "gridTimeLevel");
+	lua_pushinteger(L, ftl); lua_setfield(L, -2, "flowTimeLevel");
+	lua_pushnumber(L, IFace.pos.x); lua_setfield(L, -2, "x");
+	lua_pushnumber(L, IFace.pos.y); lua_setfield(L, -2, "y");
+	lua_pushnumber(L, IFace.pos.z); lua_setfield(L, -2, "z");
+	lua_pushnumber(L, IFace.n.x); lua_setfield(L, -2, "csX");
+	lua_pushnumber(L, IFace.n.y); lua_setfield(L, -2, "csY");
+	lua_pushnumber(L, IFace.n.z); lua_setfield(L, -2, "csZ");
+	lua_pushnumber(L, IFace.t1.x); lua_setfield(L, -2, "csX1");
+	lua_pushnumber(L, IFace.t1.y); lua_setfield(L, -2, "csY1");
+	lua_pushnumber(L, IFace.t1.z); lua_setfield(L, -2, "csZ1");
+	lua_pushnumber(L, IFace.t2.x); lua_setfield(L, -2, "csX2");
+	lua_pushnumber(L, IFace.t2.y); lua_setfield(L, -2, "csY2");
+	lua_pushnumber(L, IFace.t2.z); lua_setfield(L, -2, "csZ2");
+	lua_pushinteger(L, i); lua_setfield(L, -2, "i");
+	lua_pushinteger(L, j); lua_setfield(L, -2, "j");
+	lua_pushinteger(L, k); lua_setfield(L, -2, "k");
 	
 	// 2. Call LuaFunction and expect two tables of ghost cell flow state
-	auto f = blk.myLua.get!LuaFunction("ghostCells_"~boundaryName);
-	LuaObject[] ret = f(args);
-	if ( ret.length < 2 ) {
-	    string errMsg = "ERROR: There was a problem in the call to the user-defined ghost cell boundary condition.\n";
-	    errMsg ~= format("ERROR: This occurred for block [%d] on the %s boundary.", blk.id, face_name[which_boundary]);
-	    errMsg ~= "ERROR: Two tables of flow state for the ghost cells are expected\n";
-	    errMsg ~= "ERROR: but were not received.\n";
-	    throw new Exception(errMsg);
+	int number_args = 1;
+	int number_results = 2; // expecting two table of ghostCells
+
+	if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
+	    luaL_error(L, "error running user flow function: %s\n",
+		       lua_tostring(L, -1));
 	}
+
 	// 3. Grab Flowstate data from table and populate ghost cell
-	putFlowStateIntoGhostCell(ret[0].to!LuaTable(), ghostCell0);
-	putFlowStateIntoGhostCell(ret[1].to!LuaTable(), ghostCell1);
+	// Stack positions:
+	//    -2 :: ghostCell0
+	//    -1 :: ghostCell1
+	putFlowStateIntoGhostCell(L, -2, ghostCell0);
+	putFlowStateIntoGhostCell(L, -1, ghostCell1);
+
+	// 4. Clear stack
+	lua_settop(L, 0);
     }
 } // end class UserDefinedGhostCell
 
@@ -189,7 +197,7 @@ public:
     {
 	super(id, boundary, "UserDefined");
 	luafname = fname;
-	gasBlocks[id].myLua.doFile(fname);
+	luaL_dofile(gasBlocks[id].myL, fname.toStringz);
     }
 
     override string toString() const
@@ -267,83 +275,109 @@ public:
 	} // end switch which boundary
     }
 private:
-    void putFlowStateIntoInterface(LuaTable t, FVInterface iface)
+    void putFlowStateIntoInterface(lua_State* L, int tblIdx, FVInterface iface)
     {
-	// [TODO] It would be more elegant to iterate over
-	// the key-value pairs. We'll do this when we move
-	// back to the pure C LUA API.
-
-	// Now the user might only set some of the flowstate.
+	// Now the user might only set some of the flowstate
+	// since they might be relying on another boundary
+	// effect to do some work.
 	// So we need to test every possibility and only set
 	// the non-nil values.
 	FlowState fs = iface.fs;
+	
+	lua_getfield(L, tblIdx, "p");
+	if ( !lua_isnil(L, -1) ) {
+	    fs.gas.p = getDouble(L, tblIdx, "p");
+	}
+	lua_pop(L, 1);
 
-	if ( !t.get!LuaObject("p").isNil ) {
-	    fs.gas.p = t.get!double("p");
-	}
-	if ( !t.get!LuaObject("T").isNil ) {
+	lua_getfield(L, tblIdx, "T");
+	if ( !lua_isnil(L, -1) ) {
 	    // Temperature should be provided as an array.
-	    getArray!double(t.get!LuaTable("T"), fs.gas.T, "T");
+	    getArrayOfDoubles(L, tblIdx, "T", fs.gas.T);
 	}
-	if ( !t.get!LuaObject("massf").isNil ) {
+	lua_pop(L, 1);
+
+	lua_getfield(L, tblIdx, "massf");
+	if ( !lua_isnil(L, -1) ) {
 	    // mass fractions should be provided as an array
-	    getArray!double(t.get!LuaTable("massf"), fs.gas.massf, "massf");
+	    getArrayOfDoubles(L, tblIdx, "massf", fs.gas.massf);
 	}
-	if ( !t.get!LuaObject("velx").isNil ) {
-	    fs.vel.refx = t.get!double("velx");
+	lua_pop(L, 1);
+
+	lua_getfield(L, tblIdx, "velx");
+	if ( !lua_isnil(L, -1) ) {
+	    fs.vel.refx = getDouble(L, tblIdx, "velx");
 	}
-	if ( !t.get!LuaObject("vely").isNil ) {
-	    fs.vel.refy = t.get!double("vely");
+	lua_pop(L, 1);
+
+	lua_getfield(L, tblIdx, "vely");
+	if ( !lua_isnil(L, -1) ) {
+	    fs.vel.refy = getDouble(L, tblIdx, "vely");
 	}
-	if ( !t.get!LuaObject("velz").isNil ) {
-	    fs.vel.refz = t.get!double("velz");
+	lua_pop(L, 1);
+
+	lua_getfield(L, tblIdx, "velz");
+	if ( !lua_isnil(L, -1) ) {
+	    fs.vel.refz = getDouble(L, tblIdx, "velz");
 	}
-	if ( !t.get!LuaObject("tke").isNil ) {
-	    fs.tke = t.get!double("tke");
+	lua_pop(L, 1);
+
+	lua_getfield(L, tblIdx, "tke");
+	if ( !lua_isnil(L, -1) ) {
+	    fs.tke = getDouble(L, tblIdx, "tke");
 	}
-	if ( !t.get!LuaObject("omega").isNil ) {
-	    fs.omega = t.get!double("omega");
+	lua_pop(L, 1);
+
+	lua_getfield(L, tblIdx, "omega");
+	if ( !lua_isnil(L, -1) ) {
+	    fs.omega = getDouble(L, tblIdx, "omega");
 	}
+	lua_pop(L, 1);
     }
 	    
     void callInterfaceUDF(double t, int gtl, int ftl, size_t i, size_t j, size_t k,
 			  FVInterface IFace, string boundaryName)
     {
-	// 1. Set useful values for caller in table
-	auto args = blk.myLua.newTable(0, 20);
-	args["t"] = t; 
-	args["dt"] = dt_global;
-	args["timeStep"] = step;
-	args["gridTimeLevel"] = gtl;
-	args["flowTimeLevel"] = ftl;
-	args["x"] = IFace.pos.x;
-	args["y"] = IFace.pos.y;
-	args["z"] = IFace.pos.z;
-	args["csX"] = IFace.n.x;
-	args["csY"] = IFace.n.y;
-	args["csZ"] = IFace.n.z;
-	args["csX1"] = IFace.t1.x;
-	args["csY1"] = IFace.t1.y;
-	args["csZ1"] = IFace.t1.z;
-	args["csX2"] = IFace.t2.x;
-	args["csY2"] = IFace.t2.y;
-	args["csZ2"] = IFace.t2.z;
-	args["i"] = i;
-	args["j"] = j;
-	args["k"] = k;
-	
-	// 2. Call LuaFunction and expect a table of values for flow state
-	auto f = blk.myLua.get!LuaFunction("interface_"~boundaryName);
-	LuaObject[] ret = f(args);
-	if ( ret.length < 1 ) {
-	    string errMsg = "ERROR: There was a problem in the call to the user-defined interface boundary condition.\n";
-	    errMsg ~= format("ERROR: This occurred for block [%d] on the %s boundary.", blk.id, face_name[which_boundary]);
-	    errMsg ~= "ERROR: One table of flow state for the interface is expected\n";
-	    errMsg ~= "ERROR: but zero were not received.\n";
-	    throw new Exception(errMsg);
-	}
-	// 3. Grab Flowstate data from table and populate interface
-	putFlowStateIntoInterface(ret[0].to!LuaTable(), IFace);
-    }
+	// 1. Set up for calling function
+	auto L = blk.myL;
+	// 1a. Place function to call at TOS
+	lua_getglobal(L, toStringz("interface_"~boundaryName));
+	// 1b. Then put arguments (as single table) at TOS
+	lua_newtable(L);
+	lua_pushnumber(L, t); lua_setfield(L, -2, "t");
+	lua_pushnumber(L, dt_global); lua_setfield(L, -2, "dt");
+	lua_pushinteger(L, step); lua_setfield(L, -2, "timeStep");
+	lua_pushinteger(L, gtl); lua_setfield(L, -2, "gridTimeLevel");
+	lua_pushinteger(L, ftl); lua_setfield(L, -2, "flowTimeLevel");
+	lua_pushnumber(L, IFace.pos.x); lua_setfield(L, -2, "x");
+	lua_pushnumber(L, IFace.pos.y); lua_setfield(L, -2, "y");
+	lua_pushnumber(L, IFace.pos.z); lua_setfield(L, -2, "z");
+	lua_pushnumber(L, IFace.n.x); lua_setfield(L, -2, "csX");
+	lua_pushnumber(L, IFace.n.y); lua_setfield(L, -2, "csY");
+	lua_pushnumber(L, IFace.n.z); lua_setfield(L, -2, "csZ");
+	lua_pushnumber(L, IFace.t1.x); lua_setfield(L, -2, "csX1");
+	lua_pushnumber(L, IFace.t1.y); lua_setfield(L, -2, "csY1");
+	lua_pushnumber(L, IFace.t1.z); lua_setfield(L, -2, "csZ1");
+	lua_pushnumber(L, IFace.t2.x); lua_setfield(L, -2, "csX2");
+	lua_pushnumber(L, IFace.t2.y); lua_setfield(L, -2, "csY2");
+	lua_pushnumber(L, IFace.t2.z); lua_setfield(L, -2, "csZ2");
+	lua_pushinteger(L, i); lua_setfield(L, -2, "i");
+	lua_pushinteger(L, j); lua_setfield(L, -2, "j");
+	lua_pushinteger(L, k); lua_setfield(L, -2, "k");
 
-} // end class BIE_UserDefined
+	// 2. Call LuaFunction and expect a table of values for flow state
+	int number_args = 1;
+	int number_results = 1;
+	if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
+	    luaL_error(L, "error running user flow function: %s\n",
+		       lua_tostring(L, -1));
+	}
+
+	// 3. Grab Flowstate data from table and populate interface
+	putFlowStateIntoInterface(L, -1, IFace);
+
+	// 4. Clear stack
+	lua_settop(L, 0);
+    }
+} // end class UserDefinedGhostCell
+

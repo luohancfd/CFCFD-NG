@@ -8,12 +8,10 @@
 module luasgrid;
 
 // We cheat to get the C Lua headers by using LuaD.
-import luad.all;
-import luad.c.lua;
-import luad.c.lauxlib;
 import std.stdio;
 import std.string;
 import std.conv;
+import util.lua;
 import util.lua_service;
 import univariatefunctions;
 import geom;
@@ -246,10 +244,8 @@ At least one argument is required: the name of the Gridpro file.`;
 }
 
 
-void registerStructuredGrid(LuaState lua)
+void registerStructuredGrid(lua_State* L)
 {
-    auto L = lua.state;
-
     // Register the StructuredGrid object
     luaL_newmetatable(L, StructuredGridMT.toStringz);
     

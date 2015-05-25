@@ -18,7 +18,7 @@ import std.string;
 import std.file;
 import std.json;
 import std.conv;
-import luad.all;
+import util.lua;
 import util.lua_service;
 import util.msg_service;
 import std.c.stdlib : exit;
@@ -32,26 +32,33 @@ public:
 	_species_names ~= "ideal air";
 	_mol_masses ~= 0.02896; // value for sea-level air
     }
-    this(LuaState lua) {
+
+    this(lua_State *L) {
 	this();
-	auto t = lua.get!LuaTable("IdealGas");
-	// The species name was set to 'ideal air' by default.
+	// Bring table to TOS
+	lua_getglobal(L, "IdealGas");
 	// Let's overwrite that here.
-	_species_names[0] = t.get!string("speciesName");
+	_species_names[0] = getString(L, -1, "speciesName");
 	// Now, pull out the remaining numeric value parameters.
-	_mol_masses ~= t.get!double("mMass");
-	_gamma = t.get!double("gamma");
+	_mol_masses ~= getDouble(L, -1, "mMass");
+	_gamma = getDouble(L, -1, "gamma");
 	// Reference values for entropy
-	_s1 = t.get!double("entropyRefValues", "s1");
-	_T1 = t.get!double("entropyRefValues", "T1");
-	_p1 = t.get!double("entropyRefValues", "p1");
+	lua_getfield(L, -1, "entropyRefValues");
+	_s1 = getDouble(L, -1, "s1");
+	_T1 = getDouble(L, -1, "T1");
+	_p1 = getDouble(L, -1, "p1");
+	lua_pop(L, 1);
 	// Molecular transport coefficent constants.
-	_mu_ref = t.get!double("sutherlandVisc", "mu_ref");
-	_T_mu = t.get!double("sutherlandVisc", "T_ref");
-	_S_mu = t.get!double("sutherlandVisc", "S");
-	_k_ref = t.get!double("sutherlandThermCond", "k_ref");
-	_T_k = t.get!double("sutherlandThermCond", "T_ref");
-	_S_k = t.get!double("sutherlandThermCond", "S");
+	lua_getfield(L, -1, "sutherlandVisc");
+	_mu_ref = getDouble(L, -1, "mu_ref");
+	_T_mu = getDouble(L, -1, "T_ref");
+	_S_mu = getDouble(L, -1, "S");
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "sutherlandThermCond");
+	_k_ref = getDouble(L, -1, "k_ref");
+	_T_k = getDouble(L, -1, "T_ref");
+	_S_k = getDouble(L, -1, "S");
+	lua_pop(L, 1);
 	// Compute derived parameters
 	_Rgas = R_universal/_mol_masses[0];
 	_Cv = _Rgas / (_gamma - 1.0);
@@ -197,9 +204,9 @@ unittest {
     assert(approxEqual(gd.mu, 1.84691e-05), failedUnitTest());
     assert(approxEqual(gd.k[0], 0.0262449), failedUnitTest());
 
-    auto lua = new LuaState;
-    lua.doFile("sample-data/ideal-air-gas-model.lua");
-    gm = new IdealGas(lua);
+    lua_State* L = init_lua_State("sample-data/ideal-air-gas-model.lua");
+    gm = new IdealGas(L);
+    lua_close(L);
     assert(approxEqual(gm.R(gd), 287.086), failedUnitTest());
     assert(gm.n_modes == 1, failedUnitTest());
     assert(gm.n_species == 1, failedUnitTest());
@@ -215,5 +222,4 @@ unittest {
     gm.update_trans_coeffs(gd);
     assert(approxEqual(gd.mu, 1.84691e-05), failedUnitTest());
     assert(approxEqual(gd.k[0], 0.0262449), failedUnitTest());
-
 }

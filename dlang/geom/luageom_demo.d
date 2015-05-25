@@ -7,16 +7,16 @@
  */
 
 import std.stdio;
-import luad.all;
+import util.lua;
 import luageom;
 
 void main()
 {
     writeln("Begin demo of wrapped D Vector3 struct for use in Lua.");
-    auto lua = new LuaState;
-    lua.openLibs();
-    registerVector3(lua);
-    lua.doString(`
+    auto L = luaL_newstate();
+    luaL_openlibs(L);
+    registerVector3(L);
+    luaL_dostring(L, `
 -- Add some points and manipulate them.
 print("Test some constructors.")
 a = Vector3:new()
@@ -40,9 +40,9 @@ print("g= ", g)
 assert(g:x() == -f:x()); assert(g:y() == -f:y()); assert(g:z() == -f:z())
 h = a + b
 assert(h:x() == a:x() + b:x()); assert(h:y() == a:y() + b:y()); assert(h:z() == a:z() + b:z())
+i = unit(h)
 h:normalize()
 print("After normalizing, h=", h)
-i = unit(h)
 assert(h:x() == i:x()); assert(h:y() == i:y()); assert(h:z() == i:z())
 assert(vabs(i) == 1.0)
 j = dot(g, f)

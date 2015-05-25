@@ -9,9 +9,10 @@ module kinetics.reaction_mechanism;
 import std.stdio;
 import std.algorithm;
 import std.math;
+import std.conv;
 
 import gas;
-import luad.all;
+import util.lua;
 import util.lua_service;
 import util.msg_service;
 import kinetics.rate_constant;
@@ -148,21 +149,24 @@ private:
  +         [n]={... reaction n info ...}
  +       }
  +/ 
-ReactionMechanism createReactionMechanism(LuaTable t, in GasModel gmodel)
+ReactionMechanism createReactionMechanism(lua_State* L, in GasModel gmodel)
 {
     auto n_species = gmodel.n_species;
-    auto n_reactions = t.length;
+    auto n_reactions = to!int(lua_objlen(L, -1));
     Reaction[] reactions;
     foreach ( i; 1..n_reactions+1 ) {
-	reactions ~= createReaction(t.get!LuaTable(i), n_species);
+	lua_rawgeti(L, -1, i);
+	reactions ~= createReaction(L, n_species);
+	lua_pop(L, 1);
     }
     return new ReactionMechanism(reactions, n_species);
 }
 
 ReactionMechanism createReactionMechanism(string fname, in GasModel gmodel)
 {
-    auto lua = initLuaState(fname);
-    return createReactionMechanism(lua.get!LuaTable("reaction"), gmodel);
+    auto L = init_lua_State(fname);
+    lua_getglobal(L, "reaction");
+    return createReactionMechanism(L, gmodel);
 }
 
 unittest

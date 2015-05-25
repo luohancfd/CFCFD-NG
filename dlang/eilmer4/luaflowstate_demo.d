@@ -8,7 +8,7 @@
 
 import std.stdio;
 
-import luad.all;
+import util.lua;
 import luageom;
 import luaflowstate;
 import luaglobalconfig;
@@ -16,12 +16,12 @@ import luaglobalconfig;
 void main()
 {
     writeln("Begin demonstration of Lua connection to FlowState object.");
-    auto lua = new LuaState;
-    lua.openLibs();
-    registerVector3(lua);
-    registerGlobalConfig(lua);
-    registerFlowState(lua);
-    lua.doString(`
+    auto L = luaL_newstate();
+    luaL_openlibs(L);
+    registerVector3(L);
+    registerGlobalConfig(L);
+    registerFlowState(L);
+    luaL_dostring(L, `
 nsp, nmodes = setGasModel('sample-data/ideal-air-gas-model.lua')
 print("GasModel set to ideal air. nsp= ", nsp, " nmodes= ", nmodes)
 fs = FlowState:new{p=1.0e5, T=300.0, velx=1000.0, vely=200.0}

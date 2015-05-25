@@ -17,9 +17,9 @@ import std.string;
 import std.file;
 import std.json;
 import std.conv;
-import luad.all;
 import std.c.stdlib : exit;
 import util.msg_service;
+import util.lua;
 
 class VeryViscousAir: GasModel {
 public:
@@ -36,6 +36,23 @@ public:
 	_mu = 10.0;
 	double Pr = 1.0;
 	_k = _mu * _Cp / Pr;
+    }
+
+    this(lua_State* L)
+    {
+	this();
+	lua_getglobal(L, "VeryViscousAir");
+	// Possibly override k and mu
+	lua_getfield(L, -1, "mu");
+	if ( !lua_isnil(L, -1) ) {
+	    _mu = to!double(lua_tonumber(L, -1));
+	}
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "k");
+	if ( !lua_isnil(L, -1) ) {
+	    _k = to!double(lua_tonumber(L, -1));
+	}
+	lua_pop(L, 1);
     }
 
     override string toString() const

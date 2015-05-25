@@ -14,7 +14,8 @@ import gas.therm_perf_gas;
 import gas.very_viscous_air;
 import std.file;
 import std.stdio;
-import luad.all;
+import util.lua;
+import util.lua_service;
 import std.c.stdlib : exit;
 
 /**
@@ -30,10 +31,9 @@ import std.c.stdlib : exit;
  * add a new case to the switch statement below.
  */
 GasModel init_gas_model(in string file_name="gas-model.lua") {
-    auto lua  = new LuaState;
-    lua.openLibs();
+    lua_State* L;
     try { 
-        lua.doFile(file_name);
+        L = init_lua_State(file_name);
     } catch (Exception e) {
         writeln("ERROR: in function init_gas_model() in gasmodelutil.d");
         writeln("ERROR: There was a problem parsing the input file: ", file_name);
@@ -43,9 +43,9 @@ GasModel init_gas_model(in string file_name="gas-model.lua") {
     }
     string gas_model_name;
     try {
-    	gas_model_name = lua.get!string("model");
+    	gas_model_name = getString(L, LUA_GLOBALSINDEX, "model");
     } catch (Exception e) {
-        writeln("ERROR: in function init_gas_model() in gasmodelutil.d");
+        writeln("ERROR: in function init_gas_model() in gas_model_util.d");
         writeln("ERROR: There was a problem reading the 'model' name" );
 	writeln("ERROR: in the gas model input Lua file.");
 	writeln("ERROR: Quitting at this point.");
@@ -55,13 +55,13 @@ GasModel init_gas_model(in string file_name="gas-model.lua") {
     GasModel gm;
     switch ( gas_model_name ) {
     case "IdealGas":
-	gm = new IdealGas(lua);
+	gm = new IdealGas(L);
 	break;
     case "ThermallyPerfectGas":
-	gm = new ThermallyPerfectGas(lua);
+	gm = new ThermallyPerfectGas(L);
 	break;
     case "VeryViscousAir":
-	gm = new VeryViscousAir();
+	gm = new VeryViscousAir(L);
 	break;
     default:
 	gm = new IdealGas();

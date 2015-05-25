@@ -8,17 +8,17 @@
 
 import std.stdio;
 
-import luad.all;
+import util.lua;
 import globalconfig;
 import luaglobalconfig;
 
 void main()
 {
     writeln("Begin demonstration of Lua connection to GlobalConfig object.");
-    auto lua = new LuaState;
-    lua.openLibs();
-    registerGlobalConfig(lua);
-    lua.doString(`
+    auto L = luaL_newstate();
+    luaL_openlibs(L);
+    registerGlobalConfig(L);
+    luaL_dostring(L, `
 -- Gas Model 
 nsp, nmodes = setGasModel('sample-data/ideal-air-gas-model.lua')
 print("GasModel set to ideal air. nsp= ", nsp, " nmodes= ", nmodes)

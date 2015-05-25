@@ -8,11 +8,9 @@
 module luaunifunction;
 
 // We cheat to get the C Lua headers by using LuaD.
-import luad.all;
-import luad.c.lua;
-import luad.c.lauxlib;
 import std.stdio;
 import std.string;
+import util.lua;
 import util.lua_service;
 import univariatefunctions;
 
@@ -109,10 +107,8 @@ The value, if present, should be boolean (true or false).`;
     return 1;
 }
 
-void registerUnivariateFunctions(LuaState lua)
+void registerUnivariateFunctions(lua_State* L)
 {
-    auto L = lua.state;
-
     // Register the LinearFunction object
     luaL_newmetatable(L, LinearFunctionMT.toStringz);
     

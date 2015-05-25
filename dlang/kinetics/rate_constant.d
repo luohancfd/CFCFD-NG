@@ -9,7 +9,7 @@ module kinetics.rate_constant;
 
 import std.math;
 import std.string;
-import luad.all;
+import util.lua;
 import util.lua_service;
 import gas;
 
@@ -51,11 +51,11 @@ public:
 	_n = n;
 	_C = C;
     }
-    this(LuaTable t)
+    this(lua_State* L)
     {
-	_A = t.get!double("A");
-	_n = t.get!double("n");
-	_C = t.get!double("C");
+	_A = getDouble(L, -1, "A");
+	_n = getDouble(L, -1, "n");
+	_C = getDouble(L, -1, "C");
     }
     ArrheniusRateConstant dup() const
     {
@@ -78,12 +78,12 @@ private:
  +        -- then model-specific parameters follow.
  +        A=..., n=..., C=...}
  +/
-RateConstant createRateConstant(LuaTable t)
+RateConstant createRateConstant(lua_State* L)
 {
-    auto model = t.get!string("model");
+    auto model = getString(L, -1, "model");
     switch (model) {
     case "Arrhenius":
-	return new ArrheniusRateConstant(t);
+	return new ArrheniusRateConstant(L);
     default:
 	string msg = format("The rate constant model: %s could not be created.", model);
 	throw new Exception(msg);
@@ -100,8 +100,9 @@ unittest {
     assert(approxEqual(3.10850956e-5, rc.eval(gd)), failedUnitTest());
     // Test 2. Read rate constant parameters for nitrogen dissociation
     // from Lua input and compute rate constant at 4000.0 K
-    auto lua = initLuaState("sample-input/N2-diss.lua");
-    auto rc2 = new ArrheniusRateConstant(lua.get!LuaTable("rate"));
+    auto L = init_lua_State("sample-input/N2-diss.lua");
+    lua_getglobal(L, "rate");
+    auto rc2 = new ArrheniusRateConstant(L);
     gd.T[0] = 4000.0;
     assert(approxEqual(0.00159439, rc2.eval(gd)), failedUnitTest());
 

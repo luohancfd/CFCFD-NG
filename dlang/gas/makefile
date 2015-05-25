@@ -10,7 +10,8 @@ UNITTEST_FILES := therm_perf_gas_test \
 	ideal_gas_test
 
 UTIL_DIR := ../util
-UTIL_FILES := $(UTIL_DIR)/lua_service.d \
+UTIL_FILES := $(UTIL_DIR)/lua.d \
+	$(UTIL_DIR)/lua_service.d \
 	$(UTIL_DIR)/msg_service.d
 
 NM_DIR := ../nm
@@ -19,13 +20,8 @@ NM_FILES := $(NM_DIR)/ridder.d
 LUA := ../../extern/lua-5.1.4
 LIBLUA := $(LUA)/lib/liblua.a
 LIBLUAPATH := $(LUA)/lib
-LUAD_DIR := ../extern/LuaD
-LUAD_FILES := $(wildcard $(LUAD_DIR)/luad/*.d) \
-	$(wildcard $(LUAD_DIR)/luad/c/*.d) \
-	$(wildcard $(LUAD_DIR)/luad/conversions/*.d)
 
 GAS_DIR := .
-
 GAS_MODEL_FILES := \
 	$(GAS_DIR)/package.d \
 	$(GAS_DIR)/gas_model.d \
@@ -64,7 +60,7 @@ ifeq ($(DMD), dmd)
 endif
 ifeq ($(DMD), ldmd2)
     DFLAGS := -w -O -release -inline -boundscheck=off \
-	-I.. -I../util -I../extern/LuaD -I../nm
+	-I.. -I../util -I../nm
     OF := -of
     DLINKFLAGS := -L-L$(LIBLUAPATH) -L-llua -L-ldl
     LIBNAME := ./gas
@@ -76,8 +72,8 @@ ifeq ($(DMD), gdc)
     DLINKFLAGS := -L$(LIBLUAPATH) $(LIBLUA) -ldl
 endif
 
-libgas.a : $(GAS_FILES) $(LUAD_FILES) $(UTIL_FILES) $(NM_FILES)
-	$(DMD) -lib $(GAS_FILES) $(LUAD_FILES) $(UTIL_FILES) $(NM_FILES) $(OF)$(LIBNAME) $(DFLAGS)
+libgas.a : $(GAS_FILES) $(UTIL_FILES) $(NM_FILES)
+	$(DMD) -lib $(GAS_FILES) $(UTIL_FILES) $(NM_FILES) $(OF)$(LIBNAME) $(DFLAGS)
 
 demo: ${DEMO_PROGRAMS}
 	echo "Demo programs built."
@@ -92,27 +88,27 @@ install-prep-gas: prep_gas.lua
 $(LIBLUA):
 	cd $(LUA); make linux local
 
-gas_model_demo: gas_model_demo.d $(LUAD_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
+gas_model_demo: gas_model_demo.d $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
 	$(DMD) -g $(DFLAGS) gas_model_demo.d $(OF)gas_model_demo \
-		$(GAS_FILES) $(LUAD_FILES) $(UTIL_FILES) $(NM_FILES) \
+		$(GAS_FILES) $(UTIL_FILES) $(NM_FILES) \
 		$(DLINKFLAGS)
 
-ideal_gas_demo: ideal_gas_demo.d $(LUAD_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
+ideal_gas_demo: ideal_gas_demo.d $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
 	$(DMD) -g $(DFLAGS) ideal_gas_demo.d $(OF)ideal_gas_demo \
-		$(GAS_FILES) $(LUAD_FILES) $(UTIL_FILES) $(NM_FILES) \
+		$(GAS_FILES) $(UTIL_FILES) $(NM_FILES) \
 		$(DLINKFLAGS)
 
-ideal_gas_test : ideal_gas.d libgas.a $(LUAD_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
+ideal_gas_test : ideal_gas.d libgas.a $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
 	$(DMD) -main -unittest $(DFLAGS) ideal_gas.d $(OF)ideal_gas_test \
-		libgas.a $(LUAD_FILES) $(UTIL_FILES) $(NM_FILES) \
+		libgas.a $(UTIL_FILES) $(NM_FILES) \
 		$(DLINKFLAGS)
 
-therm_perf_gas_test : therm_perf_gas.d libgas.a $(LUAD_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
+therm_perf_gas_test : therm_perf_gas.d libgas.a $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
 	$(DMD) -main -unittest $(DFLAGS) therm_perf_gas.d $(OF)therm_perf_gas_test \
-		libgas.a $(LUAD_FILES) $(UTIL_FILES) $(NM_FILES) \
+		libgas.a $(UTIL_FILES) $(NM_FILES) \
 		$(DLINKFLAGS)
 
-very_viscous_air_test : very_viscous_air.d libgas.a $(LUAD_FILES) $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
+very_viscous_air_test : very_viscous_air.d libgas.a $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
 	$(DMD) -main -unittest $(DFLAGS) very_viscous_air.d $(OF)very_viscous_air_test \
-		libgas.a $(LUAD_FILES) $(UTIL_FILES) $(NM_FILES) \
+		libgas.a $(UTIL_FILES) $(NM_FILES) \
 		$(DLINKFLAGS)

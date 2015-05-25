@@ -7,10 +7,8 @@
 // Lua script.
 //
 // RG & PJ 2015-03-17 -- First hack (with Guiness in hand)
-
-import luad.all;
-import luad.stack;
-import luad.c.lua;
+import std.stdio;
+import util.lua;
 import fvcell;
 import luaflowstate;
 import globaldata;
@@ -28,13 +26,13 @@ extern(C) int luafn_sampleFlow(lua_State *L)
     auto i = lua_tointeger(L, 2);
     auto j = lua_tointeger(L, 3);
     auto k = lua_tointeger(L, 4);
-    
+
     // Grab the appropriate cell
     auto cell = gasBlocks[blkId].get_cell(i, j, k);
     
     // Return the interesting bits as a table.
     lua_newtable(L);
-    pushCellToTable(cell, 0, L);
+    pushCellToTable(L, -1, cell, 0);
     return 1;
 }
 
@@ -42,25 +40,19 @@ extern(C) int luafn_sampleFlow(lua_State *L)
 // D code functions
 
 /**
- * Push the interesting data from a cell to a LuaD LuaTable.
+ * Push the interesting data from a cell to a Lua table
+ *
  */
-void pushCellToLuaTable(in FVCell cell, size_t gtl, LuaTable tab)
+void pushCellToTable(lua_State* L, int tblIdx, in FVCell cell, size_t gtl)
 {
-    tab["x"] = cell.pos[gtl].x;
-    tab["y"] = cell.pos[gtl].y;
-    tab["z"] = cell.pos[gtl].z;
-    tab["vol"] = cell.volume[gtl];
-    pushFlowStateToLuaTable(cell.fs, tab);
+    lua_pushnumber(L, cell.pos[gtl].x); lua_setfield(L, tblIdx-1, "x");
+    lua_pushnumber(L, cell.pos[gtl].y); lua_setfield(L, tblIdx-1, "y");
+    lua_pushnumber(L, cell.pos[gtl].z); lua_setfield(L, tblIdx-1, "z");
+    lua_pushnumber(L, cell.volume[gtl]); lua_setfield(L, tblIdx-1, "vol");
+    pushFlowStateToTable(L, tblIdx, cell.fs);
 }
 
-/**
- * Push the interesting data from a cell to Lua table at TOS.
- */
-void pushCellToTable(in FVCell cell, size_t gtl, lua_State* L)
-{
-    auto tab = getValue!LuaTable(L, -1);
-    pushCellToLuaTable(cell, gtl, tab);
-}
+
 
 
 

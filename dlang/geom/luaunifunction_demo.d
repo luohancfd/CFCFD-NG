@@ -6,17 +6,17 @@
  */
 
 import std.stdio;
-import luad.all;
+import util.lua;
 import univariatefunctions;
 import luaunifunction;
 
 void main()
 {
     writeln("Begin demonstration of LuaD connection to UnivariateFunctions.");
-    auto lua = new LuaState;
-    lua.openLibs();
-    registerUnivariateFunctions(lua);
-    lua.doString(`
+    auto L = luaL_newstate();
+    luaL_openlibs(L);
+    registerUnivariateFunctions(L);
+    luaL_dostring(L, `
 -- Make a function and sample it.
 myf = LinearFunction:new{t0=0.0, t1=3.0}
 print("Try evaluating a point midway on the line.")

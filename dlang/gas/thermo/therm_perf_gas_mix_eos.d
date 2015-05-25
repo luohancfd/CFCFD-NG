@@ -26,7 +26,7 @@ import gas.physical_constants;
 import gas.thermo.evt_eos;
 import gas.thermo.cea_thermo_curves;
 import ridder;
-import luad.all;
+import util.lua;
 import util.lua_service;
 
 /++
@@ -111,15 +111,18 @@ private:
     double[] _energy;
 }
 
-ThermallyPerfectGasMixEOS createThermallyPerfectGasMixEOS(string[] species, ref LuaState lua)
+ThermallyPerfectGasMixEOS createThermallyPerfectGasMixEOS(string[] species, lua_State* L)
 {
     double[] R = new double[species.length];
     CEAThermo[] curves;
     foreach ( isp, s; species ) {
-	double M = lua.get!double(s, "M");
-	R[isp] = R_universal/lua.get!double(s, "M");
-	auto t = lua.get!LuaTable(s, "cea_thermo");
-	curves ~= createCEAThermo(t, R[isp]);
+	lua_getfield(L, LUA_GLOBALSINDEX, s.toStringz);
+	double M = getDouble(L, -1, "M");
+	R[isp] = R_universal/M;
+	lua_getfield(L, -1, "cea_thermo");
+	curves ~= createCEAThermo(L, R[isp]);
+	lua_pop(L, 1);
+	lua_pop(L, 1);
     }
     return new ThermallyPerfectGasMixEOS(R, curves);
 }
@@ -128,13 +131,10 @@ unittest
 {
     import std.math;
     import util.msg_service;
-
-    auto lua = new LuaState;
-    lua.openLibs();
-    lua.doFile("sample-data/O2-N2-H2.lua");
+    auto L = init_lua_State("sample-data/O2-N2-H2.lua");
     string[] species;
-    getArray!string(lua.get!LuaTable("species"), species, "species");
-    ThermallyPerfectGasMixEOS tpgm = createThermallyPerfectGasMixEOS(species, lua);
+    getArrayOfStrings(L, LUA_GLOBALSINDEX, "species", species);
+    ThermallyPerfectGasMixEOS tpgm = createThermallyPerfectGasMixEOS(species, L);
     auto Q = new GasState(3, 1);
     Q.massf[0] = 0.2; Q.massf[1] = 0.7; Q.massf[2] = 0.1;
     Q.T[0] = 1000.0;
