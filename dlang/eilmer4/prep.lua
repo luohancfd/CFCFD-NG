@@ -1135,9 +1135,18 @@ function write_config_file(fileName)
    f:write(string.format('"control_count": %d,\n', config.control_count))
    f:write(string.format('"nblock": %d,\n', #(blocks)))
 
+   f:write(string.format('"block_marching": %s,\n',
+			 tostring(config.block_marching)))
+   f:write(string.format('"nib": %d,\n', config.nib))
+   f:write(string.format('"njb": %d,\n', config.njb))
+   f:write(string.format('"nkb": %d,\n', config.nkb))
+   f:write(string.format('"propagate_inflow_data": %s,\n',
+			 tostring(config.propagate_inflow_data)))
+ 
    f:write(string.format('"udf_solid_source_terms_file": "%s",\n', config.udf_solid_source_terms_file))
    f:write(string.format('"udf_solid_source_terms": %s,\n', tostring(config.udf_solid_source_terms)))
    f:write(string.format('"nsolidblock": %d,\n', #solidBlocks))
+
    for i = 1, #blocks do
       f:write(blocks[i]:tojson())
    end

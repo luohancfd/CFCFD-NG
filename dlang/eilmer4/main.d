@@ -122,7 +122,11 @@ void main(string[] args)
 	
 	init_simulation(tindxStart, maxCPUs);
 	writeln("starting simulation time= ", simcore.sim_time);
-	integrate_in_time(GlobalConfig.max_time, maxWallClock);
+	if (GlobalConfig.block_marching) {
+	    march_over_blocks(maxWallClock);
+	} else {
+	    integrate_in_time(GlobalConfig.max_time, maxWallClock);
+	}
 	finalize_simulation();
     }
     writeln("Done.");

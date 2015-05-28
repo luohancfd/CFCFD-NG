@@ -125,6 +125,67 @@ void update_times_file()
     append(GlobalConfig.base_file_name ~ ".times", writer.data);
 }
 
+void march_over_blocks(int maxWallClock)
+{
+    if (GlobalConfig.verbosity_level > 0) writeln("March over blocks.");
+    // Organise the blocks into a regular array.
+    int nib = GlobalConfig.nib;
+    int njb = GlobalConfig.njb;
+    int nkb = GlobalConfig.nkb;
+    if (nib*njb*nkb != GlobalConfig.nBlocks) {
+	string errMsg = text("march_over_blocks(): inconsistent numbers of blocks\n",
+			     "    nBlocks=", GlobalConfig.nBlocks,
+			     " nib=", nib, " njb=", njb, " nkb=", nkb);
+	throw new Error(errMsg);
+    }
+    if (nkb != 1 && GlobalConfig.dimensions == 2) {
+	string errMsg = text("march_over_blocks(): for 2D flow, expected nkb=1\n",
+			     "    nkb=", nkb);
+	throw new Error(errMsg);
+    }
+    if (nib < 2) {
+	string errMsg = text("march_over_blocks(): expected nib>=2\n",
+			     "    nib=", nib);
+	throw new Error(errMsg);
+    }
+    SBlock[][][] gasBlockArray;
+    gasBlockArray.length = nib;
+    foreach (i; 0 .. nib) {
+	gasBlockArray[i].length = njb;
+	foreach (j; 0 .. njb) {
+	    gasBlockArray[i][j].length = nkb;
+	    foreach (k; 0 .. nkb) {
+		int gid = k + njb*(j + nib*i);
+		gasBlockArray[i][j][k] = gasBlocks[gid];
+	    }
+	}
+    }
+    // Keep the first two slices active but deactivate the rest.
+    foreach (i; 2 .. nib) {
+	foreach (j; 0 .. njb) {
+	    foreach (k; 0 .. nkb) {
+		gasBlockArray[i][j][k].active = false;
+	    }
+	}
+    }
+    double time_slice = GlobalConfig.max_time / (nib - 1);
+    int maxWallClockForSlice = maxWallClock / (nib - 1);
+    if (GlobalConfig.propagate_inflow_data) {
+	// propagate_inflow_data_west_to_east()
+    }
+    integrate_in_time(time_slice, maxWallClockForSlice);
+    // Now, move along one block in i-direction at a time and do the rest.
+    foreach (i; 2 .. nib) {
+	foreach (j; 0 .. njb) {
+	    foreach (k; 0 .. nkb) {
+		gasBlockArray[i-2][j][k].active = false;
+		gasBlockArray[i][j][k].active = true;
+	    }
+	}
+	integrate_in_time(time_slice, maxWallClockForSlice);
+    }
+} // end march_over_blocks()
+
 void integrate_in_time(double target_time, int maxWallClock)
 {
     if (GlobalConfig.verbosity_level > 0) writeln("Integrate in time.");

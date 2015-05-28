@@ -227,6 +227,22 @@ extern(C) int configSetFromTable(lua_State* L)
     if (!lua_isnil(L, -1)) GlobalConfig.udf_source_terms = to!bool(lua_toboolean(L, -1));
     lua_pop(L, 1);
 
+    lua_getfield(L, 1, "block_marching");
+    if (!lua_isnil(L, -1)) GlobalConfig.block_marching = to!bool(lua_toboolean(L, -1));
+    lua_pop(L, 1);
+    lua_getfield(L, 1, "nib");
+    if (!lua_isnil(L, -1)) GlobalConfig.nib = luaL_checkint(L, -1);
+    lua_pop(L, 1);
+    lua_getfield(L, 1, "njb");
+    if (!lua_isnil(L, -1)) GlobalConfig.njb = luaL_checkint(L, -1);
+    lua_pop(L, 1);
+    lua_getfield(L, 1, "nkb");
+    if (!lua_isnil(L, -1)) GlobalConfig.nkb = luaL_checkint(L, -1);
+    lua_pop(L, 1);
+    lua_getfield(L, 1, "propagate_inflow_data");
+    if (!lua_isnil(L, -1)) GlobalConfig.propagate_inflow_data = to!bool(lua_toboolean(L, -1));
+    lua_pop(L, 1);
+
     lua_getfield(L, 1, "udf_solid_source_terms_file");
     if (!lua_isnil(L, -1)) GlobalConfig.udfSolidSourceTermsFile = to!string(luaL_checkstring(L, -1));
     lua_pop(L, 1);
@@ -419,6 +435,23 @@ extern(C) int configGet(lua_State* L)
     case "udf_source_terms":
 	lua_pushboolean(L, GlobalConfig.udf_source_terms);
 	break;
+
+    case "block_marching":
+	lua_pushboolean(L, GlobalConfig.block_marching);
+	break;
+    case "nib":
+	lua_pushnumber(L, GlobalConfig.nib);
+	break;
+    case "njb":
+	lua_pushnumber(L, GlobalConfig.njb);
+	break;
+    case "nkb":
+	lua_pushnumber(L, GlobalConfig.nkb);
+	break;
+    case "propagate_inflow_data":
+	lua_pushboolean(L, GlobalConfig.propagate_inflow_data);
+	break;
+
     case "udf_solid_source_terms_file":
 	lua_pushstring(L, GlobalConfig.udfSolidSourceTermsFile.toStringz);
 	break;

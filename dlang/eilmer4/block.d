@@ -33,6 +33,9 @@ public:
     lua_State* myL;
 
     bool active; // if true, block participates in the time integration
+    // The active flag is used principally for the block-marching calculation,
+    // where we want to integrate a few blocks at a time.
+
     double omegaz; // Angular velocity (in rad/s) of the rotating frame.
                    // There is only one component, about the z-axis.
     double mass_residual, energy_residual; // monitor these for steady state

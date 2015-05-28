@@ -288,6 +288,13 @@ final class GlobalConfig {
     shared static double mass_residual;
     shared static Vector3 mass_residual_loc;
 
+    // Block-marching parameters
+    shared static bool block_marching = false;
+    shared static int nib = 1;
+    shared static int njb = 1;
+    shared static int nkb = 1;
+    shared static bool propagate_inflow_data = false;
+
     // Filter application parameters.
     shared static bool   filter_flag = false;
     shared static double filter_tstart = 0.0;
