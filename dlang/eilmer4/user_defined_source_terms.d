@@ -26,7 +26,7 @@ void addUDFSourceTermsToCell(lua_State* L, FVCell cell, size_t gtl, double t, Ga
     size_t n_modes = gmodel.n_modes;
 
     // Push user function onto TOS
-    lua_getglobal(L, "soureTerms");
+    lua_getglobal(L, "sourceTerms");
     // Push sim_time onto TOS
     lua_pushnumber(L, t);
     // Push cell data into an args table and onto TOS
@@ -51,8 +51,8 @@ void addUDFSourceTermsToCell(lua_State* L, FVCell cell, size_t gtl, double t, Ga
     cell.Q.total_energy += getNumberFromTable(L, -1, "total_energy",false, 0.0);
     lua_getfield(L, -1, "species");
     if ( !lua_isnil(L, -1) ) {
-	foreach ( isp; 0 .. n_species ) {
-	    lua_rawgeti(L, -1, to!int(isp+1));
+	for ( int isp = 0; isp < n_species; ++isp ) {
+	    lua_rawgeti(L, -1, isp+1);
 	    cell.Q.massf[isp] += lua_tonumber(L, -1);
 	    lua_pop(L, 1);
 	}
@@ -61,8 +61,8 @@ void addUDFSourceTermsToCell(lua_State* L, FVCell cell, size_t gtl, double t, Ga
 
     lua_getfield(L, -1, "energies");
     if ( !lua_isnil(L, -1) ) {
-	foreach ( imode; 0 ..  n_modes ) {
-	    lua_rawgeti(L, -1, to!int(imode+1));
+	for ( int imode = 0; imode < n_modes; ++imode ) {
+	    lua_rawgeti(L, -1, imode+1);
 	    cell.Q.energies[imode] += lua_tonumber(L, -1);
 	    lua_pop(L, 1);
 	}

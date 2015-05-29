@@ -191,7 +191,7 @@ The value should be a number.`;
 string pushGasVar(string var)
 {
     return `lua_pushnumber(L, fs.gas.` ~ var ~ `);
-lua_setfield(L, tblIdx-1, "` ~ var ~`");`;
+lua_setfield(L, tblIdx, "` ~ var ~`");`;
 }
 
 string pushGasVarArray(string var)
@@ -200,23 +200,23 @@ string pushGasVarArray(string var)
 foreach ( i, val; fs.gas.` ~ var ~ `) {
     lua_pushnumber(L, val); lua_rawseti(L, -2,to!int(i+1));
 }
-lua_setfield(L, tblIdx-1, "` ~ var ~`");`;
+lua_setfield(L, tblIdx, "` ~ var ~`");`;
 }
 
 string pushFSVar(string var)
 {
 return `lua_pushnumber(L, fs.` ~ var ~ `);
-lua_setfield(L, tblIdx-1, "` ~ var ~`");`;
+lua_setfield(L, tblIdx, "` ~ var ~`");`;
 }
 
 string pushFSVecVar(string var)
 {
 return `lua_pushnumber(L, fs.`~var~`.x);
-lua_setfield(L, tblIdx-1, "`~var~`x");
+lua_setfield(L, tblIdx, "`~var~`x");
 lua_pushnumber(L, fs.`~var~`.y);
-lua_setfield(L, tblIdx-1, "`~var~`y");
+lua_setfield(L, tblIdx, "`~var~`y");
 lua_pushnumber(L, fs.`~var~`.z);
-lua_setfield(L, tblIdx-1, "`~var~`z");`;
+lua_setfield(L, tblIdx, "`~var~`z");`;
 }
 
 /**

@@ -32,7 +32,8 @@ extern(C) int luafn_sampleFlow(lua_State *L)
     
     // Return the interesting bits as a table.
     lua_newtable(L);
-    pushCellToTable(L, -1, cell, 0);
+    int tblIdx = lua_gettop(L);
+    pushCellToTable(L, tblIdx, cell, 0);
     return 1;
 }
 
@@ -45,10 +46,10 @@ extern(C) int luafn_sampleFlow(lua_State *L)
  */
 void pushCellToTable(lua_State* L, int tblIdx, in FVCell cell, size_t gtl)
 {
-    lua_pushnumber(L, cell.pos[gtl].x); lua_setfield(L, tblIdx-1, "x");
-    lua_pushnumber(L, cell.pos[gtl].y); lua_setfield(L, tblIdx-1, "y");
-    lua_pushnumber(L, cell.pos[gtl].z); lua_setfield(L, tblIdx-1, "z");
-    lua_pushnumber(L, cell.volume[gtl]); lua_setfield(L, tblIdx-1, "vol");
+    lua_pushnumber(L, cell.pos[gtl].x); lua_setfield(L, tblIdx, "x");
+    lua_pushnumber(L, cell.pos[gtl].y); lua_setfield(L, tblIdx, "y");
+    lua_pushnumber(L, cell.pos[gtl].z); lua_setfield(L, tblIdx, "z");
+    lua_pushnumber(L, cell.volume[gtl]); lua_setfield(L, tblIdx, "vol");
     pushFlowStateToTable(L, tblIdx, cell.fs);
 }
 
