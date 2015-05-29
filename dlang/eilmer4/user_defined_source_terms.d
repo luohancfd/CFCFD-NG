@@ -68,4 +68,7 @@ void addUDFSourceTermsToCell(lua_State* L, FVCell cell, size_t gtl, double t, Ga
 	}
     }
     lua_pop(L, 1);
+
+    // Clear stack.
+    lua_settop(L, 0);
 }
