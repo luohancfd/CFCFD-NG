@@ -45,6 +45,14 @@ abc = Arc:new{a, b, c}
 d = abc(0.5)
 print("d=", d, "expected approximately Vector3(1.7071068, 2.0, 0.7071068)")
 --
+print("Arc3")
+a = Vector3:new(2.0, 2.0, 0.0)
+b = Vector3:new(1.0, 2.0, 1.0)
+m = Vector3:new(1.7071068, 2.0, 0.7071068)
+amb = Arc3:new{a, m, b}
+dd = amb(0.5)
+print("dd=", dd, "expected approximately Vector3(1.7071068, 2.0, 0.7071068)")
+--
 print("Bezier")
 adb = Bezier:new{a, d, b}
 e = adb(0.5)

@@ -12,6 +12,7 @@ module gpath;
 import std.conv;
 import std.math;
 import geom;
+import bbla;
 //import numeric : findRoot;
 
 interface Parameterizable {
@@ -489,6 +490,53 @@ public:
     } // end evaluate_position_and_length()
 } // end class Arc
 
+class Arc3 : Arc {
+    // Arc constructed from start-point a, end-point b and another intermediate point m.
+    // Internally it is stored as an Arc object.
+    Vector3 m;
+    this(in Vector3 a, in Vector3 m, in Vector3 b, double t0=0.0, double t1=1.0)
+    {
+	Vector3 n = cross(m - a, m - b); // normal to plane of arc
+	if (abs(n) <= 1.0e-11) {
+	    throw new Error(text("Arc3: Points appear colinear.",
+				 " a=", to!string(a),
+				 " m=", to!string(m),
+				 " b=", to!string(b)));
+	}
+	// The centre of the circle lies along the bisector of am and 
+	// the bisector of mb.
+	Vector3 mid_am = 0.5 * (a + m);
+	Vector3 bisect_am = cross(n, a - m);
+	Vector3 mid_mb = 0.5 * (b + m);
+	Vector3 bisect_mb = cross(n, b - m);
+	// Solve least-squares problem to get s_am, s_mb.
+	auto amatrix = new Matrix([[bisect_am.x, bisect_mb.x],
+				   [bisect_am.y, bisect_mb.y],
+				   [bisect_am.z, bisect_mb.z]]);
+	Vector3 diff_mid = mid_mb - mid_am;
+	auto rhs = new Matrix([diff_mid.x, diff_mid.y, diff_mid.z], "column");
+	auto s_values = lsqsolve(amatrix, rhs);
+	double s_am = s_values[0,0];
+	double s_mb = s_values[1,0];
+        Vector3 c = mid_am + s_am * bisect_am;
+	Vector3 c_check = mid_mb + s_mb * bisect_mb;
+	if (abs(c_check - this.c) > 1.0e-9) {
+	    throw new Error(text("Arc3: Points inconsistent centre estimates.",
+				 " c=", to!string(this.c),
+				 " c_check=", to!string(c_check)));
+	}
+	super(a, b, c, t0, t1);
+	this.m = m;
+    }
+    this(ref const(Arc3) other)
+    {
+	this(other.a, other.m, other.b, other.t0, other.t1);
+    }
+    override Arc3 dup() const
+    {
+	return new Arc3(a, m, b, t0, t1);
+    }
+} // end class Arc3
 
 unittest {
     auto a = Vector3([2.0, 2.0, 0.0]);
@@ -497,6 +545,8 @@ unittest {
     auto abc = new Arc(a, b, c);
     auto d = abc(0.5);
     assert(approxEqualVectors(d, Vector3(1.7071068, 2.0, 0.7071068)), "Arc");
+    auto adb = new Arc3(a, d, b);
+    assert(approxEqualVectors(d, adb(0.5)), "Arc3");
 }
 
 
