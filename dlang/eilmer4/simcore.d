@@ -155,7 +155,7 @@ void march_over_blocks(int maxWallClock)
 	foreach (j; 0 .. njb) {
 	    gasBlockArray[i][j].length = nkb;
 	    foreach (k; 0 .. nkb) {
-		int gid = k + njb*(j + nib*i);
+		int gid = k + nkb*(j + njb*i);
 		gasBlockArray[i][j][k] = gasBlocks[gid];
 	    }
 	}
@@ -182,6 +182,7 @@ void march_over_blocks(int maxWallClock)
 		gasBlockArray[i][j][k].active = true;
 	    }
 	}
+	writeln("march over blocks i=", i);
 	integrate_in_time(time_slice, maxWallClockForSlice);
     }
 } // end march_over_blocks()

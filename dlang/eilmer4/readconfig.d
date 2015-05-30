@@ -178,8 +178,18 @@ void read_config_file()
     // Parameters controlling other simulation options
     //
     GlobalConfig.control_count = getJSONint(jsonData, "control_count", 10);
+    GlobalConfig.block_marching = getJSONbool(jsonData, "block_marching", false);
+    GlobalConfig.nib = getJSONint(jsonData, "nib", 1);
+    GlobalConfig.njb = getJSONint(jsonData, "njb", 1);
+    GlobalConfig.nkb = getJSONint(jsonData, "nkb", 1);
+    GlobalConfig.propagate_inflow_data = getJSONbool(jsonData, "propagate_inflow_data", false);
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  control_count: ", GlobalConfig.control_count);
+	writeln("  block_marching: ", GlobalConfig.block_marching);
+	writeln("  nib: ", GlobalConfig.nib);
+	writeln("  njb: ", GlobalConfig.njb);
+	writeln("  nkb: ", GlobalConfig.nkb);
+	writeln("  propagate_inflow_data: ", GlobalConfig.propagate_inflow_data);
     }
 
     // TODO -- still have other entries such as nheatzone, nreactionzone, ...
