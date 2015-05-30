@@ -4,6 +4,7 @@
  *
  * Author: Peter J.
  * Version: 2014-06-28, just enough to get our CFD code going.
+ *          2015-05-30, added least-squares solver
  */
 
 module bbla;
@@ -537,4 +538,61 @@ unittest {
 
     auto y = inverse(A);
     assert(approxEqualMatrix(dot(A,y), eye(4)), "inverse calculation");
+}
+
+/**
+ * Solve an over-constrained linear system of constraint equations c.x=rhs
+ * in a least-squares sense.
+ *
+ * Params:
+ *     c: Matrix of coefficients with nrows >= ncols
+ *     rhs: right-hand-side vector of size nrows,ncols2
+ *
+ * Returns:
+ *     x: solution matrix of size ncols, ncols2
+ *
+ * Notes:
+ *     ncols2 may be larger than 1 so that several right-hand-sides
+ *     can be solved in one sitting.
+ */
+Matrix lsqsolve(const Matrix c, const Matrix rhs)
+{
+    size_t m = c.ncols; // number of unknowns
+    size_t N = c.nrows; // number of linear constraint equations
+    if (N < m) {
+	throw new Error(text("too few constraints N=", N, " m=", m));
+    }
+    // Prepare the normal equations A.x = b
+    Matrix a = zeros(m, m);
+    Matrix x = zeros(m, rhs.ncols);
+    foreach (k; 0 .. m) {
+	foreach (j; 0 .. m) {
+	    foreach (i; 0 .. N) { a[k,j] += c[i,k]*c[i,j]; }
+	}
+	foreach (j; 0 .. rhs.ncols) {
+	    foreach (i; 0 .. N) { x[k,j] += c[i,k]*rhs[i,j]; }
+	}
+    }
+    // Solve using decomposition and solve for the usual mxm linear system.
+    auto perm = decomp(a);
+    solve(a, x, perm);
+    return x;
+} // end lsqsolve()
+
+unittest {
+    auto A = new Matrix([[0.0,  2.0,  0.0,  1.0],
+			 [2.0,  2.0,  3.0,  2.0],
+			 [4.0,  4.0,  6.0,  4.0],
+			 [4.0, -3.0,  0.0,  1.0],
+			 [4.0, -3.0,  0.0,  1.0],
+			 [6.0,  1.0, -6.0, -5.0]]);
+    auto b = new Matrix([[ 0.0],
+			 [-2.0],
+			 [-4.0],
+			 [-7.0],
+			 [-7.0],
+			 [ 6.0]]);
+    auto xx = lsqsolve(A, b);
+    auto expected_xx = new Matrix([-0.5, 1, 1.0/3, -2], "column");
+    assert(approxEqualMatrix(xx, expected_xx), "least-squares solve");
 }

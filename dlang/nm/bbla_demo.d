@@ -64,5 +64,22 @@ void main()
     auto y = inverse(A);
     writeln("dot(A,inverse(A))= ", dot(A,y));
 
+    writeln("Least-squares solve of an over-constrained system.");
+    A = new Matrix([[0.0,  2.0,  0.0,  1.0],
+		    [2.0,  2.0,  3.0,  2.0],
+		    [4.0,  4.0,  6.0,  4.0],
+		    [4.0, -3.0,  0.0,  1.0],
+		    [4.0, -3.0,  0.0,  1.0],
+		    [6.0,  1.0, -6.0, -5.0]]);
+    b = new Matrix([[ 0.0],
+		    [-2.0],
+		    [-4.0],
+		    [-7.0],
+		    [-7.0],
+		    [ 6.0]]);
+    writeln("A= ", A, " b= ", b);
+    auto xx = lsqsolve(A, b);
+    writeln("xx=", xx);
+
     writeln("Done.");
 }
