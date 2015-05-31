@@ -57,7 +57,7 @@ blk2 = SBlockArray{grid=grid2, fillCondition=inflow, nib=16, njb=2,
 		   bcList={east=ExtrapolateOutBC:new{}}}
 identifyBlockConnections()
 
-config.block_marching = false
+config.block_marching = true
 config.nib = 48
 config.njb = 2
 config.flux_calc = "adaptive"

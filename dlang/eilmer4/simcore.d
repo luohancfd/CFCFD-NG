@@ -47,12 +47,14 @@ shared static bool history_just_written = true;
 
  // For working how long the simulation has been running.
 static SysTime wall_clock_start;
+static int maxWallClockSeconds;
 
 //----------------------------------------------------------------------------
 
-void init_simulation(int tindx, int maxCPUs)
+void init_simulation(int tindx, int maxCPUs, int maxWallClock)
 {
     if (GlobalConfig.verbosity_level > 0) writeln("Begin init_simulation()...");
+    maxWallClockSeconds = maxWallClock;
     wall_clock_start = Clock.currTime();
     read_config_file();  // most of the configuration is in here
     read_control_file(); // some of the configuration is in here
@@ -114,6 +116,14 @@ void init_simulation(int tindx, int maxCPUs)
 	    }
 	}
     }
+    // Flags to indicate that the saved output is fresh.
+    // On startup or restart, it is assumed to be so.
+    output_just_written = true;
+    history_just_written = true;
+    // When starting a new calculation,
+    // set the global time step to the initial value.
+    dt_global = GlobalConfig.dt_init; 
+    //
     if (GlobalConfig.verbosity_level > 0) writeln("Done init_simulation().");
     return;
 } // end init_simulation()
@@ -125,7 +135,7 @@ void update_times_file()
     append(GlobalConfig.base_file_name ~ ".times", writer.data);
 }
 
-void march_over_blocks(int maxWallClock)
+void march_over_blocks()
 {
     if (GlobalConfig.verbosity_level > 0) writeln("March over blocks.");
     // Organise the blocks into a regular array.
@@ -169,11 +179,10 @@ void march_over_blocks(int maxWallClock)
 	}
     }
     double time_slice = GlobalConfig.max_time / (nib - 1);
-    int maxWallClockForSlice = maxWallClock / (nib - 1);
     if (GlobalConfig.propagate_inflow_data) {
 	// propagate_inflow_data_west_to_east()
     }
-    integrate_in_time(time_slice, maxWallClockForSlice);
+    integrate_in_time(sim_time+time_slice);
     // Now, move along one block in i-direction at a time and do the rest.
     foreach (i; 2 .. nib) {
 	foreach (j; 0 .. njb) {
@@ -183,25 +192,18 @@ void march_over_blocks(int maxWallClock)
 	    }
 	}
 	writeln("march over blocks i=", i);
-	integrate_in_time(time_slice, maxWallClockForSlice);
+	integrate_in_time(sim_time+time_slice);
     }
 } // end march_over_blocks()
 
-void integrate_in_time(double target_time, int maxWallClock)
+void integrate_in_time(double target_time)
 {
     if (GlobalConfig.verbosity_level > 0) writeln("Integrate in time.");
     // The next time for output...
     t_plot = sim_time + GlobalConfig.dt_plot;
     t_history = sim_time + GlobalConfig.dt_history;
-    // Flags to indicate that the saved output is fresh.
-    // On startup or restart, it is assumed to be so.
-    output_just_written = true;
-    history_just_written = true;
     // Overall iteration count.
     step = 0;
-    // When starting a new calculation,
-    // set the global time step to the initial value.
-    dt_global = GlobalConfig.dt_init; 
     shared bool do_cfl_check_now = false;
     // Normally, we can terminate upon either reaching 
     // a maximum time or upon reaching a maximum iteration count.
@@ -338,7 +340,7 @@ void integrate_in_time(double target_time, int maxWallClock)
 		writeln("Integration stopped: Halt set in control file.");
         }
 	auto wall_clock_elapsed = (Clock.currTime() - wall_clock_start).total!"seconds"();
-	if (maxWallClock > 0 && (wall_clock_elapsed > maxWallClock)) {
+	if (maxWallClockSeconds > 0 && (wall_clock_elapsed > maxWallClockSeconds)) {
             finished_time_stepping = true;
             if (GlobalConfig.verbosity_level >= 1)
 		writeln("Integration stopped: reached maximum wall-clock time.");

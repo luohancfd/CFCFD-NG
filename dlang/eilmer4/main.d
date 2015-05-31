@@ -120,12 +120,12 @@ void main(string[] args)
 	}
 	GlobalConfig.verbosity_level = verbosityLevel;
 	
-	init_simulation(tindxStart, maxCPUs);
+	init_simulation(tindxStart, maxCPUs, maxWallClock);
 	writeln("starting simulation time= ", simcore.sim_time);
 	if (GlobalConfig.block_marching) {
-	    march_over_blocks(maxWallClock);
+	    march_over_blocks();
 	} else {
-	    integrate_in_time(GlobalConfig.max_time, maxWallClock);
+	    integrate_in_time(GlobalConfig.max_time);
 	}
 	finalize_simulation();
     }
