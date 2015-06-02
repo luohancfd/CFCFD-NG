@@ -577,7 +577,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 					    local_sim_time, blk.myConfig.gmodel);
 		}
 		cell.time_derivatives(local_gtl, local_ftl, local_with_k_omega);
-		cell.stage_2_update_for_flow_on_fixed_grid(dt_global, local_with_k_omega);
+		cell.stage_2_update_for_flow_on_fixed_grid(local_dt_global, local_with_k_omega);
 		cell.decode_conserved(local_gtl, local_ftl+1, blk.omegaz);
 	    } // end foreach cell
 	} // end foreach blk
@@ -607,6 +607,7 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 	    blk.clear_fluxes_of_conserved_quantities();
 	    foreach (cell; blk.active_cells) cell.clear_source_vector();
 	}
+	// Third stage of gas-dynamic update.
 	ftl = 2;
 	// We are relying on exchanging boundary data as a pre-reconstruction activity.
 	if (GlobalConfig.apply_bcs_in_parallel) {
@@ -619,6 +620,11 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 		if (!blk.active) continue;
 		blk.applyPreReconAction(sim_time, gtl, ftl);
 	    }
+	}
+	// Let's set up solid domain bc's also before changing any flow properties.
+	foreach (sblk; solidBlocks) {
+	    if (!sblk.active) continue;
+	    sblk.applyPreSpatialDerivAction(sim_time, ftl);
 	}
 	foreach (blk; parallel(gasBlocks,1)) {
 	    if (!blk.active) continue;
@@ -671,8 +677,24 @@ void gasdynamic_explicit_increment_with_fixed_grid()
 					    local_sim_time, blk.myConfig.gmodel);
 		}
 		cell.time_derivatives(local_gtl, local_ftl, local_with_k_omega);
-		cell.stage_2_update_for_flow_on_fixed_grid(local_dt_global, local_with_k_omega);
+		cell.stage_3_update_for_flow_on_fixed_grid(local_dt_global, local_with_k_omega);
 		cell.decode_conserved(local_gtl, local_ftl+1, blk.omegaz);
+	    } // end foreach cell
+	} // end foreach blk
+	// Do solid domain update IMMEDIATELY after at same flow time level
+	foreach (sblk; solidBlocks) {
+	    if (!sblk.active) continue;
+	    sblk.clearSources();
+	    sblk.computeSpatialDerivatives(ftl);
+	    sblk.applyPostFluxAction(sim_time, ftl);
+	    sblk.computeFluxes();
+	    foreach (scell; sblk.activeCells) {
+		if (GlobalConfig.udfSolidSourceTerms) {
+		    addUDFSourceTermsToSolidCell(sblk.myL, scell, sim_time);
+		}
+		scell.timeDerivatives(ftl, GlobalConfig.dimensions);
+		scell.stage2Update(dt_global);
+		scell.T[ftl+1] = updateTemperature(sblk.sp, scell.e[ftl+1]);
 	    } // end foreach cell
 	} // end foreach blk
     } // end if number_of_stages_for_update_scheme >= 3
