@@ -374,7 +374,8 @@ private:
 	}
 
 	// 3. Grab Flowstate data from table and populate interface
-	putFlowStateIntoInterface(L, -1, IFace);
+	int tblIdx = lua_gettop(L);
+	putFlowStateIntoInterface(L, tblIdx, IFace);
 
 	// 4. Clear stack
 	lua_settop(L, 0);
