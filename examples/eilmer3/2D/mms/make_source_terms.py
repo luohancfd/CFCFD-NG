@@ -24,6 +24,9 @@ Cp = g*Cv
 mu, k = symbols('mu k')
 mu = 10.0
 k = Cp*mu/Prandtl
+if case == 1 or case == 3:
+    mu = 0.0
+    k = 0.0
 
 # Thermodynamic behvaiour, equation of state and energy equation
 e, T, et = symbols('e T et')
