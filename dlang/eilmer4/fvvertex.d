@@ -20,7 +20,6 @@ public:
     // Geometry
     Vector3[] pos;  // x,y,z-Coordinates for time-levels, m
     Vector3[] vel;  // vertex velocity for time-levels, m/s
-    double volume;  // volume of 3D secondary cells (for spatial derivatives)
     // Derivatives of primary-cell variables.
     double[][] grad_vel; // velocity derivatives stored as a second-order tensor
                          // [[du/dx du/dy du/dz]
@@ -47,7 +46,6 @@ public:
 	id = other.id;
 	pos = other.pos.dup;
 	vel = other.vel.dup;
-	volume = other.volume;
 	grad_vel.length = 3;
 	foreach(i; 0 .. 3) grad_vel[i] = other.grad_vel[i].dup; 
 	grad_T = other.grad_T;
@@ -72,7 +70,6 @@ public:
 		vel[i].refy = other.vel[i].y;
 		vel[i].refz = other.vel[i].z;
 	    }
-	    volume = other.volume;
 	    foreach(i; 0 .. grad_vel.length) {
 		foreach(j; 0 .. grad_vel[i].length)
 		    grad_vel[i][j] = other.grad_vel[i][j];
@@ -111,7 +108,6 @@ public:
 	repr ~= "id=" ~ to!string(id);
 	repr ~= ", pos=" ~ to!string(pos);
 	repr ~= ", vel=" ~ to!string(vel);
-	repr ~= ", volume=" ~ to!string(volume);
 	repr ~= ", grad_vel=" ~ to!string(grad_vel);
 	repr ~= ", grad_T=" ~ to!string(grad_T);
 	repr ~= ", grad_tke=" ~ to!string(grad_tke);

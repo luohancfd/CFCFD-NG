@@ -69,7 +69,6 @@ public:
     abstract int count_invalid_cells(int gtl);
     abstract void compute_primary_cell_geometric_data(int gtl);
     abstract void compute_distance_to_nearest_wall_for_all_cells(int gtl);
-    abstract void compute_secondary_cell_geometric_data(int gtl);
     abstract void read_grid(string filename, size_t gtl=0);
     abstract void write_grid(string filename, double sim_time, size_t gtl=0);
     abstract double read_solution(string filename);

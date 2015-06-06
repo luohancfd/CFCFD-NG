@@ -376,3 +376,12 @@ void gradients_xy(ref FVVertex vtx,
     vtx.grad_omega.refz = 0.0;
 } // end gradients_xy()
 
+
+@nogc
+void gradients_xyz(ref FVVertex vtx,
+		   const ref Vector3[] pos, const ref FlowState[] fs,
+		   bool diffusion)
+{
+    // pos, fs represent the cloud of surrounding points and 
+    // corresponding flow states.
+} // end gradients_xyz()
