@@ -75,6 +75,7 @@ void init_simulation(int tindx, int maxCPUs, int maxWallClock)
     foreach (myblk; parallel(gasBlocks,1)) {
 	myblk.compute_primary_cell_geometric_data(0);
 	myblk.compute_distance_to_nearest_wall_for_all_cells(0);
+	myblk.assign_flow_locations_for_derivative_calc(0);
 	myblk.identify_reaction_zones(0);
 	myblk.identify_turbulent_zones(0);
 	myblk.set_grid_velocities(sim_time);

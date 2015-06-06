@@ -13,6 +13,7 @@ import std.conv;
 import fvcore;
 import geom;
 import gas;
+import flowstate;
 
 class FVVertex {
 public:
@@ -30,6 +31,8 @@ public:
     Vector3 grad_omega;  // pseudo vorticity for k-omega turbulence
     Vector3[] grad_f;    // mass fraction derivatives
     Vector3 grad_pe;     // electron pressure derivatives
+    Vector3[] cloud_pos; // Positions of flow points for derivative calculation.
+    FlowState[] cloud_fs; // References to flow states at those points.
 
     this(in GasModel gm, size_t id_init=0)
     {
