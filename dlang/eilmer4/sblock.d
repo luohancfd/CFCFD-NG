@@ -1281,8 +1281,8 @@ public:
 		FVInterface c3 = get_ifk(i-1,j,k);
 		FVInterface c4 = get_ifj(i,j+1,k);
 		FVInterface c5 = get_ifk(i,j,k);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos[gtl], c2.pos, c3.pos, c4.pos, c5.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs, c4.fs, c5.fs];
 	    }
 	    // Bottom-West edge [0]-->[3]
 	    i = imin; k = kmin;
@@ -1294,8 +1294,8 @@ public:
 		FVInterface c3 = get_ifk(i,j-1,k);
 		FVInterface c4 = get_ifi(i,j,k);
 		FVInterface c5 = get_ifk(i,j,k);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos[gtl], c2.pos, c3.pos, c4.pos, c5.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs, c4.fs, c5.fs];
 	    }
 	    // Bottom-East edge [1]-->[2]
 	    i = imax; k = kmin;
@@ -1307,8 +1307,8 @@ public:
 		FVInterface c3 = get_ifk(i,j-1,k);
 		FVInterface c4 = get_ifi(i+1,j,k);
 		FVInterface c5 = get_ifk(i,j,k);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos[gtl], c2.pos, c3.pos, c4.pos, c5.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs, c4.fs, c5.fs];
 	    }
 	    // 4 edges around the top face.
 	    // Top-South edge [4]-->[5]
@@ -1321,8 +1321,8 @@ public:
 		FVInterface c3 = get_ifk(i-1,j,k+1);
 		FVInterface c4 = get_ifj(i,j,k);
 		FVInterface c5 = get_ifk(i,j,k+1);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos[gtl], c2.pos, c3.pos, c4.pos, c5.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs, c4.fs, c5.fs];
 	    }
 	    // Top-North edge [7]-->[6]
 	    j = jmax; k = kmax;
@@ -1334,8 +1334,8 @@ public:
 		FVInterface c3 = get_ifk(i-1,j,k+1);
 		FVInterface c4 = get_ifj(i,j+1,k);
 		FVInterface c5 = get_ifk(i,j,k+1);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos[gtl], c2.pos, c3.pos, c4.pos, c5.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs, c4.fs, c5.fs];
 	    }
 	    // Top-West edge [4]-->[7]
 	    i = imin; k = kmax;
@@ -1347,8 +1347,8 @@ public:
 		FVInterface c3 = get_ifk(i,j-1,k+1);
 		FVInterface c4 = get_ifi(i,j,k);
 		FVInterface c5 = get_ifk(i,j,k+1);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos[gtl], c2.pos, c3.pos, c4.pos, c5.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs, c4.fs, c5.fs];
 	    }
 	    // Top-East edge [5]-->[6]
 	    i = imax; k = kmax;
@@ -1360,8 +1360,8 @@ public:
 		FVInterface c3 = get_ifk(i,j-1,k+1);
 		FVInterface c4 = get_ifi(i+1,j,k);
 		FVInterface c5 = get_ifk(i,j,k+1);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos[gtl], c2.pos, c3.pos, c4.pos, c5.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs, c4.fs, c5.fs];
 	    }
 	    // 4 edges running from bottom to top.
 	    // South-West edge [0]-->[4]
@@ -1374,8 +1374,8 @@ public:
 		FVInterface c3 = get_ifj(i,j,k-1);
 		FVInterface c4 = get_ifi(i,j,k);
 		FVInterface c5 = get_ifj(i,j,k);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos[gtl], c2.pos, c3.pos, c4.pos, c5.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs, c4.fs, c5.fs];
 	    }
 	    // South-East edge [1]-->[5]
 	    i = imax; j = jmin;
@@ -1387,8 +1387,8 @@ public:
 		FVInterface c3 = get_ifj(i,j,k-1);
 		FVInterface c4 = get_ifi(i+1,j,k);
 		FVInterface c5 = get_ifj(i,j,k);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos[gtl], c2.pos, c3.pos, c4.pos, c5.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs, c4.fs, c5.fs];
 	    }
 	    // North-East edge [2]-->[6]
 	    i = imax; j = jmax;
@@ -1400,8 +1400,8 @@ public:
 		FVInterface c3 = get_ifj(i,j+1,k-1);
 		FVInterface c4 = get_ifi(i+1,j,k);
 		FVInterface c5 = get_ifj(i,j+1,k);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos[gtl], c2.pos, c3.pos, c4.pos, c5.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs, c4.fs, c5.fs];
 	    }
 	    // North-West edge [3]-->[7]
 	    i = imin; j = jmax;
@@ -1413,97 +1413,97 @@ public:
 		FVInterface c3 = get_ifj(i,j+1,k-1);
 		FVInterface c4 = get_ifi(i,j,k);
 		FVInterface c5 = get_ifj(i,j+1,k);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos[gtl], c2.pos, c3.pos, c4.pos, c5.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs, c4.fs, c5.fs];
 	    }
 	    // Finally, the 8 corners.
 	    // South-West-Bottom corner [0]
 	    i = imin; j = jmin; k = kmin;
 	    {
-		FVCell c0 = get_cell(i,j,k);
 		FVVertex vtx = get_vtx(i,j,k);
-		FVInterface a = get_ifi(i,j,k);
-		FVInterface b = get_ifj(i,j,k);
-		FVInterface d = get_ifk(i,j,k);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		FVCell c0 = get_cell(i,j,k);
+		FVInterface c1 = get_ifi(i,j,k);
+		FVInterface c2 = get_ifj(i,j,k);
+		FVInterface c3 = get_ifk(i,j,k);
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos, c2.pos, c3.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs];
 	    }
 	    // South-East-Bottom corner [1]
 	    i = imax; j = jmin; k = kmin;
 	    {
-		FVCell c0 = get_cell(i,j,k);
 		FVVertex vtx = get_vtx(i+1,j,k);
-		FVInterface a = get_ifi(i+1,j,k);
-		FVInterface b = get_ifj(i,j,k);
-		FVInterface d = get_ifk(i,j,k);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		FVCell c0 = get_cell(i,j,k);
+		FVInterface c1 = get_ifi(i+1,j,k);
+		FVInterface c2 = get_ifj(i,j,k);
+		FVInterface c3 = get_ifk(i,j,k);
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos, c2.pos, c3.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs];
 	    }
 	    // North-East-Bottom corner [2]
 	    i = imax; j = jmax; k = kmin;
 	    {
-		FVCell c0 = get_cell(i,j,k);
 		FVVertex vtx = get_vtx(i+1,j+1,k);
-		FVInterface a = get_ifi(i+1,j,k);
-		FVInterface b = get_ifj(i,j+1,k);
-		FVInterface d = get_ifk(i,j,k);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		FVCell c0 = get_cell(i,j,k);
+		FVInterface c1 = get_ifi(i+1,j,k);
+		FVInterface c2 = get_ifj(i,j+1,k);
+		FVInterface c3 = get_ifk(i,j,k);
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos, c2.pos, c3.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs];
 	    }
 	    // North-West-Bottom corner [3]
 	    i = imin; j = jmax; k = kmin;
 	    {
-		FVCell c = get_cell(i,j,k);
 		FVVertex vtx = get_vtx(i,j+1,k);
-		FVInterface a = get_ifi(i,j,k);
-		FVInterface b = get_ifj(i,j+1,k);
-		FVInterface d = get_ifk(i,j,k);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		FVCell c0 = get_cell(i,j,k);
+		FVInterface c1 = get_ifi(i,j,k);
+		FVInterface c2 = get_ifj(i,j+1,k);
+		FVInterface c3 = get_ifk(i,j,k);
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos, c2.pos, c3.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs];
 	    }
 	    // South-West-Top corner [4]
 	    i = imin; j = jmin; k = kmax;
 	    {
-		FVCell c = get_cell(i,j,k);
 		FVVertex vtx = get_vtx(i,j,k+1);
-		FVInterface a = get_ifi(i,j,k);
-		FVInterface b = get_ifj(i,j,k);
-		FVInterface d = get_ifk(i,j,k+1);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		FVCell c0 = get_cell(i,j,k);
+		FVInterface c1 = get_ifi(i,j,k);
+		FVInterface c2 = get_ifj(i,j,k);
+		FVInterface c3 = get_ifk(i,j,k+1);
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos, c2.pos, c3.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs];
 	    }
 	    // South-East-Top corner [5]
 	    i = imax; j = jmin; k = kmax;
 	    {
-		FVCell c = get_cell(i,j,k);
 		FVVertex vtx = get_vtx(i+1,j,k+1);
-		FVInterface a = get_ifi(i+1,j,k);
-		FVInterface b = get_ifj(i,j,k);
-		FVInterface d = get_ifk(i,j,k+1);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		FVCell c0 = get_cell(i,j,k);
+		FVInterface c1 = get_ifi(i+1,j,k);
+		FVInterface c2 = get_ifj(i,j,k);
+		FVInterface c3 = get_ifk(i,j,k+1);
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos, c2.pos, c3.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs];
 	    }
 	    // North-East-Top corner [6]
 	    i = imax; j = jmax; k = kmax;
 	    {
-		FVCell c = get_cell(i,j,k);
 		FVVertex vtx = get_vtx(i+1,j+1,k+1);
-		FVInterface a = get_ifi(i+1,j,k);
-		FVInterface b = get_ifj(i,j+1,k);
-		FVInterface d = get_ifk(i,j,k+1);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		FVCell c0 = get_cell(i,j,k);
+		FVInterface c1 = get_ifi(i+1,j,k);
+		FVInterface c2 = get_ifj(i,j+1,k);
+		FVInterface c3 = get_ifk(i,j,k+1);
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos, c2.pos, c3.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs];
 	    }
 	    // North-West-Top corner [7]
 	    i = imin; j = jmax; k = kmax;
 	    {
-		FVCell c = get_cell(i,j,k);
 		FVVertex vtx = get_vtx(i,j+1,k+1);
-		FVInterface a = get_ifi(i,j,k);
-		FVInterface b = get_ifj(i,j+1,k);
-		FVInterface d = get_ifk(i,j,k+1);
-		vtx.cloud_pos = [];
-		vtx.cloud_fs = [];
+		FVCell c0 = get_cell(i,j,k);
+		FVInterface c1 = get_ifi(i,j,k);
+		FVInterface c2 = get_ifj(i,j+1,k);
+		FVInterface c3 = get_ifk(i,j,k+1);
+		vtx.cloud_pos = [c0.pos[gtl], c1.pos, c2.pos, c3.pos];
+		vtx.cloud_fs = [c0.fs, c1.fs, c2.fs, c3.fs];
 	    }
 	} // end if (myConfig.dimensions
     } // end assign_flow_locations_for_derivative_calc()
