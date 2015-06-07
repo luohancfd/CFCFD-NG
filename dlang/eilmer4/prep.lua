@@ -819,7 +819,7 @@ function SBlockArray(t)
    local dnkc = math.floor(nkc_total/t.nkb)
    if config.dimensions == 2 then
       nkc_total = 1
-      dnk = 1
+      dnkc = 1
    end
    local blockArray = {} -- will be a multi-dimensional array indexed as [i][j][k]
    local blockCollection = {} -- will be a single-dimensional array
@@ -889,7 +889,7 @@ function SBlockArray(t)
 	       new_block = SBlock:new{grid=subgrid, omegaz=t.omegaz,
 				      fillCondition=t.fillCondition,
 				      bcList=bcList}
-	       blockArray[i][j][k] = new_block
+	       blockArray[ib][jb][kb] = new_block
 	       blockCollection[#blockCollection+1] = new_block
 	    end -- kb loop
 	 end -- dimensions
