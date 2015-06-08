@@ -21,7 +21,7 @@ config.viscous = true
 config.flux_calc = "ausmdv"
 config.gasdynamic_update_scheme = "euler"
 config.max_time = 2.4e-3  -- will allow 3 flow lengths   
-config.dt_plot =  0.4e-3
+config.dt_plot =  config.max_time
 config.dt_history = 1.0e-5
 config.max_step = 300000
 config.cfl_target = 0.4
@@ -68,9 +68,8 @@ clusterx = RobertsFunction:new{end0=true,end1=false,beta=1.05}
 clustery_e = RobertsFunction:new{end0=false,end1=true,beta=1.016}
 clustery_w = RobertsFunction:new{end0=false,end1=true,beta=1.05}
 clusterz = LinearFunction:new{}
-nocf = LinearFunction:new{}
-cflist = {nocf, nocf, nocf, nocf,
-	  nocf, nocf, nocf, nocf,
+cflist = {clusterx, clustery_e, clusterx, clustery_w,
+	  clusterx, clustery_e, clusterx, clustery_w,
 	  clusterz, clusterz, clusterz, clusterz}
 vol = TFIVolume:new{vertices={p000,p100,p110,p010,p001,p101,p111,p011}}
 grd = StructuredGrid:new{pvolume=vol, cfList=cflist, niv=221, njv=193, nkv=3}

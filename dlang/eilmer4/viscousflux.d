@@ -451,7 +451,7 @@ void gradients_xyz(ref FVVertex vtx, bool diffusion)
     // x-velocity
     foreach (j; 0 .. 3) { rhs[j] = 0.0; }
     foreach (i; 1 .. N) {
-	double dvx = vtx.cloud_fs[i].vel.x - vtx.cloud_fs[i].vel.x;
+	double dvx = vtx.cloud_fs[i].vel.x - vtx.cloud_fs[0].vel.x;
 	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 	double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
@@ -462,7 +462,7 @@ void gradients_xyz(ref FVVertex vtx, bool diffusion)
     // y-velocity
     foreach (j; 0 .. 3) { rhs[j] = 0.0; }
     foreach (i; 1 .. N) {
-	double dvy = vtx.cloud_fs[i].vel.y - vtx.cloud_fs[i].vel.y;
+	double dvy = vtx.cloud_fs[i].vel.y - vtx.cloud_fs[0].vel.y;
 	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 	double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
@@ -473,7 +473,7 @@ void gradients_xyz(ref FVVertex vtx, bool diffusion)
     // z-velocity
     foreach (j; 0 .. 3) { rhs[j] = 0.0; }
     foreach (i; 1 .. N) {
-	double dvz = vtx.cloud_fs[i].vel.z - vtx.cloud_fs[i].vel.z;
+	double dvz = vtx.cloud_fs[i].vel.z - vtx.cloud_fs[0].vel.z;
 	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 	double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
@@ -484,7 +484,7 @@ void gradients_xyz(ref FVVertex vtx, bool diffusion)
     // T[0]
     foreach (j; 0 .. 3) { rhs[j] = 0.0; }
     foreach (i; 1 .. N) {
-	double dT = vtx.cloud_fs[i].gas.T[0] - vtx.cloud_fs[i].gas.T[0];
+	double dT = vtx.cloud_fs[i].gas.T[0] - vtx.cloud_fs[0].gas.T[0];
 	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 	double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
@@ -500,7 +500,7 @@ void gradients_xyz(ref FVVertex vtx, bool diffusion)
 	foreach(isp; 0 .. nsp) {
 	    foreach (j; 0 .. 3) { rhs[j] = 0.0; }
 	    foreach (i; 1 .. N) {
-		double df = vtx.cloud_fs[i].gas.massf[isp] - vtx.cloud_fs[i].gas.massf[isp];
+		double df = vtx.cloud_fs[i].gas.massf[isp] - vtx.cloud_fs[0].gas.massf[isp];
 		double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 		double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 		double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
@@ -521,7 +521,7 @@ void gradients_xyz(ref FVVertex vtx, bool diffusion)
     // tke
     foreach (j; 0 .. 3) { rhs[j] = 0.0; }
     foreach (i; 1 .. N) {
-	double dtke = vtx.cloud_fs[i].tke - vtx.cloud_fs[i].tke;
+	double dtke = vtx.cloud_fs[i].tke - vtx.cloud_fs[0].tke;
 	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 	double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
@@ -534,7 +534,7 @@ void gradients_xyz(ref FVVertex vtx, bool diffusion)
     // omega
     foreach (j; 0 .. 3) { rhs[j] = 0.0; }
     foreach (i; 1 .. N) {
-	double domega = vtx.cloud_fs[i].omega - vtx.cloud_fs[i].omega;
+	double domega = vtx.cloud_fs[i].omega - vtx.cloud_fs[0].omega;
 	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 	double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
