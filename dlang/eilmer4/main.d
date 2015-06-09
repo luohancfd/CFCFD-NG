@@ -47,8 +47,9 @@ void main(string[] args)
     msg       ~= "         [--max-wall-clock=<int>]    in seconds\n";
     msg       ~= "         [--help]                    writes this message\n";
     msg       ~= "         [--post]                    post-process simulation data\n";
-    msg       ~= "         [--tindx-plot=<int>|all]    index for which we want plots\n";
+    msg       ~= "         [--tindx-plot=<int>|all|last|9999]  index to plot\n";
     msg       ~= "         [--vtk-xml]                 produce XML VTK-format plot files\n";
+    msg       ~= "         [--binary-format]           use binary within the VTK-XML\n";
     if ( args.length < 2 ) {
 	writeln("Too few arguments.");
 	write(msg);
@@ -64,6 +65,7 @@ void main(string[] args)
     int maxCPUs = totalCPUs;
     bool vtkxmlFlag = false;
     string tindxPlot = "all";
+    bool binaryFormat = false;
     bool helpWanted = false;
     try {
 	getopt(args,
@@ -76,6 +78,7 @@ void main(string[] args)
 	       "max-wall-clock", &maxWallClock,
 	       "max-cpus", &maxCPUs,
 	       "vtk-xml", &vtkxmlFlag,
+	       "binary-format", &binaryFormat,
 	       "tindx-plot", &tindxPlot,
 	       "help", &helpWanted
 	       );
@@ -149,9 +152,10 @@ void main(string[] args)
 	    writeln("  jobName: ", jobName);
 	    writeln("  tindxPlot: ", tindxPlot);
 	    writeln("  vtkxmlFlag: ", vtkxmlFlag);
+	    writeln("  binaryFormat: ", binaryFormat);
 	    writeln("  verbosityLevel: ", verbosityLevel);
 	}
-	post_process(tindxPlot, vtkxmlFlag);
+	post_process(tindxPlot, vtkxmlFlag, binaryFormat);
 	writeln("Done postprocessing.");
     } // end if postFlag
 } // end main()
