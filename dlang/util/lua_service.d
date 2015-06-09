@@ -20,7 +20,10 @@ lua_State* init_lua_State(string fname)
 {
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
-    luaL_dofile(L, fname.toStringz);
+    if ( luaL_dofile(L, fname.toStringz) != 0 ) {
+	string errMsg = to!string(lua_tostring(L, -1));
+	throw new Error(errMsg);
+    }
     return L;
 }
 

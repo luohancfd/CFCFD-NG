@@ -114,9 +114,21 @@ void main(string[] args)
 	registerUnivariateFunctions(L);
 	registerStructuredGrid(L);
 	registerSolidProps(L);
-	luaL_dofile(L, toStringz(dirName(thisExePath())~"/prep.lua"));
-	luaL_dofile(L, toStringz(jobName~".lua"));
-	luaL_dostring(L, toStringz("build_job_files(\""~jobName~"\")"));
+	if ( luaL_dofile(L, toStringz(dirName(thisExePath())~"/prep.lua")) != 0 ) {
+	    writeln("There was a problem in the Eilmer Lua code: prep.lua");
+	    string errMsg = to!string(lua_tostring(L, -1));
+	    throw new Error(errMsg);
+	}
+	if ( luaL_dofile(L, toStringz(jobName~".lua")) != 0 ) {
+	    writeln("There was a problem in the user-supplied input lua script: ", jobName~".lua");
+	    string errMsg = to!string(lua_tostring(L, -1));
+	    throw new Error(errMsg);
+	}
+	if ( luaL_dostring(L, toStringz("build_job_files(\""~jobName~"\")")) != 0 ) {
+	    writeln("There was a problem in the Eilmer build function build_job_files() in prep.lua");
+	    string errMsg = to!string(lua_tostring(L, -1));
+	    throw new Error(errMsg);
+	}
 	writeln("Done preparation.");
     } // end if prepFlag
 
