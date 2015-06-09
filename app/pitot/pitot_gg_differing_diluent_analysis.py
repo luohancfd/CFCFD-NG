@@ -51,6 +51,9 @@ def check_new_inputs(cfg):
     if 'store_electron_concentration' not in cfg:
         cfg['store_electron_concentration'] = False
         
+    if 'calculate_modified_bsp' not in cfg:
+        cfg['calculate_modified_bsp'] = False    
+        
     if 'normalise_results_by' not in cfg:
         print "'normalise_results_by' not in cfg."
         print "Setting it to 'first value'."
@@ -138,6 +141,8 @@ def build_results_dict(cfg):
     if cfg['store_electron_concentration']:     
         store_electron_concentration_list = ['s2ec','s7ec','s8ec','s10ec']
         full_list += store_electron_concentration_list
+    if cfg ['calculate_modified_bsp']:
+        full_list += ['modified_bsp']
 
     # now populate the dictionary with a bunch of empty lists based on that list
 
@@ -450,6 +455,35 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
             results['V10e'].append('did not solve')  
             for value in ['H2', 'H', cfg['diluent'], 'H+', 'e-',cfg['diluent']+'+']:
                 results['s10e %{0}'.format(value)].append('did not solve')
+    
+    if cfg['calculate_modified_bsp']:
+        # if the user has asked for it, here we calculate, omega, the modified
+        # binary scaling paramater from Stalker and Edward's 1998 Paper
+        # Hypersonic Blunt-Body Flows in Hydrogen-Neon Mixtures
+        # JOURNAL OF SPACECRAFT AND ROCKETS 
+        # Vol. 35, No. 6, November-December 1998
+    
+        r = cfg['diluent_percentage'] / 100.0
+        p = states['s10f'].p
+        if cfg['mode'] == 'expansion-tube':
+            if cfg['nozzle']:
+                epsilon = states['s8'].rho / states['s10f'].rho
+                U = V['s8']
+            else:
+                epsilon = states['s7'].rho / states['s10f'].rho
+                U = V['s7']
+            
+        else:
+            if cfg['nozzle']:
+                epsilon = states['s8'].rho / states['s10f'].rho
+                U = V['s8']
+            else:
+                epsilon = states['s2'].rho / states['s10f'].rho  
+                U = V['s2']
+        
+        modified_bsp = (r*p*(epsilon*(1.0 - epsilon))**-0.5)/U
+        
+        results['modified_bsp'].append(modified_bsp)
         
     return results
     
