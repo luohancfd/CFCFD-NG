@@ -14,13 +14,12 @@
 # Re-worked completely to use sympy
 
 from sympy import *
-R_air = 287.10325
+R_air = 287.0
 # Read case no.
-#fp = open('case.txt', 'r');
-#case_str = fp.readline().strip()
-#case = int(case_str)
-#fp.close()
-case = 1
+fp = open('case.txt', 'r');
+case_str = fp.readline().strip()
+case = int(case_str)
+fp.close()
 # constants
 L = 1.0
 if case == 1 or case == 3:

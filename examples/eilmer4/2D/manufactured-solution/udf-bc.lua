@@ -10,13 +10,12 @@ local sin = math.sin
 local exp = math.exp
 
 local L = 1.0
-local R = 287.10325
+local R = 287.0
 local gam = 1.4
 
-local case = 1
---file = io.open("case.txt", "r")
---case = file:read("*n")
---file:close()
+file = io.open("case.txt", "r")
+case = file:read("*n")
+file:close()
 
 if case == 1 or case == 3 then
    -- Supersonic flow
@@ -137,3 +136,24 @@ function ghostCells_west(args)
    return ghost1, ghost2
 end
 
+function interface(args)
+   x = args.x; y = args.y
+   tab = {}
+   return fillTable(tab, x, y)
+end
+
+function interface_north(args)
+   return interface(args)
+end
+
+function interface_east(args)
+   return interface(args)
+end
+
+function interface_south(args)
+   return interface(args)
+end
+
+function interface_west(args)
+   return interface(args)
+end
