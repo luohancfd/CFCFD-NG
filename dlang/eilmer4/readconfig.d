@@ -135,6 +135,7 @@ void read_config_file()
     GlobalConfig.viscous_delay = getJSONdouble(jsonData, "viscous_delay", 0.0);
     GlobalConfig.viscous_factor_increment = 
 	getJSONdouble(jsonData, "viscous_factor_increment", 0.01);
+    GlobalConfig.viscous_signal_factor = getJSONdouble(jsonData, "viscous_signal_factor", 1.0);
     try {
 	string name = jsonData["turbulence_model"].str;
 	GlobalConfig.turbulence_model = turbulence_model_from_name(name);
@@ -151,6 +152,7 @@ void read_config_file()
 	writeln("  viscous: ", GlobalConfig.viscous);
 	writeln("  viscous_delay: ", GlobalConfig.viscous_delay);
 	writeln("  viscous_factor_increment: ", GlobalConfig.viscous_factor_increment);
+	writeln("  viscous_signal_factor: ", GlobalConfig.viscous_signal_factor);
 	writeln("  turbulence_model: ", turbulence_model_name(GlobalConfig.turbulence_model));
 	writeln("  turbulence_prandtl_number: ", GlobalConfig.turbulence_prandtl_number);
 	writeln("  turbulence_schmidt_number: ", GlobalConfig.turbulence_schmidt_number);

@@ -135,6 +135,10 @@ extern(C) int configSetFromTable(lua_State* L)
     if (!lua_isnil(L, -1))
 	GlobalConfig.viscous_delay = to!double(luaL_checknumber(L, -1));
     lua_pop(L, 1);
+    lua_getfield(L, 1, "viscous_signal_factor");
+    if (!lua_isnil(L, -1))
+	GlobalConfig.viscous_signal_factor = to!double(luaL_checknumber(L, -1));
+    lua_pop(L, 1);
 
     lua_getfield(L, 1, "diffusion");
     if (!lua_isnil(L, -1)) GlobalConfig.diffusion = to!bool(lua_toboolean(L, -1));
@@ -352,6 +356,9 @@ extern(C) int configGet(lua_State* L)
 	break;
     case "viscous_delay":
 	lua_pushnumber(L, GlobalConfig.viscous_delay);
+	break;
+    case "viscous_signal_factor":
+	lua_pushnumber(L, GlobalConfig.viscous_signal_factor);
 	break;
 
     case "diffusion":

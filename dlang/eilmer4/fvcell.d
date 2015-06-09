@@ -1118,11 +1118,13 @@ public:
 	    if (myConfig.dimensions == 3) {
 		signal += 4.0 * myConfig.viscous_factor * (fs.gas.mu + fs.mu_t)
 		    * gam_eff / (Prandtl * fs.gas.rho)
-		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength) + 1.0/(kLength*kLength));
+		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength) + 1.0/(kLength*kLength))
+		    * myConfig.viscous_signal_factor;
 	    } else {
 		signal += 4.0 * myConfig.viscous_factor * (fs.gas.mu + fs.mu_t) 
 		    * gam_eff / (Prandtl * fs.gas.rho)
-		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength));
+		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength))
+		    * myConfig.viscous_signal_factor;
 	    }
 	}
 	if (with_k_omega) {

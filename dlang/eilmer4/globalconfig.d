@@ -276,6 +276,7 @@ final class GlobalConfig {
     shared static double cfl_value = 0.5; // target CFL number (worst case) set by user
     shared static bool stringent_cfl = false; 
     // If true, assume the worst with respect to cell geometry and wave speed.
+    shared static double viscous_signal_factor = 1.0; // can reduce the viscous influence in CFL condition
     shared static size_t cfl_count = 10;  // steps between checking time step size
     shared static bool fixed_time_step = false; // set true to fix dt_allow
 
@@ -365,6 +366,7 @@ public:
     int BGK;
 
     bool stringent_cfl;
+    double viscous_signal_factor;
 
     GasModel gmodel;
     ReactionUpdateScheme reaction_update;
@@ -422,6 +424,7 @@ public:
 	BGK = GlobalConfig.BGK;
 
 	stringent_cfl = GlobalConfig.stringent_cfl;
+	viscous_signal_factor = GlobalConfig.viscous_signal_factor;
 
 	gmodel = init_gas_model(GlobalConfig.gas_model_file);
 	if (GlobalConfig.reacting)
