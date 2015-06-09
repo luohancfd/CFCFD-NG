@@ -104,13 +104,13 @@ public:
 	foreach (ib; 0 .. nBlocks) {
 	    string fileName;
 	    if (GlobalConfig.moving_grid) {
-		fileName = make_file_name!"grid"(jobName, ib, tindx);
+		fileName = make_file_name!"grid"(jobName, to!int(ib), tindx);
 	    } else {
-		fileName = make_file_name!"grid"(jobName, ib, 0);
+		fileName = make_file_name!"grid"(jobName, to!int(ib), 0);
 	    }
 	    fileName = dir ~ "/" ~ fileName;
 	    gridBlocks ~= new StructuredGrid(fileName, GridFileFormat.gziptext);
-	    fileName = make_file_name!"flow"(jobName, ib, tindx);
+	    fileName = make_file_name!"flow"(jobName, to!int(ib), tindx);
 	    fileName = dir ~ "/" ~ fileName;
 	    flowBlocks ~= new SBlockFlow(fileName);
 	} // end foreach ib
