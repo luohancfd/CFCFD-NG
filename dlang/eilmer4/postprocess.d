@@ -31,21 +31,15 @@ import gas;
 import globalconfig;
 import readconfig;
 
-// Some module-level data that is shared across post-processing functions.
-string jobName;
-SBlockFlow[] flowBlocks;
-StructuredGrid[] gridBlocks;
-double[int] times_dict;
-int[] tindx_list;
-string plotPath = "plot";
 
 void post_process(string tindxPlot, bool vtkxmlFlag, bool binary_format)
 {
-    writeln("Begin post_process()...");
+    string plotPath = "plot";
     read_config_file();
-    jobName = GlobalConfig.base_file_name;
-    readTimesFile();
-    writeln("tindx_list=", tindx_list);
+    string jobName = GlobalConfig.base_file_name;
+    auto times_dict = readTimesFile(jobName);
+    auto tindx_list = times_dict.keys;
+    sort(tindx_list);
     int[] tindx_list_to_plot;
     switch (tindxPlot) {
     case "all":
@@ -60,33 +54,21 @@ void post_process(string tindxPlot, bool vtkxmlFlag, bool binary_format)
         tindx_list_to_plot ~= to!int(tindxPlot);
     } // end switch
     if (vtkxmlFlag) {
-	begin_Visit_file(GlobalConfig.nBlocks);
-	begin_PVD_file();
+	writeln("writing VTK-XML files to directory \"", plotPath, "\"");
+	begin_Visit_file(jobName, plotPath, GlobalConfig.nBlocks);
+	begin_PVD_file(jobName, plotPath);
+	foreach (tindx; tindx_list_to_plot) {
+	    writeln("  tindx= ", tindx);
+	    auto soln = new ExistingSolution(jobName, ".", tindx, GlobalConfig.nBlocks);
+	    write_VTK_XML_files(jobName, plotPath, soln, tindx);
+	} // foreach tindx
+	finish_PVD_file(jobName, plotPath);
     }
-    foreach (tindx; tindx_list_to_plot) {
-	foreach (ib; 0 .. GlobalConfig.nBlocks) {
-	    string fileName;
-	    if (GlobalConfig.moving_grid) {
-		fileName = make_file_name!"grid"(jobName, ib, tindx);
-	    } else {
-		fileName = make_file_name!"grid"(jobName, ib, 0);
-	    }
-	    writeln("grid fileName=", fileName);
-	    gridBlocks ~= new StructuredGrid(fileName, GridFileFormat.gziptext);
-	    fileName = make_file_name!"flow"(jobName, ib, tindx);
-	    writeln("flow fileName=", fileName);
-	    flowBlocks ~= new SBlockFlow(fileName);
-	} // end foreach ib
-	write_VTK_XML_files(tindx);
-    } // foreach tindx
-    if (vtkxmlFlag) {
-	finish_PVD_file();
-    }
-    writeln("Done post_process().");
 } // end post_process()
 
-void readTimesFile()
+double[int] readTimesFile(string jobName)
 {
+    double[int] times_dict;
     // Read the times file for all tindx values.
     auto timesFile = File(jobName ~ ".times");
     auto line = timesFile.readln().strip();
@@ -99,8 +81,7 @@ void readTimesFile()
 	line = timesFile.readln().strip();
     }
     timesFile.close();
-    tindx_list = times_dict.keys;
-    sort(tindx_list);
+    return times_dict;
 } // end readTimesFile()
 
 string unquote(string s) {
@@ -110,6 +91,35 @@ string unquote(string s) {
 string quote(string s) {
     return "\"" ~ s ~ "\"";
 }
+
+class ExistingSolution {
+public:
+    double sim_time;
+    size_t nBlocks;
+    SBlockFlow[] flowBlocks;
+    StructuredGrid[] gridBlocks;
+    
+    this(string jobName, string dir, int tindx, size_t nBlocks)
+    {
+	foreach (ib; 0 .. nBlocks) {
+	    string fileName;
+	    if (GlobalConfig.moving_grid) {
+		fileName = make_file_name!"grid"(jobName, ib, tindx);
+	    } else {
+		fileName = make_file_name!"grid"(jobName, ib, 0);
+	    }
+	    fileName = dir ~ "/" ~ fileName;
+	    gridBlocks ~= new StructuredGrid(fileName, GridFileFormat.gziptext);
+	    fileName = make_file_name!"flow"(jobName, ib, tindx);
+	    fileName = dir ~ "/" ~ fileName;
+	    flowBlocks ~= new SBlockFlow(fileName);
+	} // end foreach ib
+	this.nBlocks = nBlocks;
+	sim_time = flowBlocks[0].sim_time;
+    } // end constructor
+
+    // [TODO] functions to interpolate flow field data
+} // end class FlowSolution
 
 class SBlockFlow {
     // Much like the Python library for postprocessing in Eilmer3,
@@ -134,11 +144,8 @@ public:
 	variableNames = line.strip().split();
 	foreach (ref var; variableNames) { var = unquote(var); }
 	foreach (i; 0 .. variableNames.length) { variableIndex[variableNames[i]] = i; }
-	writeln("variableNames=", variableNames);
-	writeln("variableIndex=", variableIndex);
 	line = byLine.front; byLine.popFront();
 	formattedRead(line, "%d %d %d", &nic, &njc, &nkc);
-	writeln("nic=", nic, " njc=", njc, " nkc=", nkc);
 	_data.length = nic;
 	// Resize the storage for our block of data.
 	foreach (i; 0 .. nic) {
@@ -163,7 +170,7 @@ public:
 		} // foreach i
 	    } // foreach j
 	} // foreach k
-    } // end this(fileName)
+    } // end constructor from file
 
     ref double opIndex(string varName, size_t i, size_t j, size_t k=1)
     {
@@ -175,19 +182,19 @@ private:
 } // end class SBlockFlowData
 
 
-void begin_Visit_file(int nblock)
+void begin_Visit_file(string jobName, string plotPath, int nBlocks)
 {
     // Will be handy to have a Visit file, also.
     // For each time index, this justs lists the names of the files for individual blocks.
     ensure_directory_is_present(plotPath);
     string fileName = plotPath ~ "/" ~ jobName ~ ".visit";
     auto visitFile = File(fileName, "w");
-    visitFile.writef("!NBLOCKS %d\n", nblock);
+    visitFile.writef("!NBLOCKS %d\n", nBlocks);
     visitFile.close();
     return;
-}
+} // end begin_Visit_file()
 
-void begin_PVD_file()
+void begin_PVD_file(string jobName, string plotPath)
 {
     // Will be handy to have a Paraview collection file, also.
     // For each time index, this justs lists the name of the top-level .pvtu file.
@@ -199,9 +206,9 @@ void begin_PVD_file()
     pvdFile.write("<Collection>\n");
     pvdFile.close();
     return;
-}
+} // end begin_PVD_file()
 
-void finish_PVD_file()
+void finish_PVD_file(string jobName, string plotPath)
 {
     ensure_directory_is_present(plotPath);
     string fileName = plotPath ~ "/" ~ jobName ~ ".pvd";
@@ -210,13 +217,14 @@ void finish_PVD_file()
     pvdFile.write("</VTKFile>\n");
     pvdFile.close();
     return;
-}
+} // end finish_PVD_file()
 
-void write_VTK_XML_files(int tindx, bool binary_format=false)
+void write_VTK_XML_files(string jobName, string plotPath,
+			 ExistingSolution soln, int tindx,
+			 bool binary_format=false)
 {
     ensure_directory_is_present(plotPath);
     string fileName = plotPath~"/"~jobName~format(".t%04d", tindx)~".pvtu";
-    writeln("fileName=", fileName);
     auto pvtuFile = File(fileName, "w");
     pvtuFile.write("<VTKFile type=\"PUnstructuredGrid\">\n");
     pvtuFile.write("<PUnstructuredGrid GhostLevel=\"0\">");
@@ -224,24 +232,24 @@ void write_VTK_XML_files(int tindx, bool binary_format=false)
     pvtuFile.write(" <PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n");
     pvtuFile.write("</PPoints>\n");
     pvtuFile.write("<PCellData>\n");
-    foreach (var; flowBlocks[0].variableNames) {
+    foreach (var; soln.flowBlocks[0].variableNames) {
         pvtuFile.writef(" <DataArray Name=\"%s\" type=\"Float32\" NumberOfComponents=\"1\"/>\n", var);
     }
     pvtuFile.write(" <PDataArray Name=\"vel.vector\" type=\"Float32\" NumberOfComponents=\"3\"/>\n");
-    if (canFind(flowBlocks[0].variableNames,"c.x")) {
+    if (canFind(soln.flowBlocks[0].variableNames,"c.x")) {
 	pvtuFile.write(" <PDataArray Name=\"c.vector\" type=\"Float32\" NumberOfComponents=\"3\"/>\n");
     }
-    if (canFind(flowBlocks[0].variableNames,"B.x")) {
+    if (canFind(soln.flowBlocks[0].variableNames,"B.x")) {
 	pvtuFile.write(" <PDataArray Name=\"B.vector\" type=\"Float32\" NumberOfComponents=\"3\"/>\n");
     }
     pvtuFile.write("</PCellData>\n");
-    foreach (jb; 0 .. flowBlocks.length) {
+    foreach (jb; 0 .. soln.nBlocks) {
         fileName = jobName ~ format(".b%04d.t%04d.vtu", jb, tindx);
         // We write the short version of the fileName into the pvtu file.
         pvtuFile.writef("<Piece Source=\"%s\"/>\n", fileName);
         // but use the long version to actually open it.
         fileName = plotPath ~ "/" ~ fileName;
-        write_VTK_XML_unstructured_file(fileName, jb, binary_format);
+        write_VTK_XML_unstructured_file(soln, jb, fileName, binary_format);
     }
     pvtuFile.write("</PUnstructuredGrid>\n");
     pvtuFile.write("</VTKFile>\n");
@@ -251,7 +259,7 @@ void write_VTK_XML_files(int tindx, bool binary_format=false)
     fileName = plotPath ~ "/" ~ jobName ~ ".visit";
     // Note that we append to the visit file for each tindx.
     auto visitFile = File(fileName, "a");
-    foreach (jb; 0 .. flowBlocks.length) {
+    foreach (jb; 0 .. soln.nBlocks) {
         fileName = jobName ~ format(".b%04d.t%04d.vtu", jb, tindx);
         visitFile.writef("%s\n", fileName);
     }
@@ -263,18 +271,19 @@ void write_VTK_XML_files(int tindx, bool binary_format=false)
     auto pvdFile = File(fileName, "a");
     fileName = jobName ~ format(".t%04d.pvtu", tindx);
     pvdFile.writef("<DataSet timestep=\"%e\" group=\"\" part=\"0\" file=\"%s\"/>\n",
-		   times_dict[tindx], fileName);
+		   soln.sim_time, fileName);
     pvdFile.close();
     return;
-}
+} // end write_VTK_XML_files()
 
-void write_VTK_XML_unstructured_file(string fileName, size_t jb, bool binary_format)
+void write_VTK_XML_unstructured_file(ExistingSolution soln, size_t jb, 
+				     string fileName, bool binary_format)
 // Write the cell-centred flow data from a single block (index jb)
 // as an unstructured grid of finite-volume cells.
 {
     auto fp = File(fileName, "wb"); // We may be writing some binary data.
-    auto flow = flowBlocks[jb];
-    auto grid = gridBlocks[jb];
+    auto flow = soln.flowBlocks[jb];
+    auto grid = soln.gridBlocks[jb];
     if (binary_format) {
         //binary_data_string = "";
         //binary_data_offset = 0;
