@@ -79,7 +79,8 @@ public:
 	    read_grid_from_text_file(fileName);
 	    break;
 	case GridFileFormat.gziptext:
-	    throw new Error("Reading from GZip text format not implemented.");
+	    read_grid_from_gzip_file(fileName);
+	    break;
 	case GridFileFormat.vtk:
 	    read_grid_from_text_file(fileName, true);
 	    break;
@@ -262,6 +263,27 @@ public:
 	    } // foreach j
 	} // foreach k
     } // end read_grid_from_text_file()
+
+    void read_grid_from_gzip_file(string fileName)
+    {
+	auto byLine = new GzipByLine(fileName);
+	auto line = byLine.front; byLine.popFront();
+	formattedRead(line, "%d %d %d", &niv, &njv, &nkv);
+	resize_array();
+	double x, y, z;
+	foreach (k; 0 .. nkv) {
+	    foreach (j; 0 .. njv) {
+		foreach (i; 0 .. niv) {
+		    line = byLine.front; byLine.popFront();
+		    // Note that the line starts with whitespace.
+		    formattedRead(line, " %g %g %g", &x, &y, &z);
+		    grid[i][j][k].refx = x;
+		    grid[i][j][k].refy = y;
+		    grid[i][j][k].refz = z;
+		} // foreach i
+	    } // foreach j
+	} // foreach k
+    } // end read_grid_from_gzip_file()
 
     void write_to_text_file(string fileName, bool vtkHeader=true)
     {
