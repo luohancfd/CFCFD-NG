@@ -120,7 +120,7 @@ public:
     size_t njc;
     size_t nkc;
     string[] variableNames;
-    int[string] variableIndex;
+    size_t[string] variableIndex;
     double sim_time;
 
     this(string filename)
@@ -268,7 +268,7 @@ void write_VTK_XML_files(int tindx, bool binary_format=false)
     return;
 }
 
-void write_VTK_XML_unstructured_file(string fileName, int jb, bool binary_format)
+void write_VTK_XML_unstructured_file(string fileName, size_t jb, bool binary_format)
 // Write the cell-centred flow data from a single block (index jb)
 // as an unstructured grid of finite-volume cells.
 {
