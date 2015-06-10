@@ -1,6 +1,6 @@
 /**
  * flowstate.d
- * Flow condition class for use in the CFD codes.
+ * FlowState class for use in the main solver.
  *
  * Author: Peter J. and Rowan G.
  * Version: 2014-07-17: initial cut, to explore options.

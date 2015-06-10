@@ -37,19 +37,19 @@ void main(string[] args)
     writeln("Revision: PUT_REVISION_STRING_HERE");
 
     string msg = "Usage:                               Comment:\n";
-    msg       ~= "e4shared [--job=<string>]            file names built from this string\n";
-    msg       ~= "         [--prep]                    prepare config, grid and flow files\n";
+    msg       ~= "e4shared [--job=<string>]            file names built from this string\n\n";
+    msg       ~= "         [--prep]                    prepare config, grid and flow files\n\n";
     msg       ~= "         [--run]                     run the simulation over time\n";
     msg       ~= "         [--tindx-start=<int>]       defaults to 0\n";
     msg       ~= "         [--max-cpus=<int>]          defaults to ";
     msg       ~= to!string(totalCPUs) ~" on this machine\n";
     msg       ~= "         [--verbosity=<int>]         defaults to 0\n";
-    msg       ~= "         [--max-wall-clock=<int>]    in seconds\n";
-    msg       ~= "         [--help]                    writes this message\n";
+    msg       ~= "         [--max-wall-clock=<int>]    in seconds\n\n";
     msg       ~= "         [--post]                    post-process simulation data\n";
-    msg       ~= "         [--tindx-plot=<int>|all|last|9999]  index to plot\n";
+    msg       ~= "         [--tindx-plot=<int>|all|last|9999]  default to all\n";
     msg       ~= "         [--vtk-xml]                 produce XML VTK-format plot files\n";
-    msg       ~= "         [--binary-format]           use binary within the VTK-XML\n";
+    msg       ~= "         [--binary-format]           use binary within the VTK-XML\n\n";
+    msg       ~= "         [--help]                    writes this message\n";
     if ( args.length < 2 ) {
 	writeln("Too few arguments.");
 	write(msg);
