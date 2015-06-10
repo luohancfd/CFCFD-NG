@@ -37,18 +37,24 @@ void main(string[] args)
     writeln("Revision: PUT_REVISION_STRING_HERE");
 
     string msg = "Usage:                               Comment:\n";
-    msg       ~= "e4shared [--job=<string>]            file names built from this string\n\n";
-    msg       ~= "         [--prep]                    prepare config, grid and flow files\n\n";
+    msg       ~= "e4shared [--job=<string>]            file names built from this string\n";
+    msg       ~= "\n";
+    msg       ~= "         [--prep]                    prepare config, grid and flow files\n";
+    msg       ~= "\n";
     msg       ~= "         [--run]                     run the simulation over time\n";
     msg       ~= "         [--tindx-start=<int>]       defaults to 0\n";
     msg       ~= "         [--max-cpus=<int>]          defaults to ";
     msg       ~= to!string(totalCPUs) ~" on this machine\n";
     msg       ~= "         [--verbosity=<int>]         defaults to 0\n";
-    msg       ~= "         [--max-wall-clock=<int>]    in seconds\n\n";
+    msg       ~= "         [--max-wall-clock=<int>]    in seconds\n";
+    msg       ~= "\n";
     msg       ~= "         [--post]                    post-process simulation data\n";
     msg       ~= "         [--tindx-plot=<int>|all|last|9999]  default to all\n";
     msg       ~= "         [--vtk-xml]                 produce XML VTK-format plot files\n";
-    msg       ~= "         [--binary-format]           use binary within the VTK-XML\n\n";
+    msg       ~= "         [--binary-format]           use binary within the VTK-XML\n";
+    msg       ~= "         [--plot-dir=<string>]       defaults to plot\n";
+    msg       ~= "         [--probe=\"x,y,z;...\"]       locations to sample flow data\n";
+    msg       ~= "\n";
     msg       ~= "         [--help]                    writes this message\n";
     if ( args.length < 2 ) {
 	writeln("Too few arguments.");
@@ -66,6 +72,8 @@ void main(string[] args)
     bool vtkxmlFlag = false;
     string tindxPlot = "all";
     bool binaryFormat = false;
+    string plotDir = "plot";
+    string probeStr = "";
     bool helpWanted = false;
     try {
 	getopt(args,
@@ -80,6 +88,8 @@ void main(string[] args)
 	       "vtk-xml", &vtkxmlFlag,
 	       "binary-format", &binaryFormat,
 	       "tindx-plot", &tindxPlot,
+	       "plot-dir", &plotDir,
+	       "probe", &probeStr,
 	       "help", &helpWanted
 	       );
     } catch (Exception e) {
@@ -165,9 +175,11 @@ void main(string[] args)
 	    writeln("  tindxPlot: ", tindxPlot);
 	    writeln("  vtkxmlFlag: ", vtkxmlFlag);
 	    writeln("  binaryFormat: ", binaryFormat);
+	    writeln("  plotDir: ", plotDir);
+	    writeln("  probeStr: ", probeStr);
 	    writeln("  verbosityLevel: ", verbosityLevel);
 	}
-	post_process(tindxPlot, vtkxmlFlag, binaryFormat);
+	post_process(plotDir, tindxPlot, vtkxmlFlag, binaryFormat, probeStr);
 	writeln("Done postprocessing.");
     } // end if postFlag
 } // end main()

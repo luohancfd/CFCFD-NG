@@ -23,6 +23,8 @@ import std.conv;
 import std.format;
 import std.string;
 import std.algorithm;
+import std.array;
+import std.math;
 import gzip;
 import fileutil;
 import geom;
@@ -30,14 +32,6 @@ import sgrid;
 import gas;
 import globalconfig;
 
-
-string unquote(string s) {
-    return removechars(s, "\"");
-}
-
-string quote(string s) {
-    return "\"" ~ s ~ "\"";
-}
 
 class FlowSolution {
     // The collection of flow blocks and grid blocks that define the flow
@@ -67,7 +61,32 @@ public:
 	sim_time = flowBlocks[0].sim_time;
     } // end constructor
 
-    // [TODO] functions to interpolate flow field data
+    size_t[] find_nearest_cell_centre(double x, double y, double z=0.0)
+    {
+	size_t[] nearest = [0, 0, 0, 0]; // blk_id, i, j, k
+	double dx = x - flowBlocks[0]["pos.x", 0, 0, 0];
+	double dy = y - flowBlocks[0]["pos.y", 0, 0, 0];
+	double dz = z - flowBlocks[0]["pos.z", 0, 0, 0];
+	double minDist = sqrt(dx*dx + dy*dy + dz*dz);
+	foreach (ib; 0 .. nBlocks) {
+	    auto flow = flowBlocks[ib];
+	    foreach (k; 0 .. flow.nkc) {
+		foreach (j; 0 .. flow.njc) {
+		    foreach (i; 0 .. flow.nic) {
+			dx = x - flowBlocks[ib]["pos.x", i, j, k];
+			dy = y - flowBlocks[ib]["pos.y", i, j, k];
+			dz = z - flowBlocks[ib]["pos.z", i, j, k];
+			double dist = sqrt(dx*dx + dy*dy + dz*dz);
+			if (dist < minDist) {
+			    minDist = dist;
+			    nearest = [ib, i, j, k];
+			}
+		    } // foreach i
+		} // foreach j
+	    } // foreach k
+	} // foreach ib
+	return nearest;
+    } // end find_nearest_cell_centre()
 } // end class FlowSolution
 
 class SBlockFlow {
@@ -91,7 +110,7 @@ public:
 	formattedRead(line, " %g", &sim_time);
 	line = byLine.front; byLine.popFront();
 	variableNames = line.strip().split();
-	foreach (ref var; variableNames) { var = unquote(var); }
+	foreach (ref var; variableNames) { var = removechars(var, "\""); }
 	foreach (i; 0 .. variableNames.length) { variableIndex[variableNames[i]] = i; }
 	line = byLine.front; byLine.popFront();
 	formattedRead(line, "%d %d %d", &nic, &njc, &nkc);
@@ -121,9 +140,29 @@ public:
 	} // foreach k
     } // end constructor from file
 
-    ref double opIndex(string varName, size_t i, size_t j, size_t k=1)
+    ref double opIndex(string varName, size_t i, size_t j, size_t k=0)
     {
 	return _data[i][j][k][variableIndex[varName]];
+    }
+
+    string variable_names_as_string()
+    {
+	auto writer = appender!string();
+	formattedWrite(writer, "#");
+	foreach(name; variableNames) {
+	    formattedWrite(writer, " \"%s\"", name);
+	}
+	return writer.data;
+    }
+
+    string values_as_string(size_t i, size_t j, size_t k)
+    {
+	auto writer = appender!string();
+	formattedWrite(writer, "%e", _data[i][j][k][0]);
+	foreach (ivar; 1 .. variableNames.length) {
+	    formattedWrite(writer, " %e", _data[i][j][k][ivar]);
+	}
+	return writer.data;
     }
 
 private:

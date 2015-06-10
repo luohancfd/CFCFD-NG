@@ -26,9 +26,9 @@ import readconfig;
 import flowsolution;
 
 
-void post_process(string tindxPlot, bool vtkxmlFlag, bool binary_format)
+void post_process(string plotDir, string tindxPlot, bool vtkxmlFlag,
+		  bool binary_format, string probeStr)
 {
-    string plotPath = "plot";
     read_config_file();
     string jobName = GlobalConfig.base_file_name;
     auto times_dict = readTimesFile(jobName);
@@ -47,18 +47,44 @@ void post_process(string tindxPlot, bool vtkxmlFlag, bool binary_format)
 	// We assume that the command-line argument was an integer.
         tindx_list_to_plot ~= to!int(tindxPlot);
     } // end switch
+
     if (vtkxmlFlag) {
-	writeln("writing VTK-XML files to directory \"", plotPath, "\"");
-	begin_Visit_file(jobName, plotPath, GlobalConfig.nBlocks);
-	begin_PVD_file(jobName, plotPath);
+	writeln("writing VTK-XML files to directory \"", plotDir, "\"");
+	begin_Visit_file(jobName, plotDir, GlobalConfig.nBlocks);
+	begin_PVD_file(jobName, plotDir);
 	foreach (tindx; tindx_list_to_plot) {
 	    writeln("  tindx= ", tindx);
 	    auto soln = new FlowSolution(jobName, ".", tindx, GlobalConfig.nBlocks);
-	    write_VTK_XML_files(jobName, plotPath, soln, tindx);
+	    write_VTK_XML_files(jobName, plotDir, soln, tindx);
 	} // foreach tindx
-	finish_PVD_file(jobName, plotPath);
-    }
+	finish_PVD_file(jobName, plotDir);
+    } // end if vtkxml
+
+    if (probeStr.length > 0) {
+	writeln("Probing flow solution at specified points.");
+	probeStr = probeStr.strip();
+	probeStr = removechars(probeStr, "\"");
+	double[] xp, yp, zp;
+	foreach(triple; probeStr.split(";")) {
+	    auto items = triple.split(",");
+	    xp ~= to!double(items[0]);
+	    yp ~= to!double(items[1]);
+	    zp ~= to!double(items[2]);
+	}
+	foreach (tindx; tindx_list_to_plot) {
+	    writeln("  tindx= ", tindx);
+	    auto soln = new FlowSolution(jobName, ".", tindx, GlobalConfig.nBlocks);
+	    writeln(soln.flowBlocks[0].variable_names_as_string());
+	    foreach (ip; 0 .. xp.length) {
+		auto nearest = soln.find_nearest_cell_centre(xp[ip], yp[ip], zp[ip]);
+		size_t ib = nearest[0]; size_t i = nearest[1];
+		size_t j = nearest[2]; size_t k = nearest[3];
+		writeln(soln.flowBlocks[ib].values_as_string(i,j,k));
+	    }
+	} // foreach tindx
+    } // end if probeStr
 } // end post_process()
+
 
 double[int] readTimesFile(string jobName)
 {
@@ -78,24 +104,24 @@ double[int] readTimesFile(string jobName)
     return times_dict;
 } // end readTimesFile()
 
-void begin_Visit_file(string jobName, string plotPath, int nBlocks)
+void begin_Visit_file(string jobName, string plotDir, int nBlocks)
 {
     // Will be handy to have a Visit file, also.
     // For each time index, this justs lists the names of the files for individual blocks.
-    ensure_directory_is_present(plotPath);
-    string fileName = plotPath ~ "/" ~ jobName ~ ".visit";
+    ensure_directory_is_present(plotDir);
+    string fileName = plotDir ~ "/" ~ jobName ~ ".visit";
     auto visitFile = File(fileName, "w");
     visitFile.writef("!NBLOCKS %d\n", nBlocks);
     visitFile.close();
     return;
 } // end begin_Visit_file()
 
-void begin_PVD_file(string jobName, string plotPath)
+void begin_PVD_file(string jobName, string plotDir)
 {
     // Will be handy to have a Paraview collection file, also.
     // For each time index, this justs lists the name of the top-level .pvtu file.
-    ensure_directory_is_present(plotPath);
-    string fileName = plotPath ~ "/" ~ jobName ~ ".pvd";
+    ensure_directory_is_present(plotDir);
+    string fileName = plotDir ~ "/" ~ jobName ~ ".pvd";
     auto pvdFile = File(fileName, "w");
     pvdFile.write("<?xml version=\"1.0\"?>\n");
     pvdFile.write("<VTKFile type=\"Collection\" version=\"0.1\" byte_order=\"LittleEndian\">\n");
@@ -104,10 +130,10 @@ void begin_PVD_file(string jobName, string plotPath)
     return;
 } // end begin_PVD_file()
 
-void finish_PVD_file(string jobName, string plotPath)
+void finish_PVD_file(string jobName, string plotDir)
 {
-    ensure_directory_is_present(plotPath);
-    string fileName = plotPath ~ "/" ~ jobName ~ ".pvd";
+    ensure_directory_is_present(plotDir);
+    string fileName = plotDir ~ "/" ~ jobName ~ ".pvd";
     auto pvdFile = File(fileName, "a");
     pvdFile.write("</Collection>\n");
     pvdFile.write("</VTKFile>\n");
@@ -115,12 +141,12 @@ void finish_PVD_file(string jobName, string plotPath)
     return;
 } // end finish_PVD_file()
 
-void write_VTK_XML_files(string jobName, string plotPath,
+void write_VTK_XML_files(string jobName, string plotDir,
 			 FlowSolution soln, int tindx,
 			 bool binary_format=false)
 {
-    ensure_directory_is_present(plotPath);
-    string fileName = plotPath~"/"~jobName~format(".t%04d", tindx)~".pvtu";
+    ensure_directory_is_present(plotDir);
+    string fileName = plotDir~"/"~jobName~format(".t%04d", tindx)~".pvtu";
     auto pvtuFile = File(fileName, "w");
     pvtuFile.write("<VTKFile type=\"PUnstructuredGrid\">\n");
     pvtuFile.write("<PUnstructuredGrid GhostLevel=\"0\">");
@@ -144,7 +170,7 @@ void write_VTK_XML_files(string jobName, string plotPath,
         // We write the short version of the fileName into the pvtu file.
         pvtuFile.writef("<Piece Source=\"%s\"/>\n", fileName);
         // but use the long version to actually open it.
-        fileName = plotPath ~ "/" ~ fileName;
+        fileName = plotDir ~ "/" ~ fileName;
         write_VTK_XML_unstructured_file(soln, jb, fileName, binary_format);
     }
     pvtuFile.write("</PUnstructuredGrid>\n");
@@ -152,7 +178,7 @@ void write_VTK_XML_files(string jobName, string plotPath,
     pvtuFile.close();
     // Will be handy to have a Visit file, also.
     // This justs lists the names of the files for individual blocks.
-    fileName = plotPath ~ "/" ~ jobName ~ ".visit";
+    fileName = plotDir ~ "/" ~ jobName ~ ".visit";
     // Note that we append to the visit file for each tindx.
     auto visitFile = File(fileName, "a");
     foreach (jb; 0 .. soln.nBlocks) {
@@ -162,7 +188,7 @@ void write_VTK_XML_files(string jobName, string plotPath,
     visitFile.close();
     // Will be handy to have a Paraview PVD file, also.
     // This justs lists the top-level .pvtu files.
-    fileName = plotPath ~ "/" ~ jobName ~ ".pvd";
+    fileName = plotDir ~ "/" ~ jobName ~ ".pvd";
     // Note that we append to the .pvd file for each tindx.
     auto pvdFile = File(fileName, "a");
     fileName = jobName ~ format(".t%04d.pvtu", tindx);
