@@ -38,6 +38,7 @@ void main(string[] args)
 
     string msg = "Usage:                               Comment:\n";
     msg       ~= "e4shared [--job=<string>]            file names built from this string\n";
+    msg       ~= "         [--verbosity=<int>]         defaults to 0\n";
     msg       ~= "\n";
     msg       ~= "         [--prep]                    prepare config, grid and flow files\n";
     msg       ~= "\n";
@@ -45,11 +46,11 @@ void main(string[] args)
     msg       ~= "         [--tindx-start=<int>]       defaults to 0\n";
     msg       ~= "         [--max-cpus=<int>]          defaults to ";
     msg       ~= to!string(totalCPUs) ~" on this machine\n";
-    msg       ~= "         [--verbosity=<int>]         defaults to 0\n";
     msg       ~= "         [--max-wall-clock=<int>]    in seconds\n";
     msg       ~= "\n";
     msg       ~= "         [--post]                    post-process simulation data\n";
     msg       ~= "         [--tindx-plot=<int>|all|last|9999]  default to all\n";
+    msg       ~= "         [--add-vars=\"mach,pitot,total-h,total-p\"]\n";
     msg       ~= "         [--vtk-xml]                 produce XML VTK-format plot files\n";
     msg       ~= "         [--binary-format]           use binary within the VTK-XML\n";
     msg       ~= "         [--plot-dir=<string>]       defaults to plot\n";
@@ -65,12 +66,13 @@ void main(string[] args)
     int verbosityLevel = 0;
     bool prepFlag = false;
     bool runFlag = false;
-    bool postFlag = false;
     int tindxStart = 0;
-    int maxWallClock = 5*24*3600; // 5 days default
     int maxCPUs = totalCPUs;
-    bool vtkxmlFlag = false;
+    int maxWallClock = 5*24*3600; // 5 days default
+    bool postFlag = false;
     string tindxPlot = "all";
+    string addVarsStr = "";
+    bool vtkxmlFlag = false;
     bool binaryFormat = false;
     string plotDir = "plot";
     string probeStr = "";
@@ -81,13 +83,14 @@ void main(string[] args)
 	       "verbosity", &verbosityLevel,
 	       "prep", &prepFlag,
 	       "run", &runFlag,
-	       "post", &postFlag,
 	       "tindx-start", &tindxStart,
-	       "max-wall-clock", &maxWallClock,
 	       "max-cpus", &maxCPUs,
+	       "max-wall-clock", &maxWallClock,
+	       "post", &postFlag,
+	       "tindx-plot", &tindxPlot,
+	       "add-vars", &addVarsStr,
 	       "vtk-xml", &vtkxmlFlag,
 	       "binary-format", &binaryFormat,
-	       "tindx-plot", &tindxPlot,
 	       "plot-dir", &plotDir,
 	       "probe", &probeStr,
 	       "help", &helpWanted
@@ -177,9 +180,10 @@ void main(string[] args)
 	    writeln("  binaryFormat: ", binaryFormat);
 	    writeln("  plotDir: ", plotDir);
 	    writeln("  probeStr: ", probeStr);
+	    writeln("  addVarsStr: ", addVarsStr);
 	    writeln("  verbosityLevel: ", verbosityLevel);
 	}
-	post_process(plotDir, tindxPlot, vtkxmlFlag, binaryFormat, probeStr);
+	post_process(plotDir, tindxPlot, addVarsStr, vtkxmlFlag, binaryFormat, probeStr);
 	writeln("Done postprocessing.");
     } // end if postFlag
 } // end main()

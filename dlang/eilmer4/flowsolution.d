@@ -61,6 +61,11 @@ public:
 	sim_time = flowBlocks[0].sim_time;
     } // end constructor
 
+    void add_aux_variables(string[] addVarsList)
+    {
+	foreach (blk; flowBlocks) blk.add_aux_variables(addVarsList);
+    }
+
     size_t[] find_nearest_cell_centre(double x, double y, double z=0.0)
     {
 	size_t[] nearest = [0, 0, 0, 0]; // blk_id, i, j, k
@@ -128,7 +133,7 @@ public:
 	// Scan the remainder of the file, extracting our data.
 	foreach (k; 0 .. nkc) {
 	    foreach (j; 0 .. njc) {
-		foreach (i; 0 ..nic) {
+		foreach (i; 0 .. nic) {
 		    line = byLine.front; byLine.popFront();
 		    tokens = line.strip().split();
 		    assert(tokens.length == variableNames.length, "wrong number of items");
@@ -165,6 +170,93 @@ public:
 	return writer.data;
     }
 
+    void add_aux_variables(string[] addVarsList)
+    // Adds variables to the data for each cell.
+    {
+	// We assume a lot about the data that has been read in so,
+	// we need to skip this function if all is not in place
+	bool ok_to_proceed = true;
+	foreach (name; ["a", "rho", "p", "vel.x", "vel.y", "vel.z", "e[0]", "tke"]) {
+	    if (!canFind(variableNames, name)) { ok_to_proceed = false; }
+	}
+	if (!ok_to_proceed) {
+	    writeln("SBlockFlow.add_aux_variables(): Some essential variables not found.");
+	    return;
+	}
+	bool add_mach = canFind(addVarsList, "mach");
+	bool add_pitot_p = canFind(addVarsList, "pitot");
+	bool add_total_p = canFind(addVarsList, "total-p");
+	bool add_total_h = canFind(addVarsList, "total-h");
+	//
+	// Be careful to add auxiliary variables in order that matches
+	// the list of variable names.
+	if (add_mach) {
+	    variableNames ~= "M_local";
+	    variableIndex["M_local"] = variableNames.length - 1;
+	}
+	if (add_pitot_p) {
+	    variableNames ~= "pitot_p";
+	    variableIndex["pitot_p"] = variableNames.length - 1;
+	}
+	if (add_total_p) {
+	    variableNames ~= "total_p";
+	    variableIndex["total_p"] = variableNames.length - 1;
+	}
+	if (add_total_h) {
+	    variableNames ~= "total_h";
+	    variableIndex["total_h"] = variableNames.length - 1;
+	}
+	//
+	foreach (k; 0 .. nkc) {
+	    foreach (j; 0 .. njc) {
+		foreach (i; 0 .. nic) {
+		    double a = _data[i][j][k][variableIndex["a"]];
+		    double p = _data[i][j][k][variableIndex["p"]];
+		    double rho = _data[i][j][k][variableIndex["rho"]];
+                    double g = a*a*rho/p; // approximation for gamma
+                    // Velocity in the block frame of reference that
+		    // may be rotating for turbomachinery calculations.
+		    double wx = _data[i][j][k][variableIndex["vel.x"]];
+		    double wy = _data[i][j][k][variableIndex["vel.y"]];
+		    double wz = _data[i][j][k][variableIndex["vel.z"]];
+                    double w = sqrt(wx*wx + wy*wy + wz*wz);
+                    double M = w/a;
+ 		    if (add_mach) { _data[i][j][k] ~= M; }
+                    if (add_pitot_p) {
+                        // Rayleigh Pitot formula
+			double pitot_p;
+                        if (M > 1.0) {
+                            // Go through the shock and isentropic compression.
+                            double t1 = (g+1)*M*M/2;
+                            double t2 = (g+1)/(2*g*M*M - (g-1));
+                            pitot_p = p * pow(t1,(g/(g-1))) * pow(t2,(1/(g-1)));
+                        } else {
+                            // Isentropic compression only.
+                            double t1 = 1 + 0.5*(g-1)*M*M;
+                            pitot_p = p * pow(t1,(g/(g-1)));
+			}
+                        _data[i][j][k] ~= pitot_p;
+		    }
+                    if (add_total_p) {
+                        // Isentropic process only.
+                        double t1 = 1 + 0.5*(g-1)*M*M;
+                        double total_p = p * pow(t1,(g/(g-1)));
+                        _data[i][j][k] ~= total_p;
+		    }
+                    if (add_total_h) {
+                        double e0 = _data[i][j][k][variableIndex["e[0]"]];
+                        double tke = _data[i][j][k][variableIndex["tke"]];
+                        // Sum up the bits of energy,
+                        // forgetting the multiple energy modes, for the moment.
+                        double total_h = p/rho + e0 + 0.5*w*w + tke;
+                        _data[i][j][k] ~= total_h;
+		    }
+ 		} // foreach i
+	    } // foreach j
+	} // foreach k
+	
+    } // end add_aux_variables()
+
 private:
     double[][][][] _data;
-} // end class SBlockFlowData
+} // end class SBlockFlow

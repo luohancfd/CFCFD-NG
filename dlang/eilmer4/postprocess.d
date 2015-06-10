@@ -26,11 +26,19 @@ import readconfig;
 import flowsolution;
 
 
-void post_process(string plotDir, string tindxPlot, bool vtkxmlFlag,
-		  bool binary_format, string probeStr)
+void post_process(string plotDir, string tindxPlot, string addVarsStr,
+		  bool vtkxmlFlag, bool binary_format, string probeStr)
 {
     read_config_file();
     string jobName = GlobalConfig.base_file_name;
+    //
+    string[] addVarsList;
+    addVarsStr = addVarsStr.strip();
+    addVarsStr = removechars(addVarsStr, "\"");
+    if (addVarsStr.length > 0) {
+	addVarsList = addVarsStr.split(",");
+    }
+    //
     auto times_dict = readTimesFile(jobName);
     auto tindx_list = times_dict.keys;
     sort(tindx_list);
@@ -55,6 +63,7 @@ void post_process(string plotDir, string tindxPlot, bool vtkxmlFlag,
 	foreach (tindx; tindx_list_to_plot) {
 	    writeln("  tindx= ", tindx);
 	    auto soln = new FlowSolution(jobName, ".", tindx, GlobalConfig.nBlocks);
+	    soln.add_aux_variables(addVarsList);
 	    write_VTK_XML_files(jobName, plotDir, soln, tindx);
 	} // foreach tindx
 	finish_PVD_file(jobName, plotDir);
@@ -74,6 +83,7 @@ void post_process(string plotDir, string tindxPlot, bool vtkxmlFlag,
 	foreach (tindx; tindx_list_to_plot) {
 	    writeln("  tindx= ", tindx);
 	    auto soln = new FlowSolution(jobName, ".", tindx, GlobalConfig.nBlocks);
+	    soln.add_aux_variables(addVarsList);
 	    writeln(soln.flowBlocks[0].variable_names_as_string());
 	    foreach (ip; 0 .. xp.length) {
 		auto nearest = soln.find_nearest_cell_centre(xp[ip], yp[ip], zp[ip]);
