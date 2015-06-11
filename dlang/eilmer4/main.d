@@ -54,6 +54,8 @@ void main(string[] args)
     msg       ~= "         [--vtk-xml]                 produce XML VTK-format plot files\n";
     msg       ~= "         [--binary-format]           use binary within the VTK-XML\n";
     msg       ~= "         [--plot-dir=<string>]       defaults to plot\n";
+    msg       ~= "         [--output-file=<string>]    defaults to stdout\n";
+    msg       ~= "         [--slice-list=\"blk-range,i-range,j-range,k-range;...\"]\n";
     msg       ~= "         [--probe=\"x,y,z;...\"]       locations to sample flow data\n";
     msg       ~= "\n";
     msg       ~= "         [--help]                    writes this message\n";
@@ -75,6 +77,8 @@ void main(string[] args)
     bool vtkxmlFlag = false;
     bool binaryFormat = false;
     string plotDir = "plot";
+    string outputFileName = "";
+    string sliceListStr = "";
     string probeStr = "";
     bool helpWanted = false;
     try {
@@ -92,6 +96,8 @@ void main(string[] args)
 	       "vtk-xml", &vtkxmlFlag,
 	       "binary-format", &binaryFormat,
 	       "plot-dir", &plotDir,
+	       "output-file", &outputFileName,
+	       "slice-list", &sliceListStr,
 	       "probe", &probeStr,
 	       "help", &helpWanted
 	       );
@@ -179,11 +185,15 @@ void main(string[] args)
 	    writeln("  vtkxmlFlag: ", vtkxmlFlag);
 	    writeln("  binaryFormat: ", binaryFormat);
 	    writeln("  plotDir: ", plotDir);
+	    writeln("  outputFileName: ", outputFileName);
+	    writeln("  sliceListStr: ", sliceListStr);
 	    writeln("  probeStr: ", probeStr);
 	    writeln("  addVarsStr: ", addVarsStr);
 	    writeln("  verbosityLevel: ", verbosityLevel);
 	}
-	post_process(plotDir, tindxPlot, addVarsStr, vtkxmlFlag, binaryFormat, probeStr);
+	post_process(plotDir, tindxPlot, addVarsStr,
+		     vtkxmlFlag, binaryFormat,
+		     outputFileName, sliceListStr, probeStr);
 	writeln("Done postprocessing.");
     } // end if postFlag
 } // end main()

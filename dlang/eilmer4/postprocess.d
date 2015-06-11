@@ -27,7 +27,8 @@ import flowsolution;
 
 
 void post_process(string plotDir, string tindxPlot, string addVarsStr,
-		  bool vtkxmlFlag, bool binary_format, string probeStr)
+		  bool vtkxmlFlag, bool binary_format,
+		  string outputFileName, string sliceListStr, string probeStr)
 {
     read_config_file();
     string jobName = GlobalConfig.base_file_name;
@@ -55,7 +56,7 @@ void post_process(string plotDir, string tindxPlot, string addVarsStr,
 	// We assume that the command-line argument was an integer.
         tindx_list_to_plot ~= to!int(tindxPlot);
     } // end switch
-
+    //
     if (vtkxmlFlag) {
 	writeln("writing VTK-XML files to directory \"", plotDir, "\"");
 	begin_Visit_file(jobName, plotDir, GlobalConfig.nBlocks);
@@ -68,7 +69,7 @@ void post_process(string plotDir, string tindxPlot, string addVarsStr,
 	} // foreach tindx
 	finish_PVD_file(jobName, plotDir);
     } // end if vtkxml
-
+    //
     if (probeStr.length > 0) {
 	writeln("Probing flow solution at specified points.");
 	probeStr = probeStr.strip();
@@ -93,8 +94,58 @@ void post_process(string plotDir, string tindxPlot, string addVarsStr,
 	    }
 	} // foreach tindx
     } // end if probeStr
+    //
+    if (sliceListStr.length > 0) {
+	writeln("Extracting slices of the flow solution.");
+	writeln("sliceListStr= ", sliceListStr);
+	foreach (tindx; tindx_list_to_plot) {
+	    writeln("  tindx= ", tindx);
+	    auto soln = new FlowSolution(jobName, ".", tindx, GlobalConfig.nBlocks);
+	    soln.add_aux_variables(addVarsList);
+	    foreach (sliceStr; sliceListStr.split(";")) {
+		writeln("sliceStr= ", sliceStr);
+		auto rangeStrings = sliceStr.split(",");
+		auto blk_range = decode_range_indices(rangeStrings[0], 0, soln.nBlocks);
+		writeln("blk_range=", blk_range);
+		foreach (jb; blk_range[0] .. blk_range[1]) {
+		    auto i_range = decode_range_indices(rangeStrings[1], 0, soln.flowBlocks[jb].nic);
+		    writeln("i_range= ", i_range);
+		    auto j_range = decode_range_indices(rangeStrings[2], 0, soln.flowBlocks[jb].njc);
+		    writeln("j_range= ", j_range);
+		    auto k_range = decode_range_indices(rangeStrings[3], 0, soln.flowBlocks[jb].nkc);
+		    writeln("k_range= ", k_range);
+		} // end foreach jb
+	    } // end foreach sliceStr
+	} // foreach tindx
+    } // end if sliceListStr
 } // end post_process()
 
+//-----------------------------------------------------------------------
+
+size_t[] decode_range_indices(string rangeStr, size_t first, size_t endplus1)
+// Decode strings such as "0:$", ":", "0:3",
+// returning the pair of numbers that can be used in a foreach loop range.
+// On input first and endplus1 represent the largest available range.
+{
+    if (rangeStr == ":") {
+	return [first, endplus1];
+    }
+    if (canFind(rangeStr, ":")) {
+	// We have a range specification to pull apart.
+	auto items = rangeStr.split(":");
+	first = to!size_t(items[0]);
+	if (items.length > 1 && items[1] != "$") {
+	    // Presume that we have a second integer.
+	    size_t new_endplus1 = to!size_t(items[1]);
+	    if (new_endplus1 < endplus1) endplus1 = new_endplus1; 
+	}
+    } else {
+	// Presume that we have a single integer.
+	first = to!size_t(rangeStr);
+	if (first < endplus1) endplus1 = first+1;
+    }
+    return [first, endplus1];
+} // end decode_range_indices()
 
 double[int] readTimesFile(string jobName)
 {
@@ -113,6 +164,8 @@ double[int] readTimesFile(string jobName)
     timesFile.close();
     return times_dict;
 } // end readTimesFile()
+
+//-----------------------------------------------------------------------
 
 void begin_Visit_file(string jobName, string plotDir, int nBlocks)
 {
