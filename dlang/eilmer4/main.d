@@ -49,7 +49,7 @@ void main(string[] args)
     msg       ~= "         [--max-wall-clock=<int>]    in seconds\n";
     msg       ~= "\n";
     msg       ~= "         [--post]                    post-process simulation data\n";
-    msg       ~= "         [--tindx-plot=<int>|all|last|9999]  default to all\n";
+    msg       ~= "         [--tindx-plot=<int>|all|last|9999]  default to last\n";
     msg       ~= "         [--add-vars=\"mach,pitot,total-h,total-p\"]\n";
     msg       ~= "         [--vtk-xml]                 produce XML VTK-format plot files\n";
     msg       ~= "         [--binary-format]           use binary within the VTK-XML\n";
@@ -72,7 +72,7 @@ void main(string[] args)
     int maxCPUs = totalCPUs;
     int maxWallClock = 5*24*3600; // 5 days default
     bool postFlag = false;
-    string tindxPlot = "all";
+    string tindxPlot = "last";
     string addVarsStr = "";
     bool vtkxmlFlag = false;
     bool binaryFormat = false;

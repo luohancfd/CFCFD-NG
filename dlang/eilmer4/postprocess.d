@@ -70,6 +70,17 @@ void post_process(string plotDir, string tindxPlot, string addVarsStr,
 	finish_PVD_file(jobName, plotDir);
     } // end if vtkxml
     //
+    // The output for the slice and probe data may go to a user-specified file but,
+    // if no file is specified, it will be sent to stdout.
+    File outFile;
+    if (outputFileName.length > 0) {
+	outFile = File(outputFileName, "w");
+	writeln("Output will be sent to File: ", outputFileName);
+    } else {
+	outFile = stdout;
+	writeln("Output will be sent to stdout.");
+    }
+    //
     if (probeStr.length > 0) {
 	writeln("Probing flow solution at specified points.");
 	probeStr = probeStr.strip();
@@ -85,47 +96,54 @@ void post_process(string plotDir, string tindxPlot, string addVarsStr,
 	    writeln("  tindx= ", tindx);
 	    auto soln = new FlowSolution(jobName, ".", tindx, GlobalConfig.nBlocks);
 	    soln.add_aux_variables(addVarsList);
-	    writeln(soln.flowBlocks[0].variable_names_as_string());
+	    outFile.writeln(soln.flowBlocks[0].variable_names_as_string());
 	    foreach (ip; 0 .. xp.length) {
 		auto nearest = soln.find_nearest_cell_centre(xp[ip], yp[ip], zp[ip]);
 		size_t ib = nearest[0]; size_t i = nearest[1];
 		size_t j = nearest[2]; size_t k = nearest[3];
-		writeln(soln.flowBlocks[ib].values_as_string(i,j,k));
+		outFile.writeln(soln.flowBlocks[ib].values_as_string(i,j,k));
 	    }
 	} // foreach tindx
     } // end if probeStr
     //
     if (sliceListStr.length > 0) {
 	writeln("Extracting slices of the flow solution.");
-	writeln("sliceListStr= ", sliceListStr);
 	foreach (tindx; tindx_list_to_plot) {
 	    writeln("  tindx= ", tindx);
 	    auto soln = new FlowSolution(jobName, ".", tindx, GlobalConfig.nBlocks);
 	    soln.add_aux_variables(addVarsList);
+	    //
+	    outFile.writeln(soln.flowBlocks[0].variable_names_as_string());
 	    foreach (sliceStr; sliceListStr.split(";")) {
-		writeln("sliceStr= ", sliceStr);
 		auto rangeStrings = sliceStr.split(",");
 		auto blk_range = decode_range_indices(rangeStrings[0], 0, soln.nBlocks);
-		writeln("blk_range=", blk_range);
-		foreach (jb; blk_range[0] .. blk_range[1]) {
-		    auto i_range = decode_range_indices(rangeStrings[1], 0, soln.flowBlocks[jb].nic);
-		    writeln("i_range= ", i_range);
-		    auto j_range = decode_range_indices(rangeStrings[2], 0, soln.flowBlocks[jb].njc);
-		    writeln("j_range= ", j_range);
-		    auto k_range = decode_range_indices(rangeStrings[3], 0, soln.flowBlocks[jb].nkc);
-		    writeln("k_range= ", k_range);
-		} // end foreach jb
+		foreach (ib; blk_range[0] .. blk_range[1]) {
+		    auto blk = soln.flowBlocks[ib];
+		    // We need to do the decode in the context of each block because
+		    // the upper limits to the indices are specific to the block.
+		    auto i_range = decode_range_indices(rangeStrings[1], 0, blk.nic);
+		    auto j_range = decode_range_indices(rangeStrings[2], 0, blk.njc);
+		    auto k_range = decode_range_indices(rangeStrings[3], 0, blk.nkc);
+		    foreach (k; k_range[0] .. k_range[1]) {
+			foreach (j; j_range[0] .. j_range[1]) {
+			    foreach (i; i_range[0] .. i_range[1]) {
+				outFile.writeln(blk.values_as_string(i,j,k));
+			    }
+			}
+		    }
+		} // end foreach ib
 	    } // end foreach sliceStr
 	} // foreach tindx
     } // end if sliceListStr
+    //
 } // end post_process()
 
 //-----------------------------------------------------------------------
 
 size_t[] decode_range_indices(string rangeStr, size_t first, size_t endplus1)
 // Decode strings such as "0:$", ":", "0:3",
-// returning the pair of numbers that can be used in a foreach loop range.
-// On input first and endplus1 represent the largest available range.
+// On input, first and endplus1 represent the largest, available range.
+// Return the pair of numbers that can be used in a foreach loop range.
 {
     if (rangeStr == ":") {
 	return [first, endplus1];
