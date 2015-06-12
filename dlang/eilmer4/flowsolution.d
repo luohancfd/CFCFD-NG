@@ -27,6 +27,7 @@ import std.array;
 import std.math;
 import gzip;
 import fileutil;
+import util.lua;
 import geom;
 import sgrid;
 import gas;
@@ -92,6 +93,20 @@ public:
 	} // foreach ib
 	return nearest;
     } // end find_nearest_cell_centre()
+
+    void subtract_ref_soln(string fileName)
+    {
+	lua_State* L = luaL_newstate();
+	luaL_openlibs(L);
+	if ( luaL_dofile(L, toStringz(fileName)) != 0 ) {
+	    writeln("Problem in the user-supplied Lua script: ", fileName);
+	    string errMsg = to!string(lua_tostring(L, -1));
+	    throw new Error(errMsg);
+	}
+	foreach (ib; 0 .. nBlocks) {
+	    flowBlocks[ib].subtract_ref_soln(L);
+	}
+    } // end subtract_ref_soln()
 } // end class FlowSolution
 
 class SBlockFlow {
@@ -256,6 +271,46 @@ public:
 	} // foreach k
 	
     } // end add_aux_variables()
+
+
+    void subtract_ref_soln(lua_State* L)
+    {
+	string luaFnName = "refSoln";
+	foreach (k; 0 .. nkc) {
+	    foreach (j; 0 .. njc) {
+		foreach (i; 0 .. nic) {
+		    // Call back to the Lua function to get a table of values.
+		    // function refSoln(x, y, z)
+		    lua_getglobal(L, luaFnName.toStringz);
+		    lua_pushnumber(L, _data[i][j][k][variableIndex["pos.x"]]);
+		    lua_pushnumber(L, _data[i][j][k][variableIndex["pos.y"]]);
+		    lua_pushnumber(L, _data[i][j][k][variableIndex["pos.z"]]);
+		    if ( lua_pcall(L, 3, 1, 0) != 0 ) {
+			string errMsg = "Error in call to " ~ luaFnName ~ 
+			    " from LuaFnPath:opCall(): " ~ 
+			    to!string(lua_tostring(L, -1));
+			luaL_error(L, errMsg.toStringz);
+		    }
+		    // We are expecting a table, containing labelled values.
+		    if ( !lua_istable(L, -1) ) {
+			string errMsg = `Error in FlowSolution.subtract_ref_soln().;
+A table containing arguments is expected, but no table was found.`;
+			luaL_error(L, errMsg.toStringz);
+			return;
+		    }
+		    // Subtract the ones that are common to the table and the cell.
+		    foreach (ivar; 0 .. variableNames.length) {
+			lua_getfield(L, -1, variableNames[ivar].toStringz);
+			double value = 0.0;
+			if ( lua_isnumber(L, -1) ) value = lua_tonumber(L, -1);
+			lua_pop(L, 1);
+			_data[i][j][k][ivar] -= value;
+		    }
+		    lua_settop(L, 0); // clear the stack
+		} // foreach i
+	    } // foreach j
+	} // foreach k
+    } // end subtract_ref_soln()
 
 private:
     double[][][][] _data;

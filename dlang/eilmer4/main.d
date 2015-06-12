@@ -51,6 +51,7 @@ void main(string[] args)
     msg       ~= "         [--post]                    post-process simulation data\n";
     msg       ~= "         [--tindx-plot=<int>|all|last|9999]  default to last\n";
     msg       ~= "         [--add-vars=\"mach,pitot,total-h,total-p\"]\n";
+    msg       ~= "         [--ref-soln=<filename>]     Lua file for reference solution\n";
     msg       ~= "         [--vtk-xml]                 produce XML VTK-format plot files\n";
     msg       ~= "         [--binary-format]           use binary within the VTK-XML\n";
     msg       ~= "         [--plot-dir=<string>]       defaults to plot\n";
@@ -74,6 +75,7 @@ void main(string[] args)
     bool postFlag = false;
     string tindxPlot = "last";
     string addVarsStr = "";
+    string luaRefSoln = "";
     bool vtkxmlFlag = false;
     bool binaryFormat = false;
     string plotDir = "plot";
@@ -93,6 +95,7 @@ void main(string[] args)
 	       "post", &postFlag,
 	       "tindx-plot", &tindxPlot,
 	       "add-vars", &addVarsStr,
+               "ref-soln", &luaRefSoln,
 	       "vtk-xml", &vtkxmlFlag,
 	       "binary-format", &binaryFormat,
 	       "plot-dir", &plotDir,
@@ -182,6 +185,7 @@ void main(string[] args)
 	    writeln("Begin post-processing with command-line arguments.");
 	    writeln("  jobName: ", jobName);
 	    writeln("  tindxPlot: ", tindxPlot);
+	    writeln("  luaRefSoln: ", luaRefSoln);
 	    writeln("  vtkxmlFlag: ", vtkxmlFlag);
 	    writeln("  binaryFormat: ", binaryFormat);
 	    writeln("  plotDir: ", plotDir);
@@ -191,7 +195,7 @@ void main(string[] args)
 	    writeln("  addVarsStr: ", addVarsStr);
 	    writeln("  verbosityLevel: ", verbosityLevel);
 	}
-	post_process(plotDir, tindxPlot, addVarsStr,
+	post_process(plotDir, tindxPlot, addVarsStr, luaRefSoln,
 		     vtkxmlFlag, binaryFormat,
 		     outputFileName, sliceListStr, probeStr);
 	writeln("Done postprocessing.");

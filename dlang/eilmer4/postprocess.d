@@ -26,7 +26,7 @@ import readconfig;
 import flowsolution;
 
 
-void post_process(string plotDir, string tindxPlot, string addVarsStr,
+void post_process(string plotDir, string tindxPlot, string addVarsStr, string luaRefSoln,
 		  bool vtkxmlFlag, bool binary_format,
 		  string outputFileName, string sliceListStr, string probeStr)
 {
@@ -65,6 +65,7 @@ void post_process(string plotDir, string tindxPlot, string addVarsStr,
 	    writeln("  tindx= ", tindx);
 	    auto soln = new FlowSolution(jobName, ".", tindx, GlobalConfig.nBlocks);
 	    soln.add_aux_variables(addVarsList);
+	    if (luaRefSoln.length > 0) soln.subtract_ref_soln(luaRefSoln);
 	    write_VTK_XML_files(jobName, plotDir, soln, tindx);
 	} // foreach tindx
 	finish_PVD_file(jobName, plotDir);
@@ -96,6 +97,7 @@ void post_process(string plotDir, string tindxPlot, string addVarsStr,
 	    writeln("  tindx= ", tindx);
 	    auto soln = new FlowSolution(jobName, ".", tindx, GlobalConfig.nBlocks);
 	    soln.add_aux_variables(addVarsList);
+	    if (luaRefSoln.length > 0) soln.subtract_ref_soln(luaRefSoln);
 	    outFile.writeln(soln.flowBlocks[0].variable_names_as_string());
 	    foreach (ip; 0 .. xp.length) {
 		auto nearest = soln.find_nearest_cell_centre(xp[ip], yp[ip], zp[ip]);
@@ -112,6 +114,7 @@ void post_process(string plotDir, string tindxPlot, string addVarsStr,
 	    writeln("  tindx= ", tindx);
 	    auto soln = new FlowSolution(jobName, ".", tindx, GlobalConfig.nBlocks);
 	    soln.add_aux_variables(addVarsList);
+	    if (luaRefSoln.length > 0) soln.subtract_ref_soln(luaRefSoln);
 	    //
 	    outFile.writeln(soln.flowBlocks[0].variable_names_as_string());
 	    foreach (sliceStr; sliceListStr.split(";")) {
