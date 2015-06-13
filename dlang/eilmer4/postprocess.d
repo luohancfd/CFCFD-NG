@@ -26,7 +26,8 @@ import readconfig;
 import flowsolution;
 
 
-void post_process(string plotDir, string tindxPlot, string addVarsStr, string luaRefSoln,
+void post_process(string plotDir, bool listInfoFlag, string tindxPlot,
+		  string addVarsStr, string luaRefSoln,
 		  bool vtkxmlFlag, bool binary_format,
 		  string outputFileName, string sliceListStr, string probeStr,
 		  string normsStr, string regionStr)
@@ -58,6 +59,26 @@ void post_process(string plotDir, string tindxPlot, string addVarsStr, string lu
         tindx_list_to_plot ~= to!int(tindxPlot);
     } // end switch
     //
+    if (listInfoFlag) {
+	writeln("Some information about this simulation.");
+	writeln("  nBlocks= ", GlobalConfig.nBlocks);
+	writeln("  last tindx= ", tindx_list[$-1]);
+	writeln("  Variables:");
+	// Dip into the top of a solution file that is likely to be present
+	// to get the variable names, as saved by the simulation.
+	string fileName = make_file_name!"flow"(jobName, to!int(0), 0);
+	auto byLine = new GzipByLine(fileName);
+	auto line = byLine.front; byLine.popFront();
+	double sim_time;
+	formattedRead(line, " %g", &sim_time);
+	line = byLine.front; byLine.popFront();
+	auto variableNames = line.strip().split();
+	foreach (ref var; variableNames) { var = removechars(var, "\""); }
+	foreach (i; 0 .. variableNames.length) {
+	    writeln(format("%4d %s", i, variableNames[i]));
+	}
+    } // end if listInfoFlag
+    //
     if (vtkxmlFlag) {
 	writeln("writing VTK-XML files to directory \"", plotDir, "\"");
 	begin_Visit_file(jobName, plotDir, GlobalConfig.nBlocks);
@@ -72,20 +93,15 @@ void post_process(string plotDir, string tindxPlot, string addVarsStr, string lu
 	finish_PVD_file(jobName, plotDir);
     } // end if vtkxml
     //
-    // The output for the slice and probe data may go to a user-specified file but,
-    // if no file is specified, it will be sent to stdout.
-    File outFile;
-    if (outputFileName.length > 0) {
-	outFile = File(outputFileName, "w");
-	writeln("Output will be sent to File: ", outputFileName);
-    } else {
-	outFile = stdout;
-    }
-    //
     if (probeStr.length > 0) {
 	writeln("Probing flow solution at specified points.");
+	// The output may go to a user-specified file, or stdout.
+	File outFile;
 	if (outputFileName.length > 0) {
+	    outFile = File(outputFileName, "w");
 	    writeln("Output will be sent to File: ", outputFileName);
+	} else {
+	    outFile = stdout;
 	}
 	probeStr = probeStr.strip();
 	probeStr = removechars(probeStr, "\"");
@@ -113,8 +129,13 @@ void post_process(string plotDir, string tindxPlot, string addVarsStr, string lu
     //
     if (sliceListStr.length > 0) {
 	writeln("Extracting slices of the flow solution.");
+	// The output may go to a user-specified file, or stdout.
+	File outFile;
 	if (outputFileName.length > 0) {
+	    outFile = File(outputFileName, "w");
 	    writeln("Output will be sent to File: ", outputFileName);
+	} else {
+	    outFile = stdout;
 	}
 	foreach (tindx; tindx_list_to_plot) {
 	    writeln("  tindx= ", tindx);

@@ -49,6 +49,7 @@ void main(string[] args)
     msg       ~= "         [--max-wall-clock=<int>]    in seconds\n";
     msg       ~= "\n";
     msg       ~= "         [--post]                    post-process simulation data\n";
+    msg       ~= "         [--list-info]               report some details of this simulation";
     msg       ~= "         [--tindx-plot=<int>|all|last|9999]  default to last\n";
     msg       ~= "         [--add-vars=\"mach,pitot,total-h,total-p\"]\n";
     msg       ~= "         [--ref-soln=<filename>]     Lua file for reference solution\n";
@@ -75,6 +76,7 @@ void main(string[] args)
     int maxCPUs = totalCPUs;
     int maxWallClock = 5*24*3600; // 5 days default
     bool postFlag = false;
+    bool listInfoFlag = false;
     string tindxPlot = "last";
     string addVarsStr = "";
     string luaRefSoln = "";
@@ -97,6 +99,7 @@ void main(string[] args)
 	       "max-cpus", &maxCPUs,
 	       "max-wall-clock", &maxWallClock,
 	       "post", &postFlag,
+	       "list-info", &listInfoFlag,
 	       "tindx-plot", &tindxPlot,
 	       "add-vars", &addVarsStr,
                "ref-soln", &luaRefSoln,
@@ -190,6 +193,7 @@ void main(string[] args)
 	if (verbosityLevel > 0) {
 	    writeln("Begin post-processing with command-line arguments.");
 	    writeln("  jobName: ", jobName);
+	    writeln("  listInfoFlag: ", listInfoFlag);
 	    writeln("  tindxPlot: ", tindxPlot);
 	    writeln("  addVarsStr: ", addVarsStr);
 	    writeln("  luaRefSoln: ", luaRefSoln);
@@ -203,7 +207,8 @@ void main(string[] args)
 	    writeln("  regionStr: ", regionStr);
 	    writeln("  verbosityLevel: ", verbosityLevel);
 	}
-	post_process(plotDir, tindxPlot, addVarsStr, luaRefSoln,
+	post_process(plotDir, listInfoFlag, tindxPlot,
+		     addVarsStr, luaRefSoln,
 		     vtkxmlFlag, binaryFormat,
 		     outputFileName, sliceListStr, probeStr,
 		     normsStr, regionStr);

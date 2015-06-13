@@ -255,8 +255,6 @@ public:
 	bool add_total_p = canFind(addVarsList, "total-p");
 	bool add_total_h = canFind(addVarsList, "total-h");
 	//
-	// Be careful to add auxiliary variables in order that matches
-	// the list of variable names.
 	if (add_mach) {
 	    variableNames ~= "M_local";
 	    variableIndex["M_local"] = variableNames.length - 1;
@@ -273,6 +271,9 @@ public:
 	    variableNames ~= "total_h";
 	    variableIndex["total_h"] = variableNames.length - 1;
 	}
+	//
+	// Be careful to add auxiliary variable values in the code below 
+	// in the same order as the list of variable names in the code above.
 	//
 	foreach (k; 0 .. nkc) {
 	    foreach (j; 0 .. njc) {
