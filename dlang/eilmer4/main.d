@@ -49,7 +49,7 @@ void main(string[] args)
     msg       ~= "         [--max-wall-clock=<int>]    in seconds\n";
     msg       ~= "\n";
     msg       ~= "         [--post]                    post-process simulation data\n";
-    msg       ~= "         [--list-info]               report some details of this simulation";
+    msg       ~= "         [--list-info]               report some details of this simulation\n";
     msg       ~= "         [--tindx-plot=<int>|all|last|9999]  default to last\n";
     msg       ~= "         [--add-vars=\"mach,pitot,total-h,total-p\"]\n";
     msg       ~= "         [--ref-soln=<filename>]     Lua file for reference solution\n";
@@ -60,7 +60,7 @@ void main(string[] args)
     msg       ~= "         [--slice-list=\"blk-range,i-range,j-range,k-range;...\"]\n";
     msg       ~= "         [--probe=\"x,y,z;...\"]       locations to sample flow data\n";
     msg       ~= "         [--norms=\"varName,varName,...\"] report L1,L2,Linf norms\n";
-    msg       ~= "         [--region=\"x0,y0,z0,x1,y1,z1\"   limit norms calculation to a box\n";
+    msg       ~= "         [--region=\"x0,y0,z0,x1,y1,z1\"]  limit norms calculation to a box\n";
     msg       ~= "\n";
     msg       ~= "         [--help]                    writes this message\n";
     if ( args.length < 2 ) {

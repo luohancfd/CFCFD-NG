@@ -453,8 +453,10 @@ A number was expected in position 2, for y.`;
 	    z = to!double(lua_tonumber(cast(lua_State*)L, -1));
 	}
 	lua_pop(cast(lua_State*)L, 1);
+	//
+	lua_settop(cast(lua_State*)L, 0); // clear the stack
 	return Vector3(x, y, z);
-    }
+    } // end raw_eval()
     override string toString() const
     {
 	return "LuaFnPath(luaFnName=\"" ~ luaFnName ~ "\", t0=" ~ to!string(t0) 

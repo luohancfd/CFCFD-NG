@@ -3,4 +3,4 @@
 prep-gas ideal-air.inp ideal-air-gas-model.lua
 e4shared --prep --job=sharp
 e4shared --run --job=sharp --verbosity=1
-e3post.py --job=sharp --tindx=all --vtk-xml
+e4shared --post --job=sharp --tindx-plot=all --vtk-xml
