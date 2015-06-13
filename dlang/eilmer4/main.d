@@ -58,6 +58,8 @@ void main(string[] args)
     msg       ~= "         [--output-file=<string>]    defaults to stdout\n";
     msg       ~= "         [--slice-list=\"blk-range,i-range,j-range,k-range;...\"]\n";
     msg       ~= "         [--probe=\"x,y,z;...\"]       locations to sample flow data\n";
+    msg       ~= "         [--norms=\"varName,varName,...\"] report L1,L2,Linf norms\n";
+    msg       ~= "         [--region=\"x0,y0,z0,x1,y1,z1\"   limit norms calculation to a box\n";
     msg       ~= "\n";
     msg       ~= "         [--help]                    writes this message\n";
     if ( args.length < 2 ) {
@@ -82,6 +84,8 @@ void main(string[] args)
     string outputFileName = "";
     string sliceListStr = "";
     string probeStr = "";
+    string normsStr = "";
+    string regionStr = "";
     bool helpWanted = false;
     try {
 	getopt(args,
@@ -102,6 +106,8 @@ void main(string[] args)
 	       "output-file", &outputFileName,
 	       "slice-list", &sliceListStr,
 	       "probe", &probeStr,
+	       "norms", &normsStr,
+	       "region", &regionStr,
 	       "help", &helpWanted
 	       );
     } catch (Exception e) {
@@ -185,6 +191,7 @@ void main(string[] args)
 	    writeln("Begin post-processing with command-line arguments.");
 	    writeln("  jobName: ", jobName);
 	    writeln("  tindxPlot: ", tindxPlot);
+	    writeln("  addVarsStr: ", addVarsStr);
 	    writeln("  luaRefSoln: ", luaRefSoln);
 	    writeln("  vtkxmlFlag: ", vtkxmlFlag);
 	    writeln("  binaryFormat: ", binaryFormat);
@@ -192,12 +199,14 @@ void main(string[] args)
 	    writeln("  outputFileName: ", outputFileName);
 	    writeln("  sliceListStr: ", sliceListStr);
 	    writeln("  probeStr: ", probeStr);
-	    writeln("  addVarsStr: ", addVarsStr);
+	    writeln("  normsStr: ", normsStr);
+	    writeln("  regionStr: ", regionStr);
 	    writeln("  verbosityLevel: ", verbosityLevel);
 	}
 	post_process(plotDir, tindxPlot, addVarsStr, luaRefSoln,
 		     vtkxmlFlag, binaryFormat,
-		     outputFileName, sliceListStr, probeStr);
+		     outputFileName, sliceListStr, probeStr,
+		     normsStr, regionStr);
 	writeln("Done postprocessing.");
     } // end if postFlag
 } // end main()

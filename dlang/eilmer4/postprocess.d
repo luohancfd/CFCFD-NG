@@ -28,7 +28,8 @@ import flowsolution;
 
 void post_process(string plotDir, string tindxPlot, string addVarsStr, string luaRefSoln,
 		  bool vtkxmlFlag, bool binary_format,
-		  string outputFileName, string sliceListStr, string probeStr)
+		  string outputFileName, string sliceListStr, string probeStr,
+		  string normsStr, string regionStr)
 {
     read_config_file();
     string jobName = GlobalConfig.base_file_name;
@@ -79,11 +80,13 @@ void post_process(string plotDir, string tindxPlot, string addVarsStr, string lu
 	writeln("Output will be sent to File: ", outputFileName);
     } else {
 	outFile = stdout;
-	writeln("Output will be sent to stdout.");
     }
     //
     if (probeStr.length > 0) {
 	writeln("Probing flow solution at specified points.");
+	if (outputFileName.length > 0) {
+	    writeln("Output will be sent to File: ", outputFileName);
+	}
 	probeStr = probeStr.strip();
 	probeStr = removechars(probeStr, "\"");
 	double[] xp, yp, zp;
@@ -105,11 +108,14 @@ void post_process(string plotDir, string tindxPlot, string addVarsStr, string lu
 		size_t j = nearest[2]; size_t k = nearest[3];
 		outFile.writeln(soln.flowBlocks[ib].values_as_string(i,j,k));
 	    }
-	} // foreach tindx
+	} // end foreach tindx
     } // end if probeStr
     //
     if (sliceListStr.length > 0) {
 	writeln("Extracting slices of the flow solution.");
+	if (outputFileName.length > 0) {
+	    writeln("Output will be sent to File: ", outputFileName);
+	}
 	foreach (tindx; tindx_list_to_plot) {
 	    writeln("  tindx= ", tindx);
 	    auto soln = new FlowSolution(jobName, ".", tindx, GlobalConfig.nBlocks);
@@ -136,8 +142,28 @@ void post_process(string plotDir, string tindxPlot, string addVarsStr, string lu
 		    }
 		} // end foreach ib
 	    } // end foreach sliceStr
-	} // foreach tindx
+	} // end foreach tindx
     } // end if sliceListStr
+    //
+    if (normsStr.length > 0) {
+	writeln("Norms for variables.");
+	normsStr = normsStr.strip();
+	normsStr = removechars(normsStr, "\"");
+	foreach (tindx; tindx_list_to_plot) {
+	    writeln("  tindx= ", tindx);
+	    auto soln = new FlowSolution(jobName, ".", tindx, GlobalConfig.nBlocks);
+	    soln.add_aux_variables(addVarsList);
+	    if (luaRefSoln.length > 0) soln.subtract_ref_soln(luaRefSoln);
+	    //
+	    foreach (varName; normsStr.split(",")) {
+		auto norms = soln.compute_volume_weighted_norms(varName, regionStr);
+		write("    variable= ", varName);
+		write(" L1= ", norms[0], " L2= ", norms[1]);
+		write(" Linf= ", norms[2], " x= ", norms[3], " y= ", norms[4], " z= ", norms[5]);
+		write("\n");
+	    }
+	} // end foreach tindx
+    } // end if normsStr
     //
 } // end post_process()
 

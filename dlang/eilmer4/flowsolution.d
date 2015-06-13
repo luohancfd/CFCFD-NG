@@ -107,6 +107,59 @@ public:
 	    flowBlocks[ib].subtract_ref_soln(L);
 	}
     } // end subtract_ref_soln()
+
+    double[] compute_volume_weighted_norms(string varName, string regionStr)
+    {
+	double x0, y0, z0, x1, y1, z1;
+	bool limitRegion = false;
+	regionStr = regionStr.strip();
+	regionStr = removechars(regionStr, "\"");
+	if (regionStr.length > 0) {
+	    auto items = regionStr.split(",");
+	    x0 = to!double(items[0]); y0 = to!double(items[1]); z0 = to!double(items[2]);
+	    x1 = to!double(items[3]); y1 = to!double(items[4]); z1 = to!double(items[5]);
+	    limitRegion = true;
+	    // writeln(format("    limit region to x0=%g y0=%g z0=%g x1=%g y1=%g z1=%g",
+	    //		   x0, y0, z0, x1, y1, z1));
+	}
+	double L1 = 0.0;
+	double L2 = 0.0;
+	double Linf = 0.0;
+	double[] peak_pos = [0.0, 0.0, 0.0];
+	double volume_sum = 0.0;
+	foreach (ib; 0 .. nBlocks) {
+	    auto flow = flowBlocks[ib];
+	    if (!canFind(flow.variableNames, varName)) {
+		throw new Error(format("Requested variable name \"%s\" not in list.", varName));
+	    }
+	    foreach (k; 0 .. flow.nkc) {
+		foreach (j; 0 .. flow.njc) {
+		    foreach (i; 0 .. flow.nic) {
+			double x = flowBlocks[ib]["pos.x", i, j, k];
+			double y = flowBlocks[ib]["pos.y", i, j, k];
+			double z = flowBlocks[ib]["pos.z", i, j, k];
+			bool inside = 
+			    ((x >= x0) && (y >= y0) && (z >= z0) &&
+			     (x <= x1) && (y <= y1) && (z <= z1));
+			if (limitRegion && !inside) continue;
+			double volume = flowBlocks[ib]["volume", i, j, k];
+			double value = flowBlocks[ib][varName, i, j, k];
+			volume_sum += volume;
+			L1 += volume * abs(value);
+			L2 += volume * value * value;
+			if (abs(value) > Linf) {
+			    Linf = abs(value);
+			    peak_pos[0] = x; peak_pos[1] = y; peak_pos[2] = z;
+			}
+		    } // foreach i
+		} // foreach j
+	    } // foreach k
+	} // foreach ib
+	L1 /= volume_sum;
+	L2 = sqrt(L2/volume_sum);
+	return [L1, L2, Linf, peak_pos[0], peak_pos[1], peak_pos[2]];
+    } // end compute_volume_weighted_norms()
+
 } // end class FlowSolution
 
 class SBlockFlow {
