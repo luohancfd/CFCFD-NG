@@ -138,10 +138,9 @@ public:
 			double x = flowBlocks[ib]["pos.x", i, j, k];
 			double y = flowBlocks[ib]["pos.y", i, j, k];
 			double z = flowBlocks[ib]["pos.z", i, j, k];
-			bool inside = 
-			    ((x >= x0) && (y >= y0) && (z >= z0) &&
-			     (x <= x1) && (y <= y1) && (z <= z1));
-			if (limitRegion && !inside) continue;
+			if (limitRegion && 
+			    (x < x0 || y < y0 || z < z0 ||
+			     x > x1 || y > y1 || z > z1)) continue;
 			double volume = flowBlocks[ib]["volume", i, j, k];
 			double value = flowBlocks[ib][varName, i, j, k];
 			volume_sum += volume;
