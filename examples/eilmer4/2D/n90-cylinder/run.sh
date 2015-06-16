@@ -4,4 +4,4 @@ prep-gas nitrogen-2sp.inp nitrogen-2sp.lua
 # [TODO] prep-chem nitrogen-2sp-2r.lua e4-chem.lua
 e4shared --prep --job=n90
 e4shared --run --job=n90 --verbosity=1
-e3post.py --job=n90 --tindx=all --vtk-xml
+e4shared --post --job=n90 --tindx-plot=all --vtk-xml

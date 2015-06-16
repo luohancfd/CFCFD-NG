@@ -1,11 +1,11 @@
 # cyl50_plot.sh
-# Plot the profiles of temperature and velocity toward the end of the plate.
+# Plot the profiles of temperature and velocity toward the end of the cylinder.
 
 # Extract the solution data and reformat.
-e3post.py --job=cyl50 --tindx=2 --vtk-xml
+e4shared --post --job=cyl50 --tindx-plot=2  --vtk-xml --add-vars="mach,pitot,total-p,total-h"
 
 # Extract the profile near the downstream end of the cylinder.
-e3post.py --job=cyl50 --tindx=2 --slice-list="1,23,:,0;2,23,:,0" --output-file=profile-i23.data
+e4shared --post --job=cyl50 --tindx-plot=2 --slice-list="1,23,:,0;2,23,:,0" --output-file=profile-i23.data
 
 gnuplot <<EOF
 set term postscript eps enhanced 20
