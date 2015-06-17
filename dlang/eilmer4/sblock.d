@@ -2527,6 +2527,20 @@ public:
 	} // end switch destination_face
     } // end copy_to_ghost_cells()
 
+    void propagate_inflow_data_west_to_east()
+    {
+	// Assume that the west-face ghost cells have appropriate data.
+	for ( size_t k = kmin; k <= kmax; ++k ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		auto src_cell = get_cell(imin-1,j,k);
+		for ( size_t i = imin; i <= imax; ++i ) {
+		    auto dest_cell = get_cell(i,j,k);
+		    dest_cell.copy_values_from(src_cell, CopyDataOption.all_flow);
+		}
+	    }
+	}
+    } // end propagate_inflow_data_west_to_east()
+
 } // end class SBlock
 
 

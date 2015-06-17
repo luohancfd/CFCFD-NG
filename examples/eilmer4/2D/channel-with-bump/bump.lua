@@ -60,10 +60,11 @@ identifyBlockConnections()
 config.block_marching = true
 config.nib = 48
 config.njb = 2
+config.propagate_inflow_data = true
 config.flux_calc = "adaptive"
 config.gasdynamic_update_scheme = "classic-rk3"
 config.cfl_target = 1.0
-config.max_time = 10.0*L/u_inf -- long enough, tunnel has 15ms steady time
+config.max_time = 20.0*L/u_inf -- long enough, tunnel has 15ms steady time
 config.max_step = 50000
 config.dt_init = 1.0e-6
 config.dt_plot = config.max_time

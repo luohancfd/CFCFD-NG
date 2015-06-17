@@ -179,16 +179,20 @@ void march_over_blocks()
 	}
     }
     double time_slice = GlobalConfig.max_time / (nib - 1);
-    if (GlobalConfig.propagate_inflow_data) {
-	// propagate_inflow_data_west_to_east()
-    }
     integrate_in_time(sim_time+time_slice);
     // Now, move along one block in i-direction at a time and do the rest.
     foreach (i; 2 .. nib) {
 	foreach (j; 0 .. njb) {
 	    foreach (k; 0 .. nkb) {
 		gasBlockArray[i-2][j][k].active = false;
-		gasBlockArray[i][j][k].active = true;
+		auto blk = gasBlockArray[i][j][k]; // our newly active block
+		blk.active = true;
+		if (GlobalConfig.propagate_inflow_data) {
+		    // Get upstream flow data into ghost cells
+		    blk.applyPreReconAction(sim_time, 0, 0);
+		    // and propagate it across the domain.
+		    blk.propagate_inflow_data_west_to_east();
+		}
 	    }
 	}
 	writeln("march over blocks i=", i);
