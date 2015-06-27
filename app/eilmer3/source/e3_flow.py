@@ -1160,7 +1160,12 @@ def write_VTK_XML_unstructured_file(fp, grid, flow, binary_format):
             binary_data_offset += len(binary_data_count) + len(binary_data)
     #
     if 'B.x' in flow.vars:
-        fp.write(" <DataArray Name=\"B.vector\" type=\"Float32\" NumberOfComponents=\"3\">\n")
+        fp.write(" <DataArray Name=\"B.vector\" type=\"Float32\" NumberOfComponents=\"3\"")
+        if binary_format:
+            fp.write(" format=\"appended\" offset=\"%d\">" % binary_data_offset)
+            binary_data = r""
+        else:
+            fp.write(" format=\"ascii\">\n")
         for k in range(nkc):
             for j in range(njc):
                 for i in range(nic):
