@@ -55,6 +55,7 @@ void main(string[] args)
     msg       ~= "         [--ref-soln=<filename>]     Lua file for reference solution\n";
     msg       ~= "         [--vtk-xml]                 produce XML VTK-format plot files\n";
     msg       ~= "         [--binary-format]           use binary within the VTK-XML\n";
+    msg       ~= "         [--tecplot]                 write an ASCII file for Tecplot\n";
     msg       ~= "         [--plot-dir=<string>]       defaults to plot\n";
     msg       ~= "         [--output-file=<string>]    defaults to stdout\n";
     msg       ~= "         [--slice-list=\"blk-range,i-range,j-range,k-range;...\"]\n";
@@ -82,6 +83,7 @@ void main(string[] args)
     string luaRefSoln = "";
     bool vtkxmlFlag = false;
     bool binaryFormat = false;
+    bool tecplotFlag = false;
     string plotDir = "plot";
     string outputFileName = "";
     string sliceListStr = "";
@@ -105,6 +107,7 @@ void main(string[] args)
                "ref-soln", &luaRefSoln,
 	       "vtk-xml", &vtkxmlFlag,
 	       "binary-format", &binaryFormat,
+	       "tecplot", &tecplotFlag,
 	       "plot-dir", &plotDir,
 	       "output-file", &outputFileName,
 	       "slice-list", &sliceListStr,
@@ -199,6 +202,7 @@ void main(string[] args)
 	    writeln("  luaRefSoln: ", luaRefSoln);
 	    writeln("  vtkxmlFlag: ", vtkxmlFlag);
 	    writeln("  binaryFormat: ", binaryFormat);
+	    writeln("  tecplotFlag: ", tecplotFlag);
 	    writeln("  plotDir: ", plotDir);
 	    writeln("  outputFileName: ", outputFileName);
 	    writeln("  sliceListStr: ", sliceListStr);
@@ -209,7 +213,7 @@ void main(string[] args)
 	}
 	post_process(plotDir, listInfoFlag, tindxPlot,
 		     addVarsStr, luaRefSoln,
-		     vtkxmlFlag, binaryFormat,
+		     vtkxmlFlag, binaryFormat, tecplotFlag,
 		     outputFileName, sliceListStr, probeStr,
 		     normsStr, regionStr);
 	writeln("Done postprocessing.");
