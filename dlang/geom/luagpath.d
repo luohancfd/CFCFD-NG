@@ -60,6 +60,7 @@ extern(C) int opCallPath(T, string MTname)(lua_State* L)
     return pushVector3(L, pt);
 }
 
+/+
 extern(C) int t0Path(T, string MTname)(lua_State* L)
 {
     // Not much error checking here because we assume
@@ -91,6 +92,7 @@ extern(C) int t1Path(T, string MTname)(lua_State* L)
     path.t1 = luaL_checknumber(L, 2);
     return 0;
 }
++/
 
 extern(C) int copyPath(T, string MTname)(lua_State* L)
 {
@@ -110,7 +112,6 @@ extern(C) int copyPath(T, string MTname)(lua_State* L)
  * a = Vector3:new{}
  * b = Vector3:new{1, 1}
  * ab = Line:new{a, b}
- * ab = Line:new{a, b, t0=0.0, t1=1.0}
  * ---------------------------------
  */
 extern(C) int newLine(lua_State* L)
@@ -140,12 +141,14 @@ A Vector3 object is expected as the second argument. No valid Vector3 was found.
 	luaL_error(L, errMsg.toStringz());
     }
     lua_pop(L, 1);
+/+
     string errMsgTmplt = `Error in call to Line:new{}.
 A valid value for '%s' was not found in list of arguments.
 The value, if present, should be a number.`;
     double t0 = getNumberFromTable(L, 1, "t0", false, 0.0, true, format(errMsgTmplt, "t0"));
     double t1 = getNumberFromTable(L, 1, "t1", false, 1.0, true, format(errMsgTmplt, "t1"));
-    auto ab = new Line(*a, *b, t0, t1);
++/
+    auto ab = new Line(*a, *b);
     pathStore ~= pushObj!(Line, LineMT)(L, ab);
     return 1;
 } // end newLine()
@@ -160,7 +163,6 @@ The value, if present, should be a number.`;
  * b = Vector3:new{0, 1}
  * c = Vector3:new{0, 0}
  * abc = Arc:new{a, b, c}
- * abc = Arc:new{a, b, c, t0=0.0, t1=1.0}
  * ---------------------------------
  */
 extern(C) int newArc(lua_State* L)
@@ -199,12 +201,7 @@ A Vector3 object is expected as the third argument. No valid Vector3 was found.`
 	luaL_error(L, errMsg.toStringz());
     }
     lua_pop(L, 1);
-    string errMsgTmplt = `Error in call to Arc:new{}.
-A valid value for '%s' was not found in list of arguments.
-The value, if present, should be a number.`;
-    double t0 = getNumberFromTable(L, 1, "t0", false, 0.0, true, format(errMsgTmplt, "t0"));
-    double t1 = getNumberFromTable(L, 1, "t1", false, 1.0, true, format(errMsgTmplt, "t1"));
-    auto abc = new Arc(*a, *b, *c, t0, t1);
+    auto abc = new Arc(*a, *b, *c);
     pathStore ~= pushObj!(Arc, ArcMT)(L, abc);
     return 1;
 } // end newArc()
@@ -219,7 +216,6 @@ The value, if present, should be a number.`;
  * m = Vector3:new{0.707107, 0.707107}
  * b = Vector3:new{0, 1}
  * amb = Arc:new{a, m, b}
- * amb = Arc:new{a, m, b, t0=0.0, t1=1.0}
  * ---------------------------------
  */
 extern(C) int newArc3(lua_State* L)
@@ -258,12 +254,7 @@ A Vector3 object is expected as the third argument. No valid Vector3 was found.`
 	luaL_error(L, errMsg.toStringz());
     }
     lua_pop(L, 1);
-    string errMsgTmplt = `Error in call to Arc3:new{}.
-A valid value for '%s' was not found in list of arguments.
-The value, if present, should be a number.`;
-    double t0 = getNumberFromTable(L, 1, "t0", false, 0.0, true, format(errMsgTmplt, "t0"));
-    double t1 = getNumberFromTable(L, 1, "t1", false, 1.0, true, format(errMsgTmplt, "t1"));
-    auto amb = new Arc3(*a, *m, *b, t0, t1);
+    auto amb = new Arc3(*a, *m, *b);
     pathStore ~= pushObj!(Arc3, Arc3MT)(L, amb);
     return 1;
 } // end newArc3()
@@ -279,7 +270,6 @@ The value, if present, should be a number.`;
  * p2 = Vector3:new{0, 1}
  * -- For an arbitrary number of points in the table.
  * bez = Bezier:new{p0, p1, p2}
- * bez = Bezier:new{p0, p1, p2, t0=0.0, t1=1.0}
  * ---------------------------------
  */
 extern(C) int newBezier(lua_State* L)
@@ -307,12 +297,7 @@ A table containing arguments is expected, but no table was found.`;
 	string errMsg = `Error in call to Bezier:new{}. No valid Vector3 objects found.`;
 	luaL_error(L, errMsg.toStringz());
     }
-    string errMsgTmplt = `Error in call to Bezier:new{}.
-A valid value for '%s' was not found in list of arguments.
-The value, if present, should be a number.`;
-    double t0 = getNumberFromTable(L, 1, "t0", false, 0.0, true, format(errMsgTmplt, "t0"));
-    double t1 = getNumberFromTable(L, 1, "t1", false, 1.0, true, format(errMsgTmplt, "t1"));
-    auto bez = new Bezier(B, t0, t1);
+    auto bez = new Bezier(B);
     pathStore ~= pushObj!(Bezier, BezierMT)(L, bez);
     return 1;
 } // end newBezier()
@@ -331,7 +316,6 @@ The value, if present, should be a number.`;
  * line2 = Line:new{p1, p2}
  * -- An arbitrary number of Path objects in the table.
  * poly = Polyline:new{line1, line2}
- * poly = Polyline:new{line1, line2, t0=0.0, t1=1.0}
  * ---------------------------------
  */
 extern(C) int newPolyline(lua_State* L)
@@ -359,12 +343,7 @@ A table containing arguments is expected, but no table was found.`;
 	string errMsg = `Error in call to Polyline:new{}. No valid Path objects found.`;
 	luaL_error(L, errMsg.toStringz());
     }
-    string errMsgTmplt = `Error in call to Polyline:new{}.
-A valid value for '%s' was not found in list of arguments.
-The value, if present, should be a number.`;
-    double t0 = getNumberFromTable(L, 1, "t0", false, 0.0, true, format(errMsgTmplt, "t0"));
-    double t1 = getNumberFromTable(L, 1, "t1", false, 1.0, true, format(errMsgTmplt, "t1"));
-    auto poly = new Polyline(segments, t0, t1);
+    auto poly = new Polyline(segments);
     pathStore ~= pushObj!(Polyline, PolylineMT)(L, poly);
     return 1;
 } // end newPolyline()
@@ -395,23 +374,21 @@ public:
     // the Lua interpreter to do something.
     // This is the best I can do for the moment.  PJ, 2014-04-22
     string luaFnName;
-    this(const lua_State* L, string luaFnName, double t0=0.0, double t1=1.0)
+    this(const lua_State* L, string luaFnName)
     {
 	this.L = cast(lua_State*)L;
 	this.luaFnName = luaFnName;
-	this.t0 = t0; this.t1 = t1;
     }
     this(ref const(LuaFnPath) other)
     {
 	L = cast(lua_State*)other.L;
 	luaFnName = other.luaFnName;
-	t0 = other.t0; t1 = other.t1;
     }
     override LuaFnPath dup() const
     {
-	return new LuaFnPath(L, luaFnName, t0, t1);
+	return new LuaFnPath(L, luaFnName);
     }
-    override Vector3 raw_eval(double t) const 
+    override Vector3 opCall(double t) const 
     {
 	// Call back to the Lua function.
 	lua_getglobal(cast(lua_State*)L, luaFnName.toStringz);
@@ -456,11 +433,10 @@ A number was expected in position 2, for y.`;
 	//
 	lua_settop(cast(lua_State*)L, 0); // clear the stack
 	return Vector3(x, y, z);
-    } // end raw_eval()
+    } // end opCall()
     override string toString() const
     {
-	return "LuaFnPath(luaFnName=\"" ~ luaFnName ~ "\", t0=" ~ to!string(t0) 
-	    ~ ", t1=" ~ to!string(t1) ~ ")";
+	return "LuaFnPath(luaFnName=\"" ~ luaFnName ~ "\")";
     }
 } // end class LuaFnPath
 
@@ -484,12 +460,7 @@ A table containing arguments is expected, but no table was found.`;
 	string errMsg = `Error in call to LuaFnPath:new{}. No function name found.`;
 	luaL_error(L, errMsg.toStringz());
     }
-    string errMsgTmplt = `Error in call to LuaFnPath:new{}.
-A valid value for '%s' was not found in list of arguments.
-The value, if present, should be a number.`;
-    double t0 = getNumberFromTable(L, 1, "t0", false, 0.0, true, format(errMsgTmplt, "t0"));
-    double t1 = getNumberFromTable(L, 1, "t1", false, 1.0, true, format(errMsgTmplt, "t1"));
-    auto lfp = new LuaFnPath(L, fnName, t0, t1);
+    auto lfp = new LuaFnPath(L, fnName);
     pathStore ~= pushObj!(LuaFnPath, LuaFnPathMT)(L, lfp);
     return 1;
 } // end newLuaFnPath()
@@ -517,10 +488,12 @@ void registerPaths(lua_State* L)
     lua_setfield(L, -2, "__tostring");
     lua_pushcfunction(L, &copyPath!(Line, LineMT));
     lua_setfield(L, -2, "copy");
+/+
     lua_pushcfunction(L, &t0Path!(Line, LineMT));
     lua_setfield(L, -2, "t0");
     lua_pushcfunction(L, &t1Path!(Line, LineMT));
     lua_setfield(L, -2, "t1");
++/
 
     lua_setglobal(L, LineMT.toStringz);
 
@@ -541,10 +514,6 @@ void registerPaths(lua_State* L)
     lua_setfield(L, -2, "__tostring");
     lua_pushcfunction(L, &copyPath!(Arc, ArcMT));
     lua_setfield(L, -2, "copy");
-    lua_pushcfunction(L, &t0Path!(Arc, ArcMT));
-    lua_setfield(L, -2, "t0");
-    lua_pushcfunction(L, &t1Path!(Arc, ArcMT));
-    lua_setfield(L, -2, "t1");
 
     lua_setglobal(L, ArcMT.toStringz);
 
@@ -565,10 +534,6 @@ void registerPaths(lua_State* L)
     lua_setfield(L, -2, "__tostring");
     lua_pushcfunction(L, &copyPath!(Arc3, Arc3MT));
     lua_setfield(L, -2, "copy");
-    lua_pushcfunction(L, &t0Path!(Arc3, Arc3MT));
-    lua_setfield(L, -2, "t0");
-    lua_pushcfunction(L, &t1Path!(Arc3, Arc3MT));
-    lua_setfield(L, -2, "t1");
 
     lua_setglobal(L, Arc3MT.toStringz);
 
@@ -589,10 +554,6 @@ void registerPaths(lua_State* L)
     lua_setfield(L, -2, "__tostring");
     lua_pushcfunction(L, &copyPath!(Bezier, BezierMT));
     lua_setfield(L, -2, "copy");
-    lua_pushcfunction(L, &t0Path!(Bezier, BezierMT));
-    lua_setfield(L, -2, "t0");
-    lua_pushcfunction(L, &t1Path!(Bezier, BezierMT));
-    lua_setfield(L, -2, "t1");
 
     lua_setglobal(L, BezierMT.toStringz);
 
@@ -613,10 +574,6 @@ void registerPaths(lua_State* L)
     lua_setfield(L, -2, "__tostring");
     lua_pushcfunction(L, &copyPath!(Polyline, PolylineMT));
     lua_setfield(L, -2, "copy");
-    lua_pushcfunction(L, &t0Path!(Polyline, PolylineMT));
-    lua_setfield(L, -2, "t0");
-    lua_pushcfunction(L, &t1Path!(Polyline, PolylineMT));
-    lua_setfield(L, -2, "t1");
 
     lua_setglobal(L, PolylineMT.toStringz);
 
@@ -637,10 +594,6 @@ void registerPaths(lua_State* L)
     lua_setfield(L, -2, "__tostring");
     lua_pushcfunction(L, &copyPath!(LuaFnPath, LuaFnPathMT));
     lua_setfield(L, -2, "copy");
-    lua_pushcfunction(L, &t0Path!(LuaFnPath, LuaFnPathMT));
-    lua_setfield(L, -2, "t0");
-    lua_pushcfunction(L, &t1Path!(LuaFnPath, LuaFnPathMT));
-    lua_setfield(L, -2, "t1");
 
     lua_setglobal(L, LuaFnPathMT.toStringz);
 } // end registerPaths()
