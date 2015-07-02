@@ -435,13 +435,31 @@ unittest {
 
 class ArcLengthParameterizedPath : Path {
 public:
-    Path pth;
+    Path underlying_path;
     double arc_length;
-    this(const Path other){
-	pth = other.dup();
+    this(const Path other)
+    {
+	underlying_path = other.dup();
 	set_arc_length_vector(100);
     }
-    // [TODO] connect up the evaluation
+    this(ref const(ArcLengthParameterizedPath) other)
+    {
+	this(other.underlying_path);
+    }
+    override ArcLengthParameterizedPath dup() const
+    {
+	return new ArcLengthParameterizedPath(this.underlying_path);
+    }
+    override Vector3 opCall(double t) const 
+    {
+	double tdsh = t_from_arc_length(t);
+	return underlying_path(tdsh);
+    }
+    override string toString() const
+    {
+	return "ArcLengthParameterizedPath(underlying_path=" ~ to!string(underlying_path) ~ ")";
+    }
+
 protected:
     double[] arc_length_vector;
     void set_arc_length_vector(int N)
@@ -449,26 +467,26 @@ protected:
 	// Compute the arc_lengths for a number of sample points 
 	// so that these can later be used to do a reverse interpolation
 	// on the evaluation parameter.
-	arc_length = pth.length();
+	arc_length = underlying_path.length();
 	arc_length_vector.length = 0;
 	if ( N == 0 ) return;
 	double dt = 1.0 / N;
 	double L = 0.0;
 	arc_length_vector ~= L;
-	Vector3 p0 = pth(0.0);
+	Vector3 p0 = underlying_path(0.0);
 	Vector3 p1;
 	foreach (i; 1 .. N+1) {
-	    p1 = pth(dt * i);
+	    p1 = underlying_path(dt * i);
 	    L += abs(p1 - p0);
 	    arc_length_vector ~= L;
 	    p0 = p1;
 	}
     } // end set_arc_length_vector()
-    double t_from_arc_length_f(double t) const
+    double t_from_arc_length(double t) const
     {
 	// The incoming parameter value, t, is proportional to arc_length.
 	// Do a reverse look-up from the arc_length to the original t parameter
-	// of the Path.
+	// of the underlying Path.
 	double L_target = t * arc_length_vector[$-1];
 	// Starting from the right-hand end,
 	// let's try to find a point to the left of L_target.
@@ -480,86 +498,46 @@ protected:
 	double frac = (L_target - arc_length_vector[i]) /
 	    (arc_length_vector[i+1] - arc_length_vector[i]);
 	return (1.0 - frac) * dt*i + frac * dt*(i+1);
-    } // end t_from_arc_length_f()
-} // end class ArcLengthParameterized
+    } // end t_from_arc_length()
+} // end class ArcLengthParameterizedPath
 
 
 class SubRangedPath : Path {
-    // [TODO] finish me
-/+ Just parking Peter Roman's code here ... 2015-07-02
 public:
-    Path pth;
-    double t0; // to subrange t, when evaluating a point on the Path
+    Path underlying_path;
+    double t0;
     double t1;
-    this(const Path other, double t0=0.0, double t1=1.0){
-	this.pth = other.dup();
-	this.t0 = t0;
-	this.t1 = t1;
-    }
-private:
-    double get_raw_t(double t) const
+    this(const Path other, double newt0, double newt1)
     {
-	t = t_from_subrange(t);
-	if ( arc_length_param_flag ) {
-	    t = t_from_arc_length_f(t);
-	}
-	return t;
+	underlying_path = other.dup();
+	t0 = newt0;
+	t1 = newt1;
     }
-    double get_t_from_raw(double t) const
+    this(ref const(SubRangedPath) other)
     {
-	if ( arc_length_param_flag ) {
-	    t = raw_partial_length(0,t)/arc_length;
-	}
-	t = t_to_subrange(t);
-	return t;
+	this(other.underlying_path, other.t0, other.t1);
     }
-    double d_raw_t_dt(double t) const
+    override SubRangedPath dup() const
     {
-	if ( arc_length_param_flag ) {
-	    return d_t_from_subrange_dt(t)*d_t_from_arc_f_dt(t);
-	}
-	return d_t_from_subrange_dt(t);
+	return new SubRangedPath(this.underlying_path, this.t0, this.t1);
     }
-    double d2_raw_t_dt2(double t) const
+    override Vector3 opCall(double t) const 
     {
-	// d2_t_from_subrange_dt2 == 0
-	if ( arc_length_param_flag ) {
-	    return pow(d_t_from_subrange_dt(t),2)*d2_t_from_arc_f_dt2(t);
-	}
-	return 0.0;
+	double tdsh = t0 + (t1 - t0) * t;
+	return underlying_path(tdsh);
     }
-    double t_from_subrange(double t) const
+    override string toString() const
     {
-	return t0 + (t1 - t0)*t;
+	return "SubRangedPath(underlying_path=" ~ to!string(underlying_path) 
+	    ~ ", t0=" ~ to!string(t0) ~ " t1=" ~ to!string(t1) ~ ")";
     }
-    double d_t_from_subrange_dt(double t) const
-    {
-	return t1 - t0;
-    }
-    double t_to_subrange(double t) const
-    {
-	return (t - t0)/(t1 - t0);
-    }
-    double d_arc_f_dt(double t) const
-    {
-	return abs(raw_dpdt(t))/arc_length;
-    }
-    double d2_arc_f_dt2(double t) const
-    {
-	//chain rule on d_arc_f_dt
-	return dot(unit(raw_dpdt(t)),raw_d2pdt2(t))/arc_length;
-    }
-    double d_t_from_arc_f_dt(double t) const
-    {
-	// input is parameter t not arclength fraction
-	// derivative of inverse fn
-	return 1.0/d_arc_f_dt(t);
-    }
-    double d2_t_from_arc_f_dt2(double t) const
-    {
-	// input is parameter t not arclength fraction
-	// derivative of inverse fn
-	return -d2_arc_f_dt2(t)/pow(d_arc_f_dt(t),3);
-    }
-+/
 } // end class SubRangedPath
+
+
+class ReversedPath : SubRangedPath {
+    // Just a particular case of SubRangedPath
+    this(const Path other)
+    {
+	super(other, 1.0, 0.0);
+    }
+} // end class ReversedPath

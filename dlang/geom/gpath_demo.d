@@ -42,8 +42,28 @@ void main()
     writeln("Polyline");
     auto polyline = new Polyline([abc, new Line(b, c)]);
     writeln("polyline= ", polyline);
-    auto f = polyline(0.5);
-    writeln("polyline(0.5)= ", f);
+    writeln("polyline(0.25)= ", polyline(0.25));
+    writeln("polyline(0.50)= ", polyline(0.50));
+    writeln("polyline(0.75)= ", polyline(0.75));
+
+    writeln("ArcLengthParameterizedPath");
+    auto alpp = new ArcLengthParameterizedPath(polyline);
+    writeln("alpp= ", alpp);
+    writeln("alpp(0.5)= ", alpp(0.5));
+
+    writeln("SubRangedPath");
+    auto srp = new SubRangedPath(polyline, 1.0, 0.0); // effectively reversed
+    writeln("srp= ", srp);
+    writeln("srp(0.25)= ", srp(0.25));
+    writeln("srp(0.50)= ", srp(0.50));
+    writeln("srp(0.75)= ", srp(0.75));
+
+    writeln("ReversedPath");
+    auto rp = new ReversedPath(polyline);
+    writeln("rp= ", rp);
+    writeln("rp(0.25)= ", rp(0.25));
+    writeln("rp(0.50)= ", rp(0.50));
+    writeln("rp(0.75)= ", rp(0.75));
 
     writeln("Done.");
 }
