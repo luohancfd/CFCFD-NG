@@ -47,7 +47,10 @@ void main()
     writeln("polyline(0.75)= ", polyline(0.75));
 
     writeln("ArcLengthParameterizedPath");
-    auto alpp = new ArcLengthParameterizedPath(polyline);
+    auto p0 = Vector3([0.0, 0.0, 0.0]);
+    auto p1 = Vector3([1.0, 1.0, 1.0]);
+    auto p2 = Vector3([4.0, 4.0, 4.0]);
+    auto alpp = new ArcLengthParameterizedPath(new Bezier([p0,p1,p2]));
     writeln("alpp= ", alpp);
     writeln("alpp(0.5)= ", alpp(0.5));
 

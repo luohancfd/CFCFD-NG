@@ -436,7 +436,6 @@ unittest {
 class ArcLengthParameterizedPath : Path {
 public:
     Path underlying_path;
-    double arc_length;
     this(const Path other)
     {
 	underlying_path = other.dup();
@@ -467,7 +466,6 @@ protected:
 	// Compute the arc_lengths for a number of sample points 
 	// so that these can later be used to do a reverse interpolation
 	// on the evaluation parameter.
-	arc_length = underlying_path.length();
 	arc_length_vector.length = 0;
 	if ( N == 0 ) return;
 	double dt = 1.0 / N;
@@ -493,13 +491,24 @@ protected:
 	// If the value is out of range, this should just result in
 	// us extrapolating one of the end segments -- that's OK.
 	int i = to!int(arc_length_vector.length) - 1;
-	double dt = 1.0 / arc_length_vector.length;
+	double dt = 1.0 / (arc_length_vector.length - 1);
 	while ( L_target < arc_length_vector[i] && i > 0 ) i--;
 	double frac = (L_target - arc_length_vector[i]) /
 	    (arc_length_vector[i+1] - arc_length_vector[i]);
 	return (1.0 - frac) * dt*i + frac * dt*(i+1);
     } // end t_from_arc_length()
 } // end class ArcLengthParameterizedPath
+
+
+unittest {
+    auto a = Vector3([0.0, 0.0, 0.0]);
+    auto b = Vector3([1.0, 1.0, 1.0]);
+    auto c = Vector3([4.0, 4.0, 4.0]);
+    auto abc = new Bezier([a, b, c]);
+    auto abc_dsh = new ArcLengthParameterizedPath(abc);
+    auto f = abc_dsh(0.5);
+    assert(approxEqualVectors(f, Vector3(2,2,2)), "ArcLengthParameterizedPath");
+}
 
 
 class SubRangedPath : Path {
@@ -541,3 +550,15 @@ class ReversedPath : SubRangedPath {
 	super(other, 1.0, 0.0);
     }
 } // end class ReversedPath
+
+
+unittest {
+    auto a = Vector3([2.0, 2.0, 0.0]);
+    auto b = Vector3([1.0, 2.0, 1.0]);
+    auto c = Vector3([1.0, 2.0, 0.0]);
+    auto abc = new Arc(a, b, c);
+    auto polyline = new Polyline([abc, new Line(b, c)]);
+    auto rev_poly = new ReversedPath(polyline);
+    assert(approxEqualVectors(polyline(0.25), rev_poly(0.75)), "ReversedPath");
+}
+
