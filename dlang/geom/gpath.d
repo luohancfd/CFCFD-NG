@@ -479,12 +479,45 @@ unittest {
 }
 
 
-class ArcLengthParameterizedPath : Path {
+class ReParameterizedPath : Path {
 public:
     Path underlying_path;
     this(const Path other)
     {
 	underlying_path = other.dup();
+    }
+    override Vector3 opCall(double t) const 
+    {
+	double tdsh = underlying_t(t);
+	return underlying_path(tdsh);
+    }
+    override Vector3 dpdt(double t) const
+    {
+	double tdsh = underlying_t(t);
+	return underlying_path.dpdt(tdsh)*d_underlying_t_dt(tdsh);
+    }
+    override Vector3 d2pdt2(double t) const
+    {
+	double tdsh = underlying_t(t);
+	return underlying_path.d2pdt2(tdsh)*pow(d_underlying_t_dt(tdsh), 2) + underlying_path.dpdt(tdsh)*d2_underlying_t_dt2(tdsh);
+    }
+    abstract override string toString() const
+    {
+	return "ReParameterizedPath(underlying_path=" ~ to!string(underlying_path) ~ ")";
+    }
+
+protected:
+    abstract double underlying_t(double t) const;
+    abstract double d_underlying_t_dt(double t) const;
+    abstract double d2_underlying_t_dt2(double t) const;
+
+} // end class ReParameterizedPath
+
+class ArcLengthParameterizedPath : ReParameterizedPath {
+public:
+    this(const Path other)
+    {
+	super(other);
 	set_arc_length_vector(100);
     }
     this(ref const(ArcLengthParameterizedPath) other)
@@ -494,11 +527,6 @@ public:
     override ArcLengthParameterizedPath dup() const
     {
 	return new ArcLengthParameterizedPath(this.underlying_path);
-    }
-    override Vector3 opCall(double t) const 
-    {
-	double tdsh = t_from_arc_length(t);
-	return underlying_path(tdsh);
     }
     override string toString() const
     {
@@ -526,10 +554,10 @@ protected:
 	    p0 = p1;
 	}
     } // end set_arc_length_vector()
-    double t_from_arc_length(double t) const
+    override double underlying_t(double t) const
     {
-	// The incoming parameter value, t, is proportional to arc_length.
-	// Do a reverse look-up from the arc_length to the original t parameter
+	// The incoming parameter value, t, is proportional to arc_length fraction.
+	// Do a reverse look-up from the arc_length fraction to the original t parameter
 	// of the underlying Path.
 	double L_target = t * arc_length_vector[$-1];
 	// Starting from the right-hand end,
@@ -542,7 +570,31 @@ protected:
 	double frac = (L_target - arc_length_vector[i]) /
 	    (arc_length_vector[i+1] - arc_length_vector[i]);
 	return (1.0 - frac) * dt*i + frac * dt*(i+1);
-    } // end t_from_arc_length()
+    }
+    override double d_underlying_t_dt(double t) const
+    {
+	// input "t" is underlying_t
+	// derivative of inverse fn
+	return 1.0/d_arc_f_dt(t);
+    }
+    override double d2_underlying_t_dt2(double t) const
+    {
+	// input "t" is underlying_t
+	// derivative of inverse fn
+	return -d2_arc_f_dt2(t)/pow(d_arc_f_dt(t),3);
+    }
+private:
+    double d_arc_f_dt(double t) const
+    {
+	// "t" is underlying_t
+	return abs(underlying_path.dpdt(t))/arc_length_vector[$-1];
+    }
+    double d2_arc_f_dt2(double t) const
+    {
+	// "t" is underlying_t
+	//chain rule on d_arc_f_dt
+	return dot(unit(underlying_path.dpdt(t)),underlying_path.d2pdt2(t))/arc_length_vector[$-1];
+    }
 } // end class ArcLengthParameterizedPath
 
 
@@ -554,17 +606,30 @@ unittest {
     auto abc_dsh = new ArcLengthParameterizedPath(abc);
     auto f = abc_dsh(0.5);
     assert(approxEqualVectors(f, Vector3(2,2,2)), "ArcLengthParameterizedPath");
+    
+    a = Vector3([2.0, 2.0, 0.0]);
+    b = Vector3([1.0, 2.0, 1.0]);
+    c = Vector3([1.0, 2.0, 0.0]);
+    auto acb = new ArcLengthParameterizedPath(new Bezier([a, c, b])); 
+    auto L = acb.underlying_path.length();
+    auto dAdt = abs(Vector3(-1, 0, 1))/L;
+    auto d2Adt2 = dot(unit(Vector3(-1, 0, 1)),Vector3(2,0,2))/L;
+    // check to finite-difference in Path
+    assert(approxEqualVectors(acb.dpdt(0.5), acb.Path.dpdt(0.5)), "ArcLengthParameterizedPath");
+    assert(approxEqualVectors(acb.d2pdt2(0.5), acb.Path.d2pdt2(0.5)), "ArcLengthParameterizedPath");
+    // the following checks are kind of redundant since they just follow the same math as the function definitions
+    assert(approxEqualVectors(acb.dpdt(0.5), Vector3(-1, 0, 1)/dAdt), "ArcLengthParameterizedPath");
+    assert(approxEqualVectors(acb.d2pdt2(0.5), Vector3(2,0,2)/pow(dAdt,2)-Vector3(-1, 0, 1)*d2Adt2/pow(dAdt,3)), "ArcLengthParameterizedPath");
 }
 
 
-class SubRangedPath : Path {
+class SubRangedPath : ReParameterizedPath {
 public:
-    Path underlying_path;
     double t0;
     double t1;
     this(const Path other, double newt0, double newt1)
     {
-	underlying_path = other.dup();
+	super(other);
 	t0 = newt0;
 	t1 = newt1;
     }
@@ -576,15 +641,23 @@ public:
     {
 	return new SubRangedPath(this.underlying_path, this.t0, this.t1);
     }
-    override Vector3 opCall(double t) const 
-    {
-	double tdsh = t0 + (t1 - t0) * t;
-	return underlying_path(tdsh);
-    }
     override string toString() const
     {
 	return "SubRangedPath(underlying_path=" ~ to!string(underlying_path) 
 	    ~ ", t0=" ~ to!string(t0) ~ " t1=" ~ to!string(t1) ~ ")";
+    }
+protected:
+    override double underlying_t(double t) const
+    {
+	return t0 + (t1 - t0)*t;
+    }
+    override double d_underlying_t_dt(double t) const
+    {
+	return t1 - t0;
+    }
+    override double d2_underlying_t_dt2(double t) const
+    {
+	return 0;
     }
 } // end class SubRangedPath
 
@@ -610,5 +683,11 @@ unittest {
     auto polyline = new Polyline([abc, new Line(b, c)]);
     auto rev_poly = new ReversedPath(polyline);
     assert(approxEqualVectors(polyline(0.25), rev_poly(0.75)), "ReversedPath");
+    auto acb = new SubRangedPath(new Bezier([a, c, b]), 0.5, 0.75); 
+    assert(approxEqualVectors(acb.dpdt(0), Vector3(-1, 0, 1)/4), "SubRangedPath");
+    assert(approxEqualVectors(acb.d2pdt2(0), Vector3(2,0,2)/16), "SubRangedPath");
+    auto r_acb = new ReversedPath(new Bezier([a, c, b]));
+    assert(approxEqualVectors(r_acb.dpdt(0.5), -Vector3(-1, 0, 1)), "ReversedPath");
+    assert(approxEqualVectors(r_acb.d2pdt2(0.5), Vector3(2,0,2)), "ReversedPath");
 }
 
