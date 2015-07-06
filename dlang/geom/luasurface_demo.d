@@ -50,6 +50,13 @@ print("SubRangedSurface")
 srs = SubRangedSurface:new{my_aopatch, r0=0.0, r1=0.5, s0=0.0, s1=0.5}
 print("srs(0.2,0.2)=", srs(0.2,0.2))
 --
+print("ChannelPatch")
+cA = Line:new{Vector3:new{0.0,0.0}, Vector3:new{1.0,0.0}}
+cB = Line:new{Vector3:new{0.0,0.25}, Vector3:new{1.0,1.0}}
+chanp = ChannelPatch:new{south=cA, north=cB}
+print("chanp= ", chanp)
+print("chanp(0.5,0.5)= ", chanp(0.5, 0.5))
+--
 print("Utility functions")
 print("isSurface(my_aopatch)= ", isSurface(my_aopatch))
 print("isSurface(surf2)= ", isSurface(surf2));

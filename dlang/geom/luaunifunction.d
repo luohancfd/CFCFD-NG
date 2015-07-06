@@ -99,8 +99,8 @@ The value, if present, should be a number.`;
     string errMsgTmpltBool = `Error in call to RobertsFunction:new{}.
 A valid value for '%s' was not found in list of arguments.
 The value, if present, should be boolean (true or false).`;
-    bool end0 = getBooleanFromTable(L, 1, "end0", false, false, true, format(errMsgTmpltBool, "t0"));
-    bool end1 = getBooleanFromTable(L, 1, "end1", false, false, true, format(errMsgTmpltBool, "t1"));
+    bool end0 = getBooleanFromTable(L, 1, "end0", false, false, true, format(errMsgTmpltBool, "end0"));
+    bool end1 = getBooleanFromTable(L, 1, "end1", false, false, true, format(errMsgTmpltBool, "end1"));
     double beta = getNumberFromTable(L, 1, "beta", false, 1.0, true, format(errMsgTmpltNumber, "beta"));
     auto f = new RobertsFunction(end0, end1, beta);
     functionStore ~= pushObj!(RobertsFunction, RobertsFunctionMT)(L, f);

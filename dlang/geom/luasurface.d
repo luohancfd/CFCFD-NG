@@ -24,6 +24,7 @@ import luagpath;
 // Name of metatables -- these are the Lua access names.
 immutable string CoonsPatchMT = "CoonsPatch";
 immutable string AOPatchMT = "AOPatch";
+immutable string ChannelPatchMT = "ChannelPatch";
 immutable string SubRangedSurfaceMT = "SubRangedSurface";
 
 static const(ParametricSurface)[] surfaceStore;
@@ -176,6 +177,7 @@ nor a list of named corners ('p00', 'p10', 'p11', 'p01') were found.`;
     return 0;
 } // end newCoonsPatch()
 
+
 /**
  * This is constructor for an AOPatch object to be used from the Lua interface.
  *
@@ -240,6 +242,58 @@ nor a list of named corners ('p00', 'p10', 'p11', 'p01') were found.`;
     luaL_error(L, errMsg.toStringz);
     return 0;
 } // end newAOPatch()
+
+
+/**
+ * This is the constructor for a ChannelPatch to be used from the Lua interface.
+ *
+ * At successful completion of this function, a new ChannelPatch object
+ * is pushed onto the Lua stack.
+ *
+ * Supported constructions are:
+ * -------------------------
+ * patch0 = ChannelPatch:new{south=sPath, north=nPath}
+ * patch1 = ChannelPatch:new{south=sPath, north=nPath, ruled=false, pure2D=false}
+ * --------------------------
+ */
+
+extern(C) int newChannelPatch(lua_State* L)
+{
+    lua_remove(L, 1); // remove first argument "this"
+    
+    if ( !lua_istable(L, 1) ) {
+	string errMsg = `Error in constructor ChannelPatch:new.
+A table with input parameters is expected as the first argument.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    // Look for south and north paths.
+    lua_getfield(L, 1, "south");
+    auto south = checkPath(L, -1);
+    if ( south is null ) {
+	string errMsg = `Error in constructor ChannelPatch:new.
+Couldn't find south Path.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, 1, "north");
+    auto north = checkPath(L, -1);
+    if ( north is null ) {
+	string errMsg = `Error in constructor ChannelPatch:new.
+Couldn't find north Path.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    lua_pop(L, 1);
+    // Optional parameters
+    string errMsgTmpltBool = `Error in call to ChannelPatch:new{}.
+A valid value for '%s' was not found in list of arguments.
+The value, if present, should be boolean (true or false).`;
+    bool ruled = getBooleanFromTable(L, 1, "ruled", false, false, true, format(errMsgTmpltBool, "ruled"));
+    bool pure2D = getBooleanFromTable(L, 1, "pure2D", false, false, true, format(errMsgTmpltBool, "pure2D"));
+    // Construct the actual surface.
+    auto cpatch = new ChannelPatch(south, north, ruled, pure2D);
+    surfaceStore ~= pushObj!(ChannelPatch, ChannelPatchMT)(L, cpatch);
+    return 1;
+} // end newChannelPatch()
 
 
 /**
@@ -370,6 +424,25 @@ void registerSurfaces(lua_State* L)
     lua_setfield(L, -2, "__tostring");
 
     lua_setglobal(L, AOPatchMT.toStringz);
+
+    // Register the ChannelPatch object
+    luaL_newmetatable(L, ChannelPatchMT.toStringz);
+    
+    /* metatable.__index = metatable */
+    lua_pushvalue(L, -1); // duplicates the current metatable
+    lua_setfield(L, -2, "__index");
+
+    /* Register methods for use. */
+    lua_pushcfunction(L, &newChannelPatch);
+    lua_setfield(L, -2, "new");
+    lua_pushcfunction(L, &opCallSurface!(ChannelPatch, ChannelPatchMT));
+    lua_setfield(L, -2, "__call");
+    lua_pushcfunction(L, &opCallSurface!(ChannelPatch, ChannelPatchMT));
+    lua_setfield(L, -2, "eval");
+    lua_pushcfunction(L, &toStringObj!(ChannelPatch, ChannelPatchMT));
+    lua_setfield(L, -2, "__tostring");
+
+    lua_setglobal(L, ChannelPatchMT.toStringz);
 
     // Register the SubRangedSurface object
     luaL_newmetatable(L, SubRangedSurfaceMT.toStringz);

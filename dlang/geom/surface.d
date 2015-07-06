@@ -366,8 +366,8 @@ unittest {
 
 class ChannelPatch : ParametricSurface {
 public:
-    Path cA;
-    Path cB;
+    Path cA; // south edge
+    Path cB; // north edge
     bool ruled;
     bool pure2D;
     Vector3 p00, p10, p11, p01;
