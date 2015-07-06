@@ -31,5 +31,8 @@ void main()
     auto c = my_vol(0.1, 0.1, 0.1);
     writeln("my_vol(0.1, 0.1, 0.1)= ", c);
 
-    writeln("Done.");
+    writeln("SubRangedVolume demo");
+    auto srv = new SubRangedVolume(my_vol, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5);
+    writeln("srv(0.2,0.2,0.2)= ", srv(0.2,0.2,0.2));
+    writeln("Done volume_demo.");
 }

@@ -65,25 +65,9 @@ import surface;
 
 class ParametricVolume {
 public:
-    double r0; // to subrange r, when evaluating a point on the surface
-    double r1;
-    double s0;
-    double s1;
-    double t0;
-    double t1;
-
-    Vector3 opCall(double r, double s, double t) const
-    {
-	return Vector3(0.0, 0.0, 0.0);
-    }
-    ParametricVolume dup() const
-    {
-	return new ParametricVolume();
-    }
-    override string toString() const
-    {
-	return "ParametricVolume()";
-    }
+    abstract Vector3 opCall(double r, double s, double t) const;
+    abstract ParametricVolume dup() const;
+    abstract override string toString() const;
 } // end class ParametricVolume
 
 
@@ -94,16 +78,10 @@ public:
     // Path[12] edges;
 
     // Generic, 6-face constructor
-    this(in ParametricSurface[] faceArray,
-	 double r0=0.0, double r1=1.0,
-	 double s0=0.0, double s1=1.0,
-	 double t0=0.0, double t1=1.0)
+    this(in ParametricSurface[] faceArray)
     {
 	// Keep a local copy of the defining faces and parametric ranges.
 	foreach(i; 0 .. 6) faces[i] = faceArray[i].dup();
-	this.r0 = r0; this.r1 = r1;
-	this.s0 = s0; this.s1 = s1;
-	this.t0 = t0; this.t1 = t1;
 	// Check that the corners of the faces coincide.
 	p[0] = faces[Face.bottom](0.0,0.0);
 	Vector3 p_alt1 = faces[Face.west](0.0,0.0);
@@ -166,10 +144,7 @@ public:
     // Wire-Frame constructor TODO
 
     // Simple-Box constructor
-    this(in Vector3[] p,
-	 double r0=0.0, double r1=1.0,
-	 double s0=0.0, double s1=1.0,
-	 double t0=0.0, double t1=1.0)
+    this(in Vector3[] p)
     {
 	foreach(i; 0 .. 8) this.p[i] = p[i].dup();
 	faces[Face.north] = new CoonsPatch(p[3], p[2], p[6], p[7]);
@@ -180,9 +155,6 @@ public:
 	faces[Face.bottom] = new CoonsPatch(p[0], p[1], p[2], p[3]);
 	// Since we have constructed from the corners, the volume should be closed.
 	// Don't bother testing.
-	this.r0 = r0; this.r1 = r1;
-	this.s0 = s0; this.s1 = s1;
-	this.t0 = t0; this.t1 = t1;
     } // end constructor
 
     // Surface-extrusion constructor TODO
@@ -192,14 +164,11 @@ public:
     {
 	foreach(i; 0 .. 6) this.faces[i] = other.faces[i].dup();
 	foreach(i; 0 .. 8) this.p[i] = other.p[i].dup();
-	this.r0 = other.r0; this.r1 = other.r1;
-	this.s0 = other.s0; this.s1 = other.s1;
-	this.t0 = other.t0; this.t1 = other.t1;
     } // end copy constructor
 
     override TFIVolume dup() const
     {
-	return new TFIVolume(this.faces, r0, r1, s0, s1, t0, t1);
+	return new TFIVolume(this.faces);
     }
 
     override Vector3 opCall(double r, double s, double t) const
@@ -209,10 +178,6 @@ public:
     // @param t: interpolation parameter k-direction bottom-->top, 0.0<=t<=1.0
     // @returns: a Vector3 value for the point.
     {
-	// Transform to parameter range of subsection of the volume.
-	r = r0 + (r1 - r0) * r;
-	s = s0 + (s1 - s0) * s;
-	t = t0 + (t1 - t0) * t;
 	Vector3 pW = faces[Face.west](s,t); 
 	Vector3 pE = faces[Face.east](s,t);
 	Vector3 pS = faces[Face.south](r,t); 
@@ -235,11 +200,7 @@ public:
     {
 	string repr = "TFIVolume(faces=[" ~ to!string(faces[0]);
 	foreach(i; 1 .. 6) repr ~= ", " ~ to!string(faces[i]);
-	repr ~= "]";
-	repr ~= ", r0=" ~ to!string(r0) ~ ", r1=" ~ to!string(r1);
-	repr ~= ", s0=" ~ to!string(s0) ~ ", s1=" ~ to!string(s1);
-	repr ~= ", t0=" ~ to!string(t0) ~ ", t1=" ~ to!string(t1);
-	repr ~= ")";
+	repr ~= "])";
 	return repr;
     } // end toString
 } // end class TFIVolume
@@ -274,7 +235,55 @@ unittest {
 
 
 class MeshVolume : ParametricVolume {
-}
+} // end class MeshVolume
 
 unittest {
 }
+
+
+class SubRangedVolume : ParametricVolume {
+public:
+    ParametricVolume underlying_volume;
+    double r0; // to subrange r, when evaluating a point in the volume
+    double r1;
+    double s0;
+    double s1;
+    double t0;
+    double t1;
+
+    this(const ParametricVolume pvolume,
+	 double r0=0.0, double r1=1.0,
+	 double s0=0.0, double s1=1.0,
+	 double t0=0.0, double t1=1.0)
+    {
+	underlying_volume = pvolume.dup();
+	this.r0 = r0;
+	this.r1 = r1;
+	this.s0 = s0;
+	this.s1 = s1;
+	this.t0 = t0;
+	this.t1 = t1;
+    }
+    override Vector3 opCall(double r, double s, double t) const
+    {
+	r = r0 + (r1-r0)*r; // subrange the parameter
+	s = s0 + (s1-s0)*s;
+	t = t0 + (t1-t0)*t;
+	return underlying_volume(r, s, t);
+    }
+    override ParametricVolume dup() const
+    {
+	return new SubRangedVolume(underlying_volume,
+				   r0, r1, s0, s1, t0, t1);
+    }
+    override string toString() const
+    {
+	return "SubRangedVolume(underlying_volume=" ~
+	    to!string(underlying_volume) ~
+	    ", r0=" ~ to!string(r0) ~ ", r1=" ~ to!string(r1) ~
+	    ", s0=" ~ to!string(s0) ~ ", s1=" ~ to!string(s1) ~
+	    ", t0=" ~ to!string(t0) ~ ", t1=" ~ to!string(t1) ~
+	    ")";
+    }
+} // end class SubRangedVolume
+

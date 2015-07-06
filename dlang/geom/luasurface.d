@@ -239,7 +239,7 @@ Neither a list of named paths ('north', 'east', 'south', 'west')
 nor a list of named corners ('p00', 'p10', 'p11', 'p01') were found.`;
     luaL_error(L, errMsg.toStringz);
     return 0;
-}
+} // end newAOPatch()
 
 
 /**

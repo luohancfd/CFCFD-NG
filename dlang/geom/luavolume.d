@@ -4,6 +4,7 @@
  *
  * Authors: Peter J. and Rowan G.
  * Version: 2015-04-07, following Rowan's code in luasurface.d
+ *          2015-07-05, introduced SubRangedVolume
  */
 
 module luavolume;
@@ -22,8 +23,9 @@ import luageom;
 import luagpath;
 import luasurface;
 
-/// Name of TFIVolume metatable -- this is the Lua access name.
+/// Name of the metatables -- these are the Lua access name.
 immutable string TFIVolumeMT = "TFIVolume";
+immutable string SubRangedVolumeMT = "SubRangedVolume";
 
 static const(ParametricVolume)[] volumeStore;
 
@@ -94,6 +96,59 @@ The value set for the corner[%d] was not of Vector3 type.`;
     return corners;
 } // end get8Vector3s()
 
+
+// Constructor for the TFIVolume, to be used from the Lua domain.
+//
+// Supported forms are:
+// vol0 = TFIVolume:new{faces={nFace, eFace, sFace, wFace, tFace, bFace}}
+// vol1 = TFIVolume:new{vertices={p0, p1, p2, p3, p4, p5, p6, p7}}
+//
+// Notes:
+// 1. See PJs diagram at top of geom.volume.d for ordering and labelling of
+//    paths and corners.
+// 2. No mix-n-match of constructors allowed.
+//    It is one of: 6 faces OR 8 corner points.
+//    If the faces table is found first, that constructor wins.
+
+extern(C) int newTFIVolume(lua_State* L)
+{
+    lua_remove(L, 1); // remove first argument "this"
+    
+    if ( !lua_istable(L, 1) ) {
+	string errMsg = `Error in constructor TFIVolume:new.
+A table with input parameters is expected as the first argument.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    // Look for an array of ParametricSurfaces. 
+    // If found, proceed with construction from these faces.
+    lua_getfield(L, 1, "faces");
+    if ( lua_istable(L, -1) ) {
+	auto faces = get6Surfaces(L, "TFIVolume");
+	lua_pop(L, 1);
+	auto tfivolume = new TFIVolume(faces);
+	volumeStore ~= pushObj!(TFIVolume, TFIVolumeMT)(L, tfivolume);
+	return 1;
+    } else {
+	lua_pop(L, 1); // get rid of the non-table item
+    }
+    // Instead, look for an array of Vector3 objects.
+    lua_getfield(L, 1, "vertices");
+    if ( lua_istable(L, -1) ) {
+	auto corners = get8Vector3s(L, "TFIVolume");
+	lua_pop(L, 1);
+	auto tfivolume = new TFIVolume(corners);
+	volumeStore ~= pushObj!(TFIVolume, TFIVolumeMT)(L, tfivolume);
+	return 1;
+    }
+    lua_pop(L, 1);
+    // If we make it here, there's been an error in construction.
+    string errMsg = `There's a problem in call to TFIVolume.new.
+Neither the array of 6 surfaces nor a list of 8 vertices was found.`;
+    luaL_error(L, errMsg.toStringz);
+    return 0;
+} // end newTFIVolume()
+
+
 void getRSandT(lua_State* L, string ctorName,
 	       out double r0, out double r1,
 	       out double s0, out double s1,
@@ -110,66 +165,38 @@ void getRSandT(lua_State* L, string ctorName,
     t1 = getNumberFromTable(L, 1, "t1", false, 1.0, true, format(errMsgTmplt, "t1"));
 } // end getRSandT()
 
-// Constructor for the TFIVolume, to be used from the Lua domain.
+// Constructor for the SubRangedVolume, to be used from the Lua domain.
 //
-// Supported forms are:
-// vol0 = TFIVolume:new{faces={nFace, eFace, sFace, wFace, tFace, bFace}}
-// vol1 = TFIVolume:new{faces={nFace, eFace, sFace, wFace, tFace, bFace},
-//                      r0=0.0, r1=1.0, s0=0.0, s1=1.0, t0=0.0, t1=1.0}
-// vol2 = TFIVolume:new{vertices={p0, p1, p2, p3, p4, p5, p6, p7}}
-// vol3 = TFIVolume:new{vertices={p0, p1, p2, p3, p4, p5, p6, p7},
-//                      r0=0.0, r1=1.0, s0=0.0, s1=1.0, t0=0.0, t1=1.0}
-//
-// Notes:
-// 1. See PJs diagram at top of geom.volume.d for ordering and labelling of
-//    paths and corners.
-// 2. Any missing r,s and t parameters default to defaults given in the
-//    TFIVolume constructor.
-// 3. No mix-n-match of constructors allowed.
-//    It is one of: 6 faces OR 8 corner points.
-//    If the faces table is found first, that constructor wins.
+// Supported form is:
+// vol1 = SubRangedVolume:new{vol0}
 
-
-extern(C) int newTFIVolume(lua_State* L)
+extern(C) int newSubRangedVolume(lua_State* L)
 {
     lua_remove(L, 1); // remove first argument "this"
     
     if ( !lua_istable(L, 1) ) {
-	string errMsg = `Error in constructor CoonPatch:new.
+	string errMsg = `Error in constructor SubRangeVolume:new.
 A table with input parameters is expected as the first argument.`;
 	luaL_error(L, errMsg.toStringz);
     }
-    double r0, r1, s0, s1, t0, t1;
-    // Look for an array of ParametricSurfaces. 
-    // If found, proceed with construction from these faces.
-    lua_getfield(L, 1, "faces");
-    if ( lua_istable(L, -1) ) {
-	auto faces = get6Surfaces(L, "TFIVolume");
-	lua_pop(L, 1);
-	getRSandT(L, "TFIVolume", r0, r1, s0, s1, t0, t1);
-	auto tfivolume = new TFIVolume(faces, r0, r1, s0, s1, t0, t1);
-	volumeStore ~= pushObj!(TFIVolume, TFIVolumeMT)(L, tfivolume);
-	return 1;
-    } else {
-	lua_pop(L, 1); // get rid of the non-table item
+    // Look for the original ParametricVolume in the first array position. 
+    lua_rawgeti(L, 1, 1);
+    if ( lua_isnil(L, -1) ) {
+	string errMsg = `Error in call to SubRangedVolume:new{}. No table entry found.`;
+	luaL_error(L, errMsg.toStringz());
     }
-    // Instead, look for an array of Vector3 objects.
-    lua_getfield(L, 1, "vertices");
-    if ( lua_istable(L, -1) ) {
-	auto corners = get8Vector3s(L, "TFIVolume");
-	lua_pop(L, 1);
-	getRSandT(L, "TFIVolume", r0, r1, s0, s1, t0, t1);
-	auto tfivolume = new TFIVolume(corners, r0, r1, s0, s1, t0, t1);
-	volumeStore ~= pushObj!(TFIVolume, TFIVolumeMT)(L, tfivolume);
-	return 1;
-    }
+    auto pvolume = checkVolume(L, -1);
     lua_pop(L, 1);
-    // If we make it here, there's been an error in construction.
-    string errMsg = `There's a problem in call to TFIVolume.new.
-Neither the array of 6 surfaces nor a list of 8 vertices was found.`;
-    luaL_error(L, errMsg.toStringz);
-    return 0;
-} // end newTFIVolume()
+    if ( pvolume is null ) {
+	string errMsg = `Error in call to SubRangedVolume:new{}. No valid Surface object found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    double r0, r1, s0, s1, t0, t1;
+    getRSandT(L, "SubRangedVolume", r0, r1, s0, s1, t0, t1);
+    auto srvolume = new SubRangedVolume(pvolume, r0, r1, s0, s1, t0, t1);
+    volumeStore ~= pushObj!(SubRangedVolume, SubRangedVolumeMT)(L, srvolume);
+    return 1;
+} // end newSubRangedVolume()
 
 
 void registerVolumes(lua_State* L)
@@ -193,6 +220,26 @@ void registerVolumes(lua_State* L)
 
     lua_setglobal(L, TFIVolumeMT.toStringz);
 
+    // Register the SubRangedVolume object
+    luaL_newmetatable(L, SubRangedVolumeMT.toStringz);
+    
+    /* metatable.__index = metatable */
+    lua_pushvalue(L, -1); // duplicates the current metatable
+    lua_setfield(L, -2, "__index");
+
+    /* Register methods for use. */
+    lua_pushcfunction(L, &newSubRangedVolume);
+    lua_setfield(L, -2, "new");
+    lua_pushcfunction(L, &opCallVolume!(SubRangedVolume, SubRangedVolumeMT));
+    lua_setfield(L, -2, "__call");
+    lua_pushcfunction(L, &opCallVolume!(SubRangedVolume, SubRangedVolumeMT));
+    lua_setfield(L, -2, "eval");
+    lua_pushcfunction(L, &toStringObj!(SubRangedVolume, SubRangedVolumeMT));
+    lua_setfield(L, -2, "__tostring");
+
+    lua_setglobal(L, SubRangedVolumeMT.toStringz);
+
+    // Utility functions...
     lua_pushcfunction(L, &isVolume);
     lua_setglobal(L, "isVolume");
 } // end registerVolumes()

@@ -36,7 +36,13 @@ my_volume = TFIVolume:new{vertices={p000,p100,p110,p010,p001,p101,p111,p011}}
 print("my_volume=", my_volume)
 p = my_volume(0.1, 0.1, 0.5);
 print("my_volume(0.1, 0.1, 0.5)= ", p)
+--
+print("SubRangedVolume demo")
+srv = SubRangedVolume:new{my_volume,r0=0.0,r1=0.5,s0=0.0,s1=0.5,t0=0.0,t1=0.5}
+print("srv(0.2,0.2,1.0)=", srv(0.2,0.2,1.0))
+--
 print("isVolume(my_volume)= ", isVolume(my_volume))
+print("Done luavolume_demo")
     `);
 }
 
