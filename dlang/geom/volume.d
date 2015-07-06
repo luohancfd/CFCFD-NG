@@ -172,12 +172,12 @@ public:
 	 double t0=0.0, double t1=1.0)
     {
 	foreach(i; 0 .. 8) this.p[i] = p[i].dup();
-	faces[Face.north] = new CoonsPatch(p[3], p[2], p[6], p[7], r0, r1, t0, t1);
-	faces[Face.south] = new CoonsPatch(p[0], p[1], p[5], p[4], r0, r1, t0, t1);
-	faces[Face.east] = new CoonsPatch(p[1], p[2], p[6], p[5], s0, s1, t0, t1);
-	faces[Face.west] = new CoonsPatch(p[0], p[3], p[7], p[4], s0, s1, t0, t1);
-	faces[Face.top] = new CoonsPatch(p[4], p[5], p[6], p[7], r0, r1, s0, s1);
-	faces[Face.bottom] = new CoonsPatch(p[0], p[1], p[2], p[3], r0, r1, s0, s1);
+	faces[Face.north] = new CoonsPatch(p[3], p[2], p[6], p[7]);
+	faces[Face.south] = new CoonsPatch(p[0], p[1], p[5], p[4]);
+	faces[Face.east] = new CoonsPatch(p[1], p[2], p[6], p[5]);
+	faces[Face.west] = new CoonsPatch(p[0], p[3], p[7], p[4]);
+	faces[Face.top] = new CoonsPatch(p[4], p[5], p[6], p[7]);
+	faces[Face.bottom] = new CoonsPatch(p[0], p[1], p[2], p[3]);
 	// Since we have constructed from the corners, the volume should be closed.
 	// Don't bother testing.
 	this.r0 = r0; this.r1 = r1;

@@ -3,7 +3,8 @@
  * Lua interface to ParametricSurface objects.
  *
  * Authors: Rowan G. and Peter J.
- * Version: 2015-02-24
+ * Version: 2015-02-24 first code
+ *          2015-07-05 SubRangedSurface
  */
 
 module luasurface;
@@ -20,10 +21,10 @@ import surface;
 import luageom;
 import luagpath;
 
-/// Name of CoonsPatch metatable -- this is the Lua access name.
+// Name of metatables -- these are the Lua access names.
 immutable string CoonsPatchMT = "CoonsPatch";
-/// Name of AOPatch metatable -- this is the Lua access name.
 immutable string AOPatchMT = "AOPatch";
+immutable string SubRangedSurfaceMT = "SubRangedSurface";
 
 static const(ParametricSurface)[] surfaceStore;
 
@@ -124,17 +125,12 @@ void getRandS(lua_State* L, string ctorName,
  * Supported constructions are:
  * -------------------------
  * patch0 = CoonsPatch:new{north=nPath, east=ePath, south=sPath, west=wPath}
- * patch1 = CoonsPatch:new{north=nPath, east=ePath, south=sPath, west=wPath,
- *                         r0=0.0, r1=1.0, s0=0.0, s1=1.0}
  * patch2 = CoonsPatch:new{p00=a, p10=b, p11=c, p01=d}
- * patch3 = CoonsPatch:new{p00=a, p10=b, p11=c, p01=d, r0=0, r1=1, s0=0, s1=1}
  * --------------------------
  * Notes:
  * 1. See PJs diagram at top of geom.surface.d for ordering and labelling of
  *    paths and corners.
- * 2. Any missing r and s parameters default to defaults given in the
- *    CoonsPatch constructor.
- * 3. No mix-n-match of constructors allowed. It is one of: 4 paths OR 4 corner points. If a path is found first, that constructor wins.
+ * 2. No mix-n-match of constructors allowed. It is one of: 4 paths OR 4 corner points. If a path is found first, that constructor wins.
  *
  */
 
@@ -153,11 +149,8 @@ A table with input parameters is expected as the first argument.`;
 	lua_pop(L, 1);
 	Path[string] paths;
 	getPaths(L, "CoonsPatch", paths);
-	double r0, r1, s0, s1;
-	getRandS(L, "CoonsPatch", r0, r1, s0, s1);
 	auto cpatch = new CoonsPatch(paths["south"], paths["north"],
-				     paths["west"], paths["east"],
-				     r0, r1, s0, s1);
+				     paths["west"], paths["east"]);
 	surfaceStore ~= pushObj!(CoonsPatch, CoonsPatchMT)(L, cpatch);
 	return 1;
     } else {
@@ -170,9 +163,7 @@ A table with input parameters is expected as the first argument.`;
 	Vector3 p00, p10, p11, p01;
 	getVector3s(L, "CoonsPatch", p00, p10, p11, p01);
 	writeln("p00= ", p00, " p10= ", p10, " p11= ", p11, " p01= ", p01);
-	double r0, r1, s0, s1;
-	getRandS(L, "CoonsPatch", r0, r1, s0, s1);
-	auto cpatch = new CoonsPatch(p00, p10, p11, p01, r0, r1, s0, s1);
+	auto cpatch = new CoonsPatch(p00, p10, p11, p01);
 	surfaceStore ~= pushObj!(CoonsPatch, CoonsPatchMT)(L, cpatch);
 	return 1;
     }
@@ -194,17 +185,12 @@ nor a list of named corners ('p00', 'p10', 'p11', 'p01') were found.`;
  * Supported constructions are:
  * -------------------------
  * patch0 = AOPatch:new{north=nPath, east=ePath, south=sPath, west=wPath}
- * patch1 = AOPatch:new{north=nPath, east=ePath, south=sPath, west=wPath,
- *                     r0=0.0, r1=1.0, s0=0.0, s1=1.0, nx=10, ny=10}
  * patch2 = AOPatch:new{p00=a, p10=b, p11=c, p01=d}
- * patch3 = AOPatch:new{p00=a, p10=b, p11=c, p01=d, r0=0, r1=1, s0=0, s1=1, nx=10, ny=10}
  * --------------------------
  * Notes:
  * 1. See PJs diagram at top of geom.surface.d for ordering and labelling of
  *    paths and corners.
- * 2. Any missing r and s parameters default to defaults given in the
- *    CoonsPatch constructor.
- * 3. No mix-n-match of constructors allowed. It is one of: 4 paths OR 4 corner points. If a path is found first, that constructor wins.
+ * 2. No mix-n-match of constructors allowed. It is one of: 4 paths OR 4 corner points. If a path is found first, that constructor wins.
  *
  */
 extern(C) int newAOPatch(lua_State* L)
@@ -227,13 +213,9 @@ A table with input parameters is expected as the first argument.`;
 	lua_pop(L, 1);
 	Path[string] paths;
 	getPaths(L, "AOPatch", paths);
-	double r0, r1, s0, s1;
-	getRandS(L, "AOPatch", r0, r1, s0, s1);
-	
-
 	auto aopatch = new AOPatch(paths["south"], paths["north"],
 				   paths["west"], paths["east"],
-				   nx, ny, r0, r1, s0, s1);
+				   nx, ny);
 	surfaceStore ~= pushObj!(AOPatch, AOPatchMT)(L, aopatch);
 	return 1;
     } else {
@@ -246,9 +228,7 @@ A table with input parameters is expected as the first argument.`;
 	Vector3 p00, p10, p11, p01;
 	getVector3s(L, "AOPatch", p00, p10, p11, p01);
 	writeln("p00= ", p00, " p10= ", p10, " p11= ", p11, " p01= ", p01);
-	double r0, r1, s0, s1;
-	getRandS(L, "AOPatch", r0, r1, s0, s1);
-	auto aopatch = new AOPatch(p00, p10, p11, p01, nx, ny, r0, r1, s0, s1);
+	auto aopatch = new AOPatch(p00, p10, p11, p01, nx, ny);
 	surfaceStore ~= pushObj!(AOPatch, AOPatchMT)(L, aopatch);
 	return 1;
     }
@@ -260,6 +240,47 @@ nor a list of named corners ('p00', 'p10', 'p11', 'p01') were found.`;
     luaL_error(L, errMsg.toStringz);
     return 0;
 }
+
+
+/**
+ * This is constructor for a SubRangedSurface object
+ * to be used from the Lua interface.
+ *
+ * At successful completion of this function, a new SubRangedSurface object
+ * is pushed onto the Lua stack.
+ *
+ * Supported constructions are:
+ * -------------------------
+ * srs = SubRangedSurface:new{psurf, r0=0.0, r1=1.0, s0=0.0, s1=1.0}
+ * --------------------------
+ */
+extern(C) int newSubRangedSurface(lua_State* L)
+{
+    lua_remove(L, 1); // remove first argument "this"
+    
+    if ( !lua_istable(L, 1) ) {
+	string errMsg = `Error in constructor SubRangedSurface:new.
+A table with input parameters is expected as the first argument.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    // Expect a Surface object at the first array position in the table.
+    lua_rawgeti(L, 1, 1);
+    if ( lua_isnil(L, -1) ) {
+	string errMsg = `Error in call to SubRangedSurface:new{}. No table entry found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    auto psurf = checkSurface(L, -1);
+    lua_pop(L, 1);
+    if ( psurf is null ) {
+	string errMsg = `Error in call to SubRangedSurface:new{}. No valid Surface object found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    double r0, r1, s0, s1;
+    getRandS(L, "SubRangedSurface", r0, r1, s0, s1);
+    auto srs = new SubRangedSurface(psurf, r0, r1, s0, s1);
+    surfaceStore ~= pushObj!(SubRangedSurface, SubRangedSurfaceMT)(L, srs);
+    return 1;
+} // end newSubRangedSurface()
 
 /* ---------- convenience functions -------------- */
 
@@ -308,7 +329,7 @@ The %s path is not a valid Path object.`;
     auto patch = new CoonsPatch(south, north, west, east);
     surfaceStore ~= pushObj!(CoonsPatch, CoonsPatchMT)(L, patch);
     return 1;
-}
+} // end makePatch()
 
 void registerSurfaces(lua_State* L)
 {
@@ -350,6 +371,26 @@ void registerSurfaces(lua_State* L)
 
     lua_setglobal(L, AOPatchMT.toStringz);
 
+    // Register the SubRangedSurface object
+    luaL_newmetatable(L, SubRangedSurfaceMT.toStringz);
+    
+    /* metatable.__index = metatable */
+    lua_pushvalue(L, -1); // duplicates the current metatable
+    lua_setfield(L, -2, "__index");
+
+    /* Register methods for use. */
+    lua_pushcfunction(L, &newSubRangedSurface);
+    lua_setfield(L, -2, "new");
+    lua_pushcfunction(L, &opCallSurface!(SubRangedSurface, SubRangedSurfaceMT));
+    lua_setfield(L, -2, "__call");
+    lua_pushcfunction(L, &opCallSurface!(SubRangedSurface, SubRangedSurfaceMT));
+    lua_setfield(L, -2, "eval");
+    lua_pushcfunction(L, &toStringObj!(SubRangedSurface, SubRangedSurfaceMT));
+    lua_setfield(L, -2, "__tostring");
+
+    lua_setglobal(L, SubRangedSurfaceMT.toStringz);
+
+    // Register utility functions.
     lua_pushcfunction(L, &isSurface);
     lua_setglobal(L, "isSurface");
     lua_pushcfunction(L, &makePatch);

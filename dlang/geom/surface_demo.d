@@ -31,5 +31,10 @@ void main()
     c = my_AOpatch(0.1, 0.1);
     writeln("my_AOpatch(0.1, 0.1)= ", c);
 
+    writeln("SubRangedSurface demo");
+    auto srp = new SubRangedSurface(my_AOpatch, 0.0, 0.5, 0.0, 0.5);
+    writeln("srp= ", srp);
+    writeln("srp(0.2,0.2)= ", srp(0.2,0.2));
+    
     writeln("Done.");
 }

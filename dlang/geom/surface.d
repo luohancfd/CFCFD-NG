@@ -28,23 +28,9 @@ import gpath;
 
 class ParametricSurface {
 public:
-    double r0; // to subrange r, when evaluating a point on the surface
-    double r1;
-    double s0;
-    double s1;
-
-    Vector3 opCall(double r, double s) const
-    {
-	return Vector3(0.0, 0.0, 0.0);
-    }
-    ParametricSurface dup() const
-    {
-	return new ParametricSurface();
-    }
-    override string toString() const
-    {
-	return "ParametricSurface()";
-    }
+    abstract Vector3 opCall(double r, double s) const;
+    abstract ParametricSurface dup() const;
+    abstract override string toString() const;
 } // end class ParametricSurface
 
 
@@ -53,18 +39,16 @@ public:
     Path north, east, south, west; // bounding paths
     Vector3 p00, p10, p11, p01;    // corners
 
-    this(in Vector3 p00, in Vector3 p10, in Vector3 p11, in Vector3 p01,
-	 double r0=0.0, double r1=1.0, double s0=0.0, double s1=1.0)
+    this(in Vector3 p00, in Vector3 p10, in Vector3 p11, in Vector3 p01)
     {
 	north = new Line(p01, p11);
 	east = new Line(p10, p11);
 	south = new Line(p00, p10);
 	west = new Line(p00, p01);
-	this(south, north, west, east, r0, r1, s0, s1);
+	this(south, north, west, east);
     }
 
-    this(in Path south, in Path north, in Path west, in Path east,
-	 double r0=0.0, double r1=1.0, double s0=0.0, double s1=1.0)
+    this(in Path south, in Path north, in Path west, in Path east)
     // The particular order for the boundary surfaces goes way back
     // to the original grid generation paper, so it doesn't match the
     // default order of NESW in the rest of the flow code.
@@ -73,8 +57,6 @@ public:
 	this.east = east.dup();
 	this.south = south.dup();
 	this.west = west.dup();
-	this.r0 = r0; this.r1 = r1;
-	this.s0 = s0; this.s1 = s1;
 	p00 = south(0.0);
 	p10 = south(1.0);
 	p01 = north(0.0);
@@ -108,8 +90,6 @@ public:
 	this.east = other.east.dup();
 	this.south = other.south.dup();
 	this.west = other.west.dup();
-	this.r0 = other.r0; this.r1 = other.r1;
-	this.s0 = other.s0; this.s1 = other.s1;
 	p00 = other.p00;
 	p10 = other.p10;
 	p01 = other.p01;
@@ -118,14 +98,11 @@ public:
 
     override CoonsPatch dup() const
     {
-	return new CoonsPatch(this.south, this.north, this.west, this.east,
-			      r0, r1, s0, s1);
+	return new CoonsPatch(this.south, this.north, this.west, this.east);
     }
 
     override Vector3 opCall(double r, double s) const 
     {
-	r = r0 + (r1-r0)*r; // subrange
-	s = s0 + (s1-s0)*s;
 	Vector3 south_r = south(r); 
 	Vector3 north_r = north(r);
 	Vector3 west_s = west(s); 
@@ -141,8 +118,6 @@ public:
 	    ", north=" ~ to!string(north) ~
 	    ", west=" ~ to!string(west) ~
 	    ", east=" ~ to!string(east) ~
-	    ", r0=" ~ to!string(r0) ~ ", r1=" ~ to!string(r1) ~
-	    ", s0=" ~ to!string(s0) ~ ", s1=" ~ to!string(s1) ~
 	    ")";
     }
 } // end class CoonsPatch
@@ -181,26 +156,22 @@ private:
 
 public:
     this(in Vector3 p00, in Vector3 p10, in Vector3 p11, in Vector3 p01,
-	 int nx=10, int ny=10,
-	 double r0=0.0, double r1=1.0, double s0=0.0, double s1=1.0)
+	 int nx=10, int ny=10)
     {
 	north = new Line(p01, p11);
 	east = new Line(p10, p11);
 	south = new Line(p00, p10);
 	west = new Line(p00, p01);
-	this(south, north, west, east, nx, ny, r0, r1, s0, s1);
+	this(south, north, west, east, nx, ny);
     }
 
     this(in Path south, in Path north, in Path west, in Path east,
-	 int nx=10, int ny=10,
-	 double r0=0.0, double r1=1.0, double s0=0.0, double s1=1.0)
+	 int nx=10, int ny=10)
     {
 	this.north = north.dup();
 	this.east = east.dup();
 	this.south = south.dup();
 	this.west = west.dup();
-	this.r0 = r0; this.r1 = r1;
-	this.s0 = s0; this.s1 = s1;
 	_nx = nx; _ny = ny;
 	// Set up internal representation.
 	p00 = south(0.0);
@@ -244,8 +215,6 @@ public:
 	this.east = other.east.dup();
 	this.south = other.south.dup();
 	this.west = other.west.dup();
-	this.r0 = other.r0; this.r1 = other.r1;
-	this.s0 = other.s0; this.s1 = other.s1;
 	p00 = other.p00;
 	p10 = other.p10;
 	p01 = other.p01;
@@ -257,13 +226,11 @@ public:
     override AOPatch dup() const
     {
 	return new AOPatch(this.south, this.north, this.west, this.east,
-			   this._nx, this._ny, r0, r1, s0, s1);
+			   this._nx, this._ny);
     }
 
     override Vector3 opCall(double r, double s) const 
     {
-	r = r0 + (r1-r0)*r; // subrange
-	s = s0 + (s1-s0)*s;
 	// Use TFI close to the boundaries.  
 	// The background mesh is usually pretty coarse.
 	double tol = 1.0e-4;
@@ -287,7 +254,7 @@ public:
 	    local_r * (1.0 - local_s) * _bgmesh[ix_coarse + 1][iy_coarse] +
 	    local_r * local_s * _bgmesh[ix_coarse + 1][iy_coarse + 1];
  	return p;
-    }
+    } // end opCall()
 
     override string toString() const
     {
@@ -296,10 +263,8 @@ public:
 	    ", west=" ~ to!string(west) ~
 	    ", east=" ~ to!string(east) ~
 	    ", nx=" ~ to!string(_nx) ~ ", ny=" ~ to!string(_ny) ~
-	    ", r0=" ~ to!string(r0) ~ ", r1=" ~ to!string(r1) ~
-	    ", s0=" ~ to!string(s0) ~ ", s1=" ~ to!string(s1) ~
 	    ")";
-    }
+    } // end toString()
 
 private:
     void compute_background_mesh()
@@ -397,3 +362,41 @@ unittest {
     assert(approxEqualVectors(c, Vector3(0.0892476, 0.215529, 3.0)),
 	   "AOPatch lower-left");
 }
+
+
+class SubRangedSurface : ParametricSurface {
+public:
+    ParametricSurface underlying_surface;
+    double r0; // to subrange r, when evaluating a point on the surface
+    double r1;
+    double s0;
+    double s1;
+
+    this(const ParametricSurface psurf,
+	 double r0=0.0, double r1=1.0, double s0=0.0, double s1=1.0)
+    {
+	underlying_surface = psurf.dup();
+	this.r0 = r0;
+	this.r1 = r1;
+	this.s0 = s0;
+	this.s1 = s1;
+    }
+    override Vector3 opCall(double r, double s) const
+    {
+	r = r0 + (r1-r0)*r; // subrange the parameter
+	s = s0 + (s1-s0)*s;
+	return underlying_surface(r,s);
+    }
+    override ParametricSurface dup() const
+    {
+	return new SubRangedSurface(underlying_surface, r0, r1, s0, s1);
+    }
+    override string toString() const
+    {
+	return "SubRangedSurface(underlying_surface=" ~
+	    to!string(underlying_surface) ~
+	    ", r0=" ~ to!string(r0) ~ ", r1=" ~ to!string(r1) ~
+	    ", s0=" ~ to!string(s0) ~ ", s1=" ~ to!string(s1) ~
+	    ")";
+    }
+} // end class SubRangedSurface
