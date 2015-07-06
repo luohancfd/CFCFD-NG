@@ -413,6 +413,8 @@ class Polyline : Path {
 public:
     Path[] segments; // collection of Path segments
     double[] t_values; // collection of segment break-points (in parameter t)
+
+    // Construct from the Path segments.
     this(in Path[] segments)
     {
 	if (segments.length == 0) {
@@ -422,14 +424,69 @@ public:
 	t_values.length = this.segments.length;
 	reset_breakpoints();
     }
+    
+    // Construct as a spline through specified points.
+    this(const Vector3[] p, double tolerance=1.0e-10)
+    {
+	auto m = p.length - 1;
+	// Given m+1 interpolation points p, determine the m-segment
+	// Bezier polyline that interpolates these points as a spline. 
+	// This is done by first determining the array of weight points
+	// which define the spline and then evaluating the cubic 
+	// Bezier segments.
+	// Reference:
+	//     G. Engelin & F. Uhlig (1996)
+	//     Numerical Algorithms with C
+	//     Springer, Berlin
+	//     Section 12.3.1
+ 
+	Vector3[] d; d.length = m+1;  // weight points
+	// For a natural spline, the first and last weight points
+	// are also the first and last interpolation points.
+	d[0] = p[0];
+	d[m] = p[m];
+
+	// For the initial guess at the remaining weight points,
+	// just use the supplied data points.
+	foreach (i; 1 .. m) { d[i] = p[i]; }
+	// Apply Gauss-Seidel iteration until
+	// the internal weight points converge.
+	Vector3 old_p;
+	double max_diff;
+	foreach (j; 1 .. 50) {
+	    max_diff = 0.0;
+	    foreach (i; 1 .. m) {
+		old_p = d[i];
+		d[i] = 0.25 * (6.0 * p[i] - d[i-1] - d[i+1]);
+		max_diff = fmax(max_diff, abs(d[i] - old_p));
+	    } // end foreach i
+	    if ( max_diff < tolerance ) break;
+	} // end foreach j
+
+	// Final stage; calculate the Bezier segments
+	Vector3[4] p03;
+	Path[] seg;
+	foreach (i; 0 ..  m) {
+	    p03[0] = p[i];
+	    p03[1] = (2.0 * d[i] + d[i+1]) / 3.0;
+	    p03[2] = (d[i] + 2.0 * d[i+1]) / 3.0;
+	    p03[3] = p[i+1];
+	    seg ~= new Bezier(p03);
+	}
+	// and pack them away.
+	this(seg);
+    } // end spline constructor
+    
     this(ref const(Polyline) other)
     {
 	this(other.segments);
     }
+    
     override Polyline dup() const
     {
 	return new Polyline(segments);
     }
+    
     override Vector3 opCall(double t) const 
     {
 	// Evaluate B(t) without considering arc_length parameterization flag
@@ -451,6 +508,7 @@ public:
 	}
 	return segments[i](t_local);
     } // end opCall()
+    
     override string toString() const
     {
 	return "Polyline(segments=" ~ to!string(segments) ~ ")";

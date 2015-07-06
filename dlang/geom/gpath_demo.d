@@ -68,5 +68,16 @@ void main()
     writeln("rp(0.50)= ", rp(0.50));
     writeln("rp(0.75)= ", rp(0.75));
 
-    writeln("Done.");
+    writeln("Spline (Polyline)");
+    // A rough circle.
+    auto pnts = [Vector3([0.0, -1.0, 0.0]),
+		 Vector3([-1.0, 0.0, 0.0]),
+		 Vector3([0.0, 1.0, 0.0]),
+		 Vector3([1.0, 0.0, 0.0]),
+		 Vector3([0.0, -1.0, 0.0])];
+    auto circle = new Polyline(pnts);
+    writeln("circle= ", circle);
+    writeln("circle(3.0/8)= ", circle(5.0/8));  // approx 45 degrees
+    
+    writeln("Done gpath_demo.");
 }
