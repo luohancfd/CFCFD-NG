@@ -35,6 +35,13 @@ void main()
     auto srp = new SubRangedSurface(my_AOpatch, 0.0, 0.5, 0.0, 0.5);
     writeln("srp= ", srp);
     writeln("srp(0.2,0.2)= ", srp(0.2,0.2));
+
+    writeln("ChannelPatch demo");
+    auto cA = new Line(Vector3(0.0, 0.0, 0.0), Vector3(1.0, 0.0, 0.0));
+    auto cB = new Line(Vector3(0.0, 0.25, 0.0), Vector3(1.0, 1.0, 0.0));
+    auto chanp = new ChannelPatch(cA, cB);
+    writeln("chanp= ", chanp);
+    writeln("chanp(0.5,0.5)= ", chanp(0.5, 0.5));
     
-    writeln("Done.");
+    writeln("Done surface_demo.");
 }
