@@ -6,6 +6,8 @@
  */
 
 import std.stdio;
+import std.conv;
+import std.string;
 import util.lua;
 import geom;
 import gpath;
@@ -19,7 +21,7 @@ void main()
     luaL_openlibs(L);
     registerVector3(L);
     registerPaths(L);
-    luaL_dostring(L, `
+    string test_code = `
 -- Add a couple of points and alter their data.
 a = Vector3:new{x=1.0, y=2.0}
 b = Vector3:new(0.0, 5.0, 4.0)
@@ -99,6 +101,10 @@ print("rp=", rp)
 print("rp(0.25)=", rp(0.25))
 print("rp(0.50)=", rp(0.50))
 print("rp(0.75)=", rp(0.75))
-    `);
-    writeln("Done with demo.");
+    `;
+    if ( luaL_dostring(L, toStringz(test_code)) != 0 ) {
+	writeln("There was a problem interpreting the test code.");
+	writeln(to!string(lua_tostring(L, -1)));
+    }
+    writeln("Done with luagpath_demo.");
 }

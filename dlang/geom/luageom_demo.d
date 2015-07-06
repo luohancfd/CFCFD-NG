@@ -7,6 +7,8 @@
  */
 
 import std.stdio;
+import std.conv;
+import std.string;
 import util.lua;
 import luageom;
 
@@ -16,7 +18,7 @@ void main()
     auto L = luaL_newstate();
     luaL_openlibs(L);
     registerVector3(L);
-    luaL_dostring(L, `
+    string test_code = `
 -- Add some points and manipulate them.
 print("Test some constructors.")
 a = Vector3:new()
@@ -49,7 +51,11 @@ j = dot(g, f)
 print("j= ", j)
 k = cross(g, f)
 print("k= ", k)
-    `);
-    writeln("End demo.");
+    `;
+    if ( luaL_dostring(L, toStringz(test_code)) != 0 ) {
+	writeln("There was a problem interpreting the test code.");
+	writeln(to!string(lua_tostring(L, -1)));
+    }
+    writeln("End luageom_demo.");
 }
 

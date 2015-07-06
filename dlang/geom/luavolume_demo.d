@@ -7,7 +7,8 @@
  */
 
 import std.stdio;
-
+import std.conv;
+import std.string;
 import util.lua;
 import luageom;
 import luagpath;
@@ -23,7 +24,7 @@ void main()
     registerPaths(L);
     registerSurfaces(L);
     registerVolumes(L);
-    luaL_dostring(L, `
+    string test_code = `
 p000 = Vector3:new{0.0, 0.1, 0.0}
 p100 = Vector3:new{1.0, 0.1, 0.0}
 p110 = Vector3:new{1.0, 1.1, 0.0}
@@ -43,7 +44,12 @@ print("srv(0.2,0.2,1.0)=", srv(0.2,0.2,1.0))
 --
 print("isVolume(my_volume)= ", isVolume(my_volume))
 print("Done luavolume_demo")
-    `);
+    `;
+    if ( luaL_dostring(L, toStringz(test_code)) != 0 ) {
+	writeln("There was a problem interpreting the test code.");
+	writeln(to!string(lua_tostring(L, -1)));
+    }
+    writeln("Done with luavolume_demo.");
 }
 
     

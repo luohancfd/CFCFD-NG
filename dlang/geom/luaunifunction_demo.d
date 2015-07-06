@@ -6,6 +6,8 @@
  */
 
 import std.stdio;
+import std.conv;
+import std.string;
 import util.lua;
 import univariatefunctions;
 import luaunifunction;
@@ -16,7 +18,7 @@ void main()
     auto L = luaL_newstate();
     luaL_openlibs(L);
     registerUnivariateFunctions(L);
-    luaL_dostring(L, `
+    string test_code = `
 -- Make a function and sample it.
 myf = LinearFunction:new{t0=0.0, t1=3.0}
 print("Try evaluating a point midway on the line.")
@@ -30,6 +32,10 @@ pt2 = myf2(0.5)
 print("pt2=", pt2)
 myrf = RobertsFunction:new{end0=true, end1=false, beta=1.01}
 print("myrf(0.5)=", myrf(0.5))
-    `);
-    writeln("Done with demo.");
+    `;
+    if ( luaL_dostring(L, toStringz(test_code)) != 0 ) {
+	writeln("There was a problem interpreting the test code.");
+	writeln(to!string(lua_tostring(L, -1)));
+    }
+    writeln("Done with luaunifunction_demo.");
 }

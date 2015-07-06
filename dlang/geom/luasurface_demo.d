@@ -7,7 +7,8 @@
  */
 
 import std.stdio;
-
+import std.conv;
+import std.string;
 import util.lua;
 import luageom;
 import luagpath;
@@ -21,7 +22,7 @@ void main()
     registerVector3(L);
     registerPaths(L);
     registerSurfaces(L);
-    luaL_dostring(L, `
+    string test_code = `
 print("Construct from edges")
 a = Vector3:new{0.0, 0.0}
 b = Vector3:new{0.0, 1.0}
@@ -68,7 +69,12 @@ west = Line:new{a, b}
 surf3 = makePatch{north, east, south, west, gridType="ao"}
 print("surf3= ", surf3)
 print("Done luasurface_demo.")
-    `);
+    `;
+    if ( luaL_dostring(L, toStringz(test_code)) != 0 ) {
+	writeln("There was a problem interpreting the test code.");
+	writeln(to!string(lua_tostring(L, -1)));
+    }
+    writeln("Done with luageom_demo.");
 }
 
     
