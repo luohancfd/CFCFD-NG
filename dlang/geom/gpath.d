@@ -549,6 +549,10 @@ class ReversedPath : SubRangedPath {
     {
 	super(other, 1.0, 0.0);
     }
+    override ReversedPath dup() const
+    {
+	return new ReversedPath(this.underlying_path);
+    }
 } // end class ReversedPath
 
 

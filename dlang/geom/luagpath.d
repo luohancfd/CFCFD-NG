@@ -24,6 +24,9 @@ immutable string Arc3MT = "Arc3";
 immutable string BezierMT = "Bezier";
 immutable string PolylineMT = "Polyline";
 immutable string LuaFnPathMT = "LuaFnPath";
+immutable string ArcLengthParameterizedPathMT = "ArcLengthParameterizedPath";
+immutable string SubRangedPathMT = "SubRangedPath";
+immutable string ReversedPathMT = "ReversedPath";
 
 // A place to hang on to references to objects that are pushed into the Lua domain.
 // We don't want the D garbage collector to prematurely dispose of said objects.
@@ -48,6 +51,16 @@ Path checkPath(lua_State* L, int index) {
     if ( isObjType(L, index, LuaFnPathMT) ) {
 	return checkObj!(LuaFnPath, LuaFnPathMT)(L, index);
     }
+    if ( isObjType(L, index, ArcLengthParameterizedPathMT) ) {
+	return checkObj!(ArcLengthParameterizedPath,
+			 ArcLengthParameterizedPathMT)(L, index);
+    }
+    if ( isObjType(L, index, SubRangedPathMT) ) {
+	return checkObj!(SubRangedPath, SubRangedPathMT)(L, index);
+    }
+    if ( isObjType(L, index, ReversedPathMT) ) {
+	return checkObj!(ReversedPath, ReversedPathMT)(L, index);
+    }
     // if all else fails
     return null;
 }
@@ -60,45 +73,11 @@ extern(C) int opCallPath(T, string MTname)(lua_State* L)
     return pushVector3(L, pt);
 }
 
-/+
-extern(C) int t0Path(T, string MTname)(lua_State* L)
-{
-    // Not much error checking here because we assume
-    // users are knowing what they are doing if
-    // they are messing with the getter/setter functions.
-    int narg = lua_gettop(L);
-    auto path = checkObj!(T, MTname)(L, 1);
-    if ( narg == 1 ) { // This is a getter
-	lua_pushnumber(L, path.t0);
-	return 1;
-    }
-    // else: treat as a setter
-    path.t0 = luaL_checknumber(L, 2);
-    return 0;
-}
-
-extern(C) int t1Path(T, string MTname)(lua_State* L)
-{
-    // Not much error checking here because we assume
-    // users are knowing what they are doing if
-    // they are messing with the getter/setter functions.
-    int narg = lua_gettop(L);
-    auto path = checkObj!(T, MTname)(L, 1);
-    if ( narg == 1 ) { // This is a getter
-	lua_pushnumber(L, path.t1);
-	return 1;
-    }
-    // else: treat as a setter
-    path.t1 = luaL_checknumber(L, 2);
-    return 0;
-}
-+/
-
 extern(C) int copyPath(T, string MTname)(lua_State* L)
 {
     // Sometimes it's convenient to get a copy of a path.
     auto path = checkObj!(T, MTname)(L, 1);
-    pathStore ~= pushObj!(T, MTname)(L, path);
+    pathStore ~= pushObj!(T, MTname)(L, path.dup()); // new object
     return 1;
 }
 
@@ -141,13 +120,6 @@ A Vector3 object is expected as the second argument. No valid Vector3 was found.
 	luaL_error(L, errMsg.toStringz());
     }
     lua_pop(L, 1);
-/+
-    string errMsgTmplt = `Error in call to Line:new{}.
-A valid value for '%s' was not found in list of arguments.
-The value, if present, should be a number.`;
-    double t0 = getNumberFromTable(L, 1, "t0", false, 0.0, true, format(errMsgTmplt, "t0"));
-    double t1 = getNumberFromTable(L, 1, "t1", false, 1.0, true, format(errMsgTmplt, "t1"));
-+/
     auto ab = new Line(*a, *b);
     pathStore ~= pushObj!(Line, LineMT)(L, ab);
     return 1;
@@ -466,6 +438,161 @@ A table containing arguments is expected, but no table was found.`;
 } // end newLuaFnPath()
 
 
+/**
+ * The Lua constructor for an ArcLengthParameterizedPath.
+ *
+ * Example construction in Lua:
+ * ---------------------------------
+ * p0 = Vector3:new{1, 0}
+ * p1 = Vector3:new{0.7071, 0.7071}
+ * p2 = Vector3:new{0, 1}
+ * original_path = Bezier:new{p0, p1, p2}
+ * alp_path = ArcLengthParameterizedPath:new{original_path}
+ * ---------------------------------
+ */
+extern(C) int newArcLengthParameterizedPath(lua_State* L)
+{
+    lua_remove(L, 1); // remove first argument "this"
+    int narg = lua_gettop(L);
+    if ( narg == 0 || !lua_istable(L, 1) ) {
+	string errMsg = `Error in call to ArcLengthParameterizedPath:new{}.;
+A table containing arguments is expected, but no table was found.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    // Expect a Path object at the first array position in the table.
+    lua_rawgeti(L, 1, 1);
+    if ( lua_isnil(L, -1) ) {
+	string errMsg = `Error in call to ArcLengthParameterizedPath:new{}. No table entry found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    auto original_path = checkPath(L, -1);
+    lua_pop(L, 1);
+    if ( original_path is null ) {
+	string errMsg = `Error in call to ArcLengthParameterizedPath:new{}. No valid Path object found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    auto alp_path = new ArcLengthParameterizedPath(original_path);
+    pathStore ~= pushObj!(ArcLengthParameterizedPath,
+			  ArcLengthParameterizedPathMT)(L, alp_path);
+    return 1;
+} // end newArcLengthParameterizedPath()
+
+
+/**
+ * The Lua constructor for an SubRangedPath.
+ *
+ * Example construction in Lua:
+ * ---------------------------------
+ * p0 = Vector3:new{1, 0}
+ * p1 = Vector3:new{0.7071, 0.7071}
+ * p2 = Vector3:new{0, 1}
+ * original_path = Bezier:new{p0, p1, p2}
+ * sr_path = SubRangedPath:new{original_path, t0=0.1, t1=0.9}
+ * ---------------------------------
+ */
+extern(C) int newSubRangedPath(lua_State* L)
+{
+    lua_remove(L, 1); // remove first argument "this"
+    int narg = lua_gettop(L);
+    if ( narg == 0 || !lua_istable(L, 1) ) {
+	string errMsg = `Error in call to SubRangedPath:new{}.;
+A table containing arguments is expected, but no table was found.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    // Expect a Path object at the first array position in the table.
+    lua_rawgeti(L, 1, 1);
+    if ( lua_isnil(L, -1) ) {
+	string errMsg = `Error in call to SubRangedPath:new{}. No table entry found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    auto original_path = checkPath(L, -1);
+    lua_pop(L, 1);
+    if ( original_path is null ) {
+	string errMsg = `Error in call to SubRangedPath:new{}. No valid Path object found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    string errMsgTmplt = `Error in call to SubRangedPath:new{}.
+A valid value for '%s' was not found in list of arguments.
+The value, if present, should be a number.`;
+    double t0 = getNumberFromTable(L, 1, "t0", false, 0.0, true, format(errMsgTmplt, "t0"));
+    double t1 = getNumberFromTable(L, 1, "t1", false, 1.0, true, format(errMsgTmplt, "t1"));
+    auto alp_path = new SubRangedPath(original_path, t0, t1);
+    pathStore ~= pushObj!(SubRangedPath, SubRangedPathMT)(L, alp_path);
+    return 1;
+} // end newSubRangedPath()
+
+extern(C) int t0Path(T, string MTname)(lua_State* L)
+{
+    // Not much error checking here because we assume
+    // users are knowing what they are doing if
+    // they are messing with the getter/setter functions.
+    int narg = lua_gettop(L);
+    auto path = checkObj!(T, MTname)(L, 1);
+    if ( narg == 1 ) { // This is a getter
+	lua_pushnumber(L, path.t0);
+	return 1;
+    }
+    // else: treat as a setter
+    path.t0 = luaL_checknumber(L, 2);
+    return 0;
+}
+
+extern(C) int t1Path(T, string MTname)(lua_State* L)
+{
+    // Not much error checking here because we assume
+    // users are knowing what they are doing if
+    // they are messing with the getter/setter functions.
+    int narg = lua_gettop(L);
+    auto path = checkObj!(T, MTname)(L, 1);
+    if ( narg == 1 ) { // This is a getter
+	lua_pushnumber(L, path.t1);
+	return 1;
+    }
+    // else: treat as a setter
+    path.t1 = luaL_checknumber(L, 2);
+    return 0;
+}
+
+
+/**
+ * The Lua constructor for an ReversedPath.
+ *
+ * Example construction in Lua:
+ * ---------------------------------
+ * p0 = Vector3:new{1, 0}
+ * p1 = Vector3:new{0.7071, 0.7071}
+ * p2 = Vector3:new{0, 1}
+ * original_path = Bezier:new{p0, p1, p2}
+ * r_path = ReversedPath:new{original_path}
+ * ---------------------------------
+ */
+extern(C) int newReversedPath(lua_State* L)
+{
+    lua_remove(L, 1); // remove first argument "this"
+    int narg = lua_gettop(L);
+    if ( narg == 0 || !lua_istable(L, 1) ) {
+	string errMsg = `Error in call to ReversedPath:new{}.;
+A table containing arguments is expected, but no table was found.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    // Expect a Path object at the first array position in the table.
+    lua_rawgeti(L, 1, 1);
+    if ( lua_isnil(L, -1) ) {
+	string errMsg = `Error in call to ReversedPath:new{}. No table entry found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    auto original_path = checkPath(L, -1);
+    lua_pop(L, 1);
+    if ( original_path is null ) {
+	string errMsg = `Error in call to ReversedPath:new{}. No valid Path object found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    auto alp_path = new ReversedPath(original_path);
+    pathStore ~= pushObj!(ReversedPath, ReversedPathMT)(L, alp_path);
+    return 1;
+} // end newReversedPath()
+
+
 //-------------------------------------------------------------------------------------
 
 void registerPaths(lua_State* L)
@@ -488,12 +615,6 @@ void registerPaths(lua_State* L)
     lua_setfield(L, -2, "__tostring");
     lua_pushcfunction(L, &copyPath!(Line, LineMT));
     lua_setfield(L, -2, "copy");
-/+
-    lua_pushcfunction(L, &t0Path!(Line, LineMT));
-    lua_setfield(L, -2, "t0");
-    lua_pushcfunction(L, &t1Path!(Line, LineMT));
-    lua_setfield(L, -2, "t1");
-+/
 
     lua_setglobal(L, LineMT.toStringz);
 
@@ -577,7 +698,7 @@ void registerPaths(lua_State* L)
 
     lua_setglobal(L, PolylineMT.toStringz);
 
-    // Register the Polyline object
+    // Register the LuaFnPath object
     luaL_newmetatable(L, LuaFnPathMT.toStringz);
     
     /* metatable.__index = metatable */
@@ -596,6 +717,78 @@ void registerPaths(lua_State* L)
     lua_setfield(L, -2, "copy");
 
     lua_setglobal(L, LuaFnPathMT.toStringz);
+
+    // Register the ArcLengthParameterized object
+    luaL_newmetatable(L, ArcLengthParameterizedPathMT.toStringz);
+    
+    /* metatable.__index = metatable */
+    lua_pushvalue(L, -1); // duplicates the current metatable
+    lua_setfield(L, -2, "__index");
+
+    lua_pushcfunction(L, &newArcLengthParameterizedPath);
+    lua_setfield(L, -2, "new");
+    lua_pushcfunction(L, &opCallPath!(ArcLengthParameterizedPath,
+				      ArcLengthParameterizedPathMT));
+    lua_setfield(L, -2, "__call");
+    lua_pushcfunction(L, &opCallPath!(ArcLengthParameterizedPath,
+				      ArcLengthParameterizedPathMT));
+    lua_setfield(L, -2, "eval");
+    lua_pushcfunction(L, &toStringObj!(ArcLengthParameterizedPath,
+				       ArcLengthParameterizedPathMT));
+    lua_setfield(L, -2, "__tostring");
+    lua_pushcfunction(L, &copyPath!(ArcLengthParameterizedPath,
+				    ArcLengthParameterizedPathMT));
+    lua_setfield(L, -2, "copy");
+
+    lua_setglobal(L, ArcLengthParameterizedPathMT.toStringz);
+
+    // Register the SubRangedPath object
+    luaL_newmetatable(L, SubRangedPathMT.toStringz);
+    
+    /* metatable.__index = metatable */
+    lua_pushvalue(L, -1); // duplicates the current metatable
+    lua_setfield(L, -2, "__index");
+
+    lua_pushcfunction(L, &newSubRangedPath);
+    lua_setfield(L, -2, "new");
+    lua_pushcfunction(L, &opCallPath!(SubRangedPath, SubRangedPathMT));
+    lua_setfield(L, -2, "__call");
+    lua_pushcfunction(L, &opCallPath!(SubRangedPath, SubRangedPathMT));
+    lua_setfield(L, -2, "eval");
+    lua_pushcfunction(L, &toStringObj!(SubRangedPath, SubRangedPathMT));
+    lua_setfield(L, -2, "__tostring");
+    lua_pushcfunction(L, &copyPath!(SubRangedPath, SubRangedPathMT));
+    lua_setfield(L, -2, "copy");
+    lua_pushcfunction(L, &t0Path!(SubRangedPath, SubRangedPathMT));
+    lua_setfield(L, -2, "t0");
+    lua_pushcfunction(L, &t1Path!(SubRangedPath, SubRangedPathMT));
+    lua_setfield(L, -2, "t1");
+
+    lua_setglobal(L, SubRangedPathMT.toStringz);
+
+    // Register the ReversedPath object
+    luaL_newmetatable(L, ReversedPathMT.toStringz);
+    
+    /* metatable.__index = metatable */
+    lua_pushvalue(L, -1); // duplicates the current metatable
+    lua_setfield(L, -2, "__index");
+
+    lua_pushcfunction(L, &newReversedPath);
+    lua_setfield(L, -2, "new");
+    lua_pushcfunction(L, &opCallPath!(ReversedPath, ReversedPathMT));
+    lua_setfield(L, -2, "__call");
+    lua_pushcfunction(L, &opCallPath!(ReversedPath, ReversedPathMT));
+    lua_setfield(L, -2, "eval");
+    lua_pushcfunction(L, &toStringObj!(ReversedPath, ReversedPathMT));
+    lua_setfield(L, -2, "__tostring");
+    lua_pushcfunction(L, &copyPath!(ReversedPath, ReversedPathMT));
+    lua_setfield(L, -2, "copy");
+    lua_pushcfunction(L, &t0Path!(ReversedPath, ReversedPathMT));
+    lua_setfield(L, -2, "t0");
+    lua_pushcfunction(L, &t1Path!(ReversedPath, ReversedPathMT));
+    lua_setfield(L, -2, "t1");
+
+    lua_setglobal(L, ReversedPathMT.toStringz);
 } // end registerPaths()
     
 

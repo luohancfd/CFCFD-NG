@@ -31,11 +31,6 @@ print("pt= ", pt)
 print("Or with an eval.")
 pt2 = ab:eval(0.5)
 print("pt2= ", pt2)
-ab:t1(0.8)
-ab2 = ab:copy()
-ab2:t0(0.2)
-print("ab:t0()= ", ab:t0(), "ab:t1()= ", ab:t1())
-print("ab2:t0()= ", ab2:t0(), "ab2:t2()= ", ab2:t1())
 --
 print("Arc")
 a = Vector3:new(2.0, 2.0, 0.0)
@@ -62,7 +57,9 @@ print("Polyline")
 polyline = Polyline:new{abc, Line:new{b,c}}
 print("polyline= ", polyline)
 f = polyline(0.5)
+print("polyline(0.25)= ", polyline(0.25))
 print("polyline(0.5)= ", f, "expected approximately Vector3(1.28154, 2, 0.95955)")
+print("polyline(0.75)= ", polyline(0.75))
 --
 print("LuaFnPath")
 function myLuaFunction(t)
@@ -73,6 +70,35 @@ myPath = LuaFnPath:new{"myLuaFunction"}
 print("myLine= ", myPath)
 g = myPath(0.5)
 print("myPath(0.5)= ", g)
+--
+print("ArcLengthParameterizedPath")
+p0 = Vector3:new(0.0, 0.0, 0.0)
+p1 = Vector3:new(1.0, 1.0, 1.0)
+p2 = Vector3:new(4.0, 4.0, 4.0)
+alpp = ArcLengthParameterizedPath:new{Bezier:new{p0, p1, p2}}
+print("alpp=", alpp)
+print("alpp(0.5)=", alpp(0.5))
+--
+print("SubrangedPath")
+srp = SubRangedPath:new{polyline, t0=1.0, t1=0.0} -- effectively reversed
+print("srp=", srp)
+print("srp(0.25)=", srp(0.25))
+print("srp(0.50)=", srp(0.50))
+print("srp(0.75)=", srp(0.75))
+--
+print("Fiddle with parameter limits.")
+srp:t1(0.8)
+srp2 = srp:copy()
+srp2:t0(0.2)
+print("srp:t0()= ", srp:t0(), "srp:t1()= ", srp:t1())
+print("srp2:t0()= ", srp2:t0(), "srp2:t1()= ", srp2:t1())
+--
+print("ReversedPath")
+rp = ReversedPath:new{polyline}
+print("rp=", rp)
+print("rp(0.25)=", rp(0.25))
+print("rp(0.50)=", rp(0.50))
+print("rp(0.75)=", rp(0.75))
     `);
     writeln("Done with demo.");
 }
