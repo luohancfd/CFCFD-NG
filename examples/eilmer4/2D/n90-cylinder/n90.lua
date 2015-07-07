@@ -31,9 +31,9 @@ bc = Arc:new{b, c, a}
 cd = Arc:new{c, d, a}
 de = Arc:new{d, e, a}
 e_path = Polyline:new{bc, cd, de}
-w_path = Bezier:new{f, g, h, i}
+w_path = Bezier:new{points={f, g, h, i}}
 s_path = Line:new{f, b}
-n_path = Bezier:new{i, j, k, e}
+n_path = Bezier:new{points={i, j, k, e}}
 
 psurf = makePatch{n_path, e_path, s_path, w_path}
 grid = StructuredGrid:new{psurface=psurf, niv=61, njv=41}

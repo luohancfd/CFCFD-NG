@@ -23,6 +23,7 @@ immutable string ArcMT = "Arc";
 immutable string Arc3MT = "Arc3";
 immutable string BezierMT = "Bezier";
 immutable string PolylineMT = "Polyline";
+immutable string SplineMT = "Spline";
 immutable string LuaFnPathMT = "LuaFnPath";
 immutable string ArcLengthParameterizedPathMT = "ArcLengthParameterizedPath";
 immutable string SubRangedPathMT = "SubRangedPath";
@@ -241,7 +242,7 @@ A Vector3 object is expected as the third argument. No valid Vector3 was found.`
  * p1 = Vector3:new{0.7071, 0.7071}
  * p2 = Vector3:new{0, 1}
  * -- For an arbitrary number of points in the table.
- * bez = Bezier:new{p0, p1, p2}
+ * bez = Bezier:new{points={p0, p1, p2}}
  * ---------------------------------
  */
 extern(C) int newBezier(lua_State* L)
@@ -253,11 +254,17 @@ extern(C) int newBezier(lua_State* L)
 A table containing arguments is expected, but no table was found.`;
 	luaL_error(L, errMsg.toStringz);
     }
-    // Expect Vector3 objects at array positions.
+    lua_getfield(L, 1, "points".toStringz());
+    if ( !lua_istable(L, -1) ) {
+	string errMsg = `Error in call to Bezier:new{}.;
+A table containing Vector3 points is expected, but no table was found.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    // Expect Vector3 objects at array positions within that table.
     Vector3[] B;
     int position = 1;
     while ( true ) {
-	lua_rawgeti(L, 1, position);
+	lua_rawgeti(L, -1, position);
 	if ( lua_isnil(L, -1) ) { lua_pop(L, 1); break; }
 	auto a = checkVector3(L, -1);
 	lua_pop(L, 1);
@@ -265,6 +272,7 @@ A table containing arguments is expected, but no table was found.`;
 	B ~= *a;
 	++position;
     }
+    lua_pop(L, 1); // dispose of points table
     if ( B.length == 0 ) {
 	string errMsg = `Error in call to Bezier:new{}. No valid Vector3 objects found.`;
 	luaL_error(L, errMsg.toStringz());
@@ -319,6 +327,58 @@ A table containing arguments is expected, but no table was found.`;
     pathStore ~= pushObj!(Polyline, PolylineMT)(L, poly);
     return 1;
 } // end newPolyline()
+
+
+/**
+ * The Lua constructor for a Spline (Polyline).
+ *
+ * Example construction in Lua:
+ * ---------------------------------
+ * p0 = Vector3:new{ 0, -1, 0}
+ * p1 = Vector3:new{-1,  0, 0}
+ * p2 = Vector3:new{ 0,  1, 0}
+ * p3 = Vector3:new{ 1,  0, 0}
+ * p4 = Vector3:new{ 0, -1, 0}
+ * -- For an arbitrary number of points in the table.
+ * bez = Spline:new{points={p0, p1, p2, p3, p4}}
+ * ---------------------------------
+ */
+extern(C) int newSpline(lua_State* L)
+{
+    lua_remove(L, 1); // remove first argument "this"
+    int narg = lua_gettop(L);
+    if ( narg == 0 || !lua_istable(L, 1) ) {
+	string errMsg = `Error in call to Spline:new{}.;
+A table containing arguments is expected, but no table was found.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    lua_getfield(L, 1, "points".toStringz());
+    if ( !lua_istable(L, -1) ) {
+	string errMsg = `Error in call to Spline:new{}.;
+A table containing Vector3 points is expected, but no table was found.`;
+	luaL_error(L, errMsg.toStringz);
+    }
+    // Expect Vector3 objects at array positions.
+    Vector3[] B;
+    int position = 1;
+    while ( true ) {
+	lua_rawgeti(L, -1, position);
+	if ( lua_isnil(L, -1) ) { lua_pop(L, 1); break; }
+	auto a = checkVector3(L, -1);
+	lua_pop(L, 1);
+	if ( a is null ) break;
+	B ~= *a;
+	++position;
+    }
+    lua_pop(L, 1); // dispose of points table
+    if ( B.length == 0 ) {
+	string errMsg = `Error in call to Spline:new{}. No valid Vector3 objects found.`;
+	luaL_error(L, errMsg.toStringz());
+    }
+    auto spline = new Polyline(B);
+    pathStore ~= pushObj!(Polyline, PolylineMT)(L, spline);
+    return 1;
+} // end newSpline()
 
 
 /**
@@ -446,7 +506,7 @@ A table containing arguments is expected, but no table was found.`;
  * p0 = Vector3:new{1, 0}
  * p1 = Vector3:new{0.7071, 0.7071}
  * p2 = Vector3:new{0, 1}
- * original_path = Bezier:new{p0, p1, p2}
+ * original_path = Bezier:new{points={p0, p1, p2}}
  * alp_path = ArcLengthParameterizedPath:new{original_path}
  * ---------------------------------
  */
@@ -486,7 +546,7 @@ A table containing arguments is expected, but no table was found.`;
  * p0 = Vector3:new{1, 0}
  * p1 = Vector3:new{0.7071, 0.7071}
  * p2 = Vector3:new{0, 1}
- * original_path = Bezier:new{p0, p1, p2}
+ * original_path = Bezier:new{points={p0, p1, p2}}
  * sr_path = SubRangedPath:new{original_path, t0=0.1, t1=0.9}
  * ---------------------------------
  */
@@ -562,7 +622,7 @@ extern(C) int t1Path(T, string MTname)(lua_State* L)
  * p0 = Vector3:new{1, 0}
  * p1 = Vector3:new{0.7071, 0.7071}
  * p2 = Vector3:new{0, 1}
- * original_path = Bezier:new{p0, p1, p2}
+ * original_path = Bezier:new{points={p0, p1, p2}}
  * r_path = ReversedPath:new{original_path}
  * ---------------------------------
  */
@@ -697,6 +757,26 @@ void registerPaths(lua_State* L)
     lua_setfield(L, -2, "copy");
 
     lua_setglobal(L, PolylineMT.toStringz);
+
+    // Register the Spline object which is actually a Polyline in Dlang.
+    luaL_newmetatable(L, SplineMT.toStringz);
+    
+    /* metatable.__index = metatable */
+    lua_pushvalue(L, -1); // duplicates the current metatable
+    lua_setfield(L, -2, "__index");
+
+    lua_pushcfunction(L, &newSpline);
+    lua_setfield(L, -2, "new");
+    lua_pushcfunction(L, &opCallPath!(Polyline, SplineMT));
+    lua_setfield(L, -2, "__call");
+    lua_pushcfunction(L, &opCallPath!(Polyline, SplineMT));
+    lua_setfield(L, -2, "eval");
+    lua_pushcfunction(L, &toStringObj!(Polyline, SplineMT));
+    lua_setfield(L, -2, "__tostring");
+    lua_pushcfunction(L, &copyPath!(Polyline, SplineMT));
+    lua_setfield(L, -2, "copy");
+
+    lua_setglobal(L, SplineMT.toStringz);
 
     // Register the LuaFnPath object
     luaL_newmetatable(L, LuaFnPathMT.toStringz);

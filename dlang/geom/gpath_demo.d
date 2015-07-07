@@ -77,7 +77,7 @@ void main()
 		 Vector3([0.0, -1.0, 0.0])];
     auto circle = new Polyline(pnts);
     writeln("circle= ", circle);
-    writeln("circle(3.0/8)= ", circle(5.0/8));  // approx 45 degrees
+    writeln("circle(5.0/8)= ", circle(5.0/8));  // approx 45 degrees
     
     writeln("Done gpath_demo.");
 }

@@ -51,7 +51,7 @@ dd = amb(0.5)
 print("dd=", dd, "expected approximately Vector3(1.7071068, 2.0, 0.7071068)")
 --
 print("Bezier")
-adb = Bezier:new{a, d, b}
+adb = Bezier:new{points={a, d, b}}
 e = adb(0.5)
 print("e=", e, "expected approximately Vector3(1.60355, 2, 0.603553)")
 --
@@ -77,7 +77,7 @@ print("ArcLengthParameterizedPath")
 p0 = Vector3:new(0.0, 0.0, 0.0)
 p1 = Vector3:new(1.0, 1.0, 1.0)
 p2 = Vector3:new(4.0, 4.0, 4.0)
-alpp = ArcLengthParameterizedPath:new{Bezier:new{p0, p1, p2}}
+alpp = ArcLengthParameterizedPath:new{Bezier:new{points={p0, p1, p2}}}
 print("alpp=", alpp)
 print("alpp(0.5)=", alpp(0.5))
 --
@@ -101,6 +101,16 @@ print("rp=", rp)
 print("rp(0.25)=", rp(0.25))
 print("rp(0.50)=", rp(0.50))
 print("rp(0.75)=", rp(0.75))
+--
+print("Spline (Polyline)")
+pnts = {Vector3:new{0.0, -1.0, 0.0},
+	Vector3:new{-1.0, 0.0, 0.0},
+	Vector3:new{0.0, 1.0, 0.0},
+	Vector3:new{1.0, 0.0, 0.0},
+	Vector3:new{0.0, -1.0, 0.0}}
+circle = Spline:new{points=pnts}
+print("circle=", circle)
+print("circle(5.0/8)=", circle(5.0/8))
     `;
     if ( luaL_dostring(L, toStringz(test_code)) != 0 ) {
 	writeln("There was a problem interpreting the test code.");
