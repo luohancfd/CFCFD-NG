@@ -60,6 +60,7 @@ int FixedPOutBC::apply_convective(double t)
     FV_Cell *src_cell, *dest_cell;
     Gas_model *gmodel = get_gas_model_ptr();
     Block & bd = *bdp;
+    size_t nmodes = get_gas_model_ptr()->get_number_of_modes();    
 
     switch ( which_boundary ) {
     case NORTH:
@@ -67,9 +68,13 @@ int FixedPOutBC::apply_convective(double t)
         for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
+		if ( use_Tout ) {
+		    for ( size_t imode=0; imode <= nmodes; ++imode )
+			src_cell->iface[NORTH]->fs->gas->T[imode] = Tout;			
+		}		
 		dest_cell = bd.get_cell(i,j+1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
-		dest_cell->fs->gas->p = Pout;
+		dest_cell->fs->gas->p = Pout;		
 		if ( use_Tout ) {
 		    for ( size_t imode=0; imode <= dest_cell->fs->gas->T.size(); ++imode )
 			dest_cell->fs->gas->T[imode] = Tout;
@@ -91,12 +96,16 @@ int FixedPOutBC::apply_convective(double t)
         for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
+		if ( use_Tout ) {
+		    for ( size_t imode=0; imode <= nmodes; ++imode )
+			src_cell->iface[EAST]->fs->gas->T[imode] = Tout;			
+		}		
 		dest_cell = bd.get_cell(i+1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		if ( use_Tout ) {
 		    for ( size_t imode=0; imode <= dest_cell->fs->gas->T.size(); ++imode )
-			dest_cell->fs->gas->T[imode] = Tout;
+			dest_cell->fs->gas->T[imode] = Tout;		
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 		dest_cell = bd.get_cell(i+2,j,k);
@@ -115,12 +124,16 @@ int FixedPOutBC::apply_convective(double t)
         for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
+		if ( use_Tout ) {
+		    for ( size_t imode=0; imode <= nmodes; ++imode )
+			src_cell->iface[SOUTH]->fs->gas->T[imode] = Tout;			
+		}		
 		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		if ( use_Tout ) {
 		    for ( size_t imode=0; imode <= dest_cell->fs->gas->T.size(); ++imode )
-			dest_cell->fs->gas->T[imode] = Tout;
+			dest_cell->fs->gas->T[imode] = Tout;			
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 		dest_cell = bd.get_cell(i,j-2,k);
@@ -139,12 +152,16 @@ int FixedPOutBC::apply_convective(double t)
         for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
+		if ( use_Tout ) {
+		    for ( size_t imode=0; imode <= nmodes; ++imode )
+			src_cell->iface[WEST]->fs->gas->T[imode] = Tout;			
+		}		
 		dest_cell = bd.get_cell(i-1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		if ( use_Tout ) {
 		    for ( size_t imode=0; imode <= dest_cell->fs->gas->T.size(); ++imode )
-			dest_cell->fs->gas->T[imode] = Tout;
+			dest_cell->fs->gas->T[imode] = Tout;		
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 		dest_cell = bd.get_cell(i-2,j,k);
@@ -163,12 +180,16 @@ int FixedPOutBC::apply_convective(double t)
         for (i = bd.imin; i <= bd.imax; ++i) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
+		if ( use_Tout ) {
+		    for ( size_t imode=0; imode <= nmodes; ++imode )
+			src_cell->iface[TOP]->fs->gas->T[imode] = Tout;			
+		}		
 		dest_cell = bd.get_cell(i,j,k+1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		if ( use_Tout ) {
 		    for ( size_t imode=0; imode <= dest_cell->fs->gas->T.size(); ++imode )
-			dest_cell->fs->gas->T[imode] = Tout;
+			dest_cell->fs->gas->T[imode] = Tout;			
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 		dest_cell = bd.get_cell(i,j,k+2);
@@ -187,12 +208,16 @@ int FixedPOutBC::apply_convective(double t)
         for (i = bd.imin; i <= bd.imax; ++i) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
+		if ( use_Tout ) {
+		    for ( size_t imode=0; imode <= nmodes; ++imode )
+			src_cell->iface[BOTTOM]->fs->gas->T[imode] = Tout;			
+		}		
 		dest_cell = bd.get_cell(i,j,k-1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		if ( use_Tout ) {
 		    for ( size_t imode=0; imode <= dest_cell->fs->gas->T.size(); ++imode )
-			dest_cell->fs->gas->T[imode] = Tout;
+			dest_cell->fs->gas->T[imode] = Tout;			
 		}
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 		dest_cell = bd.get_cell(i,j,k-2);
