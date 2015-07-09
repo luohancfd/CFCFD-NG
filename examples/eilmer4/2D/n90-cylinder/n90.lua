@@ -9,10 +9,13 @@ config.dimensions = 2
 config.title = job_title
 
 nsp, nmodes = setGasModel('nitrogen-2sp.lua')
-print("setting inflow")
-inflow = FlowState:new{p=500.0, T=700.0, u=5000.0, massf={1.0, 0.0}}
-print "setting initial"
+inflow = FlowState:new{p=500.0, T=700.0, velx=5000.0, massf={1.0, 0.0}}
 initial = FlowState:new{p=5.0, T=300.0, massf={1.0, 0.0}}
+-- temporary use of ideal air -- FIX-ME
+--nsp, nmodes = setGasModel('ideal-air-gas-model.lua')
+--inflow = FlowState:new{p=500.0, T=700.0, velx=5000.0}
+--initial = FlowState:new{p=5.0, T=300.0}
+print("GasModel set nsp= ", nsp, " nmodes= ", nmodes)
 
 print "Building grid."
 a = Vector3:new{0.045,    0.0}
@@ -37,12 +40,12 @@ n_path = Bezier:new{points={i, j, k, e}}
 
 psurf = makePatch{n_path, e_path, s_path, w_path}
 grid = StructuredGrid:new{psurface=psurf, niv=61, njv=41}
-blk0 = SBlock:new{grid=grid, fillCondition=inflow, label="blk-0"}
+blk0 = SBlock:new{grid=grid, fillCondition=initial, label="blk-0"}
 
 -- Grid has been built earlier in GridPro
 -- gproName = 'n90.gpro'
 -- grid = importGridproGrid(gproName)
--- blk0 = SBlock:new{grid=grid[0], fillCondition=inflow, label="blk-0"}
+-- blk0 = SBlock:new{grid=grid[0], fillCondition=initial, label="blk-0"}
 
 -- We can leave east and south as SlipWalls
 blk0.bcList[west] = SupInBC:new{flowCondition=inflow}
@@ -52,6 +55,6 @@ blk0.bcList[north] = ExtrapolateOutBC:new{}
 config.flux_calc = ADAPTIVE
 config.max_time = 100.0e-6
 config.max_step = 40000
-config.dt_init = 1.0e-8
-config.cfl = 0.5
+config.dt_init = 1.0e-9
+config.cfl_value = 0.05 -- this is tiny, but the calculation iterates -- FIX-ME
 config.dt_plot = 20.0e-6
