@@ -148,10 +148,11 @@ public:
 	k.length = gm.n_modes;
 	massf.length = gm.n_species;
 	foreach(i; 0 .. gm.n_species) {
-	    try 
-		{ massf[i] = massf_init[i]; }
-	    catch (Exception e) 
-		{ massf[i] = 0.0; }
+	    if (i < massf_init.length) { 
+		massf[i] = massf_init[i];
+	    } else {
+		massf[i] = 0.0;
+	    }
 	}
 	quality = quality_init;
 	sigma = sigma_init;
