@@ -701,6 +701,96 @@ calculate_diffusion_fluxes(const Gas_data &Q,
     return;
 }
 
+
+ConstantLewisNumber_DRM19::
+ConstantLewisNumber_DRM19(const string name, int nsp)
+    : DiffusionModel(name, nsp) {}
+
+ConstantLewisNumber_DRM19::
+ConstantLewisNumber_DRM19(const ConstantLewisNumber_DRM19 &c)
+    : DiffusionModel(c.name_, c.nsp_) {}
+
+ConstantLewisNumber_DRM19::
+~ConstantLewisNumber_DRM19() {}
+
+string
+ConstantLewisNumber_DRM19::
+str() const
+{
+    ostringstream ost;
+    cout << "ConstantLewisNumber_DRM19::str() - not implemented.\n";
+    ost << "ConstantLewisNumber_DRM19";
+    return ost.str();
+}
+
+//Constant Lewis numbers but different for each species, used for DRM19
+//reaction mechanism with differential diffusion
+void
+ConstantLewisNumber_DRM19::
+calculate_diffusion_fluxes(const Gas_data &Q,
+			   double D_t,
+			   const vector<double> &dfdx, 
+			   const vector<double> &dfdy,
+			   const vector<double> &dfdz,
+			   vector<double> &jx, 
+			   vector<double> &jy,
+			   vector<double> &jz)
+{
+    // Calculate the Prandtl number
+    Gas_model *gmodel = get_gas_model_ptr();
+    double k_total = 0.0;
+    for ( size_t itm=0; itm<Q.k.size(); ++itm ) {
+    	k_total += Q.k[itm];
+    }
+    int status;
+    double Prandtl = Q.mu * gmodel->Cp(Q, status) / k_total;
+    
+    //specify individual Lewis number for each species
+    //"[0]-H2" "[1]-H" "[2]-O" "[3]-O2" "[4]-OH" "[5]-H2O"
+    //"[6]-HO2" "[7]-CH2" "[8]-CH2_S" "[9]-CH3" "[10]-CH4"
+    //"[11]-CO" "[12]-CO2" "[13]-CHO" "[14]-CH2O" "[15]-CH3O"
+    //"[16]-C2H4" "[17]-C2H5" "[18]-C2H6" "[19]-N2" "[20]-Ar"
+    //"[21]-He"
+    vector<double> Le_DRM19;
+    Le_DRM19.resize(nsp_, 1.0);
+    Le_DRM19[0] = 0.317; // H2
+    Le_DRM19[1] = 0.189; // H
+    Le_DRM19[2] = 0.712; // O
+    Le_DRM19[3] = 1.086; // O2
+    Le_DRM19[4] = 0.736; // OH
+    Le_DRM19[5] = 0.854; // H2O
+    Le_DRM19[6] = 1.079; // HO2
+    Le_DRM19[7] = 1.023; // CH2
+    Le_DRM19[8] = 1.022; // CH2_S
+    Le_DRM19[9] = 1.049; // CH3
+    Le_DRM19[10] = 1.043; // CH4
+    Le_DRM19[11] = 1.171; // CO
+    Le_DRM19[12] = 1.404; // CO2
+    Le_DRM19[13] = 1.314; // CHO
+    Le_DRM19[14] = 1.329; // CH2O
+    Le_DRM19[15] = 1.360; // CH3O
+    Le_DRM19[16] = 1.402; // C2H4
+    Le_DRM19[17] = 1.551; // C2H5
+    Le_DRM19[18] = 1.546; // C2H6
+    Le_DRM19[19] = 1.152; // N2
+    Le_DRM19[20] = 1.173; // Ar
+    // Verhoeven et al. Combustion and Flame, 2012
+     
+    // Calculate the species average diffusion coefficients
+    for ( int isp = 0; isp < nsp_; ++isp )
+        DAV_im_[isp] = Q.mu / Q.rho / Prandtl / Le_DRM19[isp];
+    
+    // Set diffusive fluxes via Fick's first law
+    for ( int isp = 0; isp < nsp_; ++isp ) {
+	jx[isp] = -Q.rho * (DAV_im_[isp] + D_t) * dfdx[isp];
+	jy[isp] = -Q.rho * (DAV_im_[isp] + D_t) * dfdy[isp];
+	jz[isp] = -Q.rho * (DAV_im_[isp] + D_t) * dfdz[isp];
+    }
+    
+    return;
+}
+
+
 static DiffusionModel* dmodel = 0;
 
 int set_diffusion_model( const string diffusion_model )
@@ -727,6 +817,10 @@ int set_diffusion_model( const string diffusion_model )
     else if ( diffusion_model == "ConstantSchmidtNumber" ) {
 	global_data *gd = get_global_data_ptr();
         dmodel = new ConstantSchmidtNumber("Constant Schmidt number diffusion", nsp, gd->diffusion_schmidt);
+    }
+    else if ( diffusion_model == "ConstantLewisNumber_DRM19" ) {
+	global_data *gd = get_global_data_ptr();
+	dmodel = new ConstantLewisNumber_DRM19("Constant Lewis number diffusion-DRM19 scheme", nsp );
     }
     else {
 	cout << "set_diffusion_model(): " << diffusion_model
