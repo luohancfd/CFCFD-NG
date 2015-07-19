@@ -199,6 +199,26 @@ public:
 				    std::vector<double> &jz);
 };
 
+class FicksFirstLaw_DRM19 : public DiffusionModel {
+public:
+    FicksFirstLaw_DRM19(const string name, int nsp);
+
+    FicksFirstLaw_DRM19(const FicksFirstLaw_DRM19 &f);
+
+    virtual ~FicksFirstLaw_DRM19();
+
+    string str() const;
+
+    void calculate_diffusion_fluxes(const Gas_data &Q,
+				    double D_t,
+				    const std::vector<double> &dfdx, 
+				    const std::vector<double> &dfdy,
+				    const std::vector<double> &dfdz,
+				    std::vector<double> &jx, 
+				    std::vector<double> &jy,
+				    std::vector<double> &jz);
+};
+
 int set_diffusion_model( const string diffusion_model="Stefan-Maxwell" );
 
 void calculate_diffusion_fluxes(const Gas_data &Q,

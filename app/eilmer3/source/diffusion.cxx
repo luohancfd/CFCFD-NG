@@ -791,6 +791,198 @@ calculate_diffusion_fluxes(const Gas_data &Q,
 }
 
 
+FicksFirstLaw_DRM19::
+FicksFirstLaw_DRM19(const string name, int nsp)
+    : DiffusionModel(name, nsp)
+{}
+
+FicksFirstLaw_DRM19::
+FicksFirstLaw_DRM19(const FicksFirstLaw_DRM19 &f)
+    : DiffusionModel(f.name_, f.nsp_)
+{}
+
+FicksFirstLaw_DRM19::
+~FicksFirstLaw_DRM19() {}
+
+string
+FicksFirstLaw_DRM19::
+str() const
+{
+    ostringstream ost;
+    cout << "FicksFirstLaw_DRM19::str() - not implemented.\n";
+    ost << "FicksFirstLaw_DRM19";
+    return ost.str();
+}
+
+void
+FicksFirstLaw_DRM19::
+calculate_diffusion_fluxes(const Gas_data &Q,
+			   double D_t,
+			   const vector<double> &dfdx, 
+			   const vector<double> &dfdy,
+			   const vector<double> &dfdz,
+			   vector<double> &jx, 
+			   vector<double> &jy,
+			   vector<double> &jz)
+{
+    //first calculate binary diffusion coefficient D_AB
+    //according to the Chapman-Enskog relation
+    //refer to "The Properties of Gases and Liquids", Reid et al.
+
+    vector<double> d_c;
+    d_c.resize(nsp_, 0.0);
+    d_c[0] = 2.920; // H2
+    d_c[1] = 2.050; // H
+    d_c[2] = 2.750; // O
+    d_c[3] = 3.458; // O2
+    d_c[4] = 2.750; // OH
+    d_c[5] = 2.605; // H2O
+    d_c[6] = 3.458; // HO2
+    d_c[7] = 3.800; // CH2
+    d_c[8] = 3.800; // CH2_S
+    d_c[9] = 3.800; // CH3
+    d_c[10] = 3.746; // CH4
+    d_c[11] = 3.650; // CO
+    d_c[12] = 3.763; // CO2
+    d_c[13] = 3.590; // CHO
+    d_c[14] = 3.590; // CH2O
+    d_c[15] = 3.690; // CH3O
+    d_c[16] = 3.971; // C2H4
+    d_c[17] = 4.302; // C2H5
+    d_c[18] = 4.302; // C2H6
+    d_c[19] = 3.621; // N2
+    d_c[20] = 3.330; // Ar
+    d_c[21] = 2.576; // He
+    //Lennard-Jones collision diameter "sigma" in Angstroms
+    //refer to GRI-Mech 3.0 transport file (Chemkin format)
+    //http://combustion.berkeley.edu/gri-mech/version30/text30.html
+
+    vector<double> e_LJ;
+    e_LJ.resize(nsp_, 0.0);
+    e_LJ[0] = 38.000 ; // H2
+    e_LJ[1] = 145.000; // H
+    e_LJ[2] = 80.000; // O
+    e_LJ[3] = 107.400; // O2
+    e_LJ[4] = 80.000; // OH
+    e_LJ[5] = 572.400; // H2O
+    e_LJ[6] = 107.400; // HO2
+    e_LJ[7] = 144.000; // CH2
+    e_LJ[8] = 144.000; // CH2_S
+    e_LJ[9] = 144.000; // CH3
+    e_LJ[10] = 141.400; // CH4
+    e_LJ[11] = 98.100; // CO
+    e_LJ[12] = 244.000; // CO2
+    e_LJ[13] = 498.000; // CHO
+    e_LJ[14] = 498.000; // CH2O
+    e_LJ[15] = 417.000; // CH3O
+    e_LJ[16] = 280.800; // C2H4
+    e_LJ[17] = 252.300; // C2H5
+    e_LJ[18] = 252.300; // C2H6
+    e_LJ[19] = 97.530; // N2
+    e_LJ[20] = 136.500; // Ar
+    e_LJ[21] = 10.200; // He
+    //Lennard-Jones potential well depth "epsilon/kb" in Kelvins
+    //refer to GRI-Mech 3.0 transport file (Chemkin format)
+    //http://combustion.berkeley.edu/gri-mech/version30/text30.html
+
+    double Coef_A = 1.06036;
+    double Coef_B = 0.15610;
+    double Coef_C = 0.19300;
+    double Coef_D = 0.47635;
+    double Coef_E = 1.03587;
+    double Coef_F = 1.52996;
+    double Coef_G = 1.76474;
+    double Coef_H = 3.89411;
+    //Coefficients needed for calculating the diffusion collision integral
+
+    vector<vector<double> > D_bi;
+    D_bi.resize(nsp_);
+    for (int isp = 0; isp < nsp_; ++isp)
+      D_bi[isp].resize(nsp_, 0.0);
+
+    for ( int isp = 0; isp < nsp_; ++isp ) {
+	for ( int jsp = 0; jsp < nsp_; ++jsp ) {
+	    if ( isp == jsp ) continue;
+            double M_ij = 0.0;
+            M_ij = 1/M_[isp] + 1/M_[jsp];
+            M_ij = 2/M_ij; //in kg/mol
+            M_ij *= 1.0e3; //in g/mol
+
+            double d_c_ij = 0.0;
+            d_c_ij = (d_c[isp] + d_c[jsp])/2;
+
+            double e_LJ_ij = 0.0;
+            e_LJ_ij = sqrt(e_LJ[isp]*e_LJ[jsp]);
+
+            double T_star = 0.0;
+            T_star = Q.T[0]/e_LJ_ij; //dimensionless
+            double omega = 0.0;
+            omega = Coef_A/(pow(T_star,Coef_B));
+            omega += Coef_C/exp(Coef_D*T_star);
+            omega += Coef_E/exp(Coef_F*T_star);
+            omega += Coef_G/exp(Coef_H*T_star);
+            //Diffusion collision integral, dimensionless
+            
+            D_bi[isp][jsp] = 1.0/(Q.p/1.0e5)/pow(M_ij,1.0/2)/pow(d_c_ij,2.0)/omega;
+            //note: pressure unit in bar
+            D_bi[isp][jsp] *= 0.00266*pow(Q.T[0],3.0/2);
+            //in cm2/s           
+            D_bi[isp][jsp] *= 1.0e-4;
+            //in m2/s
+	    }
+	}
+
+    fill_in_x(Q.rho, Q.massf);
+    fill_in_DAV_im(D_bi);
+    //calculate mixture-averaged diffusion coefficient for species i
+
+
+    // Set diffusive fluxes...
+    for ( int isp = 0; isp < nsp_; ++isp ) {
+	jx[isp] = -Q.rho * (DAV_im_[isp] + D_t) * dfdx[isp];
+	jy[isp] = -Q.rho * (DAV_im_[isp] + D_t) * dfdy[isp];
+	jz[isp] = -Q.rho * (DAV_im_[isp] + D_t) * dfdz[isp];
+    }
+
+    if ( FICKS_WITH_SUTTON_AND_GNOFFO_CORRECTION ) {
+	// Correction as suggested by Sutton and Gnoffo, 1998  
+	double sum_x = 0.0;
+	double sum_y = 0.0;
+	double sum_z = 0.0;
+    
+	for ( int isp = 0; isp < nsp_; ++isp ) {
+	    sum_x += jx[isp];
+	    sum_y += jy[isp];
+	    sum_z += jz[isp];
+	}
+
+	for ( int isp = 0; isp < nsp_; ++isp ) {
+	    jx[isp] = jx[isp] - Q.massf[isp] * sum_x;
+	    jy[isp] = jy[isp] - Q.massf[isp] * sum_y;
+	    jz[isp] = jz[isp] - Q.massf[isp] * sum_z;
+	}
+    }
+
+    // Calculate the thermal diffusivity
+    //Gas_model *gmodel = get_gas_model_ptr();
+    //double k_total = 0.0;
+    //for ( size_t itm=0; itm<Q.k.size(); ++itm ) {
+    //	k_total += Q.k[itm];
+    //}
+    //int status;
+    //double alpha = k_total / Q.rho / gmodel->Cp(Q, status);
+
+    // Calculate the Lewis number
+    //vector<double> Le_DRM19;
+    //Le_DRM19.resize(nsp_, 1.0);
+    //for ( int isp = 0; isp < nsp_; ++isp ) {
+    //    Le_DRM19[isp] = alpha / DAV_im_[isp];
+    //}
+
+
+}
+
+
 static DiffusionModel* dmodel = 0;
 
 int set_diffusion_model( const string diffusion_model )
@@ -821,6 +1013,9 @@ int set_diffusion_model( const string diffusion_model )
     else if ( diffusion_model == "ConstantLewisNumber_DRM19" ) {
 	global_data *gd = get_global_data_ptr();
 	dmodel = new ConstantLewisNumber_DRM19("Constant Lewis number diffusion-DRM19 scheme", nsp );
+    }
+    else if ( diffusion_model == "FicksFirstLaw_DRM19" ) {
+	dmodel = new FicksFirstLaw_DRM19("Fick's first law (of diffusion) for DRM19 scheme", nsp );
     }
     else {
 	cout << "set_diffusion_model(): " << diffusion_model
