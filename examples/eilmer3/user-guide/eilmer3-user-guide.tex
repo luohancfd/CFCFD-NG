@@ -2,6 +2,7 @@
 % PJ, March 2007 -- elmer2 version
 %     September 2008 -- eilmer3 version
 %     June 2014 -- revise for 2014 edition
+%     July 2015 -- revise for 2015 edition for use in mech4480 CFD course
 % There are some troublesome pgfplots commands, probably to do with differing versions of pgf/tikz.
 % As at 02-June-2014, good build in kile results in 0 errors, 3 warnings, 196 badboxes.
 % The bad boxes appear to be mainly overruns on lines of the main text or scripts; these are OK.
@@ -46,11 +47,12 @@
     2015 Edition
 }
 \author{
-    Mechanical Engineering Report 2015/0x\\
-    P. A. Jacobs\thanks{Queensland Geothermal Energy Centre of Excellence, The University of Queensland, Brisbane, Australia.} 
-    ~ R. J. Gollan\thanks{Centre for Hypersonics, The University of Queensland, Brisbane, Australia.}
+    Mechanical Engineering Report 2015/07\\
+    Peter A. Jacobs\thanks{Queensland Geothermal Energy Centre of Excellence, The University of Queensland, Brisbane, Australia.} 
+    ~ Rowan J. Gollan\thanks{Centre for Hypersonics, The University of Queensland, Brisbane, Australia.}
+    ~ Ingo Jahn\thanks{Queensland Geothermal Energy Centre of Excellence, The University of Queensland, Brisbane, Australia.} 
     ~ and
-    D. F. Potter\thanks{daniel.potter@uqconnect.edu.au}\\
+    Daniel F. Potter\thanks{daniel.potter@uqconnect.edu.au}\\
     {\normalsize with contributions\thanks{These contributions have come in the form of examples, debugging, 
     proof-reading and constructive comments on the codes and this document, 
     additions to this document and code for special cases.}
@@ -74,7 +76,7 @@
     {\normalsize Richard Gooze\'{e},}
     {\normalsize Stefan Hess,} \\
     {\normalsize Carolyn Jacobs,} 
-    {\normalsize Ingo Jahn,} 
+    % moved up front {\normalsize Ingo Jahn,} 
     {\normalsize Chris James,}
     {\normalsize Ian Johnston,}
     {\normalsize Ojas Joshi,} \\
@@ -91,6 +93,7 @@
     {\normalsize Deepak Ramanath,} 
     {\normalsize Michael Scott,} \\
     {\normalsize Umar Sheikh,} 
+    {\normalsize Sam Stennett,}
     {\normalsize Ben Stewart,} 
     {\normalsize Joseph Tang,} 
     {\normalsize Katsu Tanimizu,} \\
@@ -142,23 +145,40 @@ scripts for that example.
 
 \part{Introduction}
 
-\section{Compressible flow simulation}
+\section{Compressible flow simulation and the Eilmer3 code}
 %
-Something here...
+Eilmer3 code is an integrated collection of programs for the numerical simulation of transient,
+compressible gas flows in two and three dimensions.
+These programs answer the "What if ... ?" type of question where you will set up a flow situation by 
+defining the spatial domain in which the gas moves,
+set an initial gas state throughout this domain, 
+specify boundary condition constraints to the edges of the domain and
+then let the gas flow evolve according to the rules of gas dynamics.
 
-\section{The Eilmer3 code}
-%
-Eilmer3 is an integrated collection of programs for the simulation of transient,
-compressible flow in two and three dimensions.
-It provides a preparation program (\texttt{e3prep.py}) that can be used to set up a database of
-simulation parameters, a block-structured, body-fitted grid defining the flow domain and an
-initial flow field.
-These items are then used as a starting point for the main simulation program (\texttt{e3shared.exe})
+\medskip
+The definition of the flow domain includes a mesh of finite-volume cells,
+together with boundary conditions such a solid no-slip walls, inflow surfaces and outflow surfaces.
+To help with the set up of this domain, the code collection includes a preparation program (\texttt{e3prep.py}) 
+that can be used to set up a database of simulation parameters, 
+a block-structured, body-fitted mesh defining the flow domain and an initial flow-field specification.
+This preparation program includes a mesh generator that can accept a description of the flow domain
+in terms of boundary surfaces and then generate the block-structured mesh of finite-volume cells.
+The mesh and initial flow state can then used as a starting point for the main simulation program (\texttt{e3shared.exe})
 which computes a series of snapshots of the evolving flow.
 Finally, a rudimentary but versatile postprocessing program (\texttt{e3post.py}) makes the flow data
 available for further analysis.
 
 \medskip
+If you wish to integrate CFD analysis in your design process, it is probably easiest to have in mind
+a family of domain shapes or inflow conditions, with variations defined by a small set of parameters.
+The Eilmer3 codes can then be used to run a number of simulations, answering the questions 
+"What would the flow field do if we use \textit{these} particular parameters?"
+This is essentially the process that we have followed when using the codes for the design of hypersonic nozzles
+\cite{chan_etal_2014b} where the nozzle wall shape is adjusted to produce a uniform flow field 
+toward the nozzle exit plane.
+
+\subsection{History of the codes}
+%
 Eilmer3 is a derivative of the code mbcns2 which, in turn was an experiment in writing
 the mb\_cns code in C++.
 Once it was determined that there were clear benefits in using C++,
@@ -172,7 +192,8 @@ into Eilmer3.
 The name change is to avoid a naming clash with the Elmer finite-element code 
 from Finland.\footnote{\url{http://www.csc.fi/elmer}}
 
-\medskip 
+\subsection{More information}
+% 
 The following sections provide example input scripts and shell scripts for a number of simulations.
 These are intended to be starting points for your own simulations and should be studied together with 
 the other manuals that can be found in the documentation section of the 

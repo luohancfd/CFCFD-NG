@@ -89,6 +89,11 @@ a template for your own simulation shell scripts.
 \lstinputlisting[language={}]{../2D/cone20-simple/cone20_run.sh}
 \bottombar
 
+\noindent
+Note that long-format command-line options start with two dashes.
+These double dashes are a little hard to distinguish in the shell scripts.
+      
+      
 \section{Results and Postprocessing}
 %
 Figure\,\ref{cone20-low-res-fig} shows the flow field 5\,milliseconds after flow start.
@@ -349,11 +354,6 @@ Python input script...
 
 \section{Notes}
 \begin{itemize}
-\item Remember that long-format command-line options start with two dashes.
-      For example \texttt{--job=cone20}.
-      These double dashes are a little hard to distinguish in the shell
-      scripts.
-
 \item Run time for the simple cone20 simulation 
       is approximately 17 seconds for 862 steps on a computer with 
       an AMD Phenom II X4 840, 800\,MHz processor.

@@ -48,4 +48,3 @@ plot "cone20_cp.dat" using 1:2 title "10x40+30x40", \
 EOF
 
 echo "At this point, we should have a solution that can be viewed with Paraview."
-
