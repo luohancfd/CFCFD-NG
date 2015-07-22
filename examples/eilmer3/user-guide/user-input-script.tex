@@ -943,9 +943,15 @@ the \texttt{e3prep.py} program and these represent\footnote{The
       being stronger for smaller values of \texttt{beta}.
       For example, a value of 1.3 would be relatively weak clustering while a value of 1.01 is quite strong
       clustering.
+    \item \verb”HypertanClusterFunction(dL0,dL1)”\index{univariate function!HypertanClusterFunction}
+      sets the size of the first and last cell along a given line 
+      as a faction of the non-clustered cell size. 
+      Setting $dL0 = 0.5; \, dL1 = 1$ results in the first cell having half the width and 
+      the last cell having the same width as the non-clustered cell.
     \item \texttt{ValliammaiFunction(dL0, dL1, L, n)}\index{univariate function!ValliammaiFunction}
       See Adriaan's source code for definitions.
   \end{itemize}
+  For a graphical representation of the effect of these functions, see Fig.\,\ref{cluster-function-fig}.
   See the files \texttt{lib/nm/source/fobject.cxx} and \texttt{lib/nm/source/fobject.hh} for details.
   The order of appearance of boundaries in the list is NORTH, EAST, SOUTH and WEST.
   Note that a full list of 4 items is required.
@@ -988,6 +994,12 @@ the \texttt{e3prep.py} program and these represent\footnote{The
 \end{itemize}
 Note that, when lists of items are provided for the four boundaries,
 the order of the boundaries is NORTH, EAST, SOUTH and WEST, for situations where order is significant.
+
+\begin{figure}[htbp]
+\includegraphics[width=\textwidth]{figs/Eilmer_clusterfunctions1.png}
+\caption{Graphical representation of effect the cluster functions on a one-dimensional grid.}
+\label{cluster-function-fig}
+\end{figure}
  
 
 \medskip
@@ -1816,6 +1828,13 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
   0=allow time step size to be determined from cell conditions and cfl number, default value 0.
 \item \texttt{cfl}\ddag: ratio of the smallest signal time to the actual time step,
   default value 0.5.
+\item \texttt{viscous\_signal\_factor}\ddag: 1.0=full viscous effect for the signal 
+  calculation within the time-step calculation.
+  It has been suggested that the full viscous effect may not be needed to ensure stable calculations
+  for highly-resolved viscous calculations.
+  A value of 0.0 will completely suppress the viscous contribution to the signal speed calculation
+  but you may end up with unstable stepping.
+  It's a matter of ``try a value and see'' if you get a larger time-step while retaining a stable simulation.
 \item \texttt{stringent\_cfl}\ddag: 1=use the smallest cross-cell distance in the
   CFL check, 0=use different cell widths in each index direction, default is 0.
 \item \texttt{dt\_reduction\_factor}\ddag: if the CFL condition is violated, scale the time-step size

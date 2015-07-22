@@ -48,65 +48,83 @@
 }
 \author{
     Mechanical Engineering Report 2015/07\\
-    Peter A. Jacobs\thanks{Queensland Geothermal Energy Centre of Excellence, The University of Queensland, Brisbane, Australia.} 
-    ~ Rowan J. Gollan\thanks{Centre for Hypersonics, The University of Queensland, Brisbane, Australia.}
-    ~ Ingo Jahn\thanks{Queensland Geothermal Energy Centre of Excellence, The University of Queensland, Brisbane, Australia.} 
+    Peter A. Jacobs\thanks{peterj@mech.uq.edu.au} 
+    ~ Rowan J. Gollan\thanks{r.gollan@uq.edu.au}
+    ~ Ingo Jahn\thanks{i.jahn@uq.edu.au}
     ~ and
     Daniel F. Potter\thanks{daniel.potter@uqconnect.edu.au}\\
+    \rule{0cm}{1cm}
     {\normalsize with contributions\thanks{These contributions have come in the form of examples, debugging, 
     proof-reading and constructive comments on the codes and this document, 
     additions to this document and code for special cases.}
-    from a cast of many, including:}\\
+    ~from a cast of many, including:}\\
+    {\normalsize Nikhil Banerji,}
+    {\normalsize Justin Beri,}
     {\normalsize Peter Blyton,}
-    {\normalsize Arianna Bosco,}
-    {\normalsize Djamel Boutamine,}
-    {\normalsize Laurie Brown,} \\
+    {\normalsize Daryl Bond,}
+    {\normalsize Arianna Bosco,} \\
+    {\normalsize Djamel Boutamine,} 
+    {\normalsize Laurie Brown,}
     {\normalsize David Buttsworth,}
     {\normalsize Wilson Chan,} 
-    {\normalsize Sam Chiu,}
+    {\normalsize Sam Chiu,} \\
     {\normalsize Chris Craddock,} 
-    {\normalsize Brian Cook,} \\ 
+    {\normalsize Brian Cook,} 
     {\normalsize Jason Czapla,}
-    {\normalsize Andrew Dann,}  
-    {\normalsize Andrew Denman,}
+    {\normalsize Kyle Damm,}
+    {\normalsize Andrew Dann,} \\ 
+    {\normalsize Andrew Denman,} 
     {\normalsize Zac Denman,}
-    {\normalsize Elise Fahy,} \\
+    {\normalsize Luke Doherty,}
+    {\normalsize Elise Fahy,}
+    {\normalsize Delphine Francois,} \\
     {\normalsize Nick Gibbons,} 
     {\normalsize David Gildfind,} 
     {\normalsize Richard Gooze\'{e},}
+    {\normalsize Sangdi Gu,}
     {\normalsize Stefan Hess,} \\
     {\normalsize Carolyn Jacobs,} 
     % moved up front {\normalsize Ingo Jahn,} 
     {\normalsize Chris James,}
     {\normalsize Ian Johnston,}
-    {\normalsize Ojas Joshi,} \\
+    {\normalsize Ojas Joshi,}
+    {\normalsize Xin Kang,} \\
     {\normalsize Rainer Kirchhartz,} 
+    {\normalsize Sam Lamboo,}
+    {\normalsize Steven Lewis,}
     {\normalsize Matt McGilvray,} 
-    {\normalsize David Mee,} 
-    {\normalsize Carlos de Miranda-Ventura,} \\
+    {\normalsize David Mee,} \\
+    {\normalsize Carlos de Miranda-Ventura,} 
     {\normalsize Luke Montgomery,} 
     {\normalsize Jan-Pieter Nap,} 
-    {\normalsize Brendan O'Flaherty,} 
-    {\normalsize Andrew Pastrello,} \\
+    {\normalsize Brendan O'Flaherty,} \\
+    {\normalsize Andrew Pastrello,}
     {\normalsize Paul Petrie-Repar,} 
-    {\normalsize Jason (Kan) Qin,} 
-    {\normalsize Deepak Ramanath,} 
-    {\normalsize Michael Scott,} \\
+    {\normalsize Jorge Sancho Ponce,}
+    {\normalsize Jason (Kan) Qin,} \\
+    {\normalsize Deepak Ramanath,}
+    {\normalsize Andrew Rowlands,}
+    {\normalsize Michael Scott,} 
     {\normalsize Umar Sheikh,} 
-    {\normalsize Sam Stennett,}
+    {\normalsize Sam Stennett,} \\
     {\normalsize Ben Stewart,} 
     {\normalsize Joseph Tang,} 
-    {\normalsize Katsu Tanimizu,} \\
-    {\normalsize Paul van der Laan,} 
+    {\normalsize Katsu Tanimizu,} 
+    {\normalsize Pierpaolo Toniato,} \\
+    {\normalsize Paul van der Laan,}
+    {\normalsize Tjarke van Jindelt,}
     {\normalsize Anand Veeraragavan,} 
-    {\normalsize Jaidev Vesudevan,} 
-    {\normalsize Han Wei,} \\
+    {\normalsize Jaidev Vesudevan,} \\
+    {\normalsize Han Wei,}
     {\normalsize Mike Wendt,} 
     {\normalsize Brad (The Beast) Wheatley,} 
     {\normalsize Vince Wheatley,} \\
     {\normalsize Adrian Window,} 
     {\normalsize Hannes Wojciak,}
-    {\normalsize Fabian Zander}
+    {\normalsize Fabian Zander} \\
+    \rule{0cm}{1cm}
+    School of Mechanical and Mining Engineering,\\
+    The University of Queensland.
 }
 % \date{September 2008}
 \makeindex
@@ -114,10 +132,12 @@
 \begin{document}
 \maketitle
 
+\newpage
 % For some reason, the abstract environment causes the labelling in
 % the metapost figures to disappear; strange!
 % \begin{abstract}
 % \end{abstract}
+\rule{0cm}{8cm}
 \centerline{\textbf{Preface}}
 Eilmer3 is an integrated collection of programs for the simulation of transient,
 compressible flow in two and three spatial dimensions.
