@@ -580,7 +580,7 @@ function FullFaceExchangeBC:new(o)
    o.preReconAction = { FullFaceExchangeCopy:new{otherBlock=o.otherBlock,
 						 otherFace=o.otherFace,
 						 orientation=o.orientation} }
-   o.preSpatialDerivAction = { CopyCellData:new() }
+   o.preSpatialDerivAction = { UpdateThermoTransCoeffs:new() }
    return o
 end
 
