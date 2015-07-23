@@ -1781,10 +1781,10 @@ public:
 		for ( size_t j = jmin; j <= jmax+1; ++j ) {
 		    FVVertex vtx = get_vtx(i,j);
 		    // For the moment, don't change the signature of the gradients fn.
-		    gradients_xy(vtx, vtx.cloud_pos[0], vtx.cloud_pos[1],
-				 vtx.cloud_pos[2], vtx.cloud_pos[3],
-				 vtx.cloud_fs[0], vtx.cloud_fs[1],
-				 vtx.cloud_fs[2], vtx.cloud_fs[3], myConfig.diffusion);
+		    gradients_xy_div(vtx, vtx.cloud_pos[0], vtx.cloud_pos[1],
+				     vtx.cloud_pos[2], vtx.cloud_pos[3],
+				     vtx.cloud_fs[0], vtx.cloud_fs[1],
+				     vtx.cloud_fs[2], vtx.cloud_fs[3], myConfig.diffusion);
 		}
 	    }
 	} else {
@@ -1793,7 +1793,7 @@ public:
 		for ( size_t j = jmin; j <= jmax+1; ++j ) {
 		    for ( size_t k = kmin; k <= kmax+1; ++k ) {
 			FVVertex vtx = get_vtx(i,j,k);
-			gradients_xyz(vtx, myConfig.diffusion);
+			gradients_xyz_leastsq(vtx, myConfig.diffusion);
 		    }
 		}
 	    }

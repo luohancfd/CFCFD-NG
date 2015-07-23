@@ -279,12 +279,12 @@ public:
 // Stand-alone functions for the computation of gradients.
 
 @nogc
-void gradients_xy(ref FVVertex vtx,
-		  const ref Vector3 posA, const ref Vector3 posB,
-		  const ref Vector3 posC, const ref Vector3 posD,
-		  const ref FlowState fsA, const ref FlowState fsB,
-		  const ref FlowState fsC, const ref FlowState fsD,
-		  bool diffusion)
+void gradients_xy_div(ref FVVertex vtx,
+		      const ref Vector3 posA, const ref Vector3 posB,
+		      const ref Vector3 posC, const ref Vector3 posD,
+		      const ref FlowState fsA, const ref FlowState fsB,
+		      const ref FlowState fsC, const ref FlowState fsD,
+		      bool diffusion)
 // Using the divergence theorem (I think), compute the average gradients
 // for the flow conditions over a quadrilateral in the xy-plane.
 //     C-----B
@@ -374,67 +374,68 @@ void gradients_xy(ref FVVertex vtx,
     vtx.grad_omega.refx = gradient_x(omegaA, omegaB, omegaC, omegaD);
     vtx.grad_omega.refy = gradient_y(omegaA, omegaB, omegaC, omegaD);
     vtx.grad_omega.refz = 0.0;
-} // end gradients_xy()
+} // end gradients_xy_div()
 
 @nogc
-void computeInverse(ref double[6][3] c, double very_small_value=1.0e-16)
+void computeInverse(int N)(ref double[2*N][N] c, double very_small_value=1.0e-16)
 // Perform Gauss-Jordan elimination on an augmented matrix.
 // c = [A|b] such that the mutated matrix becomes [I|x]
 // where x is the solution vector(s) to A.x = b
 {
-    foreach(j; 0 .. 3) {
+    foreach(j; 0 .. N) {
 	// Select pivot.
 	size_t p = j;
-	foreach(i; j+1 .. 3) {
+	foreach(i; j+1 .. N) {
 	    if ( abs(c[i][j]) > abs(c[p][j]) ) p = i;
 	}
 	assert(abs(c[p][j]) > very_small_value, "matrix is essentially singular");
 	if ( p != j ) { // Swap rows
-	    foreach(col; 0 .. 6) {
+	    foreach(col; 0 .. 2*N) {
 		double tmp = c[p][col]; c[p][col] = c[j][col]; c[j][col] = tmp;
 	    }
 	}
 	// Scale row j to get unity on the diagonal.
 	double cjj = c[j][j];
-	foreach(col; 0 .. 6) c[j][col] /= cjj;
+	foreach(col; 0 .. 2*N) c[j][col] /= cjj;
 	// Do the elimination to get zeros in all off diagonal values in column j.
-	foreach(i; 0 .. 3) {
+	foreach(i; 0 .. N) {
 	    if ( i == j ) continue;
 	    double cij = c[i][j];
-	    foreach(col; 0 .. 6) c[i][col] -= cij * c[j][col]; 
+	    foreach(col; 0 .. 2*N) c[i][col] -= cij * c[j][col]; 
 	}
     } // end foreach j
-} // end gaussJordanElimination()
+} // end gaussJordanElimination()()
 
 @nogc
-void solveGradients(ref double[6][3] c, ref double[3] rhs, ref double[3] qgrad)
+void solveGradients(int N)(ref double[2*N][N] c, ref double[N] rhs, ref double[N] qgrad)
 // Multiply right-hand-side by the inverse part of the augmented matrix.
 {
-    foreach(i; 0 .. 3) {
+    foreach(i; 0 .. N) {
 	qgrad[i] = 0.0;
-	foreach(j; 0 .. 3) {
-	    qgrad[i] += c[i][3+j] * rhs[j];
+	foreach(j; 0 .. N) {
+	    qgrad[i] += c[i][N+j] * rhs[j];
 	}
     }
-} // end solveGradients()
+} // end solveGradients()()
 
 @nogc
-void gradients_xyz(ref FVVertex vtx, bool diffusion)
+void gradients_xyz_leastsq(ref FVVertex vtx, bool diffusion)
 // Fit a linear model to the cloud of flow-quantity points
 // in order to extract approximations to the flow-field gradients.
+// 3D
 {
     double[6][3] xTx; // normal matrix, augmented to give 6 entries per row
     double[3] rhs, gradients;
     // Assemble and invert the normal matrix.
     // We'll reuse the resulting inverse for each flow-field quantity.
-    size_t N = vtx.cloud_pos.length;
+    size_t n = vtx.cloud_pos.length;
     double xx = 0.0;
     double xy = 0.0;
     double xz = 0.0;
     double yy = 0.0;
     double yz = 0.0;
     double zz = 0.0;
-    foreach (i; 1 .. N) {
+    foreach (i; 1 .. n) {
 	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 	double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
@@ -447,50 +448,50 @@ void gradients_xyz(ref FVVertex vtx, bool diffusion)
     xTx[0][3] = 1.0; xTx[0][4] = 0.0; xTx[0][5] = 0.0;
     xTx[1][3] = 0.0; xTx[1][4] = 1.0; xTx[1][5] = 0.0;
     xTx[2][3] = 0.0; xTx[2][4] = 0.0; xTx[2][5] = 1.0;
-    computeInverse(xTx);
+    computeInverse!3(xTx);
     // x-velocity
     foreach (j; 0 .. 3) { rhs[j] = 0.0; }
-    foreach (i; 1 .. N) {
+    foreach (i; 1 .. n) {
 	double dvx = vtx.cloud_fs[i].vel.x - vtx.cloud_fs[0].vel.x;
 	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 	double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
 	rhs[0] += dx*dvx; rhs[1] += dy*dvx; rhs[2] += dz*dvx;
     }
-    solveGradients(xTx, rhs, gradients);
+    solveGradients!3(xTx, rhs, gradients);
     foreach (j; 0 .. 3) { vtx.grad_vel[0][j] = gradients[j]; }
     // y-velocity
     foreach (j; 0 .. 3) { rhs[j] = 0.0; }
-    foreach (i; 1 .. N) {
+    foreach (i; 1 .. n) {
 	double dvy = vtx.cloud_fs[i].vel.y - vtx.cloud_fs[0].vel.y;
 	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 	double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
 	rhs[0] += dx*dvy; rhs[1] += dy*dvy; rhs[2] += dz*dvy;
     }
-    solveGradients(xTx, rhs, gradients);
+    solveGradients!3(xTx, rhs, gradients);
     foreach (j; 0 .. 3) { vtx.grad_vel[1][j] = gradients[j]; }
     // z-velocity
     foreach (j; 0 .. 3) { rhs[j] = 0.0; }
-    foreach (i; 1 .. N) {
+    foreach (i; 1 .. n) {
 	double dvz = vtx.cloud_fs[i].vel.z - vtx.cloud_fs[0].vel.z;
 	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 	double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
 	rhs[0] += dx*dvz; rhs[1] += dy*dvz; rhs[2] += dz*dvz;
     }
-    solveGradients(xTx, rhs, gradients);
+    solveGradients!3(xTx, rhs, gradients);
     foreach (j; 0 .. 3) { vtx.grad_vel[2][j] = gradients[j]; }
     // T[0]
     foreach (j; 0 .. 3) { rhs[j] = 0.0; }
-    foreach (i; 1 .. N) {
+    foreach (i; 1 .. n) {
 	double dT = vtx.cloud_fs[i].gas.T[0] - vtx.cloud_fs[0].gas.T[0];
 	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 	double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
 	rhs[0] += dx*dT; rhs[1] += dy*dT; rhs[2] += dz*dT;
     }
-    solveGradients(xTx, rhs, gradients);
+    solveGradients!3(xTx, rhs, gradients);
     vtx.grad_T.refx = gradients[0];
     vtx.grad_T.refy = gradients[1];
     vtx.grad_T.refz = gradients[2];
@@ -499,17 +500,17 @@ void gradients_xyz(ref FVVertex vtx, bool diffusion)
     if (diffusion) {
 	foreach(isp; 0 .. nsp) {
 	    foreach (j; 0 .. 3) { rhs[j] = 0.0; }
-	    foreach (i; 1 .. N) {
+	    foreach (i; 1 .. n) {
 		double df = vtx.cloud_fs[i].gas.massf[isp] - vtx.cloud_fs[0].gas.massf[isp];
 		double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 		double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 		double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
 		rhs[0] += dx*df; rhs[1] += dy*df; rhs[2] += dz*df;
 	    }
-	    solveGradients(xTx, rhs, gradients);
-	    vtx.grad_f[isp].refx = 0.0;
-	    vtx.grad_f[isp].refy = 0.0;
-	    vtx.grad_f[isp].refz = 0.0;
+	    solveGradients!3(xTx, rhs, gradients);
+	    vtx.grad_f[isp].refx = gradients[0];
+	    vtx.grad_f[isp].refy = gradients[1];
+	    vtx.grad_f[isp].refz = gradients[2];
 	} // foreach isp
     } else {
 	foreach(isp; 0 .. nsp) {
@@ -520,28 +521,139 @@ void gradients_xyz(ref FVVertex vtx, bool diffusion)
     }
     // tke
     foreach (j; 0 .. 3) { rhs[j] = 0.0; }
-    foreach (i; 1 .. N) {
+    foreach (i; 1 .. n) {
 	double dtke = vtx.cloud_fs[i].tke - vtx.cloud_fs[0].tke;
 	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 	double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
 	rhs[0] += dx*dtke; rhs[1] += dy*dtke; rhs[2] += dz*dtke;
     }
-    solveGradients(xTx, rhs, gradients);
+    solveGradients!3(xTx, rhs, gradients);
     vtx.grad_tke.refx = gradients[0];
     vtx.grad_tke.refy = gradients[1];
     vtx.grad_tke.refz = gradients[2];
     // omega
     foreach (j; 0 .. 3) { rhs[j] = 0.0; }
-    foreach (i; 1 .. N) {
+    foreach (i; 1 .. n) {
 	double domega = vtx.cloud_fs[i].omega - vtx.cloud_fs[0].omega;
 	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
 	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
 	double dz = vtx.cloud_pos[i].z - vtx.cloud_pos[0].z;
 	rhs[0] += dx*domega; rhs[1] += dy*domega; rhs[2] += dz*domega;
     }
-    solveGradients(xTx, rhs, gradients);
+    solveGradients!3(xTx, rhs, gradients);
     vtx.grad_omega.refx = gradients[0];
     vtx.grad_omega.refy = gradients[1];
     vtx.grad_omega.refz = gradients[2];
-} // end gradients_xyz()
+} // end gradients_xyz_leastsq()
+
+@nogc
+void gradients_xy_leastsq(ref FVVertex vtx, bool diffusion)
+// Fit a linear model to the cloud of flow-quantity points
+// in order to extract approximations to the flow-field gradients.
+// 2D, built as a specialization of the 3D code.
+{
+    double[4][2] xTx; // normal matrix, augmented to give 4 entries per row
+    double[2] rhs, gradients;
+    // Assemble and invert the normal matrix.
+    // We'll reuse the resulting inverse for each flow-field quantity.
+    size_t n = vtx.cloud_pos.length;
+    double xx = 0.0;
+    double xy = 0.0;
+    double yy = 0.0;
+    foreach (i; 1 .. n) {
+	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
+	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
+	xx += dx*dx; xy += dx*dy; yy += dy*dy;
+    }
+    xTx[0][0] = xx; xTx[0][1] = xy; xTx[0][2] = 1.0; xTx[0][3] = 0.0;
+    xTx[1][0] = xy; xTx[1][1] = yy; xTx[1][2] = 0.0; xTx[1][3] = 1.0;
+    computeInverse!2(xTx);
+    // x-velocity
+    rhs[0] = 0.0; rhs[1] = 0.0;
+    foreach (i; 1 .. n) {
+	double dvx = vtx.cloud_fs[i].vel.x - vtx.cloud_fs[0].vel.x;
+	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
+	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
+	rhs[0] += dx*dvx; rhs[1] += dy*dvx;
+    }
+    solveGradients!2(xTx, rhs, gradients);
+    vtx.grad_vel[0][0] = gradients[0];
+    vtx.grad_vel[0][1] = gradients[1];
+    vtx.grad_vel[0][2] = 0.0;
+    // y-velocity
+    rhs[0] = 0.0; rhs[1] = 0.0;
+    foreach (i; 1 .. n) {
+	double dvy = vtx.cloud_fs[i].vel.y - vtx.cloud_fs[0].vel.y;
+	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
+	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
+	rhs[0] += dx*dvy; rhs[1] += dy*dvy;
+    }
+    solveGradients!2(xTx, rhs, gradients);
+    vtx.grad_vel[1][0] = gradients[0];
+    vtx.grad_vel[1][1] = gradients[1];
+    vtx.grad_vel[1][2] = 0.0;
+    // z-velocity
+    vtx.grad_vel[2][0] = 0.0;
+    vtx.grad_vel[2][1] = 0.0;
+    vtx.grad_vel[2][2] = 0.0;
+    // T[0]
+    rhs[0] = 0.0; rhs[1] = 0.0;
+    foreach (i; 1 .. n) {
+	double dT = vtx.cloud_fs[i].gas.T[0] - vtx.cloud_fs[0].gas.T[0];
+	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
+	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
+	rhs[0] += dx*dT; rhs[1] += dy*dT;
+    }
+    solveGradients!2(xTx, rhs, gradients);
+    vtx.grad_T.refx = gradients[0];
+    vtx.grad_T.refy = gradients[1];
+    vtx.grad_T.refz = 0.0;
+    // massf
+    size_t nsp = vtx.cloud_fs[0].gas.massf.length;
+    if (diffusion) {
+	foreach(isp; 0 .. nsp) {
+	    rhs[0] = 0.0; rhs[1] = 0.0;
+	    foreach (i; 1 .. n) {
+		double df = vtx.cloud_fs[i].gas.massf[isp] - vtx.cloud_fs[0].gas.massf[isp];
+		double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
+		double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
+		rhs[0] += dx*df; rhs[1] += dy*df;
+	    }
+	    solveGradients!2(xTx, rhs, gradients);
+	    vtx.grad_f[isp].refx = gradients[0];
+	    vtx.grad_f[isp].refy = gradients[1];
+	    vtx.grad_f[isp].refz = 0.0;
+	} // foreach isp
+    } else {
+	foreach(isp; 0 .. nsp) {
+	    vtx.grad_f[isp].refx = 0.0;
+	    vtx.grad_f[isp].refy = 0.0;
+	    vtx.grad_f[isp].refz = 0.0;
+	} // foreach isp
+    }
+    // tke
+    rhs[0] = 0.0; rhs[1] = 0.0;
+    foreach (i; 1 .. n) {
+	double dtke = vtx.cloud_fs[i].tke - vtx.cloud_fs[0].tke;
+	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
+	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
+	rhs[0] += dx*dtke; rhs[1] += dy*dtke;
+    }
+    solveGradients!2(xTx, rhs, gradients);
+    vtx.grad_tke.refx = gradients[0];
+    vtx.grad_tke.refy = gradients[1];
+    vtx.grad_tke.refz = 0.0;
+    // omega
+    rhs[0] = 0.0; rhs[1] = 0.0;
+    foreach (i; 1 .. n) {
+	double domega = vtx.cloud_fs[i].omega - vtx.cloud_fs[0].omega;
+	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
+	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
+	rhs[0] += dx*domega; rhs[1] += dy*domega;
+    }
+    solveGradients!2(xTx, rhs, gradients);
+    vtx.grad_omega.refx = gradients[0];
+    vtx.grad_omega.refy = gradients[1];
+    vtx.grad_omega.refz = 0.0;
+} // end gradients_xy_leastsq()
