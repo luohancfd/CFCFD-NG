@@ -1780,11 +1780,14 @@ public:
 	    for ( size_t i = imin; i <= imax+1; ++i ) {
 		for ( size_t j = jmin; j <= jmax+1; ++j ) {
 		    FVVertex vtx = get_vtx(i,j);
+		    gradients_xy_leastsq(vtx, myConfig.diffusion);
+/+
 		    // For the moment, don't change the signature of the gradients fn.
 		    gradients_xy_div(vtx, vtx.cloud_pos[0], vtx.cloud_pos[1],
 				     vtx.cloud_pos[2], vtx.cloud_pos[3],
 				     vtx.cloud_fs[0], vtx.cloud_fs[1],
 				     vtx.cloud_fs[2], vtx.cloud_fs[3], myConfig.diffusion);
++/
 		}
 	    }
 	} else {
