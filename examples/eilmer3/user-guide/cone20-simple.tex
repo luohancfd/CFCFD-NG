@@ -344,15 +344,7 @@ it looks at though we can get as close as we wish.
  \label{cone20-grid-convergence-fig}
 \end{figure}
 
-\section{Parametric modelling}
-%
-Let's rework the simulation as a 2D flow and make use of the parametric capabilities of the 
-Python input script...
-
-\textbf{TODO} fill in the description of the cone20-parametric exercise.
-
-
-\section{Notes}
+\section{Other notes on this first example}
 \begin{itemize}
 \item Run time for the simple cone20 simulation 
       is approximately 17 seconds for 862 steps on a computer with 
@@ -383,3 +375,218 @@ mpirun -np 2 e3mpi.exe -f cone20 --run
   log file \texttt{e3mpi.0001.log} rather than \texttt{e3shared.log}.
 
 \end{itemize}
+
+
+\section{Parametric modelling using Python}
+%
+Let's rework the simulation to explore the gas-dynamics a little more and also
+make use of the parametric capabilities of the Python input script.
+We'll first parameterize the descriptions of the flow and the geometric description
+of the flow domain by replacing some of the literal numeric values of the original script
+with variables and simple algebraic expressions.
+
+\medskip
+Specifically, let's introduce a variable, $M$, for the Mach number of the in-flow stream and
+then compute the velocity from that value and the estimated sound-speed of that in-coming stream.
+This gives us a convenient way of specifying a sample Mach number so we can explore the response 
+of the simulated flow field to a range on inflow Mach numbers.
+We'll also describe the cone by it's half angle and axial length.
+From these items, we can compute the base radius.
+For the remaining key items defining the flow domain, we need to know where the apex of the cone 
+is placed with respect to the inflow boundary and we need to say how far away the top-edge 
+of the flow domain is from the axis.
+Finally, to make the grid generation a little more convenient as we change the boundaries 
+of the flow domain, we'll define a cell size as length $dx$, and determine numbers of cells 
+within each block as an overall length-scale of each dimension of the block 
+divided by this cell size. 
+
+\subsection{Input script (.py)}
+%
+
+\noindent\topbar
+\lstinputlisting[language={}]{../2D/cone20-parametric/conep.py}
+\bottombar
+      
+\section{Exploring the gas dynamics}
+%
+Except for a small difference in the number of cells in the x-direction of each block,
+Figure\,\ref{conep-20-degrees-fig} shows the same flow field 5\,milliseconds after flow start
+as Figure\,\ref{cone20-low-res-fig}.
+It has the same straight, attached shock and same range of pressures displayed.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.75\textwidth]{../2D/cone20-parametric/conep-M1p5-20degree-p-field-5ms.png}
+\end{center}
+\caption{Pressure field for the low-resolution simulation 
+         of Mach 1.5 flow over a cone with 20 degree half-angle.}
+\label{conep-20-degrees-fig}
+\end{figure}
+
+\medskip
+Looking up the conical shock charts in NACA-1135\,\cite{ames_53}, we can see that a 32 degree cone 
+falls outside the shock-polar for a free-stream Mach number of 1.5 and so should have a detached shock.
+Let's try that by changing the value of \verb!theta! from 20 to 32.
+That's all that needs to be done before re-running the prepration program and main simulation program,
+with the calculations to get the appropriate velocity already encoded within the user input script.
+Figure\,\ref{conep-32-degrees-fig} shows the resulting pressure field at 5\,ms.
+
+\medskip
+The result is not quite as expected because the flow has choked between the conical surface and
+the upper edge of the domain, with its default \verb!SlipWallBC! boundary condition, 
+that acts as a smooth inside wall of a slippery pipe.
+The obvious fix to attempt is to increase the height of the flow domain 
+by setting $H$ to a larger value.
+Figure\,\ref{conep-32-degrees-H-1p6-5ms-fig} shows the resulting pressure field at 5\,ms 
+for an inflow Mach number of 1.5, which should have a detached shock, and
+for a free-stream Mach number of 1.6, which should have an attached shock, 
+according to the inviscid flow theory.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.55\textwidth]{../2D/cone20-parametric/conep-M1p5-32degree-H-1-p-field-5ms.png}
+\end{center}
+\caption{Pressure field for the low-resolution simulation at 5\,ms
+         of Mach 1.5 flow over a cone with 32 degree half-angle.}
+\label{conep-32-degrees-fig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\subfloat[Mach 1.5 inflow]{
+  \includegraphics[width=0.60\textwidth]{../2D/cone20-parametric/conep-M1p5-32degree-H-1p6-p-field-5ms.png}
+}\\
+\subfloat[Mach 1.6 inflow]{
+  \includegraphics[width=0.60\textwidth]{../2D/cone20-parametric/conep-M1p6-32degree-H-1p6-p-field-5ms.png}
+}
+\end{center}
+\caption{Pressure field for the low-resolution simulation at 5\,ms
+         of flow over a cone with 32 degree half-angle
+         in a larger flow domain, $H=1.6$.}
+\label{conep-32-degrees-H-1p6-5ms-fig}
+\end{figure}
+
+\medskip
+Now, the results are looking better, with the shocks looking quite orderly in each simulation.
+The Mach 1.6 flow has a straighter shock and a cleaner start at the tip of the cone, 
+such that it looks attached in this fairly low resolution simulation.
+At this point, we could be tempted to declare victory and head to the Red Room 
+to study the generation of high quality multi-block grids 
+as shown in Figure\,\ref{the-clustered-bottle-fig}.
+However, we want to be good students of CFD and shall confirm that the flows 
+really have reached steady state by running the simulations for a longer time.
+Besides, the simulations are being done in less than a minute each
+so how much extra effort can it be?
+
+\medskip
+Approximately 5 minutes later, you see the results shown 
+in Figure\,\ref{conep-32-degrees-H-1p6-15ms-fig} and you wish that you had left for the Red Room some 
+time earlier.
+The Mach 1.6 shock looks good and a little straighter, as it should,
+but the Mach 1.5 case is not showing the desired result.
+Why, with such a small difference in inflow specification should there be such a big difference?
+And, why does that difference seem to come from downstream?
+
+\begin{figure}[htbp]
+\begin{center}
+\subfloat[Mach 1.5 inflow]{
+  \includegraphics[width=0.60\textwidth]{../2D/cone20-parametric/conep-M1p5-32degree-H-1p6-p-field-15ms.png}
+}\\
+\subfloat[Mach 1.6 inflow]{
+  \includegraphics[width=0.60\textwidth]{../2D/cone20-parametric/conep-M1p6-32degree-H-1p6-p-field-15ms.png}
+}
+\end{center}
+\caption{Pressure field for the low-resolution simulation at 15\,ms
+         of flow over a cone with 32 degree half-angle
+         in a larger flow domain, $H=1.6$.}
+\label{conep-32-degrees-H-1p6-15ms-fig}
+\end{figure}
+
+\medskip
+If you ask a tutor at this point, you are likely to be asked: 
+``What does the Mach number look like, especially at the outflow boundary?''
+In preparation, you use the \verb!--add-mach! option to your \verb!e3post.py! command
+and produce the plots shown in Figure\,\ref{conep-32-degrees-H-1p6-15ms-M-field-fig}.
+The Mach number approaching the exit plane for the Mach 1.6 inflow is transonic but
+the Mach numbers for the Mach 1.5 inflow are very low for the near-normal shock processed flow
+but, even for the little bit of flow processed by the oblique shock, they re looking to be
+well below sonic conditions.
+The simple \verb!ExtrapolateOutBC! applied to the outflow boundary 
+does not handle subsonic flow across it very well at all,
+and results in the whole simulation not being a good representation of the physical situation.
+The fix is to alter the flow domain, so that the outflow is mostly supersonic.
+
+\begin{figure}[htbp]
+\begin{center}
+\subfloat[Mach 1.5 inflow, The full rnage of M\_local is shown.]{
+  \includegraphics[width=0.60\textwidth]{../2D/cone20-parametric/conep-M1p5-32degree-H-1p6-M-field-15ms.png}
+}\\
+\subfloat[Mach 1.6 inflow.  Note that a partial range of M\_local is displayed so as to show the transonic region more clearly.]{
+  \includegraphics[width=0.60\textwidth]{../2D/cone20-parametric/conep-M1p6-32degree-H-1p6-M-field-15ms.png}
+}
+\end{center}
+\caption{Mach number field for the low-resolution simulation at 15\,ms
+         of flow over a cone with 32 degree half-angle
+         in a larger flow domain, $H=1.6$.}
+\label{conep-32-degrees-H-1p6-15ms-M-field-fig}
+\end{figure}
+
+      
+\section{Building a more robust simulation}
+%
+The fix is very much as you should do in a physical experiment.
+If a boundary effect is messing with your flow, move that boundary away.
+Fortunately, this is (usually) easy to do in a numerical simulation.
+Here, we will add another block to the downstream edge of the original domain and 
+effectively move the outflow further downstream.
+This extra block (\verb!blk_2! in the following input script) allows the flow 
+to regain supersonic flow conditions before crossing the outflow boundary.
+
+\subsection{Input script (.py)}
+%
+
+\noindent\topbar
+\lstinputlisting[language={}]{../2D/cone20-parametric/conepe.py}
+\bottombar
+
+\subsection{Final results}
+%
+For a domain height $H=2$, Figure\,\ref{conep-32-degrees-H-2-M-field-30ms-fig} 
+shows the Mach number field at the simulation time of 30\,milliseconds.
+This is double the time shown in the short-domain simulations, where the flow was clearly choked.
+The slightly detached shock from the cone tip is much cleaner but the upper boundary is
+still showing a strong effect with a near-normal shock processing the upper part of the inflow.
+The slightly-subsonic values of mach number immediately behind the detached shock are clearly
+shown in light blue.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.65\textwidth]{../2D/cone20-parametric/conepe-M1p5-32degree-H-2p0-M-field-30ms.png}
+\end{center}
+\caption{Mach field for the low-resolution simulation at 30\,ms
+         of Mach 1.5 flow over a cone with 32 degree half-angle.
+         Flow domain height $H=2$.}
+\label{conep-32-degrees-H-2-M-field-30ms-fig}
+\end{figure}
+
+\medskip
+Since we've made all this effort at getting the downstream boundary condition behaving well,
+we should take advantage of the parametric modelling once more and finish the job 
+by raising the flow domain height simply by setting $H = 3$ and running the simulation again.
+This time, the flow field in Figure\,\ref{conep-32-degrees-H-3-M-field-30ms-fig} appears to be clean 
+and mostly free from obvious boundary induced problems.
+The \verb!ExtrapolateOutBC! boundary has mostly a clear supersonic flow crossing it and can probably
+be trusted to behave well.
+This would be the correct time to declare victory, however, 
+the tutor now points out that the expansion radiating from the corner at the end of the conical surface
+is probably affecting the whole of the subsonic region behind the curved shock.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.95\textwidth]{../2D/cone20-parametric/conepe-M1p5-32degree-H-3p0-M-field-30ms.png}
+\end{center}
+\caption{Mach field for the low-resolution simulation at 30\,ms
+         of Mach 1.5 flow over a cone with 32 degree half-angle.
+         Flow domain height $H=3$.}
+\label{conep-32-degrees-H-3-M-field-30ms-fig}
+\end{figure}
