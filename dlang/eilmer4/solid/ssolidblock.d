@@ -72,12 +72,6 @@ public:
 	this(id, nicell, njcell, nkcell, label);
 	active = getJSONbool(jsonData, "active", true);
 	sp = makeSolidPropsFromJson(jsonData["properties"]);
-	foreach (boundary; 0 .. (GlobalConfig.dimensions == 3 ? 6 : 4)) {
-	    string jsonKey = "face_" ~ face_name[boundary];
-	    auto bcJsonData = jsonData[jsonKey];
-	    bc[boundary] = makeSolidBCFromJson(bcJsonData, id, boundary,
-					       nicell, njcell, nkcell);
-	}
     }
 
     override void initLuaGlobals()
