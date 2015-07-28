@@ -173,8 +173,8 @@ private:
 	int number_results = 2; // expecting two table of ghostCells
 
 	if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
-	    luaL_error(L, "error running user flow function: %s\n",
-		       lua_tostring(L, -1));
+	    luaL_error(L, "error running user-defined b.c. ghostCells_%s function: %s\n",
+		       toStringz(boundaryName), lua_tostring(L, -1));
 	}
 
 	// 3. Grab Flowstate data from table and populate ghost cell
@@ -369,8 +369,8 @@ private:
 	int number_args = 1;
 	int number_results = 1;
 	if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
-	    luaL_error(L, "error running user flow function: %s\n",
-		       lua_tostring(L, -1));
+	    luaL_error(L, "error running user-defined b.c. interface_%s function: %s\n",
+		       toStringz(boundaryName), lua_tostring(L, -1));
 	}
 
 	// 3. Grab Flowstate data from table and populate interface
