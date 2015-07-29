@@ -2000,7 +2000,19 @@ sketch.window(\=xmin=0.0, ymin=0.0, xmax=1.0, ymax=1.0,\\
 \noindent
 sets the mapping from the lower-left point (xmin,ymin) to 
 upper-right point (xmax,ymax) in the simulation space 
-to the corresponding points on a display page.
+to the corresponding points on a display page, as shown in Figure\,\ref{sketch-window-fig}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.5\textwidth]{figs/sketch-window.png}
+\caption{Parameters defining the sketch window placed on a display page.
+  Parameters shown in red are coordinate values in the simulation domain,
+  while those shown in black are coordinate values on the displayed page.
+  All values are in metres.}
+\label{sketch-window-fig}
+\end{figure}
+
+\medskip\noindent
 Axes may also be drawn with:\\
 \texttt{sketch.xaxis(x0, x1, xtic, y\_offset)} \\
 \texttt{sketch.yaxis(y0, y1, ytic, x\_offset)} \\
@@ -2008,6 +2020,15 @@ where small negative values may be given for the offset values, in order to move
 the axes clear of the main sketch elements.
 Note that these axis parameters are specified in the coordinate system of the simulation space
 and that all values are in metres.
+Figure\,\ref{sketch-axes-fig} shows the axes as they are placed in the 20-degree cone
+example.
+ 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.6\textwidth]{figs/sketch-axes-on-cone20.png}
+\caption{Parameters specifying the arrangement of the axes for the SVG sketch.}
+\label{sketch-axes-fig}
+\end{figure}
 
 % \medskip
 % Of course, this sketch environment is only available for 2D simulations.
