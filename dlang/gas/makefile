@@ -5,7 +5,7 @@
 DMD ?= dmd
 INSTALL_DIR ?= $(HOME)/e3bin
 
-DEMO_PROGRAMS := gas_model_demo ideal_gas_demo
+DEMO_PROGRAMS := gas_model_demo ideal_gas_demo CO2_model_demo
 UNITTEST_FILES := therm_perf_gas_test \
 	ideal_gas_test
 
@@ -29,7 +29,8 @@ GAS_MODEL_FILES := \
 	$(GAS_DIR)/ideal_gas.d \
 	$(GAS_DIR)/physical_constants.d \
 	$(GAS_DIR)/therm_perf_gas.d \
-	$(GAS_DIR)/very_viscous_air.d
+	$(GAS_DIR)/very_viscous_air.d\
+	$(GAS_DIR)/CO2Gas.d
 
 THERMO_FILES := \
 	$(GAS_DIR)/thermo/cea_thermo_curves.d \
@@ -95,6 +96,11 @@ gas_model_demo: gas_model_demo.d $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
 
 ideal_gas_demo: ideal_gas_demo.d $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
 	$(DMD) -g $(DFLAGS) ideal_gas_demo.d $(OF)ideal_gas_demo \
+		$(GAS_FILES) $(UTIL_FILES) $(NM_FILES) \
+		$(DLINKFLAGS)
+		
+CO2_model_demo: CO2_model_demo.d  $(LIBLUA) $(UTIL_FILES) $(NM_FILES)
+	$(DMD) -g $(DFLAGS) CO2_model_demo.d $(OF)CO2_model_demo \
 		$(GAS_FILES) $(UTIL_FILES) $(NM_FILES) \
 		$(DLINKFLAGS)
 

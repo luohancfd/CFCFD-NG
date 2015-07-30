@@ -12,6 +12,7 @@ import gas.gas_model;
 import gas.ideal_gas;
 import gas.therm_perf_gas;
 import gas.very_viscous_air;
+import gas.CO2Gas;
 import std.file;
 import std.stdio;
 import util.lua;
@@ -51,17 +52,19 @@ GasModel init_gas_model(in string file_name="gas-model.lua") {
 	writeln("ERROR: Quitting at this point.");
         exit(1);
     }
-
     GasModel gm;
     switch ( gas_model_name ) {
     case "IdealGas":
 	gm = new IdealGas(L);
-	break;
+		break;
     case "ThermallyPerfectGas":
 	gm = new ThermallyPerfectGas(L);
 	break;
     case "VeryViscousAir":
 	gm = new VeryViscousAir(L);
+	break;
+    case "CO2Gas":
+	gm = new CO2Gas(L);
 	break;
     default:
 	gm = new IdealGas();

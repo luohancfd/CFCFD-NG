@@ -105,6 +105,36 @@ function writeThermPerfGas(f, species, db)
       writeCeaTransCoeffs(f, sp, db, "ThermCond")
    end
 end
+function writeCO2Gas(f, sp, db)
+   -- We can only deal with one species for an ideal gas.
+   if ( #sp > 1 ) then
+      print("WARNING: More than one species is listed while trying to prepare")
+      print("WARNING: an ideal gas model.")
+      print("WARNING: Presently, the ideal gas model is limited to a single species")
+      print("WARNING: We will build a file with the first species listed and ignore the rest.")
+   end
+   local s = sp[1]
+   f:write("CO2Gas = {\n")
+   f:write(string.format("   speciesName = '%s',\n", s))
+   f:write(string.format("   mMass = %.8f,\n", db[s].M.value))
+   f:write(string.format("   gamma = %.8f,\n", db[s].gamma.value))
+   f:write("   entropyRefValues = {\n")
+   f:write(string.format("      s1 = %.8e,\n", db[s].entropyRefValues.s1))
+   f:write(string.format("      T1 = %.8f,\n", db[s].entropyRefValues.T1))
+   f:write(string.format("      p1 = %.8e,\n", db[s].entropyRefValues.p1))
+   f:write("   },\n")
+   f:write("   sutherlandVisc = {\n")
+   f:write(string.format("      mu_ref = %.8e,\n", db[s].sutherlandVisc.mu_ref))
+   f:write(string.format("      T_ref = %.8f,\n", db[s].sutherlandVisc.T_ref))
+   f:write(string.format("      S = %.8f,\n", db[s].sutherlandVisc.S))
+   f:write("   },\n")
+   f:write("   sutherlandThermCond = {\n")
+   f:write(string.format("      k_ref = %.8e,\n", db[s].sutherlandThermCond.k_ref))
+   f:write(string.format("      T_ref = %.8f,\n", db[s].sutherlandThermCond.T_ref))
+   f:write(string.format("      S = %.8f,\n", db[s].sutherlandThermCond.S))
+   f:write("   }\n")
+   f:write("}\n")
+end
 
 gasModels = {}
 -- IdealGas and aliases
@@ -113,6 +143,8 @@ gasModels["IDEAL GAS"] = gasModels["IDEALGAS"]
 -- Thermally perfect gas and aliases
 gasModels["THERMALLYPERFECTGAS"] = {writeFn=writeThermPerfGas, DName="ThermallyPerfectGas"}
 gasModels["THERMALLY PERFECT GAS"] = gasModels["THERMALLYPERFECTGAS"]
+-- CO2
+gasModels["CO2GAS"] = {writeFn=writeCO2Gas, DName = "CO2Gas"}
 
 function printHelp()
    print("prep-gas --- Prepares a gas model input file for Eilmer4.")
