@@ -43,7 +43,8 @@ Create the geometry definition and a grid with the command\\
              A small database of parameters to control the time-stepping, the final time,
              and the intervals between writing of solutions and history data.
              The content of this file is also in INI format and it is parsed at the
-             start of every time step.
+             start of every $nth$ step, where $n$ is given by the count value in the \texttt{control\_count}
+             parameter (default: 10).
              This way, a user can alter the simulation behaviour (by editing this file)
              without having to restart the simulation.
              To stop a simulation cleanly, set the \texttt{halt\_now} entry to 1.\index{halting a simulation}
@@ -373,7 +374,7 @@ Whole-field output options:
 Data slicing and dicing options:
 \begin{itemize}
   \item \texttt{--output-file=<profile-data-file>} specifies the name of a file in which to dump the requested data.
-     This naming option is relevant to the various slice options and also to the the surface-list option where
+     This naming option is relevant to the various slice options and also to the the surface-list option 
      where it is used as the root name of the generated VTK files.
      This will allow you to make a number of sliced data sets for plotting.
   \item \texttt{--slice-list="blk-range,i-range,j-range,k-range;..."} allows one to extract subsets of the data.
@@ -392,7 +393,7 @@ Data slicing and dicing options:
      The index-pair is one of ij, jk or ki.  
      The program sets these indices to zero and searches along the remaining index to find the cell nearest 
      the specified (x,y,z) point.
-     Once found, the slice over the index pair is selected for output (by adding it to the slice-list.
+     Once found, the slice over the index pair is selected for output (by adding it to the slice-list).
      Be aware that, for each block selected, slice-at-point will always select a slice to output, 
      even if it is not very close.
      Again, use quotes to hold the string together as it passed through the shell interpreter.
@@ -429,7 +430,7 @@ Data manipulation and summary options:
      computed over the whole flow domain.
   \item \texttt{--compare-job=<jobFileName> [--compare-tindx=<index>]} compares one flow data set with another.
      The difference is output.  This option combined with the computation of norms is a convenient way to check
-     convergence in of a simulation.
+     convergence of a simulation.
 \end{itemize}
 Other house-keeping options for continuing old simulations:
 \begin{itemize}
@@ -460,9 +461,9 @@ where the k-index has the single value 0.
 The examples that make up the bulk of this manual show some of the things that are possible.
 Some specific applications of writing a custom postprocessing script are:
 \begin{itemize}
- \item estimating the angle of the shock in the axisymmetric flow over a cone (Sec.\ref{cone20-simple-sec})
- \item the estimation of surface force on the 10$^o$ ramp case (Section \ref{simple-ramp-sec}) and
- \item finding the location of the bow shock for the finite cylinder simulation (Sec.\,\ref{sec:finite-cyl-sec}).
+ \item estimating the angle of the shock in the axisymmetric flow over a cone (Sec.~\ref{cone20-simple-sec})
+ \item the estimation of surface force on the 10$^o$ ramp case (Sec.~\ref{simple-ramp-sec}) and
+ \item finding the location of the bow shock for the finite cylinder simulation (Sec.~\ref{sec:finite-cyl-sec}).
 \end{itemize}
  
 

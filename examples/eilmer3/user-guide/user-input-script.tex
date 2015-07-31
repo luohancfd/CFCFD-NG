@@ -127,9 +127,7 @@ The available gas models are:
 %                             equivalent of the multiple temperature gas models.  For general thermal equilibrium
 %                             calculations, users are advised to use the 'thermally perfect gas' model.}, and
 %                             transport properties are calculated via collision-integrals.
- \item \texttt{'two temperature gas'}: a thermally perfect gas\footnote{The two temperature gas model is thermally
-                             perfect in the sense that the thermodynamic properties are functions
-                             of temperature only, however multiple temperatures are defined.} with two independent
+ \item \texttt{'two temperature gas'}: a thermally perfect gas with two independent
                              thermal modes: one temperature $T_\text{tr}$ governs the heavy-particle translation 
                              and rotation modes, and another temperature $T_\text{ve}$ governs the vibration, 
                              electronic and free-electron translation modes.
@@ -222,7 +220,8 @@ Notes:
 
 \noindent
 Once you have your gas-model file generated, just give its file name to 
-the \texttt{select\_gas\_model} function call in your input script.
+the \texttt{select\_gas\_model} function call in your input script using the \texttt{fname}
+keyword argument. This is explained further in the subsequent section.
 
 \subsection{10 minute version: the detail of gas model configuration}
 In the earlier examples, the \texttt{select\_gas\_model} function was called using
@@ -433,7 +432,7 @@ my\_flow = FlowCondition(\=p=1.0e5, u=0.0, v=0.0, w=0.0, \\
 \end{itemize}
 
 \medskip
-Simulations involving nonequilibrium chemistry require and extra input file
+Simulations involving nonequilibrium chemistry require an extra input file
 describing the participating gas species and their reactions.
 Preparation of this file is described in Appendix\,\ref{app:chem}.
 
@@ -477,7 +476,7 @@ where the arguments and their possible values are:
 \end{itemize}
 The process of writing the data into each cell of the new grid uses a fairly naive search for the 
 nearest cell in the existing solution.
-Although it is robust, the search is extremely slow and the preparation of sew grids has been known
+Although it is robust, the search is extremely slow and the preparation of new grids has been known
 to take hours of CPU time.
 If the new simulation is a continuation of the old simulation, it may be appropriate to set
 \texttt{gdata.t0} to a nonzero value.  See Section\,\ref{sec:sim-control-parameters}.
@@ -526,7 +525,7 @@ inflow  = FlowCondition(p=4464.0, u=10284.0, v=0.0, T=10140.42,
 %
 The selection of a radiation transport model and the definition of its parameters
 is done in a Lua file.
-The format for the Lua file describing the radiation transport model is give in Appendix~\ref{app:rt-models}.
+The format for the Lua file describing the radiation transport model is given in Appendix~\ref{app:rt-models}.
 A radiation model is brought into an Eilmer3 simulation via the \texttt{select\_radiation\_model} function:
 
 \noindent\topbar\\
@@ -563,7 +562,7 @@ In this situation, the update frequency would be set to zero:
 \index{select\_radiation\_model} \\
 \bottombar\\
 
- and the recalculation of the radiation field coordinated via running  \texttt{e3rad.exe} (see the description of the Rutowski hemisphere simulation in \textsection~\ref{sec:rutowski}  for an example of this).
+ and the recalculation of the radiation field coordinated via running  \texttt{e3rad.exe} (see the description of the Rutowski hemisphere simulation in Sec.~\ref{sec:rutowski}  for an example of this).
 
 %-------------------------------------------------------------------
 \newpage
@@ -726,7 +725,7 @@ Examples of the most commonly used surface patches are:
   The named arguments following the four paths each have default values so you will usually not
   need to think about them, however, it is occasionally convenient to specify a subsection 
   of the full patch and the parameters \verb!r0, r1, s0, s1! allow a subsection to be defined.
-\item \texttt{CoonsPatch}($p00, p10, p11, p01$ \verb!label="", r0=0.0, r1=1.0, s0=0.0, s1=1.0!): 
+\item \texttt{CoonsPatch}($p00, p10, p11, p01$, \verb!label="", r0=0.0, r1=1.0, s0=0.0, s1=1.0!): 
   a quadrilateral surface defined by it corners.
   Straight line segments (implicitly) join the corners.
   This is convenient for building simple regions that can be tiled with straight edged patches,
@@ -830,7 +829,7 @@ More restricted forms of a volume can be constructed as
   The subscripts correspond to the labelled points in Figure\,\ref{block-defn-fig}.
 \item \texttt{WireFrameVolume}($surf, p$): consists of a surface $surf$
   extruded along path $p$.
-  The extrusion is actually done be forming a set of 6 surfaces by copying the
+  The extrusion is actually done by forming a set of 6 surfaces by copying the
   original surface and then constructing four \texttt{CoonsPatch} surfaces
   between them. 
 \item \texttt{SimpleBoxVolume}($p_0, p_1, p_2, p_3, p_4, p_5, p_6, p_7$): \index{geometric element!SimpleBoxVolume}
@@ -974,7 +973,10 @@ the \texttt{e3prep.py} program and these represent\footnote{The
   cells should be monitored at simulation time.
   Data from the specified cells will be written to a ``history'' file for the
   block and may be used at the postprocessing stage to provide flow data as if
-  there was a sensor located in the cell.
+  there was a sensor located in the cell. See also the \texttt{HistoryLocation}
+  object, described in Sec.~\ref{sec:special-zones}, which may be specified separately from the
+  the \texttt{Block2D} construction and is used to locate a history cell based
+  on a Cartesion coordinate position in the domain rather than an $i,j$ cell location.
 \item \texttt{transient\_profile\_faces}\index{transient\_profile\_faces} 
   is an optional (unordered) list of block faces for which we
   want transient flow data to be written.  The frequency of writing the data is the same
@@ -1016,7 +1018,7 @@ my\_block\_list = SuperBlock2D(\=psurf=None, nni=2, nnj=2, nbi=1, nbj=1, \\
 \end{tabbing}
 }
 \noindent
-which generates a single grid over \texttt{psurf} and then subdivided that grid
+which generates a single grid over \texttt{psurf} and then subdivides that grid
 into \texttt{nbi} $\times$ \texttt{nbj} Block2D sub-blocks.
 References to all of these sub-blocks are returned as a list of lists, such that
 a particular sub-block may be obtained as \texttt{my\_block\_list.blks[i][j]}.
@@ -1181,6 +1183,12 @@ the particular directions of the paths within each block means that
 one defining edge needs to be in the opposite sense to the original.
 In this case the \texttt{clone()} and \texttt{reverse()} methods may be useful.
 The script actually uses the equivalent \texttt{copy(direction=-1)} method call.
+For an example of this, note the orientation of blocks 1 and 2 in the script
+and study the patches that are used in their construction.
+Note that the line \texttt{DJ} has been copied and reversed and called \texttt{JD}
+so that it can serve as a \texttt{NORTH} boundary for block 1.
+The line \texttt{DJ} is oriented such that it can be used as a WEST boundary
+for block 2.
 
 \subsubsection*{Improving the grid with clustering}
 %
@@ -1204,7 +1212,7 @@ This will require the use of matching clustering functions on these edges.
 \medskip
 Further improvement of the grid can be made by introducing a layer of blocks around
 the bottle surface, so that the cells near the surface can be made always nearly
-orthigonal and much more finely clustered toward the surface.
+orthogonal and much more finely clustered toward the surface.
 The extra blocks add to the complexity of the input script but provide some decoupling 
 with respect to cell number along block edges and allow the fine clustering of cells
 toward the bottle surface without greatly increasing 
@@ -1499,7 +1507,7 @@ Available boundary condition classes include:\index{boundary conditions!list of 
       A non-unity transformation matrix, \verb!Rmatrix!, can be provided for cases where the flow vector quantities need to
       be reoriented when they are copied from the other boundary to this one.
     \item \verb!SupInBC(inflow_condition, label='')!\index{boundary conditions!SupInBC} where we want to specify the inflow condition
-      that gets copies into the ghost cells each time step.
+      that gets copied into the ghost cells each time step.
       The optional \texttt{label} has an empty default value but may be used to group boundary surfaces symbolically
       in the postprocessing stage.
       Paul Petrie-Repar has made use of these labels in his \verb!CGNS! postprocessing program.
@@ -1560,9 +1568,9 @@ Available boundary condition classes include:\index{boundary conditions!list of 
     \item \verb!TransientProfBC(filename, label='')!\index{boundary conditions!TransientProfBC} where we want to specify the time-history of
       the inflow condition that also has a varying profile across the block face.
       This boundary condition is most likely used in a simulation that takes it inflow data from an earlier simulation, 
-      which wrote it's transient flow data via the \verb!transient_profile_faces! option.
+      which wrote its transient flow data via the \verb!transient_profile_faces! option.
     \item \verb!FixedPOutBC(Pout, Tout=300.0, use_Tout=False, x_order=0, label='')!\index{boundary conditions!FixedPOutBC} \\
-      is like \verb!ExtrapolateOutBC()! but with a specified back pressure and, possible, a temperature.
+      is like \verb!ExtrapolateOutBC()! but with a specified back pressure and, possibly, a temperature.
       This can be analogous to a vacuum pump that removes gas at the boundary to maintain
       a fixed pressure in the ghost cells.
     \item \verb!UserDefinedBC(filename, is_wall=0, sets_conv_flux=0, sets_visc_flux=0,!\\
@@ -1620,6 +1628,8 @@ even for the cases where no arguments, such as \texttt{Twall}, are required.
 \subsection{Setting conditions with setBC (deprecated)}
 \label{setting-individual-boundary-conditions-sec}\index{boundary conditions!setting individually}
 %
+This function is deprecated in favour of setting boundary conditions by direct interaction
+with the appropriate item in a \texttt{Block}'s \texttt{bc\_list} as discussed in the previous section.
 If you have not already set all appropriate boundary conditions through the \verb!bc_list!
 argument of the block constructor, you may apply boundary conditions to specific faces 
 of a \texttt{Block2D} or \texttt{Block3D} object by calling its method
@@ -1751,13 +1761,17 @@ If there a no such defined regions, all of the flowfield may have nonzero turbul
 \medskip
 An effective method to trigger chemical reactions is to use\\
 \texttt{IgnitionZone(Ti, point0, point1, label="")}\index{IgnitionZone}\\
-A high temperature \verb!Ti! (in K, e.g. a value at 2000 is proved to ignite
-the methane/air combustion effectively) is specified within the \texttt{IgnitionZone}s
-only to evaluate the Arrhenius reaction rates while without affecting
-the gas temperature in the flow filed. This zone is in effect between
+A temperature, \verb!Ti!, is set that controls the reaction rate used
+for chemical reactions, without effecting the gas temperature in the flow field.
+The rate-controlling temperature is typically set to an artificially inflated
+value to promote ignition (e.g. a value at 2000\,K is effective in igniting certain
+compositions of a methane/air mixture).
+The rate-controlling temperature is used to evaluate the chemical reaction rates
+only within the in the physical extents of the \texttt{IgnitionZone}.
+This zone is in effect between
 \verb!gdata.ignition_time_start! (default value is 0) and \verb!gdata.ignition_time_stop!
 and then ``switching-off'' subsequently. In this manner, the reaction rates
-within the zone is artificially inflated, which is able to ignite reactions
+within the zone are artificially inflated, which is able to ignite reactions
 in a short time.
 
 \medskip
@@ -1765,7 +1779,7 @@ As well as being identified by their cell indices when defining a block,
 history points can be located by their Cartesian coordinates using:\\
 \texttt{HistoryLocation(x, y, z=0.0, i\_offset=0, j\_offset=0, k\_offset=0, label="")}\index{HistoryLocation} \\
 where the offset indices allow you to select a cell a known number of cells 
-away from another.
+away from the Cartesian coordinate location specified by $x$, $y$ and $z$.
 
 %------------------------------------------------------------------
 \bigskip
@@ -1915,7 +1929,7 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
    A smaller value (say, 0.05) may be needed to get strongly expanding flows to behave 
    when regions of shear are also present.
 \item \verb!M_inf!: representative Mach number for the free stream.
-   Used by the \verb!AUSM_FLUX_UP! flux calculator. The default value is 0.01.
+   Used by the \verb!AUSM_PLUS_UP! flux calculator. The default value is 0.01.
 \end{itemize}
 
 \paragraph{Viscous effects}
@@ -1967,12 +1981,14 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
 \item \texttt{title}: a title string that may appear in a number of places.
   For example, in plots made during the postprocessing stage.
 \item \texttt{max\_invalid\_cells}: the maximum number of bad cells that will be tolerated on
-  decoding conserved quantities.  It this number is exceeded, the simulation will stop. default value 10.
+  decoding conserved quantities.  If this number is exceeded, the simulation will stop. default value 10.
 \item \texttt{udf\_source\_vector\_flag}: 1=apply user-defined source terms as supplied in a Lua file,
   default value 0.
 \item \texttt{udf\_file}: name of the Lua file for the user-defined source terms, default value "".
 \item \texttt{print\_count}\ddag: number of time steps between printing status
   information to the console, default value 20.
+\item \texttt{control\_count}\ddag: number of time steps between re-parsing the \texttt{.control} file.
+  If the \texttt{.control} has been edited, then the new values are used after re-parsing, default value 20.
 \item \texttt{heat\_time\_start}: default value 0.0, in seconds.
   For a description of HeatZones, see Section\,\ref{sec:special-zones}.
 \item \texttt{heat\_time\_stop}: a non-zero value indicates that we wish to add heat
@@ -1980,7 +1996,7 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
 \item \texttt{heat\_factor\_increment}: the fraction of full heat load that will be
   added with each step after $t$=heat\_time\_start, default value 0.01.
 \item \texttt{mhd\_flag}: 1=make MHD physics active. default value 0.
-\item \texttt{electric\_field\_work\_flag}: 1=make $\vec{u} \cdot \nabla p_e$ sourceterm in the electron energy equation active. default value 0.
+\item \texttt{electric\_field\_work\_flag}: 1=make $\vec{u} \cdot \nabla p_e$ source term in the electron energy equation active. default value 0.
 \end{itemize}
 
 

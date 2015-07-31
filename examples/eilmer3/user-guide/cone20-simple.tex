@@ -35,7 +35,7 @@ plotting programs have been built and installed correctly.
 %
 To build our simulation, we abstract the boxed region from Figure\,\ref{cone20-flight-fig}
 and consider the axisymmetric flow of an ideal, inviscid gas over a sharp-nosed cone 
-with 20 degree half angle.
+with 20 degree half-angle.
 The constraint of axisymmetry implies zero angle of incidence for the original 3D flow.
 
 \begin{figure}[htbp]
@@ -184,7 +184,7 @@ Although not obvious in the figure, a lot of detailed flow structure has passed 
 even before the 1.5 milliseconds frame.
 From then until the final time of 5.0\,milliseconds, not a lot seems to be happening.
 It would be tempting to terminate the simulation at 3.0\,milliseconds, however, 
-depending on how accurately you need to need to report flow quantities, you may need to run much longer 
+depending on how accurately you need to report flow quantities, you may need to run much longer 
 to achieve a sufficiently steady flow.
 
 \medskip
@@ -389,8 +389,8 @@ with variables and simple algebraic expressions.
 Specifically, let's introduce a variable, $M$, for the Mach number of the in-flow stream and
 then compute the velocity from that value and the estimated sound-speed of that in-coming stream.
 This gives us a convenient way of specifying a sample Mach number so we can explore the response 
-of the simulated flow field to a range on inflow Mach numbers.
-We'll also describe the cone by it's half angle and axial length.
+of the simulated flow field to a range of inflow Mach numbers.
+We'll also describe the cone by its half-angle and axial length.
 From these items, we can compute the base radius.
 For the remaining key items defining the flow domain, we need to know where the apex of the cone 
 is placed with respect to the inflow boundary and we need to say how far away the top-edge 
@@ -509,7 +509,7 @@ In preparation, you use the \verb!--add-mach! option to your \verb!e3post.py! co
 and produce the plots shown in Figure\,\ref{conep-32-degrees-H-1p6-15ms-M-field-fig}.
 The Mach number approaching the exit plane for the Mach 1.6 inflow is transonic but
 the Mach numbers for the Mach 1.5 inflow are very low for the near-normal shock processed flow
-but, even for the little bit of flow processed by the oblique shock, they re looking to be
+but, even for the little bit of flow processed by the oblique shock, they are looking to be
 well below sonic conditions.
 The simple \verb!ExtrapolateOutBC! applied to the outflow boundary 
 does not handle subsonic flow across it very well at all,
