@@ -759,6 +759,15 @@ Examples of the most commonly used surface patches are:
   The background mesh is retained within the \verb!AOPatch! object and, 
   if the \verb!AOPatch! is later passed to the grid generator, 
   the final grid is produced by interpolating within this background mesh.
+  The default background mesh of $20 \times 20$ seems to work fairly well in simple situations.
+  If the bounding paths have strong curvature, it may be beneficial to increase the resolution 
+  of the background mesh, so that the final interpolated mesh does not cut across the boundary paths.
+  This is especially important if the final grid lines are clustered close to the boundaries. 
+  Setting a higher resolution of the background mesh will require more iterations to reach convergence
+  and you may actually see a warning message that the iteration did not converge.
+  Fortunately, an unconverged background mesh is usually fine for use, 
+  because it starts as \texttt{CoonsPatch} mesh and each iteration should just improve 
+  the metrics of orthogonality and distribution of cell areas.
 \item \texttt{AOPatch}($p00, p10, p11, p01$, \verb!label="",! \verb!nx=20,! \verb!ny=20,!
   \verb!r0=0.0,! \verb!r1=1.0,! \verb!s0=0.0,! \verb!s1=1.0!): 
   a quadrilateral surface defined by it corners.
