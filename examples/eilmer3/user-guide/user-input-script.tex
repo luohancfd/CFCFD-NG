@@ -637,6 +637,11 @@ These include:
   For such a situation, create two circular arcs and join as a \texttt{Polyline} path.
 \item \texttt{Arc3}($a$, $b$, $c$): a circular arc from $a$ through $b$ to $c$.
   All three points lie on the arc.\index{geometric element!Arc3}
+\item \texttt{Arc3seg}($a$,$b$,$c$): a circular arc from $a$ to $b$ on the circular arc defined
+by points $a$, $b$ and $c$.
+The point $c$ is not on the path.
+\item \texttt{Ellipse}($a$, $b$, $c$): an elliptical line from point $a$ to point $b$.
+Point $c$ defines the tip of the corner, where the two tangents of the ellipse from point $a$ and $b$ meet. 
 \item \texttt{Helix}($a_0$, $a_1$, $x_{local}$, $r_0$, $r_1$, $d\theta$): a helical path
   about a specified axis, start and end radii and angle through which the path extends.\index{geometric element!Helix}
 \item \texttt{Helix}($p_0$, $p_1$, $a_0$, $a_1$): a helical path through specified points
