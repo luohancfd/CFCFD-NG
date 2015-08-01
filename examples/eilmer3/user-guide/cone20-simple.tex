@@ -236,6 +236,7 @@ for the simulation.
 \label{cone20-axial-force-fig}
 \end{figure}
 
+\clearpage
 \section{Accessing the field data for specialized postprocessing}
 %
 Beyond the usual slice-and-dice type of postprocessing that is provided by \verb!e3post.py!, 
@@ -268,6 +269,8 @@ The shock points and the fitted line are shown in Fig.\ref{cone20-shock-points-f
 \caption{Shock shape for Mach 1.5 flow over the 20-degree cone.}
 \label{cone20-shock-points-fig}
 \end{figure}
+
+\clearpage
 
 The script below uses the data reading and storage capability provided by 
 the class \texttt{StructuredGridFlow}, which is imported from \texttt{e3\_flow.py}.
@@ -376,7 +379,7 @@ mpirun -np 2 e3mpi.exe -f cone20 --run
 
 \end{itemize}
 
-
+\clearpage
 \section{Parametric modelling using Python}
 %
 Let's rework the simulation to explore the gas-dynamics a little more and also

@@ -7,7 +7,7 @@ geometric regions and specifying flow conditions.
 Because your specification script, \texttt{{\em job}.py}, 
 becomes a part of that program when it runs,
 it is worth the effort to learn just enough Python to be dangerous.
-The web site \url{http://www.python.org} is a good starting point for
+The web site \url{https://www.python.org} is a good starting point for
 learning about the Python programming language, however, Appendix\,\ref{python-notes-sec}
 may have enough information to get you started.
 
@@ -959,7 +959,7 @@ the \texttt{e3prep.py} program and these represent\footnote{The
     \item \verb”HypertanClusterFunction(dL0,dL1)”\index{univariate function!HypertanClusterFunction}
       sets the size of the first and last cell along a given line 
       as a faction of the non-clustered cell size. 
-      Setting $dL0 = 0.5; \, dL1 = 1$ results in the first cell having half the width and 
+      Setting \verb!dL0! = 0.5; \, \verb!dL1! = 1 results in the first cell having half the width and 
       the last cell having the same width as the non-clustered cell.
     \item \texttt{ValliammaiFunction(dL0, dL1, L, n)}\index{univariate function!ValliammaiFunction}
       See Adriaan's source code for definitions.
@@ -1840,10 +1840,10 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
 \item \texttt{dt\_chem}: suggested time-step for finite-rate chemistry update;
   default value of -1.0 indicates that we want the code to work it out.
 \item \texttt{dt\_therm}: default value -1.0.
-\item \texttt{gasdynamic\_update\_scheme}\ddag: one of: ``euler'', ``pc'', ``predictor-corrector'',
-  ``midpoint'', ``classic-rk3'', ``tvd-rk3'', ``denman-rk3''.
-  Default value is ``predictor-corrector''.
-  Note that ``pc'' is equivalent to ``predictor-corrector''.
+\item \verb!gasdynamic_update_scheme!\ddag: one of: \verb!'euler'!, \verb!'pc'!, \verb!'predictor-corrector'!,
+  \verb!'midpoint'!, \verb!'classic-rk3'!, \verb!'tvd-rk3'!, \verb!'denman-rk3'!.\newline
+  Default value is \verb!'predictor-corrector'!.\newline
+  Note that \verb!'pc'! is equivalent to \verb!'predictor-corrector'!.
   If you want time-accurate solutions, use a two- or three-stage stepping scheme,
   otherwise, Euler stepping has less computational expense 
   but you may get less accuracy and the code will not be as robust for the same CFL value.
@@ -1892,7 +1892,8 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
 \item \texttt{extrema\_clipping\_flag}: 1=do extrema clipping at end of 1D scalar reconstruction,
   default value 1.  A value of 0 suppresses clipping.
 \item \texttt{interpolation\_type}: string to choose the set of interpolation variables
-  to use in the interpolation, options are "rhoe", "rhop", "rhoT", "pT", default value "rhoe".
+  to use in the interpolation, options are \verb!"rhoe"!, \verb!"rhop"!, \verb!"rhoT"!, \verb!"pT"!,
+  default value \verb!"rhoe"!.
 \end{itemize}
 
 \paragraph{Flux calculator}
@@ -2013,7 +2014,7 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
 \item \texttt{electric\_field\_work\_flag}: 1=make $\vec{u} \cdot \nabla p_e$ source term in the electron energy equation active. default value 0.
 \end{itemize}
 
-
+\clearpage
 %------------------------------------------------------------------
 \section{Parameters for a 2D sketch of the flow domain}\index{sketch}
 %
@@ -2042,7 +2043,8 @@ to the corresponding points on a display page, as shown in Figure\,\ref{sketch-w
 \label{sketch-window-fig}
 \end{figure}
 
-\medskip\noindent
+\newpage
+\noindent
 Axes may also be drawn with:\\
 \texttt{sketch.xaxis(x0, x1, xtic, y\_offset)} \\
 \texttt{sketch.yaxis(y0, y1, ytic, x\_offset)} \\
@@ -2051,7 +2053,7 @@ the axes clear of the main sketch elements.
 Note that these axis parameters are specified in the coordinate system of the simulation space
 and that all values are in metres.
 Figure\,\ref{sketch-axes-fig} shows the axes as they are placed in the 20-degree cone
-example.
+example on page \pageref{cone20-geometry-fig}.
  
 \begin{figure}[htbp]
 \centering

@@ -275,13 +275,13 @@ and reformatted it for plotting, however, it has continued to sprout features an
 complex to describe.
 To see its command-line options, just run it without any options at all.
 It should then print a \textit{usage} message which provides some hints.
-As of 1$^{st}$ June 2013, this message is:
+As of 1$^{st}$ August 2015, this message is:
 
 \noindent
 {\footnotesize
 \begin{verbatim}
 Begin e3post.py...
-Source code revision string:  124700b0c003+ 1605+ default tip
+Source code revision string:  245f2e1c2af4+ 2320+ default tip
 
 Usage:
 e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|9999|last|all|xxxx>]
@@ -294,13 +294,14 @@ e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|9999|last|all|xxxx>]
           [--add-transport-coeffs --gmodel-file="gas-model.lua"]
           [--add-user-computed-vars="user-script.py"]
 
-          [--vtk-xml] [--binary-format] [--tecplot] [--plot3d]
+          [--vtk-xml] [--binary-format] [--tecplot] [--plot3d] [--OpenFoam]
 
           [--output-file=<profile-data-file>]
           [--slice-list="blk-range,i-range,j-range,k-range;..."]
           [--slice-at-point="blk-range,index-pair,x,y,z;..."]
           [--slice-along-line="x0,y0,z0,x1,y1,z1,N"]
           [--surface-list="blk,surface-name;..."]
+          [--local-surface-list="blk,surface-name;..."]
 
           [--static-flow-profile="blk,face-name;..."]
 
@@ -370,6 +371,11 @@ Whole-field output options:
      is the true grid as used by the simulation with mesh location at the nodes.  
      The second, with extension \texttt{.g}, has cell-centred values and accompanies 
      the cell-centred values in the \texttt{.f} file.
+  \item \texttt{--OpenFoam} This produces files usable in an OpenFOAM simulation.
+     It may be convenient to use our grid preparation tools (e3prep with Python script input)
+     to assemble a suitable set of grids and initial flow states but then run the simulation
+     with the \textit{other} CFD solver \url{http://www.openfoam.org/} but, being biased,
+     we wouldn't really like to talk about that here.
 \end{itemize}
 Data slicing and dicing options:
 \begin{itemize}
