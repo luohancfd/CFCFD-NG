@@ -552,29 +552,43 @@ void gradients_xy_leastsq(ref FVVertex vtx, bool diffusion)
 // Fit a linear model to the cloud of flow-quantity points
 // in order to extract approximations to the flow-field gradients.
 // 2D, built as a specialization of the 3D code.
+// Experiment with taking differences about a middle point/value.
 {
     double[4][2] xTx; // normal matrix, augmented to give 4 entries per row
     double[2] rhs, gradients;
     // Assemble and invert the normal matrix.
     // We'll reuse the resulting inverse for each flow-field quantity.
     size_t n = vtx.cloud_pos.length;
+    double x_mid = 0.0;
+    double y_mid = 0.0;
+    foreach (i; 0 .. n) {
+	x_mid += vtx.cloud_pos[i].x;
+	y_mid += vtx.cloud_pos[i].y;
+    }
+    x_mid /= n;
+    y_mid /= n;
     double xx = 0.0;
     double xy = 0.0;
     double yy = 0.0;
-    foreach (i; 1 .. n) {
-	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
-	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
+    foreach (i; 0 .. n) {
+	double dx = vtx.cloud_pos[i].x - x_mid;
+	double dy = vtx.cloud_pos[i].y - y_mid;
 	xx += dx*dx; xy += dx*dy; yy += dy*dy;
     }
     xTx[0][0] = xx; xTx[0][1] = xy; xTx[0][2] = 1.0; xTx[0][3] = 0.0;
     xTx[1][0] = xy; xTx[1][1] = yy; xTx[1][2] = 0.0; xTx[1][3] = 1.0;
     computeInverse!2(xTx);
     // x-velocity
+    double vx_mid = 0.0;
+    foreach (i; 0 .. n) {
+	vx_mid += vtx.cloud_fs[i].vel.x;
+    }
+    vx_mid /= n;
     rhs[0] = 0.0; rhs[1] = 0.0;
-    foreach (i; 1 .. n) {
-	double dvx = vtx.cloud_fs[i].vel.x - vtx.cloud_fs[0].vel.x;
-	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
-	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
+    foreach (i; 0 .. n) {
+	double dvx = vtx.cloud_fs[i].vel.x - vx_mid;
+	double dx = vtx.cloud_pos[i].x - x_mid;
+	double dy = vtx.cloud_pos[i].y - y_mid;
 	rhs[0] += dx*dvx; rhs[1] += dy*dvx;
     }
     solveGradients!2(xTx, rhs, gradients);
@@ -582,11 +596,16 @@ void gradients_xy_leastsq(ref FVVertex vtx, bool diffusion)
     vtx.grad_vel[0][1] = gradients[1];
     vtx.grad_vel[0][2] = 0.0;
     // y-velocity
+    double vy_mid = 0.0;
+    foreach (i; 0 .. n) {
+	vy_mid += vtx.cloud_fs[i].vel.y;
+    }
+    vy_mid /= n;
     rhs[0] = 0.0; rhs[1] = 0.0;
-    foreach (i; 1 .. n) {
-	double dvy = vtx.cloud_fs[i].vel.y - vtx.cloud_fs[0].vel.y;
-	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
-	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
+    foreach (i; 0 .. n) {
+	double dvy = vtx.cloud_fs[i].vel.y - vy_mid;
+	double dx = vtx.cloud_pos[i].x - x_mid;
+	double dy = vtx.cloud_pos[i].y - y_mid;
 	rhs[0] += dx*dvy; rhs[1] += dy*dvy;
     }
     solveGradients!2(xTx, rhs, gradients);
@@ -598,11 +617,16 @@ void gradients_xy_leastsq(ref FVVertex vtx, bool diffusion)
     vtx.grad_vel[2][1] = 0.0;
     vtx.grad_vel[2][2] = 0.0;
     // T[0]
+    double T_mid = 0.0;
+    foreach (i; 0 .. n) {
+	T_mid += vtx.cloud_fs[i].gas.T[0];
+    }
+    T_mid /= n;
     rhs[0] = 0.0; rhs[1] = 0.0;
-    foreach (i; 1 .. n) {
-	double dT = vtx.cloud_fs[i].gas.T[0] - vtx.cloud_fs[0].gas.T[0];
-	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
-	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
+    foreach (i; 0 .. n) {
+	double dT = vtx.cloud_fs[i].gas.T[0] - T_mid;
+	double dx = vtx.cloud_pos[i].x - x_mid;
+	double dy = vtx.cloud_pos[i].y - y_mid;
 	rhs[0] += dx*dT; rhs[1] += dy*dT;
     }
     solveGradients!2(xTx, rhs, gradients);
@@ -613,11 +637,16 @@ void gradients_xy_leastsq(ref FVVertex vtx, bool diffusion)
     size_t nsp = vtx.cloud_fs[0].gas.massf.length;
     if (diffusion) {
 	foreach(isp; 0 .. nsp) {
+	    double massf_mid = 0.0;
+	    foreach (i; 0 .. n) {
+		massf_mid += vtx.cloud_fs[i].gas.massf[isp];
+	    }
+	    massf_mid /= n;
 	    rhs[0] = 0.0; rhs[1] = 0.0;
-	    foreach (i; 1 .. n) {
-		double df = vtx.cloud_fs[i].gas.massf[isp] - vtx.cloud_fs[0].gas.massf[isp];
-		double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
-		double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
+	    foreach (i; 0 .. n) {
+		double df = vtx.cloud_fs[i].gas.massf[isp] - massf_mid;
+		double dx = vtx.cloud_pos[i].x - x_mid;
+		double dy = vtx.cloud_pos[i].y - y_mid;
 		rhs[0] += dx*df; rhs[1] += dy*df;
 	    }
 	    solveGradients!2(xTx, rhs, gradients);
@@ -633,11 +662,16 @@ void gradients_xy_leastsq(ref FVVertex vtx, bool diffusion)
 	} // foreach isp
     }
     // tke
+    double tke_mid = 0.0;
+    foreach (i; 0 .. n) {
+	tke_mid += vtx.cloud_fs[i].tke;
+    }
+    tke_mid /= n;
     rhs[0] = 0.0; rhs[1] = 0.0;
-    foreach (i; 1 .. n) {
-	double dtke = vtx.cloud_fs[i].tke - vtx.cloud_fs[0].tke;
-	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
-	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
+    foreach (i; 0 .. n) {
+	double dtke = vtx.cloud_fs[i].tke - tke_mid;
+	double dx = vtx.cloud_pos[i].x - x_mid;
+	double dy = vtx.cloud_pos[i].y - y_mid;
 	rhs[0] += dx*dtke; rhs[1] += dy*dtke;
     }
     solveGradients!2(xTx, rhs, gradients);
@@ -645,11 +679,16 @@ void gradients_xy_leastsq(ref FVVertex vtx, bool diffusion)
     vtx.grad_tke.refy = gradients[1];
     vtx.grad_tke.refz = 0.0;
     // omega
+    double omega_mid = 0.0;
+    foreach (i; 0 .. n) {
+	omega_mid += vtx.cloud_fs[i].omega;
+    }
+    omega_mid /= n;
     rhs[0] = 0.0; rhs[1] = 0.0;
-    foreach (i; 1 .. n) {
-	double domega = vtx.cloud_fs[i].omega - vtx.cloud_fs[0].omega;
-	double dx = vtx.cloud_pos[i].x - vtx.cloud_pos[0].x;
-	double dy = vtx.cloud_pos[i].y - vtx.cloud_pos[0].y;
+    foreach (i; 0 .. n) {
+	double domega = vtx.cloud_fs[i].omega - omega_mid;
+	double dx = vtx.cloud_pos[i].x - x_mid;
+	double dy = vtx.cloud_pos[i].y - y_mid;
 	rhs[0] += dx*domega; rhs[1] += dy*domega;
     }
     solveGradients!2(xTx, rhs, gradients);
