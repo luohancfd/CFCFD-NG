@@ -25,6 +25,7 @@ SOLID_FILES := solid/solidbc.d \
 	solid/solidfvinterface.d \
 	solid/solidfvvertex.d \
 	solid/solidprops.d \
+	solid/solidsolution.d \
 	solid/solid_udf_source_terms.d \
 	solid/luasolidprops.d
 

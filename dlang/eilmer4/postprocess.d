@@ -26,6 +26,7 @@ import gas;
 import globalconfig;
 import readconfig;
 import flowsolution;
+import solidsolution;
 
 
 void post_process(string plotDir, bool listInfoFlag, string tindxPlot,
@@ -64,8 +65,9 @@ void post_process(string plotDir, bool listInfoFlag, string tindxPlot,
     if (listInfoFlag) {
 	writeln("Some information about this simulation.");
 	writeln("  nBlocks= ", GlobalConfig.nBlocks);
+	writeln("  nSolidBlocks= ", GlobalConfig.nSolidBlocks);
 	writeln("  last tindx= ", tindx_list[$-1]);
-	writeln("  Variables:");
+	writeln("  Flow Variables:");
 	// Dip into the top of a solution file that is likely to be present
 	// to get the variable names, as saved by the simulation.
 	string fileName = make_file_name!"flow"(jobName, to!int(0), 0);
@@ -79,6 +81,22 @@ void post_process(string plotDir, bool listInfoFlag, string tindxPlot,
 	foreach (i; 0 .. variableNames.length) {
 	    writeln(format("%4d %s", i, variableNames[i]));
 	}
+	if ( GlobalConfig.nSolidBlocks > 0 ) {
+	    writeln("  Solid Variables:");
+	    // Dip into the top of a solid solution file that is
+	    // likely to be present to get the variable names
+	    // as saved by the simulation.
+	    fileName = make_file_name!"solid"(jobName, 0, 0);
+	    byLine = new GzipByLine(fileName);
+	    line = byLine.front; byLine.popFront();
+	    formattedRead(line, " %g", &sim_time);
+	    line = byLine.front; byLine.popFront();
+	    variableNames = line.strip().split();
+	    foreach (ref var; variableNames) { var = removechars(var, "\""); }
+	    foreach (i; 0 .. variableNames.length) {
+		writeln(format("%4d %s", i, variableNames[i]));
+	    }
+	} // end if nSolidBlocks > 0
     } // end if listInfoFlag
     //
     if (vtkxmlFlag) {
@@ -93,6 +111,18 @@ void post_process(string plotDir, bool listInfoFlag, string tindxPlot,
 	    write_VTK_XML_files(jobName, plotDir, soln, tindx, binary_format);
 	} // foreach tindx
 	finish_PVD_file(jobName, plotDir);
+	if ( GlobalConfig.nSolidBlocks > 0 ) {
+	    writeln("writing solid VTK-XML files to directory \"", plotDir, "\"");
+	    begin_Visit_file(jobName~"-solid", plotDir, GlobalConfig.nSolidBlocks);
+	    begin_PVD_file(jobName~"-solid", plotDir);
+	    foreach (tindx; tindx_list_to_plot) {
+		writeln("  tindx= ", tindx);
+		auto soln = new SolidSolution(jobName, ".", tindx, GlobalConfig.nSolidBlocks);
+		if (luaRefSoln.length > 0) soln.subtract_ref_soln(luaRefSoln);
+		write_VTK_XML_files(jobName, plotDir, soln, tindx, binary_format);
+	    } // foreach tindx
+	    finish_PVD_file(jobName~"-solid", plotDir);
+	} // end if nSolidBlocks > 0
     } // end if vtkxml
     //
     if (tecplotFlag) {
@@ -104,6 +134,15 @@ void post_process(string plotDir, bool listInfoFlag, string tindxPlot,
 	    if (luaRefSoln.length > 0) soln.subtract_ref_soln(luaRefSoln);
 	    write_Tecplot_file(jobName, plotDir, soln, tindx);
 	} // foreach tindx
+	if ( GlobalConfig.nSolidBlocks > 0 ) {
+	    writeln("writing solid Tecplot file(s) to directory \"", plotDir, "\"");
+	    foreach (tindx; tindx_list_to_plot) {
+		writeln("  tindx= ", tindx);
+		auto soln = new SolidSolution(jobName, ".", tindx, GlobalConfig.nSolidBlocks);
+		if (luaRefSoln.length > 0) soln.subtract_ref_soln(luaRefSoln);
+		write_Tecplot_file(jobName, plotDir, soln, tindx);
+	    } // foreach tindx
+	} // end if nSolidBlocks > 0
     } // end if tecplot
     //
     if (probeStr.length > 0) {
@@ -336,6 +375,57 @@ void write_VTK_XML_files(string jobName, string plotDir,
     // Note that we append to the .pvd file for each tindx.
     auto pvdFile = File(fileName, "a");
     fileName = jobName ~ format(".t%04d.pvtu", tindx);
+    pvdFile.writef("<DataSet timestep=\"%e\" group=\"\" part=\"0\" file=\"%s\"/>\n",
+		   soln.sim_time, fileName);
+    pvdFile.close();
+    return;
+} // end write_VTK_XML_files()
+
+// This version is for writing out solid domain files
+void write_VTK_XML_files(string jobName, string plotDir,
+			 SolidSolution soln, int tindx,
+			 bool binary_format=false)
+{
+    ensure_directory_is_present(plotDir);
+    string fileName = plotDir~"/"~jobName~format("-solid.t%04d", tindx)~".pvtu";
+    auto pvtuFile = File(fileName, "w");
+    pvtuFile.write("<VTKFile type=\"PUnstructuredGrid\">\n");
+    pvtuFile.write("<PUnstructuredGrid GhostLevel=\"0\">");
+    pvtuFile.write("<PPoints>\n");
+    pvtuFile.write(" <PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n");
+    pvtuFile.write("</PPoints>\n");
+    pvtuFile.write("<PCellData>\n");
+    foreach (var; soln.solidBlocks[0].variableNames) {
+        pvtuFile.writef(" <DataArray Name=\"%s\" type=\"Float32\" NumberOfComponents=\"1\"/>\n", var);
+    }
+    pvtuFile.write("</PCellData>\n");
+    foreach (jb; 0 .. soln.nBlocks) {
+        fileName = jobName~format("-solid.b%04d.t%04d.vtu", jb, tindx);
+        // We write the short version of the fileName into the pvtu file.
+        pvtuFile.writef("<Piece Source=\"%s\"/>\n", fileName);
+        // but use the long version to actually open it.
+        fileName = plotDir ~ "/" ~ fileName;
+        write_VTK_XML_unstructured_file(soln, jb, fileName, binary_format);
+    }
+    pvtuFile.write("</PUnstructuredGrid>\n");
+    pvtuFile.write("</VTKFile>\n");
+    pvtuFile.close();
+    // Will be handy to have a Visit file, also.
+    // This justs lists the names of the files for individual blocks.
+    fileName = plotDir ~ "/" ~ jobName ~ "-solid.visit";
+    // Note that we append to the visit file for each tindx.
+    auto visitFile = File(fileName, "a");
+    foreach (jb; 0 .. soln.nBlocks) {
+        fileName = jobName ~ format("-solid.b%04d.t%04d.vtu", jb, tindx);
+        visitFile.writef("%s\n", fileName);
+    }
+    visitFile.close();
+    // Will be handy to have a Paraview PVD file, also.
+    // This justs lists the top-level .pvtu files.
+    fileName = plotDir ~ "/" ~ jobName ~ "-solid.pvd";
+    // Note that we append to the .pvd file for each tindx.
+    auto pvdFile = File(fileName, "a");
+    fileName = jobName ~ format("-solid.t%04d.pvtu", tindx);
     pvdFile.writef("<DataSet timestep=\"%e\" group=\"\" part=\"0\" file=\"%s\"/>\n",
 		   soln.sim_time, fileName);
     pvdFile.close();
@@ -659,6 +749,226 @@ void write_VTK_XML_unstructured_file(FlowSolution soln, size_t jb,
     return;
 } // end write_VTK_XML_unstructured_file()
 
+
+// This version is for the solid domain.
+void write_VTK_XML_unstructured_file(SolidSolution soln, size_t jb, 
+				     string fileName, bool binary_format)
+// Write the cell-centred flow data from a single block (index jb)
+// as an unstructured grid of finite-volume cells.
+{
+    auto fp = File(fileName, "wb"); // We may be writing some binary data.
+    auto solid = soln.solidBlocks[jb];
+    auto grid = soln.gridBlocks[jb];
+    ubyte[] binary_data_string;
+    ubyte[] binary_data;
+    int binary_data_offset = 0;
+    size_t niv = grid.niv; size_t njv = grid.njv; size_t nkv = grid.nkv;
+    size_t nic = solid.nic; size_t njc = solid.njc; size_t nkc = solid.nkc;
+    bool two_D = (nkv == 1);
+    size_t NumberOfPoints = niv * njv * nkv;
+    size_t NumberOfCells = nic * njc * nkc;
+    fp.write("<VTKFile type=\"UnstructuredGrid\" byte_order=\"BigEndian\">\n");
+    fp.write("<UnstructuredGrid>");
+    fp.writef("<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n",
+	      NumberOfPoints, NumberOfCells);
+    //
+    fp.write("<Points>\n");
+    fp.write(" <DataArray type=\"Float32\" NumberOfComponents=\"3\"");
+    if (binary_format) {
+	fp.writef(" format=\"appended\" offset=\"%d\">", binary_data_offset);
+	binary_data.length=0;
+    } else {
+        fp.write(" format=\"ascii\">\n");
+    }
+    size_t vtx_number = 0;
+    size_t[][][] vtx_id;
+    vtx_id.length = niv;
+    foreach (i; 0 .. niv) {
+	vtx_id[i].length = njv;
+	foreach (j; 0 .. njv) {
+	    vtx_id[i][j].length = nkv;
+	}
+    }
+    foreach (k; 0 .. nkv) {
+        foreach (j; 0 .. njv) {
+            foreach (i; 0 .. niv) {
+                vtx_id[i][j][k] = vtx_number;
+                float x = uflowz(grid.grid[i][j][k].x);
+		float y = uflowz(grid.grid[i][j][k].y);
+		float z = uflowz(grid.grid[i][j][k].z);
+                if (binary_format) {
+		    binary_data ~= nativeToBigEndian(x);
+		    binary_data ~= nativeToBigEndian(y);
+		    binary_data ~= nativeToBigEndian(z);
+                } else {
+                    fp.writef(" %e %e %e\n", x,y,z);
+		}
+                vtx_number += 1;
+	    }
+	}
+    }
+    fp.write(" </DataArray>\n");
+    if (binary_format) {
+        uint32_t binary_data_count = to!uint32_t(binary_data.length); // 4-byte count of bytes
+        binary_data_string ~= nativeToBigEndian(binary_data_count);
+        binary_data_string ~= binary_data;
+        binary_data_offset += 4 + binary_data.length;
+    }
+    fp.write("</Points>\n");
+    //
+    fp.write("<Cells>\n");
+    fp.write(" <DataArray type=\"Int32\" Name=\"connectivity\"");
+    if (binary_format) {
+	fp.writef(" format=\"appended\" offset=\"%d\">", binary_data_offset);
+	binary_data.length = 0;
+    } else {
+        fp.write(" format=\"ascii\">\n");
+    }
+    foreach (k; 0 .. nkc) {
+        foreach (j; 0 .. njc) {
+            foreach (i; 0 .. nic) {
+                if (two_D) {
+                    auto ids = [vtx_id[i][j][k], vtx_id[i+1][j][k],
+				vtx_id[i+1][j+1][k], vtx_id[i][j+1][k]];
+                    if (binary_format) {
+			foreach (id; ids) { binary_data ~= nativeToBigEndian(to!int32_t(id)); }
+                    } else {
+                        fp.writef(" %d %d %d %d\n", ids[0], ids[1], ids[2], ids[3]);
+		    }
+                } else {
+                    auto ids = [vtx_id[i][j][k], vtx_id[i+1][j][k], 
+				vtx_id[i+1][j+1][k], vtx_id[i][j+1][k],
+				vtx_id[i][j][k+1], vtx_id[i+1][j][k+1], 
+				vtx_id[i+1][j+1][k+1], vtx_id[i][j+1][k+1]];
+                    if (binary_format) {
+			foreach (id; ids) { binary_data ~= nativeToBigEndian(to!int32_t(id)); }
+                    } else {
+                        fp.writef(" %d %d %d %d %d %d %d %d\n", ids[0], ids[1], ids[2],
+				  ids[3], ids[4], ids[5], ids[6], ids[7]);
+		    }
+		}
+	    } // end foreach i
+	} // end foreach j
+    } // end foreach k
+    fp.write(" </DataArray>\n");
+    if (binary_format) {
+        uint32_t binary_data_count = to!uint32_t(binary_data.length); // 4-byte count of bytes
+        binary_data_string ~= nativeToBigEndian(binary_data_count);
+        binary_data_string ~= binary_data;
+        binary_data_offset += 4 + binary_data.length;
+    }
+    //
+    fp.write(" <DataArray type=\"Int32\" Name=\"offsets\"");
+    if (binary_format) {
+	fp.writef(" format=\"appended\" offset=\"%d\">", binary_data_offset);
+	binary_data.length = 0;
+    } else {
+        fp.write(" format=\"ascii\">\n");
+    }
+    // Since all of the point-lists are concatenated, these offsets into the connectivity
+    // array specify the end of each cell.
+    foreach (k; 0 .. nkc) {
+        foreach (j; 0 .. njc) {
+            foreach (i; 0 .. nic) {
+		size_t conn_offset;
+                if (two_D) {
+                    conn_offset = 4*(1+i+j*nic);
+                } else {
+                    conn_offset = 8*(1+i+j*nic+k*(nic*njc));
+		}
+		if (binary_format) {
+                    binary_data ~= nativeToBigEndian(to!int32_t(conn_offset));
+                } else {
+                    fp.writef(" %d\n", conn_offset);
+		}
+	    } // end foreach i
+	} // end foreach j
+    } // end foreach k
+    fp.write(" </DataArray>\n");
+    if (binary_format) {
+        uint32_t binary_data_count = to!uint32_t(binary_data.length); // 4-byte count of bytes
+        binary_data_string ~= nativeToBigEndian(binary_data_count);
+        binary_data_string ~= binary_data;
+        binary_data_offset += 4 + binary_data.length;
+    }
+    //
+    fp.write(" <DataArray type=\"UInt8\" Name=\"types\"");
+    if (binary_format) {
+        fp.writef(" format=\"appended\" offset=\"%d\">", binary_data_offset);
+        binary_data.length = 0;
+    } else {
+        fp.write(" format=\"ascii\">\n");
+    }
+    int type_value;
+    if (two_D) {
+        type_value = 9; // VTK_QUAD
+    } else {
+        type_value = 12; // VTK_HEXAHEDRON
+    }
+    foreach (k; 0 .. nkc) {
+        foreach (j; 0 .. njc) {
+            foreach (i; 0 .. nic) {
+                if (binary_format) {
+                    binary_data ~= nativeToBigEndian(to!uint8_t(type_value));
+                } else {
+                    fp.writef(" %d\n", type_value);
+		}
+	    } // end foreach i
+	} // end foreach j
+    } // end foreach k
+    fp.write(" </DataArray>\n");
+    if (binary_format) {
+        uint32_t binary_data_count = to!uint32_t(binary_data.length); // 4-byte count of bytes
+        binary_data_string ~= nativeToBigEndian(binary_data_count);
+        binary_data_string ~= binary_data;
+        binary_data_offset += 4 + binary_data.length;
+    }
+    fp.write("</Cells>\n");
+    //
+    fp.write("<CellData>\n");
+    // Write variables from the dictionary.
+    foreach (var; solid.variableNames) {
+        fp.writef(" <DataArray Name=\"%s\" type=\"Float32\" NumberOfComponents=\"1\"", var);
+        if (binary_format) {
+	    fp.writef(" format=\"appended\" offset=\"%d\">", binary_data_offset);
+	    binary_data.length = 0;
+        } else {
+            fp.write(" format=\"ascii\">\n");
+	}
+        foreach (k; 0 .. nkc) {
+            foreach (j; 0 .. njc) {
+                foreach (i; 0 .. nic) {
+                    if (binary_format) {
+                        binary_data ~= nativeToBigEndian(to!float(uflowz(solid[var,i,j,k])));
+                    } else {
+                        fp.writef(" %e\n", uflowz(solid[var,i,j,k]));
+		    }
+		} // end foreach i
+	    } // end foreach j
+	} // end foreach k
+	fp.write(" </DataArray>\n");
+        if (binary_format) {
+	    uint32_t binary_data_count = to!uint32_t(binary_data.length); // 4-byte count of bytes
+	    binary_data_string ~= nativeToBigEndian(binary_data_count);
+	    binary_data_string ~= binary_data;
+	    binary_data_offset += 4 + binary_data.length;
+	}
+    } // end foreach var
+    //
+    fp.write("</CellData>\n");
+    fp.write("</Piece>\n");
+    fp.write("</UnstructuredGrid>\n");
+    if (binary_format) {
+        fp.write("<AppendedData encoding=\"raw\">\n");
+        fp.write('_');
+        fp.rawWrite(binary_data_string);
+        fp.write("</AppendedData>\n");
+    }
+    fp.write("</VTKFile>\n");
+    fp.close();
+    return;
+} // end write_VTK_XML_unstructured_file()
+
 //-----------------------------------------------------------------------
 
 void write_Tecplot_file(string jobName, string plotDir,
@@ -725,6 +1035,82 @@ void write_Tecplot_file(string jobName, string plotDir,
 		foreach (j; 0 .. njc) {
 		    foreach (i; 0 .. nic) { 
 			fp.writef(" %e", uflowz(flow[var,i,j,k]));
+			if (i > 0 && i < nic-1 && ((i+1)%10 == 0)) fp.write("\n");
+		    }
+		    fp.write("\n");
+		} // j
+	    } // k
+	} // var
+    } // jb
+    fp.close();
+    return;
+} // end write_Tecplot_file()
+
+// This is the solid domain version.
+void write_Tecplot_file(string jobName, string plotDir,
+			SolidSolution soln, int tindx)
+{
+    ensure_directory_is_present(plotDir);
+    string fileName = plotDir~"/"~jobName~format(".t%04d", tindx)~".tec";
+    auto fp = File(fileName, "w");
+    fp.writef("TITLE=\"Job=%s time=%e\"\n", jobName, soln.sim_time);
+    fp.write("VARIABLES= \"X\", \"Y\", \"Z\"");
+    size_t n_centered_vars = 0;
+    foreach (var; soln.solidBlocks[0].variableNames) {
+        if (var == "pos.x" || var == "pos.y" || var == "pos.z") continue;
+        fp.writef(", \"%s\"", var);
+        n_centered_vars += 1;
+    }
+    fp.write("\n");
+    //centered_list_str = str(range(4,4+n_centered_vars))
+    foreach (jb; 0 .. soln.nBlocks) {
+	auto solid = soln.solidBlocks[jb];
+	auto grid = soln.gridBlocks[jb];
+        size_t nic = solid.nic; size_t njc = solid.njc; size_t nkc = solid.nkc;
+        size_t niv = grid.niv; size_t njv = grid.njv; size_t nkv = grid.nkv;
+        fp.writef("ZONE I=%d J=%d K=%d DATAPACKING=BLOCK", niv, njv, nkv);
+        fp.writef(" SOLUTIONTIME=%e", soln.sim_time);
+        fp.write(" VARLOCATION=([4");
+	foreach(i; 5 .. 4+n_centered_vars) { fp.writef(",%d", i); }
+	fp.writef("]=CELLCENTERED) T=\"block-%d\"\n", jb);
+        fp.write("# cell-vertex pos.x\n");
+        foreach (k; 0 .. nkv) {
+            foreach (j; 0 .. njv) {
+                foreach (i; 0 .. niv) { 
+		    fp.writef(" %e", uflowz(grid[i,j,k].x));
+		    // New line after every 10 values.
+		    if (i > 0 && i < niv-1 && ((i+1)%10 == 0)) fp.write("\n");
+		}
+                fp.write("\n");
+	    } // j
+	} // k
+	fp.write("# cell-vertex pos.y\n");
+        foreach (k; 0 .. nkv) {
+            foreach (j; 0 .. njv) {
+                foreach (i; 0 .. niv) { 
+		    fp.writef(" %e", uflowz(grid[i,j,k].y));
+		    if (i > 0 && i < niv-1 && ((i+1)%10 == 0)) fp.write("\n");
+		}
+                fp.write("\n");
+	    } // j
+	} // k
+	fp.write("# cell-vertex pos.z\n");
+        foreach (k; 0 .. nkv) {
+            foreach (j; 0 .. njv) {
+                foreach (i; 0 .. niv) { 
+		    fp.writef(" %e", uflowz(grid[i,j,k].z));
+		    if (i > 0 && i < niv-1 && ((i+1)%10 == 0)) fp.write("\n");
+		}
+                fp.write("\n");
+	    } // j
+	} // k
+	foreach (var; soln.solidBlocks[0].variableNames) {
+	    if (var == "pos.x" || var == "pos.y" || var == "pos.z") continue;
+            fp.writef("# cell-centre %s\n", var);
+	    foreach (k; 0 .. nkc) {
+		foreach (j; 0 .. njc) {
+		    foreach (i; 0 .. nic) { 
+			fp.writef(" %e", uflowz(solid[var,i,j,k]));
 			if (i > 0 && i < nic-1 && ((i+1)%10 == 0)) fp.write("\n");
 		    }
 		    fp.write("\n");
