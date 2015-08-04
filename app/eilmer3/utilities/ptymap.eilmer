@@ -1,4 +1,4 @@
-23 # 2d-ptys (currently Gridpro limits this to a maximum of 32)
+25 # 2d-ptys (currently Gridpro limits this to a maximum of 32)
 #pdc-id & pdc-name  & mapped-name & label      #comments
 1       & INTERBLK  & INTERBLK    &*INTERBLK   #Gridpro default
 2       & BOUNDARY  & BOUNDARY    &*BOUNDARY   #Gridpro default
