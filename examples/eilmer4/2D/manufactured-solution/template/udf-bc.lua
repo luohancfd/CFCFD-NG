@@ -64,6 +64,15 @@ function p(x, y)
           + S(x,y)*pxy*sin(apxy*pi*x*y/(L*L))
 end
 
+function refSoln(x, y, z)
+   t = {}
+   t.p = p(x, y)
+   t.rho = rho(x, y)
+   t["vel.x"] = u(x, y)
+   t["vel.y"] = v(x, y)
+   return t
+end
+
 function fillTable(t, x, y)
    t.p = p(x, y)
    t_rho = rho(x, y)
@@ -157,3 +166,4 @@ end
 function interface_west(args)
    return interface(args)
 end
+
