@@ -1465,7 +1465,7 @@ def write_OpenFoam_unstructured_file(fp0, fp1, fp2, fp3, fp4, jb, grid, flow, ax
                             z = z_set[1]
                 else:
                     x,y,z = uflowz(grid.x[i,j,k]), uflowz(grid.y[i,j,k]), uflowz(grid.z[i,j,k])
-                fp0.write("(%e %e %e)\n" % (x,y,z))
+                fp0.write("(%20.16e %20.16e %20.16e)\n" % (x,y,z))
     # faces, owner and neighbour
     # faces header
     fp1.write("    class       faceList;\n")
