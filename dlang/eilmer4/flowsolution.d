@@ -129,9 +129,6 @@ public:
 	double volume_sum = 0.0;
 	foreach (ib; 0 .. nBlocks) {
 	    auto flow = flowBlocks[ib];
-	    if (!canFind(flow.variableNames, varName)) {
-		throw new Error(format("Requested variable name \"%s\" not in list.", varName));
-	    }
 	    foreach (k; 0 .. flow.nkc) {
 		foreach (j; 0 .. flow.njc) {
 		    foreach (i; 0 .. flow.nic) {

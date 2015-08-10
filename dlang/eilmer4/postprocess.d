@@ -228,13 +228,36 @@ void post_process(string plotDir, bool listInfoFlag, string tindxPlot,
 	    soln.add_aux_variables(addVarsList);
 	    if (luaRefSoln.length > 0) soln.subtract_ref_soln(luaRefSoln);
 	    //
+	    auto solidSoln = new SolidSolution(jobName, ".", tindx, GlobalConfig.nSolidBlocks);
+	    if (luaRefSoln.length > 0) solidSoln.subtract_ref_soln(luaRefSoln);
+	    //
+	    // Work on flow blocks first
 	    foreach (varName; normsStr.split(",")) {
+		if (!canFind(soln.flowBlocks[0].variableNames, varName)) {
+		    writeln(format("Requested variable name \"%s\" not in list of flow variables.", varName));
+		    writeln("Will continue to look in list of solid variables.");
+		break;
+		}
 		auto norms = soln.compute_volume_weighted_norms(varName, regionStr);
-		write("    variable= ", varName);
-		write(" L1= ", norms[0], " L2= ", norms[1]);
-		write(" Linf= ", norms[2], " x= ", norms[3], " y= ", norms[4], " z= ", norms[5]);
+		write("    variable= ", varName, "\n");
+		write(format(" L1= %14.12e L2= %12.12e Linf= %14.12e\n",
+			     norms[0], norms[1], norms[2]));
+		write(" x= ", norms[3], " y= ", norms[4], " z= ", norms[5]);
 		write("\n");
-	    }
+	    } // end foreach varName
+	    // Then work on solid blocks
+	    foreach (varName; normsStr.split(",")) {
+		if (!canFind(solidSoln.solidBlocks[0].variableNames, varName)) {
+		    writeln(format("Requested variable name \"%s\" not in list of solid variables.", varName));
+		break;
+		}
+		auto norms = solidSoln.compute_volume_weighted_norms(varName, regionStr);
+		write("    variable= ", varName, "\n");
+		write(format(" L1= %14.12e L2= %12.12e Linf= %14.12e\n",
+			     norms[0], norms[1], norms[2]));
+		write(" x= ", norms[3], " y= ", norms[4], " z= ", norms[5]);
+		write("\n");
+	    } // end foreach varName
 	} // end foreach tindx
     } // end if normsStr
     //

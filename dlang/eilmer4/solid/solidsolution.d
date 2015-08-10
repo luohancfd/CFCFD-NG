@@ -114,9 +114,6 @@ public:
 	double volume_sum = 0.0;
 	foreach (ib; 0 .. nBlocks) {
 	    auto solid = solidBlocks[ib];
-	    if (!canFind(solid.variableNames, varName)) {
-		throw new Error(format("Requested variable name \"%s\" not in list.", varName));
-	    }
 	    foreach (k; 0 .. solid.nkc) {
 		foreach (j; 0 .. solid.njc) {
 		    foreach (i; 0 .. solid.nic) {
