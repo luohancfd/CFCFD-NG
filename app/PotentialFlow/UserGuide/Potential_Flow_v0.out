@@ -1,0 +1,19 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{Compatibility}{section.1}% 2
+\BOOKMARK [2][-]{subsection.1.2}{Citing this tool}{section.1}% 3
+\BOOKMARK [1][-]{section.2}{Distribution and Installation}{}% 4
+\BOOKMARK [2][-]{subsection.2.1}{Modifying the code}{section.2}% 5
+\BOOKMARK [1][-]{section.3}{Using the Tool: 5-minute version for experienced python Users}{}% 6
+\BOOKMARK [2][-]{subsection.3.1}{5-minute version for experienced python Users}{section.3}% 7
+\BOOKMARK [1][-]{section.4}{Using the Tool: Detailed}{}% 8
+\BOOKMARK [2][-]{subsection.4.1}{Creating your Flow field}{section.4}% 9
+\BOOKMARK [3][-]{subsubsection.4.1.1}{Building Blocks}{subsection.4.1}% 10
+\BOOKMARK [2][-]{subsection.4.2}{Creating the Flow-Field and calculating PSI, u and v}{section.4}% 11
+\BOOKMARK [2][-]{subsection.4.3}{Plotting data}{section.4}% 12
+\BOOKMARK [3][-]{subsubsection.4.3.1}{Plotting Functions}{subsection.4.3}% 13
+\BOOKMARK [2][-]{subsection.4.4}{Extracting data}{section.4}% 14
+\BOOKMARK [3][-]{subsubsection.4.4.1}{Extraction Functions}{subsection.4.4}% 15
+\BOOKMARK [1][-]{section.5}{Example - Vortex near wall}{}% 16
+\BOOKMARK [1][-]{section.6}{References}{}% 17
+\BOOKMARK [1][-]{section.7}{Appendix}{}% 18
+\BOOKMARK [2][-]{subsection.7.1}{Source Code Potential\137Flow.py}{section.7}% 19
