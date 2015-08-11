@@ -221,13 +221,13 @@ void read_config_file()
     } 
 
     // Read in any blocks in the solid domain.
-    auto udf_solid_source_terms = getJSONbool(jsonData, "udf_solid_source_terms", false);
-    auto udf_solid_source_terms_file = jsonData["udf_solid_source_terms_file"].str;
+    GlobalConfig.udfSolidSourceTerms = getJSONbool(jsonData, "udf_solid_source_terms", false);
+    GlobalConfig.udfSolidSourceTermsFile = jsonData["udf_solid_source_terms_file"].str;
     GlobalConfig.nSolidBlocks = getJSONint(jsonData, "nsolidblock", 0);
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  nSolidBlocks: ", GlobalConfig.nSolidBlocks);
-	writeln("  udf_solid_source_terms: ", udf_solid_source_terms);
-	writeln("  udf_solid_source_terms_file: ", udf_solid_source_terms_file);
+	writeln("  udf_solid_source_terms: ", GlobalConfig.udfSolidSourceTerms);
+	writeln("  udf_solid_source_terms_file: ", GlobalConfig.udfSolidSourceTermsFile);
     }
     foreach (i; 0 .. GlobalConfig.nSolidBlocks) {
 	solidBlocks ~= new SSolidBlock(i, jsonData["solid_block_" ~ to!string(i)]);
@@ -238,8 +238,8 @@ void read_config_file()
     foreach (sblk; solidBlocks) {
 	sblk.initLuaGlobals();
 	sblk.initBoundaryConditions(jsonData["solid_block_" ~ to!string(sblk.id)]);
-	if ( udf_solid_source_terms ) {
-	    initUDFSolidSourceTerms(sblk.myL, udf_solid_source_terms_file);
+	if ( GlobalConfig.udfSolidSourceTerms ) {
+	    initUDFSolidSourceTerms(sblk.myL, GlobalConfig.udfSolidSourceTermsFile);
 	}
     }
 } // end read_config_file()

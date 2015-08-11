@@ -26,6 +26,8 @@ void addUDFSourceTermsToSolidCell(lua_State* L, SolidFVCell cell, double t)
 {
     // Push user function onto TOS
     lua_getglobal(L, "solidSourceTerms");
+    // Push sim_time onto TOS
+    lua_pushnumber(L, t);
     // Push useful data into an arguments table
     lua_newtable(L);
     lua_pushnumber(L, cell.pos.x); lua_setfield(L, -2, "x");
@@ -33,7 +35,7 @@ void addUDFSourceTermsToSolidCell(lua_State* L, SolidFVCell cell, double t)
     lua_pushnumber(L, cell.pos.z); lua_setfield(L, -2, "z");
     lua_pushnumber(L, cell.volume); lua_setfield(L, -2, "vol");
     // Call solidSourceTerms function with (args)
-    int number_args = 1;
+    int number_args = 2;
     int number_results = 1;
 
     if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
