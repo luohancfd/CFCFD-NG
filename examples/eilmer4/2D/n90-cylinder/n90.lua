@@ -13,6 +13,9 @@ inflow = FlowState:new{p=500.0, T=700.0, velx=5000.0, massf={1.0, 0.0}}
 initial = FlowState:new{p=5.0, T=300.0, massf={1.0, 0.0}}
 print("GasModel set nsp= ", nsp, " nmodes= ", nmodes)
 
+config.reacting = true
+config.reactions_file = 'e4-chem.lua'
+
 print "Building grid."
 a = Vector3:new{0.045,    0.0}
 b = Vector3:new{0.0,      0.0}
@@ -52,5 +55,5 @@ config.flux_calc = ADAPTIVE
 config.max_time = 100.0e-6
 config.max_step = 40000
 config.dt_init = 1.0e-9
-config.cfl_value = 0.05 -- this is tiny, but the calculation iterates -- FIX-ME
+config.cfl_value = 0.5 
 config.dt_plot = 20.0e-6
