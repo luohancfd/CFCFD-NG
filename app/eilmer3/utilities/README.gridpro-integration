@@ -1,0 +1,25 @@
+To install Eilmer3 property map for Gridpro, when using 'az':
+
+1. Copy ptymap.eilmer to $GRIDPRO/az_mngr/
+
+2. Copy outU_eilmer.script to $GRIDPRO/az_mngr/
+
+3. Add execution permission for the script:
+    
+    $ chmod u+x $GRIDPRO/az_mngr/outU_eilmer.script
+
+4. Add following line to file $GRIDPRO/az_mngr/ptymap.menu:
+
+    Eilmer &pty=Eilmer & ptymap.eilmer
+
+5. Add the following line to the file $GRIDPRO/az_mngr/gridfmt.menu
+
+    Eilmer &Eilmer & outU_eilmer.script& unused
+
+Now, 'Eilmer' should appear in the list of solvers to select
+from when setting "properties", ie. boundary conditions. When saving
+your grid, gridpro will prompt you for a filename, and tell you that it
+is saving as "Eilmer3 format". All it is really doing is copying the 
+gridpro formatted files to whatever filename you specify, use e3prep.py
+to actually make the grid as per the examples.
+

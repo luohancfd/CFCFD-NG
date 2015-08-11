@@ -1,0 +1,7 @@
+#! /bin/bash
+cp $1 $2
+cp $1".conn" $2".conn"
+cp $1".pty" $2".pty"
+
+echo "Output copied to Gridpro format."
+echo "Run e3prep.py to actually do the convert"
