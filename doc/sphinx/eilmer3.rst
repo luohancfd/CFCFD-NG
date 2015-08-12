@@ -132,69 +132,88 @@ the High-Performance Computing Unit at The University of Queensland
 and is a much larger machine, with a little over 3000 cores, running
 SUSE Enterprise Linux.
 
+These instructions are current as of August, 2015.
+
 Set up your environment by adding the following lines to your ``.bashrc`` file::
 
     module purge
     module load mercurial
-    module load intel-cc-13
-    module load intel-mpi
+    module load intel-cc-13/13.0.1
+    module load intel-mpi/4.0.1.007
     export PATH=${PATH}:${HOME}/e3bin
     export LUA_PATH=${HOME}/e3bin/?.lua
     export LUA_CPATH=${HOME}/e3bin/?.so
 
-Get yourself an interactive shell on a compute node so that you don't
-hammer the login node while compiling.  You won't make friends if you
-keep the login node excessively busy::
+It's best to copy the code into the ``30days`` filesystem
+before compiling::
 
-    $ qsub -I -A uq
+    $ rsync -zav --exclude=".hg" cfcfd3 /30days/$USER
 
-To compile the MPI-version of the code, use the command::
+To compile the MPI-version of the code, use the commands::
 
+    $ cd /30days/$USER/cfcfd3/app/eilmer3/build
     $ make TARGET=for_intel_mpi install
-
-from the ``cfcfd3/app/eilmer3/build/`` directory.
 
 Optionally, clean up after the build::
 
     $ make clean
 
-To submit a job to PBS-Pro, which is the batch queue system on barrine, 
+To submit a job to Torque, which is the batch queue system on barrine, 
 use the command::
 
     $ qsub script_name.sh
+
+Be sure to copy your simulation files over to ``30days/$USER`` and start
+your job on the filesystem for temporary files, as per the instructions.
+(And remember to copy them back when you are finished.)
 
 An example of a shell script prepared for running on the Barrine cluster::
 
     #!/bin/bash -l
     #PBS -S /bin/bash
     #PBS -N lehr
-    #PBS -q workq
-    #PBS -l select=3:ncpus=8:NodeType=medium:mpiprocs=8 -A uq
+    #PBS -l nodes=3:ppn=8,mem=1GB
     #PBS -l walltime=6:00:00
+    #PBS -A uq-MechMingEng
     echo "-------------------------------------------"
     echo "Begin MPI job..."
     date
     cd $PBS_O_WORKDIR
-    mpirun -np 24 $HOME/e3bin/e3mpi.exe --job=lehr --run \
-    --max-wall-clock=20000 > LOGFILE
+    
+    ulimit -l unlimited
+    
+    MPD_NODEFILE=$TMPDIR/nodes-ib
+    cat $PBS_NODEFILE | sed -e 's/$/-ib/' > $MPD_NODEFILE
+    
+    mpdboot -n $PBS_NUM_NODES -f $MPD_NODEFILE
+    
+    NUM_SLOTS=`expr $PBS_NUM_PPN \* $PBS_NUM_NODES`
+    
+    mpiexec -machinefile $MPD_NODEFILE -np $NUM_SLOTS e3mpi.exe --job=lehr --run --max-wall-clock=20000 > LOGFILE
+    
+    mpdallexit
+    mpdcleanup -f $MPD_NODEFILE
+    
     echo "End MPI job."
     date
 
+This is the script input ``examples/eilmer3/2D/lehr-479/run-on-barrine.qsub``.
 
-This is the script input ``examples/eilmer3/2D/lehr-479/run_simulation.sh``.
-
-Here, we ask for 3 nodes with 8 cores each for a set of 24 MPI tasks.
-The medium nodes have 8 cores available, and we ask for all of them so
-that we are reasonably sure that our job will not be in competition
-with another job on the same nodes.  Note the -A accounting option.
-You will have to use an appropriate group name and you can determine
-which groups you are part of with the ``groups`` command.  Unlike SGE
-on Blackhole, we seem to need to change to the working directory
-before running the simulation code.  Finally, we have redirected the
+Here, we ask for 3 nodes with 8 processors each for a set of 24 MPI tasks.
+Note the -A accounting option. You will have to use an appropriate group
+name and you can determine which groups you are part of with the ``groups``
+command.  Typical with most queueing systems, the batch control will drop
+you in your $HOME directory, so we need to change to the working
+directory before running the simulation code. Finally, we have redirected the
 standard output from the main simulation to the file LOGFILE so that
 we can monitor progress with the command::
 
     $ tail -f LOGFILE
+
+As of August 2015, it is necessary to micromanage the starting and stopping
+of the MPI daemons. This has something to do with MPI implementation and
+Torque (the queue system) not playing nicely together.
+
     
 Building and running the radiation transport solver
 ----------------------------------------------------

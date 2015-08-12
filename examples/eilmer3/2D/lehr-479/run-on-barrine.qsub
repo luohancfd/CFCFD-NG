@@ -1,0 +1,30 @@
+#!/bin/bash -l
+#PBS -S /bin/bash
+#PBS -N lehr2
+#PBS -l nodes=3:ppn=8,mem=2GB
+#PBS -l walltime=6:00:00
+#PBS -A uq-MechMinEng
+
+cd $PBS_O_WORKDIR
+
+echo "-------------------------------------------"
+echo "Begin MPI job..."
+date
+
+ulimit -l unlimited
+
+MPD_NODEFILE=$TMPDIR/nodes-ib
+cat $PBS_NODEFILE | sed -e 's/$/-ib/' > $MPD_NODEFILE
+
+mpdboot -n $PBS_NUM_NODES -f $MPD_NODEFILE
+
+NUM_SLOTS=`expr $PBS_NUM_PPN \* $PBS_NUM_NODES`
+
+mpiexec -machinefile $MPD_NODEFILE -np $NUM_SLOTS e3mpi.exe --job=lehr --run --max-wall-clock=20000 > LOGFILE
+
+mpdallexit
+mpdcleanup -f $MPD_NODEFILE
+
+echo "End MPI job."
+date
+
