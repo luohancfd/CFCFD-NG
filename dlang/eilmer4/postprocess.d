@@ -232,11 +232,12 @@ void post_process(string plotDir, bool listInfoFlag, string tindxPlot,
 	    if (luaRefSoln.length > 0) solidSoln.subtract_ref_soln(luaRefSoln);
 	    //
 	    // Work on flow blocks first
+	    writeln("normsStr= ", normsStr);
 	    foreach (varName; normsStr.split(",")) {
+		writeln("flow: varName= ", varName);
 		if (!canFind(soln.flowBlocks[0].variableNames, varName)) {
 		    writeln(format("Requested variable name \"%s\" not in list of flow variables.", varName));
-		    writeln("Will continue to look in list of solid variables.");
-		break;
+		    continue;
 		}
 		auto norms = soln.compute_volume_weighted_norms(varName, regionStr);
 		write("    variable= ", varName, "\n");
@@ -246,10 +247,12 @@ void post_process(string plotDir, bool listInfoFlag, string tindxPlot,
 		write("\n");
 	    } // end foreach varName
 	    // Then work on solid blocks
+	    writeln("normsStr= ", normsStr);
 	    foreach (varName; normsStr.split(",")) {
+		writeln("solid: varName= ", varName);
 		if (!canFind(solidSoln.solidBlocks[0].variableNames, varName)) {
 		    writeln(format("Requested variable name \"%s\" not in list of solid variables.", varName));
-		break;
+		    continue;
 		}
 		auto norms = solidSoln.compute_volume_weighted_norms(varName, regionStr);
 		write("    variable= ", varName, "\n");
