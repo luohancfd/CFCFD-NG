@@ -25,7 +25,9 @@ import block;
 import sblock;
 import gas;
 import user_defined_effects;
-
+import solidfvcell;
+import solidfvinterface;
+import gas_solid_interface;
 
 BoundaryInterfaceEffect make_BIE_from_json(JSONValue jsonData, int blk_id, int boundary)
 {
@@ -49,6 +51,14 @@ BoundaryInterfaceEffect make_BIE_from_json(JSONValue jsonData, int blk_id, int b
 	break;
     case "wall_k_omega":
 	newBIE = new BIE_WallKOmega(blk_id, boundary);
+	break;
+    case "temperature_from_gas_solid_interface":
+	int otherBlock = getJSONint(jsonData, "other_block", -1);
+	string otherFaceName = getJSONstring(jsonData, "other_face", "none");
+	int neighbourOrientation = getJSONint(jsonData, "neighbour_orientation", 0);
+	newBIE = new BIE_TemperatureFromGasSolidInterface(blk_id, boundary,
+							  otherBlock, face_index(otherFaceName),
+							  neighbourOrientation);
 	break;
     case "user_defined":
      	string fname = getJSONstring(jsonData, "filename", "none");
@@ -568,3 +578,98 @@ class BIE_WallKOmega : BoundaryInterfaceEffect {
 	return ideal_omega_at_wall(cell) * (d0 * d0) / ((d0 + d) * (d0 + d));
     }
 } // end class BIE_WallKOmega
+
+// NOTE: This GAS DOMAIN boundary effect has a large
+//       and important side-effect:
+//       IT ALSO SETS THE FLUX IN THE ADJACENT SOLID DOMAIN
+//       AT THE TIME IT IS CALLED.
+// TODO: We need to work out a way to coordinate this 
+//       interface effect (ie. the setting of temperature)
+//       with the flux effect. Ideally, we only want to compute
+//       the temperature/flux once per update. This will require
+//       some storage at the block level, or in the in the
+//       gas/solid interface module since we can't share information
+//       (easily) between different types of boundary condition
+//       objects. We need to store the energy flux somewhere where it
+//       so that we can use it again in the boundary flux effect.
+//       It's no good storing the flux in the interface object since
+//       that will be changed during the diffusive flux calculation.
+ 
+class BIE_TemperatureFromGasSolidInterface : BoundaryInterfaceEffect {
+public:
+    int neighbourSolidBlk;
+    int neighbourSolidFace;
+    int neighbourOrientation;
+
+    this(int id, int boundary, 
+	 int otherBlock, int otherFace, int orient)
+    {
+	super(id, boundary, "TemperatureFromGasSolidInterface");
+	neighbourSolidBlk = otherBlock;
+	neighbourSolidFace = otherFace;
+	neighbourOrientation = orient;
+    }
+
+    override string toString() const 
+    {
+	return "TemperatureFromGasSolidInterface()";
+    }
+
+    override void apply(double t, int gtl, int ftl)
+    {
+	double kS = solidBlocks[neighbourSolidBlk].sp.k;
+	computeFluxesAndTemperatures(ftl, kS,
+				     _gasCells, _gasIFaces,
+				     _solidCells, _solidIFaces);
+    }
+
+private:
+    // Some private working arrays.
+    // We'll pack data into these can pass out
+    // to a routine that can compute the flux and
+    // temperatures that balance at the interface.
+    FVCell[] _gasCells;
+    FVInterface[] _gasIFaces;
+    SolidFVCell[] _solidCells;
+    SolidFVInterface[] _solidIFaces;
+
+public:
+    void initSolidCellsAndIFaces()
+    {
+	size_t i, j, k;
+	auto blk = solidBlocks[neighbourSolidBlk];
+	switch ( neighbourSolidFace ) {
+	case Face.south:
+	    j = blk.jmin;
+	    for (k = blk.kmin; k <= blk.kmax; ++k) {
+		for (i = blk.imin; i <= blk.imax; ++i) {
+		    _solidCells ~= blk.getCell(i, j, k);
+		    _solidIFaces ~= _solidCells[$-1].iface[Face.south];
+		}
+	    }
+	    break;
+	default:
+	    throw new Error("initSolidCellsAndIFaces() only implemented for SOUTH face.");
+	}
+    }
+
+    void initGasCellsAndIFaces()
+    {
+	size_t i, j, k;
+	switch ( which_boundary ) {
+	case Face.north:
+	    j = blk.jmax;
+	    for (k = blk.kmin; k <= blk.kmax; ++k) {
+		for (i = blk.imin; i <= blk.imax; ++i) {
+		    _gasCells ~= blk.get_cell(i, j, k);
+		    _gasIFaces ~= _gasCells[$-1].iface[Face.north];
+		}
+	    }
+	    break;
+	default:
+	    throw new Error("initGasCellsAndIFaces() only implemented for NORTH gas face.");
+	}
+    }
+
+
+} // end class BIE_TemperatureFromGasSolidInterface

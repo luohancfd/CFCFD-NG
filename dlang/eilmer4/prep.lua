@@ -442,6 +442,17 @@ function WallKOmega:tojson()
    return str
 end
 
+TemperatureFromGasSolidInterface = BoundaryInterfaceEffect:new{otherBlock=nil, otherFace=nil, orientation=-1}
+TemperatureFromGasSolidInterface.type = "temperature_from_gas_solid_interface"
+function TemperatureFromGasSolidInterface:tojson()
+   local str = string.format('          {"type": "%s", ', self.type)
+   str = str .. string.format('"other_block": %d, ', self.otherBlock)
+   str = str .. string.format('"other_face": "%s", ', self.otherFace)
+   str = str .. string.format('"orientation": %d', self.orientation)
+   str = str .. '}'
+   return str
+end
+
 UserDefinedInterface = BoundaryInterfaceEffect:new{fileName='user-defined-bc.lua'}
 UserDefinedInterface.type = "user_defined"
 function UserDefinedInterface:tojson()
@@ -599,6 +610,9 @@ function AdjacentToSolidBC:new(o)
    o = BoundaryCondition.new(self, o)
    o.preReconAction = { InternalCopyThenReflect:new() }
    o.preSpatialDerivAction = { CopyCellData:new(), ZeroVelocity:new(),
+			       TemperatureFromGasSolidInterface:new{otherBlock=o.otherBlock,
+							    otherFace=o.otherFace,
+							    orientation=o.orientation},
 			       WallKOmega:new() }
    o.postDiffFluxAction = { EnergyFluxFromAdjacentSolid:new{otherBlock=o.otherBlock,
 							    otherFace=o.otherFace,
