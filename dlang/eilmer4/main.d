@@ -13,7 +13,7 @@ import std.path;
 import std.getopt;
 import std.conv;
 import std.parallelism;
-import std.algorithm.comparison;
+import std.algorithm;
 
 import geom;
 import gas;

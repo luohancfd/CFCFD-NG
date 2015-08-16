@@ -61,7 +61,7 @@ void init_simulation(int tindx, int maxCPUs, int maxWallClock)
     current_tindx = tindx;
     auto job_name = GlobalConfig.base_file_name;
     defaultPoolThreads(maxCPUs-1); // total = main thread + threads-in-Pool
-    writeln("Running on ", maxCPUs, " CPUs");
+    writeln("Running with ", maxCPUs, " CPUs available for threads.");
     foreach (myblk; parallel(gasBlocks,1)) {
 	myblk.assemble_arrays();
 	myblk.bind_interfaces_and_vertices_to_cells();

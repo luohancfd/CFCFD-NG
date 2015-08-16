@@ -55,8 +55,8 @@ void read_config_file()
     GlobalConfig.dimensions = getJSONint(jsonData, "dimensions", 2);
     GlobalConfig.axisymmetric = getJSONbool(jsonData, "axisymmetric", false);
     if (GlobalConfig.verbosity_level > 1) {
-	writeln("  title: ", GlobalConfig.title);
-	writeln("  gas_model_file: ", GlobalConfig.gas_model_file);
+	writeln("  title: ", to!string(GlobalConfig.title));
+	writeln("  gas_model_file: ", to!string(GlobalConfig.gas_model_file));
 	writeln("  dimensions: ", GlobalConfig.dimensions);
 	writeln("  axisymmetric: ", GlobalConfig.axisymmetric);
     }
@@ -165,7 +165,7 @@ void read_config_file()
     GlobalConfig.udf_source_terms_file = jsonData["udf_source_terms_file"].str;
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  udf_source_terms: ", GlobalConfig.udf_source_terms);
-	writeln("  udf_source_terms_file: ", GlobalConfig.udf_source_terms_file);
+	writeln("  udf_source_terms_file: ", to!string(GlobalConfig.udf_source_terms_file));
     }
 
     // Parameters controlling thermochemistry
@@ -174,7 +174,7 @@ void read_config_file()
     GlobalConfig.reactions_file = jsonData["reactions_file"].str;
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  reacting: ", GlobalConfig.reacting);
-	writeln("  reactions_file: ", GlobalConfig.reactions_file);
+	writeln("  reactions_file: ", to!string(GlobalConfig.reactions_file));
     }
 
     // Parameters controlling other simulation options
@@ -227,7 +227,7 @@ void read_config_file()
     if (GlobalConfig.verbosity_level > 1) {
 	writeln("  nSolidBlocks: ", GlobalConfig.nSolidBlocks);
 	writeln("  udf_solid_source_terms: ", GlobalConfig.udfSolidSourceTerms);
-	writeln("  udf_solid_source_terms_file: ", GlobalConfig.udfSolidSourceTermsFile);
+	writeln("  udf_solid_source_terms_file: ", to!string(GlobalConfig.udfSolidSourceTermsFile));
     }
     foreach (i; 0 .. GlobalConfig.nSolidBlocks) {
 	solidBlocks ~= new SSolidBlock(i, jsonData["solid_block_" ~ to!string(i)]);
