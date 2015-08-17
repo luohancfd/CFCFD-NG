@@ -138,8 +138,8 @@ Set up your environment by adding the following lines to your ``.bashrc`` file::
 
     module purge
     module load mercurial
-    module load intel-cc-13/13.0.1
-    module load intel-mpi/4.0.1.007
+    module load devenv/2012-12-intel
+    module load numpy/1.6.1
     export PATH=${PATH}:${HOME}/e3bin
     export LUA_PATH=${HOME}/e3bin/?.lua
     export LUA_CPATH=${HOME}/e3bin/?.so
@@ -180,19 +180,7 @@ An example of a shell script prepared for running on the Barrine cluster::
     date
     cd $PBS_O_WORKDIR
     
-    ulimit -l unlimited
-    
-    MPD_NODEFILE=$TMPDIR/nodes-ib
-    cat $PBS_NODEFILE | sed -e 's/$/-ib/' > $MPD_NODEFILE
-    
-    mpdboot -n $PBS_NUM_NODES -f $MPD_NODEFILE
-    
-    NUM_SLOTS=`expr $PBS_NUM_PPN \* $PBS_NUM_NODES`
-    
-    mpiexec -machinefile $MPD_NODEFILE -np $NUM_SLOTS e3mpi.exe --job=lehr --run --max-wall-clock=20000 > LOGFILE
-    
-    mpdallexit
-    mpdcleanup -f $MPD_NODEFILE
+    mpirun -np 24 e3mpi.exe --job=lehr --run --max-wall-clock=20000 > LOGFILE
     
     echo "End MPI job."
     date
@@ -210,11 +198,6 @@ we can monitor progress with the command::
 
     $ tail -f LOGFILE
 
-As of August 2015, it is necessary to micromanage the starting and stopping
-of the MPI daemons. This has something to do with MPI implementation and
-Torque (the queue system) not playing nicely together.
-
-    
 Building and running the radiation transport solver
 ----------------------------------------------------
 While a flowfield calculation with coupled radiation can be performed
