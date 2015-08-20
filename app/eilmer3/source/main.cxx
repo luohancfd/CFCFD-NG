@@ -1789,8 +1789,12 @@ int integrate_in_time(double target_time)
 	            MPI_Barrier( MPI_COMM_WORLD );
 #                   endif
                     // check CFL condition if flow induced moving and
-                    // grid has been adjusted at this time step
+                    // grid has been adjusted at this time step                    
                     do_cfl_check_now = true;
+                    // if we are using fixed time step, no cfl check
+                    if ( G.fixed_time_step ) {
+                        do_cfl_check_now = false;
+                    }
 	        } // end if ( G.flow_induced_moving )
 	        else { // user-defined grid movement
 	            for ( Block *bdp : G.my_blocks ) {
@@ -1810,7 +1814,7 @@ int integrate_in_time(double target_time)
 	switch ( G.implicit_mode ) {
 	case 0: // explicit update of convective terms and, maybe, the viscous terms
 	    if ( G.moving_grid )     
-		break_loop2 = gasdynamic_increment_with_moving_grid(G.dt_global, finished_time_stepping, do_cfl_check_now);
+		break_loop2 = gasdynamic_increment_with_moving_grid(G.dt_global);
 	    else
 		break_loop2 = gasdynamic_explicit_increment_with_fixed_grid(G.dt_global);
 	    break;
@@ -2320,7 +2324,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    G.t_level = 0;
 	    if ( !bdp->active ) continue;
 	    bdp->inviscid_flux(G.dimensions);
-	    if ( G.viscous && !G.separate_update_for_viscous_terms ) {
+	    if ( G.viscous && !G.separate_update_for_viscous_terms ) {	    
 		apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 		// if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
 		if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
@@ -2488,7 +2492,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 } // end gasdynamic_inviscid_increment_with_fixed_grid()
 
 
-int gasdynamic_increment_with_moving_grid(double dt, bool &finished_time_stepping, bool &do_cfl_check_now)
+int gasdynamic_increment_with_moving_grid(double dt)
 // We have implemented only the simplest consistent two-stage update scheme. 
 {
     global_data &G = *get_global_data_ptr();
