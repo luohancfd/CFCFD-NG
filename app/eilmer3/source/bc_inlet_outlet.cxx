@@ -81,6 +81,11 @@ int InletOutletBC::apply_convective(double t)
 		// we need the face values for derivatives.
 		dest_face = src_cell->iface[NORTH];
                 dest_face->fs->copy_values_from(*(src_cell->fs));
+		// Applying the fixed temperature to boundary interface if use_Tout
+		if ( use_Tout ) {
+		    for ( size_t imode=0; imode <= dest_face->fs->gas->T.size(); ++imode )
+			dest_face->fs->gas->T[imode] = Tout;			
+		}                
                 // Inviscid BC
 		dest_cell = bd.get_cell(i,j+1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
@@ -110,6 +115,11 @@ int InletOutletBC::apply_convective(double t)
 		// we need the face values for derivatives.
 		dest_face = src_cell->iface[EAST];
                 dest_face->fs->copy_values_from(*(src_cell->fs));
+		// Applying the fixed temperature to boundary interface if use_Tout
+		if ( use_Tout ) {
+		    for ( size_t imode=0; imode <= dest_face->fs->gas->T.size(); ++imode )
+			dest_face->fs->gas->T[imode] = Tout;			
+		}                   
                 // Inviscid BC
 		dest_cell = bd.get_cell(i+1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
@@ -139,6 +149,11 @@ int InletOutletBC::apply_convective(double t)
 		// we need the face values for derivatives.
 		dest_face = src_cell->iface[SOUTH];
                 dest_face->fs->copy_values_from(*(src_cell->fs));
+		// Applying the fixed temperature to boundary interface if use_Tout
+		if ( use_Tout ) {
+		    for ( size_t imode=0; imode <= dest_face->fs->gas->T.size(); ++imode )
+			dest_face->fs->gas->T[imode] = Tout;			
+		}                   
                 // Inviscid BC
 		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
@@ -168,6 +183,11 @@ int InletOutletBC::apply_convective(double t)
 		// we need the face values for derivatives.
 		dest_face = src_cell->iface[WEST];
                 dest_face->fs->copy_values_from(*(src_cell->fs));
+		// Applying the fixed temperature to boundary interface if use_Tout
+		if ( use_Tout ) {
+		    for ( size_t imode=0; imode <= dest_face->fs->gas->T.size(); ++imode )
+			dest_face->fs->gas->T[imode] = Tout;			
+		}                   
                 // Inviscid BC
 		dest_cell = bd.get_cell(i-1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
@@ -197,6 +217,11 @@ int InletOutletBC::apply_convective(double t)
 		// we need the face values for derivatives.
 		dest_face = src_cell->iface[TOP];
                 dest_face->fs->copy_values_from(*(src_cell->fs));
+		// Applying the fixed temperature to boundary interface if use_Tout
+		if ( use_Tout ) {
+		    for ( size_t imode=0; imode <= dest_face->fs->gas->T.size(); ++imode )
+			dest_face->fs->gas->T[imode] = Tout;			
+		}                   
                 // Inviscid BC
 		dest_cell = bd.get_cell(i,j,k+1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
@@ -226,6 +251,11 @@ int InletOutletBC::apply_convective(double t)
 		// we need the face values for derivatives.
 		dest_face = src_cell->iface[BOTTOM];
                 dest_face->fs->copy_values_from(*(src_cell->fs));
+		// Applying the fixed temperature to boundary interface if use_Tout
+		if ( use_Tout ) {
+		    for ( size_t imode=0; imode <= dest_face->fs->gas->T.size(); ++imode )
+			dest_face->fs->gas->T[imode] = Tout;			
+		}                   
                 // Inviscid BC
 		dest_cell = bd.get_cell(i,j,k-1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
