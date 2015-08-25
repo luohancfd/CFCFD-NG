@@ -1229,7 +1229,7 @@ convert_massf2molef(const std::vector<double> &massf,
     }
 }
 
-void
+void 
 convert_molef2massf(const vector<double> &molef,
 		    const vector<double> &M, 
 		    vector<double> &massf)
@@ -1283,6 +1283,18 @@ convert_conc2molef(double rho_bar,
     }
 }
 
+// Han to blame
+void 
+convert_rho2rhon(double rho,
+            const std::vector<double> &massf,
+            const std::vector<double> &M,
+            std::vector<double> &rhon)
+{
+	for (size_t i = 0; i < rhon.size(); ++i){
+		rhon[i] = rho*massf[i]*PC_Avogadro/M[i];
+	}
+}
+
 // Python-friendly functions.
 vector<double> 
 convert_massf2molef(const vector<double> &massf,
@@ -1292,6 +1304,7 @@ convert_massf2molef(const vector<double> &massf,
     convert_massf2molef(massf, M, molef);
     return molef;
 }
+
 vector<double>
 convert_molef2massf(const vector<double> &molef,
 		    const vector<double> &M)

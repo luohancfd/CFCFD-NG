@@ -485,6 +485,7 @@ class StructuredGridFlow(object):
         add_total_enthalpy = cmdLineDict.has_key("--add-total-enthalpy")
         add_mach = cmdLineDict.has_key("--add-mach")
         add_molef = cmdLineDict.has_key("--add-molef") and (self.gmodel != None)
+        add_rhon = cmdLineDict.has_key("--add-number-density") and (self.gmodel != None)        
         add_trans_coeffs = cmdLineDict.has_key("--add-transport-coeffs") and (self.gmodel != None)
         #
         nic = self.ni; njc = self.nj; nkc = self.nk
@@ -524,6 +525,12 @@ class StructuredGridFlow(object):
             for isp in range(self.nsp):
                 specname = self.gmodel.species_name(isp).replace(' ', '-')
                 varName = "molef[%d]-%s" % (isp, specname)
+                self.vars.append(varName)
+                self.data[varName] = zeros((nic,njc,nkc),'d')
+        if add_rhon:
+            for isp in range(self.nsp):
+                specname = self.gmodel.species_name(isp).replace(' ', '-')
+                varName = "rhon[%d]-%s" % (isp, specname)
                 self.vars.append(varName)
                 self.data[varName] = zeros((nic,njc,nkc),'d')
         if add_trans_coeffs:
@@ -620,6 +627,18 @@ class StructuredGridFlow(object):
                         for isp in range(self.nsp):
                             specname = self.gmodel.species_name(isp).replace(' ', '-')
                             self.data['molef[%d]-%s' % (isp, specname)][i,j,k] = molef[isp]
+                    if add_rhon:
+                        # Adding the number density for each species
+                        massf = []
+                        for isp in range(self.nsp):
+                            specname = self.gmodel.species_name(isp).replace(' ', '-')
+                            massf.append(self.data['massf[%d]-%s' % (isp, specname)][i,j,k])
+                        rhon = convert_rho2rhon(rho, massf, self.gmodel.M())
+                        #don't know why the following doesn't work
+                        #rhon = self.gmodel.to_rhon(rho, massf)
+                        for isp in range(self.nsp):
+                            specname = self.gmodel.species_name(isp).replace(' ', '-')
+                            self.data['rhon[%d]-%s' % (isp, specname)][i,j,k] = rhon[isp]
                     if add_trans_coeffs:
                         # recompute transport properties with the provided gas-model file
                         Q = Gas_data(self.gmodel)

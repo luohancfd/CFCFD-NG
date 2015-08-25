@@ -292,6 +292,20 @@ def to_molef(self, mf):
     return convert_massf2molef(mf, self.M())
 Gas_model.to_molef = to_molef
 
+# Han to blame
+
+def to_rhon(self, rho, mf):
+    """
+    Converts from mass fractions to number densities.
+
+    self : Gas_model
+    mf   : mass fractions in dictionary or list format
+    """
+    if type(mf) is dict:
+        mf = self.to_list(mf)
+    return convert_rho2rhon(rho, mf, self.M())
+Gas_model.to_rohn = to_rhon
+
 def to_massf(self, mf):
     """
     Converts from mole-fractions to mass-fractions.

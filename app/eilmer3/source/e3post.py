@@ -24,6 +24,7 @@ Summary of options::
 | 
 |           [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]
 |           [--add-molef --gmodel-file="gas-model.lua"]
+|           [--add-number-density --gmodel-file="gas-model.lua"]
 |           [--add-transport-coeffs --gmodel-file="gas-model.lua"]
 |           [--add-user-computed-vars="user-script.py"]
 | 
@@ -150,6 +151,7 @@ longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "binary-f
                "report-norms", "per-block-norm-list=", "global-norm-list=",
                "probe=", "add-pitot-p", "add-total-p",
                "add-molef", "gmodel-file=",
+               "add-number-density",
                "add-user-computed-vars=",
                "add-total-enthalpy", "add-mach", "heat-flux-list=", "vertex-velocity-list=", 
                "plot3d", "omegaz=", "tangent-slab-list=", "prepare-fstc-restart", "moving-grid",
@@ -165,6 +167,7 @@ def printUsage():
     print ""
     print "          [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]"
     print "          [--add-molef --gmodel-file=\"gas-model.lua\"]"
+    print "          [--add-number-density --gmodel-file=\"gas-model.lua\"]"
     print "          [--add-transport-coeffs --gmodel-file=\"gas-model.lua\"]"
     print "          [--add-user-computed-vars=\"user-script.py\"]"
     print ""

@@ -405,6 +405,11 @@ void convert_conc2massf(double rho,
 void convert_conc2molef(double rho_bar,
 			const std::vector<double> &c,
 			std::vector<double> &molef);
+// Han to blame
+void convert_rho2rhon(double rho,
+            const std::vector<double> &massf,
+             const std::vector<double> &M,
+             std::vector<double> &rhon);
 
 // python friendly versions
 std::vector<double> convert_massf2molef(const std::vector<double> &massf,
@@ -422,5 +427,8 @@ double calculate_molecular_weight(const std::vector<double> &massf,
 				  const std::vector<double> &M);
 double calculate_gas_constant(const std::vector<double> &massf,
 			      const std::vector<double> &M);
+// Han to blame
+std::vector<double> convert_rho2rhon(double rho, const std::vector<double> &massf,
+             const std::vector<double> &M);
 
 #endif
