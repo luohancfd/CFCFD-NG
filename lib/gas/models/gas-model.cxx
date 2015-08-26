@@ -1362,3 +1362,14 @@ calculate_gas_constant(const vector<double> &massf,
     // Equation 11-40 on p. 634
     return PC_R_u/calculate_molecular_weight(massf, M);
 }
+
+// Han to blame
+vector<double>
+convert_rho2rhon(double rho,
+            const vector<double> &massf,
+            const vector<double> &M)
+{
+	vector<double> rhon(massf.size(), 0.0);
+	convert_rho2rhon(rho, massf, M, rhon);
+	return rhon;
+}
