@@ -279,80 +279,99 @@ public:
 // Stand-alone functions for the computation of gradients.
 
 @nogc
-void gradients_xy_div(ref FVVertex vtx,
-		      const ref Vector3 posA, const ref Vector3 posB,
-		      const ref Vector3 posC, const ref Vector3 posD,
-		      const ref FlowState fsA, const ref FlowState fsB,
-		      const ref FlowState fsC, const ref FlowState fsD,
-		      bool diffusion)
+void gradients_xy_div(ref FVVertex vtx, bool diffusion)
 // Using the divergence theorem (I think), compute the average gradients
-// for the flow conditions over a quadrilateral in the xy-plane.
-//     C-----B
-//     |     |
-//     |     |
-//     D-----A
+// for the flow conditions over a polygon in the xy-plane.
+//     2-----1   1
+//     |     |   |\
+//     |     |   | \
+//     3-----0   2--0
 //  y
 //  |
 //  o--x
 //
 // Since we are embedding this function in a nominally 3D code,
 // the z-coordinate derivatives are set to zero.
-// This contour-integral approach works when the 
-// quadrilateral degenerates to a triangle in the plane. 
-// We can then double-up on one of the points and still get an estimate
-// for the flow gradients.
 {
-    // Geometric data for the corners.
-    double xA = posA.x; double yA = posA.y;
-    double xB = posB.x; double yB = posB.y;
-    double xC = posC.x; double yC = posC.y;
-    double xD = posD.x; double yD = posD.y;
-    // Compute our own estimate of area in xy plane here. 
-    double areaxy = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
-			   (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
+    // Number of corners in our polygon.
+    size_t n = vtx.cloud_pos.length;
+    // Compute our own estimate of *twice* the area in xy plane here.
+    // Start with the contribution from the final segment of the bounding contour.
+    double areaxy = (vtx.cloud_pos[0].x + vtx.cloud_pos[n-1].x) *
+	(vtx.cloud_pos[0].y - vtx.cloud_pos[n-1].y);
+    // Accumulate the contributions from the other segments.
+    foreach (i; 0 .. n-1) {
+	areaxy += (vtx.cloud_pos[i+1].x + vtx.cloud_pos[i].x) *
+	    (vtx.cloud_pos[i+1].y - vtx.cloud_pos[i].y);
+    }
     double area_inv = 1.0 / areaxy;
-    // Functions based on divergence theorem to get gradients in 2D
-    @nogc double gradient_x(double qA, double qB, double qC, double qD) {
-	return 0.5 * area_inv *
-	    ((qB + qA) * (yB - yA) + (qC + qB) * (yC - yB) +
-	     (qD + qC) * (yD - yC) + (qA + qD) * (yA - yD));
+    //
+    // Apply the divergence theorem to flow properties.
+    //
+    // Start with the contribution from the final segment of the bounding contour.
+    double gradient_x = (vtx.cloud_fs[0].vel.x + vtx.cloud_fs[n-1].vel.x) *
+	(vtx.cloud_pos[0].y - vtx.cloud_pos[n-1].y);
+    double gradient_y = (vtx.cloud_fs[0].vel.x + vtx.cloud_fs[n-1].vel.x) *
+	(vtx.cloud_pos[0].x - vtx.cloud_pos[n-1].x);
+    // Accumulate the contributions from the other segments.
+    foreach (i; 0 .. n-1) {
+	gradient_x += (vtx.cloud_fs[i+1].vel.x + vtx.cloud_fs[i].vel.x) *
+	    (vtx.cloud_pos[i+1].y - vtx.cloud_pos[i].y);
+	gradient_y += (vtx.cloud_fs[i+1].vel.x + vtx.cloud_fs[i].vel.x) *
+	    (vtx.cloud_pos[i+1].x - vtx.cloud_pos[i].x);
     }
-    @nogc double gradient_y(double qA, double qB, double qC, double qD) {
-	return -0.5 * area_inv *
-	    ((qB + qA) * (xB - xA) + (qC + qB) * (xC - xB) +
-	     (qD + qC) * (xD - xC) + (qA + qD) * (xA - xD));
-    }
-    // Flow properties at the corners.
-    double uA = fsA.vel.x; double uB = fsB.vel.x;
-    double uC = fsC.vel.x; double uD = fsD.vel.x;
-    // Apply divergence theorem to get gradient.
-    vtx.grad_vel[0][0] = gradient_x(uA, uB, uC, uD);
-    vtx.grad_vel[0][1] = gradient_y(uA, uB, uC, uD);
+    // Compute average gradient and pack away.
+    vtx.grad_vel[0][0] = gradient_x * area_inv;
+    vtx.grad_vel[0][1] = -gradient_y * area_inv;
     vtx.grad_vel[0][2] = 0.0;
     //
-    double vA = fsA.vel.y; double vB = fsB.vel.y;
-    double vC = fsC.vel.y; double vD = fsD.vel.y;
-    vtx.grad_vel[1][0] = gradient_x(vA, vB, vC, vD);
-    vtx.grad_vel[1][1] = gradient_y(vA, vB, vC, vD);
+    gradient_x = (vtx.cloud_fs[0].vel.y + vtx.cloud_fs[n-1].vel.y) *
+	(vtx.cloud_pos[0].y - vtx.cloud_pos[n-1].y);
+    gradient_y = (vtx.cloud_fs[0].vel.y + vtx.cloud_fs[n-1].vel.y) *
+	(vtx.cloud_pos[0].x - vtx.cloud_pos[n-1].x);
+    foreach (i; 0 .. n-1) {
+	gradient_x += (vtx.cloud_fs[i+1].vel.y + vtx.cloud_fs[i].vel.y) *
+	    (vtx.cloud_pos[i+1].y - vtx.cloud_pos[i].y);
+	gradient_y += (vtx.cloud_fs[i+1].vel.y + vtx.cloud_fs[i].vel.y) *
+	    (vtx.cloud_pos[i+1].x - vtx.cloud_pos[i].x);
+    }
+    vtx.grad_vel[1][0] = gradient_x * area_inv;
+    vtx.grad_vel[1][1] = -gradient_y * area_inv;
     vtx.grad_vel[1][2] = 0.0;
     //
     vtx.grad_vel[2][0] = 0.0;
     vtx.grad_vel[2][1] = 0.0;
     vtx.grad_vel[2][2] = 0.0;
     //
-    double TA = fsA.gas.T[0]; double TB = fsB.gas.T[0];
-    double TC = fsC.gas.T[0]; double TD = fsD.gas.T[0];
-    vtx.grad_T.refx = gradient_x(TA, TB, TC, TD);
-    vtx.grad_T.refy = gradient_y(TA, TB, TC, TD);
+    gradient_x = (vtx.cloud_fs[0].gas.T[0] + vtx.cloud_fs[n-1].gas.T[0]) *
+	(vtx.cloud_pos[0].y - vtx.cloud_pos[n-1].y);
+    gradient_y = (vtx.cloud_fs[0].gas.T[0] + vtx.cloud_fs[n-1].gas.T[0]) *
+	(vtx.cloud_pos[0].x - vtx.cloud_pos[n-1].x);
+    foreach (i; 0 .. n-1) {
+	gradient_x += (vtx.cloud_fs[i+1].gas.T[0] + vtx.cloud_fs[i].gas.T[0]) *
+	    (vtx.cloud_pos[i+1].y - vtx.cloud_pos[i].y);
+	gradient_y += (vtx.cloud_fs[i+1].gas.T[0] + vtx.cloud_fs[i].gas.T[0]) *
+	    (vtx.cloud_pos[i+1].x - vtx.cloud_pos[i].x);
+    }
+    vtx.grad_T.refx = gradient_x * area_inv;
+    vtx.grad_T.refy = -gradient_y * area_inv;
     vtx.grad_T.refz = 0.0;
     //
-    size_t nsp = fsA.gas.massf.length;
+    size_t nsp = vtx.cloud_fs[0].gas.massf.length;
     if (diffusion) {
 	foreach(isp; 0 .. nsp) {
-	    double fA = fsA.gas.massf[isp]; double fB = fsB.gas.massf[isp];
-	    double fC = fsC.gas.massf[isp]; double fD = fsD.gas.massf[isp];
-	    vtx.grad_f[isp].refx = gradient_x(fA, fB, fC, fD);
-	    vtx.grad_f[isp].refy = gradient_y(fA, fB, fC, fD);
+	    gradient_x = (vtx.cloud_fs[0].gas.massf[isp] + vtx.cloud_fs[n-1].gas.massf[isp]) *
+		(vtx.cloud_pos[0].y - vtx.cloud_pos[n-1].y);
+	    gradient_y = (vtx.cloud_fs[0].gas.massf[isp] + vtx.cloud_fs[n-1].gas.massf[isp]) *
+		(vtx.cloud_pos[0].x - vtx.cloud_pos[n-1].x);
+	    foreach (i; 0 .. n-1) {
+		gradient_x += (vtx.cloud_fs[i+1].gas.massf[isp] + vtx.cloud_fs[i].gas.massf[isp]) *
+		    (vtx.cloud_pos[i+1].y - vtx.cloud_pos[i].y);
+		gradient_y += (vtx.cloud_fs[i+1].gas.massf[isp] + vtx.cloud_fs[i].gas.massf[isp]) *
+		    (vtx.cloud_pos[i+1].x - vtx.cloud_pos[i].x);
+	    }
+	    vtx.grad_f[isp].refx = gradient_x * area_inv;
+	    vtx.grad_f[isp].refy = -gradient_y * area_inv;
 	    vtx.grad_f[isp].refz = 0.0;
 	}
     } else {
@@ -363,16 +382,32 @@ void gradients_xy_div(ref FVVertex vtx,
 	}
     }
     //
-    double tkeA = fsA.tke; double tkeB = fsB.tke;
-    double tkeC = fsC.tke; double tkeD = fsD.tke;
-    vtx.grad_tke.refx = gradient_x(tkeA, tkeB, tkeC, tkeD);
-    vtx.grad_tke.refy = gradient_y(tkeA, tkeB, tkeC, tkeD);
+    gradient_x = (vtx.cloud_fs[0].tke + vtx.cloud_fs[n-1].tke) *
+	(vtx.cloud_pos[0].y - vtx.cloud_pos[n-1].y);
+    gradient_y = (vtx.cloud_fs[0].tke + vtx.cloud_fs[n-1].tke) *
+	(vtx.cloud_pos[0].x - vtx.cloud_pos[n-1].x);
+    foreach (i; 0 .. n-1) {
+	gradient_x += (vtx.cloud_fs[i+1].tke + vtx.cloud_fs[i].tke) *
+	    (vtx.cloud_pos[i+1].y - vtx.cloud_pos[i].y);
+	gradient_y += (vtx.cloud_fs[i+1].tke + vtx.cloud_fs[i].tke) *
+	    (vtx.cloud_pos[i+1].x - vtx.cloud_pos[i].x);
+    }
+    vtx.grad_tke.refx = gradient_x * area_inv;
+    vtx.grad_tke.refy = -gradient_y * area_inv;
     vtx.grad_tke.refz = 0.0;
     //
-    double omegaA = fsA.omega; double omegaB = fsB.omega;
-    double omegaC = fsC.omega; double omegaD = fsD.omega;
-    vtx.grad_omega.refx = gradient_x(omegaA, omegaB, omegaC, omegaD);
-    vtx.grad_omega.refy = gradient_y(omegaA, omegaB, omegaC, omegaD);
+    gradient_x = (vtx.cloud_fs[0].omega + vtx.cloud_fs[n-1].omega) *
+	(vtx.cloud_pos[0].y - vtx.cloud_pos[n-1].y);
+    gradient_y = (vtx.cloud_fs[0].omega + vtx.cloud_fs[n-1].omega) *
+	(vtx.cloud_pos[0].x - vtx.cloud_pos[n-1].x);
+    foreach (i; 0 .. n-1) {
+	gradient_x += (vtx.cloud_fs[i+1].omega + vtx.cloud_fs[i].omega) *
+	    (vtx.cloud_pos[i+1].y - vtx.cloud_pos[i].y);
+	gradient_y += (vtx.cloud_fs[i+1].omega + vtx.cloud_fs[i].omega) *
+	    (vtx.cloud_pos[i+1].x - vtx.cloud_pos[i].x);
+    }
+    vtx.grad_omega.refx = gradient_x * area_inv;
+    vtx.grad_omega.refy = -gradient_y * area_inv;
     vtx.grad_omega.refz = 0.0;
 } // end gradients_xy_div()
 
