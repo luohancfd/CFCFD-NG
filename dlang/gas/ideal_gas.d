@@ -40,7 +40,7 @@ public:
 	// Let's overwrite that here.
 	_species_names[0] = getString(L, -1, "speciesName");
 	// Now, pull out the remaining numeric value parameters.
-	_mol_masses ~= getDouble(L, -1, "mMass");
+	_mol_masses[0] = getDouble(L, -1, "mMass"); // NOTE: changed from append to assignment, anything broken by this??
 	_gamma = getDouble(L, -1, "gamma");
 	// Reference values for entropy
 	lua_getfield(L, -1, "entropyRefValues");
@@ -63,6 +63,7 @@ public:
 	_Rgas = R_universal/_mol_masses[0];
 	_Cv = _Rgas / (_gamma - 1.0);
 	_Cp = _Rgas*_gamma/(_gamma - 1.0);
+	
     }
 
     override string toString() const

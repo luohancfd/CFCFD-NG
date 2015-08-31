@@ -153,7 +153,7 @@ The value should be a number.`;
     // Value for quality
     double quality = getNumberFromTable(L, 1, "quality", false, 1.0, true, format(errMsgTmplt, "quality"));
     
-    // Values for B (magnetic field?)
+    // Values for B (magnetic field)
     double Bx = 0.0;
     double By = 0.0;
     double Bz = 0.0;
@@ -161,6 +161,7 @@ The value should be a number.`;
     By = getNumberFromTable(L, 1, "By", false, 0.0, true, format(errMsgTmplt, "By"));
     Bz = getNumberFromTable(L, 1, "Bz", false, 0.0, true, format(errMsgTmplt, "Bz"));
     auto B = Vector3(Bx, By, Bz);
+    
     // Values related to k-omega model.
     double tke = getNumberFromTable(L, 1, "tke", false, 0.0, true, format(errMsgTmplt, "tke"));
     double omega = getNumberFromTable(L, 1, "omega", false, 0.0, true, format(errMsgTmplt, "omega"));

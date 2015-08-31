@@ -241,7 +241,6 @@ public:
 /+ [TODO]
     double * copy_values_to_buffer(double *buf) const;
     double * copy_values_from_buffer(double *buf);
-    int BGK_equilibrium(void);
 +/
 } // end class FlowState
 

@@ -243,13 +243,7 @@ final class GlobalConfig {
 
     // For Daryl Bond and Vince Wheatley's MHD additions.
     //
-    shared static bool MHD;
-
-    // A flag for turning on the BGK non-equilibrium gas solver:
-    //   BGK == 0: OFF
-    //   BGK == 1: ON, do not try to import velocity distribution values
-    //   BGK == 2: ON, read in velocity distribution values from "flow" file
-    shared static int BGK = 0;
+    shared static bool MHD;    // Single fluid MHD
 
     // Parameters controlling other simulation options
     //
@@ -363,7 +357,6 @@ public:
     bool radiation;
     bool electric_field_work;
     bool MHD;
-    int BGK;
 
     bool stringent_cfl;
     double viscous_signal_factor;
@@ -421,7 +414,6 @@ public:
 	radiation = GlobalConfig.radiation;
 	electric_field_work = GlobalConfig.electric_field_work;
 	MHD = GlobalConfig.MHD;
-	BGK = GlobalConfig.BGK;
 
 	stringent_cfl = GlobalConfig.stringent_cfl;
 	viscous_signal_factor = GlobalConfig.viscous_signal_factor;

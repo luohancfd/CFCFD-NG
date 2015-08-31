@@ -1110,6 +1110,7 @@ function write_config_file(fileName)
    f:write(string.format('"interpolation_order": %d,\n', config.interpolation_order))
    f:write(string.format('"gasdynamic_update_scheme": "%s",\n',
 			 config.gasdynamic_update_scheme))
+   f:write(string.format('"MHD": %s,\n', tostring(config.MHD)))
    f:write(string.format('"separate_update_for_viscous_terms": %s,\n',
 			 tostring(config.separate_update_for_viscous_terms)))
    f:write(string.format('"separate_update_for_k_omega_source": %s,\n', 

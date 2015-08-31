@@ -43,6 +43,10 @@ extern(C) int configSetFromTable(lua_State* L)
     lua_getfield(L, 1, "axisymmetric");
     if (!lua_isnil(L, -1)) GlobalConfig.axisymmetric = to!bool(lua_toboolean(L, -1));
     lua_pop(L, 1);
+    
+    lua_getfield(L, 1, "MHD");
+    if (!lua_isnil(L, -1)) GlobalConfig.MHD = to!bool(lua_toboolean(L, -1));
+    lua_pop(L, 1);
 
     lua_getfield(L, 1, "gasdynamic_update_scheme");
     if (!lua_isnil(L, -1)) {
@@ -282,6 +286,10 @@ extern(C) int configGet(lua_State* L)
 	break;
     case "axisymmetric":
 	lua_pushboolean(L, GlobalConfig.axisymmetric);
+	break;
+	
+	case "MHD":
+	lua_pushboolean(L, GlobalConfig.MHD);
 	break;
 
     case "gasdynamic_update_scheme":

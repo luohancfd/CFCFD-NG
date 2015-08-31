@@ -357,16 +357,6 @@ public:
 	return writer.data;
     }
 
-    void scan_BGK_from_string(string bufptr)
-    {
-	throw new Error("[TODO] FVCell.scan_BGK_from_string() not yet implemented");
-    }
-
-    const string write_BGK_to_string()
-    {
-	throw new Error("[TODO] FVCell.write_BGK_to_string() not yet implemented");
-    }
-
     @nogc
     void encode_conserved(int gtl, int ftl, double omegaz)
     // gtl = grid time level
