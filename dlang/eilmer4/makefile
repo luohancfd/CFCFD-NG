@@ -123,6 +123,7 @@ ifeq ($(DMD), ldmd2)
     DLINKFLAGS := -L-L$(LIBLUAPATH) -L-llua -L-ldl
 endif
 ifeq ($(DMD), gdc)
+    # For debug: DFLAGS := -Wall -Og -g
     DFLAGS := -Wall -O2 -frelease -fno-debug \
 	-I.. -I$(NM_DIR) -I$(UTIL_DIR) -I$(GEOM_DIR) -I$(GZIP_DIR)
     OF := -o
