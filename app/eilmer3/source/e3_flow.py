@@ -889,7 +889,7 @@ class ExistingSolution(object):
     """
     def __init__(self, rootName, solutionWorkDir, nblock, tindx, 
                  dimensions=2, assume_same_grid=0, zipFiles=1,
-                 add_velocity=Vector(0.0,0.0,0.0)):
+                 add_velocity=Vector(0.0,0.0,0.0), tke=0.0, omega=1.0):
         """
         Reads and stores an existing solution.
 
@@ -912,6 +912,10 @@ class ExistingSolution(object):
         :param add_velocity: is the value to be aded to the old-solution's velocity.
             If it is a float value, it becomes the x-component. Otherwise, 
             a Vector value should be supplied and all components will be used.
+        :param tke: is the value for the initial tke for the turbulent flow. This
+            is applied when we change our simulations from laminar to turbulent
+        : param omega: is the value for the initial omega for the turbulent flow.
+            This is also applied when we change our simulations from laminar to turbulent.
         """
         currentWorkDir = os.getcwd()  # Remembers the current working directory
         os.chdir(solutionWorkDir)     # Changes to the working directory where
@@ -930,6 +934,8 @@ class ExistingSolution(object):
         self.dimensions = dimensions
         self.assume_same_grid = assume_same_grid
         self.grid, self.flow, stored_dims = read_all_blocks(rootName, nblock, tindx, zipFiles)
+        self.tke = tke
+        self.omega = omega
         if stored_dims != dimensions:
             print "Oops: store_dims=", stored_dims, "dimensions=", dimensions
             print "These values of dimensions should be the same."
@@ -959,7 +965,11 @@ class ExistingSolution(object):
         flow_data_for_cell['vel.x'] += self.add_velocity.x
         flow_data_for_cell['vel.y'] += self.add_velocity.y
         flow_data_for_cell['vel.z'] += self.add_velocity.z
-        
+        if self.tke != 0.0:
+            flow_data_for_cell['tke'] = self.tke
+        if self.omega != 1.0:
+            flow_data_for_cell['omega'] = self.omega            
+            
         if False and self.bgk:
             bgk_data_for_cell = block_bgk.get_cell_data(i, j, k, x, y, z, vol, replace_geom=True)
             return (flow_data_for_cell, bgk_data_for_cell, i, j, k, block_number)
