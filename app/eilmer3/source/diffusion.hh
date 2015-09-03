@@ -219,6 +219,46 @@ public:
 				    std::vector<double> &jz);
 };
 
+class FicksFirstLaw_WD2 : public DiffusionModel {
+public:
+    FicksFirstLaw_WD2(const string name, int nsp);
+
+    FicksFirstLaw_WD2(const FicksFirstLaw_WD2 &f);
+
+    virtual ~FicksFirstLaw_WD2();
+
+    string str() const;
+
+    void calculate_diffusion_fluxes(const Gas_data &Q,
+				    double D_t,
+				    const std::vector<double> &dfdx, 
+				    const std::vector<double> &dfdy,
+				    const std::vector<double> &dfdz,
+				    std::vector<double> &jx, 
+				    std::vector<double> &jy,
+				    std::vector<double> &jz);
+};
+
+class FicksFirstLaw_JL4 : public DiffusionModel {
+public:
+    FicksFirstLaw_JL4(const string name, int nsp);
+
+    FicksFirstLaw_JL4(const FicksFirstLaw_JL4 &f);
+
+    virtual ~FicksFirstLaw_JL4();
+
+    string str() const;
+
+    void calculate_diffusion_fluxes(const Gas_data &Q,
+				    double D_t,
+				    const std::vector<double> &dfdx, 
+				    const std::vector<double> &dfdy,
+				    const std::vector<double> &dfdz,
+				    std::vector<double> &jx, 
+				    std::vector<double> &jy,
+				    std::vector<double> &jz);
+};
+
 int set_diffusion_model( const string diffusion_model="Stefan-Maxwell" );
 
 void calculate_diffusion_fluxes(const Gas_data &Q,
