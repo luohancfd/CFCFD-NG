@@ -224,7 +224,7 @@ int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		dest = bp->get_cell(i_dest+1,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
 		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
-		src = bp_src->get_cell(i_src,j_src+1,k_src-1);
+		src = bp_src->get_cell(i_src,j_src,k_src-1);
 		dest = bp->get_cell(i_dest+2,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
 		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
@@ -242,7 +242,7 @@ int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		} else if ( orientation == 2 ) {
 		    i_src = bp_src->nni - j - 1; j_src = bp_src->nnj - k - 1;
 		} else if ( orientation == 3 ) {
-		    i_src = k; j_src = j;
+		    i_src = bp_src->nni - k - 1; j_src = j;
 		} else {
 		    printf("copy_into_east_boundary_3D(): ");
 		    printf("neighbour face %d, invalid orientation %d.\n",
@@ -256,7 +256,7 @@ int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		dest = bp->get_cell(i_dest+1,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
 		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
-		src = bp_src->get_cell(i_src,j_src+1,k_src+1);
+		src = bp_src->get_cell(i_src,j_src,k_src+1);
 		dest = bp->get_cell(i_dest+2,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
 		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
@@ -325,7 +325,7 @@ int copy_into_west_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 	    for (k = 0; k < bp->nnk; ++k) {
 		k_dest = k + bp->kmin;
 		if ( orientation == 0 ) {
-		    j_src = bp_src->nnj - j - 1; k_src = bp_src->nnk - k - 1;
+		    j_src = bp_src->nnj - j - 1; k_src = k;
 		} else if ( orientation == 1 ) {
 		    j_src = k; k_src = j;
 		} else if ( orientation == 2 ) {
@@ -978,7 +978,7 @@ int copy_into_top_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t
 		if ( orientation == 0 ) {
 		    i_src = bp_src->nni - i - 1; j_src = j;
 		} else if ( orientation == 1 ) {
-		    i_src = j; j_src = bp_src->nnj - i - 1;
+		    i_src = bp_src->nni - j - 1; j_src = bp_src->nnj - i - 1;
 		} else if ( orientation == 2 ) {
 		    i_src = i; j_src = bp_src->nnj - j - 1;
 		} else if ( orientation == 3 ) {
@@ -2554,7 +2554,7 @@ int copy_from_receive_buffer_to_west(Block *bp, int type_of_copy,
 		    i_src = nni_src - j - 1; j_src = nnj_src - k - 1;
 		} else if ( orientation == 3 ) {
 		    nni_src = bp->nnk; nnj_src = bp->nnj;
-		    i_src = k; j_src = j;
+		    i_src = k; j_src = nnj_src - j - 1;
 		} else {
 		    printf("copy_from_receive_buffer_to_west(): ");
 		    printf("neighbour_faceId %d, invalid orientation %d.\n",
@@ -2703,7 +2703,7 @@ int copy_from_receive_buffer_to_top(Block *bp, int type_of_copy,
 		    i_src = nni_src - j - 1; j_src = nnj_src - i - 1;
 		} else if ( orientation == 2 ) {
 		    nni_src = bp->nni; nnj_src = bp->nnj;
-		    i_src = nni_src - i - 1; j_src = nnj_src - j - 1;
+		    i_src = i; j_src = nnj_src - j - 1;
 		} else if ( orientation == 3 ) {
 		    nni_src = bp->nnj; nnj_src = bp->nni;
 		    i_src = j; j_src = i;
