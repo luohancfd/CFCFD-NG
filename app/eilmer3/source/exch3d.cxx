@@ -112,9 +112,9 @@ int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		} else if ( orientation == 1 ) {
 		    j_src = bp_src->nnj - k - 1; k_src = bp_src->nnk - j - 1;
 		} else if ( orientation == 2 ) {
-		    j_src = bp_src->nnj - j - 1; k_src = bp_src->nnk - k - 1;
-		} else if ( orientation == 3 ) {
 		    j_src = j; k_src = bp_src->nnk - k - 1;
+		} else if ( orientation == 3 ) {
+		    j_src = k; k_src = j;
 		} else {
 		    printf("copy_into_east_boundary_3D(): ");
 		    printf("neighbour face %d, invalid orientation %d.\n",
@@ -859,7 +859,7 @@ int copy_into_south_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
 		} else if ( orientation == 1 ) {
 		    i_src = bp_src->nni - k - 1; j_src = bp_src->nnj - i - 1;
 		} else if ( orientation == 2 ) {
-		    i_src = bp_src->nni - i - 1; j_src = bp_src->nnj - k - 1;
+		    i_src = i; j_src = bp_src->nnj - k - 1;
 		} else if ( orientation == 3 ) {
 		    i_src = k; j_src = i;
 		} else {
@@ -1257,7 +1257,7 @@ int copy_into_bottom_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, siz
 	    for (i = 0; i < bp->nni; ++i) {
 		i_dest = i + bp->imin;
 		if ( orientation == 0 ) {
-		    i_src = bp_src->nni - i - 1; k_src = j;
+		    i_src = i; k_src = j;
 		} else if ( orientation == 1 ) {
 		    i_src = bp_src->nni - j - 1; k_src = i;
 		} else if ( orientation == 2 ) {
@@ -2162,7 +2162,7 @@ int copy_from_receive_buffer_to_east(Block *bp, int type_of_copy,
 		    j_src = nnj_src - j - 1; k_src = k;
 		} else if ( orientation == 1 ) {
 		    nnj_src = bp->nnk; nnk_src = bp->nnj;
-		    j_src = k; k_src = nnk_src - j - 1;
+		    j_src = nnj_src - k - 1; k_src = nnk_src - j - 1;
 		} else if ( orientation == 2 ) {
 		    nnj_src = bp->nnj; nnk_src = bp->nnk;
 		    j_src = j; k_src = nnk_src - k - 1;
