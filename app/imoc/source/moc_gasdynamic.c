@@ -143,7 +143,7 @@ double MFromNu_approximate( double Nu, double g ) {
     The Aeronautical Journal, February 1975. <BR>
     For large Mach numbers, use an asymptotic expansion. <BR>
     Input  : <BR>
-    Nu : Parndtl-Meyer function (radians) <BR>
+    Nu : Prandtl-Meyer function (radians) <BR>
     g  : ratio of specific heats <BR>
     Output : <BR>
     Returns Mach number (>= 1.0) or a value of 0.0 on failure.
