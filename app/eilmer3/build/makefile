@@ -186,6 +186,7 @@ E3_OBJECTS_COMMON := kernel.o \
 	adaptive_flux.o \
         ausm_plus_up.o \
 	hlle.o \
+	hllc.o \
 	flux_calc.o \
 	ausm.o \
 	cell.o \
@@ -761,6 +762,9 @@ ausm_plus_up.o : $(SRC)/ausm_plus_up.cxx $(SRC)/flux_calc.hh
 
 hlle.o : $(SRC)/hlle.cxx $(SRC)/flux_calc.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/hlle.cxx -o hlle.o
+
+hllc.o : $(SRC)/hllc.cxx $(SRC)/flux_calc.hh
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/hllc.cxx -o hllc.o
 
 flux_calc.o : $(SRC)/flux_calc.cxx $(SRC)/flux_calc.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/flux_calc.cxx -o flux_calc.o

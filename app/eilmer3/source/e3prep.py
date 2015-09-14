@@ -349,7 +349,7 @@ class GlobalData(object):
       Select 2 for predictor-corrector stepping.
     * stringent_cfl: (0/1) Set to 1 to get a very strict CFL check.
     * flux_calc: (int or string) Specifies the form of flux calculation at cell interfaces.
-      Options are "riemann", "ausm", "efm", "ausmdv", "adaptive", "ausm_plus_up" and "hlle".
+      Options are "riemann", "ausm", "efm", "ausmdv", "adaptive", "ausm_plus_up", "hlle" and "hllc".
       default "adaptive"
     * compression_tolerance: (float) relative velocity change for the shock detector.
       This value is expected to be a negative number (for compression)

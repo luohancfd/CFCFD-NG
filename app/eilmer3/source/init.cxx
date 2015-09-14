@@ -88,6 +88,8 @@ int init_available_calculators_map()
     available_calculators.insert(name_flux_t("ausm_plus_up",FLUX_AUSM_PLUS_UP));
     available_calculators.insert(name_flux_t("6",FLUX_HLLE));
     available_calculators.insert(name_flux_t("hlle",FLUX_HLLE));
+    available_calculators.insert(name_flux_t("7",FLUX_HLLC));
+    available_calculators.insert(name_flux_t("hllc",FLUX_HLLC));
     return SUCCESS;
 }
 

@@ -48,6 +48,7 @@ std::string get_flux_calculator_name(flux_calc_t calc)
     case FLUX_ADAPTIVE: return "adaptive";
     case FLUX_AUSM_PLUS_UP: return "ausm_plus_up";
     case FLUX_HLLE: return "hlle";
+    case FLUX_HLLC: return "hllc";
     default: return "none";
     }
 } // end get_flux_calculator_name()
@@ -113,6 +114,9 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
 	break;
     case FLUX_HLLE:
         hlle(Lft, Rght, IFace);
+	break;
+    case FLUX_HLLC:
+        hllc(Lft, Rght, IFace);
 	break;
     default:
         throw std::runtime_error("Invalid flux calculator.");

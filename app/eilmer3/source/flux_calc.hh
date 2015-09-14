@@ -28,10 +28,11 @@
  * FLUX_ADAPTIVE : EFM near shocks, AUSMDV otherwise
  * FLUX_AUSM_PLUS_UP : Liou's 2006 all-speed flux calculator
  * FLUX_HLLE     : MHD HLLE approximate Riemann solver
+ * FLUX_HLLC     : HLLC approximate Riemann solver
  * \endverbatim
  */
 enum flux_calc_t {FLUX_RIEMANN, FLUX_AUSM, FLUX_EFM, FLUX_AUSMDV,
-		  FLUX_ADAPTIVE, FLUX_AUSM_PLUS_UP, FLUX_HLLE};
+		  FLUX_ADAPTIVE, FLUX_AUSM_PLUS_UP, FLUX_HLLE, FLUX_HLLC};
 flux_calc_t set_flux_calculator(flux_calc_t my_flux_calculator);
 flux_calc_t get_flux_calculator();
 std::string get_flux_calculator_name(flux_calc_t calc); 
@@ -59,5 +60,7 @@ double get_M_inf();
 int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace);
 /* hlle.cxx */
 int hlle(FlowState &Lft, FlowState &Rght, FV_Interface &IFace);
+/* hllc.cxx */
+int hllc(FlowState &Lft, FlowState &Rght, FV_Interface &IFace);
 
 #endif

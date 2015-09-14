@@ -25,6 +25,7 @@ They include:
     decoupling issues encountered in low speed flows.
 * HLLE: Harten-Lax-vanLeer-Einfeldt approximate Riemann solver
 	for MHD flows.
+* HLLC: Harten-Lax-vanLeer-Contact approximate Riemann solver.
 """
 
 RIEMANN = "riemann"
@@ -34,6 +35,7 @@ AUSMDV = "ausmdv"
 ADAPTIVE = "adaptive"
 AUSM_PLUS_UP = "ausm_plus_up"
 HLLE = "hlle"
+HLLC = "hllc"
 
 fluxcalcIndexFromName = {
     0: RIEMANN, "0": RIEMANN, "riemann": RIEMANN, "RIEMANN": RIEMANN, "Riemann": RIEMANN,
@@ -42,6 +44,7 @@ fluxcalcIndexFromName = {
     3: AUSMDV, "3": AUSMDV, "ausmdv": AUSMDV, "AUSMDV": AUSMDV,
     4: ADAPTIVE, "4": ADAPTIVE, "adaptive": ADAPTIVE, "ADAPTIVE": ADAPTIVE,
     5: AUSM_PLUS_UP, "5": AUSM_PLUS_UP, "ausm_plus_up": AUSM_PLUS_UP, "AUSM_PLUS_UP": AUSM_PLUS_UP,
-    6: HLLE, "6": HLLE, "hlle": HLLE, "HLLE":HLLE
+    6: HLLE, "6": HLLE, "hlle": HLLE, "HLLE":HLLE,
+    7: HLLC, "7": HLLC, "hllc": HLLC, "HLLC":HLLC
 }
 
