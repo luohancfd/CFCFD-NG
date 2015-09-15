@@ -219,6 +219,26 @@ public:
 				    std::vector<double> &jz);
 };
 
+class FicksFirstLaw_WD1 : public DiffusionModel {
+public:
+    FicksFirstLaw_WD1(const string name, int nsp);
+
+    FicksFirstLaw_WD1(const FicksFirstLaw_WD1 &f);
+
+    virtual ~FicksFirstLaw_WD1();
+
+    string str() const;
+
+    void calculate_diffusion_fluxes(const Gas_data &Q,
+				    double D_t,
+				    const std::vector<double> &dfdx, 
+				    const std::vector<double> &dfdy,
+				    const std::vector<double> &dfdz,
+				    std::vector<double> &jx, 
+				    std::vector<double> &jy,
+				    std::vector<double> &jz);
+};
+
 class FicksFirstLaw_WD2 : public DiffusionModel {
 public:
     FicksFirstLaw_WD2(const string name, int nsp);
