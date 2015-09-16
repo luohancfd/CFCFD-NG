@@ -372,7 +372,8 @@ def shock_tube_calculation(cfg, states, V, M):
         if PRINT_STATUS: print "Now that p1 is known, finding conditions at states 2 and 3."
         states['s1'].set_pT(cfg['p1'],cfg['T0'])
         
-    elif cfg['test'] =="fulltheory-pressure" or cfg['test'] == 'fulltheory-pressure-ratios': #get Vs1 for our chosen fill pressure
+    elif cfg['test'] =="fulltheory-pressure" or cfg['test'] == 'fulltheory-pressure-ratios' \
+        or cfg['test'] == 'theory-shock-tube-experiment-acc-tube': #get Vs1 for our chosen fill pressure
         if cfg['state2_no_ions']:
             # Need to turn ions off for state 2 here if it is required to make 
             # shock to state 2 work
@@ -677,7 +678,8 @@ def acceleration_tube_calculation(cfg, states, V, M):
         if PRINT_STATUS: print "Now that p5 is known, finding conditions at state 5 and 6."
         states['s5'].set_pT(cfg['p5'],cfg['T0'])
         
-    elif cfg['test'] == 'fulltheory-pressure' or cfg['test'] == 'fulltheory-pressure-ratios': #compute the shock speed for the chosen fill pressure, uses Vs1 as starting guess
+    elif cfg['test'] == 'fulltheory-pressure' or cfg['test'] == 'fulltheory-pressure-ratios' \
+    or cfg['test'] == 'experiment-shock-tube-theory-acc-tube': #compute the shock speed for the chosen fill pressure, uses Vs1 as starting guess
         #put two sets of limits here to try and make more stuff work
         if cfg['state7_no_ions']:
             # Need to turn ions off for state 2 here if it is required to make 
@@ -723,21 +725,33 @@ def acceleration_tube_calculation(cfg, states, V, M):
         
     (V6, V['s6']) = normal_shock(states['s5'], cfg['Vs2'], states['s6'], gas_guess)
     #do any modifications that were requested to the velocity behind the shock here 
-    if cfg['expand_to'] == 'flow-behind-shock':
-        print "State 7 is being expanded to V6 ({0}) multiplied by an expansion factor of {1}.".format(V['s6'], cfg['expansion_factor'])
-        acc_tube_expand_to_V = V['s6']*cfg['expansion_factor']
-    elif cfg['expand_to'] == 'shock-speed':
-        acc_tube_expand_to_V = cfg['Vs2']*cfg['expansion_factor'] 
-        print "State 7 is being expanded to the shock speed of Vs2 ({0} m/s) multiplied by an expansion factor of {1}."\
-        .format(cfg['Vs2'], cfg['expansion_factor'])
-    try:
-        V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], acc_tube_expand_to_V, steps=cfg['acc_tube_expansion_steps'])
-    except Exception as e:
-        print "Finding state7 failed. Trying again with 'state7_no_ions' turned on."
-        cfg['state7_no_ions'] = True
-        states['s2'].with_ions = False
-        V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], acc_tube_expand_to_V, steps=cfg['acc_tube_expansion_steps'])
-    
+    # new if statement here as we now have the ability to expand to a pressure if required - CMJ (16/09/15)
+    if cfg['expand_to'] == 'flow-behind-shock' or cfg['expand_to'] == 'shock-speed':
+        if cfg['expand_to'] == 'flow-behind-shock':
+            print "State 7 is being expanded to V6 ({0}) multiplied by an expansion factor of {1}.".format(V['s6'], cfg['expansion_factor'])
+            acc_tube_expand_to_V = V['s6']*cfg['expansion_factor']
+        elif cfg['expand_to'] == 'shock-speed':
+            acc_tube_expand_to_V = cfg['Vs2']*cfg['expansion_factor'] 
+            print "State 7 is being expanded to the shock speed of Vs2 ({0} m/s) multiplied by an expansion factor of {1}."\
+            .format(cfg['Vs2'], cfg['expansion_factor'])
+        try:
+            V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], acc_tube_expand_to_V, steps=cfg['acc_tube_expansion_steps'])
+        except Exception as e:
+            print "Finding state7 failed. Trying again with 'state7_no_ions' turned on."
+            cfg['state7_no_ions'] = True
+            states['s2'].with_ions = False
+            V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], acc_tube_expand_to_V, steps=cfg['acc_tube_expansion_steps'])
+    elif cfg['expand_to'] == 'p7':
+        print "State 7 is being expanded to a specified p7 value of {0} Pa.".format(cfg['p7'])
+        try:
+            V['s7'], states['s7'] = finite_wave_dp('cplus', V['s2'], states['s2'], cfg['p7'], steps=cfg['acc_tube_expansion_steps'])
+        except Exception as e:
+            print "Finding state7 failed. Trying again with 'state7_no_ions' turned on."
+            cfg['state7_no_ions'] = True
+            states['s2'].with_ions = False
+            V['s7'], states['s7'] = finite_wave_dp('cplus', V['s2'], states['s2'], cfg['p7'], steps=cfg['acc_tube_expansion_steps'])   
+        
+        cfg['Vs2'] = V['s7']
     if cfg['state7_no_ions']:
         # Turn with ions back on so it will be on for other states based on s7
         # if we turned it off to make the unsteady expansion work
@@ -745,12 +759,14 @@ def acceleration_tube_calculation(cfg, states, V, M):
     
     #get mach numbers for the txt_output
     cfg['Ms2'] = cfg['Vs2']/states['s5'].a
-    M['s6'] = V['s6']/states['s6'].a
+    if not cfg['expand_to'] == 'p7': #no Vs2 or state 6 if we expand to a pressure to find state 7
+        M['s6'] = V['s6']/states['s6'].a
     M['s7']= V['s7']/states['s7'].a
     
     if PRINT_STATUS:
         print '-'*60
-        print "state 6: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s6'].p, states['s6'].T) 
+        if not cfg['expand_to'] == 'p7': #no Vs2 or state 6 if we expand to a pressure to find state 7
+            print "state 6: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s6'].p, states['s6'].T) 
         print "state 7: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s7'].p, states['s7'].T)
         if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
             print 'species in state7 at equilibrium:'               

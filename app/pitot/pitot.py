@@ -197,6 +197,12 @@ available to me as part of cfpylib inside the cfcfd code collection.
         Added "freestream enthalpy" to the pitot output.
         Added some code to the condition builder programs that allows them to clean
         up old files before a run.
+    16-Sep-2015: Added two new tests that the user can run, to allow more flexibility
+        when comparing to experimental data. They are 'theory-shock-tube-experiment-acc-tube',
+        and 'experiment-shock-tube-theory-acc-tube'. The user can now also expand
+        the test gas to a specified 'p7' value in the acceleration tube in 'experiment'
+        and 'theory-shock-tube-experiment-acc-tube' modes. I also added the ability to
+        specify a custom 'T1' for test conditions.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -224,7 +230,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "17-Apr-2015"
+VERSION_STRING = "16-Sep-2015"
 
 DEBUG_PITOT = False
 

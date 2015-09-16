@@ -91,8 +91,7 @@ def txt_file_output(cfg, states, V, M):
         description_7 = 'state 10w is conditions over {0} degree wedge in the test section.'.format(cfg['wedge_angle'])
         print description_7
         txt_output.write(description_7 + '\n')
-        
-        
+             
     if cfg['solver'] == 'eq':
         solver_printout = "Solver used is equilibrium."
     elif cfg['solver'] == 'pg':
@@ -100,7 +99,11 @@ def txt_file_output(cfg, states, V, M):
     elif cfg['solver'] == 'pg-eq':
         solver_printout = "Solver used is pg-eq (state 1 is set as pg.)"
     print solver_printout
-    txt_output.write(solver_printout + '\n')        
+    txt_output.write(solver_printout + '\n')
+
+    test_done = "Test is '{0}'".format(cfg['test'])
+    print test_done
+    txt_output.write(test_done + '\n')    
         
     facility_used = 'Facility is {0}.'.format(cfg['facility'])        
     print facility_used
@@ -241,10 +244,11 @@ def txt_file_output(cfg, states, V, M):
         condition_printer(it_string)
     if cfg['tunnel_mode'] == 'expansion-tube':    
         for i in range(5,8): #acc tube extra states
+            if i == 6 and cfg['expand_to'] == 'p7':
+                continue
             it_string = 's{0}'.format(i)
             condition_printer(it_string)
-                    
-                    
+                                    
     if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
          condition_printer('s5')
             
@@ -500,7 +504,10 @@ def csv_file_output(cfg, states, V, M):
         csv_solver_printout = "Solver,perfect gas"
     elif cfg['solver'] == 'pg-eq':
         csv_solver_printout = "Solver,pg eq"
-    csv_output.write(csv_solver_printout + '\n')     
+    csv_output.write(csv_solver_printout + '\n')
+
+    test_done = "Test,'{0}'".format(cfg['test'])
+    csv_output.write(test_done + '\n')         
         
     csv_facility_used = 'Facility,{0}.'.format(cfg['facility'])        
     csv_output.write(csv_facility_used + '\n')
@@ -606,6 +613,8 @@ def csv_file_output(cfg, states, V, M):
         csv_condition_printer(it_string)
     if cfg['tunnel_mode'] == 'expansion-tube':    
         for i in range(5,9): #acc tube and nozzle if it's there
+            if i == 6 and cfg['expand_to'] == 'p7':
+                continue
             it_string = 's{0}'.format(i)
             csv_condition_printer(it_string)
             

@@ -165,9 +165,11 @@ def input_checker(cfg):
     
     cfg['bad_input'] = False
     
-    if cfg['test'] not in ['fulltheory-shock','fulltheory-pressure','experiment','fulltheory-pressure-ratios']:
+    if cfg['test'] not in ['fulltheory-shock','fulltheory-pressure','experiment','fulltheory-pressure-ratios',
+                           'theory-shock-tube-experiment-acc-tube', 'experiment-shock-tube-theory-acc-tube']:
         print "No 'test' specified. You need to specify a test type. Bailing out."
-        print "Available tests are 'fulltheory-shock', 'fulltheory-pressure', 'experiment', 'fulltheory-pressure-ratios."
+        print "Available tests are 'fulltheory-shock', 'fulltheory-pressure', 'experiment', 'fulltheory-pressure-ratios,"
+        print "'theory-shock-tube-experiment-acc-tube', and 'experiment-shock-tube-theory-acc-tube'."
         cfg['bad_input'] = True    
     
     if 'solver' not in cfg:
@@ -267,7 +269,15 @@ def input_checker(cfg):
             cfg['bad_input'] = True
         if 'test_gas_inputUnits' not in cfg:
             print "'test_gas_inputUnits' not set. Setting it to 'moles'."
-            cfg['test_gas_inputUnits'] = 'moles'            
+            cfg['test_gas_inputUnits'] = 'moles'
+
+    if 'custom_T1' in cfg:
+        if cfg['custom_T1'] and 'T1' not in cfg:
+            print "You have specified a custom test gas temperature (T1) but have not set 'T1' variable."
+            print "Bailing out."
+            cfg['bad_input'] = True
+    else:
+        cfg['custom_T1'] = False    
             
     if 'mode' not in cfg:
         print "Program mode not specified. Will use default printout mode"
@@ -430,7 +440,49 @@ def input_checker(cfg):
         
     if cfg['test'] == 'fulltheory-pressure-ratios' and cfg['tunnel_mode'] == 'expansion-tube' and 'p5_from' not in cfg:
         print "Need to supply a value for 'psd1_from' if you want to run in pressure ratio mode for an expansion tube."
-        cfg['bad_input'] = True                      
+        cfg['bad_input'] = True
+    
+    if cfg['test'] == 'theory-shock-tube-experiment-acc-tube' and not cfg['expand_to'] == 'p7' and 'Vs2' not in cfg:
+        print "Chosen test is 'theory-shock-tube-experiment-acc-tube' but 'Vs2' is not specified in the cfg."
+        print "Specify 'Vs2'."
+        cfg['bad_input'] = True
+        
+    if cfg['test'] == 'theory-shock-tube-experiment-acc-tube' and 'p1' not in cfg:
+        print "Chosen test is 'theory-shock-tube-experiment-acc-tube' but 'p1' is not specified in the cfg."
+        print "Specify 'p1'."
+        cfg['bad_input'] = True
+        
+    if cfg['test'] == 'theory-shock-tube-experiment-acc-tube' and 'p5' not in cfg:
+        print "Chosen test is 'theory-shock-tube-experiment-acc-tube' but 'p1' is not specified in the cfg."
+        print "Specify 'p5'."
+        cfg['bad_input'] = True
+        
+    if cfg['test'] == 'experiment-shock-tube-theory-acc-tube' and 'Vs1' not in cfg:
+        print "Chosen test is 'experiment-shock-tube-theory-acc-tube' but 'Vs1' is not specified in the cfg."
+        print "Specify 'Vs1'."
+        cfg['bad_input'] = True
+
+    if cfg['test'] == 'experiment-shock-tube-theory-acc-tube'and 'p1' not in cfg:
+        print "Chosen test is 'experiment-shock-tube-theory-acc-tube' but 'p1' is not specified in the cfg."
+        print "Specify 'p1'."
+        cfg['bad_input'] = True
+        
+    if cfg['test'] == 'experiment-shock-tube-theory-acc-tube'and 'p5' not in cfg:
+        print "Chosen test is 'experiment-shock-tube-theory-acc-tube' but 'p1' is not specified in the cfg."
+        print "Specify 'p5'."
+        cfg['bad_input'] = True
+
+    # The input here allows the user to expand the flow to a set pressure (instead of a set shock speed of gas velocity)
+    # when the 'theory-shock-tube-experiment-acc-tube' test is used. There's some checks here to bail out if it is set
+    # to 'p6' when another test is used.
+    if cfg['expand_to'] == 'p7' and cfg['test'] not in ['theory-shock-tube-experiment-acc-tube', 'experiment']:
+        print "Chosen 'expand_to' value is 'p6' but the chosen test is not 'theory-shock-tube-experiment-acc-tube' or 'experiment'."
+        cfg['bad_input'] = True
+
+    if cfg['expand_to'] == 'p7' and 'p7' not in cfg:
+        print "Chosen 'expand_to' value is 'p7' but 'p7' cannot be found in the config dictionary."
+        print "Specify 'p7'."
+        cfg['bad_input'] = True
         
     if cfg['bad_input']: #bail out here if you end up having issues with your input
         print "Config failed check. Bailing out now."
@@ -481,6 +533,7 @@ def start_message(cfg, states):
             print 'Selected secondary driver fill pressure (psd1) = {0} Pa.'.format(cfg['psd1'])
         if 'p1' in cfg:
             print 'Selected shock tube fill pressure (p1) = {0} Pa.'.format(cfg['p1'])
+            print 'Selected shock tube fill temperature (T1) = {0} K.'.format(cfg['T1'])
         if 'p5' in cfg:            
             print 'Selected acceleration tube fill pressure (p5) = {0} Pa.'.format(cfg['p5'])
         print '-'*60
@@ -703,6 +756,10 @@ def state_builder(cfg):
         M['sd1']=0.0
 
     #state 1 is shock tube
+
+    if not cfg['custom_T1']:
+         cfg['T1'] =  cfg['T0']
+    
     if cfg['test_gas'] == 'custom':
         if 'test_gas_with_ions' not in cfg:
             print "'test_gas_with_ions' variable not set. Setting to boolean True."
@@ -719,7 +776,7 @@ def state_builder(cfg):
             states['s1'], cfg['gas_guess'] = make_test_gas(cfg['test_gas'])
             if 'p1' not in cfg: #set atmospheric state if a pressure was not specified
                 cfg['p1'] = cfg['p0']
-            states['s1'].set_pT(float(cfg['p1']),cfg['T0'])
+            states['s1'].set_pT(float(cfg['p1']),cfg['T1'])
         if cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq': #make perfect gas object if asked to do so, then re-set the gas state
             if cfg['solver'] == 'pg-eq': #store the eq gas object as we'll want to come back to it later...      
                 states['s1-eq'] = states['s1'].clone()        
@@ -727,7 +784,7 @@ def state_builder(cfg):
                 states['s1'].gam =  test_gas_gam; states['s1'].Mmass =  test_gas_Mmass
             states['s1']=pg.Gas(Mmass=states['s1'].Mmass,
                                 gamma=states['s1'].gam, name='s1')
-            states['s1'].set_pT(float(cfg['p1']),cfg['T0'])
+            states['s1'].set_pT(float(cfg['p1']),cfg['T1'])
     V['s1']=0.0
     M['s1']=0.0
         
