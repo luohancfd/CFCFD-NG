@@ -484,6 +484,14 @@ def input_checker(cfg):
         print "Specify 'p7'."
         cfg['bad_input'] = True
         
+    if 'V2_mirels_limit' not in cfg:
+        # This puts V2 up to Vs1 to provide a boost from the Mirels' limit
+        cfg['V2_mirels_limit'] = False
+        
+    if 'rs_out_of_st' not in cfg:
+        #This does a reflected shock at the secondary
+        cfg['rs_out_of_st'] = False
+        
     if cfg['bad_input']: #bail out here if you end up having issues with your input
         print "Config failed check. Bailing out now."
         print '-'*60
@@ -636,7 +644,7 @@ def state_builder(cfg):
             M['s4']=0.0
             M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
             cfg['M_throat'] = M['s3s']
-        elif 'lwp-2mm-new-paper': 
+        elif cfg['piston'] == 'lwp-2mm-new-paper': 
             #This is the condition from the first secondary driver paper
             # by Gildfind and James
             # it sets different conditions based on whether the driver is 80% He 
@@ -657,6 +665,40 @@ def state_builder(cfg):
             M['s4']=0.0
             M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
             cfg['M_throat'] = M['s3s']
+        elif cfg['piston'] == 'Sangdi-1.8MPa' or cfg['piston'] == 'sangdi-1.8MPa':
+            # This is Sangdi's cold driver with a burst pressure of roughly
+            # 1.8 MPa absolute.
+            # we need to keep this as a perfect gas driver to make the expansion work,
+            # CEA won't go down that low in temperature
+            states['s4']=primary_driver_x2[cfg['driver_gas']][0].clone()
+            cfg['p4'] = 1.8e6; cfg['T4'] = 169.0 # Pa, K
+            states['s4'].set_pT(cfg['p4'],cfg['T4'])
+            states['s4'].no_ions = True
+            states['s4']=pg.Gas(Mmass=states['s4'].Mmass,
+                                gamma=states['s4'].gam, name='s4')
+            states['s4'].set_pT(cfg['p4'],cfg['T4'])
+            V['s4']=0.0
+            M['s4']=0.0
+            M['s3s']=1.0
+            cfg['M_throat'] = M['s3s']
+            print "NOTE: This driver selection ('Sangdi-1.8MPa') is a perfect gas driver."
+        elif cfg['piston'] == 'Sangdi-2.2MPa' or cfg['piston'] == 'sangdi-2.2MPa':
+            # This is Sangdi's cold driver with a burst pressure of roughly
+            # 1.8 MPa absolute.
+            # we need to keep this as a perfect gas driver to make the expansion work,
+            # CEA won't go down that low in temperature
+            states['s4']=primary_driver_x2[cfg['driver_gas']][0].clone()
+            cfg['p4'] = 2.2e6; cfg['T4'] = 169.0 # Pa, K
+            states['s4'].set_pT(cfg['p4'],cfg['T4'])
+            states['s4'].no_ions = True
+            states['s4']=pg.Gas(Mmass=states['s4'].Mmass,
+                                gamma=states['s4'].gam, name='s4')
+            states['s4'].set_pT(cfg['p4'],cfg['T4'])
+            V['s4']=0.0
+            M['s4']=0.0
+            M['s3s']=1.0
+            cfg['M_throat'] = M['s3s']
+            print "NOTE: This driver selection ('Sangdi-2.2MPa') is a perfect gas driver."       
 
     elif cfg['facility'] == 'x3':
         states['s4']=primary_driver_x3[cfg['driver_gas']][0].clone()

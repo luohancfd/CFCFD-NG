@@ -526,7 +526,11 @@ def shock_tube_calculation(cfg, states, V, M):
                 print "V2 = {0} Pa, V3 = {1} Pa.".format(V['s2'], V['s3'])
                 print "Going to try expanding to a pressure now instead of a velocity."
                 V['s3'], states['s3'] = finite_wave_dp('cplus', V[cfg['shock_tube_expansion']], states[cfg['shock_tube_expansion']], states['s2'].p,cfg['shock_tube_expansion_steps'])
-        
+    
+    if cfg['tunnel_mode'] == 'expansion-tube' and cfg['V2_mirels_limit']:
+        print "Setting V2 to Mirels limit of Vs1 value ({0} m/s)".format(cfg['Vs1'])
+        V['s2'] = cfg['Vs1']
+    
     if PRINT_STATUS: 
         print "state 2: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s2'].p, states['s2'].T) 
         print "state 3: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s3'].p, states['s3'].T) 
@@ -566,15 +570,61 @@ def shock_tube_calculation(cfg, states, V, M):
     
 #----------------------------------------------------------------------------
     
+def shock_tube_rs_calculation(cfg, states, V, M):
+    """This is a small function that performs a reflected shock on state 2
+    when pitot is ask to simulate the effects of the reflected shock at the diaphragm.
+    It will default to doing a full reflected shock or the user can mess around with the
+    reflected shock Mach number to try 
+    You add in this calc by adding 'perform_rs = True' to the cfg file.
+    """
+    
+    if cfg['tunnel_mode'] != 'expansion-tube':
+        print "Reflected shock calculation into the acceleration tube was asked for, but you are not running in expansion tube mode..."
+        
+        return cfg, states, V, M
+        
+    print "Doing reflected shock at the end of the shock tube that the user has asked for."
+    
+    #first build state2r as a clone of state 2
+    states['s2r'] = states['s2'].clone()
+    
+    # then perform the reflected shock
+    cfg['Vr-st'] = reflected_shock(states['s2'], V['s2'], states['s2r'])
+    cfg['Mr-st'] = (V['s2']+cfg['Vr-st'])/states['s2'].a #normally this would be V2 - V2r, but it's plus here as Vr has been left positive
+    V['s2r'] = 0.0
+    M['s2r']= V['s2r']/states['s2r'].a
+    
+    if PRINT_STATUS:
+        print "Vr-st = {0} m/s, Mr-st = {1}.".format(cfg['Vr-st'], cfg['Mr-st'])
+        print "state 2r: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s2r'].p, states['s2r'].T)
+        print "Vs2r = {0} m/s, Ms2r = {1}.".format(V['s2r'], M['s2r'])
+        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+            print 'species in state5 at equilibrium:'               
+            print '{0}'.format(states['s5'].species)
+            
+    if PRINT_STATUS: print '-'*60
+        
+    return cfg, states, V, M  
+    
+#----------------------------------------------------------------------------
+    
 def acceleration_tube_calculation(cfg, states, V, M):
     """Function that contains all of the acceleration tube calculations."""
             
     if PRINT_STATUS: print "Start unsteady expansion of the test gas into the acceleration tube."
+    
+    # need to know what our input state is to the acceleration tube, with a new
+    # reflected shock at the end of the acc tube mode, it can change...
+    
+    if cfg['rs_out_of_st']: # state 2 after a reflected shock
+        cfg['at_entry_state'] = 's2r'
+    else: # this is just the normal one, state 2
+        cfg['at_entry_state'] = 's2'
 
     #----------------------- acceleration tube functions -----------------------
 
-    def error_in_velocity_s2_expansion_pressure_iterator(p5, state2=states['s2'], 
-                                       V2g=V['s2'], state5=states['s5'],
+    def error_in_velocity_s2_expansion_pressure_iterator(p5, state2=states[cfg['at_entry_state']], 
+                                       V2g=V[cfg['at_entry_state']], state5=states['s5'],
                                         state6=states['s6'],Vs2=cfg['Vs2'],
                                         expansion_factor = cfg['expansion_factor'],
                                         ideal_gas_guess=cfg['gas_guess_air'],
@@ -596,8 +646,8 @@ def acceleration_tube_calculation(cfg, states, V, M):
 
         return (V6g - V7g)/V6g
         
-    def error_in_pressure_s2_expansion_shock_speed_iterator(Vs2, state2=states['s2'], 
-                                       V2g=V['s2'], state5=states['s5'],
+    def error_in_pressure_s2_expansion_shock_speed_iterator(Vs2, state2=states[cfg['at_entry_state']], 
+                                       V2g=V[cfg['at_entry_state']], state5=states['s5'],
                                         state6=states['s6'],
                                         high_temp_gas_guess=cfg['gas_guess_air'],
                                         steps=cfg['acc_tube_expansion_steps']):
@@ -659,7 +709,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
         return gas_guess
         
     #---------------------- acceleration tube calculations -----------------------
-           
+       
     if cfg['test'] == 'fulltheory-shock': #get p5 for our chosen shock speed
         #put two sets of limits here to try and make code that works will all conditions
         if cfg['Vs2'] > 4000.0 and 'p5_lower' not in cfg and 'p5_upper' not in cfg \
@@ -685,12 +735,14 @@ def acceleration_tube_calculation(cfg, states, V, M):
             # Need to turn ions off for state 2 here if it is required to make 
             # the unsteady expansion work (as state 2 is expanding into state 7)
             states['s2'].with_ions = False 
-        if cfg['Vs1'] < 2000.0 and 'Vs2_lower' and 'Vs2_upper' not in cfg:
+        if cfg['Vs1'] > 2000.0 and 'Vs2_lower' not in cfg and 'Vs2_upper' not in cfg:
             cfg['Vs2_lower'] = cfg['Vs1'] + 2000.0; cfg['Vs2_upper'] = 24900.0
-        elif cfg['Vs1'] >= 2000.0 and 'Vs2_lower' and 'Vs2_upper' not in cfg:
+        elif cfg['Vs1'] <= 2000.0 and 'Vs2_lower' not in cfg and 'Vs2_upper' not in cfg:
             cfg['Vs2_lower'] = cfg['Vs1'] + 1000.0; cfg['Vs2_upper'] = 24900.0
-        if 'Vs2_guess_1' not in cfg and 'Vs2_guess_2' not in cfg:
+        if cfg['Vs1'] > 2000.0 and 'Vs2_guess_1' not in cfg and 'Vs2_guess_2' not in cfg:
             cfg['Vs2_guess_1'] = cfg['Vs1']+7000.0; cfg['Vs2_guess_2'] = cfg['Vs1']+8000.0
+        elif cfg['Vs1'] <= 2000.0 and 'Vs2_guess_1' not in cfg and 'Vs2_guess_2' not in cfg:
+            cfg['Vs2_guess_1'] = cfg['Vs1']+4000.0; cfg['Vs2_guess_2'] = cfg['Vs1']+5000.0
             
         cfg['acc_tube_secant_tol'] = 1.0e-5    
         cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, \
@@ -735,21 +787,21 @@ def acceleration_tube_calculation(cfg, states, V, M):
             print "State 7 is being expanded to the shock speed of Vs2 ({0} m/s) multiplied by an expansion factor of {1}."\
             .format(cfg['Vs2'], cfg['expansion_factor'])
         try:
-            V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], acc_tube_expand_to_V, steps=cfg['acc_tube_expansion_steps'])
+            V['s7'], states['s7'] = finite_wave_dv('cplus', V[cfg['at_entry_state']], states[cfg['at_entry_state']], acc_tube_expand_to_V, steps=cfg['acc_tube_expansion_steps'])
         except Exception as e:
             print "Finding state7 failed. Trying again with 'state7_no_ions' turned on."
             cfg['state7_no_ions'] = True
             states['s2'].with_ions = False
-            V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], acc_tube_expand_to_V, steps=cfg['acc_tube_expansion_steps'])
+            V['s7'], states['s7'] = finite_wave_dv('cplus', V[cfg['at_entry_state']], states[cfg['at_entry_state']], acc_tube_expand_to_V, steps=cfg['acc_tube_expansion_steps'])
     elif cfg['expand_to'] == 'p7':
         print "State 7 is being expanded to a specified p7 value of {0} Pa.".format(cfg['p7'])
         try:
-            V['s7'], states['s7'] = finite_wave_dp('cplus', V['s2'], states['s2'], cfg['p7'], steps=cfg['acc_tube_expansion_steps'])
+            V['s7'], states['s7'] = finite_wave_dp('cplus', V[cfg['at_entry_state']], states[cfg['at_entry_state']], cfg['p7'], steps=cfg['acc_tube_expansion_steps'])
         except Exception as e:
             print "Finding state7 failed. Trying again with 'state7_no_ions' turned on."
             cfg['state7_no_ions'] = True
             states['s2'].with_ions = False
-            V['s7'], states['s7'] = finite_wave_dp('cplus', V['s2'], states['s2'], cfg['p7'], steps=cfg['acc_tube_expansion_steps'])   
+            V['s7'], states['s7'] = finite_wave_dp('cplus', V[cfg['at_entry_state']], states[cfg['at_entry_state']], cfg['p7'], steps=cfg['acc_tube_expansion_steps'])   
         
         cfg['Vs2'] = V['s7']
     if cfg['state7_no_ions']:

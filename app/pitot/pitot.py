@@ -203,6 +203,11 @@ available to me as part of cfpylib inside the cfcfd code collection.
         the test gas to a specified 'p7' value in the acceleration tube in 'experiment'
         and 'theory-shock-tube-experiment-acc-tube' modes. I also added the ability to
         specify a custom 'T1' for test conditions.
+    18-Sep-2015: Added a few things here. I added Sangdi's two cold Helium drivers, with an effective
+       temperature that comes from a calculation by David Gildfind. I also added a switch to allow
+       us to perform a normal shock before the expansion into the shock tube for when the diapgragm
+       is too strong. I also added a mode to allow the shock tube gas to be set to
+       shock speed in the shock tube to test when the "Mirels limit" has been reached.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -230,7 +235,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "16-Sep-2015"
+VERSION_STRING = "18-Sep-2015"
 
 DEBUG_PITOT = False
 
@@ -319,6 +324,9 @@ def run_pitot(cfg = {}, config_file = None):
 
     if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
         cfg, states, V, M = rs_calculation(cfg, states, V, M)
+    
+    if cfg['rs_out_of_st']:
+        cfg, states, V, M = shock_tube_rs_calculation(cfg, states, V, M)
     
     #--------------------- acceleration tube -----------------------------------
     
