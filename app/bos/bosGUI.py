@@ -373,7 +373,7 @@ def slidesum(a,n,m):
     return ss
 
 def simplepiv(I1,I2,wxy,mxy,sxy):
-    from scipy.stats import var
+    from scipy.stats import tvar
     from scipy.signal.signaltools import correlate2d
     from scipy import shape,reshape,zeros,r_,dot,transpose,real,conj,sqrt
     from scipy.fftpack import fft2,ifft2
@@ -434,7 +434,7 @@ def simplepiv(I1,I2,wxy,mxy,sxy):
             A= I1data[yoff+mxy:yoff-mxy+wxy,xoff+mxy:xoff-mxy+wxy]
             B= I2data[yoff:yoff+wxy,xoff:xoff+wxy]
             sumA= sum(sum(A))
-            varA= var(A,axis=None)*(wsz*wsz-1)
+            varA= tvar(A)*(wsz*wsz-1)
             sumB= slidesum(B,wsz,wsz)
             varB= slidesum(B**2,wsz,wsz)-(sumB**2)/(wsz*wsz)                           
           
@@ -569,8 +569,8 @@ def histogram_u_v():
     from pylab import figure,hist,title,load,xlabel,ylabel
     from scipy import where,logical_or,flipud
     
-    u = load('vecu.out')
-    v = load('vecv.out')
+    u = load('vecu.out.npy')
+    v = load('vecv.out.npy')
     u = flipud(u)
     v = -flipud(v)       
     figure()
@@ -591,11 +591,11 @@ def showContours_u():
     from pylab import imshow,clf,title,save,load,figure,contourf,cm,hold,contour,xlabel,ylabel
     
 
-    x = load('vecx.out')
-    y = load('vecy.out')
-    u = load('vecu.out')
-    q1= load('vecq1.out')
-    valid=load('vecvalid.out')    
+    x = load('vecx.out.npy')
+    y = load('vecy.out.npy')
+    u = load('vecu.out.npy')
+    q1= load('vecq1.out.npy')
+    valid=load('vecvalid.out.npy')    
     modelgreylevel = float(modelgreylevelVar.get())
     goodvectors = float(goodvectorsVar.get())    
     u = where(logical_or(q1 < goodvectors,valid < 0),modelgreylevel,u)    
@@ -618,12 +618,12 @@ def showContours_v():
     from scipy import zeros,where,logical_or,r_,argmin,shape,ravel,nan,compress,flipud
     from pylab import imshow,clf,title,save,load,figure,contourf,cm,hold,contour,xlabel,ylabel
     
-    x = load('vecx.out')
-    y = load('vecy.out')
-    u = load('vecu.out')
-    v = load('vecv.out')
-    q1= load('vecq1.out')
-    valid=load('vecvalid.out')    
+    x = load('vecx.out.npy')
+    y = load('vecy.out.npy')
+    u = load('vecu.out.npy')
+    v = load('vecv.out.npy')
+    q1= load('vecq1.out.npy')
+    valid=load('vecvalid.out.npy')    
     modelgreylevel = float(modelgreylevelVar.get())
     goodvectors = float(goodvectorsVar.get())    
     v = where(logical_or(q1 < goodvectors,valid < 0),modelgreylevel,v)
@@ -647,10 +647,10 @@ def showColourSchlieren():
     from pylab import contourf,quiver,load,figure,show,imshow
     from colorsys import hsv_to_rgb
 
-    x = load('vecx.out')
-    y = load('vecy.out')
-    u = load('vecu.out')
-    v = load('vecv.out')
+    x = load('vecx.out.npy')
+    y = load('vecy.out.npy')
+    u = load('vecu.out.npy')
+    v = load('vecv.out.npy')
 
     angle=arctan2(v,u)
     colourlevel = float(colourlevelVar.get())
