@@ -13,6 +13,8 @@ bool set_apply_limiter_flag(bool bflag);
 bool get_apply_limiter_flag();
 bool set_extrema_clipping_flag(bool bflag);
 bool get_extrema_clipping_flag();
+double set_overshoot_factor(double value);
+double get_overshoot_factor();
 bool set_interpolate_in_local_frame_flag(bool bflag);
 bool get_interpolate_in_local_frame_flag();
 

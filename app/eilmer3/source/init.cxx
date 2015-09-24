@@ -521,6 +521,8 @@ int read_config_parameters(const string filename, bool master, int start_tindx)
     set_apply_limiter_flag(b_value);
     dict.parse_boolean("global_data", "extrema_clipping_flag", b_value, true);
     set_extrema_clipping_flag(b_value);
+    dict.parse_double("global_data", "overshoot_factor", d_value, 1.0);
+    set_overshoot_factor(d_value);
     if ( G.verbosity_level >= 2 ) {
 	cout << "max_invalid_cells = " << G.max_invalid_cells << endl;
 	cout << "flux_calc = " << get_flux_calculator_name(get_flux_calculator()) << endl;
@@ -531,6 +533,7 @@ int read_config_parameters(const string filename, bool master, int start_tindx)
 	cout << "interpolate_in_local_frame = " << get_interpolate_in_local_frame_flag() << endl;
 	cout << "apply_limiter_flag = " << get_apply_limiter_flag() << endl;
 	cout << "extrema_clipping_flag = " << get_extrema_clipping_flag() << endl;
+	cout << "overshoot_factor = " << get_overshoot_factor() << endl;
     }
 
     dict.parse_boolean("global_data", "filter_flag", G.filter_flag, false);
