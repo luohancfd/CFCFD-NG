@@ -23,8 +23,7 @@ class L_flow_state:
     def __init__(self,_gas=None,_u=0.0):
         if _gas==None:
             if gmodel==None:
-                print "cannot create L_flow_state without a gas model"
-                sys.exit()
+                raise RuntimeError("cannot create L_flow_state without a gas model")
             else:
                 self.gas = Gas_data(gmodel)
         else:

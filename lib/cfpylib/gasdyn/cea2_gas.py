@@ -156,13 +156,12 @@ def get_cea2_float(token_list):
     elif len(token_list) == 2:
         value_str = token_list[0] + 'e+' + token_list[1]
     else:
-        print "get_cea2_float(): too many tokens (expected one or two, only):", token_list
-        value_str = '0.0'
+        raise RuntimeError("Too many tokens (expected one or two, only): %s" % token_list)
+    #
     try:
         value = float(value_str)
     except:
-        print "Cannot make a float from this string: ", value_str
-        sys.exit(-1)
+        raise RuntimeError("Cannot make a float from this string: %s" % value_str)
     return value
    
 # ----------------------------------------------------------------
@@ -190,11 +189,10 @@ class Gas(object):
         :param trace: fraction below which a species will be neglected in CEA
         """
 	if locate_executable_file(CEA_COMMAND_NAME) is None:
-            print "Could not find the executable program %s" % CEA_COMMAND_NAME
-            print "The chemical equilibrium-analysis program is external"
-            print "to the cfcfd3 code collection and needs to be obtained from NASA Glenn."
-            print "Quitting the current program because we really can't do anything further."
-            sys.exit()
+            msg = "Could not find the executable program %s" % CEA_COMMAND_NAME
+            msg += "\nThe chemical equilibrium-analysis program is external"
+            msg += "\nto cfcfd3 and needs to be obtained from NASA Glenn."
+            raise RuntimeError(msg)
 	# ----------------------------------------------------------------
         assert inputUnits == 'moles' or inputUnits == 'massf'
         assert outputUnits == 'moles' or outputUnits == 'massf'
