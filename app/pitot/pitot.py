@@ -208,6 +208,10 @@ available to me as part of cfpylib inside the cfcfd code collection.
        us to perform a normal shock before the expansion into the shock tube for when the diapgragm
        is too strong. I also added a mode to allow the shock tube gas to be set to
        shock speed in the shock tube to test when the "Mirels limit" has been reached.
+    29-Sep-2015: This includes quite a few new things. There is a new compression ratio
+       condition builder too, and I also added some things to the RST mode so that
+       it calculates the reflected shock through the driver gas so tailoring can be
+       calculated.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -235,7 +239,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "18-Sep-2015"
+VERSION_STRING = "29-Sep-2015"
 
 DEBUG_PITOT = False
 
@@ -292,7 +296,12 @@ def run_pitot(cfg = {}, config_file = None):
             cfg, states, V, M = secondary_driver_calculation(cfg, states, V, M)
         except Exception as e:
             print "Error {0}".format(str(e))
-            raise Exception, "pitot.run_pitot() Run of pitot has failed in the secondary driver calculation."               
+            # try with a slightly different guess!
+            cfg['Vsd_guess_1'] += 200.0; cfg['Vsd_guess_2'] += 200.0
+            try:
+                cfg, states, V, M = secondary_driver_calculation(cfg, states, V, M)
+            except Exception as e:
+                raise Exception, "pitot.run_pitot() Run of pitot has failed in the secondary driver calculation."               
            
     if cfg['secondary']:
         cfg['shock_tube_expansion'] = 'sd2' #state sd2 expands into shock tube
@@ -304,6 +313,8 @@ def run_pitot(cfg = {}, config_file = None):
     try:
         if 'state2_no_ions' not in cfg:
             cfg['state2_no_ions'] = False
+        if 'state3_no_ions' not in cfg:
+            cfg['state3_no_ions'] = False
         cfg, states, V, M = shock_tube_calculation(cfg, states, V, M)
     except Exception as e:
         print "Error {0}".format(str(e))
@@ -315,6 +326,9 @@ def run_pitot(cfg = {}, config_file = None):
         # this state 2 no ions is only used when absolutely necessarily. I took this code out
         # for a while thinking it was a bad choice, but then I had lots of issues so it's back in.
         cfg['state2_no_ions'] = True
+        # I decided to try to put something in here for state 3 as well...
+        # Chris James (28/09/15)
+        cfg['state3_no_ions'] = True
         print '-'*60
         try:
             cfg, states, V, M = shock_tube_calculation(cfg, states, V, M)

@@ -88,7 +88,11 @@ def secondary_driver_calculation(cfg, states, V, M):
             print "('Vsd_guess_1' = {0} m/s and 'Vsd_guess_2' = {1} m/s)".\
                   format(cfg['Vsd_guess_1'], cfg['Vsd_guess_2'])
         elif 'Vsd_guess_1' not in cfg and 'Vsd_guess_2' not in cfg and cfg['tunnel_mode'] == 'expansion-tube':
-            cfg['Vsd_guess_1'] = 4000.0; cfg['Vsd_guess_2'] = 5000.0
+            if states['s4'].T < 400.0:
+                #lower guess for cold driver
+                cfg['Vsd_guess_1'] = 1000.0; cfg['Vsd_guess_2'] = 1500.0
+            else:
+                cfg['Vsd_guess_1'] = 4000.0; cfg['Vsd_guess_2'] = 5000.0
         elif 'Vsd_guess_1' not in cfg and 'Vsd_guess_2' not in cfg and cfg['tunnel_mode'] == 'nr-shock-tunnel':
             if cfg['psd1'] < 300000.0:                
                 cfg['Vsd_guess_1'] = 7000.0; cfg['Vsd_guess_2'] = 8000.0
@@ -378,6 +382,10 @@ def shock_tube_calculation(cfg, states, V, M):
             # Need to turn ions off for state 2 here if it is required to make 
             # shock to state 2 work
             states['s2'].with_ions = False 
+        if cfg['state3_no_ions']:
+            # Need to turn ions off for state 2 here if it is required to make 
+            # shock to state 2 work
+            states['s3'].with_ions = False 
         if cfg['shock_switch']: #if we've been told to do a shock here instead of an expansion, do a shock instead of an expansion
             if PRINT_STATUS: print "The shock switch is turned on, therefore doing a shock here instead of the normal expansion... Turn this off if you didn't want it" 
             cfg['Vs1'] = secant(primary_shock_speed_reflected_iterator, 2000.0, 1500.0, tol=1.0e-6,limits=[500.0,10000.0])
@@ -389,7 +397,11 @@ def shock_tube_calculation(cfg, states, V, M):
             if 'Vs1_guess_1' not in cfg and 'Vs1_guess_2' not in cfg and cfg['tunnel_mode'] in ['expansion-tube', 'nr-shock-tunnel']:
                 if cfg['secondary']:
                     cfg['Vs1_guess_1'] = cfg['Vsd'] + 2000.0; cfg['Vs1_guess_2'] = cfg['Vsd'] + 3000.0
-                if cfg['p1'] > 1000.0 and not cfg['secondary']:
+                elif states['s4'].T < 400.0 and not cfg['secondary']:
+                    # do a lower guess if we have a cold driver.
+                    # Chris James (28/09/15)
+                    cfg['Vs1_guess_1'] = 2000.0; cfg['Vs1_guess_2'] = 3000.0
+                elif cfg['p1'] > 1000.0 and not cfg['secondary']:
                     cfg['Vs1_guess_1'] = 4000.0; cfg['Vs1_guess_2'] = 6000.0
                 elif cfg['p1'] < 100.0 and not cfg['secondary']:
                     cfg['Vs1_guess_1'] = 10000.0; cfg['Vs1_guess_2'] = 12000.0
@@ -431,18 +443,28 @@ def shock_tube_calculation(cfg, states, V, M):
                             max_iterations=100)
                 if cfg['Vs1'] == 'FAIL':
                     print "Secant solver failed again with the lower tolerance."
-                    print "Will try with the higher tolerance and 'state2_no_ions' turned on."
-                    cfg['shock_tube_secant_tol'] = cfg['shock_tube_secant_tol'] / 10.0
-                    cfg['state2_no_ions'] = True
-                    states['s2'].with_ions = False
+                    print "Dropping tolerance from {0} to {1} and trying again..."\
+                          .format(cfg['shock_tube_secant_tol'], cfg['shock_tube_secant_tol']*10.0)
+                    cfg['shock_tube_secant_tol'] = cfg['shock_tube_secant_tol'] * 10.0
                     cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
-                            cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
-                            cfg['shock_tube_secant_tol'],
-                            limits=[cfg['Vs1_lower'], cfg['Vs1_upper']],
-                            max_iterations=100)
+                                cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
+                                cfg['shock_tube_secant_tol'],
+                                limits=[cfg['Vs1_lower'], cfg['Vs1_upper']],
+                                max_iterations=100)
                     if cfg['Vs1'] == 'FAIL':
-                        print "This still isn't working. Bailing out."
-                        raise Exception, "pitot_flow_functions.shock_tube_calculation() Run of pitot has failed in the shock tube calculation."  
+                        print "Secant solver failed again with the lower tolerance."
+                        print "Will try with the higher tolerance and 'state2_no_ions' turned on."
+                        cfg['shock_tube_secant_tol'] = cfg['shock_tube_secant_tol'] / 10.0
+                        cfg['state2_no_ions'] = True
+                        states['s2'].with_ions = False
+                        cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
+                                cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
+                                cfg['shock_tube_secant_tol'],
+                                limits=[cfg['Vs1_lower'], cfg['Vs1_upper']],
+                                max_iterations=100)
+                        if cfg['Vs1'] == 'FAIL':
+                            print "This still isn't working. Bailing out."
+                            raise Exception, "pitot_flow_functions.shock_tube_calculation() Run of pitot has failed in the shock tube calculation."  
 
         if PRINT_STATUS: 
             print '-' * 60
@@ -548,6 +570,9 @@ def shock_tube_calculation(cfg, states, V, M):
         # Turn with ions back on so it will be on for other states based on s7
         # if we turned it off to make the unsteady expansion work
         states['s2'].with_ions = True 
+    if cfg['state3_no_ions']:
+        # Turn with ions back on here if we turned it off
+        states['s3'].with_ions = True 
     
     #get mach numbers for the txt_output
     cfg['Ms1'] = cfg['Vs1']/states['s1'].a
@@ -702,7 +727,14 @@ def acceleration_tube_calculation(cfg, states, V, M):
             gas_guess = {'gam':1.16, 'R':571.49}
         elif Vs2 <= 29800.0:
             gas_guess = {'gam':1.14, 'R':571.49}
-        elif cfg['Vs2'] > 29800.0:
+        elif Vs2 <= 32160.0:
+            gas_guess = {'gam':1.12, 'R':571.49}
+        elif Vs2 <= 34750.0:
+            # this is the last value I could check to work, 
+            # so anything above this I have made to code bail out on
+            # Chris James (28/09/15)
+            gas_guess = {'gam':1.10, 'R':571.49}
+        elif Vs2 > 34750.0:
             print "No gas guess has been tested for this shock speed. Bailing out."
             raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Run of pitot has failed in the acceleration tube calculation."
         
@@ -736,9 +768,9 @@ def acceleration_tube_calculation(cfg, states, V, M):
             # the unsteady expansion work (as state 2 is expanding into state 7)
             states['s2'].with_ions = False 
         if cfg['Vs1'] > 2000.0 and 'Vs2_lower' not in cfg and 'Vs2_upper' not in cfg:
-            cfg['Vs2_lower'] = cfg['Vs1'] + 2000.0; cfg['Vs2_upper'] = 24900.0
+            cfg['Vs2_lower'] = cfg['Vs1'] + 2000.0; cfg['Vs2_upper'] = 34750.0
         elif cfg['Vs1'] <= 2000.0 and 'Vs2_lower' not in cfg and 'Vs2_upper' not in cfg:
-            cfg['Vs2_lower'] = cfg['Vs1'] + 1000.0; cfg['Vs2_upper'] = 24900.0
+            cfg['Vs2_lower'] = cfg['Vs1'] + 1000.0; cfg['Vs2_upper'] = 34750.0
         if cfg['Vs1'] > 2000.0 and 'Vs2_guess_1' not in cfg and 'Vs2_guess_2' not in cfg:
             cfg['Vs2_guess_1'] = cfg['Vs1']+7000.0; cfg['Vs2_guess_2'] = cfg['Vs1']+8000.0
         elif cfg['Vs1'] <= 2000.0 and 'Vs2_guess_1' not in cfg and 'Vs2_guess_2' not in cfg:
@@ -851,11 +883,21 @@ def rs_calculation(cfg, states, V, M):
     V['s5'] = 0.0
     M['s5']= V['s5']/states['s5'].a
     
+    # now we do the same to state 3 so we can check the tailoring
+    
+    states['s5_d'] = states['s3'].clone()
+    # then perform the reflected shock
+    cfg['Vr_d'] = reflected_shock(states['s3'], V['s3'], states['s5_d'])
+    cfg['Mr_d'] = (V['s3']+cfg['Vr_d'])/states['s3'].a #normally this would be V2 - Vr, but it's plus here as Vr has been left positive
+    V['s5_d'] = 0.0
+    M['s5_d']= V['s5_d']/states['s5_d'].a
+    
     if PRINT_STATUS: 
         print "state 5: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s5'].p, states['s5'].T)
         if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
-            print 'species in state5 at equilibrium:'               
             print '{0}'.format(states['s5'].species)
+        print "state 5 driver ('5_d'): p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s5_d'].p, states['s5_d'].T)
+        
         
     return cfg, states, V, M
     

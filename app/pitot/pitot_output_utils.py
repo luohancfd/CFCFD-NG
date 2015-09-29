@@ -115,7 +115,7 @@ def txt_file_output(cfg, states, V, M):
     print test_gas_used
     txt_output.write(test_gas_used + '\n')  
     if cfg['solver'] == 'eq':
-        if cfg['piston'] in ['Sangdi-1.8MPa', 'sangdi-1.8MPa','Sangdi-2.2MPa', 'sangdi-2.2MPa']:
+        if cfg['facility'] != 'custom' and cfg['piston'] in ['Sangdi-1.8MPa', 'sangdi-1.8MPa','Sangdi-2.2MPa', 'sangdi-2.2MPa']:
             driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])  
         elif 'driver_pg_gam' not in cfg: # driver will be pg if it is!
             driver_gas_used = 'Driver gas is {0}.'.format(states['s4'].reactants)  
@@ -162,6 +162,11 @@ def txt_file_output(cfg, states, V, M):
         format(cfg['Vs1'],cfg['Ms1'],cfg['Vr'],cfg['Mr'])     
     print shockspeeds #prints above line in console
     txt_output.write(shockspeeds + '\n') #writes above line to txt_output file (input to write command must be a string)
+    if cfg['tunnel_mode'] == 'reflected-shock-tunnel':    
+        shockspeeds_2 = "Vr_d = {0:.2f} m/s, Mr_d = {1:.2f}".format(cfg['Vr_d'],cfg['Mr_d'])
+        print shockspeeds_2
+        txt_output.write(shockspeeds_2 + '\n')
+         
     if cfg['rs_out_of_st']:
         rs_out_of_st = "Vr-st = {0:.2f} m/s, Mr-st = {1:.2f}".format(cfg['Vr-st'],cfg['Mr-st'])
         print rs_out_of_st #prints above line in console
@@ -266,6 +271,7 @@ def txt_file_output(cfg, states, V, M):
                                     
     if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
          condition_printer('s5')
+         condition_printer('s5_d')
             
     if cfg['nozzle']: #do nozzle calculations if asked to
         condition_printer('s8')
@@ -531,7 +537,7 @@ def csv_file_output(cfg, states, V, M):
     csv_output.write(csv_test_gas_used + '\n')  
     
     if cfg['solver'] == 'eq':
-        if cfg['piston'] in ['Sangdi-1.8MPa', 'sangdi-1.8MPa','Sangdi-2.2MPa', 'sangdi-2.2MPa']:
+        if cfg['facility'] != 'custom' and cfg['piston'] in ['Sangdi-1.8MPa', 'sangdi-1.8MPa','Sangdi-2.2MPa', 'sangdi-2.2MPa']:
             csv_driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])
         else:
             csv_driver_gas_used = 'Driver gas,{0}.'.format(states['s4'].reactants)
@@ -559,7 +565,10 @@ def csv_file_output(cfg, states, V, M):
     csv_output.write(csv_shockspeeds + '\n')
     if cfg['rs_out_of_st']:
         rs_out_of_st = "Vr-st,{0:.2f} m/s, Mr-st,{1:.2f}".format(cfg['Vr-st'],cfg['Mr-st'])
-        csv_output.write(rs_out_of_st + '\n') #writes above line to txt_output file (input to write command must be a string)   
+        csv_output.write(rs_out_of_st + '\n') #writes above line to txt_output file (input to write command must be a string)
+    if cfg['tunnel_mode'] == 'reflected-shock-tunnel':    
+        shockspeeds_2 = "Vr_d,{0:.2f} m/s,Mr_d,{1:.2f}".format(cfg['Vr_d'],cfg['Mr_d'])
+        csv_output.write(shockspeeds_2 + '\n')
                 
     csv_key = "{0:6},{1:11},{2:9},{3:6},{4:9},{5:6},{6:9},{7:8},{8:9}".format("state","P","T","a","V","M","rho","pitot","stgn")
     csv_output.write(csv_key + '\n')
@@ -648,6 +657,7 @@ def csv_file_output(cfg, states, V, M):
             
     if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
         csv_condition_printer('s5')
+        csv_condition_printer('s5_d')
         
     #do the conditions over the model
     if cfg['shock_over_model']:
