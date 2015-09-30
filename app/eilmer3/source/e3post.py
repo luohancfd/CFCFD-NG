@@ -1213,6 +1213,10 @@ def write_surface_profile(outputFileName, bc_surface_list_str, tindx, nblock, sf
     fp.write("# Column 8: pos.x (m)\n")
     fp.write("# Column 9: pos.y (m)\n")
     fp.write("# Column 10: pos.z (m)\n")
+    fp.write("# Column 11: index block\n")    
+    fp.write("# Column 12: index i\n")
+    fp.write("# Column 13: index j\n")
+    fp.write("# Column 14: index k\n")
     surface_lists = bc_surface_list_str.split(';')
     if verbosity_level > 0: print "surface_lists = ", surface_lists
     first = True
@@ -1244,11 +1248,12 @@ def write_surface_profile(outputFileName, bc_surface_list_str, tindx, nblock, sf
 				first = False
 			    L += vabs(pos-pos_prev)
 			    pos_prev = pos
-			    fp.write("%e %e %e %e %e %e %e %e %e %e\n" % \
+			    fp.write("%e %e %e %e %e %e %e %e %e %e %d %d %d %d\n" % \
                                          ( iface_data.T_surface, iface_data.u_x, iface_data.u_y,
                                            iface_data.u_z, iface_data.tke_surface, iface_data.omega_surface,
                                            iface_data.mass_flux,
-                                           iface_data.x, iface_data.y, iface_data.z) )
+                                           iface_data.x, iface_data.y, iface_data.z,
+                                           jb, i, j, k) )
     #
     return 0
     
