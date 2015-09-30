@@ -126,7 +126,7 @@ def calculate_number_of_test_runs(cfg):
             
         if len(cfg['secondary_list']) == 2:
             total = total_with_sd + total_without_sd
-    elif cfg['tunnel_mode'] == 'nr-shock-tunnel':
+    elif cfg['tunnel_mode'] == 'nr-shock-tunnel' or cfg['tunnel_mode'] == 'reflected-shock-tunnel':
         if True in cfg['secondary_list']:
             total_with_sd = len(cfg['driver_condition_list'])*\
             len(cfg['psd1_list'])*len(cfg['p1_list'])
@@ -137,7 +137,7 @@ def calculate_number_of_test_runs(cfg):
             total = total_without_sd
             
         if len(cfg['secondary_list']) == 2:
-            total = total_with_sd + total_without_sd
+            total = total_with_sd + total_without_sd        
     
     return total
     
@@ -183,12 +183,39 @@ def build_results_dict(cfg):
     # need to make a list to create a series of empty lists in the results
     # dictionary to store the data. the list is tailored to the test we're running
     
-    full_list = []
+    full_list = ['test number','driver condition']
+       
+    if cfg['tunnel_mode'] == 'expansion-tube':
+        if True in cfg['secondary_list']:
+            pressure_shock_list = ['psd1','p1','p5','Vsd','Vs1', 'Vs2']
+        else:
+            pressure_shock_list = ['p1','p5','Vs1', 'Vs2']
+    elif cfg['tunnel_mode'] == 'nr-shock-tunnel':
+        if True in cfg['secondary_list']:
+            pressure_shock_list = ['psd1','p1','Vsd','Vs1']
+        else:
+            pressure_shock_list = ['p1','Vs1']
+    elif cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+        if True in cfg['secondary_list']:
+            pressure_shock_list = ['psd1','p1','Vsd','Vs1','Vr','Mr','Vr_d','Mr_d']
+        else:
+            pressure_shock_list = ['p1','Vs1','Vr','Mr','Vr_d','Mr_d']            
+            
+    full_list += pressure_shock_list
+
+    state2_list = ['p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2']
+    full_list += state2_list     
     
-    basic_list = ['test number','driver condition','psd1','p1','p5','Vsd','Vs1',
-                  'Vs2','p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2',
-                  'p7','T7','rho7','V7','M7','Ht','h','u_eq']
-    full_list += basic_list
+    if cfg['tunnel_mode'] == 'expansion-tube':
+        state7_list = ['p7','T7','rho7','V7','M7']
+        full_list += state7_list
+        
+    if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+        state5_list = ['p5','T5','rho5','V5','M5', 'p5_d','T5_d','rho5_d','V5_d','M5_d']
+        full_list += state5_list        
+
+    enthalpy_list = ['Ht','h','u_eq']
+    full_list += enthalpy_list 
     
     if cfg['nozzle']:
         nozzle_list = ['arearatio','p8','T8','rho8','V8','M8']
@@ -252,18 +279,16 @@ def condition_builder_test_run(cfg, results):
         condition_status = False
     if condition_status:
         results = add_new_result_to_results_dict(cfg, states, V, M, results)
-        # need to remove Vs values from the dictionary or it will bail out
-        # on the next run
-        cfg.pop('Vsd'); cfg.pop('Vs1'); cfg.pop('Vs2')
         cfg['last_run_successful'] = True
     else:
-        # need to remove Vs values from the dictionary or it will bail out
-        # on the next run         
-        if cfg['secondary'] and 'Vsd' in cfg: cfg.pop('Vsd')
-        if 'Vs1' in cfg: cfg.pop('Vs1') 
-        if 'Vs2' in cfg: cfg.pop('Vs2')
         cfg['last_run_successful'] = False
         results['unsuccessful_runs'].append(cfg['test_number'])
+    
+    # need to remove Vs values from the dictionary or it will bail out
+    # on the next run                 
+    if cfg['secondary'] and 'Vsd' in cfg: cfg.pop('Vsd')
+    if 'Vs1' in cfg: cfg.pop('Vs1') 
+    if 'Vs2' in cfg: cfg.pop('Vs2')
     
     # now we end the stream teeing here by pulling out the original stdout object
     # and overwriting the stream tee with that, then closing the log file
@@ -360,14 +385,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     """Function that takes a completed test run and adds the tunnel
        configuration and results to the results dictionary.
     """ 
-    
-    if not cfg['secondary']: #need to fill psd and Vsd with string values
-        cfg['psd1'] = 'Not used'
-        cfg['Vsd'] = 'N/A'
-    if cfg['tunnel_mode'] == 'nr-shock-tunnel':
-        cfg['p5'] = 'Not used'
-        cfg['Vs2'] = 'N/A'
-        
+           
     # needed to change these as the extra comma was screwing up the csv
     if cfg['driver_gas'] == 'He:1.0':
         driver_condition = cfg['driver_gas']
@@ -380,13 +398,29 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     
     results['test number'].append(cfg['test_number'])
     results['driver condition'].append(driver_condition)
-    results['psd1'].append(cfg['psd1'])
-    results['p1'].append(cfg['p1']) 
-    results['p5'].append(cfg['p5'])
-    
-    results['Vsd'].append(cfg['Vsd'])
+    if True in cfg['secondary_list']:
+        if cfg['secondary']:
+            results['psd1'].append(cfg['psd1'])
+        else:
+            results['psd1'].append('Not used')
+    results['p1'].append(cfg['p1'])
+    if cfg['tunnel_mode'] == 'expansion-tube':
+        results['p5'].append(cfg['p5'])
+            
+    if True in cfg['secondary_list']:
+        if cfg['secondary']:
+            results['Vsd'].append(cfg['Vsd'])
+        else:
+            results['Vsd'].append('N/A')
     results['Vs1'].append(cfg['Vs1'])
-    results['Vs2'].append(cfg['Vs2'])
+    if cfg['tunnel_mode'] == 'expansion-tube':
+        results['Vs2'].append(cfg['Vs2'])
+        
+    if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+        results['Vr'].append(cfg['Vr'])
+        results['Mr'].append(cfg['Mr'])   
+        results['Vr_d'].append(cfg['Vr_d'])
+        results['Mr_d'].append(cfg['Mr_d'])   
     
     results['p2'].append(states['s2'].p)
     results['T2'].append(states['s2'].T)
@@ -407,6 +441,20 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
         results['rho7'].append(states['s7'].rho)
         results['V7'].append(V['s7'])
         results['M7'].append(M['s7'])
+        
+    if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+        results['p5'].append(states['s5'].p)
+        results['T5'].append(states['s5'].T)
+        results['rho5'].append(states['s5'].rho)
+        results['V5'].append(V['s5'])
+        results['M5'].append(M['s5'])
+        
+        results['p5_d'].append(states['s5_d'].p)
+        results['T5_d'].append(states['s5_d'].T)
+        results['rho5_d'].append(states['s5_d'].rho)
+        results['V5_d'].append(V['s5_d'])
+        results['M5_d'].append(M['s5_d'])
+        
     if cfg['stagnation_enthalpy']:
         results['Ht'].append(cfg['stagnation_enthalpy']/10**6)
     else:
@@ -723,7 +771,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
                                     .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
                                     have_checked_time = True
 
-    elif cfg['tunnel_mode'] == 'nr-shock-tunnel':   
+    elif cfg['tunnel_mode'] == 'nr-shock-tunnel' or cfg['tunnel_mode'] == 'reflected-shock-tunnel':   
         for driver_condition in cfg['driver_condition_list']:
             cfg['driver_gas'] = driver_condition
             for secondary_value in cfg['secondary_list']:

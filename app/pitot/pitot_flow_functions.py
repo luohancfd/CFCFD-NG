@@ -36,15 +36,19 @@ def secondary_driver_calculation(cfg, states, V, M):
         
         print "current guess for psd1 = {0} Pa".format(psd1)            
         
-        statesd1.set_pT(psd1,300.0) #set s1 at set pressure and ambient temp
+        statesd1.set_pT(psd1, 300.0) #set s1 at set pressure and ambient temp
         
         (Vsd2, Vsd2g) = normal_shock(statesd1, Vsd, statesd2)
+        
+        print "rho_sd2 = {0} m**3/kg.".format(statesd2.rho)
         
         #Across the contact surface, p3 == p2
         psd3 = statesd2.p
         
         # Across the expansion, we get a velocity, V5g.
         Vsd3g, statesd3 = finite_wave_dp('cplus', V3sg, state3s, psd3, steps=steps)
+        
+        print "rho_sd3 = {0} m**3/kg.".format(statesd3.rho)
 
         return (Vsd2g - Vsd3g)/Vsd2g
         
@@ -61,7 +65,7 @@ def secondary_driver_calculation(cfg, states, V, M):
         print "current guess for Vsd = {0} m/s".format(Vsd)            
         
         (Vsd2, Vsd2g) = normal_shock(statesd1, Vsd, statesd2)
-        
+               
         #Across the contact surface, p3 == p2
         psd3 = statesd2.p
         
@@ -69,7 +73,7 @@ def secondary_driver_calculation(cfg, states, V, M):
         Vsd3g, statesd3 = finite_wave_dp('cplus', V3sg, state3s, psd3, steps=steps)
         
         print "Current psd2 = {0} Pa, current psd3 = {1} Pa.".format(statesd2.p, statesd3.p)
-        print "Current Vsd2g = {0} m/s, current Vsd3g = {1} m/s.".format(Vsd2g, Vsd3g)   
+        print "Current Vsd2g = {0} m/s, current Vsd3g = {1} m/s.".format(Vsd2g, Vsd3g)  
 
         return (Vsd2g - Vsd3g)/Vsd2g
         
@@ -560,11 +564,10 @@ def shock_tube_calculation(cfg, states, V, M):
             print 'species in state2 at equilibrium:'               
             print '{0}'.format(states['s2'].species)
             print 'state 2 gamma = {0}, state 2 R = {1}.'.format(states['s2'].gam,states['s2'].R)
-        if cfg['solver'] == 'eq':
-            states['s2_total'] = total_condition(states['s2'], V['s2'])
-            print 'The total enthalpy (Ht) at state 2 is {0:<.5g} MJ/kg (H2 - h1).'\
-            .format((states['s2_total'].h - states['s1'].h)/1.0e6) #(take away the initial enthalpy in state 1 to get the change)
-            cfg['Ht2'] = states['s2_total'].h - states['s1'].h
+        states['s2_total'] = total_condition(states['s2'], V['s2'])
+        print 'The total enthalpy (Ht) at state 2 is {0:<.5g} MJ/kg (H2 - h1).'\
+        .format((states['s2_total'].h - states['s1'].h)/1.0e6) #(take away the initial enthalpy in state 1 to get the change)
+        cfg['Ht2'] = states['s2_total'].h - states['s1'].h
         
     if cfg['state2_no_ions']:
         # Turn with ions back on so it will be on for other states based on s7
@@ -1073,8 +1076,15 @@ def shock_over_model_calculation(cfg, states, V, M):
                                                      outputUnits='moles', with_ions=True)                                       
         states[cfg['test_section_state']+'eq'].set_pT(states[cfg['test_section_state']].p,states[cfg['test_section_state']].T)
         states['s10e'] = states[cfg['test_section_state']+'eq'].clone()
-        (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']+'eq'], V[cfg['test_section_state']], states['s10e'])
-        M['s10e']= V['s10e']/states['s10e'].a
+        try:
+            (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']+'eq'], V[cfg['test_section_state']], states['s10e'])
+            M['s10e']= V['s10e']/states['s10e'].a
+        except Exception as e:
+            print "Error {0}".format(str(e))
+            print "Equilibrium normal shock calculation over the test model failed."
+            print "Result will not be printed."
+            if 's10e' in states.keys():
+                del states['s10e']
         
     if PRINT_STATUS: print '-'*60
         

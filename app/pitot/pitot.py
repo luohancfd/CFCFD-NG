@@ -212,6 +212,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
        condition builder too, and I also added some things to the RST mode so that
        it calculates the reflected shock through the driver gas so tailoring can be
        calculated.
+    30-Sep-2015: Finally fixed up the condition builder so it works with RST mode.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -239,7 +240,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "29-Sep-2015"
+VERSION_STRING = "30-Sep-2015"
 
 DEBUG_PITOT = False
 
