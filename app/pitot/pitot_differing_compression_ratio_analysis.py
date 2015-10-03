@@ -15,7 +15,7 @@ Chris James (c.james4@uq.edu.au) - 25/09/15
 
 """
 
-VERSION_STRING = "29-Sep-2015"
+VERSION_STRING = "03-Oct-2015"
 
 from pitot_condition_builder import stream_tee
 
@@ -125,14 +125,14 @@ def build_results_dict(cfg):
     full_list = []
     
     if cfg['secondary']:    
-        basic_list = ['test number','driver_p', 'driver_T', 'p4', 'T4','gamma4', 'R4',
-                      'psd1','p1','p5','Vsd',
+        basic_list = ['test number','compression_ratio','driver_p', 'driver_T', 
+                      'p4', 'T4','gamma4', 'R4', 'psd1','p1','p5','Vsd',
                       'Vs1', 'Vs2', 'Ht','h','u_eq', 'rho1', 'gamma1', 'R1', 'MW1',
                       'p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2',
                       'p6','T6','rho6','V6','M6','p7','T7','rho7','V7','M7']
     else:
-        basic_list = ['test number','driver_p', 'driver_T', 'p4', 'T4','gamma4', 
-                      'R4','p1','p5',
+        basic_list = ['test number','compression_ratio', 'driver_p', 'driver_T', 
+                      'p4', 'T4','gamma4', 'R4','p1','p5',
                       'Vs1', 'Vs2', 'Ht','h','u_eq','rho1', 'gamma1', 'R1', 'MW1',
                       'p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2',
                       'p6','T6','rho6','V6','M6','p7','T7','rho7','V7','M7']
@@ -241,7 +241,7 @@ def results_csv_builder(results, test_name = 'pitot_run',  intro_line = None):
     """
     
     # open a file to start saving results
-    condition_builder_output = open(test_name + '-gg-differing-diluent-analysis.csv',"w")  #csv_output file creation
+    condition_builder_output = open(test_name + '-differing-compression-ratio-analysis.csv',"w")  #csv_output file creation
     
     # print a line explaining the results if the user gives it
     if intro_line:
@@ -292,7 +292,7 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
     """
     
     # open a file to start saving results
-    condition_builder_output = open(test_name + '-gg-differing-diluent-analysis-normalised.csv',"w")  #csv_output file creation
+    condition_builder_output = open(test_name + '-differing-compression-ratio-analysis-normalised.csv',"w")  #csv_output file creation
     
     # print a line explaining the results if the user gives it
     if intro_line:
@@ -371,6 +371,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     """ 
     
     results['test number'].append(cfg['test_number'])
+    results['compression_ratio'].append(cfg['compression_ratio'])
     if cfg['secondary']:
         results['psd1'].append(cfg['psd1'])
     results['p1'].append(cfg['p1']) 

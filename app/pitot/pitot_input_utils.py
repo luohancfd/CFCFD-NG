@@ -562,7 +562,7 @@ def state_builder(cfg):
     #right conditions, and then mach number at the change over from steady to
     #unsteady expansion, this was based on calcs done by RGM
 
-    primary_driver_x2 = {'He:1.0':[Gas({'He':1.0},inputUnits='moles'),2.15],
+    primary_driver_x2 = {'He:1.0':[Gas({'He':1.0},inputUnits='moles', outputUnits='moles'),2.15],
                         'He:0.98,Ar:0.02-off-design':[Gas({'He':0.98,'Ar':0.02},inputUnits='moles',
                                               outputUnits='moles'),2.15],
                        'He:0.80,Ar:0.20':[Gas({'He':0.8,'Ar':0.2},inputUnits='moles',
@@ -572,10 +572,21 @@ def state_builder(cfg):
                         'He:0.85,Ar:0.15':[Gas({'He':0.85,'Ar':0.15},inputUnits='moles',
                                                outputUnits='moles'),1.385],
                         'He:0.825,Ar:0.175':[Gas({'He':0.825,'Ar':0.175},inputUnits='moles',
-                                                 outputUnits='moles'),1.256]                   }
+                                                 outputUnits='moles'),1.256]}
                         
-    primary_driver_x3 = dict([('He:0.60,Ar:0.40',[Gas({'He':0.6,'Ar':0.4},inputUnits='moles',
-                                                      outputUnits='moles'),2.23])])
+    primary_driver_x3 = {'He:1.0':[Gas({'He':1.0},inputUnits='moles', outputUnits='moles'),2.23],
+                         'He:0.80,Ar:0.20':[Gas({'He':0.8,'Ar':0.2},inputUnits='moles',
+                                              outputUnits='moles'),2.23],
+                         'He:0.90,Ar:0.10':[Gas({'He':0.9,'Ar':0.1},inputUnits='moles',
+                                               outputUnits='moles'),2.23],
+                         'He:0.85,Ar:0.15':[Gas({'He':0.85,'Ar':0.15},inputUnits='moles',
+                                               outputUnits='moles'),2.23],
+                         'He:0.825,Ar:0.175':[Gas({'He':0.825,'Ar':2.23},inputUnits='moles',
+                                               outputUnits='moles'),2.23],    
+                         'He:0.60,Ar:0.40':[Gas({'He':0.60,'Ar':0.40},inputUnits='moles',
+                                                outputUnits='moles'),2.23]      }   
+                                                      
+                                                      
     
     #here the states are made as CEA2 gas states, and then the ideal gam and MW are pulled out if required   
     #and the gas objects are then redefined to be perfect gas
