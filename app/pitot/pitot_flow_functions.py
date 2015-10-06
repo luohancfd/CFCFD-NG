@@ -1102,26 +1102,113 @@ def wedge_calculation(cfg, states, V, M):
     
     if PRINT_STATUS: print "Starting calculation of conditions behind a {0} degree wedge in the test section.".format(cfg['wedge_angle']) 
     
-    states['s10w'] = states[cfg['test_section_state']].clone()
-    # start by getting the beta angle over the wedge
-    cfg['wedge_angle_radians'] = math.radians(cfg['wedge_angle'])
-    cfg['beta'] = beta_oblique(states[cfg['test_section_state']], V[cfg['test_section_state']], cfg['wedge_angle_radians'])
-    print "Beta = {0} degrees.".format(math.degrees(cfg['beta']))
-    # now get the wedge surface conditions
-    cfg['wedge_angle_calculated'], V['s10w'], states['s10w'] = theta_oblique(states[cfg['test_section_state']], V[cfg['test_section_state']], cfg['beta'])
-    wedge_angle_calculated_degrees = math.degrees(cfg['wedge_angle_calculated'])
-    wedge_angle_error = ((cfg['wedge_angle']-wedge_angle_calculated_degrees)/cfg['wedge_angle'])*100.0
-    # need to check the calculated theta
-    print "Selected wedge angle {0} degrees, calculated wedge angle {1} degrees, error is {2} %"\
-          .format(cfg['wedge_angle'], wedge_angle_calculated_degrees, wedge_angle_error)
-    if wedge_angle_error > 1.0:
-        print "Wedge angle error is too large. Going to throw this result out."
-        cfg['wedge'] = False
+    #--------------------------------------------------------------------------
+    print "Starting frozen wedge calculation."
     
-    M['s10w']= V['s10w']/states['s10w'].a
- 
+    try:
+        # we take the MM and gamma of the test section state and use that to specify
+        # a perfect gas version of the test section state to work with
+        pg_test_section_state = pg.Gas(Mmass=states[cfg['test_section_state']].Mmass,
+                                gamma=states[cfg['test_section_state']].gam, name='pg_test_section_state')
+        pg_test_section_state.set_pT(states[cfg['test_section_state']].p, 
+                                     states[cfg['test_section_state']].T)
+        states['s10w'] = pg_test_section_state.clone()
+    except Exception as e:
+        print "Error {0}".format(str(e))
+        print "Failed to make perfect gas test section state."
+        if 's10w' in states.keys():
+            del states['s10w']
+            print "Frozen wedge calculation failed."
+            print "Result will not be printed."
+            
+    if 's10w' in states.keys(): 
+        # start by getting the beta angle over the wedge
+        cfg['wedge_angle_radians'] = math.radians(cfg['wedge_angle'])
+        try:
+            cfg['beta_pg'] = beta_oblique(pg_test_section_state, V[cfg['test_section_state']], cfg['wedge_angle_radians'])
+            print "Beta = {0} degrees.".format(math.degrees(cfg['beta_pg']))
+            # now get the wedge surface conditions
+            cfg['wedge_angle_calculated'], V['s10w'], states['s10w'] = theta_oblique(pg_test_section_state, V[cfg['test_section_state']], cfg['beta_pg'])
+            wedge_angle_calculated_degrees = math.degrees(cfg['wedge_angle_calculated'])
+            wedge_angle_error = ((cfg['wedge_angle']-wedge_angle_calculated_degrees)/cfg['wedge_angle'])*100.0
+            # need to check the calculated theta
+            print "Selected wedge angle is {0} degrees, calculated wedge angle is {1} degrees, error is {2} %"\
+                  .format(cfg['wedge_angle'], wedge_angle_calculated_degrees, wedge_angle_error)
+            if wedge_angle_error > 1.0:
+                print "Wedge angle error is too large. Going to throw this result out."
+                if 's10w' in states.keys():
+                    del states['s10w']
+            if 's10w' in states.keys():        
+                M['s10w']= V['s10w']/states['s10w'].a
+        except Exception as e:
+            print "Error {0}".format(str(e))
+            print "Frozen wedge calculation failed."
+            print "Result will not be printed."
+            if 's10w' in states.keys():
+                del states['s10w']
+            
     if PRINT_STATUS: print '-'*60
         
+    #--------------------------------------------------------------------------
+    # now do the eq wedge calc if we're in eq mode
+        
+    if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq': 
+        print "Starting equilibrium wedge calculation."
+        if 's10w' in states.keys():
+            # first give the frozen calc frozen notation
+            states['s10wf'] = states['s10w']
+            V['s10wf'] = V['s10w']
+            M['s10wf'] = M['s10w']
+            
+        try:
+            states['s10we'] = states[cfg['test_section_state']].clone()
+        except Exception as e:
+            print "Error {0}".format(str(e))
+            print "Failed to clone test section gas state."
+            print "Trying again with ions turned off."
+            states[cfg['test_section_state']].with_ions = False
+            try:
+                states['s10we'] = states[cfg['test_section_state']].clone() 
+                states[cfg['test_section_state']].with_ions = True
+                states['s10we'].with_ions = True
+                print "Managed to clone test section state with ions turned off."
+            except Exception as e:
+                print "Error {0}".format(str(e))
+                print "Failed to clone test section gas state."
+                states[cfg['test_section_state']].with_ions = True
+                if 's10we' in states.keys():
+                    del states['s10we']
+                print "Equilibrium wedge calculation failed."
+                print "Result will not be printed." 
+                if 's10we' in states.keys():   
+                    del states['s10we'] 
+            
+        if 's10we' in states.keys():
+            # start by getting the beta angle over the wedge
+            cfg['wedge_angle_radians'] = math.radians(cfg['wedge_angle'])
+            try:
+                cfg['beta_eq'] = beta_oblique(states[cfg['test_section_state']], V[cfg['test_section_state']], cfg['wedge_angle_radians'])
+                print "Beta = {0} degrees.".format(math.degrees(cfg['beta_eq']))
+                # now get the wedge surface conditions
+                cfg['wedge_angle_calculated'], V['s10we'], states['s10we'] = theta_oblique(states[cfg['test_section_state']], V[cfg['test_section_state']], cfg['beta_eq'])
+                wedge_angle_calculated_degrees = math.degrees(cfg['wedge_angle_calculated'])
+                wedge_angle_error = ((cfg['wedge_angle']-wedge_angle_calculated_degrees)/cfg['wedge_angle'])*100.0
+                # need to check the calculated theta
+                print "Selected wedge angle is {0} degrees, calculated wedge angle is {1} degrees, error is {2} %"\
+                .format(cfg['wedge_angle'], wedge_angle_calculated_degrees, wedge_angle_error)
+                if wedge_angle_error > 1.0:
+                    print "Wedge angle error is too large. Going to throw this result out."
+                    if 's10we' in states.keys():
+                        del states['s10we']
+                if 's10we' in states.keys(): 
+                    M['s10we']= V['s10we']/states['s10we'].a
+            except Exception as e:
+                print "Error {0}".format(str(e))
+                print "Equilibrium wedge calculation failed."
+                print "Result will not be printed."
+                if 's10we' in states.keys():
+                    del states['s10we']
+                
     return cfg, states, V, M
     
 #----------------------------------------------------------------------------

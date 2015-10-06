@@ -285,7 +285,11 @@ def txt_file_output(cfg, states, V, M):
         condition_printer('s10c')
         
     if cfg['wedge']:
-        condition_printer('s10w')
+        if cfg['solver'] == 'pg':
+            condition_printer('s10w')
+        elif cfg['solver'] in ['eq', 'pg-eq']:
+            condition_printer('s10wf')
+            condition_printer('s10we')
         
     # added some extra code to calculate pre and post nozzle stagnation enthalpy 
     # if the user wants it
@@ -390,6 +394,15 @@ def txt_file_output(cfg, states, V, M):
     print u_eq_print
     txt_output.write(u_eq_print + '\n')
     
+    if cfg['wedge']:
+        frozen_wedge = 'Frozen wedge beta angle is {0:.3f} degrees.'.format(math.degrees(cfg['beta_pg']))
+        print frozen_wedge
+        txt_output.write(frozen_wedge + '\n')
+        if cfg['solver'] in ['eq', 'pg-eq']:
+            eq_wedge = 'Equilibrium wedge beta angle is {0:.3f} degrees.'.format(math.degrees(cfg['beta_eq']))
+            print eq_wedge
+            txt_output.write(eq_wedge + '\n')            
+
     #if the test time calculation has been done, print it
     if cfg['calculate_test_time']: 
         basic_test_time_printout = 'Basic test time = {0:.2f} microseconds'.format(cfg['t_test_basic']*1.0e6)
@@ -412,7 +425,7 @@ def txt_file_output(cfg, states, V, M):
     #added ability to get the species in the post-shock condition
     
     if cfg['shock_over_model'] and 's10e' in states.keys():
-        species1 = 'species in the shock layer at equilibrium:'        
+        species1 = 'Species in the shock layer at equilibrium (s10e):'        
         print species1
         txt_output.write(species1 + '\n')
         
@@ -668,7 +681,11 @@ def csv_file_output(cfg, states, V, M):
         csv_condition_printer('s10c')
         
     if cfg['wedge']:
-        csv_condition_printer('s10w')
+        if cfg['solver'] == 'pg':
+            csv_condition_printer('s10w')
+        elif cfg['solver'] in ['eq', 'pg-eq']:
+            csv_condition_printer('s10wf')
+            csv_condition_printer('s10we')
         
     if 'stagnation_enthalpy' not in cfg:
         #if stagnation enthalpy and u_eq not already calculated, calculate them here
@@ -706,6 +723,13 @@ def csv_file_output(cfg, states, V, M):
     if cfg['stagnation_enthalpy']:           
         csv_u_eq_print = 'Ue,{0:<.5g} m/s.'.format(cfg['u_eq'])
         csv_output.write(csv_u_eq_print + '\n')
+        
+    if cfg['wedge']:
+        frozen_wedge = 'Frozen wedge beta angle, {0:.3f} degrees.'.format(math.degrees(cfg['beta_pg']))
+        csv_output.write(frozen_wedge + '\n')
+        if cfg['solver'] in ['eq', 'pg-eq']:
+            eq_wedge = 'Equilibrium wedge beta angle, {0:.3f} degrees.'.format(math.degrees(cfg['beta_eq']))
+            csv_output.write(eq_wedge + '\n')    
 
     if cfg['calculate_test_time']: 
         csv_basic_test_time_printout = 'Basic test time,{0:.2f} microseconds'.format(cfg['t_test_basic']*1.0e6)
