@@ -118,7 +118,7 @@ int main(int argc, char **argv)
     bool do_run_simulation = false;
     size_t start_tindx = 0;
     int run_status = SUCCESS;
-    char c, job_name[132], text_buf[132];
+    char c, job_name[132], text_buf[132], *dotpy;
     char log_file_name[132], mpimap_file_name[132];
 
 #   ifdef _MPI
@@ -206,6 +206,8 @@ int main(int argc, char **argv)
 	switch (c) {
 	case 'f':
 	    strcpy(job_name, poptGetOptArg(optCon));
+	    dotpy = strstr(job_name, ".py");
+	    if ( dotpy ) { *dotpy = '\0'; } // cut off the .py extension
 	    break;
 	case 'r':
 	    do_run_simulation = true;
