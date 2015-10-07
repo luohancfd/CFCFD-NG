@@ -85,6 +85,7 @@ bool write_at_step_has_been_done = false;
 int program_return_flag = 0;
 size_t output_counter = 0; // counts the number of flow-solutions written
 bool zip_files = true; // flag to indicate if flow and grid files are to be gzipped
+bool report_dt_all_blocks = false; // we may want to check allowable time-step for all blocks
 bool with_heat_flux_files = false; // flag to indicate that we want heat-flux files
 bool with_surface_files = false; // flag to indicate that we want surface files
 bool master;
@@ -149,6 +150,9 @@ int main(int argc, char **argv)
 	  NULL },
 	{ "surface-files", 's', POPT_ARG_NONE, NULL, 's',
 	  "write surface files", 
+	  NULL },
+	{ "report-dt-all-blocks", 'b', POPT_ARG_NONE, NULL, 'b',
+	  "report allowable-dt for all blocks", 
 	  NULL },
 	{ "verbosity", 'v', POPT_ARG_STRING, NULL, 'v',
 	  "set verbosity level for messages", 
@@ -223,6 +227,9 @@ int main(int argc, char **argv)
 	    break;
 	case 's':
 	    with_surface_files = true;
+	    break;
+	case 'b':
+	    report_dt_all_blocks = true;
 	    break;
 	case 't':
 	    start_tindx = static_cast<size_t>(atoi(poptGetOptArg(optCon)));
@@ -1617,6 +1624,9 @@ int integrate_in_time(double target_time)
 	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		Block *bdp = G.my_blocks[jb];
 		if ( !bdp->active ) continue;
+		if ( report_dt_all_blocks ) {
+		    cout << "blkid=" << bdp->id << " dt_allow=" << bdp->dt_allow << endl;
+		}
 		if ( bdp->dt_allow < G.dt_allow ) G.dt_allow = bdp->dt_allow;
 		dt_record[jb] = bdp->dt_allow;
 		if ( bdp->cfl_max > G.cfl_max ) G.cfl_max = bdp->cfl_max;
