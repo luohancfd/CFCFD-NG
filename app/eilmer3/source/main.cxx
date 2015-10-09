@@ -1625,7 +1625,8 @@ int integrate_in_time(double target_time)
 		Block *bdp = G.my_blocks[jb];
 		if ( !bdp->active ) continue;
 		if ( report_dt_all_blocks ) {
-		    cout << "blkid=" << bdp->id << " dt_allow=" << bdp->dt_allow << endl;
+		    fprintf(G.logfile, "DT_INFO at STEP %7d: blkid= %d dt_allow= %10.3e\n",
+			    static_cast<int>(G.step), static_cast<int>(bdp->id), bdp->dt_allow);
 		}
 		if ( bdp->dt_allow < G.dt_allow ) G.dt_allow = bdp->dt_allow;
 		dt_record[jb] = bdp->dt_allow;
