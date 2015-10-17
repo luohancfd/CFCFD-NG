@@ -216,6 +216,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
     03-Oct-2015: Fixed up an output issue with the new compression ratio condition builder,
        and added more X3 driver conditions to Pitot, after talking with Andreas.
     06-Oct-2015: Added a perfect gas wedge calc to the wedge solver.
+    17-Oct-2015: Changed some of the output to better output lower density values.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -243,7 +244,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "06-Oct-2015"
+VERSION_STRING = "17-Oct-2015"
 
 DEBUG_PITOT = False
 
