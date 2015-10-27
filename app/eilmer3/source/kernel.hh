@@ -187,6 +187,8 @@ struct global_data
     double dt_moving;              /* interval for running setting vertex velocity for moving grid  */
     double cfl_moving_target;      /* target CFL value for moving grid    */       
 
+    bool wall_function;              /* wall function flag */    
+
     /// Set the tolerance in relative velocity change for the shock detector.
     /// This value is expected to be a negative number (for compression)
     /// and not too large in magnitude.

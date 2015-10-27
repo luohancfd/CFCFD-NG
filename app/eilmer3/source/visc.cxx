@@ -197,6 +197,12 @@ int viscous_flux_2D(Block *A)
                 tau_yy = 2.0 * mu_eff * dvdy + lmbda * (dudx + dvdy);
                 tau_xy = mu_eff * (dudy + dvdx);
 	    }
+	    // replace tau_xy if wall function is applied    
+	    if ( G.wall_function ) {
+	        if ( (i == A->imin && A->bcp[WEST]->is_wall()) || (i == A->imax+1 && A->bcp[EAST]->is_wall()) ) {
+	            tau_xy = IFace->tau_wall;
+	        }
+	    }	        
 	    
 	    // Thermal conductivity
 	    // NOTE: q[0] is total energy flux
@@ -256,6 +262,12 @@ int viscous_flux_2D(Block *A)
             F.momentum.y -= tau_xy * nx + tau_yy * ny;
             F.total_energy -= (tau_xx * fs.vel.x + tau_xy * fs.vel.y + qx[0]) * nx
                 + (tau_xy * fs.vel.x + tau_yy * fs.vel.y + qy[0]) * ny;
+	    // if wall function is applied, then replace heat flux value at the wall boundary
+	    if ( G.wall_function ) {
+	        if ( (i == A->imin && A->bcp[WEST]->is_wall()) || (i == A->imax+1 && A->bcp[EAST]->is_wall()) ) {
+		    F.total_energy += qx[0]*nx + qy[0]*ny - IFace->q_wall;
+	        }
+	    }                
 	    // Viscous transport of k-omega turbulence quantities.
 	    // Only built for 2D planar geometry at the moment.
 	    if ( G.turbulence_model == TM_K_OMEGA ) {
@@ -354,7 +366,12 @@ int viscous_flux_2D(Block *A)
                 tau_yy = 2.0 * mu_eff * dvdy + lmbda * (dudx + dvdy);
                 tau_xy = mu_eff * (dudy + dvdx);
 	    }
-	    
+	    // replace tau_xy if wall function is applied    
+	    if ( G.wall_function ) {
+	        if ( (j == A->jmin && A->bcp[SOUTH]->is_wall()) || (j == A->jmax+1 && A->bcp[NORTH]->is_wall()) ) { 
+	            tau_xy = IFace->tau_wall;
+	        }
+	    }
 	    // Thermal conductivity
 	    // NOTE: q[0] is total energy flux
 	    // [todo] 2013-12-04 check the comment above.
@@ -421,7 +438,14 @@ int viscous_flux_2D(Block *A)
 	    else {
 		F.total_energy -= (tau_xx * fs.vel.x + tau_xy * fs.vel.y + qx[0]) * nx
 		    + (tau_xy * fs.vel.x + tau_yy * fs.vel.y + qy[0]) * ny;
+		// if wall function is applied, then replace heat flux value at the wall boundary
+	        if ( G.wall_function ) {
+	            if ( (j == A->jmin && A->bcp[SOUTH]->is_wall()) || (j == A->jmax+1 && A->bcp[NORTH]->is_wall()) ) { 
+		        F.total_energy += qx[0]*nx + qy[0]*ny - IFace->q_wall;
+	            }
+	        }		    
 	    }
+	    	    
 	    // Viscous transport of k-omega turbulence quantities.
 	    // Only built for 2D planar geometry at the moment.
 	    if ( G.turbulence_model == TM_K_OMEGA ) {

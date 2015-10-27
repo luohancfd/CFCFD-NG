@@ -446,6 +446,8 @@ class GlobalData(object):
     * flow_induced_moving_flag: (0/1) Set to 1 to activate functions that allow flow induced grid movement.
     * cfl_moving: (float) The ratio of the actual time step to the allowed time
       step as determined by the vertex moving velocity and grid.
+    * wall_function_flag: (0/1) Set to 1 to activate wall functions.
+      Set to 0 (the default) for a low Reynolds model.      
     """
     count = 0
 
@@ -490,7 +492,7 @@ class GlobalData(object):
                 'electric_field_work_flag', 'conjugate_ht_flag', 'conjugate_ht_file', \
                 'conjugate_ht_coupling', 'wall_update_count', \
                 'radiation_scaling', 'udf_vtx_velocity_flag', 'flow_induced_moving_flag', \
-                'cfl_moving'
+                'cfl_moving', 'wall_function_flag'
     
     def __init__(self):
         """
@@ -602,7 +604,8 @@ class GlobalData(object):
         self.conjugate_ht_coupling = "QFS_QWS"
         self.wall_update_count = 1
         self.flow_induced_moving_flag = 0
-        self.cfl_moving = 20.0                
+        self.cfl_moving = 20.0 
+        self.wall_function_flag = 0                       
         GlobalData.count += 1
         return
 
@@ -746,7 +749,8 @@ class GlobalData(object):
         fp.write("conjugate_ht_flag = %d\n" % self.conjugate_ht_flag)
         fp.write("conjugate_ht_file = %s\n" % self.conjugate_ht_file)
         fp.write("conjugate_ht_coupling = %s\n" % self.conjugate_ht_coupling)  
-        fp.write("flow_induced_moving_flag = %d\n" % self.flow_induced_moving_flag)              
+        fp.write("flow_induced_moving_flag = %d\n" % self.flow_induced_moving_flag)  
+        fp.write("wall_function_flag = %d\n" % self.wall_function_flag)                    
         #
         if self.velocity_buckets > 0:
             tstr_x = "vcoords_x ="

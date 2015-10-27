@@ -170,6 +170,7 @@ E3_OBJECTS_COMMON := kernel.o \
 	bc_inlet_outlet.o \
         bc_nonuniform_t.o \
 	bc_jump_wall.o \
+	bc_wall_function.o \
 	exch2d.o \
 	exch3d.o \
 	exch_mapped_cell_shmem.o \
@@ -202,7 +203,7 @@ E3_OBJECTS_COMMON := kernel.o \
 	cell_finder.o \
 	mersenne.o \
 	ray_tracing_pieces.o \
-	bgk.o
+	bgk.o	
 
 ifeq ($(LES_DATA), 1)
     E3_OBJECTS_COMMON += les.o
@@ -700,6 +701,9 @@ bc_jump_wall.o : $(SRC)/bc_jump_wall.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)
 
 bc_menter_correction.o : $(SRC)/bc_menter_correction.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_menter_correction.cxx -o bc_menter_correction.o
+	
+bc_wall_function.o : $(SRC)/bc_wall_function.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_wall_function.cxx -o bc_wall_function.o	
 
 block.o : $(SRC)/block.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) $(LIBZLIB)
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) -I$(ZLIB) $(SRC)/block.cxx -o block.o

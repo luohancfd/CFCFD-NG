@@ -144,6 +144,13 @@ public:
     Vector3 n;         ///< \brief Direction cosines for unit normal
     Vector3 t1;        ///< \brief tangent vector 1 (aka p)
     Vector3 t2;        ///< \brief tangent vector 2 (aka q)
+    // Wall function parameters
+    double tau_wall;
+    double q_wall;        
+    double tke;
+    double omega;
+    double u_tau;
+    double rho_wall;
     // Flow
     FlowState *fs;     ///< \brief Flow properties
     ConservedQuantities *F; ///< \brief Flux conserved quantity per unit area

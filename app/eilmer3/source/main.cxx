@@ -61,6 +61,7 @@ extern "C" {
 #include "bc_extrapolate_out.hh"
 #include "lua_service_for_e3.hh"
 #include "bc_menter_correction.hh"
+#include "bc_wall_function.hh"
 #include "exch2d.hh"
 #include "exch_mapped_cell_shmem.hh"
 #include "visc.hh"
@@ -2339,7 +2340,11 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    bdp->inviscid_flux(G.dimensions);
 	    if ( G.viscous && !G.separate_update_for_viscous_terms ) {	    
 		apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
-		// if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
+		// if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);	
+	        if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	            wall_function_correction(*bdp, 1);
+	            apply_turbulent_model_for_wall_function(*bdp);
+	        }		
 		if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		estimate_turbulence_viscosity(&G, bdp);
 		if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
@@ -2356,6 +2361,11 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		cp->stage_1_update_for_flow_on_fixed_grid(G.dt_global, force_euler, with_k_omega);
 		cp->decode_conserved(0, 1, bdp->omegaz, with_k_omega);
 	    } // end for *cp
+	    if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	        wall_function_correction(*bdp, 1);
+	        apply_turbulent_model_for_wall_function(*bdp);
+		estimate_turbulence_viscosity(&G, bdp);	        
+	    }
 	} // end of for jb...
 
 	if ( number_of_stages_for_update_scheme(get_gasdynamic_update_scheme()) >= 2 ) {
@@ -2387,7 +2397,11 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		bdp->inviscid_flux(G.dimensions);
 		if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
-		    // if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 1);
+		    // if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 1);    
+	            if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	                wall_function_correction(*bdp, 1);
+	                apply_turbulent_model_for_wall_function(*bdp);
+	            }		    
 		    if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		    estimate_turbulence_viscosity(&G, bdp);
 		    if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
@@ -2405,6 +2419,11 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		    cp->stage_2_update_for_flow_on_fixed_grid(G.dt_global, with_k_omega);
 		    cp->decode_conserved(0, 2, bdp->omegaz, with_k_omega);
 		} // end for ( *cp
+	        if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	            wall_function_correction(*bdp, 1);
+	            apply_turbulent_model_for_wall_function(*bdp);
+		    estimate_turbulence_viscosity(&G, bdp);	            
+	        }	
 	    } // end for jb loop
 	} // end if ( number_of_stages_for_update_scheme() >= 2 
 
@@ -2437,6 +2456,10 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 		    // if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 2);
+	            if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	                wall_function_correction(*bdp, 2);
+	                apply_turbulent_model_for_wall_function(*bdp);
+	            }		    	    
 		    if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		    estimate_turbulence_viscosity(&G, bdp);
 		    if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
@@ -2454,6 +2477,11 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		    cp->stage_3_update_for_flow_on_fixed_grid(G.dt_global, with_k_omega);
 		    cp->decode_conserved(0, 3, bdp->omegaz, with_k_omega);
 		} // for *cp
+	        if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	            wall_function_correction(*bdp, 2);
+	            apply_turbulent_model_for_wall_function(*bdp);
+		    estimate_turbulence_viscosity(&G, bdp);	            
+	        }			
 	    } // end for *bdp
 	} // end if ( number_of_stages_for_update_scheme() >= 3
    
@@ -2586,7 +2614,11 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    bdp->inviscid_flux( G.dimensions );
             if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 		apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
-		// if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
+		// if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);	
+	        if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	            wall_function_correction(*bdp, 0);
+	            apply_turbulent_model_for_wall_function(*bdp);
+	        }		
 		if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 1); else viscous_derivatives_3D(bdp, 1); 
 		    estimate_turbulence_viscosity(&G, bdp);
 		if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
@@ -2603,6 +2635,11 @@ int gasdynamic_increment_with_moving_grid(double dt)
 		cp->stage_1_update_for_flow_on_moving_grid(G.dt_global, with_k_omega);
 		cp->decode_conserved(1, 1, bdp->omegaz, with_k_omega);
 	    } // end for *cp
+	    if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	        wall_function_correction(*bdp, 0);
+	        apply_turbulent_model_for_wall_function(*bdp);
+		estimate_turbulence_viscosity(&G, bdp);	        
+	    }
 	} // end of for *bdp...
 
 	// Preparation for second-stage of gas-dynamic update.
@@ -2649,6 +2686,10 @@ int gasdynamic_increment_with_moving_grid(double dt)
             if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 		apply_viscous_bc(*bdp, G.sim_time, G.dimensions);	
 		// if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 1);
+	        if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	            wall_function_correction(*bdp, 1);
+	            apply_turbulent_model_for_wall_function(*bdp);
+	        }
 		if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 2); else viscous_derivatives_3D(bdp, 2); 
 		    estimate_turbulence_viscosity(&G, bdp);
 		if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
@@ -2665,6 +2706,11 @@ int gasdynamic_increment_with_moving_grid(double dt)
 		cp->stage_2_update_for_flow_on_moving_grid(G.dt_global, with_k_omega);
 		cp->decode_conserved(2, 2, bdp->omegaz, with_k_omega);
 	    } // end for *cp
+	    if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	        wall_function_correction(*bdp, 1);
+	        apply_turbulent_model_for_wall_function(*bdp);
+		estimate_turbulence_viscosity(&G, bdp);	        
+	    }
 	} // end for jb loop
 	   
 	// 2d. Check the record of bad cells and if any cells are bad, 
@@ -2718,6 +2764,10 @@ int gasdynamic_separate_explicit_viscous_increment()
 	for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 	// if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
+	if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	    wall_function_correction(*bdp, 0);
+	    apply_turbulent_model_for_wall_function(*bdp);
+	}
 	if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 	estimate_turbulence_viscosity(&G, bdp);
 	if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
@@ -2728,6 +2778,11 @@ int gasdynamic_separate_explicit_viscous_increment()
 	    swap(cp->U[0], cp->U[1]);
 	    cp->decode_conserved(0, 0, bdp->omegaz, with_k_omega);
 	} // end for *cp
+	if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	    wall_function_correction(*bdp, 0);
+	    apply_turbulent_model_for_wall_function(*bdp);
+            estimate_turbulence_viscosity(&G, bdp);	    
+	}	
     } // end for *bdp...
     return SUCCESS;
 } // int gasdynamic_separate_explicit_viscous_increment()
