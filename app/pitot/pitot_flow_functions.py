@@ -801,7 +801,8 @@ def acceleration_tube_calculation(cfg, states, V, M):
             # Need to turn ions off for state 2 here if it is required to make 
             # the unsteady expansion work (as state 2 is expanding into state 7)
             states['s2'].with_ions = False   
-            
+    
+    print "yo"        
     # some extra code to try and get conditions above 19 km/s working with Pitot
     if cfg['Vs2'] <= 19000.0 and cfg['solver'] in ['eq', 'pg-eq']:
         gas_guess = cfg['gas_guess_air']
@@ -810,7 +811,11 @@ def acceleration_tube_calculation(cfg, states, V, M):
     else:
         gas_guess = None
         
-    (V6, V['s6']) = normal_shock(states['s5'], cfg['Vs2'], states['s6'], gas_guess)
+    print "yo"
+    if cfg['expand_to'] != 'p7':
+        #if we're expanding to p7 we can't do this shock, so we skip it
+        (V6, V['s6']) = normal_shock(states['s5'], cfg['Vs2'], states['s6'], gas_guess)
+        
     #do any modifications that were requested to the velocity behind the shock here 
     # new if statement here as we now have the ability to expand to a pressure if required - CMJ (16/09/15)
     if cfg['expand_to'] == 'flow-behind-shock' or cfg['expand_to'] == 'shock-speed':
