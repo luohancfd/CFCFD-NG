@@ -34,6 +34,7 @@ void correction_adiabatic_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_typ
     double y_plus_white, y_plus;
     size_t counter = 0;
     double tke, omega_i, omega_o, omega;    
+    double reverse_flag = 1.0;      
     
     // Typical constants from boundary layer theory
     double kappa = 0.4;
@@ -78,7 +79,7 @@ void correction_adiabatic_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_typ
         
         // friction velocity and u+
         u_tau = sqrt(tau_wall_old/rho_wall);
-        u_plus = cell_tangent / u_tau;
+        u_plus = du / u_tau;
         
         //  Gamma, Beta, Qm and Phi defined by Nichols & Nelson 2004
         Gam = recovery * u_tau * u_tau / ( 2.0*cp*T_wall );
@@ -104,13 +105,15 @@ void correction_adiabatic_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_typ
         counter++;
         if (counter > 500) break;   
     }    
-                
-    // Store this wall shear stress, will be used to replace the viscos stress
+    
+    reverse_flag = 1.0;
+    if ( face_tangent  > cell_tangent ) reverse_flag = -1.0;
+    // store this wall shear stress, will be used to replace the viscos stress
     if ( bc_type == 0 || bc_type == 1 || bc_type == 4 ) { // North, East and Top
-        IFace->tau_wall = -tau_wall;
+        IFace->tau_wall = -1.0 * reverse_flag * tau_wall;                       
     } else { // South, West and Bottom
-        IFace->tau_wall = tau_wall;    
-    }
+        IFace->tau_wall = reverse_flag * tau_wall; 
+    }    
     IFace->q_wall = 0.0; // For adiabatic wall only              
                 
     // Turbulence model boundary conditions
@@ -150,7 +153,8 @@ void correction_fixedt_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_type)
     double Gam, Beta, Q, Phi;
     double y_plus_white, y_plus;
     size_t counter = 0;
-    double tke, omega_i, omega_o, omega;    
+    double tke, omega_i, omega_o, omega; 
+    double reverse_flag = 1.0;     
     
     // Typical constants from boundary layer theory
     double kappa = 0.4;
@@ -176,7 +180,7 @@ void correction_fixedt_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_type)
     
     // compute the shear stess at the wall in the regular fashion by using the stress tensor on the surface.
     // This will provide the initial values to solve tau_wall iteratively
-    du = cell_tangent - face_tangent;
+    du = fabs(cell_tangent - face_tangent);
     dudy = du/wall_dist;
     mu_lam = cell->fs->gas->mu;
     mu_t = cell->fs->mu_t;
@@ -190,7 +194,7 @@ void correction_fixedt_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_type)
     
     // compute the heat flux at the wall in the regular fashion by using the stress tensor on the surface.
     // This will provide the initial values to solve q_wall iteratively
-    dT = T_normal - T_wall;
+    dT = fabs(T_normal - T_wall);
     dTdy = dT/wall_dist;
     k_lam = cell->fs->gas->k[0];
     q_wall_old = k_lam * dTdy;    
@@ -203,7 +207,7 @@ void correction_fixedt_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_type)
        
        // friction velocity and u+
        u_tau = sqrt(tau_wall_old/rho_wall);
-       u_plus = cell_tangent / u_tau;
+       u_plus = du / u_tau;
        
        //  Gamma, Beta, Qm and Phi defined by Nichols & Nelson 2004
        Gam = recovery * u_tau * u_tau / ( 2.0*cp*T_wall );
@@ -237,13 +241,15 @@ void correction_fixedt_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_type)
        counter++;
        if (counter > 500) break;   
     }
-                
+    
+    reverse_flag = 1.0;
+    if ( face_tangent  > cell_tangent ) reverse_flag = -1.0;
     // store this wall shear stress, will be used to replace the viscos stress
     if ( bc_type == 0 || bc_type == 1 || bc_type == 4 ) { // North, East and Top
-        IFace->tau_wall = -tau_wall;
-        IFace->q_wall = -q_wall;                        
+        IFace->tau_wall = -1.0 * reverse_flag * tau_wall;
+        IFace->q_wall = -1.0 * q_wall;                        
     } else { // South, West and Bottom
-        IFace->tau_wall = tau_wall;
+        IFace->tau_wall = reverse_flag * tau_wall;
         IFace->q_wall = q_wall;            
     }    
                 
@@ -288,13 +294,13 @@ int wall_function_correction(Block &bd, size_t ftl)
     }
     
     // EAST boundary
+    i = bd.imax;    
     if ( bd.bcp[EAST]->is_wall() && bd.bcp[EAST]->type_code != SLIP_WALL ) {
 	for ( j = bd.jmin; j <= bd.jmax; ++j ) {
             for ( k = bd.kmin; k <= bd.kmax; ++k ) {
-                i = bd.imax - 1;
  		cell = bd.get_cell(i,j,k);
  		IFace = cell->iface[EAST];
- 		if ( bd.bcp[NORTH]->type_code == ADIABATIC ) { // determine adiabatic wall
+ 		if ( bd.bcp[EAST]->type_code == ADIABATIC ) { // determine adiabatic wall
  		    correction_adiabatic_wall(cell, IFace, 1);
  		} else { // fixed temperature wall
  		    correction_fixedt_wall(cell, IFace, 1);
@@ -304,13 +310,13 @@ int wall_function_correction(Block &bd, size_t ftl)
     }    
 
     // SOUTH boundary
+    j =  bd.jmin;    
     if ( bd.bcp[SOUTH]->is_wall() && bd.bcp[SOUTH]->type_code != SLIP_WALL ) {
 	for ( i = bd.imin; i <= bd.imax; ++i ) {
             for ( k = bd.kmin; k <= bd.kmax; ++k ) {
-                j =  bd.jmin + 1 ;
  		cell = bd.get_cell(i,j,k);
  		IFace = cell->iface[SOUTH];
- 		if ( bd.bcp[NORTH]->type_code == ADIABATIC ) { // determine adiabatic wall
+ 		if ( bd.bcp[SOUTH]->type_code == ADIABATIC ) { // determine adiabatic wall
  		    correction_adiabatic_wall(cell, IFace, 2);
  		} else { // fixed temperature wall
  		    correction_fixedt_wall(cell, IFace, 2);
@@ -320,13 +326,13 @@ int wall_function_correction(Block &bd, size_t ftl)
     }
 
     // WEST boundary
+    i = bd.imin;    
     if ( bd.bcp[WEST]->is_wall() && bd.bcp[WEST]->type_code != SLIP_WALL ) {
 	for (j = bd.jmin; j <= bd.jmax; ++j) {
             for ( k = bd.kmin; k <= bd.kmax; ++k ) {
-		i = bd.imin + 1;
  		cell = bd.get_cell(i,j,k);
  		IFace = cell->iface[WEST];
- 		if ( bd.bcp[NORTH]->type_code == ADIABATIC ) { // determine adiabatic wall
+ 		if ( bd.bcp[WEST]->type_code == ADIABATIC ) { // determine adiabatic wall
  		    correction_adiabatic_wall(cell, IFace, 3);
  		} else { // fixed temperature wall
  		    correction_fixedt_wall(cell, IFace, 3);
@@ -337,13 +343,13 @@ int wall_function_correction(Block &bd, size_t ftl)
 
     if ( G.dimensions == 3 ) {
 	// TOP boundary
+	k = bd.kmax;	
 	if ( bd.bcp[TOP]->is_wall() && bd.bcp[TOP]->type_code != SLIP_WALL ) {
 	    for ( i = bd.imin; i <= bd.imax; ++i ) {
 		for ( j = bd.jmin; j <= bd.jmax; ++j ) {
-		    k = bd.kmax - 1;
  		    cell = bd.get_cell(i,j,k);
  		    IFace = cell->iface[TOP];
- 		    if ( bd.bcp[NORTH]->type_code == ADIABATIC ) { // determine adiabatic wall
+ 		    if ( bd.bcp[TOP]->type_code == ADIABATIC ) { // determine adiabatic wall
  		        correction_adiabatic_wall(cell, IFace, 4);
  		    } else { // fixed temperature wall
  		        correction_fixedt_wall(cell, IFace, 4);
@@ -353,13 +359,13 @@ int wall_function_correction(Block &bd, size_t ftl)
 	}
         
 	// BOTTOM boundary
+	k = bd.kmin;	
 	if ( bd.bcp[BOTTOM]->is_wall() && bd.bcp[BOTTOM]->type_code != SLIP_WALL ) {
 	    for ( i = bd.imin; i <= bd.imax; ++i ) {
 		for ( j = bd.jmin; j <= bd.jmax; ++j ) {
-		    k = bd.kmin + 1;
  		    cell = bd.get_cell(i,j,k);
  		    IFace = cell->iface[BOTTOM];
- 		    if ( bd.bcp[NORTH]->type_code == ADIABATIC ) { // determine adiabatic wall
+ 		    if ( bd.bcp[BOTTOM]->type_code == ADIABATIC ) { // determine adiabatic wall
  		        correction_adiabatic_wall(cell, IFace, 5);
  		    } else { // fixed temperature wall
  		        correction_fixedt_wall(cell, IFace, 5);
@@ -379,10 +385,10 @@ int apply_turbulent_model_for_wall_function(Block &bd)
     global_data &G = *get_global_data_ptr();
 
     // NORTH boundary
+    j =  bd.jmax;    
     if ( bd.bcp[NORTH]->is_wall() && bd.bcp[NORTH]->type_code != SLIP_WALL ) {
 	for ( i = bd.imin; i <= bd.imax; ++i ) {
             for ( k = bd.kmin; k <= bd.kmax; ++k ) {
-                j =  bd.jmax;
  		cell = bd.get_cell(i,j,k);
  		IFace = cell->iface[NORTH];
                 // set turbulence model boundary conditions for wall function
@@ -392,58 +398,73 @@ int apply_turbulent_model_for_wall_function(Block &bd)
 	} // i-loop
     }
 
+    // EAST boundary
+    i = bd.imax;    
+    if ( bd.bcp[EAST]->is_wall() && bd.bcp[EAST]->type_code != SLIP_WALL ) {
+	for ( j = bd.jmin; j <= bd.jmax; ++j ) {
+            for ( k = bd.kmin; k <= bd.kmax; ++k ) {
+ 		cell = bd.get_cell(i,j,k);
+ 		IFace = cell->iface[EAST];
+                // set turbulence model boundary conditions for wall function
+                cell->fs->tke = IFace->tke;
+                cell->fs->omega = IFace->omega;  		
+            } // k-loop
+	} // j-loop
+    }
+    
     // SOUTH boundary
+    j =  bd.jmin;    
     if ( bd.bcp[SOUTH]->is_wall() && bd.bcp[SOUTH]->type_code != SLIP_WALL ) {
 	for ( i = bd.imin; i <= bd.imax; ++i ) {
             for ( k = bd.kmin; k <= bd.kmax; ++k ) {
-                j =  bd.jmin + 1 ;
  		cell = bd.get_cell(i,j,k);
  		IFace = cell->iface[SOUTH];
+                // set turbulence model boundary conditions for wall function
+                cell->fs->tke = IFace->tke;
+                cell->fs->omega = IFace->omega;  		
 	    } // k-loop
 	} // i-loop
     }
 
-    // EAST boundary
-    if ( bd.bcp[EAST]->is_wall() && bd.bcp[EAST]->type_code != SLIP_WALL ) {
-	for ( j = bd.jmin; j <= bd.jmax; ++j ) {
-            for ( k = bd.kmin; k <= bd.kmax; ++k ) {
-                i = bd.imax - 1;
- 		cell = bd.get_cell(i,j,k);
- 		IFace = cell->iface[EAST];
-            } // k-loop
-	} // j-loop
-    }
-
     // WEST boundary
+    i = bd.imin;    
     if ( bd.bcp[WEST]->is_wall() && bd.bcp[WEST]->type_code != SLIP_WALL ) {
 	for (j = bd.jmin; j <= bd.jmax; ++j) {
             for ( k = bd.kmin; k <= bd.kmax; ++k ) {
-		i = bd.imin + 1;
  		cell = bd.get_cell(i,j,k);
  		IFace = cell->iface[WEST];
+                // set turbulence model boundary conditions for wall function
+                cell->fs->tke = IFace->tke;
+                cell->fs->omega = IFace->omega;  		
             } // k-loop
 	} // j-loop
     }
 
     if ( G.dimensions == 3 ) {
 	// TOP boundary
+	k = bd.kmax;	
 	if ( bd.bcp[TOP]->is_wall() && bd.bcp[TOP]->type_code != SLIP_WALL ) {
 	    for ( i = bd.imin; i <= bd.imax; ++i ) {
 		for ( j = bd.jmin; j <= bd.jmax; ++j ) {
-		    k = bd.kmax - 1;
  		    cell = bd.get_cell(i,j,k);
  		    IFace = cell->iface[TOP];
+                    // set turbulence model boundary conditions for wall function
+                    cell->fs->tke = IFace->tke;
+                    cell->fs->omega = IFace->omega;  		    
 		} // j-loop
 	    } // i-loop
 	}
         
 	// BOTTOM boundary
+	k = bd.kmin;	
 	if ( bd.bcp[BOTTOM]->is_wall() && bd.bcp[BOTTOM]->type_code != SLIP_WALL ) {
 	    for ( i = bd.imin; i <= bd.imax; ++i ) {
 		for ( j = bd.jmin; j <= bd.jmax; ++j ) {
-		    k = bd.kmin + 1;
  		    cell = bd.get_cell(i,j,k);
  		    IFace = cell->iface[BOTTOM];
+                    // set turbulence model boundary conditions for wall function
+                    cell->fs->tke = IFace->tke;
+                    cell->fs->omega = IFace->omega;  		    
 		} // j-loop
 	    } // i-loop
 	}

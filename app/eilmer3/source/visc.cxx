@@ -199,7 +199,7 @@ int viscous_flux_2D(Block *A)
 	    }
 	    // replace tau_xy if wall function is applied    
 	    if ( G.wall_function ) {
-	        if ( (i == A->imin && A->bcp[WEST]->is_wall()) || (i == A->imax+1 && A->bcp[EAST]->is_wall()) ) {
+	        if ( (i == A->imin && A->bcp[WEST]->is_wall()) || (i == A->imax+1 && A->bcp[EAST]->is_wall()) ) {        
 	            tau_xy = IFace->tau_wall;
 	        }
 	    }	        
@@ -264,7 +264,7 @@ int viscous_flux_2D(Block *A)
                 + (tau_xy * fs.vel.x + tau_yy * fs.vel.y + qy[0]) * ny;
 	    // if wall function is applied, then replace heat flux value at the wall boundary
 	    if ( G.wall_function ) {
-	        if ( (i == A->imin && A->bcp[WEST]->is_wall()) || (i == A->imax+1 && A->bcp[EAST]->is_wall()) ) {
+	        if ( (i == A->imin && A->bcp[WEST]->is_wall()) || (i == A->imax+1 && A->bcp[EAST]->is_wall()) ) {	  	        
 		    F.total_energy += qx[0]*nx + qy[0]*ny - IFace->q_wall;
 	        }
 	    }                
@@ -368,7 +368,7 @@ int viscous_flux_2D(Block *A)
 	    }
 	    // replace tau_xy if wall function is applied    
 	    if ( G.wall_function ) {
-	        if ( (j == A->jmin && A->bcp[SOUTH]->is_wall()) || (j == A->jmax+1 && A->bcp[NORTH]->is_wall()) ) { 
+	        if ( (j == A->jmin && A->bcp[SOUTH]->is_wall()) || (j == A->jmax+1 && A->bcp[NORTH]->is_wall()) ) {           
 	            tau_xy = IFace->tau_wall;
 	        }
 	    }
@@ -440,7 +440,7 @@ int viscous_flux_2D(Block *A)
 		    + (tau_xy * fs.vel.x + tau_yy * fs.vel.y + qy[0]) * ny;
 		// if wall function is applied, then replace heat flux value at the wall boundary
 	        if ( G.wall_function ) {
-	            if ( (j == A->jmin && A->bcp[SOUTH]->is_wall()) || (j == A->jmax+1 && A->bcp[NORTH]->is_wall()) ) { 
+	            if ( (j == A->jmin && A->bcp[SOUTH]->is_wall()) || (j == A->jmax+1 && A->bcp[NORTH]->is_wall()) ) {                	            
 		        F.total_energy += qx[0]*nx + qy[0]*ny - IFace->q_wall;
 	            }
 	        }		    
