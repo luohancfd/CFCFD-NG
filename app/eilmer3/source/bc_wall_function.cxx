@@ -18,6 +18,7 @@
 void correction_adiabatic_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_type) 
 {
     Gas_model *gmodel = get_gas_model_ptr();
+    global_data &G = *get_global_data_ptr();    
         
     // local variables
     double cp, Pr, gas_constant, recovery;
@@ -26,15 +27,17 @@ void correction_adiabatic_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_typ
     double wall_dist;
     double du;            
     double dudy;
-    double mu_lam, mu_t;
+    double mu_lam, mu_lam_1, mu_t, mu_coeff, y_white_y_plus;
     double tau_wall_old, tau_wall=0.0;
     double diff_tau, tolerance = 1.0e-10;
-    double u_tau=0.0, u_plus;
-    double Gam, Beta, Q, Phi;
-    double y_plus_white, y_plus;
+    double u_tau=0.0, u_plus=0.0;
+    double Gam=0.0, Beta=0.0, Q=0.0, Phi=0.0;
+    double y_plus_white=0.0, y_plus;
     size_t counter = 0;
     double tke, omega_i, omega_o, omega;    
-    double reverse_flag = 1.0;      
+    double reverse_flag = 1.0; 
+    double vt1_2_angle;
+    Vector3 local_tau_wall;     
     
     // Typical constants from boundary layer theory
     double kappa = 0.4;
@@ -62,8 +65,8 @@ void correction_adiabatic_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_typ
     // This will provide the initial values to solve tau_wall iteratively
     du = fabs(cell_tangent - face_tangent);
     dudy = du/wall_dist;
-    mu_lam = cell->fs->gas->mu;
-    mu_t = cell->fs->mu_t;
+    mu_lam = IFace->fs->gas->mu;
+    mu_lam_1 = cell->fs->gas->mu;
     tau_wall_old = mu_lam * dudy;
     
     // Compute the wall temperature using the Crocco-Buseman equation
@@ -114,9 +117,34 @@ void correction_adiabatic_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_typ
     } else { // South, West and Bottom
         IFace->tau_wall = reverse_flag * tau_wall; 
     }    
-    IFace->q_wall = 0.0; // For adiabatic wall only              
+    IFace->q_wall = 0.0; // For adiabatic wall only    
+    // transform wall shear stress back to the local frame of reference
+    // 2D
+    IFace->tau_wall_x = IFace->tau_wall * IFace->n.y;
+    IFace->tau_wall_y = IFace->tau_wall * IFace->n.x; 
+    // 3D
+    if ( G.dimensions == 3 ) {
+        cell->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);                
+        vt1_2_angle = atan2(cell->fs->vel.z, cell->fs->vel.y);
+        cell->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);   
+         
+        local_tau_wall.x = 0.0;        
+        local_tau_wall.y = IFace->tau_wall * cos(vt1_2_angle);
+        local_tau_wall.z = IFace->tau_wall * sin(vt1_2_angle); 
+        local_tau_wall.transform_to_global(IFace->n, IFace->t1, IFace->t2);   
+               
+        IFace->tau_wall_x = local_tau_wall.x;
+        IFace->tau_wall_y = local_tau_wall.y;    
+        IFace->tau_wall_z = local_tau_wall.z;                
+    }
                 
     // Turbulence model boundary conditions
+    y_white_y_plus = 2.0 * y_plus_white * kappa*sqrt(Gam)/Q
+                     * pow( (1.0 - pow(2.0*Gam*u_plus-Beta,2.0)/(Q*Q)), -0.5 ); 
+    mu_coeff = 1.0 + y_white_y_plus
+               - kappa*exp(-1.0*kappa*B) * ( 1.0 + kappa*u_plus + kappa*u_plus*kappa*u_plus/2.0 )
+               - mu_lam_1/mu_lam;
+    mu_t = mu_lam * mu_coeff;
        // omega
     omega_i = 6.0*mu_lam / ( 0.075*rho_wall*wall_dist*wall_dist );
     omega_o = u_tau / ( sqrt(C_mu)*kappa*wall_dist );
@@ -137,6 +165,7 @@ void correction_adiabatic_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_typ
 void correction_fixedt_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_type) 
 {
     Gas_model *gmodel = get_gas_model_ptr();
+    global_data &G = *get_global_data_ptr();    
         
     // local variables
     double cp, Pr, gas_constant, recovery;
@@ -145,16 +174,18 @@ void correction_fixedt_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_type)
     double wall_dist;
     double du, dT;            
     double dudy, dTdy;
-    double mu_lam, mu_t, k_lam;
+    double mu_lam, mu_lam_1, mu_t, mu_coeff, y_white_y_plus, k_lam;
     double tau_wall_old, tau_wall=0.0;
     double q_wall_old, q_wall=0.0;    
     double diff_tau, diff_q, tolerance = 1.0e-10;
-    double u_tau=0.0, u_plus;
-    double Gam, Beta, Q, Phi;
-    double y_plus_white, y_plus;
+    double u_tau=0.0, u_plus=0.0;
+    double Gam=0.0, Beta=0.0, Q=0.0, Phi=0.0;
+    double y_plus_white=0.0, y_plus=0.0;
     size_t counter = 0;
     double tke, omega_i, omega_o, omega; 
-    double reverse_flag = 1.0;     
+    double reverse_flag = 1.0; 
+    double vt1_2_angle;
+    Vector3 local_tau_wall;        
     
     // Typical constants from boundary layer theory
     double kappa = 0.4;
@@ -182,8 +213,8 @@ void correction_fixedt_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_type)
     // This will provide the initial values to solve tau_wall iteratively
     du = fabs(cell_tangent - face_tangent);
     dudy = du/wall_dist;
-    mu_lam = cell->fs->gas->mu;
-    mu_t = cell->fs->mu_t;
+    mu_lam = IFace->fs->gas->mu;
+    mu_lam_1 = cell->fs->gas->mu;
     tau_wall_old = mu_lam * dudy;               
     
     // Compute the wall temperature using the Crocco-Buseman equation
@@ -196,7 +227,7 @@ void correction_fixedt_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_type)
     // This will provide the initial values to solve q_wall iteratively
     dT = fabs(T_normal - T_wall);
     dTdy = dT/wall_dist;
-    k_lam = cell->fs->gas->k[0];
+    k_lam = IFace->fs->gas->k[0];
     q_wall_old = k_lam * dTdy;    
     
     // Iteratively solve the corrected shear stress and heat flux
@@ -251,9 +282,35 @@ void correction_fixedt_wall(FV_Cell *cell, FV_Interface *IFace, size_t bc_type)
     } else { // South, West and Bottom
         IFace->tau_wall = reverse_flag * tau_wall;
         IFace->q_wall = q_wall;            
-    }    
+    }
+    // transform wall shear stress back to the local frame of reference
+    // 2D
+    IFace->tau_wall_x = IFace->tau_wall * IFace->n.y;
+    IFace->tau_wall_y = IFace->tau_wall * IFace->n.x; 
+    IFace->tau_wall_y = 0.0;
+    // 3D
+    if ( G.dimensions == 3 ) {
+        cell->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);                
+        vt1_2_angle = atan2(cell->fs->vel.z, cell->fs->vel.y);
+        cell->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);   
+         
+        local_tau_wall.x = 0.0;        
+        local_tau_wall.y = IFace->tau_wall * cos(vt1_2_angle);
+        local_tau_wall.z = IFace->tau_wall * sin(vt1_2_angle); 
+        local_tau_wall.transform_to_global(IFace->n, IFace->t1, IFace->t2);   
+               
+        IFace->tau_wall_x = local_tau_wall.x;
+        IFace->tau_wall_y = local_tau_wall.y;    
+        IFace->tau_wall_z = local_tau_wall.z;               
+    }
                 
     // Turbulence model boundary conditions
+    y_white_y_plus = 2.0 * y_plus_white * kappa*sqrt(Gam)/Q
+                     * pow( (1.0 - pow(2.0*Gam*u_plus-Beta,2.0)/(Q*Q)), -0.5 ); 
+    mu_coeff = 1.0 + y_white_y_plus
+               - kappa*exp(-1.0*kappa*B) * ( 1.0 + kappa*u_plus + kappa*u_plus*kappa*u_plus/2.0 )
+               - mu_lam_1/mu_lam;
+    mu_t = mu_lam * mu_coeff;
        // omega
     omega_i = 6.0*mu_lam / ( 0.075*rho_wall*wall_dist*wall_dist );
     omega_o = u_tau / ( sqrt(C_mu)*kappa*wall_dist );

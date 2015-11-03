@@ -145,7 +145,7 @@ public:
     Vector3 t1;        ///< \brief tangent vector 1 (aka p)
     Vector3 t2;        ///< \brief tangent vector 2 (aka q)
     // Wall function parameters
-    double tau_wall;
+    double tau_wall, tau_wall_x, tau_wall_y, tau_wall_z;
     double q_wall;        
     double tke;
     double omega;

@@ -103,6 +103,7 @@ int viscous_flux_2D(Block *A)
     double tau_kx, tau_ky, tau_wx, tau_wy;
     double tau_xx, tau_yy, tau_xy;
     double ybar;
+    double tau_wall_x, tau_wall_y;
 
     size_t nsp = gmodel->get_number_of_species();
     if( dfdx.size() == 0 ) {
@@ -196,13 +197,7 @@ int viscous_flux_2D(Block *A)
                 tau_xx = 2.0 * mu_eff * dudx + lmbda * (dudx + dvdy);
                 tau_yy = 2.0 * mu_eff * dvdy + lmbda * (dudx + dvdy);
                 tau_xy = mu_eff * (dudy + dvdx);
-	    }
-	    // replace tau_xy if wall function is applied    
-	    if ( G.wall_function ) {
-	        if ( (i == A->imin && A->bcp[WEST]->is_wall()) || (i == A->imax+1 && A->bcp[EAST]->is_wall()) ) {        
-	            tau_xy = IFace->tau_wall;
-	        }
-	    }	        
+	    }  
 	    
 	    // Thermal conductivity
 	    // NOTE: q[0] is total energy flux
@@ -258,16 +253,21 @@ int viscous_flux_2D(Block *A)
             nx = IFace->n.x;
             ny = IFace->n.y;
             // Mass flux -- NO CONTRIBUTION
-            F.momentum.x -= tau_xx * nx + tau_xy * ny;
-            F.momentum.y -= tau_xy * nx + tau_yy * ny;
-            F.total_energy -= (tau_xx * fs.vel.x + tau_xy * fs.vel.y + qx[0]) * nx
-                + (tau_xy * fs.vel.x + tau_yy * fs.vel.y + qy[0]) * ny;
-	    // if wall function is applied, then replace heat flux value at the wall boundary
-	    if ( G.wall_function ) {
-	        if ( (i == A->imin && A->bcp[WEST]->is_wall()) || (i == A->imax+1 && A->bcp[EAST]->is_wall()) ) {	  	        
-		    F.total_energy += qx[0]*nx + qy[0]*ny - IFace->q_wall;
-	        }
-	    }                
+	    if ( (G.wall_function && i == A->imin && A->bcp[WEST]->is_wall() && A->bcp[WEST]->type_code != SLIP_WALL)
+	    || (G.wall_function && i == A->imax+1 && A->bcp[EAST]->is_wall() && A->bcp[EAST]->type_code != SLIP_WALL) ) {
+	        tau_wall_x = IFace->tau_wall_x;
+	        tau_wall_y = IFace->tau_wall_y;	    	  	        
+                F.momentum.x -= tau_xx * nx + tau_wall_x;
+                F.momentum.y -= tau_yy * ny + tau_wall_y;       
+		F.total_energy -= tau_xx * fs.vel.x * nx + tau_yy * fs.vel.y * ny + 
+		                  tau_wall_x * fs.vel.x + tau_wall_y * fs.vel.y +
+		                  IFace->q_wall;
+	    } else {
+                F.momentum.x -= tau_xx * nx + tau_xy * ny;
+                F.momentum.y -= tau_xy * nx + tau_yy * ny;
+                F.total_energy -= (tau_xx * fs.vel.x + tau_xy * fs.vel.y + qx[0]) * nx
+                    + (tau_xy * fs.vel.x + tau_yy * fs.vel.y + qy[0]) * ny;	    
+	    }
 	    // Viscous transport of k-omega turbulence quantities.
 	    // Only built for 2D planar geometry at the moment.
 	    if ( G.turbulence_model == TM_K_OMEGA ) {
@@ -366,12 +366,7 @@ int viscous_flux_2D(Block *A)
                 tau_yy = 2.0 * mu_eff * dvdy + lmbda * (dudx + dvdy);
                 tau_xy = mu_eff * (dudy + dvdx);
 	    }
-	    // replace tau_xy if wall function is applied    
-	    if ( G.wall_function ) {
-	        if ( (j == A->jmin && A->bcp[SOUTH]->is_wall()) || (j == A->jmax+1 && A->bcp[NORTH]->is_wall()) ) {           
-	            tau_xy = IFace->tau_wall;
-	        }
-	    }
+
 	    // Thermal conductivity
 	    // NOTE: q[0] is total energy flux
 	    // [todo] 2013-12-04 check the comment above.
@@ -426,25 +421,30 @@ int viscous_flux_2D(Block *A)
 	    ConservedQuantities &F = *(IFace->F);
             nx = IFace->n.x;
             ny = IFace->n.y;
-	    // Mass flux -- NO CONTRIBUTION
-            F.momentum.x -= tau_xx * nx + tau_xy * ny;
-            F.momentum.y -= tau_xy * nx + tau_yy * ny;
-	    if ( j == A->jmax+1 && ( A->bcp[NORTH]->type_code == USER_DEFINED_ENERGY_FLUX ||
-				     ( (A->bcp[NORTH]->type_code == CONJUGATE_HT) &&
+	    // Mass flux -- NO CONTRIBUTION            
+	    if ( (G.wall_function && j == A->jmin && A->bcp[SOUTH]->is_wall() && A->bcp[SOUTH]->type_code != SLIP_WALL)
+	    || (G.wall_function && j == A->jmax+1 && A->bcp[NORTH]->is_wall() && A->bcp[NORTH]->type_code != SLIP_WALL) ) {   	            
+	        tau_wall_x = IFace->tau_wall_x;
+	        tau_wall_y = IFace->tau_wall_y;	        
+                F.momentum.x -= tau_xx * nx + tau_wall_x;
+                F.momentum.y -= tau_yy * ny + tau_wall_y;	    
+		F.total_energy -= tau_xx * fs.vel.x * nx + tau_yy * fs.vel.y * ny + 
+		                  tau_wall_x * fs.vel.x + tau_wall_y * fs.vel.y +
+		                  IFace->q_wall;
+	    } else {
+                F.momentum.x -= tau_xx * nx + tau_xy * ny;
+                F.momentum.y -= tau_xy * nx + tau_yy * ny;
+	        if ( j == A->jmax+1 && ( A->bcp[NORTH]->type_code == USER_DEFINED_ENERGY_FLUX ||
+				       ( (A->bcp[NORTH]->type_code == CONJUGATE_HT) &&
 				       ( (G.cht_coupling == TFS_QWS) || (G.cht_coupling == QFS_QWS) ) ) ) ) {
-		// Retain the flux set by the b.c. by doing nothing.
-		; // Do nothing statement
-	    }
-	    else {
-		F.total_energy -= (tau_xx * fs.vel.x + tau_xy * fs.vel.y + qx[0]) * nx
-		    + (tau_xy * fs.vel.x + tau_yy * fs.vel.y + qy[0]) * ny;
-		// if wall function is applied, then replace heat flux value at the wall boundary
-	        if ( G.wall_function ) {
-	            if ( (j == A->jmin && A->bcp[SOUTH]->is_wall()) || (j == A->jmax+1 && A->bcp[NORTH]->is_wall()) ) {                	            
-		        F.total_energy += qx[0]*nx + qy[0]*ny - IFace->q_wall;
-	            }
-	        }		    
-	    }
+		    // Retain the flux set by the b.c. by doing nothing.
+		    ; // Do nothing statement
+	        }
+	        else {
+		    F.total_energy -= (tau_xx * fs.vel.x + tau_xy * fs.vel.y + qx[0]) * nx
+		        + (tau_xy * fs.vel.x + tau_yy * fs.vel.y + qy[0]) * ny;	    
+	        }
+	    } 
 	    	    
 	    // Viscous transport of k-omega turbulence quantities.
 	    // Only built for 2D planar geometry at the moment.
