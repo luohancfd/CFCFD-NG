@@ -278,6 +278,14 @@ def input_checker(cfg):
             cfg['bad_input'] = True
     else:
         cfg['custom_T1'] = False    
+        
+    if 'custom_T5' in cfg:
+        if cfg['custom_T5'] and 'T5' not in cfg:
+            print "You have specified a custom accelerator gas temperature (T5) but have not set 'T5' variable."
+            print "Bailing out."
+            cfg['bad_input'] = True
+    else:
+        cfg['custom_T5'] = False  
             
     if 'mode' not in cfg:
         print "Program mode not specified. Will use default printout mode"
@@ -544,6 +552,7 @@ def start_message(cfg, states):
             print 'Selected shock tube fill temperature (T1) = {0} K.'.format(cfg['T1'])
         if 'p5' in cfg:            
             print 'Selected acceleration tube fill pressure (p5) = {0} Pa.'.format(cfg['p5'])
+            print 'Selected acceleration tube fill temperature (T5) = {0} K.'.format(cfg['T5'])
         print '-'*60
         
         #need this set to something for later in the piece
@@ -842,11 +851,15 @@ def state_builder(cfg):
     M['s1']=0.0
         
     if cfg['tunnel_mode'] == 'expansion-tube':
+        
+        if not cfg['custom_T5']:
+         cfg['T5'] =  cfg['T0']
+        
         #state 5 is acceleration tube
         states['s5'] = Gas({'Air':1.0,},outputUnits='moles')
         if 'p5' not in cfg: #set atmospheric state if a pressure was not specified
             cfg['p5'] = cfg['p0']
-        states['s5'].set_pT(float(cfg['p5']),cfg['T0'])
+        states['s5'].set_pT(float(cfg['p5']),cfg['T5'])
         if cfg['solver'] == 'pg': #make perfect gas object if asked to do so, then re-set the gas state
             states['s5']=pg.Gas(Mmass=states['s5'].Mmass,
                                 gamma=states['s5'].gam, name='s5')

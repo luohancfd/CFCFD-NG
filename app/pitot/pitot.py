@@ -217,6 +217,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
        and added more X3 driver conditions to Pitot, after talking with Andreas.
     06-Oct-2015: Added a perfect gas wedge calc to the wedge solver.
     17-Oct-2015: Changed some of the output to better output lower density values.
+    11-Nov-2015: Added stagnation temperature to the output, and allowed the code to 
+       use a custom T5 if needed.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -244,7 +246,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "27-Oct-2015"
+VERSION_STRING = "11-Nov-2015"
 
 DEBUG_PITOT = False
 
