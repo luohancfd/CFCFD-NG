@@ -453,7 +453,7 @@ def txt_file_output(cfg, states, V, M):
     #added ability to get the species in the post-shock condition
     
     if cfg['shock_over_model'] and 's10e' in states.keys():
-        species1 = 'Species in the shock layer at equilibrium (s10e):'        
+        species1 = 'Species in the shock layer at equilibrium (s10e) (by {0}):'.format(states['s10e'].outputUnits)        
         print species1
         txt_output.write(species1 + '\n')
         

@@ -80,7 +80,7 @@ def secondary_driver_calculation(cfg, states, V, M):
     if PRINT_STATUS: print "Starting unsteady expansion of the primary driver gas into the secondary driver."
     
     if cfg['test'] == "fulltheory-shock": #get psd1 for our chosen shock speed
-        cfg['psd1'] = secant(error_in_velocity_s3s_to_sd3_expansion_pressure_iterator, 5000.0, 6000.0, tol=1.0e-5,limits=[500.0,15000.0])
+        cfg['psd1'] = secant(error_in_velocity_s3s_to_sd3_expansion_pressure_iterator, 5000.0, 6000.0, tol=1.0e-5,limits=[500.0,16000.0])
         if PRINT_STATUS: print "From secant solve: psd1 = {0} Pa".format(cfg['psd1'])
         #start using psd1 now, compute states sd1,sd2 and sd3 using the correct psd1
         if PRINT_STATUS: print "Now that psd1 is known, finding conditions at states sd2 and sd3."
@@ -106,7 +106,7 @@ def secondary_driver_calculation(cfg, states, V, M):
             cfg['Vsd_guess_1'] = 4000.0; cfg['Vsd_guess_2'] = 5000.0
             
         if 'Vsd_lower' not in cfg and 'Vsd_upper' not in cfg:
-                cfg['Vsd_lower'] = 500.0; cfg['Vsd_upper'] = 15000.0                
+                cfg['Vsd_lower'] = 500.0; cfg['Vsd_upper'] = 17000.0                
         else:
             print "Using custom limits for Vsd secant solver."
             print "('Vsd_lower' = {0} m/s and 'Vsd_upper' = {1} m/s)".\
@@ -801,8 +801,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
             # Need to turn ions off for state 2 here if it is required to make 
             # the unsteady expansion work (as state 2 is expanding into state 7)
             states['s2'].with_ions = False   
-    
-    print "yo"        
+      
     # some extra code to try and get conditions above 19 km/s working with Pitot
     if cfg['Vs2'] <= 19000.0 and cfg['solver'] in ['eq', 'pg-eq']:
         gas_guess = cfg['gas_guess_air']
@@ -811,7 +810,6 @@ def acceleration_tube_calculation(cfg, states, V, M):
     else:
         gas_guess = None
         
-    print "yo"
     if cfg['expand_to'] != 'p7':
         #if we're expanding to p7 we can't do this shock, so we skip it
         (V6, V['s6']) = normal_shock(states['s5'], cfg['Vs2'], states['s6'], gas_guess)
@@ -1020,6 +1018,7 @@ def shock_over_model_calculation(cfg, states, V, M):
     if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq': 
         try:
             states['s10e'] = states[cfg['test_section_state']].clone()
+            states['s10e'].with_ions = True
         except Exception as e:
             print "Error {0}".format(str(e))
             print "Failed to clone test section gas state."
@@ -1042,6 +1041,7 @@ def shock_over_model_calculation(cfg, states, V, M):
             try:
                 (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10e'])
                 M['s10e']= V['s10e']/states['s10e'].a
+                print states['s10e'].species
                 if abs((states['s10e'].p - states[cfg['test_section_state']].p) / states['s10e'].p) < 0.10:
                     print "For some reason p10e and p{0} are too similar. Shock must have not occured properly.".format(cfg['test_section_state'][1])
                     print "p{0} = {1} Pa, p10e = {2} Pa."\
@@ -1092,7 +1092,7 @@ def shock_over_model_calculation(cfg, states, V, M):
                 del states['s10e']
         
     if PRINT_STATUS: print '-'*60
-        
+                
     return cfg, states, V, M
     
 #----------------------------------------------------------------------------

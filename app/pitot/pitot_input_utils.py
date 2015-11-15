@@ -71,7 +71,7 @@ def make_test_gas(gasName, outputUnits='moles'):
     :param gasName: one of the names for the special cases set out below
     """
     if gasName.lower() == 'air':
-        return Gas({'Air':1.0,}, outputUnits=outputUnits, trace=1.0e-4), {'gam':1.35,'R':571.49}
+        return Gas({'Air':1.0,}, outputUnits=outputUnits, trace=1.0e-6, with_ions=True), {'gam':1.35,'R':571.49}
     elif gasName.lower() == 'air5species':
         return Gas(reactants={'N2':0.79, 'O2':0.21, 'N':0.0, 'O':0.0, 'NO':0.0}, 
                    inputUnits='moles', onlyList=['N2','O2','N','O','NO'],with_ions=False,
