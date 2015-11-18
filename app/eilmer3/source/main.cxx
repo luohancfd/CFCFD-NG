@@ -2361,7 +2361,8 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		cp->stage_1_update_for_flow_on_fixed_grid(G.dt_global, force_euler, with_k_omega);
 		cp->decode_conserved(0, 1, bdp->omegaz, with_k_omega);
 	    } // end for *cp
-	    if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	    if ( G.viscous && !G.separate_update_for_viscous_terms &&
+	         G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
 	        wall_function_correction(*bdp, 1);
 	        apply_turbulent_model_for_wall_function(*bdp);
 		estimate_turbulence_viscosity(&G, bdp);	        
@@ -2419,7 +2420,8 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		    cp->stage_2_update_for_flow_on_fixed_grid(G.dt_global, with_k_omega);
 		    cp->decode_conserved(0, 2, bdp->omegaz, with_k_omega);
 		} // end for ( *cp
-	        if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	        if ( G.viscous && !G.separate_update_for_viscous_terms &&
+	             G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
 	            wall_function_correction(*bdp, 1);
 	            apply_turbulent_model_for_wall_function(*bdp);
 		    estimate_turbulence_viscosity(&G, bdp);	            
@@ -2477,7 +2479,8 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		    cp->stage_3_update_for_flow_on_fixed_grid(G.dt_global, with_k_omega);
 		    cp->decode_conserved(0, 3, bdp->omegaz, with_k_omega);
 		} // for *cp
-	        if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	        if ( G.viscous && !G.separate_update_for_viscous_terms &&
+	             G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
 	            wall_function_correction(*bdp, 2);
 	            apply_turbulent_model_for_wall_function(*bdp);
 		    estimate_turbulence_viscosity(&G, bdp);	            
@@ -2635,7 +2638,8 @@ int gasdynamic_increment_with_moving_grid(double dt)
 		cp->stage_1_update_for_flow_on_moving_grid(G.dt_global, with_k_omega);
 		cp->decode_conserved(1, 1, bdp->omegaz, with_k_omega);
 	    } // end for *cp
-	    if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	    if ( G.viscous && !G.separate_update_for_viscous_terms &&
+	         G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
 	        wall_function_correction(*bdp, 0);
 	        apply_turbulent_model_for_wall_function(*bdp);
 		estimate_turbulence_viscosity(&G, bdp);	        
@@ -2706,7 +2710,8 @@ int gasdynamic_increment_with_moving_grid(double dt)
 		cp->stage_2_update_for_flow_on_moving_grid(G.dt_global, with_k_omega);
 		cp->decode_conserved(2, 2, bdp->omegaz, with_k_omega);
 	    } // end for *cp
-	    if ( G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
+	    if ( G.viscous && !G.separate_update_for_viscous_terms &&
+	         G.turbulence_model == TM_K_OMEGA && G.wall_function ) {
 	        wall_function_correction(*bdp, 1);
 	        apply_turbulent_model_for_wall_function(*bdp);
 		estimate_turbulence_viscosity(&G, bdp);	        
