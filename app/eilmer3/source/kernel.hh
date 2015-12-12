@@ -187,7 +187,10 @@ struct global_data
     double dt_moving;              /* interval for running setting vertex velocity for moving grid  */
     double cfl_moving_target;      /* target CFL value for moving grid    */       
 
-    bool wall_function;              /* wall function flag */    
+    bool wall_function;              /* wall function flag */ 
+    bool artificial_diffusion;       /* artificial diffusion flag */
+    double artificial_kappa_2;       /* coefficient for the second order artificial diffussion flux */
+    double artificial_kappa_4;       /* coefficient for the fourth order artificial diffussion flux */    
 
     /// Set the tolerance in relative velocity change for the shock detector.
     /// This value is expected to be a negative number (for compression)

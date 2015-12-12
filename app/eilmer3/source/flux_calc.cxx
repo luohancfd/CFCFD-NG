@@ -254,3 +254,170 @@ int set_flux_vector_in_global_frame(FV_Interface &IFace, FlowState &fs, double o
     fs.vel.x = vx; fs.vel.y = vy; fs.vel.z = vz; // restore fs.vel
     return SUCCESS;
 } // end compute_boundary_flux()
+
+// added the artificial viscosity flux limiters
+int artificial_diffusion(FV_Interface &IFace, FV_Cell &cL1, FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1)
+{
+    global_data &G = *get_global_data_ptr();
+    Gas_model *gmodel = get_gas_model_ptr();
+    int nsp = gmodel->get_number_of_species();
+    int nmodes = gmodel->get_number_of_modes();
+    
+    double rL1, rL0, rR0, rR1;
+    double pL1, pL0, pR0, pR1;
+    double aL0, aR0;    
+    double uL1, uL0, uR0, uR1;
+    double vL1, vL0, vR0, vR1;
+    double wL1, wL0, wR0, wR1;
+    double HL1, HL0, HR0, HR1;
+    double pLrL1, pLrL0, pRrR0, pRrR1;
+    double eL1, eL0, eR0, eR1;
+    double keL1, keL0, keR0, keR1;
+    
+    // transfrom velocity and momentum fluxinto local frame of reference
+    cL1.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+    cL0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+    cR0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+    cR1.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+    
+    IFace.ivel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+        
+    IFace.F->momentum.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+
+    rL1 = cL1.fs->gas->rho;    rL0 = cL0.fs->gas->rho;
+    pL1 = cL1.fs->gas->p;      pL0 = cL0.fs->gas->p;
+    pLrL1 = pL1 / rL1;         pLrL0 = pL0 / rL0;
+    uL1 = cL1.fs->vel.x;       uL0 = cL0.fs->vel.x;
+    vL1 = cL1.fs->vel.y;       vL0 = cL0.fs->vel.y;
+    wL1 = cL1.fs->vel.z;       wL0 = cL0.fs->vel.z;
+    eL1 = accumulate(cL1.fs->gas->e.begin(), cL1.fs->gas->e.end(), 0.0);
+    eL0 = accumulate(cL0.fs->gas->e.begin(), cL0.fs->gas->e.end(), 0.0);
+    keL1 = 0.5 * (uL1 * uL1 + vL1 * vL1 + wL1 * wL1);
+    keL0 = 0.5 * (uL0 * uL0 + vL0 * vL0 + wL0 * wL0);
+    HL1 = eL1 + pLrL1 + keL1;      HL0 = eL0 + pLrL0 + keL0;   
+    aL0 = cL0.fs->gas->a;        
+
+    rR1 = cR1.fs->gas->rho;    rR0 = cR0.fs->gas->rho;
+    pR1 = cR1.fs->gas->p;      pR0 = cR0.fs->gas->p;
+    pRrR1 = pR1 / rR1;         pRrR0 = pR0 / rR0;
+    uR1 = cR1.fs->vel.x;       uR0 = cR0.fs->vel.x;
+    vR1 = cR1.fs->vel.y;       vR0 = cR0.fs->vel.y;
+    wR1 = cR1.fs->vel.z;       wR0 = cR0.fs->vel.z;    
+    eR1 = accumulate(cR1.fs->gas->e.begin(), cR1.fs->gas->e.end(), 0.0);
+    eR0 = accumulate(cR0.fs->gas->e.begin(), cR0.fs->gas->e.end(), 0.0);
+    keR1 = 0.5 * (uR1 * uR1 + vR1 * vR1 + wR1 * wR1);
+    keR0 = 0.5 * (uR0 * uR0 + vR0 * vR0 + wR0 * wR0);
+    HR1 = eR1 + pRrR1 + keR1;      HR0 = eR0 + pRrR0 + keR0;
+    aR0 = cR0.fs->gas->a;                                       
+    
+    // variables
+    double sensor_i, sensor_i1;
+    double gamma_i, gamma_i1;    
+    double epsilon_2, epsilon_4;
+    double UL_1, UL_0, UR_0, UR_1;
+    
+    // constant
+    double kappa_2 = G.artificial_kappa_2;
+    double kappa_4 = G.artificial_kappa_4;
+    
+    // pressure sensor
+    sensor_i = fabs( (pR0 - 2.0*pL0 + pL1) / (pR0 + 2.0*pL0 + pL1) );
+    sensor_i1 = fabs( (pR1 - 2.0*pR0 + pL0) / (pR1 + 2.0*pR0 + pL0) );
+    
+    // spectral radius of the Jacobian matrix
+    gamma_i = fabs( uL0-IFace.ivel.x ) + aL0;
+    gamma_i1 = fabs( uR0-IFace.ivel.x ) + aR0;
+    
+    epsilon_2 = kappa_2 * max(sensor_i, sensor_i1) * max(gamma_i, gamma_i1);
+    epsilon_4 = max(0.0, kappa_4*max(gamma_i, gamma_i1) - epsilon_2);  
+    
+    // mass
+    UL_1 = rL1;
+    UL_0 = rL0;
+    UR_0 = rR0;
+    UR_1 = rR1;
+    //cout << "The origianl mass flux is " << IFace.F->mass << endl;
+    IFace.F->mass -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
+    //cout << "after corrrection " << IFace.F->mass << endl;
+        
+    // momentum x
+    UL_1 = rL1 * uL1;
+    UL_0 = rL0 * uL0;
+    UR_0 = rR0 * uR0;
+    UR_1 = rR1 * uR1;
+    //cout << "The origianl x momentum flux is " << IFace.F->momentum.x << endl;    
+    IFace.F->momentum.x -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
+    //cout << "after corrrection " << IFace.F->momentum.x << endl;
+    
+    // momentum y
+    UL_1 = rL1 * vL1;
+    UL_0 = rL0 * vL0;
+    UR_0 = rR0 * vR0;
+    UR_1 = rR1 * vR1;
+    //cout << "The origianl y momentum flux is " << IFace.F->momentum.y << endl;        
+    IFace.F->momentum.y -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
+    //cout << "after corrrection " << IFace.F->momentum.y << endl;
+    
+    // momentum z
+    UL_1 = rL1 * wL1;
+    UL_0 = rL0 * wL0;
+    UR_0 = rR0 * wR0;
+    UR_1 = rR1 * wR1;
+    //cout << "The origianl z momentum flux is " << IFace.F->momentum.z << endl;        
+    IFace.F->momentum.z -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
+    //cout << "after corrrection " << IFace.F->momentum.z << endl;
+    
+    // total energy
+    UL_1 = rL1 * HL1;
+    UL_0 = rL0 * HL0;
+    UR_0 = rR0 * HR0;
+    UR_1 = rR1 * HR1;
+    //cout << "The origianl total energy flux is " << IFace.F->total_energy << endl;       
+    IFace.F->total_energy -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
+    //cout << "after corrrection " << IFace.F->total_energy << endl;
+    //cout << "\n" << endl;          
+    
+    // tke
+    UL_1 = rL1 * cL1.fs->tke;
+    UL_0 = rL0 * cL0.fs->tke;
+    UR_0 = rR0 * cR0.fs->tke;
+    UR_1 = rR1 * cR1.fs->tke;
+    IFace.F->tke -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
+    
+    // omega
+    UL_1 = rL1 * cL1.fs->omega;
+    UL_0 = rL0 * cL0.fs->omega;
+    UR_0 = rR0 * cR0.fs->omega;
+    UR_1 = rR1 * cR1.fs->omega;
+    IFace.F->omega -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
+    
+    // mass fraction
+    for ( int isp = 0; isp < nsp; ++isp ) {
+        UL_1 = rL1 * cL1.fs->gas->massf[isp];
+        UL_0 = rL0 * cL0.fs->gas->massf[isp];
+        UR_0 = rR0 * cR0.fs->gas->massf[isp];
+        UR_1 = rR1 * cR1.fs->gas->massf[isp];
+        IFace.F->massf[isp] -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
+    }
+    
+    // individual energies
+    for ( int imode = 1; imode < nmodes; ++imode ) {
+        UL_1 = rL1 * cL1.fs->gas->e[imode];
+        UL_0 = rL0 * cL0.fs->gas->e[imode];
+        UR_0 = rR0 * cR0.fs->gas->e[imode];
+        UR_1 = rR1 * cR1.fs->gas->e[imode];    
+	IFace.F->energies[imode] -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
+    }   
+    
+    // transfrom velocity and momentum into global frame of reference
+    cL1.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+    cL0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+    cR0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+    cR1.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2); 
+    
+    IFace.ivel.transform_to_global(IFace.n, IFace.t1, IFace.t2);    
+
+    IFace.F->momentum.transform_to_global(IFace.n, IFace.t1, IFace.t2);        
+   
+    return SUCCESS;        
+}

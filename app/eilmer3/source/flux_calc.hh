@@ -40,6 +40,7 @@ std::string get_flux_calculator_name(flux_calc_t calc);
 int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace, double omegaz=0.0);
 int set_flux_vector_in_local_frame(ConservedQuantities &F, const FlowState &fs);
 int set_flux_vector_in_global_frame(FV_Interface &IFace, FlowState &fs, double omegaz);
+int artificial_diffusion(FV_Interface &IFace, FV_Cell &cL1, FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1);
 
 /* rivp.c */
 int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR);

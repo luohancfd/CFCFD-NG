@@ -463,7 +463,10 @@ int read_config_parameters(const string filename, bool master, int start_tindx)
     dict.parse_boolean("global_data", "moving_grid_flag", G.moving_grid, false);
     dict.parse_boolean("global_data", "write_vertex_velocities_flag", G.write_vertex_velocities, false);
     dict.parse_boolean("global_data", "flow_induced_moving_flag", G.flow_induced_moving, false);    
-    dict.parse_boolean("global_data", "wall_function_flag", G.wall_function, false);    
+    dict.parse_boolean("global_data", "wall_function_flag", G.wall_function, false);
+    dict.parse_boolean("global_data", "artificial_diffusion_flag", G.artificial_diffusion, false);        
+    dict.parse_double("global_data", "artificial_kappa_2", G.artificial_kappa_2, 0.0);
+    dict.parse_double("global_data", "artificial_kappa_4", G.artificial_kappa_4, 0.0);    
     if ( G.verbosity_level >= 2 ) {
 	cout << "shock_fitting_flag = " << G.shock_fitting << endl;
 	cout << "shock_fitting_decay_flag = " << G.shock_fitting_decay << endl;
@@ -471,7 +474,10 @@ int read_config_parameters(const string filename, bool master, int start_tindx)
 	cout << "moving_grid_flag = " << G.moving_grid << endl;
 	cout << "write_vertex_velocities_flag = " << G.write_vertex_velocities << endl;
 	cout << "flow_induced_moving_flag = " << G.flow_induced_moving << endl;	
-	cout << "wall_function_flag = " << G.wall_function << endl;		
+	cout << "wall_function_flag = " << G.wall_function << endl;
+	cout << "artificial_diffusion_flag = " << G.artificial_diffusion << endl;			
+	cout << "artificial_kappa_2 = " << G.artificial_kappa_2 << endl;
+	cout << "artificial_kappa_4 = " << G.artificial_kappa_4 << endl;	
     }
 
     // 2013-apr-23 New specification scheme for turbulence models.
