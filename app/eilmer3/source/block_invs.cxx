@@ -99,13 +99,11 @@ int Block::inviscid_flux(size_t dimensions)
 		    }
 		    // added the artificial viscosity flux limiter
 	            if ( G.artificial_diffusion ) {
-		        //cout << "we are at i direction loop " << endl;
-		        //cout << "index number is " << i << j << k << endl;
                         if ( (i == imin || i == imin+1 || i == imin+2) && bcp[WEST]->is_wall() ) {
-                            // do nothing here, we don't want to apply artificial diffusion here
+                            // do nothing here, we don't want to apply artificial diffusion
                             continue;
                         } else if ( (i == imax-1 || i == imax || i == imax+1) && bcp[EAST]->is_wall() ) {
-                            // do nothing here, we don't want to apply artificial diffusion here
+                            // do nothing here, we don't want to apply artificial diffusion
                             continue;
 		        } else {
 		            artificial_diffusion(*IFace, *cL1, *cL0, *cR0, *cR1);
@@ -157,13 +155,11 @@ int Block::inviscid_flux(size_t dimensions)
 	        } // end if
 		// added the artificial viscosity flux limiter
 	        if ( G.artificial_diffusion ) {
-		    //cout << "we are at j direction loop " << endl;
-		    //cout << "index number is " << i << j << k << endl;
                     if ( (j == jmin || j == jmin+1 || j == jmin+2) && bcp[SOUTH]->is_wall() ) {
-                        // do nothing here, we don't want to apply artificial diffusion here
+                        // do nothing here, we don't want to apply artificial diffusion
                         continue;                             
                     } else if ( (j == jmax-1 || j == jmax || j == jmax+1) && bcp[NORTH]->is_wall() ) {
-                        // do nothing here, we don't want to apply artificial diffusion here
+                        // do nothing here, we don't want to apply artificial diffusion
                         continue;
 		    } else {
 		        artificial_diffusion(*IFace, *cL1, *cL0, *cR0, *cR1);
@@ -216,13 +212,11 @@ int Block::inviscid_flux(size_t dimensions)
 		} // end if
 		// added the artificial viscosity flux limiter
 	        if ( G.artificial_diffusion ) {
-		    //cout << "we are at i direction loop " << endl;
-		    //cout << "index number is " << i << j << k << endl;
                     if ( (k == kmin || k == kmin+1 || k == kmin+2) && bcp[BOTTOM]->is_wall() ) {
-                        // do nothing here, we don't want to apply artificial diffusion here
+                        // do nothing here, we don't want to apply artificial diffusion
                         continue;                             
                     } else if ( (k == kmax-1 || k == kmax || k == kmax+1) && bcp[TOP]->is_wall() ) {
-                        // do nothing here, we don't want to apply artificial diffusion here
+                        // do nothing here, we don't want to apply artificial diffusion
                         continue;
 		    } else {
 		        artificial_diffusion(*IFace, *cL1, *cL0, *cR0, *cR1);

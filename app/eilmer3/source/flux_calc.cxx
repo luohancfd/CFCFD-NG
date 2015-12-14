@@ -336,46 +336,35 @@ int artificial_diffusion(FV_Interface &IFace, FV_Cell &cL1, FV_Cell &cL0, FV_Cel
     UL_0 = rL0;
     UR_0 = rR0;
     UR_1 = rR1;
-    //cout << "The origianl mass flux is " << IFace.F->mass << endl;
     IFace.F->mass -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
-    //cout << "after corrrection " << IFace.F->mass << endl;
         
     // momentum x
     UL_1 = rL1 * uL1;
     UL_0 = rL0 * uL0;
     UR_0 = rR0 * uR0;
     UR_1 = rR1 * uR1;
-    //cout << "The origianl x momentum flux is " << IFace.F->momentum.x << endl;    
     IFace.F->momentum.x -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
-    //cout << "after corrrection " << IFace.F->momentum.x << endl;
     
     // momentum y
     UL_1 = rL1 * vL1;
     UL_0 = rL0 * vL0;
     UR_0 = rR0 * vR0;
     UR_1 = rR1 * vR1;
-    //cout << "The origianl y momentum flux is " << IFace.F->momentum.y << endl;        
     IFace.F->momentum.y -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
-    //cout << "after corrrection " << IFace.F->momentum.y << endl;
     
     // momentum z
     UL_1 = rL1 * wL1;
     UL_0 = rL0 * wL0;
     UR_0 = rR0 * wR0;
-    UR_1 = rR1 * wR1;
-    //cout << "The origianl z momentum flux is " << IFace.F->momentum.z << endl;        
+    UR_1 = rR1 * wR1;        
     IFace.F->momentum.z -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
-    //cout << "after corrrection " << IFace.F->momentum.z << endl;
     
     // total energy
     UL_1 = rL1 * HL1;
     UL_0 = rL0 * HL0;
     UR_0 = rR0 * HR0;
-    UR_1 = rR1 * HR1;
-    //cout << "The origianl total energy flux is " << IFace.F->total_energy << endl;       
+    UR_1 = rR1 * HR1;       
     IFace.F->total_energy -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
-    //cout << "after corrrection " << IFace.F->total_energy << endl;
-    //cout << "\n" << endl;          
     
     // tke
     UL_1 = rL1 * cL1.fs->tke;
