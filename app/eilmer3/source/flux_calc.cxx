@@ -366,20 +366,6 @@ int artificial_diffusion(FV_Interface &IFace, FV_Cell &cL1, FV_Cell &cL0, FV_Cel
     UR_1 = rR1 * HR1;       
     IFace.F->total_energy -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
     
-    // tke
-    UL_1 = rL1 * cL1.fs->tke;
-    UL_0 = rL0 * cL0.fs->tke;
-    UR_0 = rR0 * cR0.fs->tke;
-    UR_1 = rR1 * cR1.fs->tke;
-    IFace.F->tke -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
-    
-    // omega
-    UL_1 = rL1 * cL1.fs->omega;
-    UL_0 = rL0 * cL0.fs->omega;
-    UR_0 = rR0 * cR0.fs->omega;
-    UR_1 = rR1 * cR1.fs->omega;
-    IFace.F->omega -= epsilon_2 * ( UR_0-UL_0 ) - epsilon_4 * ( UR_1-3.0*UR_0+3.0*UL_0-UL_1 );
-    
     // mass fraction
     for ( int isp = 0; isp < nsp; ++isp ) {
         UL_1 = rL1 * cL1.fs->gas->massf[isp];
