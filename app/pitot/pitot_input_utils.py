@@ -619,7 +619,7 @@ def state_builder(cfg):
             M['s4']=0.0
             M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
             cfg['M_throat'] = M['s3s']
-        elif cfg['piston'] == 'ostp':
+        elif cfg['piston'] == 'ossp':
             #this is the first attempt at designing a single stage piston driver for X2.
             #Completed by Michael Scott as part of his PhD.
             states['s4']=primary_driver_x2['He:1.0'][0].clone()
@@ -634,7 +634,7 @@ def state_builder(cfg):
             # is used with a 2.5 mm steel diaphragm. Condition is based off an
             # isentropic compression from the fill pressure to the burst pressure.
              driver_p = 77200.0 #driver fill pressure, Pa
-             driver_T = 300.0 #driver temperature, K
+             driver_T = 298.15 #driver temperature, K
              states['primary_driver_fill'] = primary_driver_x2[cfg['driver_gas']][0].clone()
              states['primary_driver_fill'].set_pT(driver_p, driver_T)
              cfg['p4'] = 35700000 #primary driver burst pressure, Pa 

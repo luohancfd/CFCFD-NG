@@ -558,8 +558,8 @@ def shock_tube_calculation(cfg, states, V, M):
         V['s2'] = cfg['Vs1']
     
     if PRINT_STATUS: 
-        print "state 2: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s2'].p, states['s2'].T) 
-        print "state 3: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s3'].p, states['s3'].T) 
+        print "state 2: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s2'].p, states['s2'].T, V['s2']) 
+        print "state 3: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s3'].p, states['s3'].T, V['s3']) 
         if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
             print 'species in state2 at equilibrium:'               
             print '{0}'.format(states['s2'].species)
@@ -615,13 +615,23 @@ def shock_tube_rs_calculation(cfg, states, V, M):
     
     #first build state2r as a clone of state 2
     states['s2r'] = states['s2'].clone()
-    
-    # then perform the reflected shock
-    cfg['Vr-st'] = reflected_shock(states['s2'], V['s2'], states['s2r'])
-    cfg['Mr-st'] = (V['s2']+cfg['Vr-st'])/states['s2'].a #normally this would be V2 - V2r, but it's plus here as Vr has been left positive
-    V['s2r'] = 0.0
-    M['s2r']= V['s2r']/states['s2r'].a
-    
+
+    if cfg['Mr_st'] == "Maximum": # then perform the reflected shock
+        cfg['Vr-st'] = reflected_shock(states['s2'], V['s2'], states['s2r'])
+        cfg['Mr-st'] = (V['s2']+cfg['Vr-st'])/states['s2'].a #normally this would be V2 - V2r, but it's plus here as Vr has been left positive
+        V['s2r'] = 0.0
+        M['s2r']= V['s2r']/states['s2r'].a
+    else: # perform it to a set strength
+        cfg['Mr-st'] = cfg['Mr_st']
+        cfg['Vr-st'] = cfg['Mr-st']*states['s2r'].a - V['s2']
+        try:
+            (V2r, V2rg) = normal_shock(states['s2'], cfg['Vr-st'] + V['s2'], states['s2r'])
+            V['s2r'] = V['s2'] - V2rg
+            M['s2r']= V['s2r']/states['s2r'].a           
+        except Exception as e:
+            print "Error {0}".format(str(e))
+            raise Exception, "Reflected normal shock calculation at the end of the shocl tube failed."
+           
     if PRINT_STATUS:
         print "Vr-st = {0} m/s, Mr-st = {1}.".format(cfg['Vr-st'], cfg['Mr-st'])
         print "state 2r: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s2r'].p, states['s2r'].T)
@@ -856,8 +866,8 @@ def acceleration_tube_calculation(cfg, states, V, M):
     if PRINT_STATUS:
         print '-'*60
         if not cfg['expand_to'] == 'p7': #no Vs2 or state 6 if we expand to a pressure to find state 7
-            print "state 6: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s6'].p, states['s6'].T) 
-        print "state 7: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s7'].p, states['s7'].T)
+            print "state 6: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s6'].p, states['s6'].T,  V['s6']) 
+        print "state 7: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s7'].p, states['s7'].T,  V['s7'])
         if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
             print 'species in state7 at equilibrium:'               
             print '{0}'.format(states['s7'].species)

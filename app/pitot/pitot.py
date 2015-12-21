@@ -219,6 +219,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
     17-Oct-2015: Changed some of the output to better output lower density values.
     11-Nov-2015: Added stagnation temperature to the output, and allowed the code to 
        use a custom T5 if needed.
+    21-Dec-2015: Changed code for the reflcted shock at the end of the shock tube code
+       so that it could cope with a changing Mach number.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -246,7 +248,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "15-Nov-2015"
+VERSION_STRING = "21-Dec-2015"
 
 DEBUG_PITOT = False
 
