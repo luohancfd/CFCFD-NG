@@ -50,9 +50,7 @@ int Block::inviscid_flux(size_t dimensions)
     FlowState Lft(gmodel);
     FlowState Rght(gmodel);
     size_t layer_depth;
-    size_t nominal_layer_depth=6; // Nominal number of cells over which we  
-                                  // will set the artificial diffusion.    
-                                  // steal from bc_menter_correction.cxx
+    
     // ifi interfaces are East-facing interfaces.
     for ( size_t k = kmin; k <= kmax; ++k ) {
 	for ( size_t j = jmin; j <= jmax; ++j ) {
@@ -102,7 +100,7 @@ int Block::inviscid_flux(size_t dimensions)
 		    }
 		    // added the artificial viscosity flux limiter
 	            if ( G.artificial_diffusion ) {
-	                layer_depth = min(nni/4, nominal_layer_depth);
+	                layer_depth = nni/4;
                         if ( (i <= imin+layer_depth ) && bcp[WEST]->is_wall() ) {
                             // do nothing here, we don't want to apply artificial diffusion at the near wall region.
                             continue;
@@ -159,7 +157,7 @@ int Block::inviscid_flux(size_t dimensions)
 	        } // end if
 		// added the artificial viscosity flux limiter
 	        if ( G.artificial_diffusion ) {
-	            layer_depth = min(nnj/4, nominal_layer_depth);	        
+	            layer_depth = nnj/4;	        
                     if ( (j <= jmin+layer_depth) && bcp[SOUTH]->is_wall() ) {
                         // do nothing here, we don't want to apply artificial diffusion at the near wall region.
                         continue;                             
@@ -217,7 +215,7 @@ int Block::inviscid_flux(size_t dimensions)
 		} // end if
 		// added the artificial viscosity flux limiter
 	        if ( G.artificial_diffusion ) {
-	            layer_depth = min(nnk/4, nominal_layer_depth);	        
+	            layer_depth = nnk/4;	        
                     if ( (k <= kmin+layer_depth) && bcp[BOTTOM]->is_wall() ) {
                         // do nothing here, we don't want to apply artificial diffusion at the near wall region.
                         continue;                             
