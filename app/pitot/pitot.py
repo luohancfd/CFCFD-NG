@@ -221,6 +221,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
        use a custom T5 if needed.
     21-Dec-2015: Changed code for the reflcted shock at the end of the shock tube code
        so that it could cope with a changing Mach number.
+    22-Dec-2015: rewrote the area ratio check so the output could be made better...
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -248,7 +249,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "21-Dec-2015"
+VERSION_STRING = "22-Dec-2015"
 
 DEBUG_PITOT = False
 

@@ -9,46 +9,271 @@ Chris James (c.james4@uq.edu.au) - 20/08/13
 
 """
 
-import sys
+import sys, copy
 
 from pitot_flow_functions import nozzle_expansion, conehead_calculation, shock_over_model_calculation
 
+def area_ratio_check_results_dict_builder(cfg):
+    """Function that takes the config file and based on the details of the run,
+       will build a results dictionary that the area ratio check will use.
+    """
+    
+    full_list = ['test number','area ratio','p8','T8','rho8','V8','M8']
+
+    if cfg['conehead']:
+         conehead_list = ['p10c','T10c','rho10c','V10c']
+         full_list += conehead_list
+    if cfg['shock_over_model']:
+        shock_over_model_list = ['p10f','T10f','rho10f','V10f','p10e','T10e','rho10e','V10e']
+        full_list += shock_over_model_list
+
+    # now populate the dictionary with a bunch of empty lists based on that list
+
+    results = {title : [] for title in full_list}
+    
+    # add the list of titles in case we want to use it in future
+    
+    results['full_list'] = full_list
+    
+    #add a list where we can store unsuccesful run numbers for analysis
+    results['unsuccessful_runs'] = []
+      
+    return results
+    
+def area_ratio_add_new_result_to_results_dict(cfg, states, V, M, results):
+    """Function that takes a completed test run and adds the tunnel
+       configuration and results to the results dictionary.
+    """ 
+           
+    results['test number'].append(cfg['counter'])
+        
+    results['area ratio'].append(cfg['area_ratio'])
+    results['p8'].append(states['s8'].p)
+    results['T8'].append(states['s8'].T)
+    results['rho8'].append(states['s8'].rho)
+    results['V8'].append(V['s8'])
+    results['M8'].append(M['s8'])
+
+    if cfg['conehead'] and cfg['conehead_completed']:
+        results['p10c'].append(states['s10c'].p)
+        results['T10c'].append(states['s10c'].T)
+        results['rho10c'].append(states['s10c'].rho)
+        results['V10c'].append(V['s10c'])
+    elif cfg['conehead'] and not cfg['conehead_completed']:
+        results['p10c'].append('did not solve')
+        results['T10c'].append('did not solve')
+        results['rho10c'].append('did not solve')
+        results['V10c'].append('did not solve')        
+        
+    if cfg['shock_over_model']:
+        if 's10f' in states.keys():
+            results['p10f'].append(states['s10f'].p)
+            results['T10f'].append(states['s10f'].T)
+            results['rho10f'].append(states['s10f'].rho)
+            results['V10f'].append(V['s10f'])
+        else:
+            results['p10f'].append('did not solve')
+            results['T10f'].append('did not solve')
+            results['rho10f'].append('did not solve')
+            results['V10f'].append('did not solve')
+        if 's10e' in states.keys():
+            results['p10e'].append(states['s10e'].p)
+            results['T10e'].append(states['s10e'].T)
+            results['rho10e'].append(states['s10e'].rho)
+            results['V10e'].append(V['s10e'])
+        else:
+            results['p10e'].append('did not solve')
+            results['T10e'].append('did not solve')
+            results['rho10e'].append('did not solve')
+            results['V10e'].append('did not solve')            
+                             
+    return results
+    
+def area_ratio_check_results_csv_builder(results, test_name = 'pitot_run',  intro_line = None):
+    """Function that takes the final results dictionary (which must include a 
+       list called 'full_list' that tells this function what to print and in 
+       what order) and then outputs a results csv. It will also add an intro line
+       if a string with that is added. The name of the test is also required.
+    """
+    
+    # open a file to start saving results
+    area_ratio_check_output = open(test_name + '-area-ratio-check.csv',"w")  #csv_output file creation
+    
+    # print a line explaining the results if the user gives it
+    if intro_line:
+        intro_line_optional = "# " + intro_line
+        area_ratio_check_output.write(intro_line_optional + '\n')
+    
+    #now we'll make the code build us the second intro line
+    intro_line = '#'
+    for value in results['full_list']:
+        if value != results['full_list'][-1]:
+            intro_line += "{0},".format(value)
+        else: #don't put the comma if it's the last value
+            intro_line += "{0}".format(value)
+        
+    area_ratio_check_output.write(intro_line + '\n')
+    
+    # now we need to go through every test run and print the data.
+    # we'll use 'full_list' to guide our way through
+    
+    # get the number of the test runs from the length of the first data list mentioned
+    # in 'full_list'. need to assume the user hasn't screwed up and got lists of
+    # different lengths
+    number_of_test_runs = len(results[results['full_list'][0]])
+    
+    for i in range(0, number_of_test_runs, 1):
+        output_line = ''
+        for value in results['full_list']:
+            if value != results['full_list'][-1]:
+                output_line += "{0},".format(results[value][i])
+            else: #don't put the comma if it's the last value in the csv
+                output_line += "{0}".format(results[value][i])
+        
+        area_ratio_check_output.write(output_line + '\n')  
+
+    area_ratio_check_output.close()              
+                                  
+    return 
+    
+def area_ratio_check_normalised_results_csv_builder(results, test_name = 'pitot_run',  
+                                   intro_line = None, normalised_by = 'first value'):
+    """Function that takes the final results dictionary (which must include a 
+       list called 'full_list' that tells this function what to print and in 
+       what order) and then outputs a normalised version of the results csv.
+       You can tell it to normalise by other values, but 'first value' is default.
+       
+       It will also add an intro line if a string with that is added. 
+       The name of the test is also required.
+    """
+    
+    # open a file to start saving results
+    area_ratio_check_output = open(test_name + '-area-ratio-check-normalised.csv',"w")  #csv_output file creation
+    
+    # print a line explaining the results if the user gives it
+    if intro_line:
+        intro_line_optional = "# " + intro_line
+        area_ratio_check_output.write(intro_line_optional + '\n')
+        
+    normalised_intro_line = "# all variables normalised by {0}".format(normalised_by)
+    area_ratio_check_output.write(normalised_intro_line + '\n')
+    
+    # 'test number' and 'diluent percentage' and the species concentrations
+    # will not be normalised
+    normalise_exceptions = ['test number', 'area ratio']
+    
+    #now we'll make the code build us the second intro line
+    intro_line = '#'
+    for value in results['full_list']:
+        if value != results['full_list'][-1]:
+            if value in normalise_exceptions:
+                intro_line += "{0},".format(value)
+            else:
+                intro_line += "{0} normalised,".format(value)
+        else: #don't put the comma if it's the last value
+            if value in normalise_exceptions:
+                intro_line += "{0}".format(value)
+            else:
+                intro_line += "{0} normalised".format(value)
+        
+    area_ratio_check_output.write(intro_line + '\n')
+    
+    # now we need to go through every test run and print the data.
+    # we'll use 'full_list' to guide our way through
+    
+    # get the number of the test runs from the length of the first data list mentioned
+    # in 'full_list'. need to assume the user hasn't screwed up and got lists of
+    # different lengths
+    number_of_test_runs = len(results[results['full_list'][0]])
+    
+    # build a dictionary to store all of our normalisation values
+    normalising_value_dict = {}
+    
+    for value in  results['full_list']:
+        if normalised_by == 'first value':
+            normalising_value_dict[value] = results[value][0]
+        elif normalised_by == 'maximum value':
+            normalising_value_dict[value] = max(results[value])
+        elif normalised_by == 'last value':
+            normalising_value_dict[value] = results[value][-1]       
+    
+    for i in range(0, number_of_test_runs, 1):
+        output_line = ''
+        for value in results['full_list']:
+            if value != results['full_list'][-1]:
+                # don't normalise selected exceptions, or values that are not numbers
+                # or a value that is not a number
+                if value in normalise_exceptions or \
+                not isinstance(results[value][i], (int, float)):
+                    output_line += "{0},".format(results[value][i])
+                else:
+                    output_line += "{0},".format(results[value][i]/normalising_value_dict[value])
+            else: #don't put the comma if it's the last value in the csv
+                if value in normalise_exceptions or \
+                not isinstance(results[value][i], (int, float)):
+                    output_line += "{0},".format(results[value][i])
+                else:  # only normalise if the value is a number
+                    output_line += "{0}".format(results[value][i]/normalising_value_dict[value])
+        
+        area_ratio_check_output.write(output_line + '\n')  
+
+    area_ratio_check_output.close()              
+                                  
+    return     
+    
+def area_ratio_check_pickle_data(cfg, results, test_name = 'pitot_run'):
+    """Function that takes the config and results dictionaries 
+       made throughout the running of the program and dumps them in another
+       dictionary in a pickle object. Basically, this means the dictionaries can
+       be "unpickled" and analysed by the user directly without needing to data 
+       import the csv.
+       
+       The file can then be opened like this:
+       
+       import pickle
+       data_file = open('file_location')
+       cfg_and_results = pickle.load(data_file)
+       data_file.close()
+    """
+    
+    import pickle
+    
+    print '-'*60
+    print "Pickling cfg and results dictionaries."
+    
+    pickle_file = open(test_name + '-area-ratio-check-pickle.dat',"w")
+    
+    cfg_and_results = {'cfg':cfg, 'results':results}
+    
+    pickle.dump(cfg_and_results, pickle_file)
+    pickle_file.close()
+   
+    return
+
 def area_ratio_check(cfg, states, V, M):
     """Overarching area ratio check function."""
-    
-    # open a file to start saving our results
-    area_ratio_output = open(cfg['filename']+'-area-ratio-check.csv',"w")  #csv_output file creation
-    # print a line explaining the results
-    intro_line_1 = "# Output of pitot area ratio checking program performed using Pitot version {0}.".format(cfg['VERSION_STRING'])
-    area_ratio_output.write(intro_line_1 + '\n')
-    intro_line_2 = "# units are the same as the program. Velocities in m/s, pressures in Pa, temperatures in K."
-    area_ratio_output.write(intro_line_2 + '\n')
-    if cfg['conehead'] and not cfg['shock_over_model']:
-        intro_line_3 = "# area ratio,p8,T8,V8,M8,p10c,T10c,V10c"
-    elif cfg['shock_over_model'] and not cfg['conehead']:
-        intro_line_3 = "# area ratio,p8,T8,V8,M8,p10f,T10f,V10f,p10e,T10e,V10e"
-    elif cfg['shock_over_model'] and cfg['conehead']:
-        intro_line_3 = "# area ratio,p8,T8,V8,M8,p10c,T10c,V10c,p10f,T10f,V10f,p10e,T10e,V10e"        
-    else:
-        intro_line_3 = "# area ratio,p8,T8,V8,M8"
-    area_ratio_output.write(intro_line_3 + '\n')
-    
+       
     # start by storing old area ratio so it can be retained later
 
-    old_area_ratio = cfg['area_ratio']  
+    old_area_ratio = copy.copy(cfg['area_ratio'])
+    
+    # now build the results dictionary that we will place the results in
+    
+    results = area_ratio_check_results_dict_builder(cfg)
     
     print "Performing area ratio check by running through a {0} different area ratios."\
     .format(len(cfg['area_ratio_check_list']))
     
-    counter = 0 #counter used to tell user how far through the calculations we are
-               
+    cfg['counter'] = 0 #counter used to tell user how far through the calculations we are
+    
+    # now do everything...           
     for area_ratio in cfg['area_ratio_check_list']:
         # add the current area ratio
-        counter += 1
+        cfg['counter'] += 1
         cfg['area_ratio'] = area_ratio
         print 60*"-"
         print "Test {0} of {1} (Current area ratio = {2})."\
-        .format(counter, len(cfg['area_ratio_check_list']), area_ratio)
+        .format(cfg['counter'], len(cfg['area_ratio_check_list']), area_ratio)
         # run the nozzle expansion
         cfg, states, V, M = nozzle_expansion(cfg, states, V, M)
         if cfg['conehead']: #do the conehead calculation if required
@@ -71,32 +296,25 @@ def area_ratio_check(cfg, states, V, M):
             states['s10f'].write_state(sys.stdout)      
             print "V10e = {0} m/s.".format(V['s10e'])
             print "State 10e (equilibrium normal shock over the test model):"
-            states['s10e'].write_state(sys.stdout)  
-        
-        #now add a new line to the output file
-        #only prints the line to the csv if the conehead calc completed
-        if cfg['conehead'] and cfg['conehead_completed'] and not cfg['shock_over_model']:        
-            new_output_line = "{0},{1},{2},{3},{4},{5},{6},{7}"\
-            .format(area_ratio, states['s8'].p, states['s8'].T,V['s8'],\
-                    M['s8'], states['s10c'].p, states['s10c'].T,V['s10c'])
-        elif cfg['shock_over_model'] and not cfg['conehead']:
-            new_output_line = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}"\
-            .format(area_ratio, states['s8'].p, states['s8'].T,V['s8'],\
-                    M['s8'], states['s10f'].p, states['s10f'].T,V['s10f'],
-                    states['s10e'].p, states['s10e'].T,V['s10e'])
-        elif cfg['shock_over_model'] and cfg['conehead'] and cfg['conehead_completed']:
-            new_output_line = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}"\
-            .format(area_ratio, states['s8'].p, states['s8'].T,V['s8'],\
-                    M['s8'], states['s10c'].p, states['s10c'].T,V['s10c'],
-                    states['s10f'].p, states['s10f'].T,V['s10f'],
-                    states['s10e'].p, states['s10e'].T,V['s10e'])            
-        elif not cfg['shock_over_model'] and not cfg['conehead']:
-            new_output_line = "{0},{1},{2},{3},{4}"\
-            .format(area_ratio, states['s8'].p, states['s8'].T,V['s8'], M['s8'])
-        area_ratio_output.write(new_output_line + '\n')
+            states['s10e'].write_state(sys.stdout)
+            
+        # now add the result to the results dictionary
+        results = area_ratio_add_new_result_to_results_dict(cfg, states, V, M, results)
+
+    # now that the run is finished, make the cfg output
+    intro_line = "Output of pitot area ratio checking program performed using Pitot version {0}.".format(cfg['VERSION_STRING'])
+    area_ratio_check_results_csv_builder(results, test_name = cfg['filename'],  intro_line = intro_line)    
     
-    # close the output file
-    area_ratio_output.close()        
+    # and the normalised output
+    if 'normalise_results_by' in cfg:
+        area_ratio_check_normalised_results_csv_builder(results, test_name = cfg['filename'],  
+                                       intro_line = intro_line, normalised_by = cfg['normalise_results_by'])
+    else:
+        area_ratio_check_normalised_results_csv_builder(results, test_name = cfg['filename'],  
+                                       intro_line = intro_line, normalised_by = 'first value')        
+    
+    # and the pickle output
+    area_ratio_check_pickle_data(cfg, results, test_name = cfg['filename'])    
     
     #return the original area ratio and values when we leave
     print 60*"-"
