@@ -564,10 +564,15 @@ def shock_tube_calculation(cfg, states, V, M):
             print 'species in state2 at equilibrium:'               
             print '{0}'.format(states['s2'].species)
             print 'state 2 gamma = {0}, state 2 R = {1}.'.format(states['s2'].gam,states['s2'].R)
-        states['s2_total'] = total_condition(states['s2'], V['s2'])
-        print 'The total enthalpy (Ht) at state 2 is {0:<.5g} MJ/kg (H2 - h1).'\
-        .format((states['s2_total'].h - states['s1'].h)/1.0e6) #(take away the initial enthalpy in state 1 to get the change)
-        cfg['Ht2'] = states['s2_total'].h - states['s1'].h
+        try:
+            states['s2_total'] = total_condition(states['s2'], V['s2'])
+            print 'The total enthalpy (Ht) at state 2 is {0:<.5g} MJ/kg (H2 - h1).'\
+            .format((states['s2_total'].h - states['s1'].h)/1.0e6) #(take away the initial enthalpy in state 1 to get the change)
+            cfg['Ht2'] = states['s2_total'].h - states['s1'].h
+        except Exception as e:
+            print e
+            print "Failed to find total condition for state 2. Result will be set to None"
+            cfg['Ht2'] = None
         
     if cfg['state2_no_ions']:
         # Turn with ions back on so it will be on for other states based on s7
@@ -637,12 +642,106 @@ def shock_tube_rs_calculation(cfg, states, V, M):
         print "state 2r: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s2r'].p, states['s2r'].T)
         print "Vs2r = {0} m/s, Ms2r = {1}.".format(V['s2r'], M['s2r'])
         if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
-            print 'species in state5 at equilibrium:'               
-            print '{0}'.format(states['s5'].species)
+            print 'species in state2r at equilibrium:'               
+            print '{0}'.format(states['s2r'].species)
+        try:
+            states['s2r_total'] = total_condition(states['s2r'], V['s2r'])
+            print 'The total enthalpy (Ht) at state 2r is {0:<.5g} MJ/kg (H2r - h1).'\
+            .format((states['s2r_total'].h - states['s1'].h)/1.0e6) #(take away the initial enthalpy in state 1 to get the change)
+            cfg['Ht2r'] = states['s2r_total'].h - states['s1'].h
+        except Exception as e:
+            print e
+            print "Failed to find total condition for state 2r. Result will be set to None"
+            cfg['Ht2r'] = None
             
     if PRINT_STATUS: print '-'*60
         
     return cfg, states, V, M  
+
+#----------------------------------------------------------------------------
+    
+def morgan_diaphragm_analysis(cfg, states, V, M):
+    """This is a thin diaphragm model from Morgan 1991
+       "Double Diaphragm Driven Free Piston Expansion Tube.
+       
+       THIS IS CURRENTLY STILL BEING BUILT, DOES NOT WORK...
+    """
+    
+    dt = 0.1
+    diaphragm_mass = 0.191e3
+    
+    # model starts from a full reflection at the end of the shock tube, that then fades away
+    states['s2r-mda'] = states['s2'].clone()
+    
+    cfg['Vr-mda'] = reflected_shock(states['s2'], V['s2'], states['s2r-mda'])
+    cfg['Mr-mda'] = (V['s2']+cfg['Vr-mda'])/states['s2'].a #normally this would be V2 - V2r, but it's plus here as Vr has been left positive
+    V['s2r-mda'] = 0.0
+    M['s2r-mda']= V['s2r-mda']/states['s2r-mda'].a
+    
+    # now we start to step forward in time
+    
+    p2r_list = [states['s2r-mda'].p]
+    Vr_list = [cfg['Vr-mda']]
+    Mr_list = [cfg['Mr-mda']]
+    Vd_list = [0.0]
+    
+    print "p2r = {0:.2f} Pa, Vr = {1:.2f} m/s, Mr = {2:.2f}, Vd = {3:.2f}."\
+        .format(p2r_list[-1], Vr_list[-1], Mr_list[-1], Vd_list[-1])
+       
+    while Mr_list[-1] > 1:
+        # first get diaphragm acceleration from pressure difference across diaphragm
+        F = (p2r_list[-1] - states['s5'].p)*(math.pi*0.0425**2.0)
+        a = F / diaphragm_mass #mass of a diaphragm on the bottom
+        Vd = Vd_list[-1] + a*dt
+        Vd_list.append(Vd)
+        print "Vd = {0} m/s.".format(Vd)
+        print '-'*60
+        
+        # now we need to find the Vr that makes V2 turn into Vd through the reflected shock
+        # use a secant solver to make it happen
+        def reflected_shock_speed_iterator(Vr, state2=states['s2'],
+                                            state2r=states['s2r-mda'], V2g=V['s2'], Vd = Vd):    
+            """iterates out the reflected shock speed that matches Vd"""
+    
+            print "Current guess for Vr = {0} m/s".format(Vr)
+            
+            print "-"*60            
+            print "Mr = {0}.".format((V2g+Vr)/state2.a)
+            
+            try:
+                V2r, V2rg = normal_shock(state2, V2g + Vr, state2r)
+            except Exception as e:
+                print "Error {0}".format(str(e))
+                raise Exception, "Normal shock calculation failed with the current Vr guess." 
+            
+            #print "V2g = {0}, V3g = {1}, V3 = {2}.".format(V2g, V3g, V3)
+            
+            print "V2r = {0} m/s, V2rg = {1} m/s.".format(V2r, V2rg)
+            
+            V2r_lab = V2r - Vr
+            
+            velocity_difference = abs((V2r_lab-Vd)/V2r_lab)*100.0
+            
+            print "V2r_lab = {0}, Vd = {1}, difference = {2} %.".format(V2r_lab, Vd, velocity_difference)
+            
+            print "-"*60
+    
+            return (V2r_lab-Vd)/V2r_lab
+        
+        Vr = secant(reflected_shock_speed_iterator, Vr_list[-1], Vr_list[-1]-10.0, tol=1.0e-4,limits=[0.0,cfg['Vr-mda']])
+        Vr_list.append(Vr)
+        
+        (V2r, V2rg) = normal_shock(states['s2'], Vr + V['s2'], states['s2r-mda'])
+        
+        Mr_list.append((V['s2'] + Vr)/states['s2'].a)
+        
+        p2r_list.append(states['s2r-mda'].p)
+        
+        print "p2r = {0:.2f} Pa, Vr = {1:.2f} m/s, Mr = {2:.2f}, Vd = {3:.2f}."\
+        .format(p2r_list[-1], Vr_list[-1], Mr_list[-1], Vd_list[-1])
+        print '-'*60
+    
+    return cfg, states, V, M
     
 #----------------------------------------------------------------------------
     
@@ -702,8 +801,10 @@ def acceleration_tube_calculation(cfg, states, V, M):
             gas_guess = very_high_temp_gas_guess(Vs2)
         else:
             gas_guess = None
+            
+        momentum_change = 0.03375*1.0*100000.0
         
-        (V6, V6g) = normal_shock(state5, Vs2, state6, gas_guess)
+        (V6, V6g) = normal_shock(state5, Vs2, state6, gas_guess, momentum_change = momentum_change)
                
         #Across the contact surface, p3 == p2
         p7 = state6.p
@@ -822,7 +923,8 @@ def acceleration_tube_calculation(cfg, states, V, M):
         
     if cfg['expand_to'] != 'p7':
         #if we're expanding to p7 we can't do this shock, so we skip it
-        (V6, V['s6']) = normal_shock(states['s5'], cfg['Vs2'], states['s6'], gas_guess)
+        momentum_change = 0.03375*1.0*100000.0
+        (V6, V['s6']) = normal_shock(states['s5'], cfg['Vs2'], states['s6'], gas_guess,  momentum_change = momentum_change)
         
     #do any modifications that were requested to the velocity behind the shock here 
     # new if statement here as we now have the ability to expand to a pressure if required - CMJ (16/09/15)

@@ -8,7 +8,7 @@ OPT ?= -O2
 
 INSTALL_DIR ?= $(HOME)/e3bin
 GAS     := ../../lib/gas
-PROGRAMS := pitot.py pitot_input_utils.py pitot_flow_functions.py pitot_output_utils.py pitot_area_ratio_check.py pitot_condition_builder.py pitot_multiple.py test_pitot.py pitot_contamination_analysis.py pitot_gg_differing_diluent_analysis.py pitot_differing_compression_ratio_analysis.py
+PROGRAMS := pitot.py pitot_input_utils.py pitot_flow_functions.py pitot_output_utils.py pitot_area_ratio_check.py pitot_condition_builder.py pitot_multiple.py test_pitot.py pitot_contamination_analysis.py pitot_gg_differing_diluent_analysis.py pitot_differing_compression_ratio_analysis.py pitot_state2_reflected_shock_analysis.py
 
 install : $(INSTALL_DIR) $(PROGRAMS)
 	@echo Copying cfpylib files to $(INSTALL_DIR)
@@ -23,6 +23,7 @@ install : $(INSTALL_DIR) $(PROGRAMS)
 	- chmod +x $(INSTALL_DIR)/test_pitot.py
 	- chmod +x $(INSTALL_DIR)/pitot_gg_differing_diluent_analysis.py
 	- chmod +x $(INSTALL_DIR)/pitot_differing_compression_ratio_analysis.py
+	- chmod +x $(INSTALL_DIR)/pitot_state2_reflected_shock_analysis.py
 	@echo -----------------------------------------
 	@echo pitot should be now installed.
 	@echo -----------------------------------------

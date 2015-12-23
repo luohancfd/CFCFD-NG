@@ -222,6 +222,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
     21-Dec-2015: Changed code for the reflcted shock at the end of the shock tube code
        so that it could cope with a changing Mach number.
     22-Dec-2015: rewrote the area ratio check so the output could be made better...
+    23-Dec-2015: finished the state 2 reflected shock analysis code,
+       and added the normalised analysis stuff to the normal condition builder...
 """
 
 #--------------------- intro stuff --------------------------------------

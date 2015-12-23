@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "26-Oct-2015"
+VERSION_STRING = "23-Dec-2015"
 
 import sys
 
@@ -95,14 +95,19 @@ def check_new_inputs(cfg):
     if 'store_electron_concentration' not in cfg:
         cfg['store_electron_concentration'] = False
         
-    if cfg['bad_input']: #bail out here if you end up having issues with your input
-        print "Config failed check. Bailing out now."
-        print '-'*60
-        sys.exit(1)
+    if 'normalise_results_by' not in cfg:
+        print "'normalise_results_by' not in cfg."
+        print "Setting it to 'first value'."
+        cfg['normalise_results_by'] = 'first value'  
         
     if 'cleanup_old_files' not in cfg:
         print "'cleanup_old_files' variable not set. Setting to default value of 'False'"
         cfg['cleanup_old_files'] = False
+        
+    if cfg['bad_input']: #bail out here if you end up having issues with your input
+        print "Config failed check. Bailing out now."
+        print '-'*60
+        sys.exit(1)
         
     if not cfg['bad_input']:
         print "Extra input check completed. Test will now run."
@@ -342,44 +347,129 @@ def results_csv_builder(results, test_name = 'pitot_run',  intro_line = None):
     """
     
     # open a file to start saving results
-    condition_builder_output = open(test_name + '-condition-builder.csv',"w")  #csv_output file creation
+    with open(test_name + '-condition-builder.csv',"w") as condition_builder_output:
     
-    # print a line explaining the results if the user gives it
-    if intro_line:
-        intro_line_optional = "# " + intro_line
-        condition_builder_output.write(intro_line_optional + '\n')
-    
-    #now we'll make the code build us the second intro line
-    intro_line = '#'
-    for value in results['full_list']:
-        if value != results['full_list'][-1]:
-            intro_line += "{0},".format(value)
-        else: #don't put the comma if it's the last value
-            intro_line += "{0}".format(value)
+        # print a line explaining the results if the user gives it
+        if intro_line:
+            intro_line_optional = "# " + intro_line
+            condition_builder_output.write(intro_line_optional + '\n')
         
-    condition_builder_output.write(intro_line + '\n')
-    
-    # now we need to go through every test run and print the data.
-    # we'll use 'full_list' to guide our way through
-    
-    # get the number of the test runs from the length of the first data list mentioned
-    # in 'full_list'. need to assume the user hasn't screwed up and got lists of
-    # different lengths
-    number_of_test_runs = len(results[results['full_list'][0]])
-    
-    for i in range(0, number_of_test_runs, 1):
-        output_line = ''
+        #now we'll make the code build us the second intro line
+        intro_line = '#'
         for value in results['full_list']:
             if value != results['full_list'][-1]:
-                output_line += "{0},".format(results[value][i])
-            else: #don't put the comma if it's the last value in the csv
-                output_line += "{0}".format(results[value][i])
+                intro_line += "{0},".format(value)
+            else: #don't put the comma if it's the last value
+                intro_line += "{0}".format(value)
+            
+        condition_builder_output.write(intro_line + '\n')
         
-        condition_builder_output.write(output_line + '\n')  
-
-    condition_builder_output.close()              
+        # now we need to go through every test run and print the data.
+        # we'll use 'full_list' to guide our way through
+        
+        # get the number of the test runs from the length of the first data list mentioned
+        # in 'full_list'. need to assume the user hasn't screwed up and got lists of
+        # different lengths
+        number_of_test_runs = len(results[results['full_list'][0]])
+        
+        for i in range(0, number_of_test_runs, 1):
+            output_line = ''
+            for value in results['full_list']:
+                if value != results['full_list'][-1]:
+                    output_line += "{0},".format(results[value][i])
+                else: #don't put the comma if it's the last value in the csv
+                    output_line += "{0}".format(results[value][i])
+            
+            condition_builder_output.write(output_line + '\n')  
+    
+        condition_builder_output.close()              
                                   
     return 
+    
+def normalised_results_csv_builder(results, test_name = 'pitot_run',  
+                                   intro_line = None, normalised_by = 'first value'):
+    """Function that takes the final results dictionary (which must include a 
+       list called 'full_list' that tells this function what to print and in 
+       what order) and then outputs a normalised version of the results csv.
+       You can tell it to normalise by other values, but 'first value' is default.
+       
+       It will also add an intro line if a string with that is added. 
+       The name of the test is also required.
+    """
+    
+    # open a file to start saving results
+    with open(test_name + '-condition-builder-normalised.csv',"w") as condition_builder_output:
+    
+        # print a line explaining the results if the user gives it
+        if intro_line:
+            intro_line_optional = "# " + intro_line
+            condition_builder_output.write(intro_line_optional + '\n')
+            
+        normalised_intro_line = "# all variables normalised by {0}".format(normalised_by)
+        condition_builder_output.write(normalised_intro_line + '\n')
+        
+        # 'test number' and 'diluent percentage' and the species concentrations
+        # will not be normalised
+        normalise_exceptions = ['test number', 'driver condition', 'psd1','Vsd']
+        
+        #now we'll make the code build us the second intro line
+        intro_line = '#'
+        for value in results['full_list']:
+            if value != results['full_list'][-1]:
+                if value in normalise_exceptions:
+                    intro_line += "{0},".format(value)
+                else:
+                    intro_line += "{0} normalised,".format(value)
+            else: #don't put the comma if it's the last value
+                if value in normalise_exceptions:
+                    intro_line += "{0}".format(value)
+                else:
+                    intro_line += "{0} normalised".format(value)
+            
+        condition_builder_output.write(intro_line + '\n')
+        
+        # now we need to go through every test run and print the data.
+        # we'll use 'full_list' to guide our way through
+        
+        # get the number of the test runs from the length of the first data list mentioned
+        # in 'full_list'. need to assume the user hasn't screwed up and got lists of
+        # different lengths
+        number_of_test_runs = len(results[results['full_list'][0]])
+        
+        # build a dictionary to store all of our normalisation values
+        normalising_value_dict = {}
+        
+        for value in  results['full_list']:
+            if normalised_by == 'first value':
+                normalising_value_dict[value] = results[value][0]
+            elif normalised_by == 'maximum value':
+                normalising_value_dict[value] = max(results[value])
+            elif normalised_by == 'last value':
+                normalising_value_dict[value] = results[value][-1] 
+        
+        for i in range(0, number_of_test_runs, 1):
+            output_line = ''
+            for value in results['full_list']:
+                if value != results['full_list'][-1]:
+                    # don't normalise selected exceptions, or values that are not numbers
+                    # or a value that is not a number
+                    if value in normalise_exceptions or \
+                    not isinstance(results[value][i], (int, float)):
+                        output_line += "{0},".format(results[value][i])
+                    else:
+                        output_line += "{0},".format(results[value][i]/normalising_value_dict[value])
+                else: #don't put the comma if it's the last value in the csv
+                    if value in normalise_exceptions or \
+                    not isinstance(results[value][i], (int, float)):
+                        output_line += "{0},".format(results[value][i])
+                    else:  # only normalise if the value is a number
+                        output_line += "{0}".format(results[value][i]/normalising_value_dict[value])
+            
+            condition_builder_output.write(output_line + '\n')  
+    
+        condition_builder_output.close()              
+                                  
+    return     
     
 def add_new_result_to_results_dict(cfg, states, V, M, results):
     """Function that takes a completed test run and adds the tunnel
@@ -820,6 +910,8 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     # now that we're done we can dump the results to the results csv 
     intro_line = "Output of pitot condition building program Version {0}.".format(VERSION_STRING)            
     results_csv_builder(results, test_name = cfg['original_filename'],  
+                        intro_line = intro_line)
+    normalised_results_csv_builder(results, test_name = cfg['original_filename'],  
                         intro_line = intro_line)
                         
     # and a to pickled object the user can load with pickle
