@@ -801,10 +801,8 @@ def acceleration_tube_calculation(cfg, states, V, M):
             gas_guess = very_high_temp_gas_guess(Vs2)
         else:
             gas_guess = None
-            
-        momentum_change = 0.03375*1.0*100000.0
         
-        (V6, V6g) = normal_shock(state5, Vs2, state6, gas_guess, momentum_change = momentum_change)
+        (V6, V6g) = normal_shock(state5, Vs2, state6, gas_guess)
                
         #Across the contact surface, p3 == p2
         p7 = state6.p
@@ -923,8 +921,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
         
     if cfg['expand_to'] != 'p7':
         #if we're expanding to p7 we can't do this shock, so we skip it
-        momentum_change = 0.03375*1.0*100000.0
-        (V6, V['s6']) = normal_shock(states['s5'], cfg['Vs2'], states['s6'], gas_guess,  momentum_change = momentum_change)
+        (V6, V['s6']) = normal_shock(states['s5'], cfg['Vs2'], states['s6'], gas_guess)
         
     #do any modifications that were requested to the velocity behind the shock here 
     # new if statement here as we now have the ability to expand to a pressure if required - CMJ (16/09/15)
