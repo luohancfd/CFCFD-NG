@@ -773,7 +773,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
         
         state5.set_pT(p5,300.0) #set s1 at set pressure and ambient temp
         
-        (V6, V6g) = normal_shock(state5, Vs2, state6,ideal_gas_guess)        
+        (V6, V6g) = normal_shock(state5, Vs2, state6, ideal_gas_guess)        
         
         #Across the contact surface, p3 == p2
         p7 = state6.p
@@ -795,18 +795,28 @@ def acceleration_tube_calculation(cfg, states, V, M):
         print "Current guess for Vs2 = {0} m/s".format(Vs2)
         
         # some extra code to try and get conditions above 19 km/s working with Pitot
-        if Vs2 <= 19000.0 and cfg['solver'] in ['eq', 'pg-eq']:
+        if cfg['custom_accelerator_gas']:
+            gas_guess = None
+        elif Vs2 <= 19000.0 and cfg['solver'] in ['eq', 'pg-eq']:
             gas_guess = high_temp_gas_guess
         elif Vs2 > 19000.0 and cfg['solver'] in ['eq', 'pg-eq']:
             gas_guess = very_high_temp_gas_guess(Vs2)
         else:
             gas_guess = None
-        
+                               
         (V6, V6g) = normal_shock(state5, Vs2, state6, gas_guess)
+        
+        # checking to make sure normal shock worked properly and the pressure rose
+        # as I had some issues with this with very low acc tube fill pressures (~1.0 Pa)
+        # if it fails we'll raise an error here, and adjust the shock tube guesses
+        if abs((state6.p - state5.p) / state6.p) < 0.10:
+            print "For some reason p6 and p5 are too similar. Shock must have not occured properly."
+            print "p5 = {0} Pa, p6 = {1} Pa.".format(state5.p, state6.p)
+            raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Normal shock calculation in the acc tube secant solver failed."
                
         #Across the contact surface, p3 == p2
         p7 = state6.p
-                   
+                                   
         # Across the expansion, we get a velocity, V7g.
         V7g, state7 = finite_wave_dp('cplus', V2g, state2, p7, steps=steps)
         
@@ -883,19 +893,40 @@ def acceleration_tube_calculation(cfg, states, V, M):
             cfg['Vs2_lower'] = cfg['Vs1'] + 2000.0; cfg['Vs2_upper'] = 34750.0
         elif cfg['Vs1'] <= 2000.0 and 'Vs2_lower' not in cfg and 'Vs2_upper' not in cfg:
             cfg['Vs2_lower'] = cfg['Vs1'] + 1000.0; cfg['Vs2_upper'] = 34750.0
+        else:
+            print "Using custom limits for Vs2 secant solver."
+            print "('Vs2_lower' = {0} m/s and 'Vs2_upper' = {1} m/s)".\
+                      format(cfg['Vs2_lower'], cfg['Vs2_upper'])               
+            
         if cfg['Vs1'] > 2000.0 and 'Vs2_guess_1' not in cfg and 'Vs2_guess_2' not in cfg:
             cfg['Vs2_guess_1'] = cfg['Vs1']+7000.0; cfg['Vs2_guess_2'] = cfg['Vs1']+8000.0
         elif cfg['Vs1'] <= 2000.0 and 'Vs2_guess_1' not in cfg and 'Vs2_guess_2' not in cfg:
             cfg['Vs2_guess_1'] = cfg['Vs1']+4000.0; cfg['Vs2_guess_2'] = cfg['Vs1']+5000.0
-            
-        cfg['acc_tube_secant_tol'] = 1.0e-5    
-        cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, \
-                            cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
-                            tol = cfg['acc_tube_secant_tol'],
-                            limits=[cfg['Vs2_lower'],cfg['Vs2_upper']],
-                                max_iterations = 100)
+        else:
+            print "Using custom guesses for Vs2 secant solver."
+            print "('Vs2_guess_1' = {0} m/s and 'Vs2_guess_2' = {1} m/s)".\
+                   format(cfg['Vs2_guess_1'], cfg['Vs2_guess_2'])   
+        
+        if 'acc_tube_secant_tol' not in cfg: # set this if it's not in the cfg file
+            cfg['acc_tube_secant_tol'] = 1.0e-5
+        try:
+            cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, 
+                                cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
+                                tol = cfg['acc_tube_secant_tol'],
+                                limits=[cfg['Vs2_lower'],cfg['Vs2_upper']],
+                                max_iterations = 50)
+        except Exception as e:
+            print "Acceleration tube secant solver failed. Will try again with higher initial guesses."
+            print "New guesses are: 'Vs2_guess_1' = {0} m/s and 'Vs2_guess_2' = {1} m/s".\
+                   format(cfg['Vs2_guess_1'] + 1000.0, cfg['Vs2_guess_2'] + 1000.0)
+            cfg['Vs2_guess_1'] += 1000.0; cfg['Vs2_guess_2'] += 1000.0
+            cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, 
+                                cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
+                                tol = cfg['acc_tube_secant_tol'],
+                                limits=[cfg['Vs2_lower'],cfg['Vs2_upper']],
+                                max_iterations = 50)            
         if cfg['Vs2'] == 'FAIL':
-            print "Acceleration tube secant solver did not converge after 100 iterations."
+            print "Acceleration tube secant solver did not converge after max amount of iterations."
             raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Run of pitot has failed in the acceleration tube calculation."                    
                   
         if PRINT_STATUS: 
@@ -912,7 +943,10 @@ def acceleration_tube_calculation(cfg, states, V, M):
             states['s2'].with_ions = False   
       
     # some extra code to try and get conditions above 19 km/s working with Pitot
-    if cfg['Vs2'] <= 19000.0 and cfg['solver'] in ['eq', 'pg-eq']:
+    # also some code here for the custom accelerator gas
+    if cfg['custom_accelerator_gas']:
+        gas_guess = None
+    elif cfg['Vs2'] <= 19000.0 and cfg['solver'] in ['eq', 'pg-eq']:
         gas_guess = cfg['gas_guess_air']
     elif cfg['Vs2'] > 19000.0 and cfg['solver'] in ['eq', 'pg-eq']:            
         gas_guess = very_high_temp_gas_guess(cfg['Vs2'])

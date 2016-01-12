@@ -114,6 +114,15 @@ def txt_file_output(cfg, states, V, M):
         test_gas_used = 'Test gas (state 1) is {0} (gamma = {1}, R = {2}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
     print test_gas_used
     txt_output.write(test_gas_used + '\n')  
+    if cfg['custom_accelerator_gas']:
+        if cfg['solver'] == 'eq':
+            accelerator_gas_used = 'Custom Accelerator gas (state 5) was used (gamma = {0}, R = {1}, {2}).'.format(states['s5'].gam,states['s5'].R,states['s5'].reactants)
+        elif cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq':
+            accelerator_gas_used = 'Custom Accelerator gas (state 5) was used (gamma = {0}, R = {1}).'.format(states['s5'].gam,states['s5'].R)
+    else:
+        accelerator_gas_used = "Accelerator gas (state 5) is Air."
+    print accelerator_gas_used
+    txt_output.write(accelerator_gas_used + '\n')  
     if cfg['solver'] == 'eq':
         if cfg['facility'] != 'custom' and cfg['piston'] in ['Sangdi-1.8MPa', 'sangdi-1.8MPa','Sangdi-2.2MPa', 'sangdi-2.2MPa']:
             driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])  
@@ -176,7 +185,7 @@ def txt_file_output(cfg, states, V, M):
     print key
     txt_output.write(key + '\n')
     
-    units = "{0:6}{1:11}{2:9}{3:6}{4:9}{5:6}{6:9}{7:9}{8:9}".format("","Pa","K","m/s","m/s","","m^3/kg","kPa","MPa")
+    units = "{0:6}{1:11}{2:9}{3:6}{4:9}{5:6}{6:9}{7:9}{8:9}".format("","Pa","K","m/s","m/s","","kg/m^3","kPa","MPa")
     print units
     txt_output.write(units + '\n')
     
@@ -577,6 +586,12 @@ def csv_file_output(cfg, states, V, M):
     csv_test_gas_used = 'Test gas (state 1),{0},gamma,{1},R,{2}'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
     csv_output.write(csv_test_gas_used + '\n')  
     
+    if cfg['custom_accelerator_gas']:
+        csv_accelerator_gas_used = 'Custom Accelerator gas (state 5),gamma,{0},R,{1}.'.format(states['s5'].gam,states['s5'].R)
+    else:
+        csv_accelerator_gas_used = "Accelerator gas (state 5),Air."
+    csv_output.write(csv_accelerator_gas_used + '\n')          
+    
     if cfg['solver'] == 'eq':
         if cfg['facility'] != 'custom' and cfg['piston'] in ['Sangdi-1.8MPa', 'sangdi-1.8MPa','Sangdi-2.2MPa', 'sangdi-2.2MPa']:
             csv_driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])
@@ -614,7 +629,7 @@ def csv_file_output(cfg, states, V, M):
     csv_key = "{0:6},{1:11},{2:9},{3:6},{4:9},{5:6},{6:9},{7:8},{8:9}".format("state","P","T","a","V","M","rho","pitot","stgn")
     csv_output.write(csv_key + '\n')
     
-    csv_units = "{0:6},{1:11},{2:9},{3:6},{4:9},{5:6},{6:9},{7:9},{8:9}".format("","Pa","K","m/s","m/s","","m^3/kg","kPa","MPa")
+    csv_units = "{0:6},{1:11},{2:9},{3:6},{4:9},{5:6},{6:9},{7:9},{8:9}".format("","Pa","K","m/s","m/s","","kg/m^3","kPa","MPa")
     csv_output.write(csv_units + '\n')
     
     #new dictionaries here to add pitot and stagnation pressure calcs

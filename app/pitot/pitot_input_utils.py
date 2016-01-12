@@ -25,9 +25,10 @@ def config_loader(config_file):
     
     try: #from Rowan's onedval program
         execfile(config_file, globals(), cfg)
-    except IOError:
+    except IOError as e:
         print "There was a problem reading the config file: '{0}'".format(config_file)
-        print "Check that it conforms to Python syntax."
+        print "Error {0}".format(str(e))
+        print "Potentially it does not conform to Python syntax."
         print "Bailing out!"
         sys.exit(1)
         
@@ -270,6 +271,29 @@ def input_checker(cfg):
         if 'test_gas_inputUnits' not in cfg:
             print "'test_gas_inputUnits' not set. Setting it to 'moles'."
             cfg['test_gas_inputUnits'] = 'moles'
+        if 'test_gas_with_ions' not in cfg:
+            print "'test_gas_with_ions' variable not set. Setting to boolean True."
+            cfg['test_gas_with_ions'] = True
+            
+    if 'custom_accelerator_gas' not in cfg:
+        cfg['custom_accelerator_gas'] = False
+        
+    if cfg['custom_accelerator_gas']:
+        if 'accelerator_gas_composition' not in cfg:
+            print "You have specified a custom accelerator gas but have not set 'accelerator_gas_composition' variable."
+            print "Bailing out."
+            cfg['bad_input'] = True
+        if not isinstance(cfg['accelerator_gas_composition'], dict):
+            print "'accelerator_gas_composition' variable is not a valid Python dictionary."
+            print "Bailing out."
+            cfg['bad_input'] = True
+        if 'accelerator_gas_inputUnits' not in cfg:
+            print "'accelerator_gas_inputUnits' not set. Setting it to 'moles'."
+            cfg['accelerator_gas_inputUnits'] = 'moles'
+        if 'accelerator_gas_with_ions' not in cfg:
+            print "'accelerator_gas_with_ions' variable not set. Setting to boolean True."
+            cfg['accelerator_gas_with_ions'] = True
+        
 
     if 'custom_T1' in cfg:
         if cfg['custom_T1'] and 'T1' not in cfg:
@@ -823,9 +847,6 @@ def state_builder(cfg):
          cfg['T1'] =  cfg['T0']
     
     if cfg['test_gas'] == 'custom':
-        if 'test_gas_with_ions' not in cfg:
-            print "'test_gas_with_ions' variable not set. Setting to boolean True."
-            cfg['test_gas_with_ions'] = True
         states['s1'] = Gas(cfg['test_gas_composition'],inputUnits=cfg['test_gas_inputUnits'],
                         outputUnits=cfg['test_gas_inputUnits'], with_ions=cfg['test_gas_with_ions'])
         states['s1'].set_pT(float(cfg['p1']),cfg['T0'])
@@ -853,10 +874,14 @@ def state_builder(cfg):
     if cfg['tunnel_mode'] == 'expansion-tube':
         
         if not cfg['custom_T5']:
-         cfg['T5'] =  cfg['T0']
-        
+         cfg['T5'] = cfg['T0']
+         
         #state 5 is acceleration tube
-        states['s5'] = Gas({'Air':1.0,},outputUnits='moles')
+        if not cfg['custom_accelerator_gas']:
+            states['s5'] = Gas({'Air':1.0,}, outputUnits='moles', with_ions = True)
+        else: # we have a custom accelerator gas, input should have made sure we have the correct stuff...
+            states['s5'] = Gas(cfg['accelerator_gas_composition'],inputUnits=cfg['accelerator_gas_inputUnits'],
+                            outputUnits=cfg['accelerator_gas_inputUnits'], with_ions=cfg['accelerator_gas_with_ions'])
         if 'p5' not in cfg: #set atmospheric state if a pressure was not specified
             cfg['p5'] = cfg['p0']
         states['s5'].set_pT(float(cfg['p5']),cfg['T5'])

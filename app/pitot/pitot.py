@@ -224,6 +224,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
     22-Dec-2015: rewrote the area ratio check so the output could be made better...
     23-Dec-2015: finished the state 2 reflected shock analysis code,
        and added the normalised analysis stuff to the normal condition builder...
+    12-Jan-2016: Added custom accelerator gas as option.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -251,7 +252,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "22-Dec-2015"
+VERSION_STRING = "12-Jan-2016"
 
 DEBUG_PITOT = False
 
@@ -361,11 +362,22 @@ def run_pitot(cfg = {}, config_file = None):
             cfg, states, V, M = acceleration_tube_calculation(cfg, states, V, M)
         except Exception as e:
             print "Error {0}".format(str(e))
-            print "Acceleration tube calculation failed. Going to try it again with 'state7_no_ions' turned on."
-            cfg['state7_no_ions'] = True
+            if not cfg['state7_no_ions']:            
+                print "Acceleration tube calculation failed. Going to try it again with 'state7_no_ions' turned on."
+                cfg['state7_no_ions'] = True
+                changed_secant_tolerance = False
+            else:
+                print "Acceleration tube calculation failed. Going to try it again with a lower secant solver tolerance."
+                print "Changing tolerance from {0} to {1}".format(cfg['acc_tube_secant_tol'], cfg['acc_tube_secant_tol']*10.0)
+                cfg['acc_tube_secant_tol'] *= 10.0
+                changed_secant_tolerance = True
             print '-'*60
             try:
-                cfg, states, V, M = acceleration_tube_calculation(cfg, states, V, M)
+                cfg, states, V, M = acceleration_tube_calculation(cfg, states, V, M)      
+                # if we changed the secant tolerance, change it back here...
+                # so the multiple run PITOT codes aren't hurt by it
+                if changed_secant_tolerance:
+                    cfg['acc_tube_secant_tol'] /= 10.0
             except Exception as e:
                 print "Error {0}".format(str(e))
                 raise Exception, "pitot.run_pitot() Run of pitot has failed in the acceleration tube calculation."            
