@@ -176,7 +176,8 @@ def contamination_analysis_test_run(cfg, results):
          .format(cfg['contamination_percentage'], cfg['air_contamination_inputUnits'])
     try:
         cfg, states, V, M = run_pitot(cfg = cfg)
-    except Exception:      
+    except Exception as e:  
+        print "Error {0}".format(str(e))
         print "Test {0} failed. Result will not be printed to csv output.".format(cfg['test_number'])
         condition_status = False
 

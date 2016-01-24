@@ -225,6 +225,9 @@ available to me as part of cfpylib inside the cfcfd code collection.
     23-Dec-2015: finished the state 2 reflected shock analysis code,
        and added the normalised analysis stuff to the normal condition builder...
     12-Jan-2016: Added custom accelerator gas as option.
+    24-Jan-2016: finished the adding of the ability to do reflected shocks at the end
+       of the secondary driver section and shock tube to simulate thick diaphragms.
+       This was also put into the condition builder, which was a bigger job...
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -252,7 +255,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "12-Jan-2016"
+VERSION_STRING = "24-Jan-2016"
 
 DEBUG_PITOT = False
 
@@ -281,17 +284,14 @@ def run_pitot(cfg = {}, config_file = None):
         cfg = config_loader(config_file)
         
     #----------------- check inputs ----------------------------------------
-    
     cfg = input_checker(cfg)
        
     cfg['VERSION_STRING'] = VERSION_STRING #add the version string the cfg dictionary
                                                         
-    #---------------- building initial states ---------------------------------- 
-            
+    #---------------- building initial states ----------------------------------       
     cfg, states, V, M = state_builder(cfg) #function above that builds all of the initial states based on info in the cfg dictionary
     
     #---------------- print the (very important) start message --------------------
-    
     cfg, states = start_message(cfg, states)
     
     #--------- unsteady expansion of driver gas-----------------------------
@@ -314,10 +314,16 @@ def run_pitot(cfg = {}, config_file = None):
             try:
                 cfg, states, V, M = secondary_driver_calculation(cfg, states, V, M)
             except Exception as e:
-                raise Exception, "pitot.run_pitot() Run of pitot has failed in the secondary driver calculation."               
+                raise Exception, "pitot.run_pitot() Run of pitot has failed in the secondary driver calculation."  
+                
+        if cfg['rs_out_of_sd']:
+            cfg, states, V, M = secondary_driver_rs_calculation(cfg, states, V, M)
            
     if cfg['secondary']:
-        cfg['shock_tube_expansion'] = 'sd2' #state sd2 expands into shock tube
+        if not cfg['rs_out_of_sd']:
+            cfg['shock_tube_expansion'] = 'sd2' #state sd2 expands into shock tube
+        else:
+            cfg['shock_tube_expansion'] = 'sd2r' #state sd2r expands into shock tube
     else:
         cfg['shock_tube_expansion'] = 's3s' #otherwise state 3s is expanding into shock tube
         

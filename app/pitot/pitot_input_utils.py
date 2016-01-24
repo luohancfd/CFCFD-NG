@@ -153,7 +153,7 @@ def make_test_gas(gasName, outputUnits='moles'):
     else:
         raise Exception, 'make_test_gas(): unknown gasName: %s' % gasName 
    
-def input_checker(cfg):
+def input_checker(cfg, condition_builder = False):
     """Takes the input file and checks it works. Duh.
     
     Returns the checked input file and will tell the bigger program to 
@@ -454,13 +454,15 @@ def input_checker(cfg):
         
     if cfg['test'] == 'fulltheory-pressure' and 'p1' not in cfg \
         or cfg['test'] == 'experiment' and 'p1' not in cfg:
-        print "Need to supply a float value for p1."
-        cfg['bad_input'] = True
+            if not condition_builder: # don't check this if we're doing a condition builder run
+                print "Need to supply a float value for p1."
+                cfg['bad_input'] = True
 
     if cfg['test'] == 'fulltheory-pressure' and cfg['tunnel_mode'] == 'expansion-tube' and 'p5' not in cfg \
         or cfg['test'] == 'experiment' and cfg['tunnel_mode'] == 'expansion-tube' and 'p5' not in cfg:
-        print "Need to supply a float value for p5."
-        cfg['bad_input'] = True
+        if not condition_builder: # don't check this if we're doing a condition builder run
+            print "Need to supply a float value for p5."
+            cfg['bad_input'] = True
         
     if cfg['test'] == 'fulltheory-pressure-ratios' and 'p1_from' not in cfg:
         print "Need to supply a value for 'p1_from' if you want to run in pressure ratio mode."
@@ -519,11 +521,41 @@ def input_checker(cfg):
     if 'V2_mirels_limit' not in cfg:
         # This puts V2 up to Vs1 to provide a boost from the Mirels' limit
         cfg['V2_mirels_limit'] = False
-        
+               
     if 'rs_out_of_st' not in cfg:
-        #This does a reflected shock at the secondary
+        #This does a reflected shock out of the shock tube (when it is turned on)
         cfg['rs_out_of_st'] = False
-        
+    if cfg['rs_out_of_st']:
+        #check that the user has specified a valid value for Mr_st
+        if not isinstance(cfg['Mr_st'], (float,int,str)):
+            print "Chosen 'Mr_st' value is not either an int, float, or string. Bailing out."
+            cfg['bad_input'] = True
+        if isinstance(cfg['Mr_st'], str):
+            if cfg['Mr_st'] not in ['Maximum', 'maximum', 'max', 'MAXIMUM', 'MAX']:
+                print "Chosen 'Mr_st' is a string but is not set to a variant of 'maximum'. Bailing out."
+                cfg['bad_input'] = True    
+            else:
+                cfg['Mr_st'] = 'maximum'
+        if isinstance(cfg['Mr_st'], int):
+            cfg['Mr_st'] = float(cfg['Mr_st'])
+            
+    if 'rs_out_of_sd' not in cfg:
+        #This does a reflected shock out of the secondary driver (when it is turned on)
+        cfg['rs_out_of_sd'] = False
+    if cfg['rs_out_of_sd']:
+        #check that the user has specified a valid value for Mr_st
+        if not isinstance(cfg['Mr_sd'], (float,int,str)):
+            print "Chosen 'Mr_sd' value is not either an int, float, or string. Bailing out."
+            cfg['bad_input'] = True
+        if isinstance(cfg['Mr_sd'], str):
+            if cfg['Mr_sd'] not in ['Maximum', 'maximum', 'max', 'MAXIMUM', 'MAX']:
+                print "Chosen 'Mr_sd' is a string but is not set to a variant of 'maximum'. Bailing out."
+                cfg['bad_input'] = True    
+            else:
+                cfg['Mr_sd'] = 'maximum'
+        if isinstance(cfg['Mr_sd'], int):
+            cfg['Mr_sd'] = float(cfg['Mr_sd'])
+                        
     if cfg['bad_input']: #bail out here if you end up having issues with your input
         print "Config failed check. Bailing out now."
         print '-'*60
@@ -550,7 +582,7 @@ def start_message(cfg, states):
             if 'driver_composition' in cfg:
                 print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_composition'])
             else:
-                print "Facility is {0}. Driver gas is a perfect gas with gam = {1} and R = {2}.".format(cfg['facility'], cfg['driver_pg_gam'], cfg['driver_pg_R'])
+                print "Facility is {0}. Driver gas is a perfect gas with gam = {1} and R = {2:.2f}.".format(cfg['facility'], cfg['driver_pg_gam'], cfg['driver_pg_R'])
         print "Driver burst conditions are p4 = {0} Pa, T4 = {1} K, M_throat = {2}."\
               .format(cfg['p4'], cfg['T4'], cfg['M_throat'])
         
@@ -559,7 +591,7 @@ def start_message(cfg, states):
             .format(cfg['test_gas'],states['s1'].gam,states['s1'].R,
                     states['s1'].reactants, states['s1'].outputUnits)
         elif cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq':
-            test_gas_used = 'Selected test gas is {0} (gamma = {1}, R = {2}).'\
+            test_gas_used = 'Selected test gas is {0} (gamma = {1}, R = {2:.2f}).'\
             .format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
         print test_gas_used
 
@@ -574,7 +606,16 @@ def start_message(cfg, states):
         if 'p1' in cfg:
             print 'Selected shock tube fill pressure (p1) = {0} Pa.'.format(cfg['p1'])
             print 'Selected shock tube fill temperature (T1) = {0} K.'.format(cfg['T1'])
-        if 'p5' in cfg:            
+        if 'p5' in cfg:
+            if cfg['custom_accelerator_gas']:
+                if cfg['solver'] == 'eq':
+                    accelerator_gas_used = 'Custom accelerator gas is {0} (by {1}, gamma = {2}, R = {3:.2f}).'\
+                    .format(states['s5'].reactants,states['s5'].outputUnits, states['s5'].gam,states['s5'].R)
+                elif cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq':
+                    accelerator_gas_used = 'Custom accelerator gas is {0} (by {1}, gamma = {2}, R = {3:.2f}).'\
+                    .format(cfg['accelerator_gas_composition'],cfg['accelerator_gas_inputUnits'], 
+                            states['s5'].gam,states['s5'].R)  
+                print accelerator_gas_used
             print 'Selected acceleration tube fill pressure (p5) = {0} Pa.'.format(cfg['p5'])
             print 'Selected acceleration tube fill temperature (T5) = {0} K.'.format(cfg['T5'])
         print '-'*60
@@ -595,7 +636,7 @@ def state_builder(cfg):
     #right conditions, and then mach number at the change over from steady to
     #unsteady expansion, this was based on calcs done by RGM
 
-    primary_driver_x2 = {'He:1.0':[Gas({'He':1.0},inputUnits='moles', outputUnits='moles'),2.15],
+    primary_driver_x2 = {'He:1.0':[Gas({'He':1.0},inputUnits='moles', outputUnits='moles', with_ions = True),2.15],
                         'He:0.98,Ar:0.02-off-design':[Gas({'He':0.98,'Ar':0.02},inputUnits='moles',
                                               outputUnits='moles'),2.15],
                        'He:0.80,Ar:0.20':[Gas({'He':0.8,'Ar':0.2},inputUnits='moles',

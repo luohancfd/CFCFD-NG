@@ -144,13 +144,17 @@ def txt_file_output(cfg, states, V, M):
     txt_output.write(driver_gas_used + '\n') 
             
     if cfg['shock_switch']:
-        shock_warning1 = "NOTE: a reflected shock was done into the shock tube."
-        print shock_warning1
-        txt_output.write(shock_warning1 + '\n')
+        shock_warning_1 = "NOTE: a reflected shock was done into the shock tube."
+        print shock_warning_1
+        txt_output.write(shock_warning_1 + '\n')
+    if cfg['rs_out_of_sd']:
+        shock_warning_2 = "NOTE: a user specified reflected shock was done at the end of the secondary driver."
+        print shock_warning_2
+        txt_output.write(shock_warning_2 + '\n')  
     if cfg['rs_out_of_st']:
-        shock_warning2 = "NOTE: a user specified reflected shock was done at the end of the shock tube."
-        print shock_warning2
-        txt_output.write(shock_warning2 + '\n')        
+        shock_warning_3 = "NOTE: a user specified reflected shock was done at the end of the shock tube."
+        print shock_warning_3
+        txt_output.write(shock_warning_3 + '\n')        
         
     if cfg['secondary'] and not cfg['shock_switch']:
         secondary_shockspeeds = "Vsd = {0:.2f} m/s, Msd1 = {1:.2f}".format(cfg['Vsd'],cfg['Msd1'])
@@ -175,7 +179,10 @@ def txt_file_output(cfg, states, V, M):
         shockspeeds_2 = "Vr_d = {0:.2f} m/s, Mr_d = {1:.2f}".format(cfg['Vr_d'],cfg['Mr_d'])
         print shockspeeds_2
         txt_output.write(shockspeeds_2 + '\n')
-         
+    if cfg['rs_out_of_sd']:
+        rs_out_of_sd = "Vr-sd = {0:.2f} m/s, Mr-sd = {1:.2f}".format(cfg['Vr-sd'],cfg['Mr-sd'])
+        print rs_out_of_sd #prints above line in console
+        txt_output.write(rs_out_of_sd + '\n') #writes above line to txt_output file (input to write command must be a string)            
     if cfg['rs_out_of_st']:
         rs_out_of_st = "Vr-st = {0:.2f} m/s, Mr-st = {1:.2f}".format(cfg['Vr-st'],cfg['Mr-st'])
         print rs_out_of_st #prints above line in console
@@ -276,6 +283,11 @@ def txt_file_output(cfg, states, V, M):
         for i in range(1,4): #will do 1 - 3
             it_string = 'sd{0}'.format(i)
             condition_printer(it_string)
+            if cfg['rs_out_of_sd'] and i == 2: 
+                # need to add the reflected shock condition at state 2 if we did the normal shock here
+                # this will print it at the right place
+                it_string = 'sd{0}r'.format(i)
+                condition_printer(it_string)   
                     
     for i in range(1,4): #shock tube stuff
         it_string = 's{0}'.format(i)
@@ -619,6 +631,9 @@ def csv_file_output(cfg, states, V, M):
         csv_shockspeeds = "Vs1,{0:.2f} m/s,Ms1,{1:.2f},Vr,{2:.2f} m/s,Mr,{3:.2f}"\
         .format(cfg['Vs1'],cfg['Ms1'],cfg['Vr'],cfg['Mr'])         
     csv_output.write(csv_shockspeeds + '\n')
+    if cfg['rs_out_of_sd']:
+        rs_out_of_sd = "Vr-sd,{0:.2f} m/s, Mr-sd,{1:.2f}".format(cfg['Vr-sd'],cfg['Mr-sd'])
+        csv_output.write(rs_out_of_sd + '\n') #writes above line to txt_output file (input to write command must be a string)
     if cfg['rs_out_of_st']:
         rs_out_of_st = "Vr-st,{0:.2f} m/s, Mr-st,{1:.2f}".format(cfg['Vr-st'],cfg['Mr-st'])
         csv_output.write(rs_out_of_st + '\n') #writes above line to txt_output file (input to write command must be a string)
@@ -717,15 +732,20 @@ def csv_file_output(cfg, states, V, M):
         for i in range(1,4): #will do 1 - 3
             it_string = 'sd{0}'.format(i)
             csv_condition_printer(it_string)
-            if cfg['rs_out_of_st'] and i == 2: 
+            if cfg['rs_out_of_sd'] and i == 2: 
                 # need to add the reflected shock condition at state 2 if we did the normal shock here
                 # this will print it at the right place
-                it_string = 's{0}r'.format(i)
-                condition_printer(it_string)     
+                it_string = 'sd{0}r'.format(i)
+                csv_condition_printer(it_string)     
                     
     for i in range(1,4): #shock tube stuff
         it_string = 's{0}'.format(i)
         csv_condition_printer(it_string)
+        if cfg['rs_out_of_st'] and i == 2: 
+            # need to add the reflected shock condition at state 2 if we did the normal shock here
+            # this will print it at the right place
+            it_string = 's{0}r'.format(i)
+            csv_condition_printer(it_string)   
     if cfg['tunnel_mode'] == 'expansion-tube':    
         for i in range(5,9): #acc tube and nozzle if it's there
             if i == 6 and cfg['expand_to'] == 'p7':

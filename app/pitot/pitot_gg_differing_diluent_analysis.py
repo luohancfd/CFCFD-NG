@@ -185,7 +185,8 @@ def gg_differing_diluent_analysis_test_run(cfg, results):
          .format(cfg['diluent'], cfg['diluent_percentage'], cfg['diluent_inputUnits'])
     try:
         cfg, states, V, M = run_pitot(cfg = cfg)
-    except Exception:
+    except Exception as e:
+         print "Error {0}".format(str(e))
          print "Test {0} failed. Result will not be printed to csv output.".format(cfg['test_number'])
          condition_status = False
     if cfg['secondary'] and cfg['Vsd'] > cfg['Vs1']:

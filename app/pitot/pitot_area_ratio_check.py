@@ -274,6 +274,7 @@ def area_ratio_check(cfg, states, V, M):
         print 60*"-"
         print "Test {0} of {1} (Current area ratio = {2})."\
         .format(cfg['counter'], len(cfg['area_ratio_check_list']), area_ratio)
+        print 60*"-"        
         # run the nozzle expansion
         cfg, states, V, M = nozzle_expansion(cfg, states, V, M)
         if cfg['conehead']: #do the conehead calculation if required
@@ -285,15 +286,18 @@ def area_ratio_check(cfg, states, V, M):
         print "State 8 (freestream at the nozzle exit):"
         states['s8'].write_state(sys.stdout)
         if cfg['conehead'] and cfg['conehead_completed']:
+            print '-'*60
             print "V10c = {0} m/s.".format(V['s10c'])
             print "State 10c (surface of a 15 degree conehead):"
             states['s10c'].write_state(sys.stdout)
         elif cfg['conehead'] and not cfg['conehead_completed']:
             print "Conehead calculation failed so result is not being printed."
         if cfg['shock_over_model']:
+            print '-'*60
             print "V10f = {0} m/s.".format(V['s10f'])
             print "State 10f (frozen normal shock over the test model):"
-            states['s10f'].write_state(sys.stdout)      
+            states['s10f'].write_state(sys.stdout)    
+            print '-'*60
             print "V10e = {0} m/s.".format(V['s10e'])
             print "State 10e (equilibrium normal shock over the test model):"
             states['s10e'].write_state(sys.stdout)

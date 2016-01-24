@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "23-Dec-2015"
+VERSION_STRING = "24-Jan-2015"
 
 import sys
 
@@ -207,9 +207,20 @@ def build_results_dict(cfg):
             pressure_shock_list = ['p1','Vs1','Vr','Mr','Vr_d','Mr_d']            
             
     full_list += pressure_shock_list
+    
+    if True in cfg['secondary_list']:
+        statesd2_list = ['psd2','Tsd2','rhosd2','Vsd2','Msd2', 'asd2', 'gammasd2', 'Rsd2']
+        full_list += statesd2_list
+    if cfg['rs_out_of_sd']:
+        statesd2_reflected_list = ['Vr-sd','Mr-sd','psd2r','Tsd2r','rhosd2r','Vsd2r','Msd2r', 'asd2r', 'gammasd2r', 'Rsd2r']
+        full_list += statesd2_reflected_list
 
     state2_list = ['p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2']
-    full_list += state2_list     
+    full_list += state2_list
+
+    if cfg['rs_out_of_st']:
+        state2_reflected_list = ['Vr-st','Mr-st','p2r','T2r','rho2r','V2r','M2r', 'a2r', 'gamma2r', 'R2r', 'Ht2r']
+        full_list += state2_reflected_list
     
     if cfg['tunnel_mode'] == 'expansion-tube':
         state7_list = ['p7','T7','rho7','V7','M7']
@@ -275,7 +286,8 @@ def condition_builder_test_run(cfg, results):
     print "Running test {0} of {1}.".format(cfg['test_number'], cfg['number_of_test_runs'])
     try:
         cfg, states, V, M = run_pitot(cfg = cfg)
-    except Exception:          
+    except Exception as e:
+        print "Error {0}".format(str(e))        
         print "Test {0} failed. Result will not be printed to csv output.".format(cfg['test_number'])
         condition_status = False
     if cfg['secondary'] and cfg['Vsd'] > cfg['Vs1']:
@@ -412,6 +424,23 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
         # will not be normalised
         normalise_exceptions = ['test number', 'driver condition', 'psd1','Vsd']
         
+        # we need to make sure that we don't try to normalise these values if they are all empty
+        if 'Vsd2r' in results:
+            all_zeros = True
+            for value in results['Vsd2r']:
+                if bool(value):
+                    all_zeros = False
+            if all_zeros:
+                normalise_exceptions += ['Vsd2r', 'Msd2r']
+       
+        if 'V2r' in results:
+            all_zeros = True
+            for value in results['V2r']:
+                if bool(value):
+                    all_zeros = False
+            if all_zeros:
+                normalise_exceptions += ['V2r', 'M2r']
+        
         #now we'll make the code build us the second intro line
         intro_line = '#'
         for value in results['full_list']:
@@ -439,7 +468,7 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
         # build a dictionary to store all of our normalisation values
         normalising_value_dict = {}
         
-        for value in  results['full_list']:
+        for value in results['full_list']:
             if normalised_by == 'first value':
                 normalising_value_dict[value] = results[value][0]
             elif normalised_by == 'maximum value':
@@ -513,7 +542,49 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
         results['Mr'].append(cfg['Mr'])   
         results['Vr_d'].append(cfg['Vr_d'])
         results['Mr_d'].append(cfg['Mr_d'])   
-    
+      
+    if True in cfg['secondary_list']: 
+        if cfg['secondary']:        
+            results['psd2'].append(states['sd2'].p)
+            results['Tsd2'].append(states['sd2'].T)
+            results['rhosd2'].append(states['sd2'].rho)
+            results['Vsd2'].append(V['sd2'])
+            results['Msd2'].append(M['sd2'])
+            results['asd2'].append(states['sd2'].a)
+            results['gammasd2'].append(states['sd2'].gam)
+            results['Rsd2'].append(states['sd2'].R)
+            if cfg['rs_out_of_sd']:
+                results['Vr-sd'].append(cfg['Vr-sd'])
+                results['Mr-sd'].append(cfg['Mr-sd'])
+                results['psd2r'].append(states['sd2r'].p)
+                results['Tsd2r'].append(states['sd2r'].T)
+                results['rhosd2r'].append(states['sd2r'].rho)
+                results['Vsd2r'].append(V['sd2r'])
+                results['Msd2r'].append(M['sd2r'])
+                results['asd2r'].append(states['sd2r'].a)
+                results['gammasd2r'].append(states['sd2r'].gam)
+                results['Rsd2r'].append(states['sd2r'].R)
+        else:
+            results['psd2'].append('Not used')
+            results['Tsd2'].append('Not used')
+            results['rhosd2'].append('Not used')
+            results['Vsd2'].append('Not used')
+            results['Msd2'].append('Not used')
+            results['asd2'].append('Not used')
+            results['gammasd2'].append('Not used')
+            results['Rsd2'].append('Not used') 
+            if cfg['rs_out_of_sd']:
+                results['Vr-sd'].append('Not used')
+                results['Mr-sd'].append('Not used')
+                results['psd2r'].append('Not used')
+                results['Tsd2r'].append('Not used')
+                results['rhosd2r'].append('Not used')
+                results['Vsd2r'].append('Not used')
+                results['Msd2r'].append('Not used')
+                results['asd2r'].append('Not used')
+                results['gammasd2r'].append('Not used')
+                results['Rsd2r'].append('Not used')
+            
     results['p2'].append(states['s2'].p)
     results['T2'].append(states['s2'].T)
     results['rho2'].append(states['s2'].rho)
@@ -525,8 +596,24 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     if cfg['Ht2']:
         results['Ht2'].append(cfg['Ht2']/10**6)
     else:
-        results['Ht2'].append('did not solve')    
-
+        results['Ht2'].append('did not solve')
+        
+    if cfg['rs_out_of_st']:
+        results['Vr-st'].append(cfg['Vr-st'])
+        results['Mr-st'].append(cfg['Mr-st'])
+        results['p2r'].append(states['s2r'].p)
+        results['T2r'].append(states['s2r'].T)
+        results['rho2r'].append(states['s2r'].rho)
+        results['V2r'].append(V['s2r'])
+        results['M2r'].append(M['s2r'])
+        results['a2r'].append(states['s2r'].a)
+        results['gamma2r'].append(states['s2r'].gam)
+        results['R2r'].append(states['s2r'].R)
+        if cfg['Ht2r']:
+            results['Ht2r'].append(cfg['Ht2r']/10**6)
+        else:
+            results['Ht2r'].append('did not solve')
+  
     if cfg['tunnel_mode'] == 'expansion-tube':
         results['p7'].append(states['s7'].p)
         results['T7'].append(states['s7'].T)
@@ -779,7 +866,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
         
     #----------------- check inputs ----------------------------------------
     
-    cfg = input_checker(cfg)
+    cfg = input_checker(cfg, condition_builder = True)
     
     cfg = check_new_inputs(cfg)
     
@@ -907,7 +994,12 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
                                 .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
                                 have_checked_time = True       
     
-    # now that we're done we can dump the results to the results csv 
+    # now analyse results dictionary and print some results to the screen
+    # and another external file
+    
+    condition_builder_summary_builder(cfg, results) 
+    
+    # and dump the results to a csv
     intro_line = "Output of pitot condition building program Version {0}.".format(VERSION_STRING)            
     results_csv_builder(results, test_name = cfg['original_filename'],  
                         intro_line = intro_line)
@@ -919,12 +1011,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     # it just pickles the dictionaries to pitot should not be needed to load
     # this data
     pickle_data(cfg, results)
-    
-    # now analyse results dictionary and print some results to the screen
-    # and another external file
-    
-    condition_builder_summary_builder(cfg, results) 
-    
+        
     return
                                 
 #----------------------------------------------------------------------------

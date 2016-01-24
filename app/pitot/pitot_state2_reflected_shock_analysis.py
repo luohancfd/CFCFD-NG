@@ -153,7 +153,8 @@ def pitot_state2_reflected_shock_analysis_test_run(cfg, results):
     print "Current Mr_st = {0:.2f}.".format(cfg['Mr_st'])
     try:
         cfg, states, V, M = run_pitot(cfg = cfg)
-    except Exception:
+    except Exception as e:
+         print "Error {0}".format(str(e))
          print "Test {0} failed. Result will not be printed to csv output.".format(cfg['test_number'])
          condition_status = False
     if cfg['secondary'] and cfg['Vsd'] > cfg['Vs1']:
