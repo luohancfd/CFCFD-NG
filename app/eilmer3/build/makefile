@@ -52,6 +52,10 @@ ifeq ($(TARGET), for_mac_openmpi)
     WITH_MPI := 1
 endif
 
+ifeq ($(TARGET), for_cray_intel)
+    WITH_MPI := 1
+endif
+
 # We seem to be having trouble with optimizing compilers.
 # This optimization level may be over-ridden at the command line.
 OPT ?= -O2
@@ -59,7 +63,7 @@ OPT ?= -O2
 include ../../../lib/util/source/systems.mk
 CFLAG += -DWITH_IMPLICIT=$(WITH_IMPLICIT)
 CXXFLAG += -DWITH_IMPLICIT=$(WITH_IMPLICIT)
-LLIB += -lpopt -ldl -L/opt/local/lib
+LLIB += -lpopt -ldl -L/opt/local/lib 
 ifeq ($(WITH_MPI), 1)
     MPI_FLAGS := $(CFLAG_MPI) -D_MPI
 endif

@@ -498,6 +498,16 @@ ifeq ($(TARGET), for_mpich)
     LMPI    := -lmpi
 endif
 
+ifeq ($(TARGET), for_cray_intel)
+    COMPILE := cc
+    LINK    := cc
+    CXXCOMPILE := CC
+    CXXLINK := CC
+    LFLAG   := -dynamic -fPIC
+    CFLAG := -c -w2 -O2 -fPIC
+    CXXFLAG := -c -w2 -O2 -fPIC -std=c++0x
+endif
+
 
 
 
