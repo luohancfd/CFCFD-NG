@@ -587,7 +587,7 @@ def start_message(cfg, states):
               .format(cfg['p4'], cfg['T4'], cfg['M_throat'])
         
         if cfg['solver'] == 'eq':
-            test_gas_used = 'Selected test gas is {0} (gamma = {1}, R = {2}, {3} by {4}).'\
+            test_gas_used = 'Selected test gas is {0} (gamma = {1}, R = {2:.2f}, {3} by {4}).'\
             .format(cfg['test_gas'],states['s1'].gam,states['s1'].R,
                     states['s1'].reactants, states['s1'].outputUnits)
         elif cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq':
@@ -596,11 +596,11 @@ def start_message(cfg, states):
         print test_gas_used
 
         if 'Vsd' in cfg and cfg['secondary']:
-            print 'Selected Vsd = {0} m/s'.format(cfg['Vsd'])
+            print 'Selected Vsd = {0:.2f} m/s'.format(cfg['Vsd'])
         if 'Vs1' in cfg:
-            print 'Selected Vs1 = {0} m/s'.format(cfg['Vs1'])
+            print 'Selected Vs1 = {0:.2f} m/s'.format(cfg['Vs1'])
         if 'Vs2' in cfg:
-            print 'Selected Vs2 = {0} m/s'.format(cfg['Vs2'])
+            print 'Selected Vs2 = {0:.2f} m/s'.format(cfg['Vs2'])
         if 'psd1' in cfg and cfg['secondary']:
             print 'Selected secondary driver fill pressure (psd1) = {0} Pa.'.format(cfg['psd1'])
         if 'p1' in cfg:

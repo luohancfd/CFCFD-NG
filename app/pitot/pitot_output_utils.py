@@ -109,14 +109,16 @@ def txt_file_output(cfg, states, V, M):
     print facility_used
     txt_output.write(facility_used + '\n')
     if cfg['solver'] == 'eq':
-        test_gas_used = 'Test gas (state 1) is {0} (gamma = {1}, R = {2}, {3}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R,states['s1'].reactants)
+        test_gas_used = 'Test gas (state 1) is {0} (gamma = {1}, R = {2}, {3} by {4}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R,
+                                                                                        states['s1'].reactants, states['s1'].outputUnits)
     elif cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq':
         test_gas_used = 'Test gas (state 1) is {0} (gamma = {1}, R = {2}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
     print test_gas_used
     txt_output.write(test_gas_used + '\n')  
     if cfg['custom_accelerator_gas']:
         if cfg['solver'] == 'eq':
-            accelerator_gas_used = 'Custom Accelerator gas (state 5) was used (gamma = {0}, R = {1}, {2}).'.format(states['s5'].gam,states['s5'].R,states['s5'].reactants)
+            accelerator_gas_used = 'Custom Accelerator gas (state 5) was used (gamma = {0}, R = {1}, {2} by {3}).'.format(states['s5'].gam,states['s5'].R,
+                                                                                                                          states['s5'].reactants, states['s5'].outputUnits)
         elif cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq':
             accelerator_gas_used = 'Custom Accelerator gas (state 5) was used (gamma = {0}, R = {1}).'.format(states['s5'].gam,states['s5'].R)
     else:
@@ -127,7 +129,7 @@ def txt_file_output(cfg, states, V, M):
         if cfg['facility'] != 'custom' and cfg['piston'] in ['Sangdi-1.8MPa', 'sangdi-1.8MPa','Sangdi-2.2MPa', 'sangdi-2.2MPa']:
             driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])  
         elif 'driver_pg_gam' not in cfg: # driver will be pg if it is!
-            driver_gas_used = 'Driver gas is {0}.'.format(states['s4'].reactants)  
+            driver_gas_used = 'Driver gas is {0} (by {1}).'.format(states['s4'].reactants, states['s4'].outputUnits)  
         else:
             driver_gas_used = "Driver gas is a perfect gas with gam = {0} and R = {1}."\
             .format(cfg['driver_pg_gam'], cfg['driver_pg_R'])            
@@ -136,7 +138,7 @@ def txt_file_output(cfg, states, V, M):
             driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])
         else:
             if 'driver_composition' in cfg:
-                driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_composition'])
+                driver_gas_used = 'Driver gas is {0} (by {1}).'.format(cfg['driver_composition'], states['s4'].inputUnits)
             else:
                 driver_gas_used = "Driver gas is a perfect gas with gam = {0} and R = {1}."\
                 .format(cfg['driver_pg_gam'], cfg['driver_pg_R'])
@@ -444,7 +446,10 @@ def txt_file_output(cfg, states, V, M):
     txt_output.write(u_eq_print + '\n')
     
     if cfg['wedge']:
-        frozen_wedge = 'Frozen wedge beta angle is {0:.3f} degrees.'.format(math.degrees(cfg['beta_pg']))
+        if 'beta_pg' in cfg:
+            frozen_wedge = 'Frozen wedge beta angle is {0:.3f} degrees.'.format(math.degrees(cfg['beta_pg']))
+        else:
+            frozen_wedge = "Frozen wedge angle did not solve."
         print frozen_wedge
         txt_output.write(frozen_wedge + '\n')
         if cfg['solver'] in ['eq', 'pg-eq']:
@@ -814,8 +819,11 @@ def csv_file_output(cfg, states, V, M):
         csv_output.write(csv_u_eq_print + '\n')
         
     if cfg['wedge']:
-        frozen_wedge = 'Frozen wedge beta angle, {0:.3f} degrees.'.format(math.degrees(cfg['beta_pg']))
-        csv_output.write(frozen_wedge + '\n')
+        if 'beta_pg' in cfg:
+            frozen_wedge = 'Frozen wedge beta angle, {0:.3f} degrees.'.format(math.degrees(cfg['beta_pg']))
+        else:
+            frozen_wedge = "Frozen wedge is detached."
+            csv_output.write(frozen_wedge + '\n')
         if cfg['solver'] in ['eq', 'pg-eq']:
             eq_wedge = 'Equilibrium wedge beta angle, {0:.3f} degrees.'.format(math.degrees(cfg['beta_eq']))
             csv_output.write(eq_wedge + '\n')    

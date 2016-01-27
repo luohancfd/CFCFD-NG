@@ -156,6 +156,55 @@ def secondary_driver_calculation(cfg, states, V, M):
     
     return cfg, states, V, M
     
+def secondary_driver_rs_calculation(cfg, states, V, M):
+    """This is a small function that performs a reflected shock on state sd2
+    when pitot is ask to simulate the effects of the reflected shock at the diaphragm.
+    It will default to doing a full reflected shock or the user can mess around with the
+    reflected shock Mach number to try 
+    """
+           
+    print "Doing reflected shock at the end of the secondary driver tube that the user has asked for."
+    
+    #first build state2r as a clone of state 2
+    states['sd2r'] = states['sd2'].clone()
+
+    if cfg['Mr_sd'] == "maximum": # then perform the reflected shock
+        cfg['Vr-sd'] = reflected_shock(states['sd2'], V['sd2'], states['sd2r'])
+        cfg['Mr-sd'] = (V['sd2']+cfg['Vr-sd'])/states['sd2'].a #normally this would be V2 - V2r, but it's plus here as Vr has been left positive
+        V['sd2r'] = 0.0
+        M['sd2r']= V['sd2r']/states['sd2r'].a
+    else: # perform it to a set strength
+        cfg['Mr-sd'] = cfg['Mr_sd']
+        cfg['Vr-sd'] = cfg['Mr-sd']*states['sd2r'].a - V['sd2']
+        try:
+            (Vsd2r, Vsd2rg) = normal_shock(states['sd2'], cfg['Vr-sd'] + V['sd2'], states['sd2r'])
+            V['sd2r'] = V['sd2'] - Vsd2rg
+            M['sd2r']= V['sd2r']/states['sd2r'].a           
+        except Exception as e:
+            print "Error {0}".format(str(e))
+            raise Exception, "Reflected normal shock calculation at the end of the secondary driver failed."
+           
+    if PRINT_STATUS:
+        print "Vr-sd = {0} m/s, Mr-sd = {1}.".format(cfg['Vr-sd'], cfg['Mr-sd'])
+        print "state sd2r: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['sd2r'].p, states['sd2r'].T)
+        print "Vsd2r = {0} m/s, Msd2r = {1}.".format(V['sd2r'], M['sd2r'])
+        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+            print 'species in statesd2r at equilibrium:'               
+            print '{0}'.format(states['sd2r'].species)
+        try:
+            states['sd2r_total'] = total_condition(states['sd2r'], V['sd2r'])
+            print 'The total enthalpy (Ht) at state sd2r is {0:<.5g} MJ/kg (Hsd2r - hsd1).'\
+            .format((states['sd2r_total'].h - states['sd1'].h)/1.0e6) #(take away the initial enthalpy in state 1 to get the change)
+            cfg['Htsd2r'] = states['sd2r_total'].h - states['sd1'].h
+        except Exception as e:
+            print e
+            print "Failed to find total condition for state sd2r. Result will be set to None"
+            cfg['Htsd2r'] = None
+            
+    if PRINT_STATUS: print '-'*60
+        
+    return cfg, states, V, M  
+    
 #----------------------------------------------------------------------------
 
 def shock_tube_calculation(cfg, states, V, M):
@@ -429,7 +478,12 @@ def shock_tube_calculation(cfg, states, V, M):
                 print "('Vs1_lower' = {0} m/s and 'Vs1_upper' = {1} m/s)".\
                       format(cfg['Vs1_lower'], cfg['Vs1_upper'])
                       
-            cfg['shock_tube_secant_tol'] = 1.0e-5
+            if 'shock_tube_secant_tol' not in cfg:
+                cfg['shock_tube_secant_tol'] = 1.0e-5
+                print "Using default shock tube secant solver tolerance of {0}.".format(cfg['shock_tube_secant_tol'])
+            else:
+                print "Using custom shock tube secant solver tolerance of {0}.".format(cfg['shock_tube_secant_tol'])                
+                
             cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
                                 cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
                                 cfg['shock_tube_secant_tol'],
@@ -547,7 +601,7 @@ def shock_tube_calculation(cfg, states, V, M):
         else:
             V['s3'], states['s3'] = finite_wave_dv('cplus', V[cfg['shock_tube_expansion']], states[cfg['shock_tube_expansion']], V['s2'],cfg['shock_tube_expansion_steps'])
             # i'm adding the same stuff as the if statement above here incase there are issues with this expansion...
-            if abs(V['s3'] - V['s2']) / V['s3'] > 0.10:
+            if abs(V['s3'] - V['s2']) / V['s3'] > 0.10 and cfg['test'] not in ['experiment', 'experiment-shock-tube-theory-acc-tube']:
                 print "For some reason V2 and V3 are too different. Expansion must have not occured properly."
                 print "V2 = {0} Pa, V3 = {1} Pa.".format(V['s2'], V['s3'])
                 print "Going to try expanding to a pressure now instead of a velocity."
@@ -621,7 +675,7 @@ def shock_tube_rs_calculation(cfg, states, V, M):
     #first build state2r as a clone of state 2
     states['s2r'] = states['s2'].clone()
 
-    if cfg['Mr_st'] == "Maximum": # then perform the reflected shock
+    if cfg['Mr_st'] == "maximum": # then perform the reflected shock
         cfg['Vr-st'] = reflected_shock(states['s2'], V['s2'], states['s2r'])
         cfg['Mr-st'] = (V['s2']+cfg['Vr-st'])/states['s2'].a #normally this would be V2 - V2r, but it's plus here as Vr has been left positive
         V['s2r'] = 0.0
@@ -909,6 +963,10 @@ def acceleration_tube_calculation(cfg, states, V, M):
         
         if 'acc_tube_secant_tol' not in cfg: # set this if it's not in the cfg file
             cfg['acc_tube_secant_tol'] = 1.0e-5
+            print "Using default acceleration tube secant solver tolerance of {0}.".format(cfg['acc_tube_secant_tol'])
+        else:
+            print "Using custom acceleration tube secant solver tolerance of {0}.".format(cfg['acc_tube_secant_tol'])          
+            
         try:
             cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, 
                                 cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
