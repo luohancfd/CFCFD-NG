@@ -137,11 +137,16 @@ def area_ratio_check_results_csv_builder(results, test_name = 'pitot_run',  intr
     return 
     
 def area_ratio_check_normalised_results_csv_builder(results, test_name = 'pitot_run',  
-                                   intro_line = None, normalised_by = 'first value'):
+                                   intro_line = None, normalised_by = 'first value',
+                                   original_value_result = None):
     """Function that takes the final results dictionary (which must include a 
        list called 'full_list' that tells this function what to print and in 
        what order) and then outputs a normalised version of the results csv.
        You can tell it to normalise by other values, but 'first value' is default.
+       
+       If the user wants to normalise by the result for the inputted original result
+       (the area ratio set in PITOT), they must provide a results dictionary for that 
+       original result too...
        
        It will also add an intro line if a string with that is added. 
        The name of the test is also required.
@@ -189,13 +194,15 @@ def area_ratio_check_normalised_results_csv_builder(results, test_name = 'pitot_
     # build a dictionary to store all of our normalisation values
     normalising_value_dict = {}
     
-    for value in  results['full_list']:
+    for value in results['full_list']:
         if normalised_by == 'first value':
             normalising_value_dict[value] = results[value][0]
         elif normalised_by == 'maximum value':
             normalising_value_dict[value] = max(results[value])
         elif normalised_by == 'last value':
-            normalising_value_dict[value] = results[value][-1]       
+            normalising_value_dict[value] = results[value][-1]
+        elif normalised_by == 'original value':
+            normalising_value_dict[value] = original_value_result[value][-1]
     
     for i in range(0, number_of_test_runs, 1):
         output_line = ''
@@ -305,21 +312,6 @@ def area_ratio_check(cfg, states, V, M):
         # now add the result to the results dictionary
         results = area_ratio_add_new_result_to_results_dict(cfg, states, V, M, results)
 
-    # now that the run is finished, make the cfg output
-    intro_line = "Output of pitot area ratio checking program performed using Pitot version {0}.".format(cfg['VERSION_STRING'])
-    area_ratio_check_results_csv_builder(results, test_name = cfg['filename'],  intro_line = intro_line)    
-    
-    # and the normalised output
-    if 'normalise_results_by' in cfg:
-        area_ratio_check_normalised_results_csv_builder(results, test_name = cfg['filename'],  
-                                       intro_line = intro_line, normalised_by = cfg['normalise_results_by'])
-    else:
-        area_ratio_check_normalised_results_csv_builder(results, test_name = cfg['filename'],  
-                                       intro_line = intro_line, normalised_by = 'first value')        
-    
-    # and the pickle output
-    area_ratio_check_pickle_data(cfg, results, test_name = cfg['filename'])    
-    
     #return the original area ratio and values when we leave
     print 60*"-"
     print "Now returning original area ratio and values..."
@@ -330,5 +322,26 @@ def area_ratio_check(cfg, states, V, M):
         cfg, states, V, M = conehead_calculation(cfg, states, V, M)
     if cfg['shock_over_model']: #do the shock over model calc if required
         cfg, states, V, M = shock_over_model_calculation(cfg, states, V, M)
-       
+
+    # now that the run is finished, make the cfg output
+    intro_line = "Output of pitot area ratio checking program performed using Pitot version {0}.".format(cfg['VERSION_STRING'])
+    area_ratio_check_results_csv_builder(results, test_name = cfg['filename'],  intro_line = intro_line)    
+    
+    # and the normalised output
+    if 'normalise_results_by' in cfg:
+        if cfg['normalise_results_by'] == 'original value':
+            # we need to make a dummy results dictionary that we put the resulta data
+            # of the original run in if we want to normalise by the original value
+            original_value_result =  area_ratio_check_results_dict_builder(cfg)
+            original_value_result = area_ratio_add_new_result_to_results_dict(cfg, states, V, M, original_value_result)
+        area_ratio_check_normalised_results_csv_builder(results, test_name = cfg['filename'],  
+                                       intro_line = intro_line, normalised_by = cfg['normalise_results_by'],
+                                       original_value_result = original_value_result)
+    else:
+        area_ratio_check_normalised_results_csv_builder(results, test_name = cfg['filename'],  
+                                       intro_line = intro_line, normalised_by = 'first value')        
+    
+    # and the pickle output
+    area_ratio_check_pickle_data(cfg, results, test_name = cfg['filename'])    
+           
     return cfg, states, V, M
