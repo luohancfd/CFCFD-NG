@@ -167,9 +167,13 @@ int ausm(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
     if (QIF.vel.x < 0.0) {
 	QIF.vel.y = QR.vel.y;
 	QIF.vel.z = QR.vel.z;
+	QIF.tke = QR.tke;
+	QIF.omega = QR.omega;
     } else {
 	QIF.vel.y = QL.vel.y;
 	QIF.vel.z = QL.vel.z;
+	QIF.tke = QL.tke;
+	QIF.omega = QL.omega;
     }
     int nsp = gmodel->get_number_of_species();
     for ( int jspec = 0; jspec < nsp; ++jspec ) {
