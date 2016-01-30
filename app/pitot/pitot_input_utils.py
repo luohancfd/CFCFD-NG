@@ -394,7 +394,7 @@ def input_checker(cfg, condition_builder = False):
         
     if cfg['secondary'] and 'secondary_driver_expansion_steps' not in cfg:
         #if they don't specify amount of steps for the unsteady expansion, give them one
-        cfg['secondary_driver_expansion_steps'] = 300
+        cfg['secondary_driver_expansion_steps'] = 400
         print "Number of steps for secondary driver unsteady expansion not selected. {0} steps chosen.".format(cfg['secondary_driver_expansion_steps'])       
     elif cfg['secondary'] and 'secondary_driver_expansion_steps' in cfg: 
         # check that the chosen value is an integer and fix it if not
@@ -405,7 +405,7 @@ def input_checker(cfg, condition_builder = False):
     
     if 'shock_tube_expansion_steps' not in cfg:
         #if they don't specify amount of steps for the unsteady expansion, give them one
-        cfg['shock_tube_expansion_steps'] = 300
+        cfg['shock_tube_expansion_steps'] = 400
         print "Number of steps for shock tube unsteady expansion not selected. {0} steps chosen.".format(cfg['shock_tube_expansion_steps'])
     else: # check that the chosen value is an integer and fix it if not
         if not isinstance(cfg['shock_tube_expansion_steps'], int):
