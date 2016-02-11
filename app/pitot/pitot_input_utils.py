@@ -202,13 +202,13 @@ def input_checker(cfg, condition_builder = False):
             cfg['driver_gas'] = cfg['driver_gas'].replace(" ", "") 
             print "Kindly removed a rogue space from the driver gas input string."
         if cfg['driver_gas'] == 'He:0.8,Ar:0.2':
-            cfg['driver_gas'] == 'He:0.80,Ar:0.20'
+            cfg['driver_gas'] = 'He:0.80,Ar:0.20'
         elif cfg['driver_gas'] == 'He:0.9,Ar:0.1':
-            cfg['driver_gas'] == 'He:0.90,Ar:0.10'
+            cfg['driver_gas'] = 'He:0.90,Ar:0.10'
         elif cfg['driver_gas'] == 'He:1':
-            cfg['driver_gas'] == 'He:1.0'
+            cfg['driver_gas'] = 'He:1.0'
         elif cfg['driver_gas'] == 'He:0.6,Ar:0.4':
-            cfg['driver_gas'] == 'He:0.60,Ar:0.40'
+            cfg['driver_gas'] = 'He:0.60,Ar:0.40'
         
     if 'test_gas' not in cfg:
         print "No 'test_gas' specified. You need to specify a test gas. Bailing out."
