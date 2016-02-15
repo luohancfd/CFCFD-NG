@@ -1153,6 +1153,7 @@ def nozzle_expansion(cfg, states, V, M):
         (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']],cfg['area_ratio'])
         M['s8']= V['s8']/states['s8'].a
     except Exception as e:
+        print "Error {0}".format(str(e))
         print "Nozzle expansion failed. Going to try again with no ions."
         try:
             states['s7'].with_ions = False
@@ -1162,8 +1163,30 @@ def nozzle_expansion(cfg, states, V, M):
             print "Nozzle expansion sucessful with ions turned off."
         except Exception as e:
             print "Error {0}".format(str(e))
-            raise Exception, "pitot_flow_functions.nozzle_expansion(): Run of pitot failed in the nozzle expansion calculation."
-    
+            if cfg['solver'] != 'pg-eq':
+                raise Exception, "pitot_flow_functions.nozzle_expansion(): Run of pitot failed in the nozzle expansion calculation."
+            else:
+                try:
+                    #CO2 seems to not like some situations due to the amount of species invovled
+                    # in using it, so we'll change onlyList a bit if we keep getting issues...
+                    print "Having some issues with the CO2, so we're going to cut this down a bit..."
+                    current_species = states['s7'].species.keys()
+                    for species in ['CO2', 'CO', 'O2', 'O']:
+                        if species not in current_species:
+                            current_species.append(species)
+                    print "New nozzle calculation will only use these species {0}.".format(current_species)
+                    import copy
+                    old_onlyList = copy.copy(states['s7'].onlyList)
+                    states['s7'].onlyList = current_species
+                    (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']],cfg['area_ratio'])
+                    M['s8']= V['s8']/states['s8'].a
+                    # and go back to normal after...
+                    states['s7'].onlyList = old_onlyList
+                    states['s8'].onlyList = old_onlyList
+                except Exception as e:
+                    print "Error {0}".format(str(e))
+                    raise Exception, "pitot_flow_functions.nozzle_expansion(): Run of pitot failed in the nozzle expansion calculation."
+
     print "state 8: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s8'].p, states['s8'].T)        
     if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
         print 'species in state8 at equilibrium:'               
@@ -1242,7 +1265,7 @@ def shock_over_model_calculation(cfg, states, V, M):
             try:
                 (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10e'])
                 M['s10e']= V['s10e']/states['s10e'].a
-                print states['s10e'].species
+                #print states['s10e'].species
                 if abs((states['s10e'].p - states[cfg['test_section_state']].p) / states['s10e'].p) < 0.10:
                     print "For some reason p10e and p{0} are too similar. Shock must have not occured properly.".format(cfg['test_section_state'][1])
                     print "p{0} = {1} Pa, p10e = {2} Pa."\
@@ -1268,6 +1291,32 @@ def shock_over_model_calculation(cfg, states, V, M):
                         print "Result will not be printed."
                         if 's10e' in states.keys():
                             del states['s10e']
+                elif cfg['solver'] == 'pg-eq':
+                    try:
+                        #CO2 seems to not like some situations due to the amount of species invovled
+                        # in using it, so we'll change onlyList a bit if we keep getting issues...
+                        print "Having some issues with the CO2, so we're going to cut this down a bit..."
+                        current_species = states[cfg['test_section_state']].species.keys()
+                        for species in ['CO2', 'CO', 'O2', 'O','E-','C','C+','O+','O2+','O3']:
+                            if species not in current_species:
+                                current_species.append(species)
+                        print "New eq shock over model calculation will only use these species {0}.".format(current_species)
+                        import copy
+                        old_onlyList = copy.copy(states[cfg['test_section_state']].onlyList)
+                        states[cfg['test_section_state']].onlyList = current_species
+                        states['s10e'].onlyList = current_species
+                        print states[cfg['test_section_state']].onlyList
+                        print states['s10e'].onlyList
+                        (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10e'])
+                        M['s10e']= V['s10e']/states['s10e'].a
+                        states[cfg['test_section_state']].onlyList = old_onlyList
+                        states['s10e'].onlyList = old_onlyList                        
+                    except Exception as e:
+                        print "Error {0}".format(str(e))
+                        print "Result will not be printed."
+                        if 's10e' in states.keys():
+                            del states['s10e']
+                
                 else:
                     print "Result will not be printed."
                     if 's10e' in states.keys():

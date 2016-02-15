@@ -228,6 +228,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
     24-Jan-2016: finished the adding of the ability to do reflected shocks at the end
        of the secondary driver section and shock tube to simulate thick diaphragms.
        This was also put into the condition builder, which was a bigger job...
+    15-Feb-2016: I added some new code to help CO2 work in the code...
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -255,7 +256,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "11-FEB-2016"
+VERSION_STRING = "15-FEB-2016"
 
 DEBUG_PITOT = False
 

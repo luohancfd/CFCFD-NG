@@ -431,7 +431,7 @@ def txt_file_output(cfg, states, V, M):
     print freestream_enth  
     txt_output.write(freestream_enth + '\n')
         
-    if cfg['stagnation_enthalpy']:
+    if cfg['stagnation_enthalpy'] and cfg['stagnation_enthalpy'] >= 0.0:
         #calculate flight equivalent velocity
         #for a description of why this is, refer to Bianca Capra's thesis page 104 - 105
         #Capra, B., Aerothermodynamic Simulation of Subscale Models of the FIRE II and
@@ -814,7 +814,7 @@ def csv_file_output(cfg, states, V, M):
         stag_temp = 'Tt, {0:<.5g} K.'.format(states['test_section_total'].T)
         csv_output.write(stag_temp + '\n')
        
-    if cfg['stagnation_enthalpy']:           
+    if cfg['stagnation_enthalpy'] and cfg['stagnation_enthalpy'] >= 0.0 and cfg['u_eq']:           
         csv_u_eq_print = 'Ue,{0:<.5g} m/s.'.format(cfg['u_eq'])
         csv_output.write(csv_u_eq_print + '\n')
         
