@@ -172,7 +172,7 @@ PolyatomicElecLev::PolyatomicElecLev( int ilev, double E, int g, lua_State * L )
         if ( !lua_istable(L, -1) ) {
             ostringstream ost;
             ost << "PolyatomicElecLev::PolyatomicElecLev()\n";
-            ost << "Error locating " << state_oss << " table" << endl;
+            ost << "Error locating " << state_oss.str()<< " table" << endl;
             input_error(ost);
         }
         vstates.push_back( create_new_polyatomic_vib_state(type,iV,L) );
@@ -321,7 +321,7 @@ read_elevel_data( lua_State * L )
         if ( !lua_istable(L, -1) ) {
             ostringstream ost;
             ost << "PolyatomicRadiator::read_elevel_data()\n";
-            ost << "Error locating " << lev_oss << " table" << endl;
+            ost << "Error locating " << lev_oss.str() << " table" << endl;
             input_error(ost);
         }
         double E = get_number(L, -1, "theta" ) * RC_c * RC_h_SI;

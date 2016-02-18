@@ -910,7 +910,7 @@ read_elevel_data( lua_State * L )
 	if ( !lua_istable(L, -1) ) {
 	    ostringstream ost;
 	    ost << "DiatomicRadiator::read_elevel_data()\n";
-	    ost << "Error locating " << lev_oss << " table" << endl;
+	    ost << "Error locating " << lev_oss.str() << " table" << endl;
 	    input_error(ost);
 	}
 	vector<double> lev_data;

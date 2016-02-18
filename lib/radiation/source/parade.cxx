@@ -127,7 +127,7 @@ void Parade::initialise( lua_State * L )
             pathname << "parade_working_dir_" << i;
             if ( access(pathname.str().c_str(), F_OK) != 0 ) {
 		ostringstream cmd;
-		cmd << "mkdir " << pathname;
+		cmd << "mkdir " << pathname.str();
 		srv = system(cmd.str().c_str());
             }
         }
