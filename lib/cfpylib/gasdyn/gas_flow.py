@@ -369,7 +369,7 @@ def pitot_condition(state1, V1):
         return total_condition(state1, V1)
 
 
-def steady_flow_with_area_change(state1, V1, A2_over_A1):
+def steady_flow_with_area_change(state1, V1, A2_over_A1, tol = 1.0e-4):
     """
     Given station 1 condition, velocity and area-ratio A2/A1,
     compute the steady, isentropic condition at station 2.
@@ -377,6 +377,7 @@ def steady_flow_with_area_change(state1, V1, A2_over_A1):
     :param state1: Gas object specifying condition at station 1
     :param V1: velocity at station 1, m/s
     :param A2_over_A1: area ratio between stations A2/A1
+    :param tol: tolerance for secant solver to find nozzle outlet condition
     :returns: tuple (V2, state2) of conditions at station 2
     """
     M1 = abs(V1)/state1.a
@@ -424,9 +425,10 @@ def steady_flow_with_area_change(state1, V1, A2_over_A1):
         V2 = math.sqrt(2*(H1 - h2))
         mdot2 = state2.rho * V2 * A2
         return (mdot2 - mdot1)/abs(mdot1)
-    p2p1 = secant(error_in_mass_flux, p2p1_guess_1, p2p1_guess_2, tol=1.0e-4)
+    p2p1 = secant(error_in_mass_flux, p2p1_guess_1, p2p1_guess_2, tol=tol)
     if p2p1 == 'FAIL':
         print "Failed to find area-change conditions iteratively."
+        raise Exception, "Failed to find area-change conditions iteratively."
         p2p1 = 1.0
     state2 = state1.clone()
     state2.set_ps(p2p1 * state1.p, state1.s)
