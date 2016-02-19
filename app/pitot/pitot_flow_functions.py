@@ -1121,14 +1121,13 @@ def test_section_setup(cfg, states, V, M):
     elif cfg['tunnel_mode'] == 'expansion-tube' and not cfg['nozzle']:
         cfg['test_section_state'] = 's7' 
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' and cfg['nozzle']:
-        if PRINT_STATUS: print "Starting steady expansion through the nozzle."
+        if PRINT_STATUS: print "Starting stea        M['s8']= V['s8']/states['s8'].ady expansion through the nozzle."
         cfg['nozzle_entry_state'] = 's2'
         cfg, states, V, M == nozzle_expansion(cfg, states, V, M)
         cfg['test_section_state'] = 's8'
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' and not cfg['nozzle']:            
         cfg['test_section_state'] = 's2'
     elif cfg['tunnel_mode'] == 'reflected-shock-tunnel' and cfg['nozzle']:
-        if PRINT_STATUS: print "Starting steady expansion through the nozzle."
         cfg['nozzle_entry_state'] = 's5'
         cfg, states, V, M == nozzle_expansion(cfg, states, V, M)
         cfg['test_section_state'] = 's8'
@@ -1148,44 +1147,103 @@ def nozzle_expansion(cfg, states, V, M):
     
     """
 
+    if PRINT_STATUS: print "-"*60
     if PRINT_STATUS: print "Starting steady expansion through the nozzle."
+    # tolerance for the nozzle expansion secant solver
+    cfg['nozzle_expansion_tolerance'] = 1.0e-4
+    
+    if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+        try:
+            print "Due to the fact that this is a reflected shock simulation, we must first expand to the throat condition (state 6)."
+            # we need to do a steady expansion to Mach 1 first
+            (states['s6'], V['s6']) = expand_from_stagnation(1.0/(p0_p(1.0,states[cfg['nozzle_entry_state']].gam)),states[cfg['nozzle_entry_state']])
+            M['s6'] = V['s6']/states['s6'].a 
+            print "M6 expected is 1.0 and M6 found is {0:.4f}.".format(M['s6'])
+            if M['s6'] < 1.0 and M['s6'] >= 0.98:
+                print "M6 is just below 1.0 so it is being set to 1.0 so the code can continue."
+                # this must be above 1 to do the supersonic steady_flow_with_area_change...
+                import copy
+                old_velocity = copy.copy(V['s6'])
+                
+                while M['s6'] < 1.0:
+                    V['s6'] += 0.001
+                    M['s6'] = V['s6']/states['s6'].a
+                print "The velocity has also been slightly adjusted from {0:.4f} m/s to {1:.4f} m/s.".format(old_velocity, V['s6'])
+            elif M['s6'] < 0.98:
+                raise Exception, "pitot_flow_functions.nozzle_expansion(): M throat is too small, so there must be an issue here..."    
+            
+            if PRINT_STATUS: 
+                print "state 6: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s6'].p, states['s6'].T)
+                print "state 6: V = {0:.2f} m/s, M = {1:.2f}.".format(V['s6'], M['s6'])        
+                if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+                    print '{0}'.format(states['s6'].species)
+                print "-"*60                
+            cfg['nozzle_entry_state'] = 's6'
+            print "Specified area ratio ({0}) will be used for the supersonic part of the nozzle.".format(cfg['area_ratio'])
+        except Exception as e:
+            print "Error {0}".format(str(e))
+            print "Reflected shock nozzle expansion failed trying to expand to the throat Mach number."  
+            raise Exception, "pitot_flow_functions.nozzle_expansion(): Run of pitot failed in the nozzle expansion calculation."
+    
     try:
-        (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']],cfg['area_ratio'])
+        (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']],
+                                                                cfg['area_ratio'], tol = cfg['nozzle_expansion_tolerance'])
         M['s8']= V['s8']/states['s8'].a
     except Exception as e:
         print "Error {0}".format(str(e))
-        print "Nozzle expansion failed. Going to try again with no ions."
-        try:
-            states['s7'].with_ions = False
-            (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']], cfg['area_ratio'])
-            M['s8']= V['s8']/states['s8'].a
-            states['s8'].with_ions = True
-            print "Nozzle expansion sucessful with ions turned off."
-        except Exception as e:
-            print "Error {0}".format(str(e))
-            if cfg['solver'] != 'pg-eq':
-                raise Exception, "pitot_flow_functions.nozzle_expansion(): Run of pitot failed in the nozzle expansion calculation."
-            else:
-                try:
-                    #CO2 seems to not like some situations due to the amount of species invovled
-                    # in using it, so we'll change onlyList a bit if we keep getting issues...
-                    print "Having some issues with the CO2, so we're going to cut this down a bit..."
-                    current_species = states['s7'].species.keys()
-                    for species in ['CO2', 'CO', 'O2', 'O']:
-                        if species not in current_species:
-                            current_species.append(species)
-                    print "New nozzle calculation will only use these species {0}.".format(current_species)
-                    import copy
-                    old_onlyList = copy.copy(states['s7'].onlyList)
-                    states['s7'].onlyList = current_species
-                    (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']],cfg['area_ratio'])
-                    M['s8']= V['s8']/states['s8'].a
-                    # and go back to normal after...
-                    states['s7'].onlyList = old_onlyList
-                    states['s8'].onlyList = old_onlyList
-                except Exception as e:
-                    print "Error {0}".format(str(e))
+        if e.message == "Failed to find area-change conditions iteratively.":
+            print "Function failed to find area-change iteratively, will try a lower tolerance..."
+            print "Old secant solver tolerance was {0} new tolerance is {1}.".format(cfg['nozzle_expansion_tolerance'],
+                                                                                     cfg['nozzle_expansion_tolerance'] * 10.0)
+            cfg['nozzle_expansion_tolerance'] *= 10.0
+            try:
+                (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], 
+                                                                       V[cfg['nozzle_entry_state']],
+                                                                       cfg['area_ratio'], tol = cfg['nozzle_expansion_tolerance'])
+                M['s8']= V['s8']/states['s8'].a
+                cfg['nozzle_expansion_tolerance'] = cfg['nozzle_expansion_tolerance'] / 10.0    
+            except Exception as e:
+                print "Error {0}".format(str(e))
+                cfg['nozzle_expansion_tolerance'] = cfg['nozzle_expansion_tolerance'] / 10.0 
+                raise Exception, "pitot_flow_functions.nozzle_expansion(): Failed to find nozzle exit conditions"    
+        else:
+            print "Nozzle expansion failed. Going to try again with no ions."
+            try:
+                states[cfg['nozzle_entry_state']].with_ions = False
+                (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']],
+                                                                       cfg['area_ratio'], tol = cfg['nozzle_expansion_tolerance'])
+                M['s8']= V['s8']/states['s8'].a
+                states['s8'].with_ions = True
+                if states[cfg['nozzle_entry_state']].p ==  states['s8'].p:
+                    print "Nozzle inlet and exit pressures are the same. There must be some kind of error."
+                raise Exception, "pitot_flow_functions.nozzle_expansion(): No pressure change through nozzle"
+                print "Nozzle expansion sucessful with ions turned off."
+            except Exception as e:
+                print "Error {0}".format(str(e))
+                if cfg['solver'] != 'pg-eq':
                     raise Exception, "pitot_flow_functions.nozzle_expansion(): Run of pitot failed in the nozzle expansion calculation."
+                else:
+                    try:
+                        #CO2 seems to not like some situations due to the amount of species invovled
+                        # in using it, so we'll change onlyList a bit if we keep getting issues...
+                        print "Having some issues with the CO2, so we're going to cut this down a bit..."
+                        current_species = states[cfg['nozzle_entry_state']].species.keys()
+                        for species in ['CO2', 'CO', 'O2', 'O']:
+                            if species not in current_species:
+                                current_species.append(species)
+                        print "New nozzle calculation will only use these species {0}.".format(current_species)
+                        import copy
+                        old_onlyList = copy.copy(states[cfg['nozzle_entry_state']].onlyList)
+                        states[cfg['nozzle_entry_state']].onlyList = current_species
+                        (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']],
+                                                                               cfg['area_ratio'], tol = cfg['nozzle_expansion_tolerance'])
+                        M['s8']= V['s8']/states['s8'].a
+                        # and go back to normal after...
+                        states[cfg['nozzle_entry_state']].onlyList = old_onlyList
+                        states['s8'].onlyList = old_onlyList
+                    except Exception as e:
+                        print "Error {0}".format(str(e))
+                        raise Exception, "pitot_flow_functions.nozzle_expansion(): Run of pitot failed in the nozzle expansion calculation."
 
     print "state 8: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s8'].p, states['s8'].T)        
     if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':

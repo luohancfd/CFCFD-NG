@@ -67,6 +67,14 @@ def txt_file_output(cfg, states, V, M):
         state5_description = 'state 5 is the stagnant shock tube gas after being processed by the reflected shock.'
         print state5_description
         txt_output.write(state5_description + '\n')
+        
+        state5_description = 'state 5_d is the stagnant driver gas after being processed by the reflected shock.'
+        print state5_description
+        txt_output.write(state5_description + '\n')
+        
+        state6_description = 'state 6 is the test gas condition at the throat (M = 1) of the de Lavel nozzle.'
+        print state6_description
+        txt_output.write(state6_description + '\n')
     
     if cfg['nozzle']:    
         description_3 = 'state 8 is test gas exiting the nozzle (using area ratio of {0}).'.format(cfg['area_ratio'])
@@ -137,8 +145,10 @@ def txt_file_output(cfg, states, V, M):
         if cfg['facility'] != 'custom':
             driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])
         else:
-            if 'driver_composition' in cfg:
+            if 'driver_composition' in cfg and cfg['solver'] in ['eq', 'pg-eq']:
                 driver_gas_used = 'Driver gas is {0} (by {1}).'.format(cfg['driver_composition'], states['s4'].inputUnits)
+            elif 'driver_composition' in cfg and cfg['solver'] in ['pg']:
+                driver_gas_used = 'Driver gas is {0} (by {1}).'.format(cfg['driver_composition'], cfg['driver_inputUnits'])
             else:
                 driver_gas_used = "Driver gas is a perfect gas with gam = {0} and R = {1}."\
                 .format(cfg['driver_pg_gam'], cfg['driver_pg_R'])
@@ -310,6 +320,8 @@ def txt_file_output(cfg, states, V, M):
     if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
          condition_printer('s5')
          condition_printer('s5_d')
+         if cfg['nozzle']:
+             condition_printer('s6')             
             
     if cfg['nozzle']: #do nozzle calculations if asked to
         condition_printer('s8')
@@ -467,14 +479,14 @@ def txt_file_output(cfg, states, V, M):
         rst_1 = "At state 5 gam = {0}, R = {1}.".format(states['s5'].gam, states['s5'].R)
         print rst_1
         txt_output.write(rst_1 + '\n')
-        
-        rst_2 = "Species in state 5 at equilibrium:"
-        print rst_2
-        txt_output.write(rst_2 + '\n')
-        
-        rst_3 = '{0}'.format(states['s5'].species)
-        print rst_3
-        txt_output.write(rst_3 + '\n')        
+        if cfg['solver'] in ['eq', 'pg-eq']:
+            rst_2 = "Species in state 5 at equilibrium:"
+            print rst_2
+            txt_output.write(rst_2 + '\n')
+            
+            rst_3 = '{0}'.format(states['s5'].species)
+            print rst_3
+            txt_output.write(rst_3 + '\n')        
     
     #added ability to get the species in the post-shock condition
     
@@ -761,6 +773,11 @@ def csv_file_output(cfg, states, V, M):
     if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
         csv_condition_printer('s5')
         csv_condition_printer('s5_d')
+        if cfg['nozzle']:
+            csv_condition_printer('s6') 
+    
+    if cfg['nozzle']:
+        csv_condition_printer('s8')      
         
     #do the conditions over the model
     if cfg['shock_over_model']:

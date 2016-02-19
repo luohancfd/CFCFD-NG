@@ -229,6 +229,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
        of the secondary driver section and shock tube to simulate thick diaphragms.
        This was also put into the condition builder, which was a bigger job...
     15-Feb-2016: I added some new code to help CO2 work in the code...
+    19-Feb-2016: Finally got the RST nozzle stuff working. 
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -256,7 +257,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "15-FEB-2016"
+VERSION_STRING = "19-FEB-2016"
 
 DEBUG_PITOT = False
 
