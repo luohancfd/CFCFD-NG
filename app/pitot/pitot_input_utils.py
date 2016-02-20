@@ -583,7 +583,7 @@ def start_message(cfg, states):
                 print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_composition'])
             else:
                 print "Facility is {0}. Driver gas is a perfect gas with gam = {1} and R = {2:.2f}.".format(cfg['facility'], cfg['driver_pg_gam'], cfg['driver_pg_R'])
-        print "Driver burst conditions are p4 = {0} Pa, T4 = {1} K, M_throat = {2}."\
+        print "Driver burst conditions are p4 = {0:.2f} Pa, T4 = {1:.2f} K, M_throat = {2}."\
               .format(cfg['p4'], cfg['T4'], cfg['M_throat'])
         
         if cfg['solver'] == 'eq':
@@ -805,7 +805,7 @@ def state_builder(cfg):
         if 'T4' in cfg and 'p4' in cfg:
             # if T4 and p4 are set, cut the crap and just set the burst condition
             print "Driver burst conditions have been specified, building burst state."
-            print "p4 = {0} Pa, T4 = {1} K.".format(cfg['p4'], cfg['T4'])
+            print "p4 = {0:.2f} Pa, T4 = {1:.2f} K.".format(cfg['p4'], cfg['T4'])
             if 'driver_composition' in cfg:
                 states['s4'] = Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'],
                                    outputUnits=cfg['driver_inputUnits'])
@@ -828,14 +828,14 @@ def state_builder(cfg):
                 print "Performing isentropic compression from driver fill condition to {0} Pa.".format(cfg['p4'])
                 cfg['T4'] = states['primary_driver_fill'].T*\
                 (cfg['p4']/states['primary_driver_fill'].p)**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
-                print "p4 = {0} Pa, T4 = {1} K.".format(cfg['p4'], cfg['T4'])
+                print "p4 = {0:.2f} Pa, T4 = {1:.2f} K.".format(cfg['p4'], cfg['T4'])
             else:
                 print "Performing isentropic compression from driver fill condition over compression ratio of {0}.".format(cfg['compression_ratio'])
                 cfg['pressure_ratio'] = cfg['compression_ratio']**states['primary_driver_fill'].gam #pressure ratio is compression ratio to the power of gamma
                 cfg['p4'] = states['primary_driver_fill'].p*cfg['pressure_ratio'] #Pa
                 cfg['T4'] = states['primary_driver_fill'].T*\
                 (cfg['pressure_ratio'])**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
-                print "p4 = {0} Pa, T4 = {1} K.".format(cfg['p4'], cfg['T4'])
+                print "p4 = {0:.2f} Pa, T4 = {1:.2f} K.".format(cfg['p4'], cfg['T4'])
             states['s4'] = states['primary_driver_fill'].clone()
             states['s4'].set_pT(cfg['p4'],cfg['T4'])
         V['s4']=0.0

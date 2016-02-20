@@ -617,7 +617,7 @@ def shock_tube_calculation(cfg, states, V, M):
         if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
             print 'species in state2 at equilibrium:'               
             print '{0}'.format(states['s2'].species)
-            print 'state 2 gamma = {0}, state 2 R = {1}.'.format(states['s2'].gam,states['s2'].R)
+        print 'state 2 gamma = {0}, state 2 R = {1}.'.format(states['s2'].gam,states['s2'].R)
         try:
             states['s2_total'] = total_condition(states['s2'], V['s2'])
             print 'The total enthalpy (Ht) at state 2 is {0:<.5g} MJ/kg (H2 - h1).'\
@@ -696,8 +696,10 @@ def shock_tube_rs_calculation(cfg, states, V, M):
         print "state 2r: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s2r'].p, states['s2r'].T)
         print "Vs2r = {0} m/s, Ms2r = {1}.".format(V['s2r'], M['s2r'])
         if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
-            print 'species in state2r at equilibrium:'               
+            print 'Species in state2r at equilibrium:'               
             print '{0}'.format(states['s2r'].species)
+            print 'state 2r gamma = {0}, state 2r R = {1}.'.format(states['s2r'].gam,states['s2r'].R)            
+            
         try:
             states['s2r_total'] = total_condition(states['s2r'], V['s2r'])
             print 'The total enthalpy (Ht) at state 2r is {0:<.5g} MJ/kg (H2r - h1).'\
@@ -1062,6 +1064,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
         if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
             print 'species in state7 at equilibrium:'               
             print '{0}'.format(states['s7'].species)
+        print 'state 7 gamma = {0}, state 7 R = {1}.'.format(states['s7'].gam,states['s7'].R)
     
     if PRINT_STATUS: print '-'*60
     
@@ -1102,7 +1105,9 @@ def rs_calculation(cfg, states, V, M):
     if PRINT_STATUS: 
         print "state 5: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s5'].p, states['s5'].T)
         if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+            print 'species in state5 at equilibrium:'               
             print '{0}'.format(states['s5'].species)
+        print 'state 5 gamma = {0}, state 5 R = {1}.'.format(states['s5'].gam,states['s5'].R)
         print "state 5 driver ('5_d'): p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s5_d'].p, states['s5_d'].T)
         
         
@@ -1176,7 +1181,9 @@ def nozzle_expansion(cfg, states, V, M):
                 print "state 6: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s6'].p, states['s6'].T)
                 print "state 6: V = {0:.2f} m/s, M = {1:.2f}.".format(V['s6'], M['s6'])        
                 if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+                    print 'species in state6 at equilibrium:'               
                     print '{0}'.format(states['s6'].species)
+                print 'state 6 gamma = {0}, state 6 R = {1}.'.format(states['s6'].gam,states['s6'].R)
                 print "-"*60                
             cfg['nozzle_entry_state'] = 's6'
             print "Specified area ratio ({0}) will be used for the supersonic part of the nozzle.".format(cfg['area_ratio'])
@@ -1249,6 +1256,7 @@ def nozzle_expansion(cfg, states, V, M):
     if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
         print 'species in state8 at equilibrium:'               
         print '{0}'.format(states['s8'].species)
+    print 'state 8 gamma = {0}, state 8 R = {1}.'.format(states['s8'].gam,states['s8'].R)
     
     return cfg, states, V, M     
     
