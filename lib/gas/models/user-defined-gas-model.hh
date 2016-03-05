@@ -38,6 +38,8 @@ private:
     int s_eval_thermo_state_pT(Gas_data &Q);
     int s_eval_thermo_state_rhoT(Gas_data &Q);
     int s_eval_thermo_state_rhop(Gas_data &Q);
+    int s_eval_thermo_state_ps(Gas_data &Q, double p, double s);
+    int s_eval_thermo_state_hs(Gas_data &Q, double h, double s);
     int s_eval_transport_coefficients(Gas_data &Q);
     int s_eval_diffusion_coefficients(Gas_data &Q);
     double s_dTdp_const_rho(const Gas_data &Q, int &status);

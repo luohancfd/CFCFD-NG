@@ -37,6 +37,26 @@ int call_user_function(lua_State *L, const char *func, Gas_data &Q)
     return SUCCESS;
 }
 
+int call_user_function_3args(lua_State *L, const char *func, Gas_data &Q, double val0, double val1)
+{
+    lua_getglobal(L, func);
+    push_gas_data_as_table(L, Q);
+    lua_pushnumber(L, val0);
+    lua_pushnumber(L, val1);
+    // 3 arg, 1 return value: gas data as table
+    int number_args = 3;
+    int number_results = 1;
+    if( lua_pcall(L, number_args, number_results, 0) != 0 ) {
+	handle_lua_error(L, "Error running user function %s:\n%s\n",
+			 func, lua_tostring(L, -1));
+    }
+    get_table_as_gas_data(L, Q);
+    // Clear stack
+    lua_settop(L, 0);
+    return SUCCESS;
+}
+
+
 double call_user_deriv_function(lua_State *L, const char *func, const Gas_data &Q)
 {
     lua_getglobal(L, func);
@@ -194,6 +214,23 @@ s_eval_thermo_state_rhop(Gas_data &Q)
 
 int
 UD_gas_model::
+s_eval_thermo_state_ps(Gas_data &Q, double p, double s)
+{
+    return call_user_function_3args(L_, "eval_thermo_state_ps", Q, p, s);
+}
+
+int
+UD_gas_model::
+s_eval_thermo_state_hs(Gas_data &Q, double h, double s)
+{
+    if ( !check_for_function(L_, "eval_thermo_state_hs") )
+	return Gas_model::s_eval_thermo_state_hs(Q, h, s);
+    // else process to call user-defined function...
+    return call_user_function_3args(L_, "eval_thermo_state_hs", Q, h, s);
+}
+
+int
+UD_gas_model::
 s_eval_transport_coefficients(Gas_data &Q)
 {
     return call_user_function(L_, "eval_transport_coefficients", Q);
@@ -319,8 +356,6 @@ double
 UD_gas_model::
 s_enthalpy(const Gas_data &Q, int isp)
 {
-    // This is only necessary if doing chemistry AND
-    // the equilibrium constant is required.
     if ( !check_for_function(L_, "enthalpy") )
 	return 0.0;
     // else call users function.
@@ -343,8 +378,6 @@ double
 UD_gas_model::
 s_entropy(const Gas_data &Q, int isp)
 {
-    // This is only necessary if doing chemistry AND
-    // the equilibrium constant is required.
     if ( !check_for_function(L_, "entropy") )
 	return 0.0;
     // else call users function.
