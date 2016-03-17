@@ -120,7 +120,7 @@ int main(int argc, char **argv)
     bool do_run_simulation = false;
     size_t start_tindx = 0;
     int run_status = SUCCESS;
-    char c, job_name[132], text_buf[132], *dotpy;
+    char c, job_name[132], text_buf[132], *dotpy, tindx_start_str[12];
     char log_file_name[132], mpimap_file_name[132];
 
 #   ifdef _MPI
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
 	  NULL },
 	{ "tindx", 't', POPT_ARG_STRING, NULL, 't',
 	  "start with this set of flow data", 
-	  "<int>" },
+	  "<int>|last|9999" },
 	{ "zip-files", 'z', POPT_ARG_NONE, NULL, 'z',
 	  "use gzipped flow and grid files", 
 	  NULL },
@@ -205,6 +205,7 @@ int main(int argc, char **argv)
     }
     strcpy(job_name, "");
     strcpy(mpimap_file_name, "");
+    strcpy(tindx_start_str, "0");
     // Do options processing as per the popt example.
     while ((c = poptGetNextOpt(optCon)) >= 0) {
 	// printf("received option %c\n", c);
@@ -233,7 +234,7 @@ int main(int argc, char **argv)
 	    report_dt_all_blocks = true;
 	    break;
 	case 't':
-	    start_tindx = static_cast<size_t>(atoi(poptGetOptArg(optCon)));
+	    strcpy(tindx_start_str, poptGetOptArg(optCon));
 	    break;
 	case 'v':
 	    G.verbosity_level = static_cast<size_t>(atoi(poptGetOptArg(optCon)));
@@ -288,6 +289,30 @@ int main(int argc, char **argv)
     } // end if ( G.verbosity_level
 
     G.base_file_name = string(job_name);
+    // cout << "Determine starting tindx, tindx_start_str=\"" 
+    // 	 << tindx_start_str << "\"" << endl;
+    if (strstr(tindx_start_str, "last") || strstr(tindx_start_str, "9999")) {
+	cout << "Scan the job.times file to get the last index." << endl;
+	ifstream input(G.base_file_name+".times");
+	if (input) {
+	    start_tindx = 0;
+	    string line;
+	    string word;
+	    while (getline(input, line)) {
+		if (line.find("#") != string::npos) continue; // discard comment
+		istringstream record(line);
+		start_tindx = stoi(line);
+		cout << "found tindx: " << start_tindx << endl;
+	    }
+	    input.close();
+	} else {
+	    cerr << "could not open: " + G.base_file_name + ".times";
+	    start_tindx = 0;
+	}
+    } else {
+	// cout << "Assume that we have an index to a vald solution frame." << endl;
+	start_tindx = static_cast<size_t>(atoi(tindx_start_str));
+    }
     // Read the static configuration parameters from the INI file
 #   ifdef _MPI
     fflush(stdout);

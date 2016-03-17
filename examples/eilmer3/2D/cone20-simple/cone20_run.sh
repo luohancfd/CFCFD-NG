@@ -13,7 +13,7 @@ fi
 
 # Integrate the solution in time, 
 # recording the axial force on the cone surface.
-time e3shared.exe -f cone20 --run --verbose
+time e3shared.exe -f cone20 --run --verbosity=1
 if [ "$?" -ne "0" ] ; then
     echo "e3shared.exe ended abnormally."
     exit
