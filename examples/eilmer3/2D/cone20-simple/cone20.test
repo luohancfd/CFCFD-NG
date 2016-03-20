@@ -16,7 +16,7 @@ test run-preprocessor {Run the preprocessing stage.} -body {
 } -result {} -returnCodes {0}
 
 test run-simulation {Run the shared-memory simulation code.} -body {
-    exec e3shared.exe --job=cone20 --run --verbose > LOGFILE_MAIN
+    exec e3shared.exe --job=cone20 --run --verbosity=1 > LOGFILE_MAIN
 } -result {} -returnCodes {0}
 
 test number-of-steps {The main simulation takes a certain number of steps.} -body {
