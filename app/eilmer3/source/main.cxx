@@ -776,7 +776,7 @@ int prepare_to_integrate(size_t start_tindx)
 	    lua_pushinteger(L, static_cast<int>(G.my_blocks[jb]->kmin));
 	    lua_settable(L, -3);
 	    lua_pushstring(L, "kmax");
-	    lua_pushinteger(L, static_cast<int>(G.my_blocks[jb]->imax));
+	    lua_pushinteger(L, static_cast<int>(G.my_blocks[jb]->kmax));
 	    lua_settable(L, -3);
 	    // Label anonymous table with index
 	    lua_settable(L, -3);
