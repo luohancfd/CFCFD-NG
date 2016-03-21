@@ -293,18 +293,18 @@ int main(int argc, char **argv)
     // 	 << tindx_start_str << "\"" << endl;
     if (strstr(tindx_start_str, "last") || strstr(tindx_start_str, "9999")) {
 	cout << "Scan the job.times file to get the last index." << endl;
-	ifstream input(G.base_file_name+".times");
+	string times_file_name = G.base_file_name+".times";
+	FILE *input = fopen(times_file_name.c_str(), "r");
 	if (input) {
 	    start_tindx = 0;
-	    string line;
-	    string word;
-	    while (getline(input, line)) {
-		if (line.find("#") != string::npos) continue; // discard comment
-		istringstream record(line);
-		start_tindx = stoi(line);
+	    char line[256];
+	    char word[32];
+	    while (NULL != fgets(line, sizeof(line), input)) {
+		if (strstr(line, "#") != NULL) continue; // discard comment
+	        sscanf(line, "%d", &start_tindx);
 		cout << "found tindx: " << start_tindx << endl;
 	    }
-	    input.close();
+	    fclose(input);
 	} else {
 	    cerr << "could not open: " + G.base_file_name + ".times";
 	    start_tindx = 0;
