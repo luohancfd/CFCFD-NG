@@ -451,7 +451,7 @@ class GlobalData(object):
     * artificial_diffusion_flag: (0/1) Set to 1 to activate the artificial diffusion.
       Set to 0 (the default) to turn it off. 
     * artificial_kappa_2: the coefficient for the second order artificial dissipation term.
-    * artificial_kappa_4: the coefficient for the fourth order artificial dissipation term.                      
+    * artificial_kappa_4: the coefficient for the fourth order artificial dissipation term.
     """
     count = 0
 
@@ -497,7 +497,7 @@ class GlobalData(object):
                 'conjugate_ht_coupling', 'wall_update_count', \
                 'radiation_scaling', 'udf_vtx_velocity_flag', 'flow_induced_moving_flag', \
                 'cfl_moving', 'wall_function_flag', 'artificial_diffusion_flag', \
-                'artificial_kappa_2', 'artificial_kappa_4'                
+                'artificial_kappa_2', 'artificial_kappa_4'            
     
     def __init__(self):
         """
@@ -613,7 +613,7 @@ class GlobalData(object):
         self.wall_function_flag = 0
         self.artificial_diffusion_flag = 0
         self.artificial_kappa_2 = 0.0
-        self.artificial_kappa_4 = 0.0                                               
+        self.artificial_kappa_4 = 0.0
         GlobalData.count += 1
         return
 
@@ -761,7 +761,7 @@ class GlobalData(object):
         fp.write("wall_function_flag = %d\n" % self.wall_function_flag)
         fp.write("artificial_diffusion_flag = %d\n" % self.artificial_diffusion_flag)                            
         fp.write("artificial_kappa_2 = %e\n"% self.artificial_kappa_2)
-        fp.write("artificial_kappa_4 = %e\n"% self.artificial_kappa_4)                
+        fp.write("artificial_kappa_4 = %e\n"% self.artificial_kappa_4)                       
         #
         if self.velocity_buckets > 0:
             tstr_x = "vcoords_x ="

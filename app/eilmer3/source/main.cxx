@@ -470,7 +470,7 @@ int prepare_to_integrate(size_t start_tindx)
 	sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) );
 	jbstring = jbcstr;
 	// Read grid from the specified tindx files.
-	if ( G.moving_grid ) {
+	if ( G.moving_grid || G.flow_induced_moving ) {
 	    filename = "grid/"+tindxstring+"/"+G.base_file_name+".grid"+jbstring+"."+tindxstring;
 	} else {
 	    // Read grid from the tindx=0 files, always.
@@ -1249,7 +1249,7 @@ int write_solution_data(std::string tindxstring)
 	bdp->write_solution(filename, G.sim_time, G.dimensions, zip_files);
     }
 
-    if ( G.moving_grid ) {
+    if ( G.moving_grid || G.flow_induced_moving ) {
 	foldername = "grid/"+tindxstring;
 	ensure_directory_is_present(foldername); // includes Barrier
 	for ( Block *bdp : G.my_blocks ) {
@@ -1386,11 +1386,7 @@ int integrate_in_time(double target_time)
     // The next time for output...
     G.t_plot = G.sim_time + G.dt_plot;
     G.t_his = G.sim_time + G.dt_his;
-    G.t_moving = 0.0;
-    // if this is fluid structure interaction simulation
-    if ( G.flow_induced_moving ) {
-        G.t_moving = G.sim_time + G.dt_moving;
-    }
+    G.t_moving = G.sim_time + G.dt_moving;
     
     // Flags to indicate that the saved output is fresh.
     // On startup or restart, it is assumed to be so.
@@ -1847,13 +1843,74 @@ int integrate_in_time(double target_time)
                 G.t_moving = G.sim_time + G.dt_moving;
 	    } // end if ( G.sim_time >= G.t_moving )
 	} // end if ( G.moving_grid )
+
+        // check flow induced grid moving
+	if ( G.flow_induced_moving && G.turbulence_model == TM_K_OMEGA && G.sim_time >= G.t_moving ) {
+
+            for ( Block *bdp : G.my_blocks ) {
+                bdp->clear_vertex_velocities(G.dimensions);
+            }
+
+	    // Place a barrier so that each rank has completed the call before moving on
+#           ifdef _MPI	        
+	    MPI_Barrier( MPI_COMM_WORLD );
+#           endif	  
+
+	    write_temp_solution_data();
+#           ifdef _MPI	        
+	    MPI_Barrier( MPI_COMM_WORLD );
+#           endif	        
+	    if ( master ) {
+	        if ( system("./flow_induced_moving.sh") != 0 ) {
+	            printf( "Error: check the external code for flow induced moving grid.\n");
+	        }
+	    }
+#           ifdef _MPI	        
+	    MPI_Barrier( MPI_COMM_WORLD );
+#           endif
+	    for ( Block *bdp : G.my_blocks ) {
+	        sprintf( jbcstr, "b%04d", static_cast<int>(bdp->id) );
+	        string jbstring = jbcstr;
+	        string filename = "temp/"+jbstring;
+                if ( bdp->read_vertex_velocities(filename, G.dimensions) != SUCCESS ) {
+                    printf( "Error: check the output vertex velocities.\n");
+	        }
+            } // end for *bdp
+#           ifdef _MPI	        
+	    MPI_Barrier( MPI_COMM_WORLD );
+#           endif
+            // update grid positions
+            for ( Block *bdp : G.my_blocks ) {
+                bdp->predict_vertex_positions(G.dimensions, G.dt_global);
+                bdp->correct_vertex_positions(G.dimensions, G.dt_global);
+            }	
+            for ( Block *bdp : G.my_blocks ) {
+	        if ( !bdp->active ) continue;
+	        for ( FV_Cell *cp: bdp->active_cells ) {
+	            cp->copy_grid_level_to_level(2, 0);
+	        }
+            }
+	    for ( Block *bdp : G.my_blocks ) {
+		bdp->compute_primary_cell_geometric_data(G.dimensions, 0);
+		bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions, 0);
+		bdp->compute_secondary_cell_geometric_data(G.dimensions, 0);
+	    }	    
+            // check CFL condition if flow induced moving and
+            // grid has been adjusted at this time step                    
+            do_cfl_check_now = true;
+            // if we are using fixed time step, no cfl check
+            if ( G.fixed_time_step ) {
+                do_cfl_check_now = false;
+            }	
+            G.t_moving = G.sim_time + G.dt_moving;
+	} // end if
 		
 	// explicit or implicit update of the inviscid terms.
 	int break_loop2 = 0;
 	switch ( G.implicit_mode ) {
 	case 0: // explicit update of convective terms and, maybe, the viscous terms
-	    if ( G.moving_grid )     
-		break_loop2 = gasdynamic_increment_with_moving_grid(G.dt_global);
+	    if ( G.moving_grid )
+		break_loop2 = gasdynamic_increment_with_moving_grid(G.dt_global);            
 	    else
 		break_loop2 = gasdynamic_explicit_increment_with_fixed_grid(G.dt_global);
 	    break;
@@ -2493,7 +2550,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		} // end if ( G.viscous )
 		for ( FV_Cell *cp: bdp->active_cells ) {
 		    // Radiation transport was calculated once before staged update; recover saved value.
-		    cp->Q_rE_rad = cp->Q_rE_rad_save; 
+		    cp->Q_rE_rad = cp->Q_rE_rad_save;
 		    cp->add_inviscid_source_vector(0, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
 			add_udf_source_vector_for_cell(cp, 0, G.sim_time);
@@ -2778,7 +2835,6 @@ int gasdynamic_increment_with_moving_grid(double dt)
     G.sim_time = t0 + dt;
     return step_status_flag;
 } // end gasdynamic_inviscid_increment_with_moving_grid()
-
 
 int gasdynamic_separate_explicit_viscous_increment()
 // A simple first-order Euler step, of just the viscous-terms contribution.

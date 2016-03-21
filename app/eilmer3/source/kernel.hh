@@ -190,7 +190,7 @@ struct global_data
     bool wall_function;              /* wall function flag */ 
     bool artificial_diffusion;       /* artificial diffusion flag */
     double artificial_kappa_2;       /* coefficient for the second order artificial diffussion flux */
-    double artificial_kappa_4;       /* coefficient for the fourth order artificial diffussion flux */    
+    double artificial_kappa_4;       /* coefficient for the fourth order artificial diffussion flux */        
 
     /// Set the tolerance in relative velocity change for the shock detector.
     /// This value is expected to be a negative number (for compression)

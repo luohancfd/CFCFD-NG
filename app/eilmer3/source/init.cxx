@@ -466,7 +466,7 @@ int read_config_parameters(const string filename, bool master, int start_tindx)
     dict.parse_boolean("global_data", "wall_function_flag", G.wall_function, false);
     dict.parse_boolean("global_data", "artificial_diffusion_flag", G.artificial_diffusion, false);        
     dict.parse_double("global_data", "artificial_kappa_2", G.artificial_kappa_2, 0.0);
-    dict.parse_double("global_data", "artificial_kappa_4", G.artificial_kappa_4, 0.0);    
+    dict.parse_double("global_data", "artificial_kappa_4", G.artificial_kappa_4, 0.0);            
     if ( G.verbosity_level >= 2 ) {
 	cout << "shock_fitting_flag = " << G.shock_fitting << endl;
 	cout << "shock_fitting_decay_flag = " << G.shock_fitting_decay << endl;
