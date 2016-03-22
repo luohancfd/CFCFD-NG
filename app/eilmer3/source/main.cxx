@@ -301,7 +301,7 @@ int main(int argc, char **argv)
 	    char word[32];
 	    while (NULL != fgets(line, sizeof(line), input)) {
 		if (strstr(line, "#") != NULL) continue; // discard comment
-	        sscanf(line, "%d", &start_tindx);
+	        sscanf(line, "%lu", &start_tindx);
 		cout << "found tindx: " << start_tindx << endl;
 	    }
 	    fclose(input);
