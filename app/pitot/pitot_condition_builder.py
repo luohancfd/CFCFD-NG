@@ -808,7 +808,7 @@ def condition_builder_summary_builder(cfg, results):
                     summary_line = "Variable {0} varies from {1:.7f} - {2:.7f} (mole fraction)."\
                     .format(variable, min_value, max_value)
                 elif 'mu' in variable:
-                    summary_line = "Variable {0} varies from {1:.2f} - {2:.2f} Pa.s."\
+                    summary_line = "Variable {0} varies from {1:.4e} - {2:.4e} Pa.s."\
                     .format(variable, min_value, max_value)
                 elif 'rhoL' in variable:
                     summary_line = "Variable {0} varies from {1:.7f} - {2:.7f} kg/m**2."\
