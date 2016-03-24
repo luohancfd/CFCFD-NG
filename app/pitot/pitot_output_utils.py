@@ -490,6 +490,49 @@ def txt_file_output(cfg, states, V, M):
     
     #added ability to get the species in the post-shock condition
     
+    if cfg['calculate_scaling_information']:
+        scaling_intro = "Calculating scaling information fora represenative length scale of {0:.4f} m.".format(cfg['representative_length_scale'])
+        print scaling_intro
+        txt_output.write(scaling_intro + '\n')
+        
+        cfg['rho_l_product_freestream'] = states[cfg['test_section_state']].rho*cfg['representative_length_scale']
+        rho_l_product_freestream_print = "Freestream ({0}) rhoL product is {1:.4f} kg/m**2.".format(cfg['test_section_state'], 
+                                                                                                    cfg['rho_l_product_freestream'])
+        print rho_l_product_freestream_print
+        txt_output.write(rho_l_product_freestream_print + '\n')
+
+        cfg['pressure_l_product_freestream'] = states[cfg['test_section_state']].p*cfg['representative_length_scale']
+        pressure_l_product_freestream_print = "Freestream ({0}) pL product is {1:.4f} Pa*m.".format(cfg['test_section_state'], 
+                                                                                                    cfg['pressure_l_product_freestream'])
+        print pressure_l_product_freestream_print
+        txt_output.write(pressure_l_product_freestream_print + '\n')
+        
+        cfg['reynolds_number_freestream'] = (states[cfg['test_section_state']].rho*V[cfg['test_section_state']]*cfg['representative_length_scale'])/ states[cfg['test_section_state']].mu
+        reynolds_number_freestream_print = "Freestream ({0}) Reynolds number is {1:.4f}.".format(cfg['test_section_state'], 
+                                                                                                 cfg['reynolds_number_freestream'])
+                                                                                                 
+        print reynolds_number_freestream_print
+        txt_output.write(reynolds_number_freestream_print + '\n')        
+        
+
+        if cfg['shock_over_model']:
+            cfg['rho_l_product_state10e'] = states['s10e'].rho*cfg['representative_length_scale']
+            rho_l_product_state10e_print = "Test section post normal shock eq (s10e) rhoL product is {0:.4f} kg/m**2.".format(cfg['rho_l_product_state10e'])
+            print rho_l_product_state10e_print
+            txt_output.write(rho_l_product_state10e_print + '\n')
+    
+            cfg['pressure_l_product_state10e'] = states['s10e'].p*cfg['representative_length_scale']
+            pressure_l_product_state10e_print = "Test section post normal shock eq (s10e) pL product is {0:.4f} Pa.m.".format(cfg['pressure_l_product_state10e'])
+            print pressure_l_product_state10e_print
+            txt_output.write(pressure_l_product_state10e_print + '\n')   
+
+            cfg['reynolds_number_state10e'] = (states['s10e'].rho*V['s10e']*cfg['representative_length_scale'])/ states['s10e'].mu
+            reynolds_number_state10e_print = "Test section post normal shock eq (s10e) Reynolds number is {0:.4f}.".format(cfg['reynolds_number_state10e'])
+                                                                                                 
+            print reynolds_number_state10e_print
+            txt_output.write(reynolds_number_state10e_print + '\n')                                                                                                          
+                                                                                                    
+    
     if cfg['shock_over_model'] and 's10e' in states.keys():
         species1 = 'Species in the shock layer at equilibrium (s10e) (by {0}):'.format(states['s10e'].outputUnits)        
         print species1

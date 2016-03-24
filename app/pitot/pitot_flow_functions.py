@@ -610,7 +610,7 @@ def shock_tube_calculation(cfg, states, V, M):
     if cfg['tunnel_mode'] == 'expansion-tube' and cfg['V2_mirels_limit']:
         print "Setting V2 to Mirels limit of Vs1 value ({0} m/s)".format(cfg['Vs1'])
         V['s2'] = cfg['Vs1']
-    
+     
     if PRINT_STATUS: 
         print "state 2: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s2'].p, states['s2'].T, V['s2']) 
         print "state 3: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s3'].p, states['s3'].T, V['s3']) 
@@ -968,7 +968,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
             print "Using default acceleration tube secant solver tolerance of {0}.".format(cfg['acc_tube_secant_tol'])
         else:
             print "Using custom acceleration tube secant solver tolerance of {0}.".format(cfg['acc_tube_secant_tol'])          
-            
+                
         try:
             cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, 
                                 cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 

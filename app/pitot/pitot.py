@@ -230,6 +230,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
        This was also put into the condition builder, which was a bigger job...
     15-Feb-2016: I added some new code to help CO2 work in the code...
     19-Feb-2016: Finally got the RST nozzle stuff working. 
+    24-Mar-2016: added a way for normal Pitot and the condition builder to calculate
+        the freestream and post-shock Reynolds number of conditions.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -257,7 +259,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "20-FEB-2016"
+VERSION_STRING = "24-MAR-2016"
 
 DEBUG_PITOT = False
 

@@ -191,13 +191,13 @@ def input_checker(cfg, condition_builder = False):
         print "Valid facilities are 'x2','x3', and 'custom'."
         cfg['bad_input'] = True
         
-    if 'driver_gas' not in cfg and not cfg['facility'] == 'custom':
+    if 'driver_gas' not in cfg and not cfg['facility'] == 'custom' and not condition_builder: # don't check this if we're doing a condition builder run:
         print "No 'driver_gas' specified. You need to specify a driver gas. Bailing out."
         print "Available driver gases are are 'He:0.80,Ar:0.20','He:0.90,Ar:0.10', 'He:1.0', and 'He:0.60,Ar:0.40'."
         cfg['bad_input'] = True
         
     #thought I'd add a driver gas check here to pick up some common issues
-    if not cfg['facility'] == 'custom':
+    if not cfg['facility'] == 'custom' and not condition_builder: # don't check this if we're doing a condition builder run:
         if ' ' in cfg['driver_gas'] :    
             cfg['driver_gas'] = cfg['driver_gas'].replace(" ", "") 
             print "Kindly removed a rogue space from the driver gas input string."
@@ -274,7 +274,7 @@ def input_checker(cfg, condition_builder = False):
         if 'test_gas_with_ions' not in cfg:
             print "'test_gas_with_ions' variable not set. Setting to boolean True."
             cfg['test_gas_with_ions'] = True
-            
+        
     if 'custom_accelerator_gas' not in cfg:
         cfg['custom_accelerator_gas'] = False
         
@@ -350,7 +350,7 @@ def input_checker(cfg, condition_builder = False):
         print "Need to specify an 'area_ratio_check_list' to use area ratio check."
         print "Bailing out."
         cfg['bad_input'] = True
-            
+        
     if 'cleanup' not in cfg:
         #if they haven't specified whether to cleanup or not, just cleanup
         print 'Not told whether to cleanup temp files or not. Will not clean them up.'
@@ -449,8 +449,9 @@ def input_checker(cfg, condition_builder = False):
     
     if cfg['test'] == 'fulltheory-pressure' and cfg['secondary'] and 'psd1' not in cfg \
         or cfg['test'] == 'experiment' and cfg['secondary'] and 'psd1' not in cfg:
-        print "Need to supply a float value for psd1."
-        cfg['bad_input'] = True        
+        if not condition_builder: # don't check this if we're doing a condition builder run
+            print "Need to supply a float value for psd1."
+            cfg['bad_input'] = True        
         
     if cfg['test'] == 'fulltheory-pressure' and 'p1' not in cfg \
         or cfg['test'] == 'experiment' and 'p1' not in cfg:
@@ -547,14 +548,32 @@ def input_checker(cfg, condition_builder = False):
         if not isinstance(cfg['Mr_sd'], (float,int,str)):
             print "Chosen 'Mr_sd' value is not either an int, float, or string. Bailing out."
             cfg['bad_input'] = True
+            
         if isinstance(cfg['Mr_sd'], str):
             if cfg['Mr_sd'] not in ['Maximum', 'maximum', 'max', 'MAXIMUM', 'MAX']:
                 print "Chosen 'Mr_sd' is a string but is not set to a variant of 'maximum'. Bailing out."
                 cfg['bad_input'] = True    
             else:
                 cfg['Mr_sd'] = 'maximum'
+                
         if isinstance(cfg['Mr_sd'], int):
             cfg['Mr_sd'] = float(cfg['Mr_sd'])
+            
+    if 'calculate_scaling_information' not in cfg:
+       cfg['calculate_scaling_information'] = False
+    
+    if not isinstance(cfg['calculate_scaling_information'], (bool)):
+        print "'calculate_scaling_information' input is not a boolean (True or False). Bailing out."
+        cfg['bad_input'] = True
+    
+    if cfg['calculate_scaling_information'] and 'representative_length_scale' not in cfg:
+        print "'calculate_scaling_information' is set to True but 'representative_length_scale' is not in the cfg."
+        print "Please set a representative length scale value. Bailing out."
+        cfg['bad_input'] = True   
+        
+    if cfg['calculate_scaling_information'] and not isinstance(cfg['representative_length_scale'], (float,int)):  
+        print "'representative_length_scale' value is not a number. Bailing out."
+        cfg['bad_input'] = True        
                         
     if cfg['bad_input']: #bail out here if you end up having issues with your input
         print "Config failed check. Bailing out now."

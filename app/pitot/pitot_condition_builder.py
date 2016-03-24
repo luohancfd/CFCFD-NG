@@ -49,14 +49,18 @@ def check_new_inputs(cfg):
     
     """
     
+    cfg['bad_input'] = False
+    
     print "Starting check of condition builder specific inputs."
     
     if 'driver_condition_list' not in cfg:
         print "'driver_condition_list' variable not specified. Bailing out."
         print "Variable needs to be a list containing valid driver conditions."
         cfg['bad_input'] = True
+        
     driver_condition_check_list = ['He:0.80,Ar:0.20', 'He:0.90,Ar:0.10', 'He:1.0', 
                                    'He:0.60,Ar:0.40','custom']
+                                   
     for driver_condition in cfg['driver_condition_list']:
         if driver_condition not in driver_condition_check_list:
             print "Invalid driver condition found in 'driver_condition_list'. Bailing out."
@@ -245,7 +249,15 @@ def build_results_dict(cfg):
     if cfg['store_electron_concentration']:     
         store_electron_concentration_list = ['s2ec','s7ec','s8ec','s10ec']
         full_list += store_electron_concentration_list
-
+        
+    if cfg['calculate_scaling_information']:
+        calculate_scaling_information_freestream_list = ['freestream_mu', 'freestream_rhoL', 'freestream_pL', 'freestream_Re']
+        full_list += calculate_scaling_information_freestream_list
+        
+        if cfg['shock_over_model']:
+            calculate_scaling_information_normal_shock_list = ['s10e_mu', 's10e_rhoL', 's10e_pL', 's10e_Re']
+            full_list += calculate_scaling_information_normal_shock_list            
+            
     # now populate the dictionary with a bunch of empty lists based on that list
 
     results = {title : [] for title in full_list}
@@ -707,6 +719,18 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
                     results['s10ec'].append(0.0)
             else:
                 results['s10ec'].append('did not solve')
+                
+    if cfg['calculate_scaling_information']:
+        results['freestream_mu'].append(states[cfg['test_section_state']].mu)        
+        results['freestream_rhoL'].append(cfg['rho_l_product_freestream'])
+        results['freestream_pL'].append(cfg['pressure_l_product_freestream'])  
+        results['freestream_Re'].append(cfg['reynolds_number_freestream'])         
+        
+        if cfg['shock_over_model']:
+            results['s10e_mu'].append(states['s10e'].mu) 
+            results['s10e_rhoL'].append(cfg['rho_l_product_state10e'])
+            results['s10e_pL'].append(cfg['pressure_l_product_state10e'])  
+            results['s10e_Re'].append(cfg['reynolds_number_state10e'])  
                      
     return results
     
@@ -783,6 +807,18 @@ def condition_builder_summary_builder(cfg, results):
                 elif variable[-2:] == 'ec':
                     summary_line = "Variable {0} varies from {1:.7f} - {2:.7f} (mole fraction)."\
                     .format(variable, min_value, max_value)
+                elif 'mu' in variable:
+                    summary_line = "Variable {0} varies from {1:.2f} - {2:.2f} Pa.s."\
+                    .format(variable, min_value, max_value)
+                elif 'rhoL' in variable:
+                    summary_line = "Variable {0} varies from {1:.7f} - {2:.7f} kg/m**2."\
+                    .format(variable, min_value, max_value)      
+                elif 'pL' in variable:
+                    summary_line = "Variable {0} varies from {1:.2f} - {2:.2f} Pa.m."\
+                    .format(variable, min_value, max_value)  
+                elif 'Re' in variable:
+                    summary_line = "Variable {0} varies from {1:.2f} - {2:.2f}."\
+                    .format(variable, min_value, max_value)   
                 else:
                     summary_line = "Variable {0} varies from {1:.1f} - {2:.1f}."\
                     .format(variable, min_value, max_value)
@@ -865,6 +901,13 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
         cfg = config_loader(config_file)
         
     #----------------- check inputs ----------------------------------------
+    
+    # need to get secondary into cfg
+    
+    if True in cfg['secondary_list']:
+        cfg['secondary'] = True
+    else:
+        cfg['secondary'] = False
     
     cfg = input_checker(cfg, condition_builder = True)
     
