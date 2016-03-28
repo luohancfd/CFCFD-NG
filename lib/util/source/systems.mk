@@ -508,7 +508,12 @@ ifeq ($(TARGET), for_cray_intel)
     CXXFLAG := -c -w2 -O2 -fPIC -std=c++0x
 endif
 
-
-
-
-
+ifeq ($(TARGET), for_cray_gnu)
+    COMPILE := cc
+    LINK    := cc
+    CXXCOMPILE := CC
+    CXXLINK := CC
+    LFLAG   := -dynamic -fPIC
+    CFLAG := -c -Wall -O3 -fPIC
+    CXXFLAG := -c -Wall -O3 -fPIC -std=c++0x
+endif

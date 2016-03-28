@@ -56,6 +56,10 @@ ifeq ($(TARGET), for_cray_intel)
     WITH_MPI := 1
 endif
 
+ifeq ($(TARGET), for_cray_gnu)
+    WITH_MPI := 1
+endif
+
 # We seem to be having trouble with optimizing compilers.
 # This optimization level may be over-ridden at the command line.
 OPT ?= -O2
