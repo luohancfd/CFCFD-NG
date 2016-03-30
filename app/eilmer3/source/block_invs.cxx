@@ -50,6 +50,7 @@ int Block::inviscid_flux(size_t dimensions)
     FlowState Lft(gmodel);
     FlowState Rght(gmodel);
     size_t layer_depth;
+    size_t nominal_layer_depth=4; // Nominal number of cells over which we don't set the artificial dissipation.
     
     // ifi interfaces are East-facing interfaces.
     for ( size_t k = kmin; k <= kmax; ++k ) {
@@ -100,7 +101,7 @@ int Block::inviscid_flux(size_t dimensions)
 		    }
 		    // added the artificial viscosity flux limiter
 	            if ( G.artificial_diffusion ) {
-	                layer_depth = nni/4;
+	                layer_depth = max(nni/4, nominal_layer_depth);
                         if ( (i <= imin+layer_depth ) && bcp[WEST]->is_wall() ) {
                             // do nothing here, we don't want to apply artificial diffusion at the near wall region.
                             continue;
@@ -157,7 +158,7 @@ int Block::inviscid_flux(size_t dimensions)
 	        } // end if
 		// added the artificial viscosity flux limiter
 	        if ( G.artificial_diffusion ) {
-	            layer_depth = nnj/4;	        
+	            layer_depth = max(nnj/4, nominal_layer_depth);
                     if ( (j <= jmin+layer_depth) && bcp[SOUTH]->is_wall() ) {
                         // do nothing here, we don't want to apply artificial diffusion at the near wall region.
                         continue;                             
@@ -215,7 +216,7 @@ int Block::inviscid_flux(size_t dimensions)
 		} // end if
 		// added the artificial viscosity flux limiter
 	        if ( G.artificial_diffusion ) {
-	            layer_depth = nnk/4;	        
+	            layer_depth = max(nnk/4, nominal_layer_depth);
                     if ( (k <= kmin+layer_depth) && bcp[BOTTOM]->is_wall() ) {
                         // do nothing here, we don't want to apply artificial diffusion at the near wall region.
                         continue;                             
