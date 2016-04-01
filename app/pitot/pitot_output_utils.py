@@ -257,12 +257,12 @@ def txt_file_output(cfg, states, V, M):
             if states[it_string].p < 1.0e6: #change how the pressure is printed if it's too big, it keeps ruining the printouts!
                 if states[it_string].rho < 0.01:
                     # also need something for when density is too small...
-                    conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.2e}{7:<7.0f}{8:<9.1f}"\
+                    conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.2e}{7:<7.0f}{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])
                 else:
-                    conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<7.0f}{8:<9.1f}"\
+                    conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<7.0f}{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])
@@ -270,12 +270,12 @@ def txt_file_output(cfg, states, V, M):
             else:
                 if states[it_string].rho < 0.01:
                     # also need something for when density is too small...
-                    conditions = "{0:<6}{1:<11.3e}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.2e}{7:<7.0f}{8:<9.1f}"\
+                    conditions = "{0:<6}{1:<11.3e}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.2e}{7:<7.0f}{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])
                 else:
-                    conditions = "{0:<6}{1:<11.3e}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<7.0f}{8:<9.1f}"\
+                    conditions = "{0:<6}{1:<11.3e}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<7.0f}{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])                    
@@ -756,12 +756,12 @@ def csv_file_output(cfg, states, V, M):
             if states[it_string].p < 1.0e6: #change how the pressure is printed if it's too big, it keeps ruining the printouts!  
                 if states[it_string].rho < 0.01:
                     # also need something for when density is too small...
-                    csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.2e},{7:<7.0f},{8:<9.1f}"\
+                    csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.2e},{7:<7.0f},{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])
                 else:
-                    csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.5f},{7:<7.0f},{8:<9.1f}"\
+                    csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.5f},{7:<7.0f},{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])
@@ -769,12 +769,12 @@ def csv_file_output(cfg, states, V, M):
             else:
                 if states[it_string].rho < 0.01:
                     # also need something for when density is too small...
-                    csv_conditions = "{0:<6},{1:<11.3e},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.2e},{7:<7.0f},{8:<9.1f}"\
+                    csv_conditions = "{0:<6},{1:<11.3e},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.2e},{7:<7.0f},{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])
                 else:
-                    csv_conditions = "{0:<6},{1:<11.3e},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.5f},{7:<7.0f},{8:<9.1f}"\
+                    csv_conditions = "{0:<6},{1:<11.3e},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.5f},{7:<7.0f},{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])         

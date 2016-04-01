@@ -1406,6 +1406,18 @@ def shock_over_model_calculation(cfg, states, V, M):
             print "Result will not be printed."
             if 's10e' in states.keys():
                 del states['s10e']
+
+    if 's10f' in states.keys() and PRINT_STATUS:
+        print "state 10f: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10f'].p, states['s10f'].T,  V['s10f'])
+        print 'state 10f gamma = {0}, state 10f R = {1}.'.format(states['s10f'].gam,states['s10f'].R)             
+             
+             
+    if 's10e' in states.keys() and PRINT_STATUS:
+        print "state 10e: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10e'].p, states['s10e'].T,  V['s10e'])
+        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+            print 'species in state10e at equilibrium:'               
+            print '{0}'.format(states['s10e'].species)
+        print 'state 10e gamma = {0}, state 10e R = {1}.'.format(states['s10e'].gam,states['s10e'].R)
         
     if PRINT_STATUS: print '-'*60
                 
@@ -1529,6 +1541,15 @@ def wedge_calculation(cfg, states, V, M):
                 print "Result will not be printed."
                 if 's10we' in states.keys():
                     del states['s10we']
+                    
+        if 's10we' in states.keys() and PRINT_STATUS:
+            print "state 10we: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10we'].p, states['s10we'].T,  V['s10we'])
+            if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+                print 'species in state10we at equilibrium:'               
+                print '{0}'.format(states['s10we'].species)
+            print 'state 10we gamma = {0}, state 10we R = {1}.'.format(states['s10we'].gam,states['s10we'].R)
+            
+    if PRINT_STATUS: print '-'*60
                 
     return cfg, states, V, M
     
@@ -1590,6 +1611,13 @@ def conehead_calculation(cfg, states, V, M):
     # turn the ions back on at the end
     if cfg['conehead_no_ions']: states[cfg['test_section_state']].with_ions = True
     if cfg['conehead_no_ions_required']: cfg['conehead_no_ions'] = False
+        
+    if 's10c' in states.keys() and PRINT_STATUS:
+        print "state 10c: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10c'].p, states['s10c'].T,  V['s10c'])
+        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+            print 'species in state10c at equilibrium:'               
+            print '{0}'.format(states['s10c'].species)
+        print 'state 10c gamma = {0}, state 10c R = {1}.'.format(states['s10c'].gam,states['s10c'].R)
     
     if PRINT_STATUS: print '-'*60
     
