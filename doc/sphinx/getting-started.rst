@@ -3,14 +3,15 @@ Getting the codes and preparing to run them
 
 The code repository
 -------------------
-The codes are available for download from a Mercurial repository.
+The codes are available for download from a public Mercurial repository.
 To make a clone of the repository::
 
   $ cd $HOME
   $ hg clone https://source.eait.uq.edu.au/hg/cfcfd3 cfcfd3
 
-and provide the username "cfcfd-user@svn.itee.uq.edu.au" for authentication.
-This takes about 40 seconds on campus at UQ.  
+You may provide the username "cfcfd-user@svn.itee.uq.edu.au" for authentication but
+no password is required for reading.
+Cloning the repository takes about 40 seconds on campus at UQ.  
 It may take much longer, depending on your internet connection.
 
 To see what's changed::
@@ -22,7 +23,7 @@ To see what's changed::
 
 Notes
 
-#. You will need a password for any access.  Please ask.
+#. You do not need a password for for read access.
 #. You can read but not write with the "cfcfd-user" username.
 #. Some usernames (cfcfd-dev@svn.itee.uq.edu.au) may push changesets back 
    to the repository.  You will need to negotiate a developer role for this access.
@@ -37,9 +38,9 @@ Notes
 Licence
 -------
 CFCFD program collection is a set of flow simulation tools for compressible fluids.
-Copyright (C) 1991-2012 Peter Jacobs, Rowan Gollan, Daniel Potter,
-Brendan O'Flaherty, Fabian Zander, Wilson Chan, Peter Blyton and
-other members of the CFCFD group.
+Copyright (C) 1991-2016 Peter Jacobs, Rowan Gollan, Daniel Potter, 
+Ingo Jahn, Anand Veeraragavan, Vince Wheatley, Daryl Bond, Chris James
+and other members of the CFCFD group.
 
 This collection is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

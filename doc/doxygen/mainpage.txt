@@ -3,7 +3,7 @@
 \section intro Introduction
 
 This is the developer documentation for the C++ source code collection 
-of the CFCFD group. Refer to the home page at http://mech.uq.edu.au/cfcfd 
+of the CFCFD group. Refer to the home page at http://cfcfd.mechmining.uq.edu.au 
 for documentation of python sources.
 */
 

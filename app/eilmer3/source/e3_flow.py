@@ -896,7 +896,7 @@ class ExistingSolution(object):
         :param rootName: job name that will be used to build file names
         :param solutionWorkDir: the directory where we'll find our ExistingSolution files.
         :param nblock: number of blocks in the ExistingSolution data set
-        :param tindx: the time index to select 0..9999:
+        :param tindx: the time index to select 0..9999
             Do not specify with leading zeros because the Python interpreter
             will assume that you want to count the time index in octal.
 
@@ -912,8 +912,10 @@ class ExistingSolution(object):
         :param add_velocity: is the value to be aded to the old-solution's velocity.
             If it is a float value, it becomes the x-component. Otherwise, 
             a Vector value should be supplied and all components will be used.
+
         :param tke: is the value for the initial tke for the turbulent flow. This
             is applied when we change our simulations from laminar to turbulent
+
         : param omega: is the value for the initial omega for the turbulent flow.
             This is also applied when we change our simulations from laminar to turbulent.
         """

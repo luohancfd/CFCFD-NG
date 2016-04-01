@@ -55,25 +55,28 @@ SGI supercomputer, the national APAC facility and a number of local machines.
 Current group members
 ---------------------
 Daryl Bond;
+James Burgess;
 Wilson Chan;
+Kyle Damm;
 Zac Denman;
-Luke Doherty, University of Oxford;
 Elise Fahy;
 David Gildfind;
 Rowan J. Gollan;
+Jonathan Ho;
 Peter A. Jacobs;
 Ingo Jahn;
 Chris James;
 Xin Kang;
 Matthew McGilvray, University of Oxford;
+Heather Muir;
 Paul J. Petrie-Repar, RPM-Turbo, Brisbane;
+Peter Roman, Brisbane;
 Daniel Potter, CSIRO, Newcastle;
 Jason (Kan) Qin;
 Anand Veeraragavan;
-Carlos de Miranda Ventura;
 Han Wei;
 Vincent Wheatley;
-Fabian Zander.
+Lachlan Whyborn.
 
 Past members and associates
 ---------------------------
@@ -84,13 +87,14 @@ Chris S. Craddock, BMT, UK;
 Brian Cook;
 Jason Czapla;
 Andrew Denman;
+Luke Doherty, University of Oxford;
 Michael Elford;
 James M. Faddy;
 Tony Gardner,  DLR;
 Richard J. Goozee;
 Klaus Hannemann and Monika Hannemann, DLR, Goettingen;
 Haruko Ishikawa, Tokyo;
-Carolyn Jacobs, Ecole Centrale, Paris;
+Carolyn Jacobs, Ecole Centrale-Supelec, Paris;
 Ian A. Johnston, DSTO, Adelaide;
 Charles Lilley, Melbourne;
 Michael N. Macrossan;
@@ -103,9 +107,9 @@ Michael Scott;
 Todd Silvester; 
 Ben Stewart;
 Joseph Tang, WBM Pty Ltd, Brisbane;
+Carlos de Miranda Ventura, Department of Engineering, University of Cambridge;
 Tina Weichel, Germany;
 Michael Wendt, CSIRO, Brisbane;
-Adriaan Window, Brisbane.
-
-
+Adriaan Window, Brisbane;
+Fabian Zander.
 

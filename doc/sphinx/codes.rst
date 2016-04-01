@@ -1,7 +1,7 @@
 The CFCFD Code Collection
 =========================
 
-For local and external collaborators, these are available via a Mercurial repository.
+For local and external collaborators, these are available via a public Mercurial repository.
 
 #. *eilmer3*: The current compresible-flow Navier-Stokes simulation code
    for 2D and 3D flows. 
