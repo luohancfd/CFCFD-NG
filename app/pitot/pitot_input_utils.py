@@ -625,7 +625,7 @@ def start_message(cfg, states):
         if 'p1' in cfg:
             print 'Selected shock tube fill pressure (p1) = {0} Pa.'.format(cfg['p1'])
             print 'Selected shock tube fill temperature (T1) = {0} K.'.format(cfg['T1'])
-        if 'p5' in cfg:
+        if 'p5' in cfg and cfg['tunnel_mode'] == 'expansion-tube':
             if cfg['custom_accelerator_gas']:
                 if cfg['solver'] == 'eq':
                     accelerator_gas_used = 'Custom accelerator gas is {0} (by {1}, gamma = {2}, R = {3:.2f}).'\
