@@ -1126,7 +1126,6 @@ def test_section_setup(cfg, states, V, M):
     elif cfg['tunnel_mode'] == 'expansion-tube' and not cfg['nozzle']:
         cfg['test_section_state'] = 's7' 
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' and cfg['nozzle']:
-        if PRINT_STATUS: print "Starting stea        M['s8']= V['s8']/states['s8'].ady expansion through the nozzle."
         cfg['nozzle_entry_state'] = 's2'
         cfg, states, V, M == nozzle_expansion(cfg, states, V, M)
         cfg['test_section_state'] = 's8'

@@ -49,7 +49,12 @@ def txt_file_output(cfg, states, V, M):
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' or cfg['tunnel_mode'] == 'reflected-shock-tunnel': 
         description_1 = 'state 1 is shock tube fill.' 
     print description_1
-    txt_output.write(description_1 + '\n')
+    txt_output.write(description_1 + '\n')   
+    if cfg['tunnel_mode'] == 'expansion-tube':
+        state2_description = "state 2 is the shocked test gas."
+        print state2_description
+        txt_output.write(state2_description + '\n')   
+        
     if cfg['tunnel_mode'] == 'expansion-tube' and cfg['nozzle']:      
         description_2 = 'state 7 is expanded test gas entering the nozzle.'
     elif cfg['tunnel_mode'] == 'expansion-tube' and not cfg['nozzle']:
@@ -204,7 +209,7 @@ def txt_file_output(cfg, states, V, M):
     print key
     txt_output.write(key + '\n')
     
-    units = "{0:6}{1:11}{2:9}{3:6}{4:9}{5:6}{6:9}{7:9}{8:9}".format("","Pa","K","m/s","m/s","","kg/m^3","kPa","MPa")
+    units = "{0:6}{1:11}{2:9}{3:6}{4:9}{5:6}{6:9}{7:8}{8:9}".format("","Pa","K","m/s","m/s","","kg/m^3","kPa","MPa")
     print units
     txt_output.write(units + '\n')
     
@@ -257,12 +262,12 @@ def txt_file_output(cfg, states, V, M):
             if states[it_string].p < 1.0e6: #change how the pressure is printed if it's too big, it keeps ruining the printouts!
                 if states[it_string].rho < 0.01:
                     # also need something for when density is too small...
-                    conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.2e}{7:<7.0f}{8:<9.3f}"\
+                    conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.2e}{7:<8.1f}{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])
                 else:
-                    conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<7.0f}{8:<9.3f}"\
+                    conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<8.1f}{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])
@@ -270,12 +275,12 @@ def txt_file_output(cfg, states, V, M):
             else:
                 if states[it_string].rho < 0.01:
                     # also need something for when density is too small...
-                    conditions = "{0:<6}{1:<11.3e}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.2e}{7:<7.0f}{8:<9.3f}"\
+                    conditions = "{0:<6}{1:<11.3e}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.2e}{7:<8.1f}{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])
                 else:
-                    conditions = "{0:<6}{1:<11.3e}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<7.0f}{8:<9.3f}"\
+                    conditions = "{0:<6}{1:<11.3e}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<8.1f}{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])                    
@@ -465,7 +470,10 @@ def txt_file_output(cfg, states, V, M):
         print frozen_wedge
         txt_output.write(frozen_wedge + '\n')
         if cfg['solver'] in ['eq', 'pg-eq']:
-            eq_wedge = 'Equilibrium wedge beta angle is {0:.3f} degrees.'.format(math.degrees(cfg['beta_eq']))
+            if 'beta_eq' in cfg:
+                eq_wedge = 'Equilibrium wedge beta angle is {0:.3f} degrees.'.format(math.degrees(cfg['beta_eq']))
+            else:
+                eq_wedge = "Equilibrium wedge angle did not solve."
             print eq_wedge
             txt_output.write(eq_wedge + '\n')            
 
@@ -756,12 +764,12 @@ def csv_file_output(cfg, states, V, M):
             if states[it_string].p < 1.0e6: #change how the pressure is printed if it's too big, it keeps ruining the printouts!  
                 if states[it_string].rho < 0.01:
                     # also need something for when density is too small...
-                    csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.2e},{7:<7.0f},{8:<9.3f}"\
+                    csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.2e},{7:<8.1f},{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])
                 else:
-                    csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.5f},{7:<7.0f},{8:<9.3f}"\
+                    csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.5f},{7:<8.1f},{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])
@@ -769,12 +777,12 @@ def csv_file_output(cfg, states, V, M):
             else:
                 if states[it_string].rho < 0.01:
                     # also need something for when density is too small...
-                    csv_conditions = "{0:<6},{1:<11.3e},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.2e},{7:<7.0f},{8:<9.3f}"\
+                    csv_conditions = "{0:<6},{1:<11.3e},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.2e},{7:<8.1f},{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])
                 else:
-                    csv_conditions = "{0:<6},{1:<11.3e},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.5f},{7:<7.0f},{8:<9.3f}"\
+                    csv_conditions = "{0:<6},{1:<11.3e},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.5f},{7:<8.1f},{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T,
                             states[it_string].a,V[it_string],M[it_string],
                             states[it_string].rho, pitot[it_string], p0[it_string])         
@@ -885,7 +893,10 @@ def csv_file_output(cfg, states, V, M):
             frozen_wedge = "Frozen wedge is detached."
             csv_output.write(frozen_wedge + '\n')
         if cfg['solver'] in ['eq', 'pg-eq']:
-            eq_wedge = 'Equilibrium wedge beta angle, {0:.3f} degrees.'.format(math.degrees(cfg['beta_eq']))
+            if 'beta_eq' in cfg:
+                eq_wedge = 'Equilibrium wedge beta angle, {0:.3f} degrees.'.format(math.degrees(cfg['beta_eq']))
+            else:
+                eq_wedge = "Equilibrium wedge is detached."
             csv_output.write(eq_wedge + '\n')    
 
     if cfg['calculate_test_time']: 
