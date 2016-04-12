@@ -417,7 +417,7 @@ def check_for_undefined_labels(patch_Label):
     A = [item for sublist in patch_Label for item in sublist]
     A = set(A)
     String = ['EMPTY', 'Centreline']
-    for i in range(10):
+    for i in range(100):
         String.append("OF_inlet_"+'%02d' % i)
         String.append("OF_outlet_"+'%02d' % i)
         String.append("OF_wall_"+'%02d' % i)  
@@ -637,7 +637,7 @@ def main(uoDict):
     N_list_wall = []
     N_list_sym = []
 
-    for i in range(10):
+    for i in range(100):
         in_n = ("OF_inlet_"+'%02d' % i)
         out_n = ("OF_outlet_"+'%02d' % i)
         wall_n = ("OF_wall_"+'%02d' % i)  
