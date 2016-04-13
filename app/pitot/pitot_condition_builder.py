@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "24-Jan-2015"
+VERSION_STRING = "13-Apr-2015"
 
 import sys
 
@@ -268,6 +268,10 @@ def build_results_dict(cfg):
     
     #add a list where we can store unsuccesful run numbers for analysis
     results['unsuccessful_runs'] = []
+    
+    print '-'*60
+    print "The full list of variables to be added to the output are:"
+    print full_list
     
     return results
     
