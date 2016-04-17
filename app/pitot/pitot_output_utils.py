@@ -736,7 +736,7 @@ def csv_file_output(cfg, states, V, M):
                     pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
                 except:
                     try:
-                        #try again with no ions turned on if it bails out
+                        #try again witcfg, states, V, Mh no ions turned on if it bails out
                         states[it_string].with_ions = False
                         pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
                         states[it_string].with_ions = True
@@ -906,6 +906,222 @@ def csv_file_output(cfg, states, V, M):
     csv_output.close()
     
     return cfg, states, V, M
+    
+def make_x_t_diagram(cfg, states, V, M, filename = 'x-t-diagram', show = False):
+    """Function to make an x-t diagram if the user requests it.
+       Currently only works for the X2 Expansion Tube but other facility values
+       could be added in the future...
+    """
+    
+    # X2 diaphragm and PCB locations are from 
+    #Gildfind, D. E., Jacobs, P. A., and Morgan, R. G., "Vibration isolation in a free-
+    #piston driven expansion tube facility," Shock Waves, Vol. 23, No. 5, 2013, pp. 431-438.
+    
+    transducer_list = ['sd1', 'sd2', 'sd3', 'st1', 'st2', 'st3', 
+                       'at1', 'at2', 'at3', 'at4', 'at5', 'at6']
+    # 0-m has been taken as the primary diaphragm location, locations are in m
+    # tube exit is with the X2 nozzle, but it's good enough for now...
+    loc_dict = {'sd1':2.577,'sd2':2.810, 'sd3':3.043,'st1':4.231,
+                'st2':4.746, 'st3':5.260, 'at1':6.437,'at2':6.615,
+                'at3':6.796,'at4':7.590, 'at5':7.846,'at6':8.096,
+                'secondary diaphragm': 3.418, 'tertiary diaphragm': 5.976,
+                'tube exit': 8.585}
+                
+    if cfg['facility'] != 'x2':
+        print "Currently, this mode can only be used for the X2 Expansion Tube, will finish now..."
+        return cfg
+        
+    print "Making x-t diagram of flow through the X2 Expansion Tube."
+    
+    shock_x_list = [0.0]
+    shock_t_list = [0.0]
+    
+    transducer_times = {}
+    
+    with open(cfg['filename']+'-' + filename + '-summary.txt', 'w') as output_file:
+    
+        intro_line = "# x-t diagram summary made using Pitot Version {0}.".format(cfg['VERSION_STRING'])
+        print intro_line
+        output_file.write(intro_line + '\n')
+    
+        if cfg['secondary']:
+                        
+            # we have a secondary driver, so deal with it first...
+            shock_x_list.append(loc_dict['secondary diaphragm'])
+            shock_time = (shock_x_list[-1] - shock_x_list[-2]) / cfg['Vsd'] + shock_t_list[-1]
+            shock_t_list.append(shock_time)
+            
+            print '-'*60            
+            output_file.write('-'*60  + '\n')
+            
+            for transducer in ['sd1', 'sd2', 'sd3']:
+                transducer_time = shock_t_list[-2] + (loc_dict[transducer] - shock_x_list[-2]) / cfg['Vsd']
+                transducer_output =  "Shock will pass transducer {0} at t = {1} s ({2} microseconds)."\
+                                     .format(transducer, transducer_time, transducer_time * 1.0e6)
+                
+                print transducer_output
+                output_file.write(transducer_output + '\n')
+                
+                transducer_times[transducer] = transducer_time
+                
+            Vsd_line =  "Shock will reach end of the secondary driver tube at t = {0} s ({1} microseconds)."\
+                        .format(shock_time, shock_time * 1.0e6)
+            print Vsd_line
+            output_file.write(Vsd_line + '\n')
+            
+            sec_drv_cs_x_list = [shock_x_list[-2], shock_x_list[-1]]
+            cs_time = (sec_drv_cs_x_list[-1] - sec_drv_cs_x_list[-2]) / V['sd2'] + shock_t_list[-1]
+            sec_drv_cs_t_list = [0.0, cs_time]
+            
+            # now do the shock tube...
+            
+            if cfg['tunnel_mode'] == 'expansion-tube': 
+                shock_x_list.append(loc_dict['tertiary diaphragm'])
+            else:
+                # the shock tube runs right to the tube exit...
+                shock_x_list.append(loc_dict['tube exit'])
+            shock_time = (shock_x_list[-1] - shock_x_list[-2]) / cfg['Vs1'] + shock_t_list[-1]
+            shock_t_list.append(shock_time)
+            
+            print '-'*60            
+            output_file.write('-'*60  + '\n')
+            
+            if cfg['tunnel_mode'] == 'expansion-tube': 
+                shk_tube_transducer_list = ['st1', 'st2', 'st3']
+            else:
+                shk_tube_transducer_list = ['st1', 'st2', 'st3', 'at1', 'at2', 'at3', 'at4', 'at5', 'at6']
+        
+            for transducer in shk_tube_transducer_list:
+                transducer_time = shock_t_list[-2] + (loc_dict[transducer] - shock_x_list[-2]) / cfg['Vs1']
+                transducer_output =  "Shock will pass transducer {0} at t = {1} s ({2} microseconds)."\
+                                     .format(transducer, transducer_time, transducer_time * 1.0e6)
+                
+                print transducer_output
+                output_file.write(transducer_output + '\n')
+                
+                transducer_times[transducer] = transducer_time
+                
+            Vs1_line =  "Shock will reach end of the shock tube at t = {0} s ({1} microseconds)."\
+                        .format(shock_time, shock_time * 1.0e6)
+            print Vs1_line
+            output_file.write(Vs1_line + '\n')
+            
+        else:
+            # do shock tube without secondary driver...
+            if cfg['tunnel_mode'] == 'expansion-tube': 
+                shock_x_list.append(loc_dict['secondary diaphragm'])
+            else:
+                # the shock tube runs right to the tube exit...
+                shock_x_list.append(loc_dict['tube exit'])
+            shock_time = (shock_x_list[-1] - shock_x_list[-2]) / cfg['Vs1'] + shock_t_list[-1]
+            shock_t_list.append(shock_time)
+            
+            print '-'*60            
+            output_file.write('-'*60  + '\n')
+            
+            if cfg['tunnel_mode'] == 'expansion-tube': 
+                shk_tube_transducer_list = ['sd1', 'sd2', 'sd3']
+            else:
+                shk_tube_transducer_list = transducer_list
+        
+            for transducer in shk_tube_transducer_list:
+                transducer_time = shock_t_list[-2] + (loc_dict[transducer] - shock_x_list[-2]) / cfg['Vs1']
+                transducer_output =  "Shock will pass transducer {0} at t = {1} s ({2} microseconds)."\
+                                    .format(transducer, transducer_time, transducer_time * 1.0e6)
+            
+                print transducer_output
+                output_file.write(transducer_output + '\n')
+                
+                transducer_times[transducer] = transducer_time
+            
+            Vs1_line =  "Shock will reach end of the shock tube at t = {0} s ({1} microseconds)."\
+                        .format(shock_time, shock_time * 1.0e6)
+            print Vs1_line
+            output_file.write(Vs1_line + '\n')
+        
+        # do the shock tube contact surface... 
+        
+        shk_tube_cs_x_list = [shock_x_list[-2], shock_x_list[-1]]
+        cs_time = (shk_tube_cs_x_list[-1] - shk_tube_cs_x_list[-2]) / V['s2'] + shock_t_list[-2]
+        shk_tube_cs_t_list = [shock_t_list[-2], cs_time]
+        
+        # now do the acc tube if we have an expansion tube...
+        
+        if cfg['tunnel_mode'] == 'expansion-tube': 
+            shock_x_list.append(loc_dict['tube exit'])
+            shock_time = (shock_x_list[-1] - shock_x_list[-2]) / cfg['Vs2'] + shock_t_list[-1]
+            shock_t_list.append(shock_time) 
+            
+            print '-'*60            
+            output_file.write('-'*60  + '\n')
+            
+            # do the shock tube contact surface...    
+            acc_tube_cs_x_list = [shock_x_list[-2], shock_x_list[-1]]
+            cs_time = (acc_tube_cs_x_list[-1] - acc_tube_cs_x_list[-2]) / V['s7'] + shock_t_list[-2]
+            acc_tube_cs_t_list = [shock_t_list[-2], cs_time]
+            
+            if cfg['secondary']:
+                acc_tube_transducer_list = ['at1', 'at2', 'at3', 'at4', 'at5', 'at6']
+            else:
+                acc_tube_transducer_list = ['st1', 'st2', 'st3', 'at1', 'at2', 'at3', 'at4', 'at5', 'at6']
+            
+            for transducer in acc_tube_transducer_list:
+                transducer_time = shock_t_list[-2] + (loc_dict[transducer] - shock_x_list[-2]) /  cfg['Vs2']
+                transducer_output =  "Shock will pass transducer {0} at t = {1} s ({2} microseconds)."\
+                                    .format(transducer, transducer_time, transducer_time * 1.0e6)
+                
+                print transducer_output
+                output_file.write(transducer_output + '\n')
+                
+                transducer_times[transducer] = transducer_time
+                
+            Vs2_line =  "Shock will reach end of the acceleration tube at t = {0} s ({1} microseconds)."\
+                        .format(shock_time, shock_time * 1.0e6)
+            print Vs2_line
+            output_file.write(Vs2_line + '\n')
+        
+    # now let's do some plotting...
+        
+    import matplotlib.pyplot as mplt
+    
+    fig, ax1 = mplt.subplots()
+    mplt.hold(True)
+    
+    # shocks
+    ax1.plot(shock_x_list, shock_t_list, 'k-', label = 'shocks')
+    # contact surfaces
+    if cfg['secondary']:
+        ax1.plot(sec_drv_cs_x_list, sec_drv_cs_t_list, 'k--')  
+    ax1.plot(shk_tube_cs_x_list, shk_tube_cs_t_list, 'k--', label = 'contact surfaces')    
+    if cfg['tunnel_mode'] == 'expansion tube': 
+       ax1.plot(acc_tube_cs_x_list, acc_tube_cs_t_list, 'k--')
+     
+    y_min, y_max = ax1.get_ylim()
+     
+    if cfg['secondary'] and cfg['tunnel_mode'] == 'expansion-tube':
+        mplt.vlines([loc_dict['secondary diaphragm'], loc_dict['tertiary diaphragm']], y_min, y_max, linestyle = 'dotted')
+    elif cfg['secondary'] or cfg['tunnel_mode'] == 'expansion-tube':
+        mplt.vlines([loc_dict['secondary diaphragm']], y_min, y_max, linestyle = 'dotted')
+       
+    ax1.set_xlabel('x (m)')
+    ax1.set_ylabel('t (s)')
+    ax1.set_title('x-t diagram for X2')
+    ax1.legend(loc = 'best')
+        
+    print "Saving x-t diagram in pdf, and png formats under the filename {0}.*".format(filename)   
+    mplt.savefig(filename + '.png',format='png', dpi=250)
+    mplt.savefig(filename + '.pdf',format='pdf', dpi=250)
+    
+    if show:
+        mplt.show()
+    
+    print "x-t digram information has also been added to the cfg dictionary."
+    
+    cfg['shock_x_list'] = shock_x_list
+    cfg['shock_t_list'] = shock_t_list  
+    cfg['transducer_times'] = transducer_times
+        
+    return cfg 
     
 #----------------------------------------------------------------------------
     

@@ -573,8 +573,28 @@ def input_checker(cfg, condition_builder = False):
         
     if cfg['calculate_scaling_information'] and not isinstance(cfg['representative_length_scale'], (float,int)):  
         print "'representative_length_scale' value is not a number. Bailing out."
-        cfg['bad_input'] = True        
-                        
+        cfg['bad_input'] = True
+
+    if cfg['calculate_scaling_information'] and not isinstance(cfg['representative_length_scale'], (float,int)):  
+        print "'representative_length_scale' value is not a number. Bailing out."
+        cfg['bad_input'] = True          
+   
+    # ------------------------- input checking for x t diagram code -----------------   
+   
+    if 'make_x_t_diagram' not in cfg:
+        cfg['make_x_t_diagram'] = False
+        
+    if not isinstance(cfg['make_x_t_diagram'], (bool)):
+        print "'make_x_t_diagram' input is not a boolean (True or False). Bailing out."
+        raise TypeError, "'make_x_t_diagram' input is not a boolean (True or False)"
+    
+    if cfg['make_x_t_diagram'] and 'show_x_t_diagram' not in cfg:
+        cfg['show_x_t_diagram'] = False
+        
+    if cfg['make_x_t_diagram'] and not isinstance(cfg['show_x_t_diagram'], (bool)):
+        print "'show_x_t_diagram' input is not a boolean (True or False). Bailing out."
+        raise TypeError, "'show_x_t_diagram' input is not a boolean (True or False)"        
+    
     if cfg['bad_input']: #bail out here if you end up having issues with your input
         print "Config failed check. Bailing out now."
         print '-'*60

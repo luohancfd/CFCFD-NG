@@ -232,6 +232,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
     19-Feb-2016: Finally got the RST nozzle stuff working. 
     24-Mar-2016: added a way for normal Pitot and the condition builder to calculate
         the freestream and post-shock Reynolds number of conditions.
+    17-Apr-2016: Added code to make an x-t diagram when the user asks for it...
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -259,7 +260,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "13-Apr-2016"
+VERSION_STRING = "17-Apr-2016"
 
 DEBUG_PITOT = False
 
@@ -430,8 +431,13 @@ def run_pitot(cfg = {}, config_file = None):
         cfg, states, V, M = txt_file_output(cfg, states, V, M)
     elif cfg['mode'] == 'csv-printout': #just do the csv printout
         cfg, states, V, M = csv_file_output(cfg, states, V, M)
+        
+    #------------------ x-t diagram builder ------------------------------- 
     
-    #-------------------- run the area ratio check if used to --------------
+    if 'make_x_t_diagram' in cfg and cfg['make_x_t_diagram']:
+         cfg = make_x_t_diagram(cfg, states, V, M, show = cfg['show_x_t_diagram'])
+    
+    #-------------------- run the area ratio check if asked to --------------
 
     if cfg['area_ratio_check']:
         cfg, states, V, M = area_ratio_check(cfg, states, V, M)
