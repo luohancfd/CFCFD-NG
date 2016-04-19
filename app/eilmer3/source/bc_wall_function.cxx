@@ -118,9 +118,10 @@ void correction_adiabatic_wall_2D(FV_Cell *cell, FV_Cell *cell2, FV_Interface *I
         IFace->tau_wall = reverse_flag * tau_wall; 
     }    
     IFace->q_wall = 0.0; // For adiabatic wall only    
-    // transform wall shear stress back to the local frame of reference
+    // transform wall shear stress back to the global frame of reference
     IFace->tau_wall_x = IFace->tau_wall * IFace->n.y;
-    IFace->tau_wall_y = IFace->tau_wall * IFace->n.x; 
+    IFace->tau_wall_y = IFace->tau_wall * IFace->n.x;
+    IFace->tau_wall_z = 0.0;     
                 
     // Turbulence model boundary conditions
     y_white_y_plus = 2.0 * y_plus_white * kappa*sqrt(Gam)/Q
@@ -267,10 +268,11 @@ void correction_fixedt_wall_2D(FV_Cell *cell, FV_Cell *cell2, FV_Interface *IFac
         IFace->tau_wall = reverse_flag * tau_wall;
         IFace->q_wall = q_wall;            
     }
-    // transform wall shear stress back to the local frame of reference
+    // transform wall shear stress back to the global frame of reference
     // 2D
     IFace->tau_wall_x = IFace->tau_wall * IFace->n.y;
     IFace->tau_wall_y = IFace->tau_wall * IFace->n.x;
+    IFace->tau_wall_z = 0.0;    
                 
     // Turbulence model boundary conditions
     y_white_y_plus = 2.0 * y_plus_white * kappa*sqrt(Gam)/Q

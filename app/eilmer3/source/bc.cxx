@@ -941,7 +941,8 @@ int BoundaryCondition::write_surface_data( string filename, double sim_time )
     var_list += "\"pos.x\" \"pos.y\" \"pos.z\" ";
     var_list += "\"T_surface\" \"u_x\" \"u_y\" \"u_z\"";
     var_list += "\"tke_surface\" \"omega_surface\" \"mass_flux\"";
-    var_list += "\"u_tau\" \"rho_wall\" \"q_wall\"";    
+    var_list += "\"u_tau\" \"rho_wall\" \"q_wall\"";
+    var_list += "\"tau_wall_x\" \"tau_wall_y\" \"tau_wall_z\"";        
     fprintf(fp, "%s\n", var_list.c_str());
     
     fprintf(fp, "%d %d %d\n", static_cast<int>(imax-imin+1), 
@@ -960,9 +961,10 @@ int BoundaryCondition::write_surface_data( string filename, double sim_time )
 		 fprintf(fp, "%20.16e %20.16e %20.16e ", 
 		    	 IFace->fs->tke, IFace->fs->omega, IFace->F->mass );
                  if ( G.wall_function && is_wall_flag ) {
-		     fprintf(fp, "%20.16e %20.16e  %20.16e \n", IFace->u_tau, IFace->rho_wall, IFace->q_wall );                 
+		     fprintf(fp, "%20.16e %20.16e  %20.16e %20.16e %20.16e  %20.16e \n", IFace->u_tau, IFace->rho_wall, IFace->q_wall, 
+		                                                                         IFace->tau_wall_x, IFace->tau_wall_y, IFace->tau_wall_z);                 
 		 } else {
-		     fprintf(fp, "%20.16e %20.16e  %20.16e \n", 0.0, 0.0, 0.0 );                 		 
+		     fprintf(fp, "%20.16e %20.16e  %20.16e %20.16e %20.16e  %20.16e \n", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );                 		 
 		 }		    	 
 		} // end i loop
 	    } // end j loop

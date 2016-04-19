@@ -1083,7 +1083,8 @@ class SurfaceData(object):
     Python class to store surface data for a single cell interface
     """
     def __init__(self,i=0,j=0,k=0,x=0.0,y=0.0,z=0.0,T_surface=0.0,u_x=0.0,u_y=0.0,u_z=0.0,
-    	         tke_surface=0.0,omega_surface=0.0,mass_flux=0.0,u_tau=0.0,rho_wall=0.0,q_wall=0.0):
+    	         tke_surface=0.0,omega_surface=0.0,mass_flux=0.0,u_tau=0.0,rho_wall=0.0,q_wall=0.0,
+    	         tau_wall_x=0.0,tau_wall_y=0.0,tau_wall_z=0.0):
 	"""
 	Create a SurfaceData object from provided data
 	"""
@@ -1102,7 +1103,10 @@ class SurfaceData(object):
 	self.mass_flux = mass_flux
 	self.u_tau = u_tau
 	self.rho_wall = rho_wall
-	self.q_wall = q_wall		
+	self.q_wall = q_wall
+	self.tau_wall_x = tau_wall_x
+	self.tau_wall_y = tau_wall_y
+	self.tau_wall_z = tau_wall_z	
 
 class BoundarySurfaceData(object):
     """
@@ -1142,7 +1146,8 @@ class BoundarySurfaceData(object):
 	                               u_z=float(tks[9]),tke_surface=float(tks[10]),
 	                               omega_surface=float(tks[11]),mass_flux=float(tks[12]),
 	                               u_tau=float(tks[13]),rho_wall=float(tks[14]),
-	                               q_wall=float(tks[15]) ) )
+	                               q_wall=float(tks[15]), tau_wall_x=float(tks[16]),
+	                               tau_wall_y=float(tks[17]), tau_wall_z=float(tks[18]) ) )
 	    # set ranges
 	    # lower
 	    if self.iface[-1].i < self.irange[0]: self.irange[0] = self.iface[-1].i
@@ -1225,6 +1230,9 @@ def write_surface_profile(outputFileName, bc_surface_list_str, tindx, nblock, sf
     fp.write("# Column 15: friction velocity\n")
     fp.write("# Column 16: wall density\n")
     fp.write("# Column 17: heat flux\n")        
+    fp.write("# Column 18: wall shear stress: x\n")
+    fp.write("# Column 19: wall shear stress: y\n")
+    fp.write("# Column 20: wall shear stress: z\n")    
     surface_lists = bc_surface_list_str.split(';')
     if verbosity_level > 0: print "surface_lists = ", surface_lists
     first = True
@@ -1256,13 +1264,14 @@ def write_surface_profile(outputFileName, bc_surface_list_str, tindx, nblock, sf
 				first = False
 			    L += vabs(pos-pos_prev)
 			    pos_prev = pos
-			    fp.write("%e %e %e %e %e %e %e %e %e %e %d %d %d %d %e %e %e\n" % \
+			    fp.write("%e %e %e %e %e %e %e %e %e %e %d %d %d %d %e %e %e %e %e %e\n" % \
                                          ( iface_data.T_surface, iface_data.u_x, iface_data.u_y,
                                            iface_data.u_z, iface_data.tke_surface, iface_data.omega_surface,
                                            iface_data.mass_flux,
                                            iface_data.x, iface_data.y, iface_data.z,
                                            jb, i, j, k,
-                                           iface_data.u_tau, iface_data.rho_wall, iface_data.q_wall) )
+                                           iface_data.u_tau, iface_data.rho_wall, iface_data.q_wall,
+                                           iface_data.tau_wall_x, iface_data.tau_wall_y, iface_data.tau_wall_z) )
     #
     return 0
     
