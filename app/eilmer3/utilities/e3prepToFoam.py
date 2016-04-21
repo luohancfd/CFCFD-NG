@@ -30,11 +30,11 @@ from getopt import getopt
 import sys as sys 
 
 shortOptions = ""
-longOptions = ["help", "job=", "create_0"]
+longOptions = ["help", "job=", "create_0", "version="]
 
 def printUsage():
     print ""
-    print "Usage: e3prepToFoam.py [--help] [--job=<jobFileName>] [--create_0]"
+    print "Usage: e3prepToFoam.py [--help] [--job=<jobFileName>] [--create_0] [--version=<of or fe>]"
     return
 
 
@@ -265,6 +265,21 @@ def write_createPatch_header(fp):
     fp.write("(\n")
     return
 
+def write_createPatch_header_fe(fp):
+    #
+    # ------------------- writing files now -----------------------------
+    # points
+    fp.write("    class       dictionary;\n")
+    fp.write("    object      createPatchDict;\n")
+    fp.write("}\n")
+    fp.write("// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n")
+    fp.write("\n")
+    fp.write("pointSync false;\n")
+    fp.write("// Patches to create. \n")
+    fp.write("patchInfo \n")
+    fp.write("(\n")
+    return
+    
 def write_collapseDict_header(fp):
     #
     # ------------------- writing files now -----------------------------
@@ -333,6 +348,18 @@ def write_patches(fp,input_patch_str,output_name,output_type):
     fp.write("    }\n")
     return 
 
+def write_patches_fe(fp,input_patch_str,output_name,output_type):
+    fp.write("    {\n")
+    fp.write(("        name " + output_name +";\n"));
+    fp.write("        dictionary\n")
+    fp.write("        {\n")
+    fp.write(("            type "+output_type+";\n"))
+    fp.write("        }\n")
+    fp.write("        constructFrom patches;\n")
+    fp.write("        patches ("+input_patch_str+");\n")
+    fp.write("    }\n")
+    return 
+
 def write_p_Boundary(fp,bname,btype):
     fp.write("    "+bname+"\n")
     fp.write("    {\n")
@@ -371,14 +398,24 @@ def write_U_Boundary(fp,bname,btype):
     fp.write("    }\n")
     return 
     
-def combine_faces(case_dir,start_dir,patch_str,patch_name,patch_type):
+def combine_faces(case_dir,start_dir,patch_str,patch_name,patch_type,vName):
     file_createPatchDict = "createPatchDict"
     file_createPatchDict = os.path.join((case_dir+ '/system'), file_createPatchDict)
     OFFile0 = open(file_createPatchDict, "wb")
     
     write_general_OpenFoam_header(OFFile0)
-    write_createPatch_header(OFFile0)
-    write_patches(OFFile0,patch_str,patch_name,patch_type)
+    if vName == "of":
+        write_createPatch_header(OFFile0)
+    elif vName == "fe":
+        write_createPatch_header_fe(OFFile0)    
+    else:
+        raise MyError('Unrecognised version name')   
+    if vName == "of":             
+        write_patches(OFFile0,patch_str,patch_name,patch_type)
+    elif vName == "fe":             
+        write_patches_fe(OFFile0,patch_str,patch_name,patch_type)        
+    else:
+        raise MyError('Unrecognised version name')        
     write_general_OpenFoam_bottom_round(OFFile0)
     OFFile0.close()
     print "createPatchDict has been written. \n"
@@ -466,6 +503,9 @@ def main(uoDict):
     # strip .py extension form jobName
     jobName = jobName.split('.')
     jobName = jobName[0]
+    
+    # OpenFOAM version, two options: of and fe
+    vName = uoDict.get("--version", "of")    
 
     # establish case, root, and start directory
     root_dir, case_dir, start_dir, case_name  = get_folders()
@@ -508,16 +548,24 @@ def main(uoDict):
 
         # execute mergeMeshes command
         os.chdir(root_dir)
-        flag = os.system('mergeMeshes -overwrite ' + case_name + ' slave_mesh') 
+        if vName == "of":
+            flag = os.system('mergeMeshes -overwrite ' + case_name + ' slave_mesh') 
+        elif vName == "fe":
+            flag = os.system('mergeMeshes . ' + case_name + ' . slave_mesh')        
+            os.system('rm -r '+case_dir+'/constant/polyMesh')        
+            os.system('mv '+case_dir+'/0.005/polyMesh '+case_dir+'/constant')
+            os.system('rmdir '+case_dir+'/0.005')
+        else:
+            raise MyError('Unrecognised version name')            
         if flag == 0:
             print ('Block ' + '%04d' % block + ' and ' + '%04d' % (block+1) + ' have been merged.')
         else:
             sh.rmtree(root_dir+'/slave_mesh') # removing slave_mesh directory before exiting
             os.chdir(start_dir)
             raise MyError('Error with mergeMeshes. \n Try running of230 to load OpenFOAM module')
-   
+
         # remove polyMesh from slave_mesh
-        sh.rmtree(root_dir+'/slave_mesh/constant/polyMesh')
+        sh.rmtree(root_dir+'/slave_mesh/constant/polyMesh')       
   
     # remove slave_mesh
     sh.rmtree(root_dir+'/slave_mesh')
@@ -560,6 +608,8 @@ def main(uoDict):
             # execute stitchMesh command
             os.chdir(case_dir)
             flag = os.system('stitchMesh -overwrite -perfect ' + current_facename + ' ' + other_facename) 
+            if vName == "fe":
+                flag = os.system('rm '+case_dir+'/constant/polyMesh/*Zones')             
             # move back to starting_directory
             os.chdir(start_dir)  
             if flag == 0:
@@ -597,7 +647,7 @@ def main(uoDict):
                         cent_str = (cent_str + ' b' +'%04d' % block) 
         print cent_str
         if cent_str != "":
-            combine_faces(case_dir,start_dir,cent_str,name,'empty')
+            combine_faces(case_dir,start_dir,cent_str,name,'empty',vName)
 
     # do automatic patch combination
     # top and bottom faces 
@@ -609,7 +659,7 @@ def main(uoDict):
                 patch_str = (patch_str+' b'+ '%04d' % i + ' t' + '%04d' % i)
             patch_name = 'FrontBack'
             patch_type = 'empty'
-            combine_faces(case_dir,start_dir,patch_str,patch_name,patch_type)
+            combine_faces(case_dir,start_dir,patch_str,patch_name,patch_type,vName)
         elif axisymmetric_flag == 1:
             # create pair of wedge patches
             patch_str = ' '
@@ -617,13 +667,13 @@ def main(uoDict):
                 patch_str = (patch_str+' b'+ '%04d' % i)
             patch_name = 'Back'
             patch_type = 'wedge'
-            combine_faces(case_dir,start_dir,patch_str,patch_name,patch_type)            
+            combine_faces(case_dir,start_dir,patch_str,patch_name,patch_type,vName)            
             patch_str = ' '
             for i in range(nblock):
                 patch_str = (patch_str+' t'+ '%04d' % i)
             patch_name = 'Front'
             patch_type = 'wedge'
-            combine_faces(case_dir,start_dir,patch_str,patch_name,patch_type)  
+            combine_faces(case_dir,start_dir,patch_str,patch_name,patch_type,vName)  
         
     # combine patches, based on block label.
     # Following labels are supported: 
@@ -717,16 +767,16 @@ def main(uoDict):
 
         print inlet_str, outlet_str, wall_str, sym_str
         if inlet_str != "":
-            combine_faces(case_dir,start_dir,inlet_str,in_n,'patch')
+            combine_faces(case_dir,start_dir,inlet_str,in_n,'patch',vName)
             N_list_in.append(in_n)
         if outlet_str != "":
-            combine_faces(case_dir,start_dir,outlet_str,out_n,'patch')
+            combine_faces(case_dir,start_dir,outlet_str,out_n,'patch',vName)
             N_list_out.append(out_n)
         if wall_str != "":
-            combine_faces(case_dir,start_dir,wall_str,wall_n,'wall')
+            combine_faces(case_dir,start_dir,wall_str,wall_n,'wall',vName)
             N_list_wall.append(wall_n)
         if sym_str != "":
-            combine_faces(case_dir,start_dir,sym_str,sym_n,'symmetry')
+            combine_faces(case_dir,start_dir,sym_str,sym_n,'symmetry',vName)
             N_list_sym.append(sym_n)
 
     # check if there are patches remaining that havent been defined. 
@@ -809,6 +859,8 @@ def main(uoDict):
     # Re-order numbering of faces/cells for numerical efficiency
     # execute renumberMesh
     os.chdir(case_dir)
+    if vName == "fe": ## at the current stage, Foam extend might not be compatible with create_0 option   
+        os.system('rm -r 0/*')
     flag = os.system('renumberMesh -overwrite')
     # move back to starting_directory
     os.chdir(start_dir) 
