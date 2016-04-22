@@ -93,7 +93,19 @@ def face_index_to_string(ind):
     else:
         print 'Error'
     return 
-
+    
+def find_deltaT(case_dir):
+    f = open((case_dir + '/system/controlDict'),'r')
+    for line in f:
+        if "deltaT" in line:
+            temp = line.split()
+            temp0 = temp[1]
+            temp1 = temp0.split(";")
+            delta_T = temp1[0]            
+            break 
+    f.close()             
+    return delta_T
+            
 def get_job_config_data(job):
     print 'Extracting required variables from job.config'
     f = open((job + '.config'),'r')
@@ -279,7 +291,7 @@ def write_createPatch_header_fe(fp):
     fp.write("patchInfo \n")
     fp.write("(\n")
     return
-    
+
 def write_collapseDict_header(fp):
     #
     # ------------------- writing files now -----------------------------
@@ -541,6 +553,10 @@ def main(uoDict):
 
     # copy Master mesh data into required folder
     sh.copytree((case_dir+'/e3prep/foam/b0000/'),case_dir+'/constant/polyMesh')
+    
+    # find timeName, where a new folder will be created under this name for new meshes
+    if vName == "fe":
+        delta_T = find_deltaT(case_dir)
         
     for block in range(nblock-1):
         # copy correct slave_mesh into slabe_mesh case
@@ -553,8 +569,8 @@ def main(uoDict):
         elif vName == "fe":
             flag = os.system('mergeMeshes . ' + case_name + ' . slave_mesh')        
             os.system('rm -r '+case_dir+'/constant/polyMesh')        
-            os.system('mv '+case_dir+'/0.005/polyMesh '+case_dir+'/constant')
-            os.system('rmdir '+case_dir+'/0.005')
+            os.system('mv '+case_dir+'/'+ delta_T +'/polyMesh '+case_dir+'/constant')
+            os.system('rmdir '+case_dir+'/'+ delta_T)
         else:
             raise MyError('Unrecognised version name')            
         if flag == 0:
