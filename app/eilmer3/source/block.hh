@@ -193,6 +193,8 @@ public:
 		      bool write_header=false, size_t gtl=0);
     void compute_x_forces(char *text_string, int ibndy, size_t dimensions, size_t gtl=0);
     int print_forces( FILE *fp, double t, size_t dimensions, size_t gtl=0);
+    void compute_z_forces(char *text_string, int ibndy, size_t dimensions, size_t gtl=0);
+    int print_pressure_forces( FILE *fp, double t, size_t dimensions, size_t gtl=0);    
     int read_vertex_velocities(std::string filename, size_t dimensions);    
 
     // in block_bgk.cxx

@@ -2066,7 +2066,7 @@ int integrate_in_time(double target_time)
 	    } else {
 		fprintf(G.logfile, "\nThere are %d active blocks.\n",
 			static_cast<int>(n_active_blocks) );
-	    }
+	    }    
 	    fflush( stdout );
         } // end if
 
@@ -2098,6 +2098,7 @@ int integrate_in_time(double target_time)
 		filename = "hist/"+G.base_file_name+".hist"+jbstring;
                 bdp->write_history(filename, G.sim_time);
 		bdp->print_forces(G.logfile, G.sim_time, G.dimensions);
+		bdp->print_pressure_forces(G.logfile, G.sim_time, G.dimensions);		
 		for ( int iface: bdp->transient_profile_faces ) {
 		    filename = "./" + G.base_file_name + ".blk"+jbstring+"."+get_face_name(iface)+".profile";
 		    bdp->write_profile(filename, iface, G.sim_time, false);
@@ -2123,7 +2124,7 @@ int integrate_in_time(double target_time)
 		fprintf( G.logfile, "RESIDUAL energy block %d max: %e at (%g,%g,%g)\n",
 			 static_cast<int>(bdp->id), bdp->energy_residual, bdp->energy_residual_loc.x,
 			 bdp->energy_residual_loc.y, bdp->energy_residual_loc.z );
-            } // end for *bdp
+            } // end for *bdp            
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( !bdp->active ) continue;
 		if ( bdp->mass_residual > G.mass_residual ) G.mass_residual = bdp->mass_residual; 
@@ -2137,6 +2138,9 @@ int integrate_in_time(double target_time)
 		     G.mass_residual, static_cast<int>(G.step), G.sim_time );
             fprintf( G.logfile, "RESIDUAL energy global max: %e step %d time %g\n",
 		     G.energy_residual, static_cast<int>(G.step), G.sim_time );
+	    for ( Block *bdp : G.my_blocks ) {
+		bdp->print_pressure_forces(G.logfile, G.sim_time, G.dimensions);
+	    }		     
 	    fflush( G.logfile );
         }
 

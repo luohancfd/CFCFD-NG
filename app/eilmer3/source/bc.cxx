@@ -170,7 +170,7 @@ BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code)
       // The following common data can usually take these defaults,
       // however, they may be set to differing values by
       // the constructors of the derived classes.
-      is_wall_flag(false), ghost_cell_data_available(true), xforce_flag(0), 
+      is_wall_flag(false), ghost_cell_data_available(true), xforce_flag(0),  zforce_flag(0),
       sets_conv_flux_flag(false), sets_visc_flux_flag(false),
       neighbour_block(-1), neighbour_face(-1), neighbour_orientation(0),
       wc_bc(NON_CATALYTIC), cw(0), emissivity(1.0)
@@ -263,7 +263,7 @@ BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code)
 // reference to a particular block but, just in case the compiler wants it...
 BoundaryCondition::BoundaryCondition()
     : bdp(0), which_boundary(0), type_code(SLIP_WALL),
-      is_wall_flag(false), ghost_cell_data_available(true), xforce_flag(0),
+      is_wall_flag(false), ghost_cell_data_available(true), xforce_flag(0), zforce_flag(0),
       sets_conv_flux_flag(false), sets_visc_flux_flag(false),
       neighbour_block(-1), neighbour_face(-1), neighbour_orientation(0),
       wc_bc(NON_CATALYTIC), cw(0), emissivity(1.0)
@@ -275,6 +275,7 @@ BoundaryCondition::BoundaryCondition(const BoundaryCondition &bc)
       is_wall_flag(bc.is_wall_flag),
       ghost_cell_data_available(bc.ghost_cell_data_available),
       xforce_flag(bc.xforce_flag),
+      zforce_flag(bc.zforce_flag),      
       sets_conv_flux_flag(bc.sets_conv_flux_flag),
       sets_visc_flux_flag(bc.sets_visc_flux_flag),
       neighbour_block(bc.neighbour_block),
@@ -299,6 +300,7 @@ BoundaryCondition & BoundaryCondition::operator=(const BoundaryCondition &bc)
 	is_wall_flag = bc.is_wall_flag;
 	ghost_cell_data_available = bc.ghost_cell_data_available;
 	xforce_flag = bc.xforce_flag;
+	zforce_flag = bc.zforce_flag;	
 	sets_conv_flux_flag = bc.sets_conv_flux_flag;
 	sets_visc_flux_flag = bc.sets_visc_flux_flag;
 	neighbour_block = bc.neighbour_block;
@@ -333,6 +335,7 @@ void BoundaryCondition::print_info(std::string lead_in)
     cout << lead_in << "is_wall_flag= " << is_wall_flag << endl;
     cout << lead_in << "ghost_cell_data_available= " << ghost_cell_data_available << endl;
     cout << lead_in << "xforce_flag= " << xforce_flag << endl;
+    cout << lead_in << "zforce_flag= " << zforce_flag << endl;    
     cout << lead_in << "sets_conv_flux_flag= " << sets_conv_flux_flag << endl;
     cout << lead_in << "sets_visc_flux_flag= " << sets_visc_flux_flag << endl;
     cout << lead_in << "wc_bc= " << get_bc_name(wc_bc) << endl;
@@ -1387,6 +1390,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     
     newBC->wc_bc = wc_bc;
     dict.parse_int(section, "xforce_flag", newBC->xforce_flag, 0);
+    dict.parse_int(section, "zforce_flag", newBC->zforce_flag, 0);    
     if ( newBC == 0 ) {
 	cout << "Problem creating b.c.\n";
 	cout << "bdp= " << bdp << endl;

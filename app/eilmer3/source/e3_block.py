@@ -791,6 +791,7 @@ class Block(object):
             fp.write("x_order = %d\n" % bc.x_order)
             fp.write("sponge_flag = %d\n" % bc.sponge_flag)
             fp.write("xforce_flag = %d\n" % self.xforce_list[iface])
+            fp.write("zforce_flag = %d\n" % self.zforce_list[iface])            
             fp.write("Twall = %e\n" % bc.Twall)
             fp.write("Pout = %e\n" % bc.Pout)
             fp.write("Tout = %e\n" % bc.Tout)
@@ -949,7 +950,7 @@ class Block2D(Block):
     __slots__ = 'blkId', 'label', 'psurf', 'nni', 'nnj', 'nnk', 'grid', \
                 'hcell_list', 'mcell_list', 'fill_condition', 'active', \
                 'transient_profile_faces', 'cf_list', 'bc_list', 'vtx', \
-                'xforce_list', 'wc_bc_list', 'omegaz'
+                'xforce_list', 'zforce_list', 'wc_bc_list', 'omegaz'
     
     def __init__(self,
                  psurf=None,
@@ -964,6 +965,7 @@ class Block2D(Block):
                  hcell_list=[],
                  mcell_list=[],
                  xforce_list = [0,]*4,
+                 zforce_list = [0,]*4,                 
                  transient_profile_faces=[],
                  label="",
                  active=1,
@@ -997,6 +999,8 @@ class Block2D(Block):
             whose Temperature is to be monitored during the simulation.
         :param xforce_list: list of int flags to indicate that we want 
             boundary forces calculated
+        :param zforce_list: list of int flags to indicate that we want 
+            boundary forces calculated            
         :param transient_profile_faces: list of names of faces for which we'll write
             a transient profile file
         :param label: Optional string label that will appear 
@@ -1078,6 +1082,7 @@ class Block2D(Block):
         self.mcell_list = copy.copy(mcell_list)
         self.transient_profile_faces = copy.copy(transient_profile_faces)
         self.xforce_list = copy.copy(xforce_list)
+        self.zforce_list = copy.copy(zforce_list)        
         self.fill_condition = fill_condition
         #
         Block.blockList.append(self)
@@ -1532,7 +1537,7 @@ class SuperBlock2D(object):
     """
 
     __slots__ = 'psurf', 'grid', 'bc_list', 'nni', 'nnj', 'nbi', 'nbj', 'cf_list',\
-                'fill_condition', 'label', 'blks', 'wc_bc_list', 'xforce_list'
+                'fill_condition', 'label', 'blks', 'wc_bc_list', 'xforce_list', 'zforce_list'
     
     def __init__(self,
                  psurf=None,
@@ -1549,6 +1554,7 @@ class SuperBlock2D(object):
                  hcell_list=[],
                  transient_profile_faces=[],
                  xforce_list=[0,]*4,
+                 zforce_list=[0,]*4,                 
                  label="sblk",
                  active=1,
                  verbosity_level=0
@@ -1605,10 +1611,29 @@ class SuperBlock2D(object):
                     wc_bc_newlist[NORTH] = copy.copy(wc_bc_list[NORTH])
                     xforce_newlist[NORTH] = xforce_list[NORTH]
                 #
+                zforce_newlist = [0,]*4
+                if i == 0:
+                    bc_newlist[WEST] = copy.copy(bc_list[WEST])
+                    wc_bc_newlist[WEST] = copy.copy(wc_bc_list[WEST])
+                    zforce_newlist[WEST] = zforce_list[WEST]
+                if i == nbi - 1:
+                    bc_newlist[EAST] = copy.copy(bc_list[EAST])
+                    wc_bc_newlist[EAST] = copy.copy(wc_bc_list[EAST])
+                    zforce_newlist[EAST] = zforce_list[EAST]
+                if j == 0:
+                    bc_newlist[SOUTH] = copy.copy(bc_list[SOUTH])
+                    wc_bc_newlist[SOUTH] = copy.copy(wc_bc_list[SOUTH])
+                    zforce_newlist[SOUTH] = zforce_list[SOUTH]
+                if j == nbj - 1:
+                    bc_newlist[NORTH] = copy.copy(bc_list[NORTH])
+                    wc_bc_newlist[NORTH] = copy.copy(wc_bc_list[NORTH])
+                    zforce_newlist[NORTH] = zforce_list[NORTH]                
+                #
                 new_blk = Block2D(grid=subgrid, bc_list=bc_newlist,
                                   nni=imax-imin, nnj=jmax-jmin, 
                                   wc_bc_list=wc_bc_newlist,
                                   xforce_list = xforce_newlist,
+                                  zforce_list = zforce_newlist,                                  
                                   fill_condition=fill_condition,
                                   label=sublabel, active=active)
                 self.blks[i].append(new_blk)
@@ -1654,7 +1679,7 @@ class Block3D(Block):
                 'transient_profile_faces', \
                 'mcell_list', 'fill_condition', 'omegaz', 'active', \
                 'bc_list', 'Twall_list', 'Pout_list', 'r_omega_list', \
-                'xforce_list', 'wc_bc_list', 'sponge_flag_list', \
+                'xforce_list', 'zforce_list', 'wc_bc_list', 'sponge_flag_list', \
                 'vertex_location_list', 'neighbour_vertex_list'
               
     def __init__(self,
@@ -1671,6 +1696,7 @@ class Block3D(Block):
                  hcell_list=None,
                  mcell_list=None,
                  xforce_list=[0,]*6,
+                 zforce_list=[0,]*6,                 
                  transient_profile_faces=[],
                  label="",
                  active=1,
@@ -1713,6 +1739,7 @@ class Block3D(Block):
         self.active = active
         self.wc_bc_list = copy.copy(wc_bc_list)
         self.xforce_list = copy.copy(xforce_list)
+        self.zforce_list = copy.copy(zforce_list)        
         self.fill_condition=fill_condition
         #
         # Rotating frame of reference.
@@ -2025,7 +2052,7 @@ class SuperBlock3D(object):
 
     __slots__ = 'parametric_volume', 'grid', 'bc_list', 'nni', 'nnj', 'nnk',\
                 'nbi', 'nbj', 'nbk', 'cf_list', 'fill_condition',\
-                'label', 'blks', 'wc_bc_list', 'xforce_list'
+                'label', 'blks', 'wc_bc_list', 'xforce_list', 'zforce_list'
 
     def __init__(self,
                  parametric_volume=None,
@@ -2045,6 +2072,7 @@ class SuperBlock3D(object):
                  fill_condition=None,
                  hcell_list=[],
                  xforce_list=[0,]*6,
+                 zforce_list=[0,]*6,                 
                  transient_profile_faces=[],
                  label="sblk",
                  omegaz = 0.0,
@@ -2114,11 +2142,38 @@ class SuperBlock3D(object):
                         bc_newlist[TOP] = copy.copy(bc_list[TOP])
                         wc_bc_newlist[TOP] = copy.copy(wc_bc_list[TOP])
                         xforce_newlist[TOP] = xforce_list[TOP]
+                    #
+                    zforce_newlist=[0,]*6
+                    if i == 0:
+                        bc_newlist[WEST] = copy.copy(bc_list[WEST])
+                        wc_bc_newlist[WEST] = copy.copy(wc_bc_list[WEST])
+                        zforce_newlist[WEST] = zforce_list[WEST]
+                    if i == nbi - 1:
+                        bc_newlist[EAST] = copy.copy(bc_list[EAST])
+                        wc_bc_newlist[EAST] = copy.copy(wc_bc_list[EAST])
+                        zforce_newlist[EAST] = zforce_list[EAST]
+                    if j == 0:
+                        bc_newlist[SOUTH] = copy.copy(bc_list[SOUTH])
+                        wc_bc_newlist[SOUTH] = copy.copy(wc_bc_list[SOUTH])
+                        zforce_newlist[SOUTH] = zforce_list[SOUTH]
+                    if j == nbj - 1:
+                        bc_newlist[NORTH] = copy.copy(bc_list[NORTH])
+                        wc_bc_newlist[NORTH] = copy.copy(wc_bc_list[NORTH])
+                        zforce_newlist[NORTH] = zforce_list[NORTH]
+                    if k == 0:
+                        bc_newlist[BOTTOM] = copy.copy(bc_list[BOTTOM])
+                        wc_bc_newlist[BOTTOM] = copy.copy(wc_bc_list[BOTTOM])
+                        zforce_newlist[BOTTOM] = zforce_list[BOTTOM]
+                    if k == nbk - 1:
+                        bc_newlist[TOP] = copy.copy(bc_list[TOP])
+                        wc_bc_newlist[TOP] = copy.copy(wc_bc_list[TOP])
+                        zforce_newlist[TOP] = zforce_list[TOP]                    
                     # Create the actual subblock.
                     new_blk = Block3D(grid=subgrid, bc_list=bc_newlist,
                                       nni=imax-imin, nnj=jmax-jmin, nnk=kmax-kmin,
                                       wc_bc_list=wc_bc_newlist,
                                       xforce_list=xforce_newlist,
+                                      zforce_list=zforce_newlist,                                      
                                       fill_condition=fill_condition,
                                       label=sublabel, omegaz=omegaz, active=active)
                     column_of_blocks.append(new_blk)
