@@ -138,5 +138,21 @@ the solution is to divide that block at the gridding stage.
 It might be possible to subdivide the block using
 the \texttt{SuperBlock} option in Eilmer3.
 
-
+For certain simulations it is required to group blocks on individual nodes.
+One example might be if certain user defined \texttt{lua} boundary conditions are executed that need data from other blocks. 
+In such a case it is essential that all the relevant blocks are grouped on a given node. 
+For such cases you can use the following option:\\
+%
+\topbar
+\texttt{> e3loadbalance.py --job=test -n 4 --user-list="1,2,3;10,12,13"}\\
+\bottombar\\
+%
+Here user defined groups are are specified as lists separated by a semi-colon. 
+When using this option the first group of blocks (1, 2, 3) is allocated to node 0, then the second group (10, 12, 13) is allocated to node 1, and so on. 
+Once all the user-defined groups have been assigned, the remaining un-assigned blocks are distributed between all nodes.
+Care must be taken to ensure that the total number of cells in the user defined groups remains small.
+Assigning too many blocks to a give node will cause this node to limit the speed-up. 
+Optionally the block with number \texttt{9999} can be assigned to one or more groups. 
+This stops additional blocks being assigned to the corresponding node. 
+This is useful when additional slow computing tasks (e.g. call to lua) are executed on this node.
 
