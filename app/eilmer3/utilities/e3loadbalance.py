@@ -46,6 +46,9 @@ Bounds on Multiprocessing Timing Anomalies,
 SIAM Journal of Applied Mathematics, 17:2, pp. 416--429
 
 .. Author: Rowan J. Gollan
+
+- Update 26/4/2016: Ingo Jahn
+addition of --user-list option. Allows grouping of blocks to a given node
 """
 
 import sys
@@ -68,6 +71,9 @@ parser.add_option("-n", "--number-of-procs", dest="nprocs", type="int",
                   metavar="NP")
 parser.add_option("-s", "--sweep-range", dest="sweep", type="string",
                   help="sweep through range of 'lower_np:upper_np' testing load balance quality")
+parser.add_option("-l", "--user-list", dest="list", type="string",
+                  help="provide list(s) of blocks to be grouped '\"id0, id1;  id6, id8, id9 \"'")
+                  # Optionally add block 9999 to prevent additional blocks being added to a node
 #parser.add_option("-o", "--output-hostfile", dest="hosts_out", type="string",
 #                  help="output hostfile with entries re-ordered",
 #                  metavar="HOSTS_OUT")
@@ -102,11 +108,29 @@ def create_task_list(cfg_fname):
     tasks.sort(key=lambda x: x[1], reverse=True)
     return tasks, total_load
 
-def load_balance(tasks, nprocs):
+def load_balance(tasks, nprocs, groups):
     procs = []
     for i in range(nprocs): procs.append([])
     proc_loads = [0,]*nprocs
     task_hosts = []
+    # first load tasks from from different groups
+    proc = 0
+    penalty_list = []   
+    for g in groups:
+        blk_list = g.split(",")
+        for i in blk_list:
+            for (task_id, task_load) in tasks:
+                if int(i) == task_id:
+                    proc_loads[proc] += task_load
+                    procs[proc].append(task_id)
+                    task_hosts.append(proc)
+                    # remove (task_id, task_load) entry from task
+                    tasks.remove((task_id, task_load))
+                elif int(i) == 9999: # add load penalty to these nodes
+                    proc_loads[proc] += 1.e5   
+                    penalty_list.append(proc)                         
+        proc += 1 
+    # loadbalance the remaining tasks   
     for (task_id, task_load) in tasks:
         # The algorithm is simply this:
         # Given a list sorted from heaviest load to lightest,
@@ -117,6 +141,9 @@ def load_balance(tasks, nprocs):
         proc_loads[imin] += task_load
         procs[imin].append(task_id)
         task_hosts.append(imin)
+    # remove penalty from nodes that received load penalty
+    for i in penalty_list:  
+        proc_loads[i] -= 1.e5
     return procs, proc_loads, task_hosts
 
 def main():
@@ -152,9 +179,20 @@ def main():
         print "nblocks= ", len(tasks)
         print "Done."
         sys.exit(0)
+
+    if options.list:
+        user_groups = options.list.split(";") # obtain individual groups
+        if len(user_groups) > nprocs:
+            print "Error number of processors must be larger or equal to number of user-defined groups" 
+            print "You need to combine the number of user defined groups."
+            print "Bailing out!"
+            print parser.print_help()
+            sys.exit(1)
+    else:
+        user_groups = []
     #
     
-    procs, proc_loads, task_hosts = load_balance(tasks, nprocs)
+    procs, proc_loads, task_hosts = load_balance(tasks, nprocs, user_groups)
     #
     # Now write output file in INI format.
     fname = options.jobname + "." + OUT_EXT
@@ -183,6 +221,12 @@ def main():
             print "upper_n= ", upper_n
             print "Bailing out!"
             sys.exit(1)
+        if lower_n < len(user_groups):  
+            print "Error in sweep range string. lower_n must be larger than number of user defined groups"
+            print "lower_n     = ", lower_n
+            print "user groups = ", len(user_groups)  
+            print "Bailing out!"
+            sys.exit(1)           
         print "Performing sweep of nprocs."
         f = open('load-balance.dat', 'w')
         f.write("# nprocs    packing-quality  speedup\n")
@@ -190,7 +234,7 @@ def main():
             if n > len(tasks):
                 break
             print "nprocs= ", n
-            procs, proc_loads, task_hosts = load_balance(tasks, n)
+            procs, proc_loads, task_hosts = load_balance(tasks, n, user_groups)
             max_load = max(proc_loads)
             min_load = min(proc_loads)
             delta_cells = max_load - min_load
