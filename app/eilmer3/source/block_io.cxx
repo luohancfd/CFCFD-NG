@@ -721,12 +721,14 @@ void Block::compute_z_forces(char *text_string, int ibndy, size_t dimensions, si
 int Block::print_pressure_forces(FILE *fp, double t, size_t dimensions, size_t gtl)
 {
     char msg_text[512], small_text[132];
-    if ( bcp[TOP]->zforce_flag == 1 ) {
-	sprintf(small_text, "ZFORCE: TIME %e BLOCK %d BNDY %d ", t, static_cast<int>(id), TOP);
-	strcpy(msg_text, small_text);
-	this->compute_z_forces(small_text, TOP, dimensions, gtl);
-	strcat(msg_text, small_text);
-	fprintf(fp, "%s\n",  msg_text);
+    if ( dimensions == 3 ) {
+	if ( bcp[TOP]->zforce_flag == 1 ) {
+	    sprintf(small_text, "ZFORCE: TIME %e BLOCK %d BNDY %d ", t, static_cast<int>(id), TOP);
+	    strcpy(msg_text, small_text);
+	    this->compute_z_forces(small_text, TOP, dimensions, gtl);
+	    strcat(msg_text, small_text);
+	    fprintf(fp, "%s\n",  msg_text);
+	}
     }
     return SUCCESS;
 } // end print_forces()
