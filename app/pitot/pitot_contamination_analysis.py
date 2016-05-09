@@ -16,7 +16,7 @@ Chris James (c.james4@uq.edu.au) - 12/09/14
 
 """
 
-VERSION_STRING = "17-Apr-2015"
+VERSION_STRING = "9-May-2015"
 
 from pitot_condition_builder import stream_tee
 
@@ -455,7 +455,7 @@ def contamination_analysis_summary(cfg, results):
     if results['unsuccessful_runs']: 
         summary_line_4 = "Unsucessful runs were run numbers {0}.".format(results['unsuccessful_runs'])
         print summary_line_4
-        gg_d_d_analysis_summary_file.write(summary_line_4 + '\n')         
+        contamination_analysis_summary_file.write(summary_line_4 + '\n')         
 
     for variable in results['full_list']:
         # first check it's not a variable that doesn't need to be summarised

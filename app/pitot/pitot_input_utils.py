@@ -78,7 +78,7 @@ def make_test_gas(gasName, outputUnits='moles'):
                    inputUnits='moles', onlyList=['N2','O2','N','O','NO'],with_ions=False,
                    outputUnits=outputUnits), {'gam':1.35,'R':571.49}
     elif gasName.lower() == 'n2':
-        return Gas(reactants={'N2':1.0, 'N':0.0}, onlyList=['N2', 'N'], with_ions=True,
+        return Gas(reactants={'N2':1.0, 'N':0.0}, with_ions=True,
                    outputUnits=outputUnits), {'gam': 1.36,'R':593.56}
     elif gasName.lower() == 'titan': #composition used by Hadas Porat
         return Gas(reactants={'N2':0.95, 'CH4':0.05}, inputUnits='moles', with_ions=True,
