@@ -468,7 +468,10 @@ class StructuredGridFlow(object):
         if verbosity_level > 0: 
             print "Attempt to create gas model from file:", gmodelFileName
         if os.path.exists(gmodelFileName):
-            self.gmodel = create_gas_model(gmodelFileName)
+            # First, we try to find if another block as already initialised the gas model
+            self.gmodel = get_gas_model_ptr()
+            if self.gmodel is None:
+                self.gmodel = create_gas_model(gmodelFileName)
             self.nsp = self.gmodel.get_number_of_species()
             self.ntm = self.gmodel.get_number_of_modes()
             self.speciesList = [self.gmodel.species_name(isp) for isp in range(self.nsp)]
