@@ -85,6 +85,10 @@ def txt_file_output(cfg, states, V, M):
         description_3 = 'state 8 is test gas exiting the nozzle (using area ratio of {0}).'.format(cfg['area_ratio'])
         print description_3
         txt_output.write(description_3 + '\n')
+        if cfg['frozen_nozzle_expansion']:
+            frozen_nozzle_description = 'state 8 was found using a frozen nozzle expansion.'
+            print frozen_nozzle_description
+            txt_output.write(frozen_nozzle_description + '\n')            
     
     if cfg['shock_over_model']:    
         description_4 = 'state 10f is frozen shocked test gas flowing over the model.'
@@ -1114,6 +1118,8 @@ def make_x_t_diagram(cfg, states, V, M, filename = 'x-t-diagram', show = False):
     
     if show:
         mplt.show()
+    else:
+        mplt.close(fig)
     
     print "x-t digram information has also been added to the cfg dictionary."
     
@@ -1132,7 +1138,7 @@ def cleanup_function():
     
     if PRINT_STATUS: 
         print "Removing temporary files and leaving the program."
-        print "_"*60
+        print "-"*60
     if os.path.isfile('thermo.inp'): os.remove('thermo.inp')
     if os.path.isfile('thermo.out'): os.remove('thermo.out')
     if os.path.isfile('thermo.lib'): os.remove('thermo.lib')

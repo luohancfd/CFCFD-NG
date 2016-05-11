@@ -18,8 +18,15 @@ def area_ratio_check_results_dict_builder(cfg):
        will build a results dictionary that the area ratio check will use.
     """
     
-    full_list = ['test number','area ratio','p8','T8','rho8','V8','M8']
-
+    #first pull out the nozzle entry state number for the nozzle ratios...
+    # (it will be a single digit so just pull out last value...)
+    nozzle_entry_number = cfg['nozzle_entry_state'][-1]  
+    
+    full_list = ['test number','area ratio','p8','T8','rho8','V8','M8',
+                 'p8/p{0}'.format(nozzle_entry_number), 'T8/T{0}'.format(nozzle_entry_number),
+                 'rho8/rho{0}'.format(nozzle_entry_number), 'V8/V{0}'.format(nozzle_entry_number),
+                 'M8/M{0}'.format(nozzle_entry_number),]
+    
     if cfg['conehead']:
          conehead_list = ['p10c','T10c','rho10c','V10c']
          full_list += conehead_list
@@ -53,6 +60,15 @@ def area_ratio_add_new_result_to_results_dict(cfg, states, V, M, results):
     results['rho8'].append(states['s8'].rho)
     results['V8'].append(V['s8'])
     results['M8'].append(M['s8'])
+    
+    #first pull out the nozzle entry state number to store the ratios (it will be a single digit so just pull out last value...)
+    nozzle_entry_number = cfg['nozzle_entry_state'][-1]  
+    
+    results['p8/p{0}'.format(nozzle_entry_number)].append(cfg['nozzle_pressure_ratio'])
+    results['T8/T{0}'.format(nozzle_entry_number)].append(cfg['nozzle_temperature_ratio'])
+    results['rho8/rho{0}'.format(nozzle_entry_number)].append(cfg['nozzle_density_ratio']) 
+    results['V8/V{0}'.format(nozzle_entry_number)].append(cfg['nozzle_velocity_ratio'])
+    results['M8/M{0}'.format(nozzle_entry_number)].append(cfg['nozzle_mach_number_ratio'])    
 
     if cfg['conehead'] and cfg['conehead_completed']:
         results['p10c'].append(states['s10c'].p)
@@ -268,7 +284,8 @@ def area_ratio_check(cfg, states, V, M):
     
     results = area_ratio_check_results_dict_builder(cfg)
     
-    print "Performing area ratio check by running through a {0} different area ratios."\
+    print 60*"-"    
+    print "Performing area ratio check by running through {0} different area ratios."\
     .format(len(cfg['area_ratio_check_list']))
     
     cfg['counter'] = 0 #counter used to tell user how far through the calculations we are
@@ -280,8 +297,7 @@ def area_ratio_check(cfg, states, V, M):
         cfg['area_ratio'] = area_ratio
         print 60*"-"
         print "Test {0} of {1} (Current area ratio = {2})."\
-        .format(cfg['counter'], len(cfg['area_ratio_check_list']), area_ratio)
-        print 60*"-"        
+        .format(cfg['counter'], len(cfg['area_ratio_check_list']), area_ratio)   
         # run the nozzle expansion
         cfg, states, V, M = nozzle_expansion(cfg, states, V, M)
         if cfg['conehead']: #do the conehead calculation if required
@@ -289,25 +305,27 @@ def area_ratio_check(cfg, states, V, M):
         if cfg['shock_over_model']: #do the shock over model calc if required
             cfg, states, V, M = shock_over_model_calculation(cfg, states, V, M)
         # print some stuff to the screen
-        print "V8 = {0} m/s, M8 = {1}.".format(V['s8'], M['s8'])
-        print "State 8 (freestream at the nozzle exit):"
-        states['s8'].write_state(sys.stdout)
-        if cfg['conehead'] and cfg['conehead_completed']:
-            print '-'*60
-            print "V10c = {0} m/s.".format(V['s10c'])
-            print "State 10c (surface of a 15 degree conehead):"
-            states['s10c'].write_state(sys.stdout)
-        elif cfg['conehead'] and not cfg['conehead_completed']:
-            print "Conehead calculation failed so result is not being printed."
-        if cfg['shock_over_model']:
-            print '-'*60
-            print "V10f = {0} m/s.".format(V['s10f'])
-            print "State 10f (frozen normal shock over the test model):"
-            states['s10f'].write_state(sys.stdout)    
-            print '-'*60
-            print "V10e = {0} m/s.".format(V['s10e'])
-            print "State 10e (equilibrium normal shock over the test model):"
-            states['s10e'].write_state(sys.stdout)
+        #I commented all of this out as the code generally does this as it runs through now,
+        # but I kept it here incase we ever want to re-add it...
+#        print "V8 = {0} m/s, M8 = {1}.".format(V['s8'], M['s8'])
+#        print "State 8 (freestream at the nozzle exit):"
+#        states['s8'].write_state(sys.stdout)
+#        if cfg['conehead'] and cfg['conehead_completed']:
+#            print '-'*60
+#            print "V10c = {0} m/s.".format(V['s10c'])
+#            print "State 10c (surface of a 15 degree conehead):"
+#            states['s10c'].write_state(sys.stdout)
+#        elif cfg['conehead'] and not cfg['conehead_completed']:
+#            print "Conehead calculation failed so result is not being printed."
+#        if cfg['shock_over_model']:
+#            print '-'*60
+#            print "V10f = {0} m/s.".format(V['s10f'])
+#            print "State 10f (frozen normal shock over the test model):"
+#            states['s10f'].write_state(sys.stdout)    
+#            print '-'*60
+#            print "V10e = {0} m/s.".format(V['s10e'])
+#            print "State 10e (equilibrium normal shock over the test model):"
+#            states['s10e'].write_state(sys.stdout)
             
         # now add the result to the results dictionary
         results = area_ratio_add_new_result_to_results_dict(cfg, states, V, M, results)

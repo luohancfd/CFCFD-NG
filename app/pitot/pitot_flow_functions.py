@@ -1137,8 +1137,6 @@ def test_section_setup(cfg, states, V, M):
         cfg['test_section_state'] = 's8'
     elif cfg['tunnel_mode'] == 'reflected-shock-tunnel' and not cfg['nozzle']:            
         cfg['test_section_state'] = 's5'        
-            
-    if PRINT_STATUS and cfg['nozzle']: print '-'*60
     
     return cfg, states, V, M
 
@@ -1152,7 +1150,7 @@ def nozzle_expansion(cfg, states, V, M):
     """
 
     if PRINT_STATUS: print "-"*60
-    if PRINT_STATUS: print "Starting steady expansion through the nozzle."
+    if PRINT_STATUS: print "Starting steady expansion through the nozzle (ar = {0}).".format(cfg['area_ratio'])
     # tolerance for the nozzle expansion secant solver
     cfg['nozzle_expansion_tolerance'] = 1.0e-4
     
@@ -1192,9 +1190,24 @@ def nozzle_expansion(cfg, states, V, M):
             raise Exception, "pitot_flow_functions.nozzle_expansion(): Run of pitot failed in the nozzle expansion calculation."
     
     try:
-        (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']],
-                                                                cfg['area_ratio'], tol = cfg['nozzle_expansion_tolerance'])
-        M['s8']= V['s8']/states['s8'].a
+        if cfg['frozen_nozzle_expansion']:
+            print "Performing a frozen nozzle expansion as the user has asked for this..."
+            # make a frozen state and expand that...
+            R_universal = 8314.0;  # J/kgmole.K
+            
+            states[cfg['nozzle_entry_state']+'f'] = pg.Gas(Mmass = R_universal/states[cfg['nozzle_entry_state']].R,
+                                                           gamma = states[cfg['nozzle_entry_state']].gam)
+            states[cfg['nozzle_entry_state']+'f'].set_pT(states[cfg['nozzle_entry_state']].p,
+                                                         states[cfg['nozzle_entry_state']].T)
+                                                         
+            (V['s8'], states['s8f']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state'] + 'f'], V[cfg['nozzle_entry_state']],
+                                                                   cfg['area_ratio'], tol = cfg['nozzle_expansion_tolerance'])
+            M['s8']= V['s8']/states['s8f'].a
+        else:  
+            # just do the normal eq or pg expansion...
+            (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']],
+                                                                    cfg['area_ratio'], tol = cfg['nozzle_expansion_tolerance'])
+            M['s8']= V['s8']/states['s8'].a
     except Exception as e:
         print "Error {0}".format(str(e))
         if e.message == "Failed to find area-change conditions iteratively.":
@@ -1203,10 +1216,16 @@ def nozzle_expansion(cfg, states, V, M):
                                                                                      cfg['nozzle_expansion_tolerance'] * 10.0)
             cfg['nozzle_expansion_tolerance'] *= 10.0
             try:
-                (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], 
-                                                                       V[cfg['nozzle_entry_state']],
-                                                                       cfg['area_ratio'], tol = cfg['nozzle_expansion_tolerance'])
-                M['s8']= V['s8']/states['s8'].a
+                if cfg['frozen_nozzle_expansion']:
+                    (V['s8'], states['s8f']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state'] + 'f'], 
+                                                                           V[cfg['nozzle_entry_state']],
+                                                                            cfg['area_ratio'], tol = cfg['nozzle_expansion_tolerance'])
+                    M['s8']= V['s8']/states['s8f'].a
+                else:
+                    (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], 
+                                                                               V[cfg['nozzle_entry_state']],
+                                                                               cfg['area_ratio'], tol = cfg['nozzle_expansion_tolerance'])
+                    M['s8']= V['s8']/states['s8'].a
                 cfg['nozzle_expansion_tolerance'] = cfg['nozzle_expansion_tolerance'] / 10.0    
             except Exception as e:
                 print "Error {0}".format(str(e))
@@ -1251,11 +1270,37 @@ def nozzle_expansion(cfg, states, V, M):
                         print "Error {0}".format(str(e))
                         raise Exception, "pitot_flow_functions.nozzle_expansion(): Run of pitot failed in the nozzle expansion calculation."
 
-    print "state 8: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s8'].p, states['s8'].T)        
+    if cfg['frozen_nozzle_expansion']:
+        # now we need to return the state to an eq state...
+        print "Now setting an eq test section state after the frozen nozzle expansion using the p and T from the frozen expansion..."
+        states['s8'] = states[cfg['nozzle_entry_state']].clone()
+        states['s8'].set_pT(states['s8f'].p, states['s8f'].T)
+        
+    print "state 8: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s8'].p, states['s8'].T, V['s8'])        
     if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
         print 'species in state8 at equilibrium:'               
         print '{0}'.format(states['s8'].species)
     print 'state 8 gamma = {0}, state 8 R = {1}.'.format(states['s8'].gam,states['s8'].R)
+    
+    #I decided that it also would be good to plot some nozzle ratio info too...
+    
+    #first pull out the nozzle entry state number (it will be a single digit so just pull out last value...)
+    nozzle_entry_number = cfg['nozzle_entry_state'][-1]    
+    
+    cfg['nozzle_pressure_ratio'] = states['s8'].p/states[cfg['nozzle_entry_state']].p
+    print "nozzle pressure ratio (p8/p{0}) = {1}.".format(nozzle_entry_number, cfg['nozzle_pressure_ratio'])
+    
+    cfg['nozzle_temperature_ratio'] = states['s8'].T/states[cfg['nozzle_entry_state']].T
+    print "nozzle temperature ratio (T8/T{0}) = {1}.".format(nozzle_entry_number, cfg['nozzle_temperature_ratio'])   
+    
+    cfg['nozzle_density_ratio'] = states['s8'].rho/states[cfg['nozzle_entry_state']].rho
+    print "nozzle temperature ratio (rho8/rho{0}) = {1}.".format(nozzle_entry_number, cfg['nozzle_density_ratio'])    
+    
+    cfg['nozzle_velocity_ratio'] = V['s8']/V[cfg['nozzle_entry_state']]
+    print "nozzle velocity ratio (V8/V{0}) = {1}.".format(nozzle_entry_number, cfg['nozzle_velocity_ratio'])        
+    
+    cfg['nozzle_mach_number_ratio'] = M['s8']/M[cfg['nozzle_entry_state']]
+    print "nozzle mach number ratio (M8/M{0}) = {1}.".format(nozzle_entry_number, cfg['nozzle_mach_number_ratio'])     
     
     return cfg, states, V, M     
     
@@ -1406,6 +1451,7 @@ def shock_over_model_calculation(cfg, states, V, M):
             if 's10e' in states.keys():
                 del states['s10e']
 
+    if PRINT_STATUS: print '-'*60
     if 's10f' in states.keys() and PRINT_STATUS:
         print "state 10f: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10f'].p, states['s10f'].T,  V['s10f'])
         print 'state 10f gamma = {0}, state 10f R = {1}.'.format(states['s10f'].gam,states['s10f'].R)             
@@ -1417,8 +1463,6 @@ def shock_over_model_calculation(cfg, states, V, M):
             print 'species in state10e at equilibrium:'               
             print '{0}'.format(states['s10e'].species)
         print 'state 10e gamma = {0}, state 10e R = {1}.'.format(states['s10e'].gam,states['s10e'].R)
-        
-    if PRINT_STATUS: print '-'*60
                 
     return cfg, states, V, M
     
@@ -1431,6 +1475,8 @@ def wedge_calculation(cfg, states, V, M):
     state, state 10w.
     
     """
+    
+    if PRINT_STATUS: print '-'*60
     
     if PRINT_STATUS: print "Starting calculation of conditions behind a {0} degree wedge in the test section.".format(cfg['wedge_angle']) 
     
@@ -1564,6 +1610,7 @@ def conehead_calculation(cfg, states, V, M):
         cfg['conehead_no_ions'] = False
     cfg['conehead_no_ions_required'] = False #variable we'll set to True if we need to turn ions off in the conehead calc 
     
+    if PRINT_STATUS and cfg['nozzle']: print '-'*60
     if PRINT_STATUS: print 'Starting taylor maccoll conehead calculation on {0} degree conehead.'.format(cfg['conehead_angle'])
     
     if cfg['conehead_no_ions']: states[cfg['test_section_state']].with_ions = False    

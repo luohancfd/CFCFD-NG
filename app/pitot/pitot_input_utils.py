@@ -599,6 +599,18 @@ def input_checker(cfg, condition_builder = False):
         print "'show_x_t_diagram' input is not a boolean (True or False). Bailing out."
         raise TypeError, "'show_x_t_diagram' input is not a boolean (True or False)"        
     
+    # --------------------- input for frozen nozzle calculation ---------------
+    if 'frozen_nozzle_expansion' not in cfg:
+        cfg['frozen_nozzle_expansion'] = False
+        
+    if 'frozen_nozzle_expansion' and cfg['solver'] == 'pg':
+        print "'frozen_nozzle_expansion' input has been specified, but the solver is 'pg'."
+        print "Turning it off..."
+        cfg['frozen_nozzle_expansion'] = False        
+        
+    #------------------ final check stuff....-------------------------------
+        
+    
     if cfg['bad_input']: #bail out here if you end up having issues with your input
         print "Config failed check. Bailing out now."
         print '-'*60
@@ -607,6 +619,7 @@ def input_checker(cfg, condition_builder = False):
     if not cfg['bad_input']:
         print "Input check completed. Test will now run."
         print '-'*60
+        
            
     return cfg
     

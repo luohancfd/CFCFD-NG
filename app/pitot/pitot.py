@@ -233,6 +233,10 @@ available to me as part of cfpylib inside the cfcfd code collection.
     24-Mar-2016: added a way for normal Pitot and the condition builder to calculate
         the freestream and post-shock Reynolds number of conditions.
     17-Apr-2016: Added code to make an x-t diagram when the user asks for it...
+    11-May-2016: Added real N2-O2 air to pitot for CFD type N2-O2 'air'
+        added nozzle ratios to the nozzle calculaiton
+        added a frozen nozzle calculator so the nozzle can be ran in frozen mode
+        if necessary
 """
 
 #--------------------- intro stuff --------------------------------------
