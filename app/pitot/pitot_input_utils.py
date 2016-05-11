@@ -77,6 +77,10 @@ def make_test_gas(gasName, outputUnits='moles'):
         return Gas(reactants={'N2':0.79, 'O2':0.21, 'N':0.0, 'O':0.0, 'NO':0.0}, 
                    inputUnits='moles', onlyList=['N2','O2','N','O','NO'],with_ions=False,
                    outputUnits=outputUnits), {'gam':1.35,'R':571.49}
+    elif gasName.lower() in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
+        return Gas(reactants={'N2':0.79, 'O2':0.21}, 
+                   inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), {'gam':1.35,'R':571.49}
     elif gasName.lower() == 'n2':
         return Gas(reactants={'N2':1.0, 'N':0.0}, with_ions=True,
                    outputUnits=outputUnits), {'gam': 1.36,'R':593.56}
