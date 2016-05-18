@@ -251,11 +251,11 @@ def build_results_dict(cfg):
         full_list += store_electron_concentration_list
         
     if cfg['calculate_scaling_information']:
-        calculate_scaling_information_freestream_list = ['freestream_mu', 'freestream_rhoL', 'freestream_pL', 'freestream_Re']
+        calculate_scaling_information_freestream_list = ['freestream_mu', 'freestream_rhoL', 'freestream_pL', 'freestream_Re', 'freestream_Kn']
         full_list += calculate_scaling_information_freestream_list
         
         if cfg['shock_over_model']:
-            calculate_scaling_information_normal_shock_list = ['s10e_mu', 's10e_rhoL', 's10e_pL', 's10e_Re']
+            calculate_scaling_information_normal_shock_list = ['s10e_mu', 's10e_rhoL', 's10e_pL', 's10e_Re', 's10e_Kn']
             full_list += calculate_scaling_information_normal_shock_list            
             
     # now populate the dictionary with a bunch of empty lists based on that list
@@ -728,13 +728,15 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
         results['freestream_mu'].append(states[cfg['test_section_state']].mu)        
         results['freestream_rhoL'].append(cfg['rho_l_product_freestream'])
         results['freestream_pL'].append(cfg['pressure_l_product_freestream'])  
-        results['freestream_Re'].append(cfg['reynolds_number_freestream'])         
+        results['freestream_Re'].append(cfg['reynolds_number_freestream']) 
+        results['freestream_Kn'].append(cfg['knudsen_number_freestream'])          
         
         if cfg['shock_over_model']:
             results['s10e_mu'].append(states['s10e'].mu) 
             results['s10e_rhoL'].append(cfg['rho_l_product_state10e'])
             results['s10e_pL'].append(cfg['pressure_l_product_state10e'])  
-            results['s10e_Re'].append(cfg['reynolds_number_state10e'])  
+            results['s10e_Re'].append(cfg['reynolds_number_state10e']) 
+            results['s10e_Kn'].append(cfg['knudsen_number_state10e'])             
                      
     return results
     

@@ -237,6 +237,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
         added nozzle ratios to the nozzle calculaiton
         added a frozen nozzle calculator so the nozzle can be ran in frozen mode
         if necessary
+    18-May-2016:Added Knudsen number to the calculate scaling information printout.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -264,7 +265,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "11-May-2016"
+VERSION_STRING = "18-May-2016"
 
 DEBUG_PITOT = False
 
@@ -459,7 +460,7 @@ def main():
     
     import optparse  
     op = optparse.OptionParser(version=VERSION_STRING)   
-    op.add_option('-c', '--config_file', dest='config_file',
+    op.add_option('-c', '--config_file', '--config-file', dest='config_file',
                   help=("filename where the configuration file is located"))    
 
     opt, args = op.parse_args()
