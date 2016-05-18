@@ -15,7 +15,7 @@ Chris James (c.james4@uq.edu.au) - 25/09/15
 
 """
 
-VERSION_STRING = "03-Oct-2015"
+VERSION_STRING = "18-May-2016"
 
 from pitot_condition_builder import stream_tee
 
@@ -686,7 +686,7 @@ def main():
     
     import optparse  
     op = optparse.OptionParser(version=VERSION_STRING)   
-    op.add_option('-c', '--config_file', dest='config_file',
+    op.add_option('-c', '--config_file', '--config-file', dest='config_file',
                   help=("filename where the configuration file is located"))    
 
     opt, args = op.parse_args()
