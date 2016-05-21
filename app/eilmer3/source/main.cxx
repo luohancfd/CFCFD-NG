@@ -1777,12 +1777,7 @@ int integrate_in_time(double target_time)
             // should be remained as the same as level 0 for both stages of the pc
             // The default gird movement strategy is set by equations, the more complex way
             // is flow induced moving grid, which vertex moving velocity will be defined
-            // the external code 
-            if ( G.flow_induced_moving ) {
-                for ( Block *bdp : G.my_blocks ) {
-                    bdp->clear_vertex_velocities(G.dimensions);
-                }
-            } // end if ( G.flow_induced_moving )   
+            // the external code   
 	    if ( G.sim_time >= G.t_moving ) { 
 	        // The user might want to do some customization before the grid update step.
 	        // If so, we provide a user-defined function as the customization point.
@@ -1798,53 +1793,20 @@ int integrate_in_time(double target_time)
 	        MPI_Barrier( MPI_COMM_WORLD );
 #               endif	  
 
-	        if ( G.flow_induced_moving ) { // flow induced grid movement
-	            write_temp_solution_data();
-#                   ifdef _MPI	        
-	            MPI_Barrier( MPI_COMM_WORLD );
-#                   endif	        
-	            if ( master ) {
-	                if ( system("./flow_induced_moving.sh") != 0 ) {
-	                    printf( "Error: check the external code for flow induced moving grid.\n");
-	                }
-	            }
-#                   ifdef _MPI	        
-	            MPI_Barrier( MPI_COMM_WORLD );
-#                   endif
-	            for ( Block *bdp : G.my_blocks ) {
-	                sprintf( jbcstr, "b%04d", static_cast<int>(bdp->id) );
-	                string jbstring = jbcstr;
-	                string filename = "temp/"+jbstring;
-                        if ( bdp->read_vertex_velocities(filename, G.dimensions) != SUCCESS ) {
-                            printf( "Error: check the output vertex velocities.\n");
-	                }
-                    } // end for *bdp
-#                   ifdef _MPI	        
-	            MPI_Barrier( MPI_COMM_WORLD );
-#                   endif
-                    // check CFL condition if flow induced moving and
-                    // grid has been adjusted at this time step                    
-                    do_cfl_check_now = true;
-                    // if we are using fixed time step, no cfl check
-                    if ( G.fixed_time_step ) {
-                        do_cfl_check_now = false;
-                    }
-	        } // end if ( G.flow_induced_moving )
-	        else { // user-defined grid movement
-	            for ( Block *bdp : G.my_blocks ) {
-	                if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
-	                    add_udf_velocity_for_vtx(bdp, 0);
-	                } else { // mainly for shock fitting
-		            bdp->set_geometry_velocities(G.dimensions, 0);
-		        }
-	            }  // end for
-                } // end else
+	        // user-defined grid movement
+	        for ( Block *bdp : G.my_blocks ) {
+	            if ( G.udf_vtx_velocity_flag == 1 ) { // typical way for moving grid 
+	                add_udf_velocity_for_vtx(bdp, 0);
+	            } else { // mainly for shock fitting
+		        bdp->set_geometry_velocities(G.dimensions, 0);
+		    }
+	        }  // end for
                 G.t_moving = G.sim_time + G.dt_moving;
 	    } // end if ( G.sim_time >= G.t_moving )
 	} // end if ( G.moving_grid )
 
         // check flow induced grid moving
-	if ( G.flow_induced_moving && G.turbulence_model == TM_K_OMEGA && G.sim_time >= G.t_moving ) {
+	if ( G.flow_induced_moving && G.sim_time >= G.t_moving ) {
 
             for ( Block *bdp : G.my_blocks ) {
                 bdp->clear_vertex_velocities(G.dimensions);
