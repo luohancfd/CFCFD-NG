@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "18-May-2016"
+VERSION_STRING = "22-May-2016"
 
 import sys
 
@@ -219,7 +219,7 @@ def build_results_dict(cfg):
         statesd2_reflected_list = ['Vr-sd','Mr-sd','psd2r','Tsd2r','rhosd2r','Vsd2r','Msd2r', 'asd2r', 'gammasd2r', 'Rsd2r']
         full_list += statesd2_reflected_list
 
-    state2_list = ['p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2']
+    state2_list = ['p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Vs1 - V2', 'Ht2']
     full_list += state2_list
 
     if cfg['rs_out_of_st']:
@@ -609,6 +609,8 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     results['a2'].append(states['s2'].a)
     results['gamma2'].append(states['s2'].gam)
     results['R2'].append(states['s2'].R)
+    results['Vs1 - V2'].append(cfg['Vs1'] - V['s2'])
+    
     if cfg['Ht2']:
         results['Ht2'].append(cfg['Ht2']/10**6)
     else:

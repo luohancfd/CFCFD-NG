@@ -15,7 +15,7 @@ Chris James (c.james4@uq.edu.au) - 23/12/14
 
 """
 
-VERSION_STRING = "18-May-2016"
+VERSION_STRING = "22-May-2016"
 
 from pitot_condition_builder import stream_tee
 
@@ -115,13 +115,13 @@ def build_results_dict(cfg):
     if cfg['secondary']:    
         basic_list = ['test number','diluent percentage','psd1','p1','p5','Vsd',
                       'Vs1', 'Vs2', 'Ht','h','u_eq', 'rho1', 'gamma1', 'R1', 'MW1',
-                      'p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2',
+                      'p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Vs1 - V2', 'Ht2',
                       's2 %H2', 's2 %H', 's2 %{0}'.format(cfg['diluent']),'s2 %H+', 's2 %e-',
                       'p6','T6','rho6','V6','M6','p7','T7','rho7','V7','M7']
     else:
         basic_list = ['test number','diluent percentage','p1','p5',
                       'Vs1', 'Vs2', 'Ht','h','u_eq','rho1', 'gamma1', 'R1', 'MW1',
-                      'p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Ht2',
+                      'p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Vs1 - V2', 'Ht2',
                       's2 %H2', 's2 %H', 's2 %{0}'.format(cfg['diluent']),'s2 %H+', 's2 %e-',
                       'p6','T6','rho6','V6','M6','p7','T7','rho7','V7','M7']
     full_list += basic_list
@@ -159,6 +159,10 @@ def build_results_dict(cfg):
     
     #add a list where we can store unsuccesful run numbers for analysis
     results['unsuccessful_runs'] = []
+    
+    print '-'*60
+    print "The full list of variables to be added to the output are:"
+    print full_list
     
     return results
     
@@ -337,6 +341,7 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
                 not isinstance(results[value][i], (int, float)):
                     output_line += "{0},".format(results[value][i])
                 else:
+                    print value, results[value][i], normalising_value_dict[value]
                     output_line += "{0},".format(results[value][i]/normalising_value_dict[value])
             else: #don't put the comma if it's the last value in the csv
                 if value in normalise_exceptions or \
@@ -390,6 +395,8 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     results['a2'].append(states['s2'].a)
     results['gamma2'].append(states['s2'].gam)
     results['R2'].append(states['s2'].R)
+    results['Vs1 - V2'].append(cfg['Vs1'] - V['s2'])
+    
     for value in ['H2', 'H', cfg['diluent'], 'H+', 'e-']:
         if value in states['s2'].species.keys():
             results['s2 %{0}'.format(value)].append(states['s2'].species[value])

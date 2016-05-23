@@ -785,6 +785,15 @@ def state_builder(cfg):
             M['s4']=0.0
             M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
             cfg['M_throat'] = M['s3s']
+        elif cfg['piston'] == 'lwp-1.2mm-dave-mhd':
+            # This is the same as above, but based on numbers in Dave's PhD's tables
+            states['s4']=primary_driver_x2[cfg['driver_gas']][0].clone()
+            cfg['p4'] = 8.89e6; cfg['T4'] = 1726.0 #Pa, K
+            states['s4'].set_pT(cfg['p4'],cfg['T4'])
+            V['s4']=0.0
+            M['s4']=0.0
+            M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
+            cfg['M_throat'] = M['s3s']
         elif cfg['piston'] == 'lwp-2mm-new-paper': 
             #This is the condition from the first secondary driver paper
             # by Gildfind and James

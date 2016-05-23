@@ -459,7 +459,7 @@ def shock_tube_calculation(cfg, states, V, M):
                 elif cfg['p1'] < 100.0 and not cfg['secondary']:
                     cfg['Vs1_guess_1'] = 10000.0; cfg['Vs1_guess_2'] = 12000.0
                 else:
-                    cfg['Vs1_guess_1'] = 6000.0; cfg['Vs1_guess_2'] = 8000.0
+                    cfg['Vs1_guess_1'] = 6000.0; cfg['Vs1_guess_2'] = 7000.0
             elif 'Vs1_guess_1' not in cfg and 'Vs1_guess_2' not in cfg and cfg['tunnel_mode'] == 'reflected-shock-tunnel':   
                 #start with a much lower speed guess in reflected-shock-tunnel mode
                 if cfg['secondary']:
