@@ -1099,9 +1099,9 @@ def acceleration_tube_calculation(cfg, states, V, M):
         states['s7f'] = states['s7'].clone()
         
         # now we need to return the state to an eq state...
-        print "Now setting an eq test section state after the frozen unsteady expansion using the p and T from the frozen expansion..."
+        print "Now returning acceleration tube exit state to eq gas but with original state 2 compositions, and frozen p and T."
         states['s7'] = states[cfg['at_entry_state']].clone()
-        states['s7'].set_pT(states['s7f'].p, states['s7f'].T)
+        states['s7'].p = states['s7f'].p; states['s7'].T = states['s7f'].T
     
     if PRINT_STATUS:
         print '-'*60
@@ -1318,10 +1318,14 @@ def nozzle_expansion(cfg, states, V, M):
                         raise Exception, "pitot_flow_functions.nozzle_expansion(): Run of pitot failed in the nozzle expansion calculation."
 
     if cfg['frozen_nozzle_expansion']:
-        # now we need to return the state to an eq state...
-        print "Now setting an eq test section state after the frozen nozzle expansion using the p and T from the frozen expansion..."
-        states['s8'] = states[cfg['nozzle_entry_state']].clone()
-        states['s8'].set_pT(states['s8f'].p, states['s8f'].T)
+        print "Now returning test section state to eq gas but with original state nozzle entry compositions, and frozen p and T."
+        if cfg['frozen_acceleration_tube_unsteady_expansion']:
+            # we need to clone state 2 or state 2r instead here, so we don't reset the gas state
+            # at the lower temperature when we clone the nozzle entry state
+            states['s8'] = states[cfg['at_entry_state']].clone()
+        else:
+            states['s8'] = states[cfg['nozzle_entry_state']].clone()
+        states['s8'].p = states['s8f'].p; states['s8'].T = states['s8f'].T
         
     print "state 8: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s8'].p, states['s8'].T, V['s8'])        
     if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
