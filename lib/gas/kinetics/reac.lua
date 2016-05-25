@@ -218,37 +218,40 @@ function transform_reaction(t, species, suppress_warnings)
       end
    end
 
-   -- do the same as above for b_coeffs
    b_coeffs = {}
-   for _,p in ipairs(rs[3]) do
-      if type(p) == 'table' then
-	 p[1] = tonumber(p[1]) or 1
-	 p[2] = transform_species_str(p[2])
-	 if p[2] == "M" then
-	    third_body = true
-	 else 
-	    sp_index = species[p[2]]
-	    if sp_index == nil then
-	       print("The following species has been declared in a reaction: ", p[2])
-	       print("but is not part of the declared gas model.")
-	       print("This occurred for reaction number: ", t.number)
-	       if t.label then
-		  print("label: ", t.label)
+   if ( rs[2] == "<=>" ) then
+      -- We have a forward and reverse reaction
+      -- do the same as above for b_coeffs
+      for _,p in ipairs(rs[3]) do
+	 if type(p) == 'table' then
+	    p[1] = tonumber(p[1]) or 1
+	    p[2] = transform_species_str(p[2])
+	    if p[2] == "M" then
+	       third_body = true
+	    else 
+	       sp_index = species[p[2]]
+	       if sp_index == nil then
+		  print("The following species has been declared in a reaction: ", p[2])
+		  print("but is not part of the declared gas model.")
+		  print("This occurred for reaction number: ", t.number)
+		  if t.label then
+		     print("label: ", t.label)
+		  end
+		  print("Bailing out!")
+		  os.exit(1)
 	       end
-	       print("Bailing out!")
-	       os.exit(1)
-	    end
-	    -- check this is not already in f_coeffs
-	    found = false
-	    for _,e in ipairs(b_coeffs) do
-	       if e[1] == sp_index then
-		  found = true
-		  e[2] = e[2] + p[1]
+	       -- check this is not already in f_coeffs
+	       found = false
+	       for _,e in ipairs(b_coeffs) do
+		  if e[1] == sp_index then
+		     found = true
+		     e[2] = e[2] + p[1]
+		  end
 	       end
-	    end
-	 
-	    if not found then
-	       b_coeffs[#b_coeffs+1] = {sp_index, p[1]}
+	       
+	       if not found then
+		  b_coeffs[#b_coeffs+1] = {sp_index, p[1]}
+	       end
 	    end
 	 end
       end
