@@ -598,15 +598,24 @@ def input_checker(cfg, condition_builder = False):
     if cfg['make_x_t_diagram'] and not isinstance(cfg['show_x_t_diagram'], (bool)):
         print "'show_x_t_diagram' input is not a boolean (True or False). Bailing out."
         raise TypeError, "'show_x_t_diagram' input is not a boolean (True or False)"        
-    
-    # --------------------- input for frozen nozzle calculation ---------------
+
+    # --------------------- input for frozen acceleration tube calculation ---------------
     if 'frozen_nozzle_expansion' not in cfg:
         cfg['frozen_nozzle_expansion'] = False
         
     if 'frozen_nozzle_expansion' and cfg['solver'] == 'pg':
         print "'frozen_nozzle_expansion' input has been specified, but the solver is 'pg'."
         print "Turning it off..."
-        cfg['frozen_nozzle_expansion'] = False        
+        cfg['frozen_nozzle_expansion'] = False    
+    
+    # --------------------- input for frozen nozzle calculation ---------------
+    if 'frozen_acceleration_tube_unsteady_expansion' not in cfg:
+        cfg['frozen_acceleration_tube_unsteady_expansion'] = False
+        
+    if 'frozen_acceleration_tube_unsteady_expansion' and cfg['solver'] == 'pg':
+        print "'frozen_acceleration_tube_unsteady_expansion' input has been specified, but the solver is 'pg'."
+        print "Turning it off..."
+        cfg['frozen_acceleration_tube_unsteady_expansion'] = False        
         
     #------------------ final check stuff....-------------------------------
         

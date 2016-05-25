@@ -325,12 +325,33 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
     
     for value in  results['full_list']:
         if normalised_by == 'first value':
-            normalising_value_dict[value] = results[value][0]
+            if isinstance(results[value][0], (int, float)):
+                normalising_value_dict[value] = results[value][0]
+            else: 
+                # is the value we are trying to normalise by is not a number,
+                # just add the value to normalise exceptions list
+                normalise_exceptions.append(value)
+                print "{0} for variable {1} was not a number ({2}).".format(normalised_by, value, results[value][0])
+                print "The variable will be added to the normalise exceptions and not normalised."
         elif normalised_by == 'maximum value':
-            normalising_value_dict[value] = max(results[value])
+            if isinstance(max(results[value]), (int, float)):
+                normalising_value_dict[value] = max(results[value])
+            else: 
+                # is the value we are trying to normalise by is not a number,
+                # just add the value to normalise exceptions list
+                normalise_exceptions.append(value) 
+                print "{0} for variable {1} was not a number ({2}).".format(normalised_by, value, max(results[value]))
+                print "The variable will be added to the normalise exceptions and not normalised."                
         elif normalised_by == 'last value':
-            normalising_value_dict[value] = results[value][-1]       
-    
+            if isinstance(results[value][-1] , (int, float)):
+                normalising_value_dict[value] = results[value][-1] 
+            else: 
+                # is the value we are trying to normalise by is not a number,
+                # just add the value to normalise exceptions list
+                normalise_exceptions.append(value)              
+                print "{0} for variable {1} was not a number ({2}).".format(normalised_by, value, results[value][-1])
+                print "The variable will be added to the normalise exceptions and not normalised."  
+
     for i in range(0, number_of_test_runs, 1):
         output_line = ''
         for value in results['full_list']:
@@ -341,7 +362,6 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
                 not isinstance(results[value][i], (int, float)):
                     output_line += "{0},".format(results[value][i])
                 else:
-                    print value, results[value][i], normalising_value_dict[value]
                     output_line += "{0},".format(results[value][i]/normalising_value_dict[value])
             else: #don't put the comma if it's the last value in the csv
                 if value in normalise_exceptions or \
@@ -579,6 +599,8 @@ def run_pitot_gg_differing_diluent_analysis(cfg = {}, config_file = None):
     
     cfg['test_gas'] = 'custom'
     cfg['test_gas_inputUnits'] = 'moles'
+    cfg['test_gas_outputUnits'] = 'moles'    
+    cfg['test_gas_with_ions'] = 'True'
     cfg['test_gas_composition'] = {'H2':1.0}
     
         

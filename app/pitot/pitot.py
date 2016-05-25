@@ -238,6 +238,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
         added a frozen nozzle calculator so the nozzle can be ran in frozen mode
         if necessary
     18-May-2016:Added Knudsen number to the calculate scaling information printout.
+    25-May-2016: added ability to do pg acceleration tube calculations
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -265,7 +266,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "23-May-2016"
+VERSION_STRING = "25-May-2016"
 
 DEBUG_PITOT = False
 
@@ -395,8 +396,8 @@ def run_pitot(cfg = {}, config_file = None):
                 if changed_secant_tolerance:
                     cfg['acc_tube_secant_tol'] /= 10.0
             except Exception as e:
-                print "Error {0}".format(str(e))
-                raise Exception, "pitot.run_pitot() Run of pitot has failed in the acceleration tube calculation."            
+                print "Error:", e
+                raise Exception, "pitot.run_pitot() Run of pitot has failed somewhere in the acceleration tube calculation."            
         
     #------------------- finishing off any other needed calculations -------------
 

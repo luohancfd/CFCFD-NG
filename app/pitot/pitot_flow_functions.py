@@ -9,6 +9,7 @@ Chris James (c.james4@uq.edu.au) - 07/05/13
 
 """
 
+import copy
 from cfpylib.nm.zero_solvers import secant
 # We base our calculation of gas properties upon calls to the NASA Glenn CEA code.
 from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
@@ -647,7 +648,7 @@ def shock_tube_calculation(cfg, states, V, M):
     or (cfg['Vs2'] >= 9000.0 and cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq'): 
         # just use the gas guess if you don't know if you'll need it
         # and set an air guess too
-        cfg['gas_guess_air'] = {'gam':1.35,'R':571.49}     
+        cfg['gas_guess_air'] = {'gam':1.35,'R':571.49}   
     else:
         cfg['gas_guess'] = None ; cfg['gas_guess_air'] = None
         
@@ -813,7 +814,36 @@ def acceleration_tube_calculation(cfg, states, V, M):
         cfg['at_entry_state'] = 's2r'
     else: # this is just the normal one, state 2
         cfg['at_entry_state'] = 's2'
-
+        
+    # we need to check here if the user has wanted a forzen test gas in the acceleration tube 
+        
+    if cfg['frozen_acceleration_tube_unsteady_expansion']:
+        print "Performing a frozen acceleration tube unsteady expansion as the user has asked for this..."
+        # make a frozen state and expand that...
+        R_universal = 8314.0;  # J/kgmole.K
+            
+        if cfg['rs_out_of_st']: # state 2 after a reflected shock            
+            states['s2rf'] = pg.Gas(Mmass = R_universal/states['s2r'].R,
+                                    gamma = states['s2r'].gam)
+            states['s2rf'].set_pT(states['s2r'].p, states['s2r'].T)
+            V['s2rf'] = copy.copy(V['s2r'])
+        else: # this is just the normal one, state 2
+            states['s2f'] = pg.Gas(Mmass = R_universal/states['s2'].R,
+                                    gamma = states['s2'].gam)
+            states['s2f'].set_pT(states['s2'].p, states['s2'].T) 
+            V['s2f'] = copy.copy(V['s2'])
+            
+        # then we need to adjust the at entry state variables...
+        
+        # copy the original state so we can return to it later...
+        original_at_entry_state = copy.copy(cfg['at_entry_state'])
+    
+        # now set a new one...    
+        if cfg['rs_out_of_st']: # state 2 after a reflected shock
+            cfg['at_entry_state'] = 's2rf'
+        else: # this is just the normal one, state 2
+            cfg['at_entry_state'] = 's2f'      
+                                                         
     #----------------------- acceleration tube functions -----------------------
 
     def error_in_velocity_s2_expansion_pressure_iterator(p5, state2=states[cfg['at_entry_state']], 
@@ -941,10 +971,10 @@ def acceleration_tube_calculation(cfg, states, V, M):
     elif cfg['test'] == 'fulltheory-pressure' or cfg['test'] == 'fulltheory-pressure-ratios' \
     or cfg['test'] == 'experiment-shock-tube-theory-acc-tube': #compute the shock speed for the chosen fill pressure, uses Vs1 as starting guess
         #put two sets of limits here to try and make more stuff work
-        if cfg['state7_no_ions']:
+        if cfg['state7_no_ions'] and cfg['solver'] in ['eq', 'pg-eq']:
             # Need to turn ions off for state 2 here if it is required to make 
             # the unsteady expansion work (as state 2 is expanding into state 7)
-            states['s2'].with_ions = False 
+            states['at_entry_state'].with_ions = False 
         if cfg['Vs1'] > 2000.0 and 'Vs2_lower' not in cfg and 'Vs2_upper' not in cfg:
             cfg['Vs2_lower'] = cfg['Vs1'] + 2000.0; cfg['Vs2_upper'] = 34750.0
         elif cfg['Vs1'] <= 2000.0 and 'Vs2_lower' not in cfg and 'Vs2_upper' not in cfg:
@@ -997,10 +1027,10 @@ def acceleration_tube_calculation(cfg, states, V, M):
             print '-'*60
             print "Now that Vs2 is known, finding conditions at state 6 and 7."
     elif cfg['test'] == 'experiment':
-        if cfg['state7_no_ions']:
+        if cfg['state7_no_ions'] and cfg['solver'] in ['eq', 'pg-eq']:
             # Need to turn ions off for state 2 here if it is required to make 
             # the unsteady expansion work (as state 2 is expanding into state 7)
-            states['s2'].with_ions = False   
+            states['at_entry_state'].with_ions = False   
       
     # some extra code to try and get conditions above 19 km/s working with Pitot
     # also some code here for the custom accelerator gas
@@ -1030,22 +1060,27 @@ def acceleration_tube_calculation(cfg, states, V, M):
         try:
             V['s7'], states['s7'] = finite_wave_dv('cplus', V[cfg['at_entry_state']], states[cfg['at_entry_state']], acc_tube_expand_to_V, steps=cfg['acc_tube_expansion_steps'])
         except Exception as e:
-            print "Finding state7 failed. Trying again with 'state7_no_ions' turned on."
-            cfg['state7_no_ions'] = True
-            states['s2'].with_ions = False
-            V['s7'], states['s7'] = finite_wave_dv('cplus', V[cfg['at_entry_state']], states[cfg['at_entry_state']], acc_tube_expand_to_V, steps=cfg['acc_tube_expansion_steps'])
+            if cfg['solver'] in ['eq', 'pg-eq']:
+                print "Finding state7 failed. Trying again with 'state7_no_ions' turned on."
+                cfg['state7_no_ions'] = True
+                states['s2'].with_ions = False
+                V['s7'], states['s7'] = finite_wave_dv('cplus', V[cfg['at_entry_state']], states[cfg['at_entry_state']], acc_tube_expand_to_V, steps=cfg['acc_tube_expansion_steps'])
+            else:
+                raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Run of pitot has failed near the end of the acceleration tube calculation."
     elif cfg['expand_to'] == 'p7':
         print "State 7 is being expanded to a specified p7 value of {0} Pa.".format(cfg['p7'])
         try:
             V['s7'], states['s7'] = finite_wave_dp('cplus', V[cfg['at_entry_state']], states[cfg['at_entry_state']], cfg['p7'], steps=cfg['acc_tube_expansion_steps'])
         except Exception as e:
-            print "Finding state7 failed. Trying again with 'state7_no_ions' turned on."
-            cfg['state7_no_ions'] = True
-            states['s2'].with_ions = False
-            V['s7'], states['s7'] = finite_wave_dp('cplus', V[cfg['at_entry_state']], states[cfg['at_entry_state']], cfg['p7'], steps=cfg['acc_tube_expansion_steps'])   
-        
+            if cfg['solver'] in ['eq', 'pg-eq']:            
+                print "Finding state7 failed. Trying again with 'state7_no_ions' turned on."
+                cfg['state7_no_ions'] = True
+                states['s2'].with_ions = False
+                V['s7'], states['s7'] = finite_wave_dp('cplus', V[cfg['at_entry_state']], states[cfg['at_entry_state']], cfg['p7'], steps=cfg['acc_tube_expansion_steps'])   
+            else:
+                raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Run of pitot has failed near the end of the acceleration tube calculation."        
         cfg['Vs2'] = V['s7']
-    if cfg['state7_no_ions']:
+    if cfg['state7_no_ions'] and cfg['solver'] in ['eq', 'pg-eq']:
         # Turn with ions back on so it will be on for other states based on s7
         # if we turned it off to make the unsteady expansion work
         states['s7'].with_ions = True 
@@ -1055,6 +1090,18 @@ def acceleration_tube_calculation(cfg, states, V, M):
     if not cfg['expand_to'] == 'p7': #no Vs2 or state 6 if we expand to a pressure to find state 7
         M['s6'] = V['s6']/states['s6'].a
     M['s7']= V['s7']/states['s7'].a
+    
+    if cfg['frozen_acceleration_tube_unsteady_expansion']:
+        # return the original at entry state...
+        cfg['at_entry_state'] = original_at_entry_state
+        
+        # copy the ideal gas state...
+        states['s7f'] = states['s7'].clone()
+        
+        # now we need to return the state to an eq state...
+        print "Now setting an eq test section state after the frozen unsteady expansion using the p and T from the frozen expansion..."
+        states['s7'] = states[cfg['at_entry_state']].clone()
+        states['s7'].set_pT(states['s7f'].p, states['s7f'].T)
     
     if PRINT_STATUS:
         print '-'*60
@@ -1380,6 +1427,8 @@ def shock_over_model_calculation(cfg, states, V, M):
                     print "For some reason p10e and p{0} are too similar. Shock must have not occured properly.".format(cfg['test_section_state'][1])
                     print "p{0} = {1} Pa, p10e = {2} Pa."\
                     .format(cfg['test_section_state'][1], states[cfg['test_section_state']].p, states['s10e'].p)
+                    print "T{0} = {1} K, T10e = {2} K."\
+                    .format(cfg['test_section_state'][1], states[cfg['test_section_state']].T, states['s10e'].T)
                     raise Exception, "pitot_flow_functions.shock_over_model_calculation() Eq shock over model calculation failed."
             except Exception as e:
                 print "Error {0}".format(str(e))
