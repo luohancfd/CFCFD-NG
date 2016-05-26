@@ -615,7 +615,26 @@ def input_checker(cfg, condition_builder = False):
     if 'frozen_acceleration_tube_unsteady_expansion' and cfg['solver'] == 'pg':
         print "'frozen_acceleration_tube_unsteady_expansion' input has been specified, but the solver is 'pg'."
         print "Turning it off..."
-        cfg['frozen_acceleration_tube_unsteady_expansion'] = False        
+        cfg['frozen_acceleration_tube_unsteady_expansion'] = False   
+        
+    # input for the unfreezing of the acc tube exit that affects the two things above...
+    if 'unfreeze_acc_tube_exit' not in cfg and cfg['frozen_acceleration_tube_unsteady_expansion'] and not cfg['frozen_nozzle_expansion']:
+        print "'unfreeze_acc_tube_exit' not in cfg but the user has asked for a frozen acc tube but not a frozen nozzle."
+        print "Will set 'unfreeze_acc_tube_exit' to default of True as nozzle expansion can lose velocity otherwise."
+        
+        cfg['unfreeze_acc_tube_exit'] = True
+
+    if 'unfreeze_acc_tube_exit' not in cfg and cfg['frozen_acceleration_tube_unsteady_expansion'] and cfg['frozen_nozzle_expansion']:
+        print "'unfreeze_acc_tube_exit' not in cfg but the user has asked for a frozen acc tube and a frozen nozzle."
+        print "Will set 'unfreeze_acc_tube_exit' to default of False as the user probably wants the full process to be frozen."
+        
+        cfg['unfreeze_acc_tube_exit'] = False     
+        
+    # --------------- unfreeze nozzle exit stuff -----------------------------
+    
+    if 'unfreeze_nozzle_exit' not in cfg:
+        print "'unfreeze_nozzle_exit' not in cfg will set it to a default of False..."
+        cfg['unfreeze_nozzle_exit'] = False
         
     #------------------ final check stuff....-------------------------------
         

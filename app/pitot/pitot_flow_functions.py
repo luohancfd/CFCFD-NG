@@ -1098,17 +1098,32 @@ def acceleration_tube_calculation(cfg, states, V, M):
         # copy the ideal gas state...
         states['s7f'] = states['s7'].clone()
         
-        # now we need to return the state to an eq state...
-        print "Now returning acceleration tube exit state to eq gas but with original state 2 compositions, and frozen p and T."
-        states['s7'] = states[cfg['at_entry_state']].clone()
-        states['s7'].p = states['s7f'].p; states['s7'].T = states['s7f'].T
+        if cfg['unfreeze_acc_tube_exit']:
+            # if the user has asked for it, unfreeze the acc tube exit condition
+            # taking the frozen exit conditions, setting an  eq gas state using them
+            # and then re-finding mach number with the relaxation...
+            print "Unfreezing nozzle entry as the user has asked for this."
+            print "Taking frozen state 7 p and T and setting an eq state with them."
+            print "also re-calculating M7 using the eq state 7."
+            states['s7'] = states[cfg['at_entry_state']].clone()
+            states['s7'].set_pT(states['s7f'].p, states['s7f'].T)
+            M['s7']= V['s7']/states['s7'].a        
+#        else:    
+#            print "Now returning acceleration tube exit state to eq gas but with original state 2 compositions, gam, R, Cv and Cp."
+#            print "p, T, rho, a will be set to the frozen values and e and h will be found using frozen Cv and Cp T"
+#            states['s7'] = states[cfg['at_entry_state']].clone()
+#            states['s7'].p = states['s7f'].p; states['s7'].T = states['s7f'].T
+#            states['s7'].rho = states['s7f'].rho; states['s7'].a = states['s7f'].a
+#            states['s7'].e = states['s7'].C_v * states['s7'].T
+#            states['s7'].h = states['s7'].C_p * states['s7'].T
     
     if PRINT_STATUS:
         print '-'*60
         if not cfg['expand_to'] == 'p7': #no Vs2 or state 6 if we expand to a pressure to find state 7
             print "state 6: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s6'].p, states['s6'].T,  V['s6']) 
         print "state 7: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s7'].p, states['s7'].T,  V['s7'])
-        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+        if isinstance(states['s7'], Gas):
+            # print the species if it is an eq gas object...
             print 'species in state7 at equilibrium:'               
             print '{0}'.format(states['s7'].species)
         print 'state 7 gamma = {0}, state 7 R = {1}.'.format(states['s7'].gam,states['s7'].R)
@@ -1196,7 +1211,6 @@ def nozzle_expansion(cfg, states, V, M):
     
     """
 
-    if PRINT_STATUS: print "-"*60
     if PRINT_STATUS: print "Starting steady expansion through the nozzle (ar = {0}).".format(cfg['area_ratio'])
     # tolerance for the nozzle expansion secant solver
     cfg['nozzle_expansion_tolerance'] = 1.0e-4
@@ -1249,7 +1263,7 @@ def nozzle_expansion(cfg, states, V, M):
                                                          
             (V['s8'], states['s8f']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state'] + 'f'], V[cfg['nozzle_entry_state']],
                                                                    cfg['area_ratio'], tol = cfg['nozzle_expansion_tolerance'])
-            M['s8']= V['s8']/states['s8f'].a
+            M['s8'] = V['s8']/states['s8f'].a
         else:  
             # just do the normal eq or pg expansion...
             (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']],
@@ -1318,17 +1332,20 @@ def nozzle_expansion(cfg, states, V, M):
                         raise Exception, "pitot_flow_functions.nozzle_expansion(): Run of pitot failed in the nozzle expansion calculation."
 
     if cfg['frozen_nozzle_expansion']:
-        print "Now returning test section state to eq gas but with original state nozzle entry compositions, and frozen p and T."
-        if cfg['frozen_acceleration_tube_unsteady_expansion']:
-            # we need to clone state 2 or state 2r instead here, so we don't reset the gas state
-            # at the lower temperature when we clone the nozzle entry state
-            states['s8'] = states[cfg['at_entry_state']].clone()
-        else:
-            states['s8'] = states[cfg['nozzle_entry_state']].clone()
-        states['s8'].p = states['s8f'].p; states['s8'].T = states['s8f'].T
-        
+        if cfg['unfreeze_nozzle_exit']:
+            print "Unfreezing nozzle exit as the user has asked for this."
+            print "Taking frozen state 8 p and T and setting an eq state with them."
+            print "also re-calculating M8 using the eq state 8."
+            # will use state 1 to clone here...
+            states['s8'] = states['s1'].clone()
+            states['s8'].set_pT(states['s8f'].p, states['s8f'].T)
+            M['s8']= V['s8']/states['s8'].a  
+        else:               
+            states['s8'] = states['s8f']
+    
     print "state 8: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s8'].p, states['s8'].T, V['s8'])        
-    if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+    if isinstance(states['s8'], Gas):
+        # print the species if it is an eq gas object...
         print 'species in state8 at equilibrium:'               
         print '{0}'.format(states['s8'].species)
     print 'state 8 gamma = {0}, state 8 R = {1}.'.format(states['s8'].gam,states['s8'].R)
@@ -1368,6 +1385,7 @@ def shock_over_model_calculation(cfg, states, V, M):
     
     try:
         states['s10f'] = states[cfg['test_section_state']].clone()
+
     except Exception as e:
         print "Error {0}".format(str(e))
         print "Failed to clone test section gas state."
@@ -1377,6 +1395,7 @@ def shock_over_model_calculation(cfg, states, V, M):
             states['s10f'] = states[cfg['test_section_state']].clone() 
             states[cfg['test_section_state']].with_ions = True
             print "Managed to clone test section state with ions turned off."
+            print "Turning them back on now for the post shock flow..."
         except Exception as e:
             print "Error {0}".format(str(e))
             print "Failed to clone test section gas state."
@@ -1402,8 +1421,17 @@ def shock_over_model_calculation(cfg, states, V, M):
     
     if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq': 
         try:
-            states['s10e'] = states[cfg['test_section_state']].clone()
-            states['s10e'].with_ions = True
+            if isinstance(states['s8'], Gas):
+                # if it is an eq gas object, just do what we would normally do...
+                states['s10e'] = states[cfg['test_section_state']].clone()
+                states['s10e'].with_ions = True
+            else:
+                # if it is a pg object (the user did a pg nozzle calculation, probably)
+                # we should make it one...
+                # we should make it one... we will copy state1 (test gas fill state)
+                # and then set the temperature and pressure for the test section
+                states['s10e'] = states['s1'].clone()
+                states['s10e'].set_pT(states[cfg['test_section_state']].p, states[cfg['test_section_state']].T)                 
         except Exception as e:
             print "Error {0}".format(str(e))
             print "Failed to clone test section gas state."
@@ -1414,6 +1442,7 @@ def shock_over_model_calculation(cfg, states, V, M):
                 states[cfg['test_section_state']].with_ions = True
                 states['s10e'].with_ions = True
                 print "Managed to clone test section state with ions turned off."
+                print "Turning them back on now for the post shock flow..."
             except Exception as e:
                 print "Error {0}".format(str(e))
                 print "Failed to clone test section gas state."
@@ -1512,10 +1541,13 @@ def shock_over_model_calculation(cfg, states, V, M):
              
     if 's10e' in states.keys() and PRINT_STATUS:
         print "state 10e: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10e'].p, states['s10e'].T,  V['s10e'])
-        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+        if isinstance(states['s10e'], Gas):
+            # print the species if it is an eq gas object...
             print 'species in state10e at equilibrium:'               
             print '{0}'.format(states['s10e'].species)
         print 'state 10e gamma = {0}, state 10e R = {1}.'.format(states['s10e'].gam,states['s10e'].R)
+        
+    print states['s8'].a
                 
     return cfg, states, V, M
     
@@ -1592,7 +1624,17 @@ def wedge_calculation(cfg, states, V, M):
             M['s10wf'] = M['s10w']
             
         try:
-            states['s10we'] = states[cfg['test_section_state']].clone()
+            if isinstance(states['s8'], Gas):
+                # if it is an eq gas object, just do what we would normally do...
+                states['s10we'] = states[cfg['test_section_state']].clone()
+                states['s10we'].with_ions = True
+            else:
+                # if it is a pg object (the user did a pg nozzle calculation, probably)
+                # we should make it one...
+                # we should make it one... we will copy state1 (test gas fill state)
+                # and then set the temperature and pressure for the test section
+                states['s10we'] = states['s1'].clone()
+                states['s10we'].set_pT(states[cfg['test_section_state']].p, states[cfg['test_section_state']].T)   
         except Exception as e:
             print "Error {0}".format(str(e))
             print "Failed to clone test section gas state."
@@ -1642,7 +1684,8 @@ def wedge_calculation(cfg, states, V, M):
                     
         if 's10we' in states.keys() and PRINT_STATUS:
             print "state 10we: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10we'].p, states['s10we'].T,  V['s10we'])
-            if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+            if isinstance(states['s10c'], Gas):
+                # print the species if it is an eq gas object...
                 print 'species in state10we at equilibrium:'               
                 print '{0}'.format(states['s10we'].species)
             print 'state 10we gamma = {0}, state 10we R = {1}.'.format(states['s10we'].gam,states['s10we'].R)
@@ -1685,8 +1728,7 @@ def conehead_calculation(cfg, states, V, M):
             print "Stopping here. Try another nozzle area ratio."
             print "Result will not show state 10c."
             cfg['conehead_completed'] = False
-            return cfg, states, V, M  
-            
+            return cfg, states, V, M           
             
     if PRINT_STATUS: print "Shock angle over cone:", math.degrees(shock_angle)
     # Reverse the process to get the flow state behind the shock and check the surface angle is correct
@@ -1713,7 +1755,8 @@ def conehead_calculation(cfg, states, V, M):
         
     if 's10c' in states.keys() and PRINT_STATUS:
         print "state 10c: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10c'].p, states['s10c'].T,  V['s10c'])
-        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+        if isinstance(states['s10c'], Gas):
+            # print the species if it is an eq gas object...
             print 'species in state10c at equilibrium:'               
             print '{0}'.format(states['s10c'].species)
         print 'state 10c gamma = {0}, state 10c R = {1}.'.format(states['s10c'].gam,states['s10c'].R)

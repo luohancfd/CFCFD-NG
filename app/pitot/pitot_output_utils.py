@@ -175,7 +175,7 @@ def txt_file_output(cfg, states, V, M):
     if cfg['rs_out_of_st']:
         shock_warning_3 = "NOTE: a user specified reflected shock was done at the end of the shock tube."
         print shock_warning_3
-        txt_output.write(shock_warning_3 + '\n')        
+        txt_output.write(shock_warning_3 + '\n')   
         
     if cfg['secondary'] and not cfg['shock_switch']:
         secondary_shockspeeds = "Vsd = {0:.2f} m/s, Msd1 = {1:.2f}".format(cfg['Vsd'],cfg['Msd1'])

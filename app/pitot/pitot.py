@@ -239,6 +239,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
         if necessary
     18-May-2016:Added Knudsen number to the calculate scaling information printout.
     25-May-2016: added ability to do pg acceleration tube calculations
+    26-May-2016: did some upgrades to the pg acceleration tube calculations...
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -266,7 +267,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "25-May-2016"
+VERSION_STRING = "26-May-2016"
 
 DEBUG_PITOT = False
 
