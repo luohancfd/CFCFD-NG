@@ -350,11 +350,14 @@ def area_ratio_check(cfg, states, V, M):
         if cfg['normalise_results_by'] == 'original value':
             # we need to make a dummy results dictionary that we put the resulta data
             # of the original run in if we want to normalise by the original value
-            original_value_result =  area_ratio_check_results_dict_builder(cfg)
+            original_value_result = area_ratio_check_results_dict_builder(cfg)
             original_value_result = area_ratio_add_new_result_to_results_dict(cfg, states, V, M, original_value_result)
+        else:
+            original_value_result = None
         area_ratio_check_normalised_results_csv_builder(results, test_name = cfg['filename'],  
-                                       intro_line = intro_line, normalised_by = cfg['normalise_results_by'],
-                                       original_value_result = original_value_result)
+                                                        intro_line = intro_line, normalised_by = cfg['normalise_results_by'],
+                                                        original_value_result = original_value_result)
+            
     else:
         area_ratio_check_normalised_results_csv_builder(results, test_name = cfg['filename'],  
                                        intro_line = intro_line, normalised_by = 'first value')        

@@ -1546,8 +1546,6 @@ def shock_over_model_calculation(cfg, states, V, M):
             print 'species in state10e at equilibrium:'               
             print '{0}'.format(states['s10e'].species)
         print 'state 10e gamma = {0}, state 10e R = {1}.'.format(states['s10e'].gam,states['s10e'].R)
-        
-    print states['s8'].a
                 
     return cfg, states, V, M
     

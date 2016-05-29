@@ -267,7 +267,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "26-May-2016"
+VERSION_STRING = "29-May-2016"
 
 DEBUG_PITOT = False
 
@@ -289,6 +289,9 @@ def run_pitot(cfg = {}, config_file = None):
     run_pitot(dict) - > depends
     
     """
+    
+    print '-'*60
+    print 'Running Pitot Version: {0}.'.format(VERSION_STRING)
     
     #---------------------- getting the inputs set up --------------------------
     

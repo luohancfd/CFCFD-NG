@@ -850,7 +850,7 @@ def csv_file_output(cfg, states, V, M):
             it_string = 's{0}r'.format(i)
             csv_condition_printer(it_string)   
     if cfg['tunnel_mode'] == 'expansion-tube':    
-        for i in range(5,9): #acc tube and nozzle if it's there
+        for i in range(5,8): #acc tube and nozzle if it's there
             if i == 6 and cfg['expand_to'] == 'p7':
                 continue
             it_string = 's{0}'.format(i)
@@ -907,35 +907,35 @@ def csv_file_output(cfg, states, V, M):
         if cfg['stagnation_enthalpy']:
             cfg['u_eq'] = math.sqrt(2.0*cfg['stagnation_enthalpy']) 
     if cfg['stagnation_enthalpy']:                                 
-        csv_stag_enth = 'Ht,{0:<.5g} MJ/kg.'.format(cfg['stagnation_enthalpy']/10**6)
+        csv_stag_enth = 'Ht,{0:<.5g}, MJ/kg.'.format(cfg['stagnation_enthalpy']/10**6)
         csv_output.write(csv_stag_enth + '\n')
         
-    csv_freestream_enth = 'h,{0:<.5g} MJ/kg.'.format(cfg['freestream_enthalpy']/10**6)
+    csv_freestream_enth = 'h,{0:<.5g}, MJ/kg.'.format(cfg['freestream_enthalpy']/10**6)
     csv_output.write(csv_freestream_enth + '\n') 
     
     if cfg['stagnation_enthalpy']:   
-        stag_temp = 'Tt, {0:<.5g} K.'.format(states['test_section_total'].T)
+        stag_temp = 'Tt, {0:<.5g}, K.'.format(states['test_section_total'].T)
         csv_output.write(stag_temp + '\n')
        
     if cfg['stagnation_enthalpy'] and cfg['stagnation_enthalpy'] >= 0.0 and cfg['u_eq']:           
-        csv_u_eq_print = 'Ue,{0:<.5g} m/s.'.format(cfg['u_eq'])
+        csv_u_eq_print = 'Ue,{0:<.5g}, m/s.'.format(cfg['u_eq'])
         csv_output.write(csv_u_eq_print + '\n')
         
     if cfg['wedge']:
         if 'beta_pg' in cfg:
-            frozen_wedge = 'Frozen wedge beta angle, {0:.3f} degrees.'.format(math.degrees(cfg['beta_pg']))
+            frozen_wedge = 'Frozen wedge beta angle, {0:.3f}, degrees.'.format(math.degrees(cfg['beta_pg']))
         else:
             frozen_wedge = "Frozen wedge is detached."
             csv_output.write(frozen_wedge + '\n')
         if cfg['solver'] in ['eq', 'pg-eq']:
             if 'beta_eq' in cfg:
-                eq_wedge = 'Equilibrium wedge beta angle, {0:.3f} degrees.'.format(math.degrees(cfg['beta_eq']))
+                eq_wedge = 'Equilibrium wedge beta angle, {0:.3f}, degrees.'.format(math.degrees(cfg['beta_eq']))
             else:
                 eq_wedge = "Equilibrium wedge is detached."
             csv_output.write(eq_wedge + '\n')    
 
     if cfg['calculate_test_time']: 
-        csv_basic_test_time_printout = 'Basic test time,{0:.2f} microseconds'.format(cfg['t_test_basic']*1.0e6)
+        csv_basic_test_time_printout = 'Basic test time,{0:.2f}, microseconds'.format(cfg['t_test_basic']*1.0e6)
         csv_output.write(csv_basic_test_time_printout + '\n')   
     
     csv_output.close()
