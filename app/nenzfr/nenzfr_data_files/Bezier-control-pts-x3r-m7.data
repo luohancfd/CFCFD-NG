@@ -1,0 +1,20 @@
+# Bezier-control-pts-x3r-m7.data
+# Control points for a Bezier curve that defines the X3R Mach 7 nozzle contour.
+#
+# Note that although the contour curves toward the nozzle axis downstream of
+# x=2.387m, the physical nozzle is machined to produce a constant diameter for
+# this section of the nozzle. TO DO -> update nenzfr_input_utils.py script 
+# to reproduce the constant-diameter section in the nozzle contour.
+#
+# Wilson Chan, 29 May 2016
+#
+#     x, m       y, m 
+ 0.000000e+00 3.000000e-02
+ 9.300000e-02 3.000000e-02
+ 3.719999e-01 1.927000e-01
+ 4.960000e-01 1.519600e-01
+ 8.059999e-01 2.661150e-01
+ 1.240000e+00 3.215890e-01
+ 1.766999e+00 3.341330e-01
+ 2.387000e+00 3.854860e-01
+ 3.100000e+00 3.837560e-01

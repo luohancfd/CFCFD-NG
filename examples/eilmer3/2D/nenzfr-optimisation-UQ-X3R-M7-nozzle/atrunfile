@@ -1,0 +1,2 @@
+module load mpi/openmpi-x86_64
+./run-optimiser.sh
