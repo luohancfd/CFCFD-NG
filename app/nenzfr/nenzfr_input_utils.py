@@ -79,6 +79,12 @@ def input_checker(cfg):
                                 'nni':600, 'nnj':40, 'nbi':60, 'nbj':1, 'bx':1.10, 'by':1.02,
                                 'fully_contoured_nozzle':False},
                        #
+                       't4-m4b':{'contourFileName':'Bezier-control-pts-t4-m4b.data',
+                                'include_throat_block':True, 'Lthr':12.5e-3,
+                                'truncate_nozzle':False, 'Lnoz':5.118100e-01,
+                                'nni':600, 'nnj':40, 'nbi':30, 'nbj':2, 'bx':1.10, 'by':1.02,
+                                'fully_contoured_nozzle':True},
+                       #
                        't4-m6':{'contourFileName':'Bezier-control-pts-t4-m6.data',
                                 'include_throat_block':True, 'Lthr':12.5e-3,
                                 'truncate_nozzle':False, 'Lnoz':7.970280e-01,
@@ -112,6 +118,12 @@ def input_checker(cfg):
                        'x3-m10':{'contourFileName':'Bezier-control-pts-x3-m10.data',
                                 'include_throat_block':True, 'Lthr':91.3e-3,
                                 'truncate_nozzle':False, 'Lnoz':2.59,
+                                'nni':1800, 'nnj':100, 'nbi':180, 'nbj':4, 'bx':1.05, 'by':1.002,
+                                'fully_contoured_nozzle':True},
+                       #
+                       'x3r-m7':{'contourFileName':'Bezier-control-pts-x3r-m7.data',
+                                'include_throat_block':True, 'Lthr':60.0e-3,
+                                'truncate_nozzle':False, 'Lnoz':2.857143,
                                 'nni':1800, 'nnj':100, 'nbi':180, 'nbj':4, 'bx':1.05, 'by':1.002,
                                 'fully_contoured_nozzle':True}
                        }
