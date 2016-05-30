@@ -44,23 +44,33 @@ Reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower)
     }
     lua_pop(L, 1);
 
-    lua_getfield(L, -1, "brc");
-    if ( lua_isnil(L, -1) ) {
+    if ( b_coeffs.size() == 0 ) { // We do nothing in backwards direction
 	brc_ = 0;
     }
     else {
-	brc_ = create_Reaction_rate_coefficient(L, g, T_upper, T_lower);
+	lua_getfield(L, -1, "brc");
+	if ( lua_isnil(L, -1) ) {
+	    brc_ = 0;
+	}
+	else {
+	    brc_ = create_Reaction_rate_coefficient(L, g, T_upper, T_lower);
+	}
+	lua_pop(L, 1);
     }
-    lua_pop(L, 1);
 
-    lua_getfield(L, -1, "ec");
-    if ( lua_isnil(L, -1) ) {
+    if ( b_coeffs.size() == 0 ) { // We do nothing in backwards direction
 	ec_ = 0;
     }
     else {
-	ec_ = create_Equilibrium_constant(L, nu_, g);
+	lua_getfield(L, -1, "ec");
+	if ( lua_isnil(L, -1) ) {
+	    ec_ = 0;
+	}
+	else {
+	    ec_ = create_Equilibrium_constant(L, nu_, g);
+	}
+	lua_pop(L, 1);
     }
-    lua_pop(L, 1);
 
     // Test that at least one of forward or backward rate coefficients are specified.
     if ( (frc_ == 0) && (brc_ == 0) ) {
@@ -125,7 +135,7 @@ loss(int isp)
 	return nu_[isp]*w_b_;
     }
     else {
-	return  -nu_[isp]*w_f_;
+	return -nu_[isp]*w_f_;
     }
 }
 
