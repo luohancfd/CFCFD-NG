@@ -223,8 +223,11 @@ int viscous_flux_2D(Block *A)
 		}
 	    }	    
 	    
-	    if ( G.turbulence_model == TM_K_OMEGA ) {
+	    if ( G.turbulence_model == TM_K_OMEGA &&
+		 !(G.axisymmetric && (ybar <= VERY_SMALL)) ) {
 		// Turbulence contribution to the shear stresses.
+		// 2016-05-30 PJ.  If we are doing an axisymmetric flow,
+		// only have non-zero shear stresses if we are not near the axis.
 		tau_xx -= 0.66667 * fs.gas->rho * fs.tke;
 		tau_yy -= 0.66667 * fs.gas->rho * fs.tke;
 		// Turbulence contribution to heat transfer.
