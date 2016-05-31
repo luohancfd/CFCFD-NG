@@ -240,6 +240,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
     18-May-2016:Added Knudsen number to the calculate scaling information printout.
     25-May-2016: added ability to do pg acceleration tube calculations
     26-May-2016: did some upgrades to the pg acceleration tube calculations...
+    31-May-2016: added ability to force Vs2 as the flow velocity after an experiment
+        unsteady expansion to p7 using the variable 'force_V7'
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -267,7 +269,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "29-May-2016"
+VERSION_STRING = "31-May-2016"
 
 DEBUG_PITOT = False
 

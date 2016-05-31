@@ -523,6 +523,14 @@ def input_checker(cfg, condition_builder = False):
         print "Specify 'p7'."
         cfg['bad_input'] = True
         
+    if 'force_V7' not in cfg:
+        cfg['force_V7'] = False
+        
+    if cfg['expand_to'] == 'p7' and cfg['force_V7'] and 'Vs2' not in cfg:
+        print "User has chosen to 'force_V7' to 'Vs2' after expanding the test gas to p7"
+        print "but 'Vs2' is not in the cfg. Specify 'Vs2'."
+        cfg['bad_input'] = True        
+        
     if 'V2_mirels_limit' not in cfg:
         # This puts V2 up to Vs1 to provide a boost from the Mirels' limit
         cfg['V2_mirels_limit'] = False

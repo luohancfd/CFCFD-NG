@@ -974,7 +974,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
         if cfg['state7_no_ions'] and cfg['solver'] in ['eq', 'pg-eq']:
             # Need to turn ions off for state 2 here if it is required to make 
             # the unsteady expansion work (as state 2 is expanding into state 7)
-            states['at_entry_state'].with_ions = False 
+            states[cfg['at_entry_state']].with_ions = False 
         if cfg['Vs1'] > 2000.0 and 'Vs2_lower' not in cfg and 'Vs2_upper' not in cfg:
             cfg['Vs2_lower'] = cfg['Vs1'] + 2000.0; cfg['Vs2_upper'] = 34750.0
         elif cfg['Vs1'] <= 2000.0 and 'Vs2_lower' not in cfg and 'Vs2_upper' not in cfg:
@@ -1030,7 +1030,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
         if cfg['state7_no_ions'] and cfg['solver'] in ['eq', 'pg-eq']:
             # Need to turn ions off for state 2 here if it is required to make 
             # the unsteady expansion work (as state 2 is expanding into state 7)
-            states['at_entry_state'].with_ions = False   
+            states[cfg['at_entry_state']].with_ions = False   
       
     # some extra code to try and get conditions above 19 km/s working with Pitot
     # also some code here for the custom accelerator gas
@@ -1079,7 +1079,12 @@ def acceleration_tube_calculation(cfg, states, V, M):
                 V['s7'], states['s7'] = finite_wave_dp('cplus', V[cfg['at_entry_state']], states[cfg['at_entry_state']], cfg['p7'], steps=cfg['acc_tube_expansion_steps'])   
             else:
                 raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Run of pitot has failed near the end of the acceleration tube calculation."        
-        cfg['Vs2'] = V['s7']
+        if cfg['force_V7']:
+            # if the user has specified force_V7, we set V7 to Vs2 instead of what was found using the unsteady expansion
+            V['s7'] = cfg['Vs2']
+        else:
+            # we set Vs2 to the V7 that we calculated...
+            cfg['Vs2'] = V['s7']
     if cfg['state7_no_ions'] and cfg['solver'] in ['eq', 'pg-eq']:
         # Turn with ions back on so it will be on for other states based on s7
         # if we turned it off to make the unsteady expansion work
