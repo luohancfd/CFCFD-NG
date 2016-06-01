@@ -242,6 +242,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
     26-May-2016: did some upgrades to the pg acceleration tube calculations...
     31-May-2016: added ability to force Vs2 as the flow velocity after an experiment
         unsteady expansion to p7 using the variable 'force_V7'
+    02-Jun-2016: added ability to make the code spit out a one line summary of the output
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -388,22 +389,13 @@ def run_pitot(cfg = {}, config_file = None):
             if not cfg['state7_no_ions']:            
                 print "Acceleration tube calculation failed. Going to try it again with 'state7_no_ions' turned on."
                 cfg['state7_no_ions'] = True
-                changed_secant_tolerance = False
-            else:
-                print "Acceleration tube calculation failed. Going to try it again with a lower secant solver tolerance."
-                print "Changing tolerance from {0} to {1}".format(cfg['acc_tube_secant_tol'], cfg['acc_tube_secant_tol']*10.0)
-                cfg['acc_tube_secant_tol'] *= 10.0
-                changed_secant_tolerance = True
-            print '-'*60
-            try:
-                cfg, states, V, M = acceleration_tube_calculation(cfg, states, V, M)      
-                # if we changed the secant tolerance, change it back here...
-                # so the multiple run PITOT codes aren't hurt by it
-                if changed_secant_tolerance:
-                    cfg['acc_tube_secant_tol'] /= 10.0
-            except Exception as e:
-                print "Error:", e
-                raise Exception, "pitot.run_pitot() Run of pitot has failed somewhere in the acceleration tube calculation."            
+                
+                print '-'*60
+                try:
+                    cfg, states, V, M = acceleration_tube_calculation(cfg, states, V, M)      
+                except Exception as e:
+                    print "Error:", e
+                    raise Exception, "pitot.run_pitot() Run of pitot has failed somewhere in the acceleration tube calculation."            
         
     #------------------- finishing off any other needed calculations -------------
 
@@ -443,6 +435,38 @@ def run_pitot(cfg = {}, config_file = None):
         cfg, states, V, M = txt_file_output(cfg, states, V, M)
     elif cfg['mode'] == 'csv-printout': #just do the csv printout
         cfg, states, V, M = csv_file_output(cfg, states, V, M)
+        
+    if cfg['make_one_line_summary']:
+        print '-'*60
+        print "Making one line summary of the result."
+        try:
+            # pull in the output dict stuff from pitot condition builder and we will co-opt it for this...
+            from pitot_condition_builder import build_results_dict, add_new_result_to_results_dict, results_csv_builder
+    
+            # need to add some results to make this work... we will delete them later
+            cfg['test_number'] = 1
+            cfg['secondary_list'] = [cfg['secondary']]
+            cfg['store_electron_concentration'] = False
+            
+            # use config to make a results dictionary...
+            results = build_results_dict(cfg)
+    
+            # add the result to the results dictionary...
+            results = add_new_result_to_results_dict(cfg, states, V, M, results)
+            # now we delete the test number....
+            del(results['test number'])
+            results['full_list'].pop(0)
+            
+            # now make the output...
+            intro_line = "One line output summary made using pitot Version {0}.".format(VERSION_STRING)  
+            filename = cfg['filename'] + '-one-line-summary.csv'
+            results_csv_builder(results, test_name = cfg['filename'],  intro_line = intro_line, filename = filename)    
+        except Exception as e:
+            print "Error:", e
+            raise Exception, "pitot.run_pitot() Run of pitot has failed somewhere creation of a one line summary. Summary file may have issues."            
+        
+        
+        
         
     #------------------ x-t diagram builder ------------------------------- 
     

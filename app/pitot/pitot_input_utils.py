@@ -643,7 +643,12 @@ def input_checker(cfg, condition_builder = False):
     if 'unfreeze_nozzle_exit' not in cfg:
         print "'unfreeze_nozzle_exit' not in cfg will set it to a default of False..."
         cfg['unfreeze_nozzle_exit'] = False
-        
+    
+    # ------------------ one line summary stuff ------------------------------
+    if 'make_one_line_summary' not in cfg:
+        print "'make_one_line_summary' not in cfg will set it to a default of False..."
+        cfg['make_one_line_summary'] = False
+    
     #------------------ final check stuff....-------------------------------
         
     

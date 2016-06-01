@@ -303,14 +303,12 @@ def shock_tube_calculation(cfg, states, V, M):
         try:
             if solver == 'eq' or solver == 'pg':
                 try:
-                    if Vs1 > 8500 and solver == 'eq':
-                        (V2, V2g) = normal_shock(state1, Vs1, state2, gas_guess)
-                    else:
-                        (V2, V2g) = normal_shock(state1, Vs1, state2)
+                    (V2, V2g) = normal_shock(state1, Vs1, state2)
                 except:
-                    print "Normal shock failed. Trying again with a gas guess."
-                    (V2, V2g) = normal_shock(state1, Vs1, state2, gas_guess) 
-                    
+                    if solver == 'eq' and gas_guess:
+                        print "Normal shock failed. Trying again with a high temp gas guess."
+                        (V2, V2g) = normal_shock(state1, Vs1, state2, gas_guess)
+                        
             elif solver == 'pg-eq': #if we're using the perfect gas eq solver, we want to make an eq state1, set it's T and p, clone it to state2_eq and then shock process it through CEA
                 if test_gas == 'mars' or test_gas == 'co2' or test_gas == 'venus':
                     state1_eq, nothing1, nothing2, nothing3 = make_test_gas(test_gas) #make eq state1
@@ -651,7 +649,7 @@ def shock_tube_calculation(cfg, states, V, M):
         cfg['gas_guess_air'] = {'gam':1.35,'R':571.49}   
     else:
         cfg['gas_guess'] = None ; cfg['gas_guess_air'] = None
-        
+                
     if PRINT_STATUS: print '-'*60
         
     return cfg, states, V, M
@@ -997,14 +995,20 @@ def acceleration_tube_calculation(cfg, states, V, M):
             cfg['acc_tube_secant_tol'] = 1.0e-5
             print "Using default acceleration tube secant solver tolerance of {0}.".format(cfg['acc_tube_secant_tol'])
         else:
-            print "Using custom acceleration tube secant solver tolerance of {0}.".format(cfg['acc_tube_secant_tol'])          
+            print "Using custom acceleration tube secant solver tolerance of {0}.".format(cfg['acc_tube_secant_tol']) 
+            
+        if 'acc_tube_max_iterations' not in cfg:
+            cfg['acc_tube_max_iterations'] = 50
+            print "Using default maximum acceleration tube secant solver iterations of {0}.".format(cfg['acc_tube_max_iterations'])
+        else:
+            print "Using default maximum acceleration tube secant solver iterations of {0}.".format(cfg['acc_tube_max_iterations'])
                 
         try:
             cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, 
                                 cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
                                 tol = cfg['acc_tube_secant_tol'],
                                 limits=[cfg['Vs2_lower'],cfg['Vs2_upper']],
-                                max_iterations = 50)
+                                max_iterations = cfg['acc_tube_max_iterations'])
         except Exception as e:
             print "Acceleration tube secant solver failed. Will try again with higher initial guesses."
             print "New guesses are: 'Vs2_guess_1' = {0} m/s and 'Vs2_guess_2' = {1} m/s".\
@@ -1014,10 +1018,54 @@ def acceleration_tube_calculation(cfg, states, V, M):
                                 cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
                                 tol = cfg['acc_tube_secant_tol'],
                                 limits=[cfg['Vs2_lower'],cfg['Vs2_upper']],
-                                max_iterations = 50)            
+                                max_iterations = cfg['acc_tube_max_iterations'])            
         if cfg['Vs2'] == 'FAIL':
             print "Acceleration tube secant solver did not converge after max amount of iterations."
-            raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Run of pitot has failed in the acceleration tube calculation."                    
+            print "Going to try it again with a lower secant solver tolerance."
+            print "Changing tolerance from {0} to {1}".format(cfg['acc_tube_secant_tol'], cfg['acc_tube_secant_tol']*10.0)
+            
+            original_acc_tube_secant_tol = copy.copy(cfg['acc_tube_secant_tol'])
+            cfg['acc_tube_secant_tol'] *= 10.0
+            try:
+                cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, 
+                                    cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
+                                    tol = cfg['acc_tube_secant_tol'],
+                                    limits=[cfg['Vs2_lower'],cfg['Vs2_upper']],
+                                    max_iterations = cfg['acc_tube_max_iterations'])
+            except Exception as e:
+                    # return our original tolerance...
+                cfg['acc_tube_secant_tol'] = original_acc_tube_secant_tol
+                print "Acceleration tube secant solver failed with the lower tolerance."
+                raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Acceleration tube secant solver failed." 
+                
+            if cfg['Vs2'] == 'FAIL':
+                print "Acceleration tube secant solver once again did not converge after max amount of iterations."
+                print "Will try lowering the secant solver tolerance one last time."
+                print "Changing tolerance from {0} to {1}".format(cfg['acc_tube_secant_tol'], cfg['acc_tube_secant_tol']*10.0)
+                
+                cfg['acc_tube_secant_tol'] *= 10.0
+                try:
+                    cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, 
+                                        cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
+                                        tol = cfg['acc_tube_secant_tol'],
+                                        limits=[cfg['Vs2_lower'],cfg['Vs2_upper']],
+                                        max_iterations = cfg['acc_tube_max_iterations'])
+                except Exception as e:
+                    # return our original tolerance...
+                    cfg['acc_tube_secant_tol'] = original_acc_tube_secant_tol
+                    print "Acceleration tube secant solver failed again with an even lower tolerance."
+                    raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Acceleration tube secant solver failed." 
+                
+                if cfg['Vs2'] == 'FAIL':
+                    
+                    # return our original tolerance...
+                    cfg['acc_tube_secant_tol'] = original_acc_tube_secant_tol
+                    
+                    print "Acceleration tube secant solver failed again with an even lower tolerance."
+                    raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Acceleration tube secant solver failed." 
+             
+            # return our original tolerance...
+            cfg['acc_tube_secant_tol'] = original_acc_tube_secant_tol
                   
         if PRINT_STATUS: 
             print '-'*60
@@ -1274,6 +1322,12 @@ def nozzle_expansion(cfg, states, V, M):
             (V['s8'], states['s8']) = steady_flow_with_area_change(states[cfg['nozzle_entry_state']], V[cfg['nozzle_entry_state']],
                                                                     cfg['area_ratio'], tol = cfg['nozzle_expansion_tolerance'])
             M['s8']= V['s8']/states['s8'].a
+            
+        if states[cfg['nozzle_entry_state']].p ==  states['s8'].p:
+            print "Nozzle inlet and exit pressures are the same. (p{0} = {1} Pa, p8 = {2} Pa)".format(cfg['nozzle_entry_state'][1], states[cfg['nozzle_entry_state']].p, states['s8'].p)
+            print "There must be some kind of error."
+            raise Exception, "pitot_flow_functions.nozzle_expansion(): No pressure change through nozzle"
+            
     except Exception as e:
         print "Error {0}".format(str(e))
         if e.message == "Failed to find area-change conditions iteratively.":
@@ -1292,7 +1346,13 @@ def nozzle_expansion(cfg, states, V, M):
                                                                                V[cfg['nozzle_entry_state']],
                                                                                cfg['area_ratio'], tol = cfg['nozzle_expansion_tolerance'])
                     M['s8']= V['s8']/states['s8'].a
-                cfg['nozzle_expansion_tolerance'] = cfg['nozzle_expansion_tolerance'] / 10.0    
+                cfg['nozzle_expansion_tolerance'] = cfg['nozzle_expansion_tolerance'] / 10.0 
+                
+                if states[cfg['nozzle_entry_state']].p ==  states['s8'].p:
+                    print "Nozzle inlet and exit pressures are the same. (p{0} = {1} Pa, p8 = {2} Pa)".format(cfg['nozzle_entry_state'][1], states[cfg['nozzle_entry_state']].p, states['s8'].p)
+                    print "There must be some kind of error."
+                    raise Exception, "pitot_flow_functions.nozzle_expansion(): No pressure change through nozzle"
+                
             except Exception as e:
                 print "Error {0}".format(str(e))
                 cfg['nozzle_expansion_tolerance'] = cfg['nozzle_expansion_tolerance'] / 10.0 
@@ -1306,8 +1366,9 @@ def nozzle_expansion(cfg, states, V, M):
                 M['s8']= V['s8']/states['s8'].a
                 states['s8'].with_ions = True
                 if states[cfg['nozzle_entry_state']].p ==  states['s8'].p:
-                    print "Nozzle inlet and exit pressures are the same. There must be some kind of error."
-                raise Exception, "pitot_flow_functions.nozzle_expansion(): No pressure change through nozzle"
+                    print "Nozzle inlet and exit pressures are the same. (p{0} = {1} Pa, p8 = {2} Pa)".format(cfg['nozzle_entry_state'][1], states[cfg['nozzle_entry_state']].p, states['s8'].p)
+                    print "There must be some kind of error."
+                    raise Exception, "pitot_flow_functions.nozzle_expansion(): No pressure change through nozzle"
                 print "Nozzle expansion sucessful with ions turned off."
             except Exception as e:
                 print "Error {0}".format(str(e))

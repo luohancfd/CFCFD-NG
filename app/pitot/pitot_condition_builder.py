@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "22-May-2016"
+VERSION_STRING = "31-May-2016"
 
 import sys
 
@@ -367,15 +367,19 @@ def guess_modifier(cfg, results):
                 
     return cfg, results
        
-def results_csv_builder(results, test_name = 'pitot_run',  intro_line = None):
+def results_csv_builder(results, test_name = 'pitot_run',  intro_line = None, filename = None):
     """Function that takes the final results dictionary (which must include a 
        list called 'full_list' that tells this function what to print and in 
        what order) and then outputs a results csv. It will also add an intro line
        if a string with that is added. The name of the test is also required.
     """
     
-    # open a file to start saving results
-    with open(test_name + '-condition-builder.csv',"w") as condition_builder_output:
+#   # make a file name if nothing is specified...    
+    
+    if not filename:
+        filename = test_name + '-condition-builder.csv'
+       
+    with open(filename,"w") as condition_builder_output:
     
         # print a line explaining the results if the user gives it
         if intro_line:
