@@ -26,6 +26,10 @@ def area_ratio_check_results_dict_builder(cfg):
                  'p8/p{0}'.format(nozzle_entry_number), 'T8/T{0}'.format(nozzle_entry_number),
                  'rho8/rho{0}'.format(nozzle_entry_number), 'V8/V{0}'.format(nozzle_entry_number),
                  'M8/M{0}'.format(nozzle_entry_number),]
+                 
+    if cfg['calculate_scaling_information']:
+        calculate_scaling_information_freestream_list = ['s8_mu', 's8_rhoL', 's8_pL', 's8_Re', 's8_Kn']
+        full_list += calculate_scaling_information_freestream_list
     
     if cfg['conehead']:
          conehead_list = ['p10c','T10c','rho10c','V10c']
@@ -33,6 +37,9 @@ def area_ratio_check_results_dict_builder(cfg):
     if cfg['shock_over_model']:
         shock_over_model_list = ['p10f','T10f','rho10f','V10f','p10e','T10e','rho10e','V10e']
         full_list += shock_over_model_list
+        if cfg['calculate_scaling_information']:
+            calculate_scaling_information_normal_shock_list = ['s10e_mu', 's10e_rhoL', 's10e_pL', 's10e_Re', 's10e_Kn']
+            full_list += calculate_scaling_information_normal_shock_list  
 
     # now populate the dictionary with a bunch of empty lists based on that list
 
@@ -41,6 +48,10 @@ def area_ratio_check_results_dict_builder(cfg):
     # add the list of titles in case we want to use it in future
     
     results['full_list'] = full_list
+    
+    print '-'*60
+    print "The full list of variables to be added to the area ratio check output are:"
+    print full_list
     
     #add a list where we can store unsuccesful run numbers for analysis
     results['unsuccessful_runs'] = []
@@ -69,6 +80,13 @@ def area_ratio_add_new_result_to_results_dict(cfg, states, V, M, results):
     results['rho8/rho{0}'.format(nozzle_entry_number)].append(cfg['nozzle_density_ratio']) 
     results['V8/V{0}'.format(nozzle_entry_number)].append(cfg['nozzle_velocity_ratio'])
     results['M8/M{0}'.format(nozzle_entry_number)].append(cfg['nozzle_mach_number_ratio'])    
+    
+    if cfg['calculate_scaling_information']:
+        results['s8_mu'].append(states[cfg['test_section_state']].mu)        
+        results['s8_rhoL'].append(cfg['rho_l_product_freestream'])
+        results['s8_pL'].append(cfg['pressure_l_product_freestream'])  
+        results['s8_Re'].append(cfg['reynolds_number_freestream']) 
+        results['s8_Kn'].append(cfg['knudsen_number_freestream'])  
 
     if cfg['conehead'] and cfg['conehead_completed']:
         results['p10c'].append(states['s10c'].p)
@@ -101,7 +119,14 @@ def area_ratio_add_new_result_to_results_dict(cfg, states, V, M, results):
             results['p10e'].append('did not solve')
             results['T10e'].append('did not solve')
             results['rho10e'].append('did not solve')
-            results['V10e'].append('did not solve')            
+            results['V10e'].append('did not solve') 
+            
+        if cfg['calculate_scaling_information']:
+            results['s10e_mu'].append(states['s10e'].mu) 
+            results['s10e_rhoL'].append(cfg['rho_l_product_state10e'])
+            results['s10e_pL'].append(cfg['pressure_l_product_state10e'])  
+            results['s10e_Re'].append(cfg['reynolds_number_state10e']) 
+            results['s10e_Kn'].append(cfg['knudsen_number_state10e']) 
                              
     return results
     
