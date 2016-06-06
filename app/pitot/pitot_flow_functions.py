@@ -609,6 +609,12 @@ def shock_tube_calculation(cfg, states, V, M):
     if cfg['tunnel_mode'] == 'expansion-tube' and cfg['V2_mirels_limit']:
         print "Setting V2 to Mirels limit of Vs1 value ({0} m/s)".format(cfg['Vs1'])
         V['s2'] = cfg['Vs1']
+    
+    if cfg['V2_loss_factor']:   
+        print "The post-shock gas velocity (V2) is being changed to the found value multiplied by a loss factor of {0}.".format(cfg['V2_loss_factor'])
+        V2_original = copy.copy(V['s2'])
+        V['s2'] = V['s2'] * 0.8
+        print "The original V2 value was {0:.2f} m/s and the new value is {1:.2f} m/s.".format(V2_original, V['s2'])
      
     if PRINT_STATUS: 
         print "state 2: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s2'].p, states['s2'].T, V['s2']) 
@@ -1078,7 +1084,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
         if cfg['state7_no_ions'] and cfg['solver'] in ['eq', 'pg-eq']:
             # Need to turn ions off for state 2 here if it is required to make 
             # the unsteady expansion work (as state 2 is expanding into state 7)
-            states[cfg['at_entry_state']].with_ions = False   
+            states[cfg['at_entry_state']].with_ions = False  
       
     # some extra code to try and get conditions above 19 km/s working with Pitot
     # also some code here for the custom accelerator gas
@@ -1142,7 +1148,14 @@ def acceleration_tube_calculation(cfg, states, V, M):
     cfg['Ms2'] = cfg['Vs2']/states['s5'].a
     if not cfg['expand_to'] == 'p7': #no Vs2 or state 6 if we expand to a pressure to find state 7
         M['s6'] = V['s6']/states['s6'].a
+    print "yooooo"
+    
+    print V['s7']
+    print states['s7'].a
+    
     M['s7']= V['s7']/states['s7'].a
+    
+    print "hello"
     
     if cfg['frozen_acceleration_tube_unsteady_expansion']:
         # return the original at entry state...
@@ -1169,7 +1182,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
 #            states['s7'].rho = states['s7f'].rho; states['s7'].a = states['s7f'].a
 #            states['s7'].e = states['s7'].C_v * states['s7'].T
 #            states['s7'].h = states['s7'].C_p * states['s7'].T
-    
+                
     if PRINT_STATUS:
         print '-'*60
         if not cfg['expand_to'] == 'p7': #no Vs2 or state 6 if we expand to a pressure to find state 7

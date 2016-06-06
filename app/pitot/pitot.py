@@ -243,6 +243,10 @@ available to me as part of cfpylib inside the cfcfd code collection.
     31-May-2016: added ability to force Vs2 as the flow velocity after an experiment
         unsteady expansion to p7 using the variable 'force_V7'
     02-Jun-2016: added ability to make the code spit out a one line summary of the output
+       using the flag 'make_one_line_summary'
+    06-Jun-2016: added the ability to model losses at the secondary or tertiary diaphragm
+        between the shock and acceleration tubes crudely by adding the float loss factor
+        variable 'V2_loss_factor' that multiplies the found V2 value by a float input
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -270,7 +274,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "2-Jun-2016"
+VERSION_STRING = "6-Jun-2016"
 
 DEBUG_PITOT = False
 

@@ -369,6 +369,12 @@ def input_checker(cfg, condition_builder = False):
         print "expand_to variable not set. Setting program to expand to the flow behind the shock."
         cfg['expand_to'] = 'flow-behind-shock'
         
+    if cfg['expand_to'] not in ['shock-speed', 'flow-behind-shock','p7']:
+        print "'expand_to' variable must be a valid input."
+        print "'shock-speed', 'flow-behind-shock', or 'p7'"
+        print "Bailing out."
+        cfg['bad_input'] = True        
+        
     if 'expansion_factor' not in cfg:
         print "expansion_factor variable is not set. Setting it to 1.0."
         cfg['expansion_factor'] = 1.0
@@ -611,7 +617,7 @@ def input_checker(cfg, condition_builder = False):
     if 'frozen_nozzle_expansion' not in cfg:
         cfg['frozen_nozzle_expansion'] = False
         
-    if 'frozen_nozzle_expansion' and cfg['solver'] == 'pg':
+    if cfg['frozen_nozzle_expansion'] and cfg['solver'] == 'pg':
         print "'frozen_nozzle_expansion' input has been specified, but the solver is 'pg'."
         print "Turning it off..."
         cfg['frozen_nozzle_expansion'] = False    
@@ -620,7 +626,7 @@ def input_checker(cfg, condition_builder = False):
     if 'frozen_acceleration_tube_unsteady_expansion' not in cfg:
         cfg['frozen_acceleration_tube_unsteady_expansion'] = False
         
-    if 'frozen_acceleration_tube_unsteady_expansion' and cfg['solver'] == 'pg':
+    if cfg['frozen_acceleration_tube_unsteady_expansion'] and cfg['solver'] == 'pg':
         print "'frozen_acceleration_tube_unsteady_expansion' input has been specified, but the solver is 'pg'."
         print "Turning it off..."
         cfg['frozen_acceleration_tube_unsteady_expansion'] = False   
@@ -648,7 +654,17 @@ def input_checker(cfg, condition_builder = False):
     if 'make_one_line_summary' not in cfg:
         print "'make_one_line_summary' not in cfg will set it to a default of False..."
         cfg['make_one_line_summary'] = False
+        
+    # ------------------------ V2 loss factor stuff ----------------------------
     
+    if 'V2_loss_factor' not in cfg:
+        print "'V2_loss_factor' not in cfg will set it to a default of None..."
+        cfg['V2_loss_factor'] = None
+        
+    if cfg['V2_loss_factor'] and not isinstance(cfg['V2_loss_factor'], float):
+        print "V2_loss_factor' must be a float. Current value is not. Bailing out."
+        raise TypeError, "'V2_loss_factor' input is not a float"
+        
     #------------------ final check stuff....-------------------------------
         
     
