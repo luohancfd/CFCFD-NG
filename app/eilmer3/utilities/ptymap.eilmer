@@ -4,7 +4,7 @@
 2       & BOUNDARY  & BOUNDARY    &*BOUNDARY   #Gridpro default
 3       & PERIODIC  & PERIODIC    &*PERIODIC   #Gridpro default
 4       & EILMER1   & SUP_IN      & sup-in     #Eilmer Sup-in
-5       & EILMER2   & EXTRAPOLATE_OUT  & extrap-out #Eilmer Extrapolate-out
+5       & EILMER2   & EXTRAPOLATE_OUT  & extrapolate-out #Eilmer Extrapolate-out
 6       & EILMER3   & SLIP_WALL   & slip-wall  #Eilmer Slip-wall
 7       & EILMER4   & ADIABATIC   & adiabatic  #Eilmer Adiabatic
 8       & EILMER5   & FIXED_T     & fixed-T    #Eilmer Fixed-T
