@@ -37,4 +37,21 @@ bc_map = {'SUP_IN': inflow,
 
 apply_gridpro_bcs(gpro_pty, blk_list, bc_map)
 
+# The bc_map is used when the boundary condition requires extra 
+# arguments beyond just a label. Some other examples are shown here.
+# The most up-to-date list of options is in function apply_gridpro_bcs
+# in source file: app/eilmer3/source/e3_bc_util.py
+#
+
+#bc_map = {'USER_DEFINED': {'filename':'my-user-defined-bc.lua', 
+#                           'sets_conv_flux': False, # (OPTIONAL) set to true if setting flux, NOT using ghost cells
+#                           'sets_visc_flux': False # (OPTIONAL) set to true is specifying viscous flux directly
+#                           },
+#          'SUBSONIC_IN': stagConditions, # FlowCondition object
+#          'FIXED_P_OUT': pOut, # outflow pressure, Pa
+#          'MOVING_WALL': r_omega_value, 
+#          'MASS_FLUX_OUT': {'mass_flux': mf_val, 'p_init': p_init_val},
+          
+
+
 
