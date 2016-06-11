@@ -809,7 +809,7 @@ def morgan_diaphragm_analysis(cfg, states, V, M):
 def acceleration_tube_calculation(cfg, states, V, M):
     """Function that contains all of the acceleration tube calculations."""
             
-    if PRINT_STATUS: print "Start unsteady expansion of the test gas into the acceleration tube."
+    if PRINT_STATUS: print "Starting unsteady expansion of the test gas into the acceleration tube."
     
     # need to know what our input state is to the acceleration tube, with a new
     # reflected shock at the end of the acc tube mode, it can change...

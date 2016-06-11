@@ -21,6 +21,12 @@ def config_loader(config_file):
     """Function that loads the pitot input dictionary from a config file,
     and returns the loaded dictionary to the main program."""
     
+    import os.path  
+    
+    if not os.path.isfile(config_file):
+        print "The user specified config file ('{0}') does not seem to exist.".format(config_file)
+        raise Exception, "pitot_input_utils.config_loader() config file appears to not exist."
+    
     cfg = {}
     
     try: #from Rowan's onedval program
@@ -30,7 +36,7 @@ def config_loader(config_file):
         print "Error {0}".format(str(e))
         print "Potentially it does not conform to Python syntax."
         print "Bailing out!"
-        sys.exit(1)
+        raise Exception, "pitot_input_utils.config_loader() config file appears to have some type of issue."
         
     return cfg
 
@@ -807,6 +813,24 @@ def state_builder(cfg):
             M['s4']=0.0
             M['s3s'] = 1.0
             cfg['M_throat'] = M['s3s']
+        elif cfg['piston'] == 'lwp-2.5mm-tim':
+            # This uses the burst pressure that Tim Cullen (with a related isentropic temperature)
+            # calculated in June 2016 using the procedure
+            # detailed in the paper by Gildfind, James and Morgan
+            # Free-piston driver performance characterisation using experimental shock speeds through helium 
+             driver_p = 77200.0 #driver fill pressure, Pa
+             driver_T = 298.15 #driver temperature, K
+             states['primary_driver_fill'] = primary_driver_x2[cfg['driver_gas']][0].clone()
+             states['primary_driver_fill'].set_pT(driver_p, driver_T)
+             cfg['p4'] = 31.9e6 #primary driver burst pressure, Pa 
+             cfg['T4'] = states['primary_driver_fill'].T*\
+             (cfg['p4']/states['primary_driver_fill'].p)**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
+             states['s4'] = states['primary_driver_fill'].clone()
+             states['s4'].set_pT(cfg['p4'],cfg['T4'])
+             V['s4']=0.0
+             M['s4']=0.0
+             M['s3s']=primary_driver_x2[cfg['driver_gas']][1]
+             cfg['M_throat'] = M['s3s']
         elif cfg['piston'] == 'lwp-2.5mm-isentropic':
             #This is the condition from David Gildfind's PhD where the lwp
             # is used with a 2.5 mm steel diaphragm. Condition is based off an
@@ -853,7 +877,8 @@ def state_builder(cfg):
             cfg['M_throat'] = M['s3s']
         elif cfg['piston'] == 'lwp-2mm-new-paper': 
             #This is the condition from the first secondary driver paper
-            # by Gildfind and James
+            # by Gildfind, James and Morgan
+            # Free-piston driver performance characterisation using experimental shock speeds through helium
             # it sets different conditions based on whether the driver is 80% He 
             # or 100% He, will not work with 90% He.
             states['s4']=primary_driver_x2[cfg['driver_gas']][0].clone()

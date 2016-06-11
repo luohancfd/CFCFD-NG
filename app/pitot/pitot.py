@@ -247,6 +247,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
     06-Jun-2016: added the ability to model losses at the secondary or tertiary diaphragm
         between the shock and acceleration tubes crudely by adding the float loss factor
         variable 'V2_loss_factor' that multiplies the found V2 value by a float input
+    11-Jun-2016: added 'lwp-2.5mm-tim' driver condition for Tim Cullen's numbers...
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -274,7 +275,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "6-Jun-2016"
+VERSION_STRING = "11-Jun-2016"
 
 DEBUG_PITOT = False
 
