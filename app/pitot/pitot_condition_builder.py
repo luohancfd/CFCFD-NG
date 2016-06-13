@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "31-May-2016"
+VERSION_STRING = "14-June-2016"
 
 import sys
 
@@ -192,6 +192,9 @@ def build_results_dict(cfg):
     # need to make a list to create a series of empty lists in the results
     # dictionary to store the data. the list is tailored to the test we're running
     
+    print '-'*60
+    print "Building the results dictionary."
+    
     full_list = ['test number','driver condition']
        
     if cfg['tunnel_mode'] == 'expansion-tube':
@@ -269,11 +272,91 @@ def build_results_dict(cfg):
     #add a list where we can store unsuccesful run numbers for analysis
     results['unsuccessful_runs'] = []
     
-    print '-'*60
     print "The full list of variables to be added to the output are:"
     print full_list
     
     return results
+    
+def build_test_condition_input_details_dictionary(cfg):
+    """Function that builds a dictionary that tells the condition
+       builder what tests to run. It will include a list called 'test_names'
+       that will be cycled through by the main condition program.
+       
+       iterools.product() is used to perform a cartesian product of all
+       of the input variables (ie. to produce every combination from the right)
+    """
+    
+    from itertools import product # bring in our cartesian product function
+    
+    test_condition_input_details = {}
+    test_condition_input_details['test_names'] = []
+    
+    test_name = 0 # we will add to this as we go, first test_name will be 1
+    
+    print '-'*60
+    print "Building the test condition details dictionary containing a dictionary for each simulation."    
+    
+    if cfg['tunnel_mode'] == 'expansion-tube':
+        if True in cfg['secondary_list']:
+            for test_settings in product(cfg['driver_condition_list'], cfg['secondary_list'],
+                                         cfg['psd1_list'], cfg['p1_list'], cfg['p5_list']):
+                # change the test name
+                test_name += 1
+                # store that test name
+                test_condition_input_details['test_names'].append(test_name)
+                # now make a dictionary in the test_condition_input_details dictionary for this simulation
+                # using the current test_settings combination
+                input_dictionary = {'driver_condition': test_settings[0],
+                                    'secondary_value': test_settings[1],
+                                    'psd1': test_settings[2], 'p1': test_settings[3],
+                                    'p5': test_settings[4]}
+                test_condition_input_details[test_name] = input_dictionary
+                
+        else:
+            for test_settings in product(cfg['driver_condition_list'], cfg['secondary_list'],
+                                         cfg['p1_list'], cfg['p5_list']):
+                # change the test name
+                test_name += 1
+                # store that test name
+                test_condition_input_details['test_names'].append(test_name)
+                # now make a dictionary in the test_condition_input_details dictionary for this simulation
+                # using the current test_settings combination
+                input_dictionary = {'driver_condition': test_settings[0],
+                                    'secondary_value': test_settings[1],
+                                    'p1': test_settings[2],'p5': test_settings[3]}
+                test_condition_input_details[test_name] = input_dictionary
+    
+    elif cfg['tunnel_mode'] == 'nr-shock-tunnel' or cfg['tunnel_mode'] == 'reflected-shock-tunnel':   
+        if True in cfg['secondary_list']:
+            for test_settings in product(cfg['driver_condition_list'], cfg['secondary_list'],
+                                         cfg['psd1_list'], cfg['p1_list']):
+                # change the test name
+                test_name += 1
+                # store that test name
+                test_condition_input_details['test_names'].append(test_name)
+                # now make a dictionary in the test_condition_input_details dictionary for this simulation
+                # using the current test_settings combination
+                input_dictionary = {'driver_condition': test_settings[0],
+                                    'secondary_value': test_settings[1],
+                                    'psd1': test_settings[2], 'p1': test_settings[3]}
+                test_condition_input_details[test_name] = input_dictionary
+        else:
+            for test_settings in product(cfg['driver_condition_list'], cfg['secondary_list'], cfg['p1_list']):
+                # change the test name
+                test_name += 1
+                # store that test name
+                test_condition_input_details['test_names'].append(test_name)
+                # now make a dictionary in the test_condition_input_details dictionary for this simulation
+                # using the current test_settings combination
+                input_dictionary = {'driver_condition': test_settings[0],
+                                    'secondary_value': test_settings[1],
+                                    'p1': test_settings[2]}
+                test_condition_input_details[test_name] = input_dictionary
+                
+    print "The test_names list for this simulation is:"
+    print test_condition_input_details['test_names']
+                
+    return test_condition_input_details
     
 def condition_builder_test_run(cfg, results):
     """Function that takes the fully built config dictionary
@@ -282,6 +365,11 @@ def condition_builder_test_run(cfg, results):
     """
     
     condition_status = True #This will be turned to False if the condition fails
+    
+    if not cfg['have_checked_time']:
+        # we check the amount of time the first run takes and then tell the user...
+        import time
+        start_time = time.time()
     
     # first we check if we should slightly modify our guesses based on the last
     # successful run to speed up the code.
@@ -311,9 +399,11 @@ def condition_builder_test_run(cfg, results):
         print "Test {0} is considered failed, and result will not be printed to csv output.".format(cfg['test_number'])
         condition_status = False
     if condition_status:
+        print "Simulation {0} was successful. Result will be added to the output.".format(cfg['test_number'])
         results = add_new_result_to_results_dict(cfg, states, V, M, results)
         cfg['last_run_successful'] = True
     else:
+        print "Simulation {0} was unsuccessful. Result will NOT be added to the output.".format(cfg['test_number'])
         cfg['last_run_successful'] = False
         results['unsuccessful_runs'].append(cfg['test_number'])
     
@@ -327,6 +417,15 @@ def condition_builder_test_run(cfg, results):
     # and overwriting the stream tee with that, then closing the log file
     sys.stdout = sys.stdout.stream1   
     test_log.close()
+    
+    if not cfg['have_checked_time']:
+        test_time = time.time() - start_time
+        print '-'*60
+        print "Time to complete first test was {0:.2f} seconds."\
+        .format(test_time)
+        print "If every test takes this long. It will take roughly {0:.2f} hours to perform all {1} tests."\
+        .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
+        cfg['have_checked_time'] = True    
             
     return condition_status, results
     
@@ -336,6 +435,7 @@ def guess_modifier(cfg, results):
        current run to try to speed it up if they are similar.
     """
     
+    print "-"*60
     print "Checking if we can modify any starting guesses to speed up the program."
     
     # start by checking they both used the same driver condition
@@ -841,7 +941,7 @@ def condition_builder_summary_builder(cfg, results):
             
     return
     
-def pickle_data(cfg, results):
+def pickle_result_data(cfg, results):
     """Function that takes the config and results dictionaries 
        made throughout the running of the program and dumps them in another
        dictionary in a pickle object. Basically, this means the dictionaries can
@@ -859,14 +959,36 @@ def pickle_data(cfg, results):
     import pickle
     
     print '-'*60
-    print "Pickling cfg and results dictionaries."
+    print "Pickling final cfg and results dictionaries to store the end result."
     
-    pickle_file = open(cfg['original_filename']+'-condition-builder-pickle.dat',"w")
+    pickle_file = open(cfg['original_filename']+'-condition-builder-final-result-pickle.dat',"w")
     
     cfg_and_results = {'cfg':cfg, 'results':results}
     
     pickle.dump(cfg_and_results, pickle_file)
     pickle_file.close()
+   
+    return
+    
+def pickle_intermediate_data(cfg, results, test_condition_input_details):
+    """This function mainly exists for the code so that it can be restart itself if necessary.
+        At the end of each run, the code pickles the current cfg, results, and 
+        test_condition_input_details dictionaries so that the code can then
+        pick them back up and keep going if the code ever bails out.
+    """
+    
+    import pickle
+    
+    print '-'*60
+    print "Pickling cfg, results, and test_condition_input_details of the intermediate result."
+    print "This functionality allows the simulation to be restarted if it is stopped."
+    
+    with open(cfg['original_filename']+'-condition-builder-intermediate-result-pickle.dat',"w") as pickle_file:
+    
+        intermediate_result = {'cfg':cfg, 'results':results, 'test_condition_input_details': test_condition_input_details}
+        
+        pickle.dump( intermediate_result, pickle_file)
+        pickle_file.close()
    
     return
     
@@ -896,17 +1018,20 @@ def cleanup_old_files():
     
     return
             
-def run_pitot_condition_builder(cfg = {}, config_file = None):
+def run_pitot_condition_builder(cfg = {}, config_file = None, force_restart = False):
     """
     
     Chris James (c.james4@uq.edu.au) 27/12/13
     
     run_pitot_condition_builder(dict) - > depends
     
+    force_restart can be used to force the simulation to start again instead of 
+    looking for an unfinished simulation that may be there...
+    
     """
     
-    import time
-    
+    import os       
+        
     #---------------------- get the inputs set up --------------------------
     
     if config_file:
@@ -925,130 +1050,93 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     
     cfg = check_new_inputs(cfg)
     
-    # clean up any old files if the user has asked for it
+    # now check if we have attempted an old run before or not....
+    if not os.path.isfile(cfg['filename']+'-condition-builder-intermediate-result-pickle.dat') or force_restart: 
+        # if not, we set up a new one...
+        
+        # clean up any old files if the user has asked for it
+        
+        if cfg['cleanup_old_files']:
+            cleanup_old_files()
+        
+        # make a counter so we can work out what test we're running
+        # also make one to store how many runs are successful
+        
+        cfg['number_of_test_runs'] = calculate_number_of_test_runs(cfg)
+        
+        # we use this variable to try to speed some things up later on
+        cfg['last_run_successful'] = None
+        
+        import copy
+        cfg['original_filename'] = copy.copy(cfg['filename'])
+            
+        # print the start message
+           
+        cfg = start_message(cfg)
+        
+        # work out what we need in our results dictionary and make the dictionary
+        
+        results = build_results_dict(cfg)
+        
+        # build the dictionary with the details of all the tests we want to run...
+        
+        test_condition_input_details = build_test_condition_input_details_dictionary(cfg)
+        
+        # so we can make the first run check the time...                   
+        cfg['have_checked_time'] = False
+        
+        # counter to count the experiments that don't fail
+        cfg['good_counter'] = 0
+        # list that will be filled by the experiment numbers as they finish...
+        cfg['finished_simulations'] = []
+        
+    else:
+        # we can load an unfinished simulation and finishing it...!
+        print '-'*60
+        print "It appears that an unfinished simulation was found in this folder"
+        print "We are now going to attempt to finish this simulation."
+        print "If this is not what you want, please delete the file '{0}' and run the condition builder again.".format(cfg['filename']+'-condition-builder-intermediate-result-pickle.dat')
     
-    if cfg['cleanup_old_files']:
-        cleanup_old_files()
+        import pickle
+        with open(cfg['filename']+'-condition-builder-intermediate-result-pickle.dat',"rU") as data_file:
+            intermediate_result = pickle.load(data_file)
+            cfg = intermediate_result['cfg']
+            results = intermediate_result['results']
+            test_condition_input_details = intermediate_result['test_condition_input_details']
+            data_file.close()
+        
+    #now start the main for loop for the simulation...
     
-    # make a counter so we can work out what test we're running
-    # also make one to store how many runs are successful
-    
-    cfg['number_of_test_runs'] = calculate_number_of_test_runs(cfg)
-    
-    # we use this variable to try to speed some things up later on
-    cfg['last_run_successful'] = None
-    
-    import copy
-    cfg['original_filename'] = copy.copy(cfg['filename'])
-    
-    counter = 0
-    good_counter = 0
-    
-    # print the start message
-       
-    cfg = start_message(cfg)
-    
-    # work out what we need in our results dictionary and make the dictionary
-    
-    results = build_results_dict(cfg)
-                       
-    have_checked_time = False
-    
-    #now start up the for loops and get running
+    for test_name in test_condition_input_details['test_names']:
+        # this is for a re-loaded simulation, to make sure we don't re-run what has already been run
+        if test_name in cfg['finished_simulations']:
+            print '-'*60
+            print "test_name '{0}' is already in the 'finished_simulations' list.".format(test_name)
+            print "Therefore it has probably already been run and will be skipped..."
+            continue # code to skip iteration
+        
+        # first set the test number variable...
+        cfg['test_number'] = test_name
+        # first set the details that every simulation will have
+        cfg['driver_gas'] = test_condition_input_details[test_name]['driver_condition']
+        cfg['secondary'] = test_condition_input_details[test_name]['secondary_value']
+        cfg['p1'] = test_condition_input_details[test_name]['p1']
+        # now the optional parameters...
+        if 'psd1' in test_condition_input_details[test_name]:
+            cfg['psd1'] = test_condition_input_details[test_name]['psd1']  
+        if 'p5' in test_condition_input_details[test_name]:
+            cfg['p5'] = test_condition_input_details[test_name]['p5']  
 
-    if cfg['tunnel_mode'] == 'expansion-tube':   
-        for driver_condition in cfg['driver_condition_list']:
-            cfg['driver_gas'] = driver_condition
-            for secondary_value in cfg['secondary_list']:
-                cfg['secondary'] = secondary_value
-                if cfg['secondary']:
-                    for psd1 in cfg['psd1_list']:
-                        cfg['psd1'] = psd1
-                        for p1 in cfg['p1_list']:
-                            cfg['p1'] = p1
-                            for p5 in cfg['p5_list']:
-                                cfg['p5'] = p5
-                                counter += 1
-                                cfg['test_number'] = counter
-                                if not have_checked_time:
-                                    start_time = time.time()
-                                run_status, results = condition_builder_test_run(cfg, results) 
-                                if run_status:
-                                    good_counter += 1
-                                    if not have_checked_time:
-                                        test_time = time.time() - start_time
-                                        print '-'*60
-                                        print "Time to complete first test was {0:.2f} seconds."\
-                                        .format(test_time)
-                                        print "If every test takes this long. It will take roughly {0:.2f} hours to perform all {1} tests."\
-                                        .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
-                                        have_checked_time = True
-                                        
-                else:
-                    for p1 in cfg['p1_list']:
-                        cfg['p1'] = p1
-                        for p5 in cfg['p5_list']:
-                            cfg['p5'] = p5
-                            counter += 1
-                            cfg['test_number'] = counter
-                            if not have_checked_time:
-                                start_time = time.time()
-                            run_status, results = condition_builder_test_run(cfg, results) 
-                            if run_status:
-                                good_counter += 1
-                                if not have_checked_time:
-                                    test_time = time.time() - start_time
-                                    print '-'*60
-                                    print "Time to complete first test was {0:.2f} seconds."\
-                                    .format(test_time)
-                                    print "If every test takes this long. It will take roughly {0:.2f} hours to perform all {1} tests."\
-                                    .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
-                                    have_checked_time = True
+        run_status, results = condition_builder_test_run(cfg, results) 
+        if run_status:
+            cfg['good_counter'] += 1
+        
+        # add this to finished simulations list, regardless of whether it finished correctly or not...
+        cfg['finished_simulations'].append(test_name)
+        
+        # now pickle the intermediate result so we can result the simulation if needed...
+        pickle_intermediate_data(cfg, results, test_condition_input_details)
 
-    elif cfg['tunnel_mode'] == 'nr-shock-tunnel' or cfg['tunnel_mode'] == 'reflected-shock-tunnel':   
-        for driver_condition in cfg['driver_condition_list']:
-            cfg['driver_gas'] = driver_condition
-            for secondary_value in cfg['secondary_list']:
-                cfg['secondary'] = secondary_value
-                if cfg['secondary']:
-                    for psd1 in cfg['psd1_list']:
-                        cfg['psd1'] = psd1
-                        for p1 in cfg['p1_list']:
-                            cfg['p1'] = p1
-                            counter += 1
-                            cfg['test_number'] = counter
-                            if not have_checked_time:
-                                start_time = time.time()
-                            run_status, results = condition_builder_test_run(cfg, results) 
-                            if run_status:
-                                good_counter += 1
-                                if not have_checked_time:
-                                    test_time = time.time() - start_time
-                                    print '-'*60
-                                    print "Time to complete first test was {0:.2f} seconds."\
-                                    .format(test_time)
-                                    print "If every test takes this long. It will take roughly {0:.2f} hours to perform all {1} tests."\
-                                    .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
-                                    have_checked_time = True
-                else:
-                    for p1 in cfg['p1_list']:
-                        cfg['p1'] = p1
-                        counter += 1
-                        cfg['test_number'] = counter
-                        if not have_checked_time:
-                            start_time = time.time()
-                        run_status, results = condition_builder_test_run(cfg, results) 
-                        if run_status:
-                            good_counter += 1
-                            if not have_checked_time:
-                                test_time = time.time() - start_time
-                                print '-'*60
-                                print "Time to complete first test was {0:.2f} seconds."\
-                                .format(test_time)
-                                print "If every test takes this long. It will take roughly {0:.2f} hours to perform all {1} tests."\
-                                .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
-                                have_checked_time = True       
-    
     # now analyse results dictionary and print some results to the screen
     # and another external file
     
@@ -1065,7 +1153,14 @@ def run_pitot_condition_builder(cfg = {}, config_file = None):
     # (this allows the cfg and results dictionaries to be loaded directly)
     # it just pickles the dictionaries to pitot should not be needed to load
     # this data
-    pickle_data(cfg, results)
+    pickle_result_data(cfg, results)
+    
+    # now delete the intermediate pickle that we made during the simulation...
+    print "Removing the final intermediate pickle file."
+    import os
+    
+    if os.path.isfile(cfg['original_filename']+'-condition-builder-intermediate-result-pickle.dat'): 
+        os.remove(cfg['original_filename']+'-condition-builder-intermediate-result-pickle.dat')
         
     return
                                 
@@ -1077,11 +1172,14 @@ def main():
     op = optparse.OptionParser(version=VERSION_STRING)   
     op.add_option('-c', '--config_file', '--config-file', dest='config_file',
                   help=("filename where the configuration file is located"))    
-
+    op.add_option('-f', '--force_restart', action = "store_true", dest='force_restart',
+                  help=("flag that can be used to force the simulation to restart"
+                        "It stops it looking for an unfinished simulation.")) 
     opt, args = op.parse_args()
     config_file = opt.config_file
+    force_restart = opt.force_restart
            
-    run_pitot_condition_builder(cfg = {}, config_file = config_file)
+    run_pitot_condition_builder(cfg = {}, config_file = config_file, force_restart = force_restart)
     
     return
     
