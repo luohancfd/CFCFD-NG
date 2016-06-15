@@ -88,12 +88,12 @@ def area_ratio_add_new_result_to_results_dict(cfg, states, V, M, results):
         results['s8_Re'].append(cfg['reynolds_number_freestream']) 
         results['s8_Kn'].append(cfg['knudsen_number_freestream'])  
 
-    if cfg['conehead'] and cfg['conehead_completed']:
+    if cfg['conehead'] and 's10c' in states:
         results['p10c'].append(states['s10c'].p)
         results['T10c'].append(states['s10c'].T)
         results['rho10c'].append(states['s10c'].rho)
         results['V10c'].append(V['s10c'])
-    elif cfg['conehead'] and not cfg['conehead_completed']:
+    elif cfg['conehead'] and 's10c' not in states:
         results['p10c'].append('did not solve')
         results['T10c'].append('did not solve')
         results['rho10c'].append('did not solve')

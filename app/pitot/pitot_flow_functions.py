@@ -1148,14 +1148,8 @@ def acceleration_tube_calculation(cfg, states, V, M):
     cfg['Ms2'] = cfg['Vs2']/states['s5'].a
     if not cfg['expand_to'] == 'p7': #no Vs2 or state 6 if we expand to a pressure to find state 7
         M['s6'] = V['s6']/states['s6'].a
-    print "yooooo"
-    
-    print V['s7']
-    print states['s7'].a
     
     M['s7']= V['s7']/states['s7'].a
-    
-    print "hello"
     
     if cfg['frozen_acceleration_tube_unsteady_expansion']:
         # return the original at entry state...
@@ -1777,69 +1771,132 @@ def conehead_calculation(cfg, states, V, M):
     """Function that takes the cfg, states, V and M dictionaries, does a 
     calculation for a conehead in the test section at a specified angle
     and then returns the changes cfg, states, V, M dictionaries."""
-     
-    cfg['conehead_completed'] = True #variable we'll set to false if the calculation fails
-    if 'conehead_no_ions' not in cfg: #add this variable and set it to false if the user has not used it
-        cfg['conehead_no_ions'] = False
-    cfg['conehead_no_ions_required'] = False #variable we'll set to True if we need to turn ions off in the conehead calc 
     
-    if PRINT_STATUS and cfg['nozzle']: print '-'*60
-    if PRINT_STATUS: print 'Starting taylor maccoll conehead calculation on {0} degree conehead.'.format(cfg['conehead_angle'])
-    
-    if cfg['conehead_no_ions']: states[cfg['test_section_state']].with_ions = False    
+    if PRINT_STATUS: print '-'*60
+    if PRINT_STATUS: print 'Starting frozen taylor maccoll conehead calculation on {0} degree conehead.'.format(cfg['conehead_angle'])
     
     try:
-        shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
+        # we take the MM and gamma of the test section state and use that to specify
+        # a perfect gas version of the test section state to work with
+        pg_test_section_state = pg.Gas(Mmass=states[cfg['test_section_state']].Mmass,
+                                gamma=states[cfg['test_section_state']].gam, name='pg_test_section_state')
+        pg_test_section_state.set_pT(states[cfg['test_section_state']].p, 
+                                     states[cfg['test_section_state']].T)
+        states['s10c'] = pg_test_section_state.clone()
     except Exception as e:
         print "Error {0}".format(str(e))
-        print "beta_cone function bailed out while trying to find a shock angle."
-        print "will try again with ions turned off in the calculation."
-        cfg['conehead_no_ions_required'] = True
-        cfg['conehead_no_ions'] = True        
-        states[cfg['test_section_state']].with_ions = False
+        print "Failed to make perfect gas test section state."
+        if 's10c' in states.keys():
+            del states['s10c']
+            print "Frozen conehead calculation failed."
+            print "Result will not be printed."
+            
+    if 's10c' in states.keys(): 
         try:
-            shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
+            shock_angle = beta_cone(pg_test_section_state, V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
         except Exception as e:
             print "Error {0}".format(str(e))    
             print "beta_cone function bailed out while trying to find a shock angle."
             print "Stopping here. Try another nozzle area ratio."
+            print "Result will not show frozen state 10c."
+            if 's10c' in states.keys():
+                del states['s10c']
+                
+        if PRINT_STATUS: print "Shock angle over cone:", math.degrees(shock_angle)
+        
+        # Reverse the process to get the flow state behind the shock and check the surface angle is correct
+       
+        if 's10c' in states.keys():  
+
+            try:    
+                delta_s, V['s10c'], states['s10c'] = theta_cone(pg_test_section_state, V[cfg['test_section_state']], shock_angle)
+            except Exception as e:
+                print "Error {0}".format(str(e))
+                print "theta_cone bailed out while trying to find cone surface conditions."
+                print "Stopping here. Try another nozzle area ratio."
+                print "Result will not show frozen state 10c."
+                if 's10c' in states.keys():
+                    del states['s10c']
+                    
+            M['s10c'] = V['s10c']/states['s10c'].a
+            
+            if PRINT_STATUS: print "Surface angle should be the same.....: {0} deg = {1} deg".format(cfg['conehead_angle'], math.degrees(delta_s))            
+            
+            if 's10c' in states.keys():
+                if cfg['solver'] == 'pg':
+                    print "state 10c: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10c'].p, states['s10c'].T,  V['s10c'])
+                    print 'state 10c gamma = {0}, state 10c R = {1}.'.format(states['s10c'].gam,states['s10c'].R)
+                elif cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq': 
+                    # we store this as another object, and then do the eq calc below....
+                    states['s10cf'] = states['s10c'].clone()
+                    V['s10cf'] = copy.copy(V['s10c'])
+                    M['s10cf'] = copy.copy(M['s10c']) 
+                    
+                    print "state 10cf: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10cf'].p, states['s10cf'].T,  V['s10cf'])
+                    print 'state 10cf gamma = {0}, state 10cf R = {1}.'.format(states['s10cf'].gam,states['s10cf'].R) 
+
+    
+    if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq': 
+    
+        cfg['conehead_completed'] = True #variable we'll set to false if the calculation fails
+        if 'conehead_no_ions' not in cfg: #add this variable and set it to false if the user has not used it
+            cfg['conehead_no_ions'] = False
+        cfg['conehead_no_ions_required'] = False #variable we'll set to True if we need to turn ions off in the conehead calc 
+        
+        if PRINT_STATUS: print '-'*60
+        if PRINT_STATUS: print 'Starting equilibrium taylor maccoll conehead calculation on {0} degree conehead.'.format(cfg['conehead_angle'])
+        
+        if cfg['conehead_no_ions']: states[cfg['test_section_state']].with_ions = False    
+        
+        try:
+            shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
+        except Exception as e:
+            print "Error {0}".format(str(e))
+            print "beta_cone function bailed out while trying to find a shock angle."
+            print "will try again with ions turned off in the calculation."
+            cfg['conehead_no_ions_required'] = True
+            cfg['conehead_no_ions'] = True        
+            states[cfg['test_section_state']].with_ions = False
+            try:
+                shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
+            except Exception as e:
+                print "Error {0}".format(str(e))    
+                print "beta_cone function bailed out while trying to find a shock angle."
+                print "Stopping here. Try another nozzle area ratio."
+                print "Result will not show state 10c."
+                cfg['conehead_completed'] = False
+                return cfg, states, V, M           
+                
+        if PRINT_STATUS: print "Shock angle over cone:", math.degrees(shock_angle)
+        # Reverse the process to get the flow state behind the shock and check the surface angle is correct
+        try:    
+            delta_s, V['s10c'], states['s10c'] = theta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], shock_angle)
+        except Exception as e:
+            print "Error {0}".format(str(e))
+            print "theta_cone bailed out while trying to find cone surface conditions."
+            print "Stopping here. Try another nozzle area ratio."
             print "Result will not show state 10c."
             cfg['conehead_completed'] = False
-            return cfg, states, V, M           
+            return cfg, states, V, M
             
-    if PRINT_STATUS: print "Shock angle over cone:", math.degrees(shock_angle)
-    # Reverse the process to get the flow state behind the shock and check the surface angle is correct
-    try:    
-        delta_s, V['s10c'], states['s10c'] = theta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], shock_angle)
-    except Exception as e:
-        print "Error {0}".format(str(e))
-        print "theta_cone bailed out while trying to find cone surface conditions."
-        print "Stopping here. Try another nozzle area ratio."
-        print "Result will not show state 10c."
-        cfg['conehead_completed'] = False
-        return cfg, states, V, M
+        if PRINT_STATUS: print "Surface angle should be the same.....: {0} deg = {1} deg".format(cfg['conehead_angle'], math.degrees(delta_s))
         
-    M['s10c'] = V['s10c']/states['s10c'].a
-    if PRINT_STATUS: print "Surface angle should be the same.....: 15deg = ", math.degrees(delta_s), "deg"
-    #if PRINT_STATUS: print "\nConehead surface conditions:"
-    #if PRINT_STATUS: states['s10c'].write_state(sys.stdout)
-    # Need to check whether the pressure are the same
-    if PRINT_STATUS: print "Computed conehead pressure is {0} Pa".format(states['s10c'].p)
-    
-    # turn the ions back on at the end
-    if cfg['conehead_no_ions']: states[cfg['test_section_state']].with_ions = True
-    if cfg['conehead_no_ions_required']: cfg['conehead_no_ions'] = False
+        M['s10c'] = V['s10c']/states['s10c'].a
         
-    if 's10c' in states.keys() and PRINT_STATUS:
-        print "state 10c: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10c'].p, states['s10c'].T,  V['s10c'])
-        if isinstance(states['s10c'], Gas):
-            # print the species if it is an eq gas object...
-            print 'species in state10c at equilibrium:'               
-            print '{0}'.format(states['s10c'].species)
-        print 'state 10c gamma = {0}, state 10c R = {1}.'.format(states['s10c'].gam,states['s10c'].R)
-    
-    if PRINT_STATUS: print '-'*60
-    
+        # turn the ions back on at the end
+        if cfg['conehead_no_ions']: states[cfg['test_section_state']].with_ions = True
+        if cfg['conehead_no_ions_required']: cfg['conehead_no_ions'] = False
+            
+        if 's10c' in states.keys() and PRINT_STATUS:
+            print "state 10c: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10c'].p, states['s10c'].T,  V['s10c'])
+            if isinstance(states['s10c'], Gas):
+                # print the species if it is an eq gas object...
+                print 'species in state10c at equilibrium:'               
+                print '{0}'.format(states['s10c'].species)
+            print 'state 10c gamma = {0}, state 10c R = {1}.'.format(states['s10c'].gam,states['s10c'].R)
+        
+        if PRINT_STATUS: print '-'*60
+            
     return cfg, states, V, M
     
 #----------------------------------------------------------------------------

@@ -341,7 +341,10 @@ def txt_file_output(cfg, states, V, M):
         condition_printer('s10e')
             
     if cfg['conehead']:
-        condition_printer('s10c')
+        if 's10cf' in states:
+            condition_printer('s10cf')
+        if 's10c' in states:
+            condition_printer('s10c')            
         
     if cfg['wedge']:
         if cfg['solver'] == 'pg':
@@ -514,7 +517,7 @@ def txt_file_output(cfg, states, V, M):
         txt_output.write(freestream_mu_string + '\n')        
 
         cfg['rho_l_product_freestream'] = states[cfg['test_section_state']].rho*cfg['representative_length_scale']
-        rho_l_product_freestream_print = "Freestream ({0}) rhoL product is {1:.4f} kg/m**2.".format(cfg['test_section_state'], 
+        rho_l_product_freestream_print = "Freestream ({0}) rhoL product is {1:.4e} kg/m**2.".format(cfg['test_section_state'], 
                                                                                                     cfg['rho_l_product_freestream'])
         print rho_l_product_freestream_print
         txt_output.write(rho_l_product_freestream_print + '\n')
@@ -550,7 +553,7 @@ def txt_file_output(cfg, states, V, M):
             txt_output.write(state10e_mu_string + '\n')    
             
             cfg['rho_l_product_state10e'] = states['s10e'].rho*cfg['representative_length_scale']
-            rho_l_product_state10e_print = "Test section post normal shock eq (s10e) rhoL product is {0:.4f} kg/m**2.".format(cfg['rho_l_product_state10e'])
+            rho_l_product_state10e_print = "Test section post normal shock eq (s10e) rhoL product is {0:.4e} kg/m**2.".format(cfg['rho_l_product_state10e'])
             print rho_l_product_state10e_print
             txt_output.write(rho_l_product_state10e_print + '\n')
     
@@ -871,7 +874,10 @@ def csv_file_output(cfg, states, V, M):
         csv_condition_printer('s10e')
             
     if cfg['conehead']:
-        csv_condition_printer('s10c')
+        if 's10cf' in states:
+            csv_condition_printer('s10cf')
+        if 's10c' in states:
+            csv_condition_printer('s10c')
         
     if cfg['wedge']:
         if cfg['solver'] == 'pg':
