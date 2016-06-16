@@ -613,7 +613,7 @@ def shock_tube_calculation(cfg, states, V, M):
     if cfg['V2_loss_factor']:   
         print "The post-shock gas velocity (V2) is being changed to the found value multiplied by a loss factor of {0}.".format(cfg['V2_loss_factor'])
         V2_original = copy.copy(V['s2'])
-        V['s2'] = V['s2'] * 0.8
+        V['s2'] = V['s2'] * cfg['V2_loss_factor'] 
         print "The original V2 value was {0:.2f} m/s and the new value is {1:.2f} m/s.".format(V2_original, V['s2'])
      
     if PRINT_STATUS: 
