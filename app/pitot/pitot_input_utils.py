@@ -671,6 +671,23 @@ def input_checker(cfg, condition_builder = False):
         print "V2_loss_factor' must be a float. Current value is not. Bailing out."
         raise TypeError, "'V2_loss_factor' input is not a float"
         
+    # ------------------------ Vsd2 loss factor stuff ----------------------------
+    
+    if 'Vsd2_loss_factor' not in cfg:
+        print "'Vsd2_loss_factor' not in cfg will set it to a default of None..."
+        cfg['Vsd2_loss_factor'] = None
+        
+    if cfg['Vsd2_loss_factor'] and not isinstance(cfg['Vsd2_loss_factor'], float):
+        print "Vsd2_loss_factor' must be a float. Current value is not. Bailing out."
+        raise TypeError, "'Vsd2_loss_factor' input is not a float"
+    
+    # ------------------------ accelerator gas without ions stuff ----------------------------
+    
+    if 'accelerator_gas_without_ions' not in cfg: 
+        cfg['accelerator_gas_without_ions'] = False
+        print "'accelerator_gas_without_ions' not in cfg will set it to a default of False..."
+        print "Generally the user does want ions in the accelerator gas."
+        
     #------------------ final check stuff....-------------------------------
         
     
@@ -1066,7 +1083,12 @@ def state_builder(cfg):
          
         #state 5 is acceleration tube
         if not cfg['custom_accelerator_gas']:
-            states['s5'] = Gas({'Air':1.0,}, outputUnits='moles', with_ions = True)
+            # generally we do want ions in the accelerator gas, so turn them on unless the user has said
+            # they don't want them...
+            if not cfg['accelerator_gas_without_ions']:
+                states['s5'] = Gas({'Air':1.0,}, outputUnits='moles', with_ions = True)
+            else:
+                states['s5'] = Gas({'Air':1.0,}, outputUnits='moles', with_ions = False)
         else: # we have a custom accelerator gas, input should have made sure we have the correct stuff...
             states['s5'] = Gas(cfg['accelerator_gas_composition'],inputUnits=cfg['accelerator_gas_inputUnits'],
                             outputUnits=cfg['accelerator_gas_inputUnits'], with_ions=cfg['accelerator_gas_with_ions'])

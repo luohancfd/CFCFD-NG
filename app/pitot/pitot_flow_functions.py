@@ -143,6 +143,12 @@ def secondary_driver_calculation(cfg, states, V, M):
     
     (Vsd2, V['sd2']) = normal_shock(states['sd1'], cfg['Vsd'], states['sd2'])
     V['sd3'], states['sd3'] = finite_wave_dv('cplus', V['s3s'], states['s3s'], V['sd2'], steps=cfg['secondary_driver_expansion_steps'])
+    
+    if cfg['Vsd2_loss_factor']:   
+        print "The post-shock gas velocity (Vsd2) is being changed to the found value multiplied by a loss factor of {0}.".format(cfg['Vsd2_loss_factor'])
+        Vsd2_original = copy.copy(V['sd2'])
+        V['sd2'] = V['sd2'] * cfg['Vsd2_loss_factor'] 
+        print "The original Vsd2 value was {0:.2f} m/s and the new value is {1:.2f} m/s.".format(Vsd2_original, V['sd2'])
 
     if PRINT_STATUS: 
         print "state sd2: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['sd2'].p, states['sd2'].T) 

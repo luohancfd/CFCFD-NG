@@ -249,6 +249,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
         variable 'V2_loss_factor' that multiplies the found V2 value by a float input
     11-Jun-2016: added 'lwp-2.5mm-tim' driver condition for Tim Cullen's numbers...
     14-Jun-2016: I re-coded pitot_condition_builder so that simulations can be restarted.
+    17-Jun-2016: added ability for the user to turn off ions in the accelerator gas
+        if they want using the flag 'accelerator_gas_without_ions'.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -276,7 +278,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "16-Jun-2016"
+VERSION_STRING = "17-Jun-2016"
 
 DEBUG_PITOT = False
 
