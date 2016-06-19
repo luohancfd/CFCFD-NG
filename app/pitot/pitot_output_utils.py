@@ -512,34 +512,25 @@ def txt_file_output(cfg, states, V, M):
         
         freestream_mu_string = 'Using a freestream ({0}) dynamic viscosity (mu) of {1:.4e} Pa.s.'.format(cfg['test_section_state'],
                                                                                                          states[cfg['test_section_state']].mu)
-
         print freestream_mu_string
         txt_output.write(freestream_mu_string + '\n')        
 
-        cfg['rho_l_product_freestream'] = states[cfg['test_section_state']].rho*cfg['representative_length_scale']
         rho_l_product_freestream_print = "Freestream ({0}) rhoL product is {1:.4e} kg/m**2.".format(cfg['test_section_state'], 
                                                                                                     cfg['rho_l_product_freestream'])
         print rho_l_product_freestream_print
         txt_output.write(rho_l_product_freestream_print + '\n')
 
-        cfg['pressure_l_product_freestream'] = states[cfg['test_section_state']].p*cfg['representative_length_scale']
         pressure_l_product_freestream_print = "Freestream ({0}) pL product is {1:.4f} Pa*m.".format(cfg['test_section_state'], 
                                                                                                     cfg['pressure_l_product_freestream'])
         print pressure_l_product_freestream_print
         txt_output.write(pressure_l_product_freestream_print + '\n')
         
-        cfg['reynolds_number_freestream'] = (states[cfg['test_section_state']].rho*V[cfg['test_section_state']]*cfg['representative_length_scale'])/ states[cfg['test_section_state']].mu
         reynolds_number_freestream_print = "Freestream ({0}) Reynolds number is {1:.4f}.".format(cfg['test_section_state'], 
                                                                                                  cfg['reynolds_number_freestream'])                                                                                     
         
         print reynolds_number_freestream_print
         txt_output.write(reynolds_number_freestream_print + '\n')
-
-        # here Knudsen number is found as (Ma/Re)*sqrt(gam*pi/2)
-        # tbh, I got this from Wikipedia and it looked like the easiest way...
-        # https://en.wikipedia.org/wiki/Knudsen_number
-        # Chris James (18/05/16)
-        cfg['knudsen_number_freestream'] = (M[cfg['test_section_state']]/cfg['reynolds_number_freestream'])*math.sqrt(states[cfg['test_section_state']].gam*math.pi/2.0)        
+    
         knudsen_number_freestream_print = "Freestream ({0}) Knudsen number is {1:.4e}.".format(cfg['test_section_state'], 
                                                                                                cfg['knudsen_number_freestream'])
                                                                                                  
@@ -552,27 +543,19 @@ def txt_file_output(cfg, states, V, M):
             print state10e_mu_string
             txt_output.write(state10e_mu_string + '\n')    
             
-            cfg['rho_l_product_state10e'] = states['s10e'].rho*cfg['representative_length_scale']
             rho_l_product_state10e_print = "Test section post normal shock eq (s10e) rhoL product is {0:.4e} kg/m**2.".format(cfg['rho_l_product_state10e'])
             print rho_l_product_state10e_print
             txt_output.write(rho_l_product_state10e_print + '\n')
     
-            cfg['pressure_l_product_state10e'] = states['s10e'].p*cfg['representative_length_scale']
             pressure_l_product_state10e_print = "Test section post normal shock eq (s10e) pL product is {0:.4f} Pa.m.".format(cfg['pressure_l_product_state10e'])
             print pressure_l_product_state10e_print
             txt_output.write(pressure_l_product_state10e_print + '\n')   
 
-            cfg['reynolds_number_state10e'] = (states['s10e'].rho*V['s10e']*cfg['representative_length_scale'])/ states['s10e'].mu
             reynolds_number_state10e_print = "Test section post normal shock eq (s10e) Reynolds number is {0:.4f}.".format(cfg['reynolds_number_state10e'])
                                                                                                  
             print reynolds_number_state10e_print
             txt_output.write(reynolds_number_state10e_print + '\n')  
-
-            # here Knudsen number is found as (Ma/Re)*sqrt(gam*pi/2)
-            # tbh, I got this from Wikipedia and it looked like the easiest way...
-            # https://en.wikipedia.org/wiki/Knudsen_number
-            # Chris James (18/05/16)
-            cfg['knudsen_number_state10e'] = (M['s10e']/cfg['reynolds_number_state10e'])*math.sqrt(states['s10e'].gam*math.pi/2.0)        
+     
             knudsen_number_state10e_print = "Test section post normal shock eq (s10e) Knudsen number is {0:.4e}.".format( cfg['knudsen_number_state10e'])
                                                                                                      
             print knudsen_number_state10e_print

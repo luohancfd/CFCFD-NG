@@ -1975,3 +1975,30 @@ def test_time_calculator(cfg, states, V):
         cfg['t_test_basic'] = t_final_usx - t_cs_at
         
     return cfg
+    
+def calculate_scaling_information(cfg, states, V, M):
+    """Function used to calculate scaling information if the user has asked for it."""   
+
+    cfg['rho_l_product_freestream'] = states[cfg['test_section_state']].rho*cfg['representative_length_scale']
+
+    cfg['pressure_l_product_freestream'] = states[cfg['test_section_state']].p*cfg['representative_length_scale']
+ 
+    cfg['reynolds_number_freestream'] = (states[cfg['test_section_state']].rho*V[cfg['test_section_state']]*cfg['representative_length_scale'])/ states[cfg['test_section_state']].mu
+                                                                                  
+    # here Knudsen number is found as (Ma/Re)*sqrt(gam*pi/2)
+    # tbh, I got this from Wikipedia and it looked like the easiest way...
+    # https://en.wikipedia.org/wiki/Knudsen_number
+    # Chris James (18/05/16)
+    cfg['knudsen_number_freestream'] = (M[cfg['test_section_state']]/cfg['reynolds_number_freestream'])*math.sqrt(states[cfg['test_section_state']].gam*math.pi/2.0)        
+                                                                                             
+    if cfg['shock_over_model']: 
+        
+        cfg['rho_l_product_state10e'] = states['s10e'].rho*cfg['representative_length_scale']
+
+        cfg['pressure_l_product_state10e'] = states['s10e'].p*cfg['representative_length_scale']
+
+        cfg['reynolds_number_state10e'] = (states['s10e'].rho*V['s10e']*cfg['representative_length_scale'])/ states['s10e'].mu
+
+        cfg['knudsen_number_state10e'] = (M['s10e']/cfg['reynolds_number_state10e'])*math.sqrt(states['s10e'].gam*math.pi/2.0)        
+        
+    return cfg

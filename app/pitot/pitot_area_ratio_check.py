@@ -11,7 +11,7 @@ Chris James (c.james4@uq.edu.au) - 20/08/13
 
 import sys, copy
 
-from pitot_flow_functions import nozzle_expansion, conehead_calculation, shock_over_model_calculation
+from pitot_flow_functions import nozzle_expansion, conehead_calculation, shock_over_model_calculation, calculate_scaling_information
 
 def area_ratio_check_results_dict_builder(cfg):
     """Function that takes the config file and based on the details of the run,
@@ -329,6 +329,8 @@ def area_ratio_check(cfg, states, V, M):
             cfg, states, V, M = conehead_calculation(cfg, states, V, M)
         if cfg['shock_over_model']: #do the shock over model calc if required
             cfg, states, V, M = shock_over_model_calculation(cfg, states, V, M)
+        if cfg['calculate_scaling_information']:
+            cfg = calculate_scaling_information(cfg, states, V, M)
         # print some stuff to the screen
         #I commented all of this out as the code generally does this as it runs through now,
         # but I kept it here incase we ever want to re-add it...

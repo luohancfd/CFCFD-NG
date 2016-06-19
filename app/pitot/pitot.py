@@ -251,6 +251,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
     14-Jun-2016: I re-coded pitot_condition_builder so that simulations can be restarted.
     17-Jun-2016: added ability for the user to turn off ions in the accelerator gas
         if they want using the flag 'accelerator_gas_without_ions'.
+    19-Jun-2016: fixed issue with the scaling information not changing for the area ratio check.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -429,6 +430,10 @@ def run_pitot(cfg = {}, config_file = None):
     #see if we're able to calculate test time
     
     cfg = test_time_calculator(cfg, states, V)
+    
+    # -------------- calculating scaling information -------------------------
+    if cfg['calculate_scaling_information']:
+        cfg = calculate_scaling_information(cfg, states, V, M)
     
     #------------------- perform output work ---------------------------
     if 'printout' in cfg['mode']:
