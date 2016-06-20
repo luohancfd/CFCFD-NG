@@ -241,17 +241,31 @@ int viscous_flux_3D(Block *A)
 		nz = IFace->n.z;
 		// Mass flux -- NO CONTRIBUTION
 	        if ( (G.wall_function && i == A->imin - 1 && A->bcp[WEST]->is_wall() && A->bcp[WEST]->type_code != SLIP_WALL)
-	        || (G.wall_function && i == A->imax && A->bcp[EAST]->is_wall() && A->bcp[EAST]->type_code != SLIP_WALL) ) {                                                  
-	            tau_wall_x = IFace->tau_wall_x;
-	            tau_wall_y = IFace->tau_wall_y;	    	  	        
-	            tau_wall_z = IFace->tau_wall_z; 	            
-		    F.momentum.x -= tau_xx*nx + tau_wall_x;
-		    F.momentum.y -= tau_yy*ny + tau_wall_y;
-		    F.momentum.z -= tau_zz*nz + tau_wall_z;
-		    F.total_energy -=
-		        tau_xx * fs.vel.x * nx + tau_yy * fs.vel.y * ny + tau_zz * fs.vel.z * nz + 
-		        tau_wall_x * fs.vel.x + tau_wall_y * fs.vel.y + tau_wall_z * fs.vel.z + 
-		        IFace->q_wall;
+	        || (G.wall_function && i == A->imax && A->bcp[EAST]->is_wall() && A->bcp[EAST]->type_code != SLIP_WALL) ) { 
+	            // determine corner cells, flux to be calculated with the normal way, TODO: correction for corner cells
+	            if ( (j == A->jmin && A->bcp[SOUTH]->is_wall() && A->bcp[SOUTH]->type_code != SLIP_WALL) ||
+	                 (j == A->jmax && A->bcp[NORTH]->is_wall() && A->bcp[NORTH]->type_code != SLIP_WALL) ||  
+	                 (k == A->kmin && A->bcp[BOTTOM]->is_wall() && A->bcp[BOTTOM]->type_code != SLIP_WALL) ||
+	                 (k == A->kmax && A->bcp[TOP]->is_wall() && A->bcp[TOP]->type_code != SLIP_WALL) ) { 	                 
+	                 F.momentum.x -= tau_xx*nx + tau_xy*ny + tau_xz*nz;
+		         F.momentum.y -= tau_xy*nx + tau_yy*ny + tau_yz*nz;
+		         F.momentum.z -= tau_xz*nx + tau_yz*ny + tau_zz*nz;
+		         F.total_energy -=
+		             (tau_xx*fs.vel.x + tau_xy*fs.vel.y + tau_xz*fs.vel.z + qx[0])*nx +
+		             (tau_xy*fs.vel.x + tau_yy*fs.vel.y + tau_yz*fs.vel.z + qy[0])*ny +
+		             (tau_xz*fs.vel.x + tau_yz*fs.vel.y + tau_zz*fs.vel.z + qz[0])*nz;
+		    } else { // if not corner cells, use wall function approach
+	                 tau_wall_x = IFace->tau_wall_x;
+	                 tau_wall_y = IFace->tau_wall_y;	    	  	        
+	                 tau_wall_z = IFace->tau_wall_z; 	            
+		         F.momentum.x -= tau_xx*nx + tau_wall_x;
+		         F.momentum.y -= tau_yy*ny + tau_wall_y;
+		         F.momentum.z -= tau_zz*nz + tau_wall_z;
+		         F.total_energy -=
+		             tau_xx * fs.vel.x * nx + tau_yy * fs.vel.y * ny + tau_zz * fs.vel.z * nz + 
+		             tau_wall_x * fs.vel.x + tau_wall_y * fs.vel.y + tau_wall_z * fs.vel.z + 
+		             IFace->q_wall;
+		    }
 		} else {		
 		    F.momentum.x -= tau_xx*nx + tau_xy*ny + tau_xz*nz;
 		    F.momentum.y -= tau_xy*nx + tau_yy*ny + tau_yz*nz;
@@ -417,16 +431,30 @@ int viscous_flux_3D(Block *A)
 		// Mass flux -- NO CONTRIBUTION
 	        if ( (G.wall_function && j == A->jmin - 1 && A->bcp[SOUTH]->is_wall() && A->bcp[SOUTH]->type_code != SLIP_WALL)
 	        || (G.wall_function && j == A->jmax && A->bcp[NORTH]->is_wall() && A->bcp[NORTH]->type_code != SLIP_WALL) ) {
-	            tau_wall_x = IFace->tau_wall_x;
-	            tau_wall_y = IFace->tau_wall_y;	    	  	        
-	            tau_wall_z = IFace->tau_wall_z; 	            
-		    F.momentum.x -= tau_xx*nx + tau_wall_x;
-		    F.momentum.y -= tau_yy*ny + tau_wall_y;
-		    F.momentum.z -= tau_zz*nz + tau_wall_z;
-		    F.total_energy -=
-		        tau_xx * fs.vel.x * nx + tau_yy * fs.vel.y * ny + tau_zz * fs.vel.z * nz + 
-		        tau_wall_x * fs.vel.x + tau_wall_y * fs.vel.y + tau_wall_z * fs.vel.z + 
-		        IFace->q_wall;
+	            // determine corner cells, flux to be calculated with the normal way, TODO: correction for corner cells
+	            if ( (i == A->imin && A->bcp[WEST]->is_wall() && A->bcp[WEST]->type_code != SLIP_WALL) ||
+	                 (i == A->imax && A->bcp[EAST]->is_wall() && A->bcp[EAST]->type_code != SLIP_WALL) ||  
+	                 (k == A->kmin && A->bcp[BOTTOM]->is_wall() && A->bcp[BOTTOM]->type_code != SLIP_WALL) ||
+	                 (k == A->kmax && A->bcp[TOP]->is_wall() && A->bcp[TOP]->type_code != SLIP_WALL) ) {                 
+	                 F.momentum.x -= tau_xx*nx + tau_xy*ny + tau_xz*nz;
+		         F.momentum.y -= tau_xy*nx + tau_yy*ny + tau_yz*nz;
+		         F.momentum.z -= tau_xz*nx + tau_yz*ny + tau_zz*nz;
+		         F.total_energy -=
+		             (tau_xx*fs.vel.x + tau_xy*fs.vel.y + tau_xz*fs.vel.z + qx[0])*nx +
+		             (tau_xy*fs.vel.x + tau_yy*fs.vel.y + tau_yz*fs.vel.z + qy[0])*ny +
+		             (tau_xz*fs.vel.x + tau_yz*fs.vel.y + tau_zz*fs.vel.z + qz[0])*nz;
+		    } else { // if not corner cells, use wall function approach
+	                 tau_wall_x = IFace->tau_wall_x;
+	                 tau_wall_y = IFace->tau_wall_y;	    	  	        
+	                 tau_wall_z = IFace->tau_wall_z; 	            
+		         F.momentum.x -= tau_xx*nx + tau_wall_x;
+		         F.momentum.y -= tau_yy*ny + tau_wall_y;
+		         F.momentum.z -= tau_zz*nz + tau_wall_z;
+		         F.total_energy -=
+		             tau_xx * fs.vel.x * nx + tau_yy * fs.vel.y * ny + tau_zz * fs.vel.z * nz + 
+		             tau_wall_x * fs.vel.x + tau_wall_y * fs.vel.y + tau_wall_z * fs.vel.z + 
+		             IFace->q_wall;
+		    }
 		} else {		
 		    F.momentum.x -= tau_xx*nx + tau_xy*ny + tau_xz*nz;
 		    F.momentum.y -= tau_xy*nx + tau_yy*ny + tau_yz*nz;
@@ -592,16 +620,30 @@ int viscous_flux_3D(Block *A)
 		// Mass flux -- NO CONTRIBUTION
 	        if ( (G.wall_function && k == A->kmin - 1 && A->bcp[BOTTOM]->is_wall() && A->bcp[BOTTOM]->type_code != SLIP_WALL)
 	        || (G.wall_function && k == A->kmax && A->bcp[TOP]->is_wall() && A->bcp[TOP]->type_code != SLIP_WALL) ) {
-	            tau_wall_x = IFace->tau_wall_x;
-	            tau_wall_y = IFace->tau_wall_y;	    	  	        
-	            tau_wall_z = IFace->tau_wall_z; 	            
-		    F.momentum.x -= tau_xx*nx + tau_wall_x;
-		    F.momentum.y -= tau_yy*ny + tau_wall_y;
-		    F.momentum.z -= tau_zz*nz + tau_wall_z;
-		    F.total_energy -=
-		        tau_xx * fs.vel.x * nx + tau_yy * fs.vel.y * ny + tau_zz * fs.vel.z * nz + 
-		        tau_wall_x * fs.vel.x + tau_wall_y * fs.vel.y + tau_wall_z * fs.vel.z + 
-		        IFace->q_wall;
+	            // determine corner cells, flux to be calculated with the normal way, TODO: correction for corner cells
+	            if ( (i == A->imin && A->bcp[WEST]->is_wall() && A->bcp[WEST]->type_code != SLIP_WALL) ||
+	                 (i == A->imax && A->bcp[EAST]->is_wall() && A->bcp[EAST]->type_code != SLIP_WALL) ||
+	                 (j == A->jmin && A->bcp[SOUTH]->is_wall() && A->bcp[SOUTH]->type_code != SLIP_WALL) ||
+	                 (j == A->jmax && A->bcp[NORTH]->is_wall() && A->bcp[NORTH]->type_code != SLIP_WALL) ) {
+	                 F.momentum.x -= tau_xx*nx + tau_xy*ny + tau_xz*nz;
+		         F.momentum.y -= tau_xy*nx + tau_yy*ny + tau_yz*nz;
+		         F.momentum.z -= tau_xz*nx + tau_yz*ny + tau_zz*nz;
+		         F.total_energy -=
+		             (tau_xx*fs.vel.x + tau_xy*fs.vel.y + tau_xz*fs.vel.z + qx[0])*nx +
+		             (tau_xy*fs.vel.x + tau_yy*fs.vel.y + tau_yz*fs.vel.z + qy[0])*ny +
+		             (tau_xz*fs.vel.x + tau_yz*fs.vel.y + tau_zz*fs.vel.z + qz[0])*nz;
+		    } else {
+	                tau_wall_x = IFace->tau_wall_x;
+	                tau_wall_y = IFace->tau_wall_y;	    	  	        
+	                tau_wall_z = IFace->tau_wall_z; 	            
+		        F.momentum.x -= tau_xx*nx + tau_wall_x;
+		        F.momentum.y -= tau_yy*ny + tau_wall_y;
+		        F.momentum.z -= tau_zz*nz + tau_wall_z;
+		        F.total_energy -=
+		            tau_xx * fs.vel.x * nx + tau_yy * fs.vel.y * ny + tau_zz * fs.vel.z * nz + 
+		            tau_wall_x * fs.vel.x + tau_wall_y * fs.vel.y + tau_wall_z * fs.vel.z + 
+		            IFace->q_wall;
+		    }
 		} else {		
 		    F.momentum.x -= tau_xx*nx + tau_xy*ny + tau_xz*nz;
 		    F.momentum.y -= tau_xy*nx + tau_yy*ny + tau_yz*nz;

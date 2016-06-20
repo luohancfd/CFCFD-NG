@@ -138,6 +138,8 @@ int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     double aL, aR;
     double vL, vR;
     double wL, wR;
+    double tkeL, tkeR;
+    double omegaL, omegaR;
     double HL, HR;
     double eL, eR;
     double keL, keR;
@@ -151,6 +153,7 @@ int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 
     double M_half, p_half, ru_half, ru2_half;
 
+    global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     int nsp = gmodel->get_number_of_species();
     int nmodes = gmodel->get_number_of_modes();
@@ -164,20 +167,32 @@ int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     uL = Lft.vel.x;
     vL = Lft.vel.y;
     wL = Lft.vel.z;
+    tkeL = Lft.tke;
+    omegaL = Lft.omega;
     aL = Lft.gas->a;
     eL = accumulate(Lft.gas->e.begin(), Lft.gas->e.end(), 0.0);
     keL = 0.5 * (uL * uL + vL * vL + wL * wL);
-    HL = eL + pL/rL + keL;
+    if (G.turbulence_model == TM_K_OMEGA) {
+        HL = eL + pL/rL + keL + tkeL;    
+    } else {
+        HL = eL + pL/rL + keL;
+    }
 
     rR = Rght.gas->rho;
     pR = Rght.gas->p;
     uR = Rght.vel.x;
     vR = Rght.vel.y;
     wR = Rght.vel.z;
+    tkeR = Rght.tke;
+    omegaR = Rght.omega;
     aR = Rght.gas->a;
     eR = accumulate(Rght.gas->e.begin(), Rght.gas->e.end(), 0.0);
     keR = 0.5 * (uR * uR + vR * vR + wR * wR);
-    HR = eR + pR/rR + keR;
+    if (G.turbulence_model == TM_K_OMEGA) {
+        HR = eR + pR/rR + keR + tkeR;    
+    } else {
+        HR = eR + pR/rR + keR;
+    }
 
     /*
      * This is the main part of the flux calculator.
@@ -265,15 +280,15 @@ int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 	F.momentum.y = ru_half * vL;
 	F.momentum.z = ru_half * wL;
 	F.total_energy = ru_half * HL;
-	F.tke = ru_half * Lft.tke;
-	F.omega = ru_half * Lft.omega;
+	F.tke = ru_half * tkeL;
+	F.omega = ru_half * omegaL;
     } else {
 	/* Wind is blowing from the right */
 	F.momentum.y = ru_half * vR;
 	F.momentum.z = ru_half * wR;
 	F.total_energy = ru_half * HR;
-	F.tke = ru_half * Rght.tke;
-	F.omega = ru_half * Rght.omega;
+	F.tke = ru_half * tkeR;
+	F.omega = ru_half * omegaR;
     }
     
     /* 

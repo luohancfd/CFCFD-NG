@@ -2382,13 +2382,13 @@ int FV_Cell::turbulence_viscosity_k_omega()
             // 2D axisymmetric
             double v_over_y = fs->vel.y / pos[0].y;
             S_bar_squared = dudx*dudx + dvdy*dvdy + v_over_y*v_over_y
-		- 1.0/3.0 * (dudx + dvdy + v_over_y)
+		- 4.0/9.0 * (dudx + dvdy + v_over_y)
 		* (dudx + dvdy + v_over_y)
 		+ 0.5 * (dudy + dvdx) * (dudy + dvdx) ;
         } else {
             // 2D cartesian
             S_bar_squared = dudx*dudx + dvdy*dvdy
-		- 1.0/3.0 * (dudx + dvdy) * (dudx + dvdy)
+		- 4.0/9.0 * (dudx + dvdy) * (dudx + dvdy)
 		+ 0.5 * (dudy + dvdx) * (dudy + dvdx);
         }
     } else {
@@ -2414,7 +2414,7 @@ int FV_Cell::turbulence_viscosity_k_omega()
                         vtx[4]->dwdz + vtx[5]->dwdz + vtx[6]->dwdz + vtx[7]->dwdz);
         // 3D cartesian
         S_bar_squared =  dudx*dudx + dvdy*dvdy + dwdz*dwdz
-                         - 1.0/3.0*(dudx + dvdy + dwdz)*(dudx + dvdy + dwdz)
+                         - 4.0/9.0*(dudx + dvdy + dwdz)*(dudx + dvdy + dwdz)
                          + 0.5 * (dudy + dvdx) * (dudy + dvdx)
                          + 0.5 * (dudz + dwdx) * (dudz + dwdx)
                          + 0.5 * (dvdz + dwdy) * (dvdz + dwdy);

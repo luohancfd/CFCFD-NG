@@ -228,10 +228,10 @@ int viscous_flux_2D(Block *A)
 		// Turbulence contribution to the shear stresses.
 		// 2016-05-30 PJ.  If we are doing an axisymmetric flow,
 		// only have non-zero shear stresses if we are not near the axis.
-		tau_xx -= 0.66667 * fs.gas->rho * fs.tke;
-		tau_yy -= 0.66667 * fs.gas->rho * fs.tke;
+		tau_xx -= 2.0/3.0 * fs.gas->rho * fs.tke;
+		tau_yy -= 2.0/3.0 * fs.gas->rho * fs.tke;
 		// Turbulence contribution to heat transfer.
-		mu_effective = mu_lam + sigma_star * mu_t;
+		mu_effective = mu_lam + sigma_star * fs.gas->rho * fs.tke / fs.omega;
 		dtkedx = 0.5*(vtx1->dtkedx + vtx2->dtkedx);
 		dtkedy = 0.5*(vtx1->dtkedy + vtx2->dtkedy);
 		qx[0] += mu_effective * dtkedx;
@@ -239,7 +239,7 @@ int viscous_flux_2D(Block *A)
 		// Turbulence transport of the turbulence properties themselves.
 		tau_kx = mu_effective * dtkedx; 
 		tau_ky = mu_effective * dtkedy;
-		mu_effective = mu_lam + sigma * mu_t;
+		mu_effective = mu_lam + sigma * fs.gas->rho * fs.tke / fs.omega;
 		domegadx = 0.5*(vtx1->domegadx + vtx2->domegadx);
 		domegady = 0.5*(vtx1->domegady + vtx2->domegady);
 		tau_wx = mu_effective * domegadx; 
@@ -400,10 +400,10 @@ int viscous_flux_2D(Block *A)
 		// Turbulence contribution to the shear stresses.
 		// 2016-05-30 PJ.  If we are doing an axisymmetric flow,
 		// only have non-zero shear stresses if we are not near the axis.
-		tau_xx -= 0.66667 * fs.gas->rho * fs.tke;
-		tau_yy -= 0.66667 * fs.gas->rho * fs.tke;
+		tau_xx -= 2.0/3.0 * fs.gas->rho * fs.tke;
+		tau_yy -= 2.0/3.0 * fs.gas->rho * fs.tke;
 		// Turbulence contribution to heat transfer.
-		mu_effective = mu_lam + sigma_star * mu_t;
+		mu_effective = mu_lam + sigma_star * fs.gas->rho * fs.tke / fs.omega;
 		dtkedx = 0.5*(vtx1->dtkedx + vtx2->dtkedx);
 		dtkedy = 0.5*(vtx1->dtkedy + vtx2->dtkedy);
 		qx[0] += mu_effective * dtkedx;
@@ -411,7 +411,7 @@ int viscous_flux_2D(Block *A)
 		// Turbulence transport of the turbulence properties themselves.
 		tau_kx = mu_effective * dtkedx; 
 		tau_ky = mu_effective * dtkedy;
-		mu_effective = mu_lam + sigma * mu_t;
+		mu_effective = mu_lam + sigma * fs.gas->rho * fs.tke / fs.omega;
 		domegadx = 0.5*(vtx1->domegadx + vtx2->domegadx);
 		domegady = 0.5*(vtx1->domegady + vtx2->domegady);
 		tau_wx = mu_effective * domegadx; 

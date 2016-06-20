@@ -180,6 +180,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
 
 int set_flux_vector_in_local_frame(ConservedQuantities &F, const FlowState &fs)
 {
+    global_data &G = *get_global_data_ptr();
     double rho = fs.gas->rho;
     double un = fs.vel.x;
     double vt1 = fs.vel.y;
@@ -196,7 +197,11 @@ int set_flux_vector_in_local_frame(ConservedQuantities &F, const FlowState &fs)
     F.momentum.y = F.mass * vt1;
     F.momentum.z = F.mass * vt2;
     // Flux of Total Energy
-    F.total_energy = F.mass * (e + ke) + p * un;
+    if (G.turbulence_model == TM_K_OMEGA) {
+        F.total_energy = F.mass * (e + ke + fs.tke) + p * un;
+    } else {
+        F.total_energy = F.mass * (e + ke) + p * un;
+    }    
     F.tke = F.mass * fs.tke;  // turbulence kinetic energy
     F.omega = F.mass * fs.omega;  // pseudo vorticity
     // Species mass flux

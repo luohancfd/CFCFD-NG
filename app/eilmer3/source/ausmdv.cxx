@@ -52,6 +52,8 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     double aL, aR;
     double vL, vR;
     double wL, wR;
+    double tkeL, tkeR;
+    double omegaL, omegaR;
     double HL, HR;
     double pLrL, pRrR;
     double ML, MR;
@@ -67,7 +69,8 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 
     int caseA, caseB;
     double d_ua;
-
+    
+    global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     int nsp = gmodel->get_number_of_species();
     int nmodes = gmodel->get_number_of_modes();
@@ -82,10 +85,16 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     uL = Lft.vel.x;
     vL = Lft.vel.y;
     wL = Lft.vel.z;
+    tkeL = Lft.tke;
+    omegaL = Lft.omega;
     eL = accumulate(Lft.gas->e.begin(), Lft.gas->e.end(), 0.0);
     aL = Lft.gas->a;
     keL = 0.5 * (uL * uL + vL * vL + wL * wL);
-    HL = eL + pLrL + keL;
+    if (G.turbulence_model == TM_K_OMEGA) {
+        HL = eL + pLrL + keL + tkeL;    
+    } else {
+        HL = eL + pLrL + keL;
+    }
 
     rR = Rght.gas->rho;
     pR = Rght.gas->p;
@@ -93,10 +102,16 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     uR = Rght.vel.x;
     vR = Rght.vel.y;
     wR = Rght.vel.z;
+    tkeR = Rght.tke;
+    omegaR = Rght.omega;
     eR = accumulate(Rght.gas->e.begin(), Rght.gas->e.end(), 0.0);
     aR = Rght.gas->a;
     keR = 0.5 * (uR * uR + vR * vR + wR * wR);
-    HR = eR + pRrR + keR;
+    if (G.turbulence_model == TM_K_OMEGA) {
+        HR = eR + pRrR + keR + tkeR;    
+    } else {
+        HR = eR + pRrR + keR;
+    }
 
     /*
      * This is the main part of the flux calculator.
@@ -179,15 +194,15 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 	F.momentum.y = ru_half * vL;
 	F.momentum.z = ru_half * wL;
 	F.total_energy = ru_half * HL;
-	F.tke = ru_half * Lft.tke;
-	F.omega = ru_half * Lft.omega;
+	F.tke = ru_half * tkeL;
+	F.omega = ru_half * omegaL;
     } else {
 	/* Wind is blowing from the right */
 	F.momentum.y = ru_half * vR;
 	F.momentum.z = ru_half * wR;
 	F.total_energy = ru_half * HR;
-	F.tke = ru_half * Rght.tke;
-	F.omega = ru_half * Rght.omega;
+	F.tke = ru_half * tkeR;
+	F.omega = ru_half * omegaR;
     }
     /* 
      * Species mass fluxes 
@@ -245,8 +260,8 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 	F.momentum.y -= d_ua * (rR * vR - rL * vL);
 	F.momentum.z -= d_ua * (rR * wR - rL * wL);
 	F.total_energy -= d_ua * (rR * HR - rL * HL);
-	F.tke -= d_ua * (rR * Rght.tke - rL * Lft.tke);
-	F.omega -= d_ua * (rR * Rght.omega - rL * Lft.omega);
+	F.tke -= d_ua * (rR * tkeR - rL * tkeL);
+	F.omega -= d_ua * (rR * omegaR - rL * omegaL);
     }   /* end of entropy fix (d_ua != 0) */
 
     for ( int isp = 0; isp < nsp; ++isp ) {
