@@ -74,7 +74,9 @@ def secondary_driver_calculation(cfg, states, V, M):
         Vsd3g, statesd3 = finite_wave_dp('cplus', V3sg, state3s, psd3, steps=steps)
         
         print "Current psd2 = {0} Pa, current psd3 = {1} Pa.".format(statesd2.p, statesd3.p)
-        print "Current Vsd2g = {0} m/s, current Vsd3g = {1} m/s.".format(Vsd2g, Vsd3g)  
+        print "Current Vsd2g = {0} m/s, current Vsd3g = {1} m/s.".format(Vsd2g, Vsd3g)
+        
+        print "Current (Vsd2g - Vsd3g) / Vsd2g = {0}.".format((Vsd2g - Vsd3g)/Vsd2g)
 
         return (Vsd2g - Vsd3g)/Vsd2g
         
@@ -356,7 +358,9 @@ def shock_tube_calculation(cfg, states, V, M):
                 raise Exception, "pitot_flow_functions.shock_tube_calculation() Unsteady expansion into the shock tube failed." 
                 
         print "Current p2 = {0} Pa, current p3 = {1} Pa.".format(state2.p, state3.p)
-        print "Current V2g = {0} m/s, current V3g = {1} m/s.".format(V2g, V3g)                
+        print "Current V2g = {0} m/s, current V3g = {1} m/s.".format(V2g, V3g) 
+
+        print "Current (V2g - V3g) / V2g = {0}.".format((V2g - V3g)/V2g)               
         
         return (V2g - V3g)/V2g
 
@@ -917,7 +921,9 @@ def acceleration_tube_calculation(cfg, states, V, M):
         V7g, state7 = finite_wave_dp('cplus', V2g, state2, p7, steps=steps)
         
         print "Current p6 = {0} Pa, current p7 = {1} Pa.".format(state6.p, state7.p)
-        print "Current V6g = {0} m/s, current V7g = {1} m/s.".format(V6g, V7g)      
+        print "Current V6g = {0} m/s, current V7g = {1} m/s.".format(V6g, V7g)
+        
+        print "Current (V6g - V7g) / V6g = {0}.".format((V6g - V7g)/V6g)
 
         return (V6g - V7g)/V6g 
         
