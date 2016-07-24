@@ -252,6 +252,9 @@ available to me as part of cfpylib inside the cfcfd code collection.
     17-Jun-2016: added ability for the user to turn off ions in the accelerator gas
         if they want using the flag 'accelerator_gas_without_ions'.
     19-Jun-2016: fixed issue with the scaling information not changing for the area ratio check.
+    24-Jul-2016: changed the compression ratio and gas giant differing diluent analysis codes
+        so that they matched the new condition builder version which can be restarted,
+        and so they made use of more shared code from the condition builder
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -279,7 +282,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "20-Jun-2016"
+VERSION_STRING = "24-Jul-2016"
 
 DEBUG_PITOT = False
 

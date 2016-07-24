@@ -15,11 +15,11 @@ Chris James (c.james4@uq.edu.au) - 25/09/15
 
 """
 
-VERSION_STRING = "18-May-2016"
+VERSION_STRING = "24-Jul-2016"
 
-from pitot_condition_builder import stream_tee
+from pitot_condition_builder import stream_tee, pickle_result_data, pickle_intermediate_data, results_csv_builder, normalised_results_csv_builder
 
-import sys
+import sys, os
 
 from pitot import run_pitot
 from pitot_input_utils import *
@@ -170,6 +170,38 @@ def build_results_dict(cfg):
     
     return results
     
+def build_test_condition_input_details_dictionary(cfg):
+    """Function that builds a dictionary that tells the condition
+       builder what tests to run. It will include a list called 'test_names'
+       that will be cycled through by the main condition program.
+       
+    """
+        
+    test_condition_input_details = {}
+    test_condition_input_details['test_names'] = []
+    
+    test_name = 0 # we will add to this as we go, first test_name will be 1
+    
+    print '-'*60
+    print "Building the test condition details dictionary containing a dictionary for each simulation." 
+    
+    for compression_ratio in cfg['compression_ratio_list']:
+        # change the test name
+        test_name += 1
+        # store that test name
+        test_condition_input_details['test_names'].append(test_name)
+        # now make a dictionary in the test_condition_input_details dictionary for this simulation
+        # using the compression ratio
+        # this is simple here as compression_ratio is the only variable...
+        # (for the normal condition builder it was a bit more complicated...)
+        input_dictionary = {'compression_ratio': compression_ratio}
+        test_condition_input_details[test_name] = input_dictionary
+                
+    print "The test_names list for this simulation is:"
+    print test_condition_input_details['test_names']
+                
+    return test_condition_input_details
+    
 def differing_compression_ratio_analysis_test_run(cfg, results):
     """Function that takes the fully built config dictionary
        and the text file that is being used for the program output
@@ -179,6 +211,11 @@ def differing_compression_ratio_analysis_test_run(cfg, results):
     condition_status = True #This will be turned to False if the condition fails
     
     cfg['filename'] = cfg['original_filename'] + '-test-{0}'.format(cfg['test_number'])
+    
+    if not cfg['have_checked_time']:
+        # we check the amount of time the first run takes and then tell the user...
+        import time
+        start_time = time.time()
     
     # some code here to make a copy of the stdout printouts for each test and store it
     
@@ -231,141 +268,18 @@ def differing_compression_ratio_analysis_test_run(cfg, results):
         # and were added by the last run, so we remove them
         if variable not in cfg['cfg_original']:
             if variable in cfg: cfg.pop(variable)
+                
+    if not cfg['have_checked_time']:
+        test_time = time.time() - start_time
+        print '-'*60
+        print "Time to complete first test was {0:.2f} seconds."\
+        .format(test_time)
+        print "If every test takes this long. It will take roughly {0:.2f} hours to perform all {1} tests."\
+        .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
+        cfg['have_checked_time'] = True    
             
     return condition_status, results
-    
-def results_csv_builder(results, test_name = 'pitot_run',  intro_line = None):
-    """Function that takes the final results dictionary (which must include a 
-       list called 'full_list' that tells this function what to print and in 
-       what order) and then outputs a results csv. It will also add an intro line
-       if a string with that is added. The name of the test is also required.
-    """
-    
-    # open a file to start saving results
-    condition_builder_output = open(test_name + '-differing-compression-ratio-analysis.csv',"w")  #csv_output file creation
-    
-    # print a line explaining the results if the user gives it
-    if intro_line:
-        intro_line_optional = "# " + intro_line
-        condition_builder_output.write(intro_line_optional + '\n')
-    
-    #now we'll make the code build us the second intro line
-    intro_line = '#'
-    for value in results['full_list']:
-        if value != results['full_list'][-1]:
-            intro_line += "{0},".format(value)
-        else: #don't put the comma if it's the last value
-            intro_line += "{0}".format(value)
-        
-    condition_builder_output.write(intro_line + '\n')
-    
-    # now we need to go through every test run and print the data.
-    # we'll use 'full_list' to guide our way through
-    
-    # get the number of the test runs from the length of the first data list mentioned
-    # in 'full_list'. need to assume the user hasn't screwed up and got lists of
-    # different lengths
-    number_of_test_runs = len(results[results['full_list'][0]])
-    
-    for i in range(0, number_of_test_runs, 1):
-        output_line = ''
-        for value in results['full_list']:
-            if value != results['full_list'][-1]:
-                output_line += "{0},".format(results[value][i])
-            else: #don't put the comma if it's the last value in the csv
-                output_line += "{0}".format(results[value][i])
-        
-        condition_builder_output.write(output_line + '\n')  
-
-    condition_builder_output.close()              
-                                  
-    return
-    
-def normalised_results_csv_builder(results, test_name = 'pitot_run',  
-                                   intro_line = None, normalised_by = 'first value'):
-    """Function that takes the final results dictionary (which must include a 
-       list called 'full_list' that tells this function what to print and in 
-       what order) and then outputs a normalised version of the results csv.
-       You can tell it to normalise by other values, but 'first value' is default.
-       
-       It will also add an intro line if a string with that is added. 
-       The name of the test is also required.
-    """
-    
-    # open a file to start saving results
-    condition_builder_output = open(test_name + '-differing-compression-ratio-analysis-normalised.csv',"w")  #csv_output file creation
-    
-    # print a line explaining the results if the user gives it
-    if intro_line:
-        intro_line_optional = "# " + intro_line
-        condition_builder_output.write(intro_line_optional + '\n')
-        
-    normalised_intro_line = "# all variables normalised by {0}".format(normalised_by)
-    condition_builder_output.write(normalised_intro_line + '\n')
-    
-    # 'test number' and 'diluent percentage' and the species concentrations
-    # will not be normalised
-    normalise_exceptions = ['test number']
-    
-    #now we'll make the code build us the second intro line
-    intro_line = '#'
-    for value in results['full_list']:
-        if value != results['full_list'][-1]:
-            if value in normalise_exceptions:
-                intro_line += "{0},".format(value)
-            else:
-                intro_line += "{0} normalised,".format(value)
-        else: #don't put the comma if it's the last value
-            if value in normalise_exceptions:
-                intro_line += "{0}".format(value)
-            else:
-                intro_line += "{0} normalised".format(value)
-        
-    condition_builder_output.write(intro_line + '\n')
-    
-    # now we need to go through every test run and print the data.
-    # we'll use 'full_list' to guide our way through
-    
-    # get the number of the test runs from the length of the first data list mentioned
-    # in 'full_list'. need to assume the user hasn't screwed up and got lists of
-    # different lengths
-    number_of_test_runs = len(results[results['full_list'][0]])
-    
-    # build a dictionary to store all of our normalisation values
-    normalising_value_dict = {}
-    
-    for value in  results['full_list']:
-        if normalised_by == 'first value':
-            normalising_value_dict[value] = results[value][0]
-        elif normalised_by == 'maximum value':
-            normalising_value_dict[value] = max(results[value])
-        elif normalised_by == 'last value':
-            normalising_value_dict[value] = results[value][-1]       
-    
-    for i in range(0, number_of_test_runs, 1):
-        output_line = ''
-        for value in results['full_list']:
-            if value != results['full_list'][-1]:
-                # don't normalise selected exceptions, or values that are not numbers
-                # or a value that is not a number
-                if value in normalise_exceptions or \
-                not isinstance(results[value][i], (int, float)):
-                    output_line += "{0},".format(results[value][i])
-                else:
-                    output_line += "{0},".format(results[value][i]/normalising_value_dict[value])
-            else: #don't put the comma if it's the last value in the csv
-                if value in normalise_exceptions or \
-                not isinstance(results[value][i], (int, float)):
-                    output_line += "{0},".format(results[value][i])
-                else:  # only normalise if the value is a number
-                    output_line += "{0}".format(results[value][i]/normalising_value_dict[value])
-        
-        condition_builder_output.write(output_line + '\n')  
-
-    condition_builder_output.close()              
-                                  
-    return     
-    
+           
 def add_new_result_to_results_dict(cfg, states, V, M, results):
     """Function that takes a completed test run and adds the tunnel
        configuration and results to the results dictionary.
@@ -562,16 +476,17 @@ def differing_compression_ratio_analysis_summary(cfg, results):
                 
     return
             
-def run_pitot_differing_compression_ratio_analysis(cfg = {}, config_file = None):
+def run_pitot_differing_compression_ratio_analysis(cfg = {}, config_file = None, force_restart = False):
     """
     
     Chris James (c.james4@uq.edu.au) 23/12/14
     
     run_pitot_differing_compression_ratio_analysis(dict) - > depends
     
-    """
+    force_restart can be used to force the simulation to start again instead of 
+    looking for an unfinished simulation that may be there...
     
-    import time
+    """
     
     #---------------------- get the inputs set up --------------------------
     
@@ -589,45 +504,82 @@ def run_pitot_differing_compression_ratio_analysis(cfg = {}, config_file = None)
     
     cfg = check_new_inputs(cfg)
     
-    # clean up any old files if the user has asked for it
+    intermediate_filename = cfg['filename']+'-differing-compression-ratio-analysis-intermediate-result-pickle.dat'
     
-    if cfg['cleanup_old_files']:
-        from pitot_condition_builder import cleanup_old_files
-        cleanup_old_files()
-    
-    # make a counter so we can work out what test we're running
-    # also make one to store how many runs are successful
-    
-    cfg['number_of_test_runs'] = calculate_number_of_test_runs(cfg)
-       
-    counter = 0
-    good_counter = 0
-    
-    # store our original filename
-    import copy
-    cfg['original_filename'] = copy.copy(cfg['filename'])
-    
-    # I think install the original dictionary too
-    
-    cfg['cfg_original'] = copy.copy(cfg)
-    
-    # print a start message to get us going
-    
-    cfg = start_message(cfg)
-    
-    # work out what we need in our results dictionary and make the dictionary
-    
-    results = build_results_dict(cfg)
-    
-    have_checked_time = False
-    
-    #now start up the for loops and get running    
-    
-    for compression_ratio in cfg['compression_ratio_list']:
-        # need to work out what to do. Find p4 if not specified, or driver_p if 
-        # not specified
+    # now check if we have attempted an old run before or not....
+    if not os.path.isfile(intermediate_filename) or force_restart: 
+        # if not, we set up a new one...
         
-        cfg['compression_ratio'] = compression_ratio
+        # clean up any old files if the user has asked for it
+        
+        if cfg['cleanup_old_files']:
+            from pitot_condition_builder import cleanup_old_files
+            cleanup_old_files()
+        
+        # make a counter so we can work out what test we're running
+        # also make one to store how many runs are successful
+        
+        cfg['number_of_test_runs'] = calculate_number_of_test_runs(cfg)
+        
+        # we use this variable to try to speed some things up later on
+        cfg['last_run_successful'] = None
+        
+        import copy
+        cfg['original_filename'] = copy.copy(cfg['filename'])
+        
+        # I think install the original cfg too
+    
+        cfg['cfg_original'] = copy.copy(cfg)
+            
+        # print the start message
+           
+        cfg = start_message(cfg)
+        
+        # work out what we need in our results dictionary and make the dictionary
+        
+        results = build_results_dict(cfg)
+        
+        # build the dictionary with the details of all the tests we want to run...
+        
+        test_condition_input_details = build_test_condition_input_details_dictionary(cfg)
+        
+        # so we can make the first run check the time...                   
+        cfg['have_checked_time'] = False
+        
+        # counter to count the experiments that don't fail
+        cfg['good_counter'] = 0
+        # list that will be filled by the experiment numbers as they finish...
+        cfg['finished_simulations'] = []    
+    
+    else:
+        # we can load an unfinished simulation and finishing it...!
+        print '-'*60
+        print "It appears that an unfinished simulation was found in this folder"
+        print "We are now going to attempt to finish this simulation."
+        print "If this is not what you want, please delete the file '{0}' and run the condition builder again.".format(intermediate_filename)
+    
+        import pickle
+        with open(intermediate_filename,"rU") as data_file:
+            intermediate_result = pickle.load(data_file)
+            cfg = intermediate_result['cfg']
+            results = intermediate_result['results']
+            test_condition_input_details = intermediate_result['test_condition_input_details']
+            data_file.close()
+            
+    #now start the main for loop for the simulation...
+    
+    for test_name in test_condition_input_details['test_names']:
+        # this is for a re-loaded simulation, to make sure we don't re-run what has already been run
+        if test_name in cfg['finished_simulations']:
+            print '-'*60
+            print "test_name '{0}' is already in the 'finished_simulations' list.".format(test_name)
+            print "Therefore it has probably already been run and will be skipped..."
+            continue # code to skip iteration
+        
+        # first set the test number variable...
+        cfg['test_number'] = test_name
+        # then set the details that every simulation will have
+        cfg['compression_ratio'] = test_condition_input_details[test_name]['compression_ratio']
         
         # if 'specified_pressure' is 'driver_p' we don't need to do anything here,
         # if it's 'p4' we need to get the related 'driver_p'
@@ -639,39 +591,38 @@ def run_pitot_differing_compression_ratio_analysis(cfg = {}, config_file = None)
             primary_driver.set_pT(101300.0, 300.0)
             pressure_ratio = cfg['compression_ratio']**primary_driver.gam #pressure ratio is compression ratio to the power of gamma
             cfg['driver_p'] = cfg['p4']/pressure_ratio
-                        
-        counter += 1
-        cfg['test_number'] = counter
-        if not have_checked_time:
-            start_time = time.time()
+
         run_status, results = differing_compression_ratio_analysis_test_run(cfg, results) 
         if run_status:
-            good_counter += 1
-            if not have_checked_time:
-                test_time = time.time() - start_time
-                print '-'*60
-                print "Time to complete first test was {0:.2f} seconds."\
-                .format(test_time)
-                print "If every test takes this long. It will take roughly {0:.2f} hours to perform all {1} tests."\
-                .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
-                have_checked_time = True
-
-    # now that we're done we can dump the results to the results csv 
+            cfg['good_counter'] += 1
+        
+        # add this to finished simulations list, regardless of whether it finished correctly or not...
+        cfg['finished_simulations'].append(test_name)
+        
+        # now pickle the intermediate result so we can result the simulation if needed...
+        pickle_intermediate_data(cfg, results, test_condition_input_details, filename = intermediate_filename)
+    
+    # now that we're done we can dump the results in various ways using tools from pitot condition builder...
     intro_line = "Output of pitot differing compression ratio analysis program Version {0}."\
                  .format(VERSION_STRING)            
     results_csv_builder(results, test_name = cfg['original_filename'],  
-                        intro_line = intro_line)
+                        intro_line = intro_line, filename = cfg['original_filename']+'-differing-compression-ratio-analysis.csv')
                         
     #and a normalised csv also
     normalised_results_csv_builder(results, test_name = cfg['original_filename'],  
                         intro_line = intro_line, 
-                        normalised_by = cfg['normalise_results_by'])  
-                        
-    # and pull in the pickle function from pitot_condition_builder.py
-    # so we can pick the results and config dictionaries                  
-    from pitot_condition_builder import pickle_data
+                        normalised_by = cfg['normalise_results_by'],
+                        filename = cfg['original_filename']+'-differing-compression-ratio-analysis-normalised.csv',
+                        extra_normalise_exceptions = ['compression_ratio'])  
     
-    pickle_data(cfg, results)
+                       
+    pickle_result_data(cfg, results, filename = cfg['original_filename']+'-differing-compression-ratio-analysis-final-result-pickle.dat')
+    
+    # now delete the intermediate pickle that we made during the simulation...
+    print "Removing the final intermediate pickle file."
+    
+    if os.path.isfile(intermediate_filename): 
+        os.remove(intermediate_filename)
     
     # now analyse results dictionary and print some results to the screen
     # and another external file
@@ -688,11 +639,14 @@ def main():
     op = optparse.OptionParser(version=VERSION_STRING)   
     op.add_option('-c', '--config_file', '--config-file', dest='config_file',
                   help=("filename where the configuration file is located"))    
-
+    op.add_option('-f', '--force_restart', action = "store_true", dest='force_restart',
+                  help=("flag that can be used to force the simulation to restart"
+                        "It stops it looking for an unfinished simulation.")) 
     opt, args = op.parse_args()
     config_file = opt.config_file
+    force_restart = opt.force_restart
            
-    run_pitot_differing_compression_ratio_analysis(cfg = {}, config_file = config_file)
+    run_pitot_differing_compression_ratio_analysis(cfg = {}, config_file = config_file, force_restart = force_restart)
     
     return
     

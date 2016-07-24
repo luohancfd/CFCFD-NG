@@ -628,9 +628,8 @@ def run_pitot_contamination_analysis(cfg = {}, config_file = None):
     # so we can pick the results and config dictionaries                  
     from pitot_condition_builder import pickle_data
     
-    pickle_data(cfg, results)
+    pickle_result_data(cfg, results)
 
-    
     # now analyse results dictionary and print some results to the screen
     # and another external file
     
