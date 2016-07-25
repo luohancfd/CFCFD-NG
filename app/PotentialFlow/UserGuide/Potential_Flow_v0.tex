@@ -139,12 +139,12 @@ In potential flow different flow feature {\it building blocks}, that full-fill L
 The first part of involves setting creating such building blocks that can be combined to create a complex flow-field.
 \\ \\
 \noindent
-{\huge Step: 1}\\
+{\LARGE Step: 1}\\
 Find  \verb'if __name__ == "__main__":', the part of the file that will be executed if the file is run from the command line.
 \\ \\
 
 \noindent
-{\huge Step: 2}\\
+{\LARGE Step: 2}\\
 Create a list of building blocks that you want to use for your flow. 
 The result should look something like the following for Uniform Flow $+$ a Source:
  
@@ -263,7 +263,7 @@ After the building blocks have been defined, the next step is to create a flow-f
 And to perform calculations to obtain $\Psi$, $u$, and $v$ over this field.
 \\ \\
 \noindent
-{\huge Step: 3}\\
+{\LARGE Step: 3}\\
 Create an instance of the PotentialFlow-field class, set the size. 
 The results for an area ranging from $x = \num{-2.0}$ to $x=\num{2.0}$ and $y = \num{-1.0}$ to $x=\num{1.0}$ should look something like:
 
@@ -278,7 +278,7 @@ The results for an area ranging from $x = \num{-2.0}$ to $x=\num{2.0}$ and $y = 
 \bottombar
 \\ \\
 \noindent
-{\huge Step: 4}\\
+{\LARGE Step: 4}\\
 Assemble a list of building blocks and evaluate these over an $N \times N$ grid spanning the area set in step 3. 
 The list of blocks is generated as \verb'[ BLK-1, BLK-2, BLK-3 ]', where \verb'BLK-N' are the variable names of the different blocks. 
 For flow-field consisting of Uniform Flow $+$ a Source (as per step 2) that is evaluated over a $100 \times 100$ grid the code is: (extent of the grid is set in step 3)
@@ -299,7 +299,7 @@ For flow-field consisting of Uniform Flow $+$ a Source (as per step 2) that is e
 Once the flow-field has been calculated, it is possible to plot fluid properties over the flow-field area defined in step 3. 
 \\ \\
 \noindent
-{\huge Step: 5}\\
+{\LARGE Step: 5}\\
 Plotting commands are exercised on the Flow-field class (e.g. \verb'T') in the above example. 
 To plot streamlines and a second graph of streamlines overlayed with velocity magnitude contours, use the following code. The results are shown in Fig.~\ref{F_results_test}
 
@@ -316,8 +316,7 @@ To plot streamlines and a second graph of streamlines overlayed with velocity ma
 \bottombar
 
 \noindent
-The entire program is executed using the command \verb'python Potential_Flow.py'. 
-
+The entire program is executed using the command \verb'python Potential_Flow.py' from the command line. 
 
 \begin{figure}
 \centering
@@ -346,13 +345,35 @@ These functions must be executed after \verb'NAME.calc([List])'
 
 
 \begin{description}
-\item[Streamlines] \verb'NAME.plot_Streamlines()'\\
-Creates a streamline plot. 
-These are based on the $(u,v)$ velocity field, so while these correspond to lines of constant $\Psi$, the difference in stream function $\Psi$ between two lines is not constant. 
-To obtain values of $\Psi$ use the extract point data functions (see section~\ref{S_extract})
+\item[Streamfunction] \verb'NAME.plot_Psi(levels = 40)' \\
+Creates contours of constant streamfunction $\Psi$. 
+\verb'levels' sets the number of contour lines shown.
+(Note when plotting sources/sinks a jump in $\Psi$ exists at $\theta = \pm \pi$. 
+This can result in misleading values.
+
+\item[Streamfunctions + Contours] \verb'NAME.plot_Psi_contours( levels = 20)'\\
+Same as \verb'NAME.plot_Psi', but coloured contours of constant streamfunction are added.
+
+\item[Streamfunctions + Velocity] \verb'NAME.plot_Psi_magU(magUmax = 10., levels = 20)'\\
+Same as \verb'NAME.plot_Psi', but coloured contours of velocity are added. 
+\verb'magUmax' sets the upper limit for the velocity contours.
+
+\item[Streamfunctions + Pressure] \verb'NAME.plot_Psi_P(P_inf=0., rho=1.225, P_min=-30., P_max = 30., levels = 20)'\\
+Same as \verb'NAME.plot_Psi', but coloured contours of pressure are added. 
+\verb'P_inf' is the far-field pressure for the point where Velocity is zero. 
+\verb'rho' is the gas density used when calculating the local pressure.
+\verb'P_min' and \verb'P_max' can be used to cap the pressure contours to avoid plotting of $P\rightarrow \infty$ close to sources, sinks and vortices. 
 
 \item[Velocity Magnitude] \verb'NAME.plot_magU(magU_max = 100., levels=20)'\\
-Creates a contour plot of velocity magnitude. \verb'magU_max' sets a limit maximum velocity magnitude that is plotted. \verb'levels' sets the number of contour lines shown.
+Creates a contour plot of velocity magnitude. 
+\verb'magU_max' sets the maximum velocity for the contours. 
+\verb'levels' sets the number of contour lines shown.
+
+\item[Streamlines] \verb'NAME.plot_Streamlines()'\\
+Creates a plot with fancy looking streamlines.
+These are based on the $(u,v)$ velocity field, so while these correspond to lines of constant $\Psi$, the difference in streamfunction $\Psi$ between adjacent lines is not constant. 
+Hence streamline separation cannot be related to local velocity.
+%To obtain values of $\Psi$ use the extract point data functions (see section~\ref{S_extract})
 
 \item[Streamlines + Velocity Magnitude] \verb'plot_Streamlines_magU(magU_max = 100., levels=20)' \\
 Combination of the two above functions.
@@ -363,27 +384,20 @@ Creates a contour plot of the velocity component in the $x$-direction.
 \verb'levels' sets the number of contour lines shown.
 
 \item[V-Velocity] \verb'NAME.plot_V(V_min = -100., V_max = 100., levels=20)'\\
-Creates a contour plot of the velocity component in the $y$-direction. Other commands as per U-Velocity function.
+Same as previous function, but for velocity in $y$-direction.
 
-\item[Pressure] \verb'plot_P(P_inf = 0., rho=1.225, P_min=-100., P_max=100., levels=20)'\\
+\item[Pressure] \verb'NAME.plot_P(P_inf = 0., rho=1.225, P_min=-100., P_max=100., levels=20)'\\
 Creates a contour plot of pressure relative to the reference pressure \verb'P_inf' which is defined at a location with zero velocity (This is different to $P_{\infty}$, which refers to $U_{\infty}$). 
 \verb'rho' is the fluid density. 
 \verb'P_min' and \verb'P_max' can be used to cap the pressure contours to avoid plotting of $P\rightarrow \infty$ close to sources, sinks and vortices.  
 \verb'levels' sets the number of contour lines shown.
 
-\item[Pressure Coefficient] \verb'plot_Cp(U_inf = 0., rho=1.225, Cp_min=-5., Cp_max=5., levels=20)'\\
+\item[Pressure Coefficient] \verb'NAME.plot_Cp(U_inf = 0., rho=1.225, Cp_min=-5., Cp_max=5., levels=20)'\\
 Creates a contour plot of pressure coefficient defined as $C_p = \frac{P}{\frac{1}{2} \, \rho \, U_{\infty}^2}$. 
 \verb'U_inf' is the free-stream velocity $U_\infty$ 
 \verb'rho' is the fluid density. 
 \verb'Cp_min' and \verb'Cp_max' can be used to cap the $C_p$ contours to avoid plotting of $C_p \rightarrow \infty$ close to sources, sinks and vortices.  
 \verb'levels' sets the number of contour lines shown.
-
-\item[Streamfunction] \verb'plot_Psi(levels = 20)' \\
-Creates contours of streamfunction $\Psi$. 
-Care must be taken if sources/sinks are in the flow-field, as these cause a discontinuity at $\theta = \pm \pi$. 
-This leads to the appearance of {\it jumps} in the contour plot, which can be misleading. 
-\verb'levels' sets the number of contour lines shown.
-
 
 \end{description}
 
@@ -393,7 +407,7 @@ This leads to the appearance of {\it jumps} in the contour plot, which can be mi
 In addition to plotting the data it is also possible to evaluate the properties at single points or along lines. 
 \\ \\
 \noindent
-{\huge Step: 6}\\
+{\LARGE Step: 6}\\
 The following code extracts the x-component of velocity, $u$ along the between the points $(-0.5, -0.5)$ and $(-0.5, 0.5)$ and creates a plot of the output data. 
 The results are shown in Fig.~\ref{F_extract_test}.
 
@@ -410,7 +424,7 @@ The results are shown in Fig.~\ref{F_extract_test}.
 \bottombar
 
 \noindent
-The entire program is executed using the command \verb'python Potential_Flow.py'. 
+The entire program is executed using the command \verb'python Potential_Flow.py' from the command line. 
 
 \begin{figure}
 \centering
@@ -444,26 +458,26 @@ Returns the total streamfunction magnitude at the point with the coordinates $(x
 \item[Velocities] \verb' u, v = NAME.eval(x,y)' \\
 Returns the $x$ and $y$ component of velocity at the point with the coordinates $(x, y)$.
 
-\item[Pressure] \verb'dP = evalPressure(x,y,rho)'\\
+\item[Pressure] \verb'dP = NAME.evalPressure(x,y,rho)'\\
 Returns the pressure change relative to ambient conditions (zero velocity)
 
-\item[Line U-Velocity] \verb'UU = LinevalU(x0,y0,x1,y1,n=100,plot_flag=0)' \\
+\item[Line U-Velocity] \verb'UU = NAME.LinevalU(x0,y0,x1,y1,n=100,plot_flag=0)' \\
 Returns the magnitude of velocity in the x-direction, $u$ at $n$ equally spaced points along the line between the two points $(x0, y0)$ and $(x1,y1)$. 
 Setting \verb'plot_flag = 1' will also generate a line graph.
 
-\item[Line V-Velocity] \verb'VV = LinevalV(x0,y0,x1,y1,n=100,plot_flag=0)' \\
+\item[Line V-Velocity] \verb'VV = NAME.LinevalV(x0,y0,x1,y1,n=100,plot_flag=0)' \\
 Returns the magnitude of velocity in the y-direction, $v$ at $n$ equally spaced points along the line between the two points $(x0, y0)$ and $(x1,y1)$.
 Setting \verb'plot_flag = 1' will also generate a line graph.
 
-\item[Line Pressure]  \verb'PP = LinevalPressure(x0,y0,x1,y1,rho,n=100,plot_flag=0)' \\
+\item[Line Pressure]  \verb'PP = NAME.LinevalPressure(x0,y0,x1,y1,rho,n=100,plot_flag=0)' \\
 Returns the pressure change relative to ambient conditions (zero velocity) at $n$ equally spaced points along the line between the two points $(x0, y0)$ and $(x1,y1)$.
 Setting \verb'plot_flag = 1' will also generate a line graph.
 
 \end{description}
 
 
-The following functions extract the flow-field contribution of a single building block. 
-They must be executed on the building block class (e.g. \verb'A1') in the example above. 
+Instead of exctracting the data from the full flow-field, it is also possible to interrogate a single building block. 
+These functions must be executed on the building block class (e.g. \verb'A1') in the example above. 
 In the description below \verb'NAME' is used as a generic placeholder.   
 \begin{description}
 \item[Velocities] \verb' u, v = NAME.eval(x,y)' \\
@@ -568,7 +582,7 @@ Similar \verb'dP' gives the pressure reduction, calculate as $\Delta P = - \frac
 \end{subfigure}
 \hfill
 \begin{subfigure}{0.48\textwidth}
-    \includegraphics[width=1.0\textwidth]{Figures/Vortex_wall_pressure}
+    \includegraphics[width=1.0\textwidth]{Figures/Vortex_wall_Pressure}
   \caption{Pressure contours}
 \end{subfigure} \\
 \centering
@@ -635,7 +649,7 @@ The University of Queensland
 
 \noindent
 \topbar
-\lstinputlisting{Code/Potential_Flow.py}
+\lstinputlisting{../Potential_Flow.py}
 \bottombar
 
 
