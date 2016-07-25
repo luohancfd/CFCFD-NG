@@ -255,6 +255,14 @@ available to me as part of cfpylib inside the cfcfd code collection.
     24-Jul-2016: changed the compression ratio and gas giant differing diluent analysis codes
         so that they matched the new condition builder version which can be restarted,
         and so they made use of more shared code from the condition builder
+    25-Jul-2016: I had issues in a situation with the fact that the fill states in the 
+        acceleration tube were slightly changing on every pass of the secant solver.
+        to investigate this, I added input printouts to the secant solver functions,
+        and I ended up re-initialising the pressure for all of the fill objects when 
+        they are created after getting the CEA properties and then cloning the fill objects
+        inside the secant solver equations, so the initial values are not touched.
+        This solves the issue of floating point issues stopping some hard to make
+        converage cases from solving.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -282,7 +290,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "24-Jul-2016"
+VERSION_STRING = "25-Jul-2016"
 
 DEBUG_PITOT = False
 

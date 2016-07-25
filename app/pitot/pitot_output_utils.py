@@ -230,64 +230,63 @@ def txt_file_output(cfg, states, V, M):
         
         if states.has_key(it_string):
             
+            # I decided to add a clone here to stop messing with the original object here.
+            state = states[it_string].clone()
+            
             if M[it_string] == 0:
-                pitot[it_string] = states[it_string].p/1000.0
-                p0[it_string] = states[it_string].p/1.0e6
+                pitot[it_string] = state.p/1000.0
+                p0[it_string] = state.p/1.0e6
             else:
                 try:
-                    pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
+                    pitot[it_string] = pitot_p(state.p,M[it_string],state.gam)/1000.0
                 except:
                     try:
                         #try again with no ions turned on if it bails out
-                        states[it_string].with_ions = False
-                        pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
-                        states[it_string].with_ions = True
+                        state.with_ions = False
+                        pitot[it_string] = pitot_p(state.p,M[it_string],state.gam)/1000.0
+                        state.with_ions = True
                     except:
                         # if this fails just give up and print 0.0
                         print "Failed to find pitot pressure for {0} will add 0.0 to print out.".format(it_string)
                         pitot[it_string] = 0.0
                 try:
                     #make total condition of relevant state for printing
-                    total_state = total_condition(states[it_string], V[it_string])
+                    total_state = total_condition(state, V[it_string])
                     p0[it_string] = total_state.p/1.0e6
                 except:
                     try:
                         #try again with no ions turned on if it bails out
-                        states[it_string].with_ions = False
-                        total_state = total_condition(states[it_string], V[it_string])
+                        state.with_ions = False
+                        total_state = total_condition(state, V[it_string])
                         p0[it_string] = total_state.p/1.0e6
-                        states[it_string].with_ions = True
+                        state.with_ions = True
                     except:
                         #failed again, we'll just leave it out
                         print "Failed to find total condition for {0} will add 0.0 to print out.".format(it_string)
                         p0[it_string] = 0.0
                     
             
-            if states[it_string].p < 1.0e6: #change how the pressure is printed if it's too big, it keeps ruining the printouts!
-                if states[it_string].rho < 0.01:
+            if state.p < 1.0e6: #change how the pressure is printed if it's too big, it keeps ruining the printouts!
+                if state.rho < 0.01:
                     # also need something for when density is too small...
                     conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.2e}{7:<8.1f}{8:<9.3f}"\
-                    .format(it_string, states[it_string].p, states[it_string].T,
-                            states[it_string].a,V[it_string],M[it_string],
-                            states[it_string].rho, pitot[it_string], p0[it_string])
+                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
+                            state.rho, pitot[it_string], p0[it_string])
                 else:
                     conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<8.1f}{8:<9.3f}"\
-                    .format(it_string, states[it_string].p, states[it_string].T,
-                            states[it_string].a,V[it_string],M[it_string],
-                            states[it_string].rho, pitot[it_string], p0[it_string])
+                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
+                            state.rho, pitot[it_string], p0[it_string])
                     
             else:
-                if states[it_string].rho < 0.01:
+                if state.rho < 0.01:
                     # also need something for when density is too small...
                     conditions = "{0:<6}{1:<11.3e}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.2e}{7:<8.1f}{8:<9.3f}"\
-                    .format(it_string, states[it_string].p, states[it_string].T,
-                            states[it_string].a,V[it_string],M[it_string],
-                            states[it_string].rho, pitot[it_string], p0[it_string])
+                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
+                            state.rho, pitot[it_string], p0[it_string])
                 else:
                     conditions = "{0:<6}{1:<11.3e}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<8.1f}{8:<9.3f}"\
-                    .format(it_string, states[it_string].p, states[it_string].T,
-                            states[it_string].a,V[it_string],M[it_string],
-                            states[it_string].rho, pitot[it_string], p0[it_string])                    
+                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
+                            state.rho, pitot[it_string], p0[it_string])                    
                     
             print conditions
             txt_output.write(conditions + '\n')
@@ -748,65 +747,63 @@ def csv_file_output(cfg, states, V, M):
         I made a function of this so I didn't have to keep pasting the code in."""
         
         if states.has_key(it_string):
+            
+            state = states[it_string]
                 
             if M[it_string] == 0:
-                pitot[it_string] = states[it_string].p/1000.0
-                p0[it_string] = states[it_string].p/1.0e6
+                pitot[it_string] = state.p/1000.0
+                p0[it_string] = state.p/1.0e6
             else:
                 try:
-                    pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
+                    pitot[it_string] = pitot_p(state.p,M[it_string],state.gam)/1000.0
                 except:
                     try:
                         #try again witcfg, states, V, Mh no ions turned on if it bails out
-                        states[it_string].with_ions = False
-                        pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
-                        states[it_string].with_ions = True
+                        state.with_ions = False
+                        pitot[it_string] = pitot_p(state.p,M[it_string],state.gam)/1000.0
+                        state.with_ions = True
                     except:
                         # if this fails just give up and print 0.0
                         print "Failed to find pitot pressure for {0} will add 0.0 to csv print out.".format(it_string)
                         pitot[it_string] = 0.0
                 try:
                     #make total condition of relevant state for printing
-                    total_state = total_condition(states[it_string], V[it_string])
+                    total_state = total_condition(state, V[it_string])
                     p0[it_string] = total_state.p/1.0e6
                 except:
                     try:
                         #try again with no ions turned on if it bails out
-                        states[it_string].with_ions = False
-                        total_state = total_condition(states[it_string], V[it_string])
+                        state.with_ions = False
+                        total_state = total_condition(state, V[it_string])
                         p0[it_string] = total_state.p/1.0e6
-                        states[it_string].with_ions = True
+                        state.with_ions = True
                     except:
                         #failed again, we'll just leave it out
                         print "Failed to find total condition for {0} will add 0.0 to print out.".format(it_string)
                         p0[it_string] = 0.0
             
                 
-            if states[it_string].p < 1.0e6: #change how the pressure is printed if it's too big, it keeps ruining the printouts!  
-                if states[it_string].rho < 0.01:
+            if state.p < 1.0e6: #change how the pressure is printed if it's too big, it keeps ruining the printouts!  
+                if state.rho < 0.01:
                     # also need something for when density is too small...
                     csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.2e},{7:<8.1f},{8:<9.3f}"\
-                    .format(it_string, states[it_string].p, states[it_string].T,
-                            states[it_string].a,V[it_string],M[it_string],
-                            states[it_string].rho, pitot[it_string], p0[it_string])
+                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
+                            state.rho, pitot[it_string], p0[it_string])
                 else:
                     csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.5f},{7:<8.1f},{8:<9.3f}"\
-                    .format(it_string, states[it_string].p, states[it_string].T,
-                            states[it_string].a,V[it_string],M[it_string],
-                            states[it_string].rho, pitot[it_string], p0[it_string])
+                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
+                            state.rho, pitot[it_string], p0[it_string])
                     
             else:
-                if states[it_string].rho < 0.01:
+                if state.rho < 0.01:
                     # also need something for when density is too small...
                     csv_conditions = "{0:<6},{1:<11.3e},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.2e},{7:<8.1f},{8:<9.3f}"\
-                    .format(it_string, states[it_string].p, states[it_string].T,
-                            states[it_string].a,V[it_string],M[it_string],
-                            states[it_string].rho, pitot[it_string], p0[it_string])
+                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
+                            state.rho, pitot[it_string], p0[it_string])
                 else:
                     csv_conditions = "{0:<6},{1:<11.3e},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.5f},{7:<8.1f},{8:<9.3f}"\
-                    .format(it_string, states[it_string].p, states[it_string].T,
-                            states[it_string].a,V[it_string],M[it_string],
-                            states[it_string].rho, pitot[it_string], p0[it_string])         
+                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
+                            state.rho, pitot[it_string], p0[it_string])         
             
             csv_output.write(csv_conditions + '\n')
             

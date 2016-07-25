@@ -35,7 +35,7 @@ def secondary_driver_calculation(cfg, states, V, M):
         """Compute the velocity mismatch for a given pressure ratio across the 
         unsteady expansion in the driver into the secondary driver gas."""
         
-        print "current guess for psd1 = {0} Pa".format(psd1)            
+        print "Current guess for psd1 = {0} Pa".format(psd1)            
         
         statesd1.set_pT(psd1, 300.0) #set s1 at set pressure and ambient temp
         
@@ -63,7 +63,13 @@ def secondary_driver_calculation(cfg, states, V, M):
         Make sure you set the fill pressure in sd1 before you start!"""
         
         print '-'*60
-        print "current guess for Vsd = {0} m/s".format(Vsd)            
+        print "Current guess for Vsd = {0} m/s".format(Vsd)
+        print "Expanding entry state is p3s = {0} Pa, T3s = {1} K, V3s = {2} m/s.".format(state3s.p, state3s.T, V3sg)
+        print "Secondary driver fill state is psd1 = {0} Pa, Tsd1 = {1} K.".format(statesd1.p, statesd1.T)
+        
+        # do a clone of state sd1 here so we don't get a lot of floating point jumping around
+        # if the pressure is too low...
+        statesd1 = statesd1.clone()               
         
         (Vsd2, Vsd2g) = normal_shock(statesd1, Vsd, statesd2)
                
@@ -299,14 +305,24 @@ def shock_tube_calculation(cfg, states, V, M):
                                                 state1=states['s1'], state2=states['s2'],
                                                 solver=cfg['solver'], test_gas=cfg['test_gas'],
                                                 steps=cfg['shock_tube_expansion_steps'],
-                                                gas_guess = cfg['gas_guess']):
+                                                gas_guess = cfg['gas_guess'],
+                                                secondary = cfg['secondary']):
         """Compute the velocity mismatch for a given shock speed with the shock tube
         unsteady expansion behind it.
         
         Make sure you set the fill pressure in state 1 before you start!"""
         
         print '-'*60
-        print "Current guess for Vs1 = {0} m/s".format(Vs1)            
+        print "Current guess for Vs1 = {0} m/s".format(Vs1)
+        if cfg['secondary']:
+            print "Expanding entry state is psd2 = {0} Pa, Tsd2 = {1} K, Vsd2 = {2} m/s.".format(expanding_state.p, expanding_state.T, expansion_start_V)
+        else:
+            print "Expanding entry state is p3s = {0} Pa, T3s = {1} K, V3s = {2} m/s.".format(expanding_state.p, expanding_state.T, expansion_start_V)
+        print "Shock tube fill state is p1 = {0} Pa, T1 = {1} K.".format(state1.p, state1.T)
+        
+        # do a clone of state 1 here so we don't get a lot of floating point jumping around
+        # if the pressure is too low...
+        state1 = state1.clone()         
         
         try:
             if solver == 'eq' or solver == 'pg':
@@ -542,13 +558,16 @@ def shock_tube_calculation(cfg, states, V, M):
             print "Now that Vs1 is known, finding conditions at states 2 and 3."
     # first do the normal shock
     try:
+        # do a clone of state 5 here so we don't get floating point jumping around...
+        state1 = states['s1'].clone()
+        
         if cfg['Vs1'] > 8500 and 'solver' in ['eq', 'pg-eq']:
-            (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'], cfg['gas_guess'])
+            (V2, V['s2']) = normal_shock(state1, cfg['Vs1'], states['s2'], cfg['gas_guess'])
         else:
-            (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'])
+            (V2, V['s2']) = normal_shock(state1, cfg['Vs1'], states['s2'])
     except:
         print "Normal shock failed. Trying again with a gas guess."
-        (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'], cfg['gas_guess'])
+        (V2, V['s2']) = normal_shock(state1, cfg['Vs1'], states['s2'], cfg['gas_guess'])
         
     if cfg['solver'] == 'pg-eq': #if we're using the pg-eq solver this is the point where we move from pg to eq gas objects
         if cfg['test_gas'] == 'mars' or cfg['test_gas'] == 'co2' or cfg['test_gas'] == 'venus':
@@ -689,17 +708,20 @@ def shock_tube_rs_calculation(cfg, states, V, M):
     
     #first build state2r as a clone of state 2
     states['s2r'] = states['s2'].clone()
+    # and clone state 2 so we don't have issues with the floating point numbers
+    # jumping around...
+    state2 = states['s2'].clone()
 
     if cfg['Mr_st'] == "maximum": # then perform the reflected shock
-        cfg['Vr-st'] = reflected_shock(states['s2'], V['s2'], states['s2r'])
-        cfg['Mr-st'] = (V['s2']+cfg['Vr-st'])/states['s2'].a #normally this would be V2 - V2r, but it's plus here as Vr has been left positive
+        cfg['Vr-st'] = reflected_shock(state2, V['s2'], states['s2r'])
+        cfg['Mr-st'] = (V['s2']+cfg['Vr-st'])/state2.a #normally this would be V2 - V2r, but it's plus here as Vr has been left positive
         V['s2r'] = 0.0
         M['s2r']= V['s2r']/states['s2r'].a
     else: # perform it to a set strength
         cfg['Mr-st'] = cfg['Mr_st']
         cfg['Vr-st'] = cfg['Mr-st']*states['s2r'].a - V['s2']
         try:
-            (V2r, V2rg) = normal_shock(states['s2'], cfg['Vr-st'] + V['s2'], states['s2r'])
+            (V2r, V2rg) = normal_shock(state2, cfg['Vr-st'] + V['s2'], states['s2r'])
             V['s2r'] = V['s2'] - V2rg
             M['s2r']= V['s2r']/states['s2r'].a           
         except Exception as e:
@@ -893,7 +915,12 @@ def acceleration_tube_calculation(cfg, states, V, M):
         
         print '-'*60
         print "Current guess for Vs2 = {0} m/s".format(Vs2)
+        print "Expanding entry state is p2 = {0} Pa, T2 = {1} K, V2 = {2} m/s.".format(state2.p, state2.T, V2g)
+        print "Acceleration tube fill state is p5 = {0} Pa, T5 = {1} K.".format(state5.p, state5.T)
         
+        # do a clone of state 5 here so we don't get a lot of floating point jumping around...
+        state5 = state5.clone()
+                
         # some extra code to try and get conditions above 19 km/s working with Pitot
         if cfg['custom_accelerator_gas']:
             gas_guess = None
@@ -1038,12 +1065,20 @@ def acceleration_tube_calculation(cfg, states, V, M):
                                 limits=[cfg['Vs2_lower'],cfg['Vs2_upper']],
                                 max_iterations = cfg['acc_tube_max_iterations'])            
         if cfg['Vs2'] == 'FAIL':
+            print "-"*60
             print "Acceleration tube secant solver did not converge after max amount of iterations."
-            print "Going to try it again with a lower secant solver tolerance."
-            print "Changing tolerance from {0} to {1}".format(cfg['acc_tube_secant_tol'], cfg['acc_tube_secant_tol']*10.0)
-            
             original_acc_tube_secant_tol = copy.copy(cfg['acc_tube_secant_tol'])
-            cfg['acc_tube_secant_tol'] *= 10.0
+                
+            if 'acc_tube_second_secant_tol' not in cfg or not cfg['acc_tube_second_secant_tol']:
+                print "Going to try it again with an order of magnitude lower secant solver tolerance."
+                print "Changing tolerance from {0} to {1}".format(cfg['acc_tube_secant_tol'], cfg['acc_tube_secant_tol']*10.0)
+                
+                cfg['acc_tube_secant_tol'] *= 10.0
+            else:
+                print "Going to try it again with a user specified second secant solver tolerance of {0}.".format(cfg['acc_tube_second_secant_tol'])
+                
+                cfg['acc_tube_secant_tol'] = cfg['acc_tube_second_secant_tol']
+                
             try:
                 cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, 
                                     cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
@@ -1057,11 +1092,19 @@ def acceleration_tube_calculation(cfg, states, V, M):
                 raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Acceleration tube secant solver failed." 
                 
             if cfg['Vs2'] == 'FAIL':
+                print "-"*60
                 print "Acceleration tube secant solver once again did not converge after max amount of iterations."
-                print "Will try lowering the secant solver tolerance one last time."
-                print "Changing tolerance from {0} to {1}".format(cfg['acc_tube_secant_tol'], cfg['acc_tube_secant_tol']*10.0)
                 
-                cfg['acc_tube_secant_tol'] *= 10.0
+                if 'acc_tube_third_secant_tol' not in cfg or not cfg['acc_tube_third_secant_tol']:
+                    print "Will try lowering the secant solver tolerance by another order of magnitude one last time."
+                    print "Changing tolerance from {0} to {1}".format(cfg['acc_tube_secant_tol'], cfg['acc_tube_secant_tol']*10.0)
+                
+                    cfg['acc_tube_secant_tol'] *= 10.0
+                else:
+                    print "Going to try one last time with a user specified third secant solver tolerance of {0}.".format(cfg['acc_tube_third_secant_tol'])
+                    
+                    cfg['acc_tube_secant_tol'] = cfg['acc_tube_third_secant_tol']
+
                 try:
                     cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, 
                                         cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
@@ -1109,9 +1152,10 @@ def acceleration_tube_calculation(cfg, states, V, M):
     else:
         gas_guess = None
         
-    if cfg['expand_to'] != 'p7':
-        #if we're expanding to p7 we can't do this shock, so we skip it
-        (V6, V['s6']) = normal_shock(states['s5'], cfg['Vs2'], states['s6'], gas_guess)
+    if cfg['expand_to'] != 'p7': #if we're expanding to p7 we can't do this shock, so we skip it
+        # do a clone of state 5 here so we don't get floating point jumping around...
+        state5 = states['s5'].clone()
+        (V6, V['s6']) = normal_shock(state5, cfg['Vs2'], states['s6'], gas_guess)
         
     #do any modifications that were requested to the velocity behind the shock here 
     # new if statement here as we now have the ability to expand to a pressure if required - CMJ (16/09/15)

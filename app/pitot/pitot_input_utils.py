@@ -688,6 +688,27 @@ def input_checker(cfg, condition_builder = False):
         print "'accelerator_gas_without_ions' not in cfg will set it to a default of False..."
         print "Generally the user does want ions in the accelerator gas."
         
+    # acc tube custom second and third secant solver tolerance code
+    # (this is for keeping the default to start with but using custom values if it fails)
+        
+    if cfg['tunnel_mode'] == 'expansion-tube' and 'acc_tube_second_secant_tol' not in cfg:
+        cfg['acc_tube_second_secant_tol'] = None
+        print "''acc_tube_second_secant_tol'' not in cfg will set it to a default of None and it will not be used"
+        
+    if cfg['tunnel_mode'] == 'expansion-tube' and 'acc_tube_third_secant_tol' not in cfg:
+        cfg['acc_tube_third_secant_tol'] = None
+        print "''acc_tube_third_secant_tol'' not in cfg will set it to a default of None and it will not be used"   
+        
+    # if we do use the values we must check that they are floats...
+        
+    if cfg['acc_tube_second_secant_tol'] and not isinstance(cfg['acc_tube_second_secant_tol'], float):
+        print "'acc_tube_second_secant_tol' must be a float. Current value is not. Bailing out."
+        raise TypeError, "''acc_tube_second_secant_tol'' input is not a float"
+        
+    if cfg['acc_tube_third_secant_tol'] and not isinstance(cfg['acc_tube_third_secant_tol'], float):
+        print "'acc_tube_third_secant_tol' must be a float. Current value is not. Bailing out."
+        raise TypeError, "''acc_tube_third_secant_tol'' input is not a float"
+        
     #------------------ final check stuff....-------------------------------
         
     
@@ -722,11 +743,11 @@ def start_message(cfg, states):
         print "Driver burst conditions are p4 = {0:.2f} Pa, T4 = {1:.2f} K, M_throat = {2}."\
               .format(cfg['p4'], cfg['T4'], cfg['M_throat'])
         
-        if cfg['solver'] == 'eq':
+        if isinstance(states['s1'], Gas):
             test_gas_used = 'Selected test gas is {0} (gamma = {1}, R = {2:.2f}, {3} by {4}).'\
             .format(cfg['test_gas'],states['s1'].gam,states['s1'].R,
                     states['s1'].reactants, states['s1'].outputUnits)
-        elif cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq':
+        elif isinstance(states['s1'], pg.Gas):
             test_gas_used = 'Selected test gas is {0} (gamma = {1}, R = {2:.2f}).'\
             .format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
         print test_gas_used
@@ -744,10 +765,10 @@ def start_message(cfg, states):
             print 'Selected shock tube fill temperature (T1) = {0} K.'.format(cfg['T1'])
         if 'p5' in cfg and cfg['tunnel_mode'] == 'expansion-tube':
             if cfg['custom_accelerator_gas']:
-                if cfg['solver'] == 'eq':
+                if isinstance(states['s5'], Gas):
                     accelerator_gas_used = 'Custom accelerator gas is {0} (by {1}, gamma = {2}, R = {3:.2f}).'\
                     .format(states['s5'].reactants,states['s5'].outputUnits, states['s5'].gam,states['s5'].R)
-                elif cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq':
+                elif isinstance(states['s5'], pg.Gas):
                     accelerator_gas_used = 'Custom accelerator gas is {0} (by {1}, gamma = {2}, R = {3:.2f}).'\
                     .format(cfg['accelerator_gas_composition'],cfg['accelerator_gas_inputUnits'], 
                             states['s5'].gam,states['s5'].R)  
@@ -1043,6 +1064,11 @@ def state_builder(cfg):
             states['sd1']=pg.Gas(Mmass=states['sd1'].Mmass,
                              gamma=states['sd1'].gam, name='sd1')
             states['sd1'].set_pT(cfg['psd1'],cfg['T0'])
+            
+        # this is to stop the numerical moving around of psd1  
+        if isinstance(states['sd1'], Gas) and 'psd1' in cfg:
+            states['sd1'].p = float(cfg['psd1'])
+       
         V['sd1']=0.0
         M['sd1']=0.0
 
@@ -1069,10 +1095,15 @@ def state_builder(cfg):
             if cfg['solver'] == 'pg-eq': #store the eq gas object as we'll want to come back to it later...      
                 states['s1-eq'] = states['s1'].clone()        
             if cfg['test_gas'] == 'co2' or cfg['test_gas'] == 'mars' or cfg['test_gas'] == 'venus': #need to force our own gam and Mmass onto the gas object if CO2 is in the gas
-                states['s1'].gam =  test_gas_gam; states['s1'].Mmass =  test_gas_Mmass
+                states['s1'].gam = test_gas_gam; states['s1'].Mmass =  test_gas_Mmass
             states['s1']=pg.Gas(Mmass=states['s1'].Mmass,
                                 gamma=states['s1'].gam, name='s1')
             states['s1'].set_pT(float(cfg['p1']),cfg['T1'])
+        
+    # this is to stop the numerical moving around of p1            
+    if isinstance(states['s1'], Gas) and 'p1' in cfg:
+        states['s1'].p = float(cfg['p1'])
+    
     V['s1']=0.0
     M['s1']=0.0
         
@@ -1099,6 +1130,9 @@ def state_builder(cfg):
             states['s5']=pg.Gas(Mmass=states['s5'].Mmass,
                                 gamma=states['s5'].gam, name='s5')
             states['s5'].set_pT(float(cfg['p5']),cfg['T0'])
+        # this is to stop the numerical moving around of p5
+        if isinstance(states['s5'], Gas) and 'p5' in cfg:
+            states['s5'].p = float(cfg['p5'])
         V['s5']=0.0
         M['s5']=0.0
         #now let's clone the states we just defined to get the states derved from these

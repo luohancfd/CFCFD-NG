@@ -244,6 +244,19 @@ def gg_differing_diluent_analysis_test_run(cfg, results):
         cfg['last_run_successful'] = False
         results['unsuccessful_runs'].append(cfg['test_number'])
         
+    # we now need to go through and purge the guesses and bounds of the secant solvers
+    # if they were not custom, so then new guesses can be made next time
+        
+    secant_solver_variables = ['Vsd_lower', 'Vsd_upper', 'Vsd_guess_1', 'Vsd_guess_2', 
+                               'Vs1_lower', 'Vs1_upper', 'Vs1_guess_1', 'Vs1_guess_2',
+                               'Vs2_lower', 'Vs2_upper', 'Vs2_guess_1', 'Vs2_guess_2']
+    
+    for variable in secant_solver_variables:
+        # if the variables are not in the original cfg, they are not custom inputs
+        # and were added by the last run, so we remove them
+        if variable not in cfg['cfg_original']:
+            if variable in cfg: cfg.pop(variable)
+        
     # now we end the stream teeing here by pulling out the original stdout object
     # and overwriting the stream tee with that, then closing the log file
     sys.stdout = sys.stdout.stream1   
