@@ -270,23 +270,23 @@ def txt_file_output(cfg, states, V, M):
                 if state.rho < 0.01:
                     # also need something for when density is too small...
                     conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.2e}{7:<8.1f}{8:<9.3f}"\
-                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
-                            state.rho, pitot[it_string], p0[it_string])
+                    .format(it_string, states[it_string].p, states[it_string].T, states[it_string].a,
+                            V[it_string],M[it_string], states[it_string].rho, pitot[it_string], p0[it_string])
                 else:
                     conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<8.1f}{8:<9.3f}"\
-                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
-                            state.rho, pitot[it_string], p0[it_string])
+                    .format(it_string, states[it_string].p, states[it_string].T, states[it_string].a,
+                            V[it_string],M[it_string], states[it_string].rho, pitot[it_string], p0[it_string])
                     
             else:
                 if state.rho < 0.01:
                     # also need something for when density is too small...
                     conditions = "{0:<6}{1:<11.3e}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.2e}{7:<8.1f}{8:<9.3f}"\
-                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
-                            state.rho, pitot[it_string], p0[it_string])
+                    .format(it_string, states[it_string].p, states[it_string].T, states[it_string].a,
+                            V[it_string],M[it_string], states[it_string].rho, pitot[it_string], p0[it_string])
                 else:
                     conditions = "{0:<6}{1:<11.3e}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<8.1f}{8:<9.3f}"\
-                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
-                            state.rho, pitot[it_string], p0[it_string])                    
+                    .format(it_string, states[it_string].p, states[it_string].T, states[it_string].a,
+                            V[it_string],M[it_string], states[it_string].rho, pitot[it_string], p0[it_string])                  
                     
             print conditions
             txt_output.write(conditions + '\n')
@@ -307,7 +307,12 @@ def txt_file_output(cfg, states, V, M):
                 # need to add the reflected shock condition at state 2 if we did the normal shock here
                 # this will print it at the right place
                 it_string = 'sd{0}r'.format(i)
-                condition_printer(it_string)   
+                condition_printer(it_string) 
+            if cfg['sx_into_st'] and i == 2: 
+                # need to add the reflected shock condition at state 2 if we did the normal shock here
+                # this will print it at the right place
+                it_string = 'sd{0}s'.format(i)
+                condition_printer(it_string)            
                     
     for i in range(1,4): #shock tube stuff
         it_string = 's{0}'.format(i)
@@ -787,23 +792,23 @@ def csv_file_output(cfg, states, V, M):
                 if state.rho < 0.01:
                     # also need something for when density is too small...
                     csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.2e},{7:<8.1f},{8:<9.3f}"\
-                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
-                            state.rho, pitot[it_string], p0[it_string])
+                    .format(it_string, states[it_string].p, states[it_string].T, states[it_string].a,
+                            V[it_string],M[it_string], states[it_string].rho, pitot[it_string], p0[it_string])     
                 else:
                     csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.5f},{7:<8.1f},{8:<9.3f}"\
-                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
-                            state.rho, pitot[it_string], p0[it_string])
+                    .format(it_string, states[it_string].p, states[it_string].T, states[it_string].a,
+                            V[it_string],M[it_string], states[it_string].rho, pitot[it_string], p0[it_string])     
                     
             else:
                 if state.rho < 0.01:
                     # also need something for when density is too small...
                     csv_conditions = "{0:<6},{1:<11.3e},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.2e},{7:<8.1f},{8:<9.3f}"\
-                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
-                            state.rho, pitot[it_string], p0[it_string])
+                    .format(it_string, states[it_string].p, states[it_string].T, states[it_string].a,
+                            V[it_string],M[it_string], states[it_string].rho, pitot[it_string], p0[it_string])     
                 else:
                     csv_conditions = "{0:<6},{1:<11.3e},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.5f},{7:<8.1f},{8:<9.3f}"\
-                    .format(it_string, state.p, state.T, state.a,V[it_string],M[it_string],
-                            state.rho, pitot[it_string], p0[it_string])         
+                    .format(it_string, states[it_string].p, states[it_string].T, states[it_string].a,
+                            V[it_string],M[it_string], states[it_string].rho, pitot[it_string], p0[it_string])            
             
             csv_output.write(csv_conditions + '\n')
             
@@ -822,7 +827,12 @@ def csv_file_output(cfg, states, V, M):
                 # need to add the reflected shock condition at state 2 if we did the normal shock here
                 # this will print it at the right place
                 it_string = 'sd{0}r'.format(i)
-                csv_condition_printer(it_string)     
+                csv_condition_printer(it_string)  
+            if cfg['sx_into_st'] and i == 2: 
+                # need to add the reflected shock condition at state 2 if we did the normal shock here
+                # this will print it at the right place
+                it_string = 'sd{0}s'.format(i)
+                csv_condition_printer(it_string)    
                     
     for i in range(1,4): #shock tube stuff
         it_string = 's{0}'.format(i)

@@ -173,14 +173,14 @@ def secondary_driver_calculation(cfg, states, V, M):
     
 def secondary_driver_rs_calculation(cfg, states, V, M):
     """This is a small function that performs a reflected shock on state sd2
-    when pitot is ask to simulate the effects of the reflected shock at the diaphragm.
+    when pitot is asked to simulate the effects of the reflected shock at the diaphragm.
     It will default to doing a full reflected shock or the user can mess around with the
     reflected shock Mach number to try 
     """
            
     print "Doing reflected shock at the end of the secondary driver tube that the user has asked for."
     
-    #first build state2r as a clone of state 2
+    #first build statesd2r as a clone of state 2
     states['sd2r'] = states['sd2'].clone()
 
     if cfg['Mr_sd'] == "maximum": # then perform the reflected shock
@@ -215,6 +215,75 @@ def secondary_driver_rs_calculation(cfg, states, V, M):
             print e
             print "Failed to find total condition for state sd2r. Result will be set to None"
             cfg['Htsd2r'] = None
+            
+    if PRINT_STATUS: print '-'*60
+        
+    return cfg, states, V, M
+    
+def secondary_driver_sx_calculation(cfg, states, V, M):
+    """This is a small function that performs a steady expansion on state sd2
+    when pitot is asked to simulate the effects of an area change after the secondary diaphragm.
+    ie. the shock tube that the secondary driver is expanding into has a larger bore than the
+    secondary driver section.
+    """
+           
+    print "Doing steady expansion of the secondary driver gas into the shock tube that the user has asked for."
+    
+    #first build state sd2s as a clone of the shock tube entry state
+    states['sd2s'] = states[cfg['shock_tube_expansion']].clone()
+    
+    if PRINT_STATUS: print "Starting steady expansion into the shock tube (ar = {0}).".format(cfg['sx_into_st_area_ratio'])
+    # tolerance for the nozzle expansion secant solver
+    if 'sx_into_st_tolerance' not in cfg or not cfg['sx_into_st_tolerance']:
+        cfg['sx_into_st_tolerance'] = 1.0e-4
+        
+    try:
+        # just do the normal eq or pg expansion...
+        (V['sd2s'], states['sd2s']) = steady_flow_with_area_change(states[cfg['shock_tube_expansion']], V[cfg['shock_tube_expansion']],
+                                                                    cfg['sx_into_st_area_ratio'], tol = cfg['sx_into_st_tolerance'])
+        M['sd2s']= V['sd2s']/states['sd2s'].a
+            
+        if states[cfg['shock_tube_expansion']].p ==  states['sd2s'].p:
+            print "Nozzle inlet and exit pressures are the same. (p{0} = {1} Pa, p8 = {2} Pa)".format(cfg['shock_tube_expansion'], states[cfg['shock_tube_expansion']].p, states['s8'].p)
+            print "There must be some kind of error."
+            raise Exception, "pitot_flow_functions.secondary_driver_sx_calculation(): No pressure change through nozzle"
+            
+    except Exception as e:
+        print "Error {0}".format(str(e))
+        if e.message == "Failed to find area-change conditions iteratively.":
+            print "Function failed to find area-change iteratively, will try a lower tolerance..."
+            print "Old secant solver tolerance was {0} new tolerance is {1}.".format(cfg['sx_into_st_tolerance'],
+                                                                                     cfg['sx_into_st_tolerance'] * 10.0)
+                                                                                     
+            original_tolerance = copy.copy(cfg['sx_into_st_tolerance'])
+            cfg['sx_into_st_tolerance'] *= 10.0
+            
+            try:
+                (V['sd2s'], states['sd2s']) = steady_flow_with_area_change(states[cfg['shock_tube_expansion']], V[cfg['shock_tube_expansion']],
+                                                                    cfg['sx_into_st_area_ratio'], tol = cfg['sx_into_st_tolerance'])
+                M['sd2s']= V['sd2s']/states['sd2s'].a
+                
+                cfg['sx_into_st_tolerance'] = original_tolerance
+                
+                if states[cfg['shock_tube_expansion']].p ==  states['sd2s'].p:
+                    print "Nozzle inlet and exit pressures are the same. (p{0} = {1} Pa, p8 = {2} Pa)".format(cfg['shock_tube_expansion'], states[cfg['shock_tube_expansion']].p, states['s8'].p)
+                    print "There must be some kind of error."
+                    raise Exception, "pitot_flow_functions.secondary_driver_sx_calculation(): No pressure change through nozzle"
+                
+            except Exception as e:
+                print "Error {0}".format(str(e))
+                
+                cfg['sx_into_st_tolerance'] = original_tolerance
+                
+                raise Exception, "pitot_flow_functions.secondary_driver_sx_calculation(): Failed to find steady expansion into shock tube condition"    
+
+    
+    print "state sd2s: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['sd2s'].p, states['sd2s'].T, V['sd2s'])        
+    if isinstance(states['sd2s'], Gas):
+        # print the species if it is an eq gas object...
+        print 'species in state sd2s at equilibrium:'               
+        print '{0}'.format(states['sd2s'].species)
+    print 'state sd2s gamma = {0}, state sd2s R = {1}.'.format(states['sd2s'].gam,states['sd2s'].R)
             
     if PRINT_STATUS: print '-'*60
         
@@ -328,10 +397,20 @@ def shock_tube_calculation(cfg, states, V, M):
             if solver == 'eq' or solver == 'pg':
                 try:
                     (V2, V2g) = normal_shock(state1, Vs1, state2)
+                    
+                    # checking to make sure normal shock worked properly and the pressure rose
+                    # as I had some issues with this with very low shock tube fill pressures (~1.0 Pa)
+                    if abs((state2.p - state1.p) / state2.p) < 0.10:
+                        print "For some reason p2 and p1 are too similar. Shock must have not occured properly."
+                        print "p1 = {0} Pa, p2 = {1} Pa.".format(state1.p, state2.p)
+                        raise Exception, "pitot_flow_functions.shock_tube_calculation() Normal shock calculation in the shock tube failed."
+                    
                 except:
                     if solver == 'eq' and gas_guess:
                         print "Normal shock failed. Trying again with a high temp gas guess."
                         (V2, V2g) = normal_shock(state1, Vs1, state2, gas_guess)
+                        
+                        
                         
             elif solver == 'pg-eq': #if we're using the perfect gas eq solver, we want to make an eq state1, set it's T and p, clone it to state2_eq and then shock process it through CEA
                 if test_gas == 'mars' or test_gas == 'co2' or test_gas == 'venus':
@@ -565,9 +644,24 @@ def shock_tube_calculation(cfg, states, V, M):
             (V2, V['s2']) = normal_shock(state1, cfg['Vs1'], states['s2'], cfg['gas_guess'])
         else:
             (V2, V['s2']) = normal_shock(state1, cfg['Vs1'], states['s2'])
-    except:
+            
+        # checking to make sure normal shock worked properly and the pressure rose
+        # as I had some issues with this with very low shock tube fill pressures (~1.0 Pa)
+        if abs((states['s2'].p - state1.p) / states['s2'].p) < 0.10:
+            print "For some reason p2 and p1 are too similar. Shock must have not occured properly."
+            print "p1 = {0} Pa, p2 = {1} Pa.".format(state1.p, states['s2'].p)
+            raise Exception, "pitot_flow_functions.shock_tube_calculation() Normal shock calculation in the shock tube failed."
+    except Exception as e:
+        print "Error: ", e
         print "Normal shock failed. Trying again with a gas guess."
         (V2, V['s2']) = normal_shock(state1, cfg['Vs1'], states['s2'], cfg['gas_guess'])
+        
+        # checking to make sure normal shock worked properly and the pressure rose
+        # as I had some issues with this with very low shock tube fill pressures (~1.0 Pa)
+        if abs((states['s2'].p - state1.p) / states['s2'].p) < 0.10:
+            print "For some reason p2 and p1 are too similar. Shock must have not occured properly."
+            print "p1 = {0} Pa, p2 = {1} Pa.".format(state1.p, states['s2'].p)
+            raise Exception, "pitot_flow_functions.shock_tube_calculation() Normal shock calculation in the shock tube failed."
         
     if cfg['solver'] == 'pg-eq': #if we're using the pg-eq solver this is the point where we move from pg to eq gas objects
         if cfg['test_gas'] == 'mars' or cfg['test_gas'] == 'co2' or cfg['test_gas'] == 'venus':
@@ -1329,7 +1423,8 @@ def nozzle_expansion(cfg, states, V, M):
 
     if PRINT_STATUS: print "Starting steady expansion through the nozzle (ar = {0}).".format(cfg['area_ratio'])
     # tolerance for the nozzle expansion secant solver
-    cfg['nozzle_expansion_tolerance'] = 1.0e-4
+    if 'nozzle_expansion_tolerance' not in cfg or not cfg['nozzle_expansion_tolerance']:
+        cfg['nozzle_expansion_tolerance'] = 1.0e-4
     
     if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
         try:
@@ -1550,7 +1645,7 @@ def shock_over_model_calculation(cfg, states, V, M):
     
     if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq': 
         try:
-            if isinstance(states['s8'], Gas):
+            if isinstance(states['s10e'], Gas):
                 # if it is an eq gas object, just do what we would normally do...
                 states['s10e'] = states[cfg['test_section_state']].clone()
                 states['s10e'].with_ions = True
@@ -1751,7 +1846,7 @@ def wedge_calculation(cfg, states, V, M):
             M['s10wf'] = M['s10w']
             
         try:
-            if isinstance(states['s8'], Gas):
+            if isinstance(states[cfg['test_section_state']], Gas):
                 # if it is an eq gas object, just do what we would normally do...
                 states['s10we'] = states[cfg['test_section_state']].clone()
                 states['s10we'].with_ions = True
@@ -1811,7 +1906,7 @@ def wedge_calculation(cfg, states, V, M):
                     
         if 's10we' in states.keys() and PRINT_STATUS:
             print "state 10we: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10we'].p, states['s10we'].T,  V['s10we'])
-            if isinstance(states['s10c'], Gas):
+            if isinstance(states['s10we'], Gas):
                 # print the species if it is an eq gas object...
                 print 'species in state10we at equilibrium:'               
                 print '{0}'.format(states['s10we'].species)

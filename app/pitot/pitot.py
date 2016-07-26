@@ -263,6 +263,9 @@ available to me as part of cfpylib inside the cfcfd code collection.
         inside the secant solver equations, so the initial values are not touched.
         This solves the issue of floating point issues stopping some hard to make
         converage cases from solving.
+    26-Jul-2016: Added mode to allow the code to simulate a shock tube with a
+        secondary driver and an area change into the shock tube by using the flag
+        'sx_into_st' and then the input 'sx_into_st_area_ratio' to select the area ratio
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -290,7 +293,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "25-Jul-2016"
+VERSION_STRING = "26-Jul-2016"
 
 DEBUG_PITOT = False
 
@@ -356,14 +359,15 @@ def run_pitot(cfg = {}, config_file = None):
                 
         if cfg['rs_out_of_sd']:
             cfg, states, V, M = secondary_driver_rs_calculation(cfg, states, V, M)
-           
-    if cfg['secondary']:
-        if not cfg['rs_out_of_sd']:
-            cfg['shock_tube_expansion'] = 'sd2' #state sd2 expands into shock tube
-        else:
             cfg['shock_tube_expansion'] = 'sd2r' #state sd2r expands into shock tube
+        else:
+            cfg['shock_tube_expansion'] = 'sd2' #state sd2 expands into shock tube
+        if cfg['sx_into_st']:
+            cfg, states, V, M = secondary_driver_sx_calculation(cfg, states, V, M)
+            cfg['shock_tube_expansion'] = 'sd2s' #state sd2s expands into shock tube
     else:
-        cfg['shock_tube_expansion'] = 's3s' #otherwise state 3s is expanding into shock tube
+        cfg['shock_tube_expansion'] = 's3s' # state 3s is expanding into shock tube
+           
         
     #--------------------- shock tube-------------------------------------------
     
