@@ -1024,8 +1024,19 @@ def acceleration_tube_calculation(cfg, states, V, M):
             gas_guess = very_high_temp_gas_guess(Vs2)
         else:
             gas_guess = None
-                               
-        (V6, V6g) = normal_shock(state5, Vs2, state6, gas_guess)
+        
+        print "Performing normal shock calculation on state 5."
+        try:                       
+            (V6, V6g) = normal_shock(state5, Vs2, state6, gas_guess)
+        except Exception as e:
+            print "{0}: {1}".format(type(e).__name__, e.message)
+            if e.message == "unsupported operand type(s) for *: 'NoneType' and 'float'":
+                print "Normal shock bailed out due to a number issue. Probably a CEA problem."
+                print "Will try again with Vs2 as Vs2 + 0.1."
+                (V6, V6g) = normal_shock(state5, Vs2 + 0.1, state6, gas_guess)
+            else:
+                raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Normal shock calculation in the acc tube secant solver failed."
+            
         
         # checking to make sure normal shock worked properly and the pressure rose
         # as I had some issues with this with very low acc tube fill pressures (~1.0 Pa)
@@ -1037,7 +1048,8 @@ def acceleration_tube_calculation(cfg, states, V, M):
                
         #Across the contact surface, p3 == p2
         p7 = state6.p
-                                   
+        
+        print "Now expanding state 2 to p6 = {0} Pa.".format(state6.p)                           
         # Across the expansion, we get a velocity, V7g.
         V7g, state7 = finite_wave_dp('cplus', V2g, state2, p7, steps=steps)
         

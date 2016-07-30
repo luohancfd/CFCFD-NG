@@ -715,12 +715,12 @@ def input_checker(cfg, condition_builder = False):
         cfg['sx_into_st'] = None
         print "'sx_into_st' not in cfg. Will set it to a default of None and it will not be used."
     
-    if cfg['secondary'] and cfg['sx_into_st'] and  'sx_into_st_area_ratio' not in cfg:
+    if cfg['secondary'] and cfg['sx_into_st'] and 'sx_into_st_area_ratio' not in cfg:
         print "'sx_into_st' is set to True but 'sx_into_st_area_ratio' is not in the cfg file."
         print "Please provide a float value for 'sx_into_st_area_ratio'."
         raise Exception, "pitot_input_utils.input_checker(): ''sx_into_st' is set to True but sx_into_st_area_ratio' is not in the cfg file."
         
-    if cfg['secondary'] and cfg['secondary'] and not isinstance(cfg['sx_into_st_area_ratio'], float):
+    if cfg['secondary'] and cfg['sx_into_st'] and not isinstance(cfg['sx_into_st_area_ratio'], float):
         print "'sx_into_st_area_ratio' must be a float. Current value is not. Bailing out."
         raise TypeError, "pitot_input_utils.input_checker(): 'sx_into_st_area_ratio' input is not a float"
     
