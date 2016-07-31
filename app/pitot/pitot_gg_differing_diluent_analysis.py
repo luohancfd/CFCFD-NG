@@ -524,8 +524,7 @@ def run_pitot_gg_differing_diluent_analysis(cfg = {}, config_file = None, force_
         import copy
         cfg['original_filename'] = copy.copy(cfg['filename'])
         
-        # I think install the original cfg too
-    
+        # I think store the original cfg too
         cfg['cfg_original'] = copy.copy(cfg)
             
         # print the start message

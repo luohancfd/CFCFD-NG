@@ -412,6 +412,19 @@ def condition_builder_test_run(cfg, results):
     if cfg['secondary'] and 'Vsd' in cfg: cfg.pop('Vsd')
     if 'Vs1' in cfg: cfg.pop('Vs1') 
     if 'Vs2' in cfg: cfg.pop('Vs2')
+        
+    # we now need to go through and purge the guesses and bounds of the secant solvers
+    # if they were not custom, so then new guesses can be made next time
+        
+    secant_solver_variables = ['Vsd_lower', 'Vsd_upper', 'Vsd_guess_1', 'Vsd_guess_2', 
+                               'Vs1_lower', 'Vs1_upper', 'Vs1_guess_1', 'Vs1_guess_2',
+                               'Vs2_lower', 'Vs2_upper', 'Vs2_guess_1', 'Vs2_guess_2']
+    
+    for variable in secant_solver_variables:
+        # if the variables are not in the original cfg, they are not custom inputs
+        # and were added by the last run, so we remove them
+        if variable not in cfg['cfg_original']:
+            if variable in cfg: cfg.pop(variable)
     
     # now we end the stream teeing here by pulling out the original stdout object
     # and overwriting the stream tee with that, then closing the log file
@@ -519,7 +532,8 @@ def results_csv_builder(results, test_name = 'pitot_run',  intro_line = None, fi
     return 
     
 def normalised_results_csv_builder(results, test_name = 'pitot_run',  
-                                   intro_line = None, normalised_by = 'first value'):
+                                   intro_line = None, normalised_by = 'first value', filename = None,
+                                   extra_normalise_exceptions = None):
     """Function that takes the final results dictionary (which must include a 
        list called 'full_list' that tells this function what to print and in 
        what order) and then outputs a normalised version of the results csv.
@@ -529,8 +543,11 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
        The name of the test is also required.
     """
     
+    if not filename:
+        filename = test_name + '-condition-builder-normalised.csv'
+    
     # open a file to start saving results
-    with open(test_name + '-condition-builder-normalised.csv',"w") as condition_builder_output:
+    with open(filename,"w") as condition_builder_output:
     
         # print a line explaining the results if the user gives it
         if intro_line:
@@ -543,6 +560,9 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
         # 'test number' and 'diluent percentage' and the species concentrations
         # will not be normalised
         normalise_exceptions = ['test number', 'driver condition', 'psd1','Vsd']
+        
+        if extra_normalise_exceptions:
+            normalise_exceptions += extra_normalise_exceptions
         
         # we need to make sure that we don't try to normalise these values if they are all empty
         if 'Vsd2r' in results:
@@ -941,7 +961,7 @@ def condition_builder_summary_builder(cfg, results):
             
     return
     
-def pickle_result_data(cfg, results):
+def pickle_result_data(cfg, results, filename = None):
     """Function that takes the config and results dictionaries 
        made throughout the running of the program and dumps them in another
        dictionary in a pickle object. Basically, this means the dictionaries can
@@ -961,7 +981,10 @@ def pickle_result_data(cfg, results):
     print '-'*60
     print "Pickling final cfg and results dictionaries to store the end result."
     
-    pickle_file = open(cfg['original_filename']+'-condition-builder-final-result-pickle.dat',"w")
+    if not filename:
+        filename = cfg['original_filename']+'-condition-builder-final-result-pickle.dat'
+    
+    pickle_file = open(filename, "w")
     
     cfg_and_results = {'cfg':cfg, 'results':results}
     
@@ -970,7 +993,7 @@ def pickle_result_data(cfg, results):
    
     return
     
-def pickle_intermediate_data(cfg, results, test_condition_input_details):
+def pickle_intermediate_data(cfg, results, test_condition_input_details, filename = None):
     """This function mainly exists for the code so that it can be restart itself if necessary.
         At the end of each run, the code pickles the current cfg, results, and 
         test_condition_input_details dictionaries so that the code can then
@@ -983,7 +1006,10 @@ def pickle_intermediate_data(cfg, results, test_condition_input_details):
     print "Pickling cfg, results, and test_condition_input_details of the intermediate result."
     print "This functionality allows the simulation to be restarted if it is stopped."
     
-    with open(cfg['original_filename']+'-condition-builder-intermediate-result-pickle.dat',"w") as pickle_file:
+    if not filename:
+        filename = cfg['original_filename']+'-condition-builder-intermediate-result-pickle.dat'
+    
+    with open(filename,"w") as pickle_file:
     
         intermediate_result = {'cfg':cfg, 'results':results, 'test_condition_input_details': test_condition_input_details}
         
@@ -1069,6 +1095,9 @@ def run_pitot_condition_builder(cfg = {}, config_file = None, force_restart = Fa
         
         import copy
         cfg['original_filename'] = copy.copy(cfg['filename'])
+        
+        # I think store the original cfg too
+        cfg['cfg_original'] = copy.copy(cfg)
             
         # print the start message
            

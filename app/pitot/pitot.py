@@ -293,7 +293,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "30-Jul-2016"
+VERSION_STRING = "31-Jul-2016"
 
 DEBUG_PITOT = False
 
@@ -409,7 +409,7 @@ def run_pitot(cfg = {}, config_file = None):
         try:
             cfg, states, V, M = acceleration_tube_calculation(cfg, states, V, M)
         except Exception as e:
-            print "Error {0}".format(str(e))
+            print "{0}: {1}".format(type(e).__name__, e.message)
             if not cfg['state7_no_ions']:            
                 print "Acceleration tube calculation failed. Going to try it again with 'state7_no_ions' turned on."
                 cfg['state7_no_ions'] = True
@@ -418,8 +418,10 @@ def run_pitot(cfg = {}, config_file = None):
                 try:
                     cfg, states, V, M = acceleration_tube_calculation(cfg, states, V, M)      
                 except Exception as e:
-                    print "Error:", e
-                    raise Exception, "pitot.run_pitot() Run of pitot has failed somewhere in the acceleration tube calculation."            
+                    print "{0}: {1}".format(type(e).__name__, e.message)
+                    raise Exception, "pitot.run_pitot() Run of pitot has failed somewhere in the acceleration tube calculation."
+            else:
+                raise Exception, "pitot.run_pitot() Run of pitot has failed somewhere in the acceleration tube calculation."
         
     #------------------- finishing off any other needed calculations -------------
 

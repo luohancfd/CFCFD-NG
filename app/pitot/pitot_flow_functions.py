@@ -1034,6 +1034,10 @@ def acceleration_tube_calculation(cfg, states, V, M):
                 print "Normal shock bailed out due to a number issue. Probably a CEA problem."
                 print "Will try again with Vs2 as Vs2 + 0.1."
                 (V6, V6g) = normal_shock(state5, Vs2 + 0.1, state6, gas_guess)
+            elif e.message == "Singular matrix":
+                print "Normal shock bailed out due to a LinAlg issue in the normal shock solver."
+                print "Will try again with Vs2 as Vs2 + 0.1."
+                (V6, V6g) = normal_shock(state5, Vs2 + 0.1, state6, gas_guess)
             else:
                 raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Normal shock calculation in the acc tube secant solver failed."
             
@@ -1161,15 +1165,22 @@ def acceleration_tube_calculation(cfg, states, V, M):
                                 limits=[cfg['Vs2_lower'],cfg['Vs2_upper']],
                                 max_iterations = cfg['acc_tube_max_iterations'])
         except Exception as e:
+            print "{0}: {1}".format(type(e).__name__, e.message)
             print "Acceleration tube secant solver failed. Will try again with higher initial guesses."
             print "New guesses are: 'Vs2_guess_1' = {0} m/s and 'Vs2_guess_2' = {1} m/s".\
                    format(cfg['Vs2_guess_1'] + 1000.0, cfg['Vs2_guess_2'] + 1000.0)
             cfg['Vs2_guess_1'] += 1000.0; cfg['Vs2_guess_2'] += 1000.0
-            cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, 
-                                cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
-                                tol = cfg['acc_tube_secant_tol'],
-                                limits=[cfg['Vs2_lower'],cfg['Vs2_upper']],
-                                max_iterations = cfg['acc_tube_max_iterations'])            
+            try:
+                cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, 
+                                    cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
+                                    tol = cfg['acc_tube_secant_tol'],
+                                    limits=[cfg['Vs2_lower'],cfg['Vs2_upper']],
+                                    max_iterations = cfg['acc_tube_max_iterations'])
+            except Exception as e:
+                print "{0}: {1}".format(type(e).__name__, e.message)
+                print "Acceleration tube secant solver failed again with the higher guesses."
+                raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Acceleration tube secant solver failed." 
+                                    
         if cfg['Vs2'] == 'FAIL':
             print "-"*60
             print "Acceleration tube secant solver did not converge after max amount of iterations."
@@ -1192,7 +1203,8 @@ def acceleration_tube_calculation(cfg, states, V, M):
                                     limits=[cfg['Vs2_lower'],cfg['Vs2_upper']],
                                     max_iterations = cfg['acc_tube_max_iterations'])
             except Exception as e:
-                    # return our original tolerance...
+                print "{0}: {1}".format(type(e).__name__, e.message)
+                # return our original tolerance...
                 cfg['acc_tube_secant_tol'] = original_acc_tube_secant_tol
                 print "Acceleration tube secant solver failed with the lower tolerance."
                 raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Acceleration tube secant solver failed." 
@@ -1218,6 +1230,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
                                         limits=[cfg['Vs2_lower'],cfg['Vs2_upper']],
                                         max_iterations = cfg['acc_tube_max_iterations'])
                 except Exception as e:
+                    print "{0}: {1}".format(type(e).__name__, e.message)
                     # return our original tolerance...
                     cfg['acc_tube_secant_tol'] = original_acc_tube_secant_tol
                     print "Acceleration tube secant solver failed again with an even lower tolerance."
