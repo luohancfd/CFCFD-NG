@@ -125,6 +125,19 @@ def txt_file_output(cfg, states, V, M):
     facility_used = 'Facility is {0}.'.format(cfg['facility'])        
     print facility_used
     txt_output.write(facility_used + '\n')
+    
+    if cfg['custom_secondary_driver_gas']:
+        if isinstance(states['sd1'], Gas):
+            secondary_driver_gas_used = 'Custom secondary driver gas (state sd1) was used (gamma = {0}, R = {1}, {2} by {3}).'.format(states['sd1'].gam,states['sd1'].R,
+                                                                                                                          states['sd1'].reactants, states['sd1'].outputUnits)
+        elif isinstance(states['sd1'], pg.Gas):
+            secondary_driver_gas_used = 'Custom secondary gas (state sd1) was used (gamma = {0}, R = {1}).'.format(states['sd1'].gam,states['sd1'].R)
+    else:
+        secondary_driver_gas_used = "Secondary gas (state sd1) is pure He."
+        
+    print secondary_driver_gas_used
+    txt_output.write(secondary_driver_gas_used + '\n')    
+    
     if cfg['solver'] == 'eq':
         test_gas_used = 'Test gas (state 1) is {0} (gamma = {1}, R = {2}, {3} by {4}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R,
                                                                                         states['s1'].reactants, states['s1'].outputUnits)
@@ -140,8 +153,10 @@ def txt_file_output(cfg, states, V, M):
             accelerator_gas_used = 'Custom Accelerator gas (state 5) was used (gamma = {0}, R = {1}).'.format(states['s5'].gam,states['s5'].R)
     else:
         accelerator_gas_used = "Accelerator gas (state 5) is Air."
+        
     print accelerator_gas_used
-    txt_output.write(accelerator_gas_used + '\n')  
+    txt_output.write(accelerator_gas_used + '\n')
+    
     if cfg['solver'] == 'eq':
         if cfg['facility'] != 'custom' and cfg['piston'] in ['Sangdi-1.8MPa', 'sangdi-1.8MPa','Sangdi-2.2MPa', 'sangdi-2.2MPa']:
             driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])  
@@ -231,12 +246,35 @@ def txt_file_output(cfg, states, V, M):
         if states.has_key(it_string):
             
             # I decided to add a clone here to stop messing with the original object here.
-            state = states[it_string].clone()
-            
+            try:
+                state = states[it_string].clone()
+                clone_successful = True
+            except Exception as e:
+                print "Error {0}".format(str(e))   
+                print "Failed to clone state {0} while trying to final total condition."
+                if isinstance(states[it_string], Gas) and states[it_string].with_ions:
+                    print "Trying again with ions turned off."
+                    try:
+                        states[it_string].with_ions = False
+                        state = states[it_string].clone()
+                        clone_successful = True
+                    except Exception as e:
+                         print "Error {0}".format(str(e))   
+                         print "Failed to clone state {0} again while trying to final total condition." 
+                         print "0.0 will be added as pitot and total pressures for this state."
+                         pitot[it_string] = 0.0
+                         p0[it_string] = 0.0
+                         clone_successful = False
+                else:
+                     print "0.0 will be added as pitot and total pressures for this state."
+                     pitot[it_string] = 0.0
+                     p0[it_string] = 0.0
+                     clone_successful = False
+                                      
             if M[it_string] == 0:
                 pitot[it_string] = state.p/1000.0
                 p0[it_string] = state.p/1.0e6
-            else:
+            elif clone_successful:
                 try:
                     pitot[it_string] = pitot_p(state.p,M[it_string],state.gam)/1000.0
                 except:
@@ -752,13 +790,37 @@ def csv_file_output(cfg, states, V, M):
         I made a function of this so I didn't have to keep pasting the code in."""
         
         if states.has_key(it_string):
-            
-            state = states[it_string]
+            # I decided to add a clone here to stop messing with the original object here.
+            try:
+                state = states[it_string].clone()
+                clone_successful = True
+            except Exception as e:
+                print "Error {0}".format(str(e))   
+                print "Failed to clone state {0} while trying to final total condition."
+                
+                if isinstance(states[it_string], Gas) and states[it_string].with_ions:
+                    print "Trying again with ions turned off."
+                    try:
+                        states[it_string].with_ions = False
+                        state = states[it_string].clone()
+                        clone_successful = True
+                    except Exception as e:
+                         print "Error {0}".format(str(e))   
+                         print "Failed to clone state {0} again while trying to final total condition." 
+                         print "0.0 will be added as pitot and total pressures for this state."
+                         pitot[it_string] = 0.0
+                         p0[it_string] = 0.0
+                         clone_successful = False
+                else:
+                     print "0.0 will be added as pitot and total pressures for this state."
+                     pitot[it_string] = 0.0
+                     p0[it_string] = 0.0
+                     clone_successful = False
                 
             if M[it_string] == 0:
                 pitot[it_string] = state.p/1000.0
                 p0[it_string] = state.p/1.0e6
-            else:
+            elif clone_successful:
                 try:
                     pitot[it_string] = pitot_p(state.p,M[it_string],state.gam)/1000.0
                 except:

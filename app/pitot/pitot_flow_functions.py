@@ -375,23 +375,25 @@ def shock_tube_calculation(cfg, states, V, M):
                                                 solver=cfg['solver'], test_gas=cfg['test_gas'],
                                                 steps=cfg['shock_tube_expansion_steps'],
                                                 gas_guess = cfg['gas_guess'],
-                                                secondary = cfg['secondary']):
-        """Compute the velocity mismatch for a given shock speed with the shock tube
+                                                expanding_state_label = cfg['shock_tube_expansion']):
+        """
+        Compute the velocity mismatch for a given shock speed with the shock tube
         unsteady expansion behind it.
         
-        Make sure you set the fill pressure in state 1 before you start!"""
+        Make sure you set the fill pressure in state 1 before you start!
+        """
         
         print '-'*60
         print "Current guess for Vs1 = {0} m/s".format(Vs1)
-        if cfg['secondary']:
-            print "Expanding entry state is psd2 = {0} Pa, Tsd2 = {1} K, Vsd2 = {2} m/s.".format(expanding_state.p, expanding_state.T, expansion_start_V)
-        else:
-            print "Expanding entry state is p3s = {0} Pa, T3s = {1} K, V3s = {2} m/s.".format(expanding_state.p, expanding_state.T, expansion_start_V)
+        print "Expanding entry state is p{0} = {1} Pa, T{0} = {2} K, V{0} = {3} m/s.".format(expanding_state_label[1:], expanding_state.p, 
+                                                                                             expanding_state.T, expansion_start_V)
         print "Shock tube fill state is p1 = {0} Pa, T1 = {1} K.".format(state1.p, state1.T)
         
         # do a clone of state 1 here so we don't get a lot of floating point jumping around
         # if the pressure is too low...
-        state1 = state1.clone()         
+        state1 = state1.clone()
+
+        print "Performing normal shock calculation on state 1."         
         
         try:
             if solver == 'eq' or solver == 'pg':
@@ -409,8 +411,6 @@ def shock_tube_calculation(cfg, states, V, M):
                     if solver == 'eq' and gas_guess:
                         print "Normal shock failed. Trying again with a high temp gas guess."
                         (V2, V2g) = normal_shock(state1, Vs1, state2, gas_guess)
-                        
-                        
                         
             elif solver == 'pg-eq': #if we're using the perfect gas eq solver, we want to make an eq state1, set it's T and p, clone it to state2_eq and then shock process it through CEA
                 if test_gas == 'mars' or test_gas == 'co2' or test_gas == 'venus':
@@ -435,7 +435,9 @@ def shock_tube_calculation(cfg, states, V, M):
             print "For some reason p2 and p1 are too similar. Shock must have not occured properly."
             print "p1 = {0} Pa, p2 = {1} Pa.".format(state1.p, state2.p)
             raise Exception, "pitot_flow_functions.shock_tube_calculation() Normal shock calculation in the shock tube failed."
-                     
+                
+        print "Now expanding entry state ({0}) to p2 = {1} Pa.".format(expanding_state_label, state2.p)   
+             
         #Across the contact surface, p3 == p2
         p3 = state2.p
         
@@ -540,9 +542,9 @@ def shock_tube_calculation(cfg, states, V, M):
             # shock to state 2 work
             states['s2'].with_ions = False 
         if cfg['state3_no_ions']:
-            # Need to turn ions off for state 2 here if it is required to make 
-            # shock to state 2 work
-            states['s3'].with_ions = False 
+            # Need to turn ions off for state 3 here if it is required to make 
+            # shock to state 3 work
+            states[cfg['shock_tube_expansion']].with_ions = False 
         if cfg['shock_switch']: #if we've been told to do a shock here instead of an expansion, do a shock instead of an expansion
             if PRINT_STATUS: print "The shock switch is turned on, therefore doing a shock here instead of the normal expansion... Turn this off if you didn't want it" 
             cfg['Vs1'] = secant(primary_shock_speed_reflected_iterator, 2000.0, 1500.0, tol=1.0e-6,limits=[500.0,10000.0])
@@ -1048,7 +1050,25 @@ def acceleration_tube_calculation(cfg, states, V, M):
         if abs((state6.p - state5.p) / state6.p) < 0.10:
             print "For some reason p6 and p5 are too similar. Shock must have not occured properly."
             print "p5 = {0} Pa, p6 = {1} Pa.".format(state5.p, state6.p)
-            raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Normal shock calculation in the acc tube secant solver failed."
+            print "Will try again with Vs2 as Vs2 + 0.1."
+            try:                       
+                (V6, V6g) = normal_shock(state5, Vs2 + 0.1, state6, gas_guess)
+            except Exception as e:
+                print "{0}: {1}".format(type(e).__name__, e.message)
+                if e.message == "unsupported operand type(s) for *: 'NoneType' and 'float'":
+                    print "Normal shock bailed out due to a number issue. Probably a CEA problem."
+                    print "Will try again with Vs2 as Vs2 + 0.1."
+                    (V6, V6g) = normal_shock(state5, Vs2 + 0.1, state6, gas_guess)
+                elif e.message == "Singular matrix":
+                    print "Normal shock bailed out due to a LinAlg issue in the normal shock solver."
+                    print "Will try again with Vs2 as Vs2 + 0.1."
+                    (V6, V6g) = normal_shock(state5, Vs2 + 0.1, state6, gas_guess)
+                else:
+                    raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Normal shock calculation in the acc tube secant solver failed."
+            if abs((state6.p - state5.p) / state6.p) < 0.10:
+                print "For some reason p6 and p5 are too similar. Shock must have not occured properly."
+                print "p5 = {0} Pa, p6 = {1} Pa.".format(state5.p, state6.p)
+                raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Normal shock calculation in the acc tube secant solver failed."
                
         #Across the contact surface, p3 == p2
         p7 = state6.p

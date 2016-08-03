@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "14-June-2016"
+VERSION_STRING = "02-Aug-2016"
 
 import sys
 
@@ -388,6 +388,7 @@ def condition_builder_test_run(cfg, results):
     
     print '-'*60
     print "Running test {0} of {1}.".format(cfg['test_number'], cfg['number_of_test_runs'])
+    print "{0} tests out of {1} finished tests have been successful so far.".format(cfg['good_counter'], len(cfg['finished_simulations']))
     try:
         cfg, states, V, M = run_pitot(cfg = cfg)
     except Exception as e:

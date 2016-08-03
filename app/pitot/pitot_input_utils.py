@@ -268,23 +268,47 @@ def input_checker(cfg, condition_builder = False):
             print "Throat Mach number that terminates unsteady expansion is not set."
             print "Variable is 'M_throat'."
             print "Cannot finish problem without this. Bailing out."
-            
+
+    # --------------------- custom secondary driver gas ----------------------------------
+    if 'custom_secondary_driver_gas' not in cfg:
+        cfg['custom_secondary_driver_gas'] = False
+
+       
+    if cfg['custom_secondary_driver_gas']:
+        if 'secondary_driver_gas_composition' not in cfg:
+            print "You have specified a custom test gas but have not set 'secondary_driver_gas_composition' variable."
+            print "Bailing out."
+            raise Exception, "using custom secondary driver gas but 'secondary_driver_gas_composition' is not in cfg"
+        if not isinstance(cfg['secondary_driver_gas_composition'], dict):
+            print "'secondary_driver_gas_composition' variable is not a valid Python dictionary."
+            print "Bailing out."
+            raise TypeError, "'secondary_driver_gas_composition' variable is not a valid Python dictionary."
+        if 'secondary_driver_gas_inputUnits' not in cfg:
+            print "'secondary_driver_gas_inputUnits' not set. Setting it to 'moles'."
+            cfg['secondary_driver_gas_inputUnits'] = 'moles'
+        if 'secondary_driver_gas_with_ions' not in cfg:
+            print "'secondary_driver_gas_with_ions' variable not set. Setting to boolean True."
+            cfg['secondary_driver_gas_with_ions'] = True
+     
+    # ----------------------- custom test gas ----------------------------------
+       
     if cfg['test_gas'] == 'custom':
         if 'test_gas_composition' not in cfg:
             print "You have specified a custom test gas but have not set 'test_gas_composition' variable."
             print "Bailing out."
-            cfg['bad_input'] = True
+            raise Exception, "using custom test gas but 'test_gas_composition' is not in cfg"
         if not isinstance(cfg['test_gas_composition'], dict):
             print "'test_gas_composition' variable is not a valid Python dictionary."
             print "Bailing out."
-            cfg['bad_input'] = True
+            raise TypeError, "'test_gas_composition' variable is not a valid Python dictionary."
         if 'test_gas_inputUnits' not in cfg:
             print "'test_gas_inputUnits' not set. Setting it to 'moles'."
             cfg['test_gas_inputUnits'] = 'moles'
         if 'test_gas_with_ions' not in cfg:
             print "'test_gas_with_ions' variable not set. Setting to boolean True."
             cfg['test_gas_with_ions'] = True
-        
+    
+    # ------------------ custom accelerator gas -------------------------------    
     if 'custom_accelerator_gas' not in cfg:
         cfg['custom_accelerator_gas'] = False
         
@@ -292,10 +316,11 @@ def input_checker(cfg, condition_builder = False):
         if 'accelerator_gas_composition' not in cfg:
             print "You have specified a custom accelerator gas but have not set 'accelerator_gas_composition' variable."
             print "Bailing out."
-            cfg['bad_input'] = True
+            raise Exception, "using custom accelerator gas but 'accelerator_gas_composition' is not in cfg"
         if not isinstance(cfg['accelerator_gas_composition'], dict):
             print "'accelerator_gas_composition' variable is not a valid Python dictionary."
             print "Bailing out."
+            raise TypeError, "'accelerator_gas_composition' variable is not a valid Python dictionary."
             cfg['bad_input'] = True
         if 'accelerator_gas_inputUnits' not in cfg:
             print "'accelerator_gas_inputUnits' not set. Setting it to 'moles'."
@@ -304,12 +329,21 @@ def input_checker(cfg, condition_builder = False):
             print "'accelerator_gas_with_ions' variable not set. Setting to boolean True."
             cfg['accelerator_gas_with_ions'] = True
         
+    # ------------------- custom gas temperatures ------------------------------
+
+    if 'custom_Tsd1' in cfg:
+        if cfg['custom_Tsd1'] and 'Tsd1' not in cfg:
+            print "You have specified a custom test gas temperature (Tsd1) but have not set 'Tsd1' variable."
+            print "Bailing out."
+            raise Exception, "using custom Tsd1 value but 'Tsd1' is not in cfg"
+    else:
+        cfg['custom_T1'] = False    
 
     if 'custom_T1' in cfg:
         if cfg['custom_T1'] and 'T1' not in cfg:
             print "You have specified a custom test gas temperature (T1) but have not set 'T1' variable."
             print "Bailing out."
-            cfg['bad_input'] = True
+            raise Exception, "using custom T1 value but 'T1' is not in cfg"
     else:
         cfg['custom_T1'] = False    
         
@@ -317,7 +351,7 @@ def input_checker(cfg, condition_builder = False):
         if cfg['custom_T5'] and 'T5' not in cfg:
             print "You have specified a custom accelerator gas temperature (T5) but have not set 'T5' variable."
             print "Bailing out."
-            cfg['bad_input'] = True
+            raise Exception, "using custom T5 value but 'T5' is not in cfg"
     else:
         cfg['custom_T5'] = False  
             
@@ -554,7 +588,7 @@ def input_checker(cfg, condition_builder = False):
         #check that the user has specified a valid value for Mr_st
         if not isinstance(cfg['Mr_st'], (float,int,str)):
             print "Chosen 'Mr_st' value is not either an int, float, or string. Bailing out."
-            cfg['bad_input'] = True
+            raise TypeError, "'Mr_st' value is not either an int, float, or string"   
         if isinstance(cfg['Mr_st'], str):
             if cfg['Mr_st'] not in ['Maximum', 'maximum', 'max', 'MAXIMUM', 'MAX']:
                 print "Chosen 'Mr_st' is a string but is not set to a variant of 'maximum'. Bailing out."
@@ -571,7 +605,7 @@ def input_checker(cfg, condition_builder = False):
         #check that the user has specified a valid value for Mr_st
         if not isinstance(cfg['Mr_sd'], (float,int,str)):
             print "Chosen 'Mr_sd' value is not either an int, float, or string. Bailing out."
-            cfg['bad_input'] = True
+            raise TypeError, "'Mr_sd' value is not either an int, float, or string"   
             
         if isinstance(cfg['Mr_sd'], str):
             if cfg['Mr_sd'] not in ['Maximum', 'maximum', 'max', 'MAXIMUM', 'MAX']:
@@ -582,6 +616,8 @@ def input_checker(cfg, condition_builder = False):
                 
         if isinstance(cfg['Mr_sd'], int):
             cfg['Mr_sd'] = float(cfg['Mr_sd'])
+            
+    #--------------------- input checking for scaling --------------------------
             
     if 'calculate_scaling_information' not in cfg:
        cfg['calculate_scaling_information'] = False
@@ -775,6 +811,16 @@ def start_message(cfg, states):
             print 'Selected Vs2 = {0:.2f} m/s'.format(cfg['Vs2'])
         if 'psd1' in cfg and cfg['secondary']:
             print 'Selected secondary driver fill pressure (psd1) = {0} Pa.'.format(cfg['psd1'])
+            print 'Selected secondary driver fill temperature (Tsd1) = {0} K.'.format(cfg['Tsd1'])
+            if cfg['custom_secondary_driver_gas']:
+                if isinstance(states['sd1'], Gas):
+                    secondary_driver_gas_used = 'Custom secondary driver gas is {0} (by {1}, gamma = {2}, R = {3:.2f}).'\
+                    .format(states['sd1'].reactants,states['sd1'].outputUnits, states['sd1'].gam,states['sd1'].R)
+                elif isinstance(states['sd1'], pg.Gas):
+                    secondary_driver_gas_used = 'Custom secondary driver gas is {0} (by {1}, gamma = {2}, R = {3:.2f}).'\
+                    .format(cfg['secondary_driver_gas_composition'],cfg['secondary_driver_gas_inputUnits'], 
+                            states['sd1'].gam,states['sd1'].R)  
+                print secondary_driver_gas_used
         if 'p1' in cfg:
             print 'Selected shock tube fill pressure (p1) = {0} Pa.'.format(cfg['p1'])
             print 'Selected shock tube fill temperature (T1) = {0} K.'.format(cfg['T1'])
@@ -842,7 +888,9 @@ def state_builder(cfg):
     M = {} #same for Mach number
     
     if PRINT_STATUS: print "Building initial gas states."
-            
+    
+    # --------------------------- driver condition ----------------------------
+        
     #state 4 is diaphragm burst state (taken to basically be a total condition)
     print "Setting up driver condition."
     if cfg['facility'] == 'x2':
@@ -1047,6 +1095,8 @@ def state_builder(cfg):
                                     gamma=states['s4'].gam, name='s4')
         states['s4'].set_pT(cfg['p4'],cfg['T4'])
     
+    #--------------------- throat condition -----------------------------
+    
     #state3s is driver gas after steady expansion at the throat between 
     #the primary driver and the next section
     
@@ -1070,15 +1120,28 @@ def state_builder(cfg):
 
     #start with shock tube and acc tube, start with atmospheric p and T
 
+    # -------------------- state sd1 (secondary driver) --------------------------
+
     if cfg['secondary']: #state sd1 is pure He secondary driver (if used)
-        states['sd1'] =  Gas({'He':1.0,},outputUnits='moles', inputUnits = 'moles')
+
+        if not cfg['custom_Tsd1']:
+             cfg['Tsd1'] = cfg['T0']
+             
+        if not cfg['custom_secondary_driver_gas']:
+            states['sd1'] =  Gas({'He':1.0,},outputUnits='moles', inputUnits = 'moles')
+        else: # we have a custom accelerator gas, input should have made sure we have the correct stuff...
+            states['sd1'] = Gas(cfg['secondary_driver_gas_composition'],inputUnits=cfg['secondary_driver_gas_inputUnits'],
+                            outputUnits=cfg['secondary_driver_gas_inputUnits'], with_ions=cfg['secondary_driver_gas_with_ions'])
+        
         if 'psd1' not in cfg: #set atmospheric state if a pressure was not specified
             cfg['psd1'] = cfg['p0']
-        states['sd1'].set_pT(cfg['psd1'],cfg['T0'])
+            
+        states['sd1'].set_pT(cfg['psd1'],cfg['Tsd1'])
+        
         if cfg['solver'] == 'pg': #make perfect gas object if asked to do so, then re-set the gas state
             states['sd1']=pg.Gas(Mmass=states['sd1'].Mmass,
                              gamma=states['sd1'].gam, name='sd1')
-            states['sd1'].set_pT(cfg['psd1'],cfg['T0'])
+            states['sd1'].set_pT(cfg['psd1'],cfg['Tsd1'])
             
         # this is to stop the numerical moving around of psd1  
         if isinstance(states['sd1'], Gas) and 'psd1' in cfg:
@@ -1087,6 +1150,7 @@ def state_builder(cfg):
         V['sd1']=0.0
         M['sd1']=0.0
 
+    #--------------------- state 1 (shock tube) ---------------------------------
     #state 1 is shock tube
 
     if not cfg['custom_T1']:
@@ -1121,6 +1185,8 @@ def state_builder(cfg):
     
     V['s1']=0.0
     M['s1']=0.0
+    
+    #------------------------- state 5 (acceleration tube)--------------------
         
     if cfg['tunnel_mode'] == 'expansion-tube':
         
