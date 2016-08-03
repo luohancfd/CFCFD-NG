@@ -337,7 +337,7 @@ def input_checker(cfg, condition_builder = False):
             print "Bailing out."
             raise Exception, "using custom Tsd1 value but 'Tsd1' is not in cfg"
     else:
-        cfg['custom_T1'] = False    
+        cfg['custom_Tsd1'] = False    
 
     if 'custom_T1' in cfg:
         if cfg['custom_T1'] and 'T1' not in cfg:
