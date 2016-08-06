@@ -161,7 +161,10 @@ def secondary_driver_calculation(cfg, states, V, M):
     if PRINT_STATUS: 
         print "state sd2: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['sd2'].p, states['sd2'].T) 
         print "state sd3: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['sd3'].p, states['sd3'].T) 
-
+        if isinstance(states['sd2'], Gas):
+            # print the species if it is an eq gas object...
+            print 'Species in state sd2 at equilibrium:'               
+            print '{0}'.format(states['sd2'].species)
     #get mach numbers for the txt_output
     cfg['Msd1'] = cfg['Vsd']/states['sd1'].a
     M['sd2'] = V['sd2']/states['sd2'].a
@@ -204,7 +207,7 @@ def secondary_driver_rs_calculation(cfg, states, V, M):
         print "state sd2r: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['sd2r'].p, states['sd2r'].T)
         print "Vsd2r = {0} m/s, Msd2r = {1}.".format(V['sd2r'], M['sd2r'])
         if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
-            print 'species in statesd2r at equilibrium:'               
+            print 'species in state sd2r at equilibrium:'               
             print '{0}'.format(states['sd2r'].species)
         try:
             states['sd2r_total'] = total_condition(states['sd2r'], V['sd2r'])
@@ -617,10 +620,10 @@ def shock_tube_calculation(cfg, states, V, M):
                                 max_iterations=100)
                     if cfg['Vs1'] == 'FAIL':
                         print "Secant solver failed again with the lower tolerance."
-                        print "Will try with the higher tolerance and 'state2_no_ions' turned on."
+                        print "Will try with the higher tolerance and 'state3_no_ions' turned on."
                         cfg['shock_tube_secant_tol'] = cfg['shock_tube_secant_tol'] / 10.0
-                        cfg['state2_no_ions'] = True
-                        states['s2'].with_ions = False
+                        cfg['state3_no_ions'] = True
+                        states[cfg['shock_tube_expansion']].with_ions = False
                         cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
                                 cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
                                 cfg['shock_tube_secant_tol'],
@@ -744,8 +747,9 @@ def shock_tube_calculation(cfg, states, V, M):
     if PRINT_STATUS: 
         print "state 2: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s2'].p, states['s2'].T, V['s2']) 
         print "state 3: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s3'].p, states['s3'].T, V['s3']) 
-        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
-            print 'species in state2 at equilibrium:'               
+        if isinstance(states['s2'], Gas):
+            # print the species if it is an eq gas object...
+            print 'Species in state2 at equilibrium:'               
             print '{0}'.format(states['s2'].species)
         print 'state 2 gamma = {0}, state 2 R = {1}.'.format(states['s2'].gam,states['s2'].R)
         try:
@@ -764,7 +768,7 @@ def shock_tube_calculation(cfg, states, V, M):
         states['s2'].with_ions = True 
     if cfg['state3_no_ions']:
         # Turn with ions back on here if we turned it off
-        states['s3'].with_ions = True 
+        states[cfg['shock_tube_expansion']].with_ions = True 
     
     #get mach numbers for the txt_output
     cfg['Ms1'] = cfg['Vs1']/states['s1'].a
@@ -1064,6 +1068,8 @@ def acceleration_tube_calculation(cfg, states, V, M):
                     print "Will try again with Vs2 as Vs2 + 0.1."
                     (V6, V6g) = normal_shock(state5, Vs2 + 0.1, state6, gas_guess)
                 else:
+                    print "Will try again with Vs2 as Vs2 + 0.1."
+                    (V6, V6g) = normal_shock(state5, Vs2 + 0.1, state6, gas_guess)
                     raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Normal shock calculation in the acc tube secant solver failed."
             if abs((state6.p - state5.p) / state6.p) < 0.10:
                 print "For some reason p6 and p5 are too similar. Shock must have not occured properly."

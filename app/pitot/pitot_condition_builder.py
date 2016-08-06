@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "02-Aug-2016"
+VERSION_STRING = "06-Aug-2016"
 
 import sys
 
@@ -107,6 +107,9 @@ def check_new_inputs(cfg):
     if 'cleanup_old_files' not in cfg:
         print "'cleanup_old_files' variable not set. Setting to default value of 'False'"
         cfg['cleanup_old_files'] = False
+    if True in cfg['secondary_list'] and 'store_sd_fractions' not in cfg:
+        print "'store_sd_fractions' variable not set. Setting to default value of 'False'"
+        cfg['store_sd_fractions'] = False        
         
     if cfg['bad_input']: #bail out here if you end up having issues with your input
         print "Config failed check. Bailing out now."
@@ -218,6 +221,18 @@ def build_results_dict(cfg):
     if True in cfg['secondary_list']:
         statesd2_list = ['psd2','Tsd2','rhosd2','Vsd2','Msd2', 'asd2', 'gammasd2', 'Rsd2']
         full_list += statesd2_list
+        if cfg['store_sd_fractions']:
+            if not cfg['custom_secondary_driver_gas']:
+                # we will just have He, He+, and e-
+                sd_fractions_list = ['sd2 %He', 'sd2 %He+', 'sd2 %e-']
+            else:
+                sd_fractions_list = []
+                # we need to pull out what is there... this is assuming things are monatomic!
+                for species in cfg['secondary_driver_gas_composition'].keys():
+                    sd_fractions_list += ['sd2 %{0}'.format(species), 'sd2 %{0}+'.format(species)]
+                # now add e-
+                sd_fractions_list += ['sd2 %e-']
+            full_list += sd_fractions_list
     if cfg['rs_out_of_sd']:
         statesd2_reflected_list = ['Vr-sd','Mr-sd','psd2r','Tsd2r','rhosd2r','Vsd2r','Msd2r', 'asd2r', 'gammasd2r', 'Rsd2r']
         full_list += statesd2_reflected_list
@@ -705,6 +720,26 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
                 results['asd2r'].append(states['sd2r'].a)
                 results['gammasd2r'].append(states['sd2r'].gam)
                 results['Rsd2r'].append(states['sd2r'].R)
+            if cfg['store_sd_fractions']:
+                if not cfg['custom_secondary_driver_gas']:
+                    # will be just He and ions...
+                    for value in ['He', 'He+', 'e-']:
+                        if value in states['sd2'].species.keys():
+                            results['sd2 %{0}'.format(value)].append(states['sd2'].species[value])
+                        else:
+                            results['sd2 %{0}'.format(value)].append(0.0)
+                else:
+                    looping_list = ['e-']
+                    # we need to make our lis tfrom the input list, assuming gases were monatomic!
+                    for species in cfg['secondary_driver_gas_composition'].keys():
+                        looping_list += [species, species + '+']
+                    # now loop through everything....
+                    for value in looping_list:
+                        if value in states['sd2'].species.keys():
+                            results['sd2 %{0}'.format(value)].append(states['sd2'].species[value])
+                        else:
+                            results['sd2 %{0}'.format(value)].append(0.0)
+                             
         else:
             results['psd2'].append('Not used')
             results['Tsd2'].append('Not used')
@@ -725,6 +760,20 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
                 results['asd2r'].append('Not used')
                 results['gammasd2r'].append('Not used')
                 results['Rsd2r'].append('Not used')
+            if cfg['store_sd_fractions']:
+                if not cfg['custom_secondary_driver_gas']:
+                    # will be just He and ions...
+                    for value in ['He', 'He+', 'e-']:
+                        results['sd2 %{0}'.format(value)].append('Not used')
+
+                else:
+                    looping_list = ['e-']
+                    # we need to make our lis tfrom the input list, assuming gases were monatomic!
+                    for species in cfg['secondary_driver_gas_composition'].keys():
+                        looping_list += [species, species + '+']
+                    # now loop through everything....
+                    for value in looping_list:
+                        results['sd2 %{0}'.format(value)].append('Not used')
             
     results['p2'].append(states['s2'].p)
     results['T2'].append(states['s2'].T)
@@ -1176,8 +1225,14 @@ def run_pitot_condition_builder(cfg = {}, config_file = None, force_restart = Fa
     intro_line = "Output of pitot condition building program Version {0}.".format(VERSION_STRING)            
     results_csv_builder(results, test_name = cfg['original_filename'],  
                         intro_line = intro_line)
+    extra_normalise_exceptions = []
+    if cfg['store_sd_fractions']:
+        # find the store sd fractions result names and add them to the extra_normalise_exceptions list
+        for value in results.keys():
+            if 'sd2 %' in value:
+                extra_normalise_exceptions.append(value)
     normalised_results_csv_builder(results, test_name = cfg['original_filename'],  
-                        intro_line = intro_line)
+                        intro_line = intro_line, extra_normalise_exceptions = extra_normalise_exceptions)
                         
     # and a to pickled object the user can load with pickle
     # (this allows the cfg and results dictionaries to be loaded directly)
