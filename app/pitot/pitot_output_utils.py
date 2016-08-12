@@ -40,6 +40,15 @@ def txt_file_output(cfg, states, V, M):
     print version_printout
     txt_output.write(version_printout + '\n')
     
+    if 's4i' in states:
+        description_driver_fill = 'state 4i is the free piston driver fill condition.'
+        print description_driver_fill
+        txt_output.write(description_driver_fill + '\n')  
+        
+    description_driver = 'state 4 is the driver condition.'
+    print description_driver
+    txt_output.write(description_driver + '\n')  
+     
     if cfg['secondary']:
         description_sd = 'state sd1 is secondary driver fill.'
         print description_sd
@@ -332,6 +341,9 @@ def txt_file_output(cfg, states, V, M):
         return
 
     #print the driver related stuff first
+
+    if 's4i' in states:
+        condition_printer('s4i')
     
     condition_printer('s4')
     if M['s3s'] > 0.0:
@@ -875,6 +887,10 @@ def csv_file_output(cfg, states, V, M):
             csv_output.write(csv_conditions + '\n')
             
         return
+        
+    
+    if 's4i' in states:
+        csv_condition_printer('s4i')
 
     #print the driver related stuff first
     csv_condition_printer('s4')

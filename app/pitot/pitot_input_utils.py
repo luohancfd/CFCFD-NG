@@ -921,12 +921,12 @@ def state_builder(cfg):
             # Free-piston driver performance characterisation using experimental shock speeds through helium 
              driver_p = 77200.0 #driver fill pressure, Pa
              driver_T = 298.15 #driver temperature, K
-             states['primary_driver_fill'] = primary_driver_x2[cfg['driver_gas']][0].clone()
-             states['primary_driver_fill'].set_pT(driver_p, driver_T)
+             states['s4i'] = primary_driver_x2[cfg['driver_gas']][0].clone()
+             states['s4i'].set_pT(driver_p, driver_T)
              cfg['p4'] = 31.9e6 #primary driver burst pressure, Pa 
-             cfg['T4'] = states['primary_driver_fill'].T*\
-             (cfg['p4']/states['primary_driver_fill'].p)**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
-             states['s4'] = states['primary_driver_fill'].clone()
+             cfg['T4'] = states['s4i'].T*\
+             (cfg['p4']/states['s4i'].p)**(1.0-(1.0/states['s4i'].gam)) #K
+             states['s4'] = states['s4i'].clone()
              states['s4'].set_pT(cfg['p4'],cfg['T4'])
              V['s4']=0.0
              M['s4']=0.0
@@ -938,12 +938,12 @@ def state_builder(cfg):
             # isentropic compression from the fill pressure to the burst pressure.
              driver_p = 77200.0 #driver fill pressure, Pa
              driver_T = 298.15 #driver temperature, K
-             states['primary_driver_fill'] = primary_driver_x2[cfg['driver_gas']][0].clone()
-             states['primary_driver_fill'].set_pT(driver_p, driver_T)
+             states['s4i'] = primary_driver_x2[cfg['driver_gas']][0].clone()
+             states['s4i'].set_pT(driver_p, driver_T)
              cfg['p4'] = 35700000 #primary driver burst pressure, Pa 
-             cfg['T4'] = states['primary_driver_fill'].T*\
-             (cfg['p4']/states['primary_driver_fill'].p)**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
-             states['s4'] = states['primary_driver_fill'].clone()
+             cfg['T4'] = states['s4i'].T*\
+             (cfg['p4']/states['s4i'].p)**(1.0-(1.0/states['s4i'].gam)) #K
+             states['s4'] = states['s4i'].clone()
              states['s4'].set_pT(cfg['p4'],cfg['T4'])
              V['s4']=0.0
              M['s4']=0.0
@@ -1064,27 +1064,27 @@ def state_builder(cfg):
         else:
             print "Custom driver fill condition is {0} Pa, {1} K.".format(cfg['driver_p'], cfg['driver_T'])
             if 'driver_composition' in cfg:
-                states['primary_driver_fill']=Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'],
+                states['s4i']=Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'],
                                                   outputUnits=cfg['driver_inputUnits'])
             else:
-                states['primary_driver_fill']=pg.Gas(Mmass=8314.4621/cfg['driver_pg_R'],
+                states['s4i']=pg.Gas(Mmass=8314.4621/cfg['driver_pg_R'],
                                                      gamma=cfg['driver_pg_gam'], name='s1')    
-            states['primary_driver_fill'].set_pT(cfg['driver_p'],cfg['driver_T'])
+            states['s4i'].set_pT(cfg['driver_p'],cfg['driver_T'])
             # now do the compression to state 4
             # If both p4 and compression ratio are set, code will use p4
             if 'p4' in cfg:
                 print "Performing isentropic compression from driver fill condition to {0} Pa.".format(cfg['p4'])
-                cfg['T4'] = states['primary_driver_fill'].T*\
-                (cfg['p4']/states['primary_driver_fill'].p)**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
+                cfg['T4'] = states['s4i'].T*\
+                (cfg['p4']/states['s4i'].p)**(1.0-(1.0/states['s4i'].gam)) #K
                 print "p4 = {0:.2f} Pa, T4 = {1:.2f} K.".format(cfg['p4'], cfg['T4'])
             else:
                 print "Performing isentropic compression from driver fill condition over compression ratio of {0}.".format(cfg['compression_ratio'])
-                cfg['pressure_ratio'] = cfg['compression_ratio']**states['primary_driver_fill'].gam #pressure ratio is compression ratio to the power of gamma
-                cfg['p4'] = states['primary_driver_fill'].p*cfg['pressure_ratio'] #Pa
-                cfg['T4'] = states['primary_driver_fill'].T*\
-                (cfg['pressure_ratio'])**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
+                cfg['pressure_ratio'] = cfg['compression_ratio']**states['s4i'].gam #pressure ratio is compression ratio to the power of gamma
+                cfg['p4'] = states['s4i'].p*cfg['pressure_ratio'] #Pa
+                cfg['T4'] = states['s4i'].T*\
+                (cfg['pressure_ratio'])**(1.0-(1.0/states['s4i'].gam)) #K
                 print "p4 = {0:.2f} Pa, T4 = {1:.2f} K.".format(cfg['p4'], cfg['T4'])
-            states['s4'] = states['primary_driver_fill'].clone()
+            states['s4'] = states['s4i'].clone()
             states['s4'].set_pT(cfg['p4'],cfg['T4'])
         V['s4']=0.0
         M['s4']=0.0
@@ -1094,6 +1094,15 @@ def state_builder(cfg):
         states['s4']=pg.Gas(Mmass=states['s4'].Mmass,
                                     gamma=states['s4'].gam, name='s4')
         states['s4'].set_pT(cfg['p4'],cfg['T4'])
+        
+    # if we had the primary driver fill condition (state 4i)
+    # we need to do a few more things...
+        
+    if 's4i' in states:
+        # this is to stop the numerical moving around of psd1  
+        if isinstance(states['s4i'], Gas) and 'driver_p' in cfg:
+            states['s4i'].p = float(cfg['driver_p'])
+        M['s4i'] = 0.0; V['s4i'] = 0.0
     
     #--------------------- throat condition -----------------------------
     

@@ -107,6 +107,11 @@ def check_new_inputs(cfg):
     if 'cleanup_old_files' not in cfg:
         print "'cleanup_old_files' variable not set. Setting to default value of 'False'"
         cfg['cleanup_old_files'] = False
+        
+    if True in cfg['secondary_list'] and 'store_sd_fractions' in cfg and cfg['store_sd_fractions'] and cfg['solver'] == 'pg':
+        print "'store_sd_fractions' variable is set to True but 'solver' is perfect gas. Setting to 'False'"
+        cfg['store_sd_fractions'] = False           
+        
     if True in cfg['secondary_list'] and 'store_sd_fractions' not in cfg:
         print "'store_sd_fractions' variable not set. Setting to default value of 'False'"
         cfg['store_sd_fractions'] = False        
@@ -1226,7 +1231,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None, force_restart = Fa
     results_csv_builder(results, test_name = cfg['original_filename'],  
                         intro_line = intro_line)
     extra_normalise_exceptions = []
-    if cfg['store_sd_fractions']:
+    if 'store_sd_fractions' in cfg and cfg['store_sd_fractions']:
         # find the store sd fractions result names and add them to the extra_normalise_exceptions list
         for value in results.keys():
             if 'sd2 %' in value:
