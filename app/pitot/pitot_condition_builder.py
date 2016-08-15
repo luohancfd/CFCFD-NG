@@ -59,7 +59,7 @@ def check_new_inputs(cfg):
         cfg['bad_input'] = True
         
     driver_condition_check_list = ['He:0.80,Ar:0.20', 'He:0.90,Ar:0.10', 'He:1.0', 
-                                   'He:0.60,Ar:0.40','custom']
+                                   'He:0.60,Ar:0.40','custom', 'He:0.95,Ar:0.05']
                                    
     for driver_condition in cfg['driver_condition_list']:
         if driver_condition not in driver_condition_check_list:
@@ -667,16 +667,10 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     """ 
            
     # needed to change these as the extra comma was screwing up the csv
-    if cfg['driver_gas'] == 'He:1.0':
+    if ',' in cfg['driver_gas']  :
+        driver_condition = cfg['driver_gas'].replace(',', ' ')
+    else:
         driver_condition = cfg['driver_gas']
-    elif cfg['driver_gas'] == 'He:0.90,Ar:0.10':
-        driver_condition = 'He:0.9 Ar:0.1'
-    elif cfg['driver_gas'] == 'He:0.80,Ar:0.20':
-        driver_condition = 'He:0.8 Ar:0.2'
-    elif cfg['driver_gas'] == 'He:0.60,Ar:0.40':
-        driver_condition = 'He:0.6 Ar:0.4'
-    elif cfg['driver_gas'] == 'custom':
-        driver_condition = 'custom'
     
     results['test number'].append(cfg['test_number'])
     results['driver condition'].append(driver_condition)

@@ -854,6 +854,8 @@ def state_builder(cfg):
     #right conditions, and then mach number at the change over from steady to
     #unsteady expansion, this was based on calcs done by RGM
 
+    # added 'He:0.95,Ar:0.05' for X2 on the 13/08/16 - CMJ
+
     primary_driver_x2 = {'He:1.0':[Gas({'He':1.0},inputUnits='moles', outputUnits='moles', with_ions = True),2.15],
                         'He:0.98,Ar:0.02-off-design':[Gas({'He':0.98,'Ar':0.02},inputUnits='moles',
                                               outputUnits='moles'),2.15],
@@ -864,7 +866,10 @@ def state_builder(cfg):
                         'He:0.85,Ar:0.15':[Gas({'He':0.85,'Ar':0.15},inputUnits='moles',
                                                outputUnits='moles'),1.385],
                         'He:0.825,Ar:0.175':[Gas({'He':0.825,'Ar':0.175},inputUnits='moles',
-                                                 outputUnits='moles'),1.256]}
+                                                 outputUnits='moles'),1.256],
+                        'He:0.95,Ar:0.05':[Gas({'He':0.95,'Ar':0.05},inputUnits='moles',
+                                                 outputUnits='moles'),1.845]
+                        }
                         
     primary_driver_x3 = {'He:1.0':[Gas({'He':1.0},inputUnits='moles', outputUnits='moles'),2.23],
                          'He:0.80,Ar:0.20':[Gas({'He':0.8,'Ar':0.2},inputUnits='moles',
@@ -876,7 +881,8 @@ def state_builder(cfg):
                          'He:0.825,Ar:0.175':[Gas({'He':0.825,'Ar':2.23},inputUnits='moles',
                                                outputUnits='moles'),2.23],    
                          'He:0.60,Ar:0.40':[Gas({'He':0.60,'Ar':0.40},inputUnits='moles',
-                                                outputUnits='moles'),2.23]      }   
+                                                outputUnits='moles'),2.23]      
+                        }   
                                                       
                                                       
     
