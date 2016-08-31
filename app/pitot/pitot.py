@@ -267,6 +267,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
         secondary driver and an area change into the shock tube by using the flag
         'sx_into_st' and then the input 'sx_into_st_area_ratio' to select the area ratio
     03-Aug-2016: added custom secondary driver gas, and custom secondary driver temperature
+    31-Aug-2016: Changed the post shock Reynolds number code to use the shock reference frame
+        instead of the lab reference frame, because Richard said that was correct.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -294,7 +296,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "13-Aug-2016"
+VERSION_STRING = "31-Aug-2016"
 
 DEBUG_PITOT = False
 

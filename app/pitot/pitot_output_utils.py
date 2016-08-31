@@ -605,12 +605,32 @@ def txt_file_output(cfg, states, V, M):
             print pressure_l_product_state10e_print
             txt_output.write(pressure_l_product_state10e_print + '\n')   
 
+            V10e_print = 'Test section post normal shock (s10e) velocity in the shock reference frame is {0:.2f} m/s.'.format(cfg['V10e_shock_reference'])
+            
+            print V10e_print
+            txt_output.write(V10e_print + '\n')   
+            
+            V10e_print_2 = 'This velocity will be used to calculate the Reynolds number below.'
+            
+            print V10e_print_2
+            txt_output.write(V10e_print_2 + '\n')               
+
             reynolds_number_state10e_print = "Test section post normal shock eq (s10e) Reynolds number is {0:.4f}.".format(cfg['reynolds_number_state10e'])
                                                                                                  
             print reynolds_number_state10e_print
             txt_output.write(reynolds_number_state10e_print + '\n')  
+            
+            M10e_print = 'Test section post normal shock (s10e) Mach number in the shock reference frame is {0:.2f}.'.format(cfg['M10e_shock_reference'])
+            
+            print M10e_print
+            txt_output.write(M10e_print + '\n')   
+            
+            M10e_print_2 = 'This Mach number will be used to calculate the Knudsen number below.'
+            
+            print M10e_print_2
+            txt_output.write(M10e_print_2 + '\n')  
      
-            knudsen_number_state10e_print = "Test section post normal shock eq (s10e) Knudsen number is {0:.4e}.".format( cfg['knudsen_number_state10e'])
+            knudsen_number_state10e_print = "Test section post normal shock eq (s10e) Knudsen number is {0:.4e}.".format(cfg['knudsen_number_state10e'])
                                                                                                      
             print knudsen_number_state10e_print
             txt_output.write(knudsen_number_state10e_print + '\n')                                                                                                            

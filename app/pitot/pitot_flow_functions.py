@@ -2192,9 +2192,13 @@ def calculate_scaling_information(cfg, states, V, M):
         cfg['rho_l_product_state10e'] = states['s10e'].rho*cfg['representative_length_scale']
 
         cfg['pressure_l_product_state10e'] = states['s10e'].p*cfg['representative_length_scale']
+        
+        cfg['V10e_shock_reference'] = V[cfg['test_section_state']] - V['s10e']
 
-        cfg['reynolds_number_state10e'] = (states['s10e'].rho*V['s10e']*cfg['representative_length_scale'])/ states['s10e'].mu
+        cfg['reynolds_number_state10e'] = (states['s10e'].rho*cfg['V10e_shock_reference']*cfg['representative_length_scale'])/ states['s10e'].mu
 
-        cfg['knudsen_number_state10e'] = (M['s10e']/cfg['reynolds_number_state10e'])*math.sqrt(states['s10e'].gam*math.pi/2.0)        
+        cfg['M10e_shock_reference'] = cfg['V10e_shock_reference']/ states['s10e'].a
+
+        cfg['knudsen_number_state10e'] = (cfg['M10e_shock_reference']/cfg['reynolds_number_state10e'])*math.sqrt(states['s10e'].gam*math.pi/2.0)        
         
     return cfg
