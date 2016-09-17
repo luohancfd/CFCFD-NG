@@ -127,13 +127,13 @@ def make_test_gas(gasName, outputUnits='moles'):
         #composition used in Chris James' undergrad thesis
         return Gas(reactants={'H2':0.9, 'Ne':0.10}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), None
-    elif gasName.lower() == 'h2':
+    elif gasName.lower() in ['h2', 'H2']:
         return Gas(reactants={'H2':1.0}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), None
-    elif gasName.lower() == 'he':
+    elif gasName.lower() in ['he', 'He']:
         return Gas(reactants={'He':1.0}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), None
-    elif gasName.lower() == 'ar':
+    elif gasName.lower() in ['ar', 'Ar']:
         return Gas(reactants={'Ar':1.0}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), {'gam':1.2,'R':271.0}   
     elif gasName.lower() == 'gasgiant_h2_20he' or gasName.lower() == 'gasgiant_h220he': 
@@ -159,7 +159,43 @@ def make_test_gas(gasName, outputUnits='moles'):
                    outputUnits=outputUnits), {'gam':1.2,'R':2765.0}
     elif gasName.lower() == 'gasgiant_h2_90he' or gasName.lower() == 'gasgiant_h290he': 
         return Gas(reactants={'H2':0.10, 'He':0.90}, inputUnits='moles', with_ions=True,
-                   outputUnits=outputUnits), {'gam':1.2,'R':2403.0}                                  
+                   outputUnits=outputUnits), {'gam':1.2,'R':2403.0}
+    elif gasName.lower() in ['he90_ar10','he_90_ar_10', 'he90ar10', 'he90-ar10','he-90-ar-10', 
+                             'He:0.9,Ar:0.1', 'He:0.9, Ar:0.1', 'He:0.90,Ar:0.10', 'He:0.90, Ar:0.10']: 
+        return Gas(reactants={'He':0.90, 'Ar':0.10}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None   
+    elif gasName.lower() in ['he80_ar20','he_80_ar_20', 'he80ar20', 'he80-ar20','he-80-ar-20', 
+                             'He:0.8,Ar:0.2', 'He:0.8, Ar:0.2', 'He:0.90,Ar:0.20', 'He:0.80, Ar:0.20']: 
+        return Gas(reactants={'He':0.80, 'Ar':0.20}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None 
+    elif gasName.lower() in ['he70_ar30','he_70_ar_30', 'he70ar30', 'he70-ar30','he-70-ar-30', 
+                             'He:0.7,Ar:0.3', 'He:0.7, Ar:0.3', 'He:0.70,Ar:0.30', 'He:0.70, Ar:0.30']: 
+        return Gas(reactants={'He':0.70, 'Ar':0.30}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None 
+    elif gasName.lower() in ['he60_ar40','he_60_ar_40', 'he60ar40', 'he60-ar40','he-60-ar-40', 
+                             'He:0.6,Ar:0.4', 'He:0.6, Ar:0.4', 'He:0.60,Ar:0.40', 'He:0.60, Ar:0.40']: 
+        return Gas(reactants={'He':0.60, 'Ar':0.40}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None  
+    elif gasName.lower() in ['he50_ar50','he_50_ar_50', 'he50ar50', 'he50-ar50','he-50-ar-50', 
+                             'He:0.5,Ar:0.5', 'He:0.5, Ar:0.5', 'He:0.50,Ar:0.50', 'He:0.50, Ar:0.50']: 
+        return Gas(reactants={'He':0.50, 'Ar':0.50}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None
+    elif gasName.lower() in ['he40_ar60','he_40_ar_60', 'he40ar60', 'he40-ar60','he-40-ar-60', 
+                             'He:0.4,Ar:0.6', 'He:0.4, Ar:0.6', 'He:0.40,Ar:0.60', 'He:0.40, Ar:0.60']: 
+        return Gas(reactants={'He':0.40, 'Ar':0.60}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None
+    elif gasName.lower() in ['he30_ar70','he_30_ar_70', 'he30ar70', 'he30-ar70','he-30-ar-70', 
+                             'He:0.3,Ar:0.7', 'He:0.3, Ar:0.7', 'He:0.30,Ar:0.70', 'He:0.30, Ar:0.70']: 
+        return Gas(reactants={'He':0.30, 'Ar':0.70}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None
+    elif gasName.lower() in ['he20_ar80','he_20_ar_80', 'he20ar80', 'he20-ar80','he-20-ar-80', 
+                             'He:0.2,Ar:0.8', 'He:0.2, Ar:0.8', 'He:0.20,Ar:0.80', 'He:0.20, Ar:0.80']: 
+        return Gas(reactants={'He':0.20, 'Ar':0.80}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None
+    elif gasName.lower() in ['he10_ar90','he_10_ar_90', 'he10ar90', 'he10-ar90','he-10-ar-90', 
+                             'He:0.1,Ar:0.9', 'He:0.1, Ar:0.9', 'He:0.10,Ar:0.90', 'He:0.10, Ar:0.90']: 
+        return Gas(reactants={'He':0.10, 'Ar':0.90}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None                                          
     else:
         raise Exception, 'make_test_gas(): unknown gasName: %s' % gasName 
    
@@ -177,10 +213,12 @@ def input_checker(cfg, condition_builder = False):
     cfg['bad_input'] = False
     
     if cfg['test'] not in ['fulltheory-shock','fulltheory-pressure','experiment','fulltheory-pressure-ratios',
-                           'theory-shock-tube-experiment-acc-tube', 'experiment-shock-tube-theory-acc-tube']:
+                           'theory-shock-tube-experiment-acc-tube', 'experiment-shock-tube-theory-acc-tube',
+                           'experiment-secondary-driver-theory-shock-tube']:
         print "No 'test' specified. You need to specify a test type. Bailing out."
         print "Available tests are 'fulltheory-shock', 'fulltheory-pressure', 'experiment', 'fulltheory-pressure-ratios,"
-        print "'theory-shock-tube-experiment-acc-tube', and 'experiment-shock-tube-theory-acc-tube'."
+        print "'theory-shock-tube-experiment-acc-tube', and 'experiment-shock-tube-theory-acc-tube',"
+        print "and 'experiment-secondary-driver-theory-shock-tube'."
         cfg['bad_input'] = True    
     
     if 'solver' not in cfg:
@@ -223,8 +261,6 @@ def input_checker(cfg, condition_builder = False):
     if 'test_gas' not in cfg:
         print "No 'test_gas' specified. You need to specify a test gas. Bailing out."
         cfg['bad_input'] = True
-    if cfg['test_gas'] == "Air":
-        cfg['test_gas'] == "air"
         
     # add some more checks here for the custom facility mode
     # custom facility must have initial driver state specified, driver composition,
@@ -270,11 +306,11 @@ def input_checker(cfg, condition_builder = False):
             print "Cannot finish problem without this. Bailing out."
 
     # --------------------- custom secondary driver gas ----------------------------------
-    if 'custom_secondary_driver_gas' not in cfg:
+    if cfg['secondary'] and 'custom_secondary_driver_gas' not in cfg:
         cfg['custom_secondary_driver_gas'] = False
 
        
-    if cfg['custom_secondary_driver_gas']:
+    if cfg['secondary'] and cfg['custom_secondary_driver_gas']:
         if 'secondary_driver_gas_composition' not in cfg:
             print "You have specified a custom test gas but have not set 'secondary_driver_gas_composition' variable."
             print "Bailing out."
@@ -289,6 +325,10 @@ def input_checker(cfg, condition_builder = False):
         if 'secondary_driver_gas_with_ions' not in cfg:
             print "'secondary_driver_gas_with_ions' variable not set. Setting to boolean True."
             cfg['secondary_driver_gas_with_ions'] = True
+            
+    if cfg['secondary'] and not cfg['custom_secondary_driver_gas'] and 'secondary_driver_gas' not in cfg:
+        cfg['secondary_driver_gas'] = 'he'
+        print "'secondary_driver_gas' not selected. Setting to default value of 'he' (pure He)."
      
     # ----------------------- custom test gas ----------------------------------
        
@@ -476,44 +516,44 @@ def input_checker(cfg, condition_builder = False):
             
     if cfg['test'] == 'fulltheory-shock' and 'p1' in cfg: #if they specify both pressures and shock speeds, bail out
         print "You need to choose only shock speeds to solve this test case. Bailing out here."
-        cfg['bad_input'] = True
+        raise Exception, "pitot_input_utils.input_checker(): Chosen test is '{0}' but 'p1' is specified in the cfg. You can only pick one!".format(cfg['test'])  
         
     if cfg['test'] == 'fulltheory-shock' and cfg['secondary'] and 'Vsd' not in cfg \
         or cfg['test'] == 'experiment' and cfg['secondary'] and 'Vsd' not in cfg:
         print "Need to supply a float value for Vsd."
-        cfg['bad_input'] = True
+        raise Exception, "pitot_input_utils.input_checker(): Chosen test is '{0}' but 'Vsd' is not specified in the cfg.".format(cfg['test']) 
     
     if cfg['test'] == 'fulltheory-shock' and 'Vs1' not in cfg \
         or cfg['test'] == 'experiment' and 'Vs1' not in cfg:
         print "Need to supply a float value for Vs1."
-        cfg['bad_input'] = True
+        raise Exception, "pitot_input_utils.input_checker(): Chosen test is '{0}' but 'Vs1' is not specified in the cfg.".format(cfg['test']) 
         
     if cfg['test'] == 'fulltheory-shock' and cfg['tunnel_mode'] == 'expansion-tube' and 'Vs2' not in cfg \
         or cfg['test'] == 'experiment' and cfg['tunnel_mode'] == 'expansion-tube' and 'Vs2' not in cfg:
         print "Need to supply a float value for Vs2."
-        cfg['bad_input'] = True
+        raise Exception, "pitot_input_utils.input_checker(): Chosen test is '{0}' but 'Vs2' is not specified in the cfg.".format(cfg['test']) 
           
     if cfg['test'] == 'fulltheory-pressure' and 'Vs1' in cfg: #if they specify both pressures and shock speeds, bail out
         print "You need to choose either only fill pressures to solve this test case. Bailing out here."
-        cfg['bad_input'] = True       
+        raise Exception, "pitot_input_utils.input_checker(): Chosen test is '{0}' but 'Vs1' is specified in the cfg. You can only pick one!".format(cfg['test'])       
     
     if cfg['test'] == 'fulltheory-pressure' and cfg['secondary'] and 'psd1' not in cfg \
         or cfg['test'] == 'experiment' and cfg['secondary'] and 'psd1' not in cfg:
         if not condition_builder: # don't check this if we're doing a condition builder run
             print "Need to supply a float value for psd1."
-            cfg['bad_input'] = True        
+            raise Exception, "pitot_input_utils.input_checker(): Chosen test is '{0}' but 'psd1' is not specified in the cfg.".format(cfg['test'])         
         
     if cfg['test'] == 'fulltheory-pressure' and 'p1' not in cfg \
         or cfg['test'] == 'experiment' and 'p1' not in cfg:
             if not condition_builder: # don't check this if we're doing a condition builder run
                 print "Need to supply a float value for p1."
-                cfg['bad_input'] = True
+                raise Exception, "pitot_input_utils.input_checker(): Chosen test is '{0}' but 'p1' is not specified in the cfg.".format(cfg['test']) 
 
     if cfg['test'] == 'fulltheory-pressure' and cfg['tunnel_mode'] == 'expansion-tube' and 'p5' not in cfg \
         or cfg['test'] == 'experiment' and cfg['tunnel_mode'] == 'expansion-tube' and 'p5' not in cfg:
         if not condition_builder: # don't check this if we're doing a condition builder run
             print "Need to supply a float value for p5."
-            cfg['bad_input'] = True
+            raise Exception, "pitot_input_utils.input_checker(): Chosen test is '{0}' but 'p5' is not specified in the cfg.".format(cfg['test']) 
         
     if cfg['test'] == 'fulltheory-pressure-ratios' and 'p1_from' not in cfg:
         print "Need to supply a value for 'p1_from' if you want to run in pressure ratio mode."
@@ -530,32 +570,47 @@ def input_checker(cfg, condition_builder = False):
     if cfg['test'] == 'theory-shock-tube-experiment-acc-tube' and not cfg['expand_to'] == 'p7' and 'Vs2' not in cfg:
         print "Chosen test is 'theory-shock-tube-experiment-acc-tube' but 'Vs2' is not specified in the cfg."
         print "Specify 'Vs2'."
-        cfg['bad_input'] = True
+        raise Exception, "pitot_input_utils.input_checker(): Chosen test is 'theory-shock-tube-experiment-acc-tube' but 'Vs2' is not specified in the cfg." 
         
     if cfg['test'] == 'theory-shock-tube-experiment-acc-tube' and 'p1' not in cfg:
         print "Chosen test is 'theory-shock-tube-experiment-acc-tube' but 'p1' is not specified in the cfg."
         print "Specify 'p1'."
-        cfg['bad_input'] = True
+        raise Exception, "pitot_input_utils.input_checker(): Chosen test is 'theory-shock-tube-experiment-acc-tube' but 'p1' is not specified in the cfg." 
         
     if cfg['test'] == 'theory-shock-tube-experiment-acc-tube' and 'p5' not in cfg:
-        print "Chosen test is 'theory-shock-tube-experiment-acc-tube' but 'p1' is not specified in the cfg."
+        print "Chosen test is 'theory-shock-tube-experiment-acc-tube' but 'p5' is not specified in the cfg."
         print "Specify 'p5'."
-        cfg['bad_input'] = True
+        raise Exception, "pitot_input_utils.input_checker(): Chosen test is 'theory-shock-tube-experiment-acc-tube' but 'p5' is not specified in the cfg." 
         
     if cfg['test'] == 'experiment-shock-tube-theory-acc-tube' and 'Vs1' not in cfg:
         print "Chosen test is 'experiment-shock-tube-theory-acc-tube' but 'Vs1' is not specified in the cfg."
         print "Specify 'Vs1'."
-        cfg['bad_input'] = True
+        raise Exception, "pitot_input_utils.input_checker(): Chosen test is 'experiment-shock-tube-theory-acc-tube' but 'Vs1' is not specified in the cfg." 
 
     if cfg['test'] == 'experiment-shock-tube-theory-acc-tube'and 'p1' not in cfg:
         print "Chosen test is 'experiment-shock-tube-theory-acc-tube' but 'p1' is not specified in the cfg."
         print "Specify 'p1'."
-        cfg['bad_input'] = True
+        raise Exception, "pitot_input_utils.input_checker(): Chosen test is 'experiment-shock-tube-theory-acc-tube' but 'p1' is not specified in the cfg." 
         
     if cfg['test'] == 'experiment-shock-tube-theory-acc-tube'and 'p5' not in cfg:
         print "Chosen test is 'experiment-shock-tube-theory-acc-tube' but 'p1' is not specified in the cfg."
         print "Specify 'p5'."
-        cfg['bad_input'] = True
+        raise Exception, "pitot_input_utils.input_checker(): Chosen test is 'experiment-shock-tube-theory-acc-tube' but 'p5' is not specified in the cfg." 
+        
+    if cfg['test'] == 'experiment-secondary-driver-theory-shock-tube' and 'psd1' not in cfg:
+        print "Chosen test is 'experiment-secondary-driver-theory-shock-tube' but 'psd1' is not specified in the cfg."
+        print "Specify 'psd1'."
+        raise Exception, "pitot_input_utils.input_checker(): Chosen test is 'experiment-secondary-driver-theory-shock-tube' but 'psd1' is not specified in the cfg."     
+
+    if cfg['test'] == 'experiment-secondary-driver-theory-shock-tube' and 'Vsd' not in cfg:
+        print "Chosen test is 'experiment-secondary-driver-theory-shock-tube' but 'Vsd' is not specified in the cfg."
+        print "Specify 'Vsd'."
+        raise Exception, "pitot_input_utils.input_checker(): Chosen test is 'experiment-secondary-driver-theory-shock-tube' but 'Vsd' is not specified in the cfg."   
+
+    if cfg['test'] == 'experiment-secondary-driver-theory-shock-tube' and 'p1' not in cfg:
+        print "Chosen test is 'experiment-secondary-driver-theory-shock-tube' but 'p1' is not specified in the cfg."
+        print "Specify 'p1'."
+        raise Exception, "pitot_input_utils.input_checker(): Chosen test is 'experiment-secondary-driver-theory-shock-tube' but 'p1' is not specified in the cfg."   
 
     # The input here allows the user to expand the flow to a set pressure (instead of a set shock speed of gas velocity)
     # when the 'theory-shock-tube-experiment-acc-tube' test is used. There's some checks here to bail out if it is set
@@ -592,16 +647,17 @@ def input_checker(cfg, condition_builder = False):
         if isinstance(cfg['Mr_st'], str):
             if cfg['Mr_st'] not in ['Maximum', 'maximum', 'max', 'MAXIMUM', 'MAX']:
                 print "Chosen 'Mr_st' is a string but is not set to a variant of 'maximum'. Bailing out."
-                cfg['bad_input'] = True    
+                raise Exception, "Chosen 'Mr_st' is a string but is not set to a variant of 'maximum'"   
             else:
                 cfg['Mr_st'] = 'maximum'
+                print "Setting 'Mr_st' to default value of 'maximum'."
         if isinstance(cfg['Mr_st'], int):
             cfg['Mr_st'] = float(cfg['Mr_st'])
             
-    if 'rs_out_of_sd' not in cfg:
+    if cfg['secondary'] and 'rs_out_of_sd' not in cfg:
         #This does a reflected shock out of the secondary driver (when it is turned on)
         cfg['rs_out_of_sd'] = False
-    if cfg['rs_out_of_sd']:
+    if cfg['secondary'] and cfg['rs_out_of_sd']:
         #check that the user has specified a valid value for Mr_st
         if not isinstance(cfg['Mr_sd'], (float,int,str)):
             print "Chosen 'Mr_sd' value is not either an int, float, or string. Bailing out."
@@ -610,9 +666,10 @@ def input_checker(cfg, condition_builder = False):
         if isinstance(cfg['Mr_sd'], str):
             if cfg['Mr_sd'] not in ['Maximum', 'maximum', 'max', 'MAXIMUM', 'MAX']:
                 print "Chosen 'Mr_sd' is a string but is not set to a variant of 'maximum'. Bailing out."
-                cfg['bad_input'] = True    
+                raise Exception, "Chosen 'Mr_sd' is a string but is not set to a variant of 'maximum'"
             else:
                 cfg['Mr_sd'] = 'maximum'
+                print "Setting 'Mr_sd' to default value of 'maximum'."
                 
         if isinstance(cfg['Mr_sd'], int):
             cfg['Mr_sd'] = float(cfg['Mr_sd'])
@@ -820,7 +877,17 @@ def start_message(cfg, states):
                     secondary_driver_gas_used = 'Custom secondary driver gas is {0} (by {1}, gamma = {2}, R = {3:.2f}).'\
                     .format(cfg['secondary_driver_gas_composition'],cfg['secondary_driver_gas_inputUnits'], 
                             states['sd1'].gam,states['sd1'].R)  
-                print secondary_driver_gas_used
+            else:
+                if isinstance(states['sd1'], Gas):
+                    secondary_driver_gas_used = 'Selected secondary driver gas is {0} (gamma = {1}, R = {2:.2f}, {3} by {4}).'\
+                    .format(cfg['secondary_driver_gas'],states['sd1'].gam,states['sd1'].R,
+                    states['sd1'].reactants, states['sd1'].outputUnits)
+                elif isinstance(states['sd1'], pg.Gas):
+                    secondary_driver_gas_used = 'Selected secondary driver gas is {0} (gamma = {1}, R = {2:.2f}).'\
+                    .format(cfg['secondary_driver_gas'], states['sd1'].gam,states['sd1'].R)
+            
+            print secondary_driver_gas_used
+                
         if 'p1' in cfg:
             print 'Selected shock tube fill pressure (p1) = {0} Pa.'.format(cfg['p1'])
             print 'Selected shock tube fill temperature (T1) = {0} K.'.format(cfg['T1'])
@@ -1143,7 +1210,9 @@ def state_builder(cfg):
              cfg['Tsd1'] = cfg['T0']
              
         if not cfg['custom_secondary_driver_gas']:
-            states['sd1'] =  Gas({'He':1.0,},outputUnits='moles', inputUnits = 'moles')
+            # this will be a set to a default of pure He unless the user has added 'secondary_driver_gas' to their cfg file
+            # the dummy variable is to get rid of the ideal gas guess that we probably won't need in the secondary driver...
+            states['sd1'], dummy_variable = make_test_gas(cfg['secondary_driver_gas'])
         else: # we have a custom accelerator gas, input should have made sure we have the correct stuff...
             states['sd1'] = Gas(cfg['secondary_driver_gas_composition'],inputUnits=cfg['secondary_driver_gas_inputUnits'],
                             outputUnits=cfg['secondary_driver_gas_inputUnits'], with_ions=cfg['secondary_driver_gas_with_ions'])

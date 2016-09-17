@@ -135,37 +135,6 @@ def txt_file_output(cfg, states, V, M):
     print facility_used
     txt_output.write(facility_used + '\n')
     
-    if cfg['custom_secondary_driver_gas']:
-        if isinstance(states['sd1'], Gas):
-            secondary_driver_gas_used = 'Custom secondary driver gas (state sd1) was used (gamma = {0}, R = {1}, {2} by {3}).'.format(states['sd1'].gam,states['sd1'].R,
-                                                                                                                          states['sd1'].reactants, states['sd1'].outputUnits)
-        elif isinstance(states['sd1'], pg.Gas):
-            secondary_driver_gas_used = 'Custom secondary gas (state sd1) was used (gamma = {0}, R = {1}).'.format(states['sd1'].gam,states['sd1'].R)
-    else:
-        secondary_driver_gas_used = "Secondary gas (state sd1) is pure He."
-        
-    print secondary_driver_gas_used
-    txt_output.write(secondary_driver_gas_used + '\n')    
-    
-    if cfg['solver'] == 'eq':
-        test_gas_used = 'Test gas (state 1) is {0} (gamma = {1}, R = {2}, {3} by {4}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R,
-                                                                                        states['s1'].reactants, states['s1'].outputUnits)
-    elif cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq':
-        test_gas_used = 'Test gas (state 1) is {0} (gamma = {1}, R = {2}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
-    print test_gas_used
-    txt_output.write(test_gas_used + '\n')  
-    if cfg['custom_accelerator_gas']:
-        if cfg['solver'] == 'eq':
-            accelerator_gas_used = 'Custom Accelerator gas (state 5) was used (gamma = {0}, R = {1}, {2} by {3}).'.format(states['s5'].gam,states['s5'].R,
-                                                                                                                          states['s5'].reactants, states['s5'].outputUnits)
-        elif cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq':
-            accelerator_gas_used = 'Custom Accelerator gas (state 5) was used (gamma = {0}, R = {1}).'.format(states['s5'].gam,states['s5'].R)
-    else:
-        accelerator_gas_used = "Accelerator gas (state 5) is Air."
-        
-    print accelerator_gas_used
-    txt_output.write(accelerator_gas_used + '\n')
-    
     if cfg['solver'] == 'eq':
         if cfg['facility'] != 'custom' and cfg['piston'] in ['Sangdi-1.8MPa', 'sangdi-1.8MPa','Sangdi-2.2MPa', 'sangdi-2.2MPa']:
             driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])  
@@ -187,6 +156,43 @@ def txt_file_output(cfg, states, V, M):
                 .format(cfg['driver_pg_gam'], cfg['driver_pg_R'])
     print driver_gas_used
     txt_output.write(driver_gas_used + '\n') 
+    
+    if cfg['secondary']:
+        if cfg['custom_secondary_driver_gas']:
+            if isinstance(states['sd1'], Gas):
+                secondary_driver_gas_used = 'Custom secondary driver gas (state sd1) was used (gamma = {0}, R = {1}, {2} by {3}).'.format(states['sd1'].gam,states['sd1'].R,
+                                                                                                                              states['sd1'].reactants, states['sd1'].outputUnits)
+            elif isinstance(states['sd1'], pg.Gas):
+                secondary_driver_gas_used = 'Custom secondary gas (state sd1) was used (gamma = {0}, R = {1}).'.format(states['sd1'].gam,states['sd1'].R)
+        else:
+            if isinstance(states['sd1'], Gas):
+                secondary_driver_gas_used = 'Secondary driver gas (state sd1) is {0} (gamma = {1}, R = {2}, {3} by {4}).'.format(cfg['secondary_driver_gas'],
+                                                                                                                                 states['sd1'].gam,states['sd1'].R,states['sd1'].reactants, states['sd1'].outputUnits)
+            elif isinstance(states['sd1'], pg.Gas):
+                secondary_driver_gas_used = 'Secondary driver gas (state sd1)  is {0} (gamma = {1}, R = {2}).'.format(cfg['secondary_driver_gas'],states['sd1'].gam,states['sd1'].R)
+            
+        print secondary_driver_gas_used
+        txt_output.write(secondary_driver_gas_used + '\n')    
+    
+    if isinstance(states['s1'], Gas):
+        test_gas_used = 'Test gas (state 1) is {0} (gamma = {1}, R = {2}, {3} by {4}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R,
+                                                                                        states['s1'].reactants, states['s1'].outputUnits)
+    elif isinstance(states['s1'], pg.Gas):
+        test_gas_used = 'Test gas (state 1) is {0} (gamma = {1}, R = {2}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
+    print test_gas_used
+    txt_output.write(test_gas_used + '\n') 
+    
+    if cfg['custom_accelerator_gas']:
+        if cfg['solver'] == 'eq':
+            accelerator_gas_used = 'Custom Accelerator gas (state 5) was used (gamma = {0}, R = {1}, {2} by {3}).'.format(states['s5'].gam,states['s5'].R,
+                                                                                                                          states['s5'].reactants, states['s5'].outputUnits)
+        elif cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq':
+            accelerator_gas_used = 'Custom Accelerator gas (state 5) was used (gamma = {0}, R = {1}).'.format(states['s5'].gam,states['s5'].R)
+    else:
+        accelerator_gas_used = "Accelerator gas (state 5) is Air."
+        
+    print accelerator_gas_used
+    txt_output.write(accelerator_gas_used + '\n')
             
     if cfg['shock_switch']:
         shock_warning_1 = "NOTE: a reflected shock was done into the shock tube."
@@ -281,8 +287,8 @@ def txt_file_output(cfg, states, V, M):
                      clone_successful = False
                                       
             if M[it_string] == 0:
-                pitot[it_string] = state.p/1000.0
-                p0[it_string] = state.p/1.0e6
+                pitot[it_string] = states[it_string].p/1000.0
+                p0[it_string] = states[it_string].p/1.0e6
             elif clone_successful:
                 try:
                     pitot[it_string] = pitot_p(state.p,M[it_string],state.gam)/1000.0
@@ -313,8 +319,8 @@ def txt_file_output(cfg, states, V, M):
                         p0[it_string] = 0.0
                     
             
-            if state.p < 1.0e6: #change how the pressure is printed if it's too big, it keeps ruining the printouts!
-                if state.rho < 0.01:
+            if states[it_string].p < 1.0e6: #change how the pressure is printed if it's too big, it keeps ruining the printouts!
+                if states[it_string].rho < 0.01:
                     # also need something for when density is too small...
                     conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.2e}{7:<8.1f}{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T, states[it_string].a,
@@ -325,7 +331,7 @@ def txt_file_output(cfg, states, V, M):
                             V[it_string],M[it_string], states[it_string].rho, pitot[it_string], p0[it_string])
                     
             else:
-                if state.rho < 0.01:
+                if states[it_string].rho < 0.01:
                     # also need something for when density is too small...
                     conditions = "{0:<6}{1:<11.3e}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.2e}{7:<8.1f}{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T, states[it_string].a,
@@ -850,8 +856,8 @@ def csv_file_output(cfg, states, V, M):
                      clone_successful = False
                 
             if M[it_string] == 0:
-                pitot[it_string] = state.p/1000.0
-                p0[it_string] = state.p/1.0e6
+                pitot[it_string] = states[it_string].p/1000.0
+                p0[it_string] = states[it_string].p/1.0e6
             elif clone_successful:
                 try:
                     pitot[it_string] = pitot_p(state.p,M[it_string],state.gam)/1000.0
@@ -882,8 +888,8 @@ def csv_file_output(cfg, states, V, M):
                         p0[it_string] = 0.0
             
                 
-            if state.p < 1.0e6: #change how the pressure is printed if it's too big, it keeps ruining the printouts!  
-                if state.rho < 0.01:
+            if states[it_string].p < 1.0e6: #change how the pressure is printed if it's too big, it keeps ruining the printouts!  
+                if states[it_string].rho < 0.01:
                     # also need something for when density is too small...
                     csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.2e},{7:<8.1f},{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T, states[it_string].a,
@@ -894,7 +900,7 @@ def csv_file_output(cfg, states, V, M):
                             V[it_string],M[it_string], states[it_string].rho, pitot[it_string], p0[it_string])     
                     
             else:
-                if state.rho < 0.01:
+                if states[it_string].rho < 0.01:
                     # also need something for when density is too small...
                     csv_conditions = "{0:<6},{1:<11.3e},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.2e},{7:<8.1f},{8:<9.3f}"\
                     .format(it_string, states[it_string].p, states[it_string].T, states[it_string].a,

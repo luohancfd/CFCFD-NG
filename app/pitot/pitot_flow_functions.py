@@ -88,6 +88,8 @@ def secondary_driver_calculation(cfg, states, V, M):
         
     if PRINT_STATUS: print "Starting unsteady expansion of the primary driver gas into the secondary driver."
     
+    # if we need to find either psd1 or Vsd we must find them first...
+    
     if cfg['test'] == "fulltheory-shock": #get psd1 for our chosen shock speed
         cfg['psd1'] = secant(error_in_velocity_s3s_to_sd3_expansion_pressure_iterator, 5000.0, 6000.0, tol=1.0e-5,limits=[500.0,16000.0])
         if PRINT_STATUS: print "From secant solve: psd1 = {0} Pa".format(cfg['psd1'])
@@ -95,7 +97,8 @@ def secondary_driver_calculation(cfg, states, V, M):
         if PRINT_STATUS: print "Now that psd1 is known, finding conditions at states sd2 and sd3."
         states['sd1'].set_pT(cfg['psd1'],cfg['T0'])
     
-    elif cfg['test'] == "fulltheory-pressure" or cfg['test'] == 'fulltheory-pressure-ratios': #get Vsd for our chosen fill pressure
+    elif cfg['test'] in ['fulltheory-pressure', 'fulltheory-pressure-ratios', 
+    'theory-shock-tube-experiment-acc-tube', 'experiment-shock-tube-theory-acc-tube']: #get Vsd for our chosen fill pressure
         if 'Vsd_guess_1' in cfg and 'Vsd_guess_2' in cfg:
             print "Using custom guesses for Vsd secant solver."
             print "('Vsd_guess_1' = {0} m/s and 'Vsd_guess_2' = {1} m/s)".\
@@ -148,6 +151,8 @@ def secondary_driver_calculation(cfg, states, V, M):
         if PRINT_STATUS: 
             print '-'*60
             print "Now that Vsd is known, finding conditions at states sd2 and sd3."
+    
+    # if we are running in experiment based modes, we end up starting down here...
     
     (Vsd2, V['sd2']) = normal_shock(states['sd1'], cfg['Vsd'], states['sd2'])
     V['sd3'], states['sd3'] = finite_wave_dv('cplus', V['s3s'], states['s3s'], V['sd2'], steps=cfg['secondary_driver_expansion_steps'])
@@ -519,7 +524,9 @@ def shock_tube_calculation(cfg, states, V, M):
 
 
     #----------------------- shock tube calculations --------------------------------                           
-      
+    
+    # if we need to find p1 or Vs1, find them here...
+    
     if cfg['test'] == "fulltheory-shock": #get p1 for our chosen shock speed
         if cfg['secondary']: #if secondary, check which shock speed is greater, Vsd or Vs1
             if cfg['Vsd'] > cfg['Vs1']: #we get a shock into the shock tube, not an expansion
@@ -538,8 +545,8 @@ def shock_tube_calculation(cfg, states, V, M):
         if PRINT_STATUS: print "Now that p1 is known, finding conditions at states 2 and 3."
         states['s1'].set_pT(cfg['p1'],cfg['T0'])
         
-    elif cfg['test'] =="fulltheory-pressure" or cfg['test'] == 'fulltheory-pressure-ratios' \
-        or cfg['test'] == 'theory-shock-tube-experiment-acc-tube': #get Vs1 for our chosen fill pressure
+    elif cfg['test'] in ['fulltheory-pressure', 'fulltheory-pressure-ratios', 'theory-shock-tube-experiment-acc-tube', 
+                         'experiment-secondary-driver-theory-shock-tube']: #get Vs1 for our chosen fill pressure
         if cfg['state2_no_ions']:
             # Need to turn ions off for state 2 here if it is required to make 
             # shock to state 2 work
@@ -581,7 +588,7 @@ def shock_tube_calculation(cfg, states, V, M):
                       format(cfg['Vs1_guess_1'], cfg['Vs1_guess_2'])
                       
             if 'Vs1_lower' not in cfg and 'Vs1_upper' not in cfg:
-                    cfg['Vs1_lower'] = 1000.0; cfg['Vs1_upper'] = 1000000.0                
+                    cfg['Vs1_lower'] = 1000.0; cfg['Vs1_upper'] = 25000.0                
             else:
                 print "Using custom limits for Vs1 secant solver."
                 print "('Vs1_lower' = {0} m/s and 'Vs1_upper' = {1} m/s)".\
@@ -640,6 +647,9 @@ def shock_tube_calculation(cfg, states, V, M):
         if PRINT_STATUS: 
             print '-' * 60
             print "Now that Vs1 is known, finding conditions at states 2 and 3."
+            
+    # if we run experiment based modes, we can just pop in here...
+        
     # first do the normal shock
     try:
         # do a clone of state 5 here so we don't get floating point jumping around...
@@ -1128,7 +1138,9 @@ def acceleration_tube_calculation(cfg, states, V, M):
         return gas_guess
         
     #---------------------- acceleration tube calculations -----------------------
-       
+    
+    # if we need to find p5 or Vs2, find them here...    
+    
     if cfg['test'] == 'fulltheory-shock': #get p5 for our chosen shock speed
         #put two sets of limits here to try and make code that works will all conditions
         if cfg['Vs2'] > 4000.0 and 'p5_lower' not in cfg and 'p5_upper' not in cfg \
@@ -1147,8 +1159,9 @@ def acceleration_tube_calculation(cfg, states, V, M):
         if PRINT_STATUS: print "Now that p5 is known, finding conditions at state 5 and 6."
         states['s5'].set_pT(cfg['p5'],cfg['T0'])
         
-    elif cfg['test'] == 'fulltheory-pressure' or cfg['test'] == 'fulltheory-pressure-ratios' \
-    or cfg['test'] == 'experiment-shock-tube-theory-acc-tube': #compute the shock speed for the chosen fill pressure, uses Vs1 as starting guess
+    elif cfg['test'] in ['fulltheory-pressure', 'fulltheory-pressure-ratios', 'experiment-shock-tube-theory-acc-tube',
+                         'experiment-secondary-driver-theory-shock-tube']:
+        #compute the shock speed for the chosen fill pressure, uses Vs1 as starting guess
         #put two sets of limits here to try and make more stuff work
         if cfg['state7_no_ions'] and cfg['solver'] in ['eq', 'pg-eq']:
             # Need to turn ions off for state 2 here if it is required to make 
@@ -1280,7 +1293,10 @@ def acceleration_tube_calculation(cfg, states, V, M):
         if PRINT_STATUS: 
             print '-'*60
             print "Now that Vs2 is known, finding conditions at state 6 and 7."
-    elif cfg['test'] == 'experiment':
+    
+    # if we are running experimental based modes, we come in here...
+    
+    elif cfg['test'] in ['experiment',  'theory-shock-tube-experiment-acc-tube']:
         if cfg['state7_no_ions'] and cfg['solver'] in ['eq', 'pg-eq']:
             # Need to turn ions off for state 2 here if it is required to make 
             # the unsteady expansion work (as state 2 is expanding into state 7)

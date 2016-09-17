@@ -269,6 +269,13 @@ available to me as part of cfpylib inside the cfcfd code collection.
     03-Aug-2016: added custom secondary driver gas, and custom secondary driver temperature
     31-Aug-2016: Changed the post shock Reynolds number code to use the shock reference frame
         instead of the lab reference frame, because Richard said that was correct.
+    17-Sep-2016: Made it much easier to specify a different secondary driver gas
+        by allowing the user to specify 'secondary_driver_gas' in the cfg where it will
+        take the gas from the make_test_gas function. I also added every He/Ar percentage 
+        from 10 to 90%He of each one (by moles) to that function. I also added a way to
+        specify the secondary driver shock speed in a theoretical run using a new
+        'experiment-secondary-driver-theory-shock-tube' test mode, and I also added proper
+        error handling to more of the inputs while doing this...
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -296,7 +303,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "31-Aug-2016"
+VERSION_STRING = "17-Sep-2016"
 
 DEBUG_PITOT = False
 
