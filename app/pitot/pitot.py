@@ -276,6 +276,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
         specify the secondary driver shock speed in a theoretical run using a new
         'experiment-secondary-driver-theory-shock-tube' test mode, and I also added proper
         error handling to more of the inputs while doing this...
+    26-Sep-2016: added new mode allowing the user to freeze the sd reflected shock and state 3
+        using two new flags in the cfg file 'freeze_state_sd2r' and 'freeze_state_3'
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -303,7 +305,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "17-Sep-2016"
+VERSION_STRING = "26-Sep-2016"
 
 DEBUG_PITOT = False
 
@@ -366,7 +368,7 @@ def run_pitot(cfg = {}, config_file = None):
                 cfg, states, V, M = secondary_driver_calculation(cfg, states, V, M)
             except Exception as e:
                 raise Exception, "pitot.run_pitot() Run of pitot has failed in the secondary driver calculation."  
-                
+        
         if cfg['rs_out_of_sd']:
             cfg, states, V, M = secondary_driver_rs_calculation(cfg, states, V, M)
             cfg['shock_tube_expansion'] = 'sd2r' #state sd2r expands into shock tube
@@ -380,6 +382,27 @@ def run_pitot(cfg = {}, config_file = None):
            
         
     #--------------------- shock tube-------------------------------------------
+    
+    if cfg['solver'] in ['eq', 'pg-eq'] and cfg['freeze_state_3'] and isinstance(states[cfg['shock_tube_expansion']], Gas):
+        
+        print "Freezing the gas expanding into the shock tube ({0}) as state 3 as the user has asked for this...".format(cfg['shock_tube_expansion'])
+        
+        R_universal = 8314.0 # J/kgmole.K
+        
+        # if the user asks to freeze the state 3 gas, freeze the gas going into state 3 in the shock tube...
+        states[cfg['shock_tube_expansion'] + 'f'] = pg.Gas(Mmass = R_universal/states[cfg['shock_tube_expansion']].R,
+                                                           gamma = states[cfg['shock_tube_expansion']].gam)
+        states[cfg['shock_tube_expansion'] + 'f'] .set_pT(states[cfg['shock_tube_expansion']].p,
+                                                         states[cfg['shock_tube_expansion']].T)
+                                                         
+        V[cfg['shock_tube_expansion'] + 'f'] = V[cfg['shock_tube_expansion']]
+        M[cfg['shock_tube_expansion'] + 'f'] = M[cfg['shock_tube_expansion']]        
+                                                         
+        cfg['shock_tube_expansion'] = cfg['shock_tube_expansion'] + 'f'
+    elif cfg['solver'] in ['eq', 'pg-eq'] and cfg['freeze_state_3'] and isinstance(states[cfg['shock_tube_expansion']], pg.Gas):
+        print "The user has asked to freeze the gas expanding into the shock tube ({0}) as state 3, but it is already a perfect gas state.".format(cfg['shock_tube_expansion'])
+        print "Therefore, the state will be frozen, but nothing has been done to the state."
+        
     
     try:
         if 'state2_no_ions' not in cfg:
@@ -549,7 +572,7 @@ if __name__ == '__main__':
         print "start with --help for help with inputs"
         print "There are a few demos here that you can run to see how the program works:"
         print "demo-s-eq: demo of Umar's high speed air condition where shock speeds are guessed to find the fill pressures used."
-        print "demo-p-eq: equilibrium demo of Umar's high speed air condition where the fill pressures are specified."
+        print "demo-p-eq: equrs_out_of_sdilibrium demo of Umar's high speed air condition where the fill pressures are specified."
         print "demo-p-pg: perfect gas demo of Umar's high speed air condition where the fill pressures are specified."
         print "hadas85-full-theory-eq: equilibrium fully theoretical demo of Hadas' 8.5km/s titan condition where fill pressures are specified."
         print "hadas85-full-theory-pg: perfect gas fully theoretical demo of Hadas' 8.5km/s titan condition where fill pressures are specified."
@@ -588,7 +611,7 @@ if __name__ == '__main__':
             print " "            
             cfg = {'solver':'pg', 'test':'fulltheory-pressure', 
                    'facility':'x2', 'nozzle':True, 'secondary': False,
-                   'driver_gas':'He:1.0', 'test_gas':'air',
+                   'driver_gasrs_out_of_sd':'He:1.0', 'test_gas':'air',
                    'p1':3000.0,'p5':10.0, 'filename':demo}
             run_pitot(cfg=cfg)
             
@@ -627,7 +650,7 @@ if __name__ == '__main__':
             print "This is the perfect gas demo of pitot recreating Hadas' 8.5 km/s titan condition with experimental shock speeds specified."
             print " "
             cfg = {'solver':'pg', 'test':'experiment',
-                   'mode':'printout','conehead':True, 'area_ratio':3.0,
+                   'mode':'prirs_out_of_sdntout','conehead':True, 'area_ratio':3.0,
                    'facility':'x2', 'nozzle':True, 'secondary': False,
                    'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'titan',
                    'p1':3200.0,'p5':10.0, 'Vs1': 4100.0, 'Vs2': 8620.0,

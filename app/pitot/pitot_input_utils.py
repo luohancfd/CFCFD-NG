@@ -817,6 +817,14 @@ def input_checker(cfg, condition_builder = False):
         print "'sx_into_st_area_ratio' must be a float. Current value is not. Bailing out."
         raise TypeError, "pitot_input_utils.input_checker(): 'sx_into_st_area_ratio' input is not a float"
     
+    # input for freezing state 3
+    
+    if 'freeze_state_3' not in cfg:
+       cfg['freeze_state_3'] = False 
+       
+    if 'rs_out_of_sd' in cfg and cfg['rs_out_of_sd'] and 'freeze_state_sd2r' not in cfg:
+       cfg['freeze_state_sd2r'] = False 
+    
     #------------------ final check stuff....-------------------------------
         
     

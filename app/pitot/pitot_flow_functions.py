@@ -188,20 +188,39 @@ def secondary_driver_rs_calculation(cfg, states, V, M):
            
     print "Doing reflected shock at the end of the secondary driver tube that the user has asked for."
     
-    #first build statesd2r as a clone of state 2
-    states['sd2r'] = states['sd2'].clone()
+    if cfg['solver'] in ['eq', 'pg-eq'] and cfg['freeze_state_sd2r'] and isinstance(states['sd2'], Gas):
+        print "Freezing the gas being shocked at the end of the secondary driver (sd2r) the user has asked for this..."
+        
+        R_universal = 8314.0 # J/kgmole.K
+        
+        # we'll make a pg version of state sd2 and then clone that...
+        states['sd2f'] = pg.Gas(Mmass = R_universal/states['sd2'].R, gamma = states['sd2'].gam)
+        states['sd2f'].set_pT(states['sd2'].p, states['sd2'].T)
+        
+        V['sd2f'] = V['sd2']
+        M['sd2f'] = M['sd2'] 
+        
+        states['sd2r'] = states['sd2f'].clone()
+        
+        cfg['Vr-sd_entry_state'] = 'sd2f' 
+    
+    else: # just the normal situation...
+        #first build statesd2r as a clone of state 2
+        states['sd2r'] = states['sd2'].clone()
+        
+        cfg['Vr-sd_entry_state'] = 'sd2' 
 
     if cfg['Mr_sd'] == "maximum": # then perform the reflected shock
-        cfg['Vr-sd'] = reflected_shock(states['sd2'], V['sd2'], states['sd2r'])
-        cfg['Mr-sd'] = (V['sd2']+cfg['Vr-sd'])/states['sd2'].a #normally this would be V2 - V2r, but it's plus here as Vr has been left positive
+        cfg['Vr-sd'] = reflected_shock(states[cfg['Vr-sd_entry_state']], V[cfg['Vr-sd_entry_state']], states['sd2r'])
+        cfg['Mr-sd'] = (V[cfg['Vr-sd_entry_state']]+cfg['Vr-sd'])/states[cfg['Vr-sd_entry_state']].a #normally this would be V2 - V2r, but it's plus here as Vr has been left positive
         V['sd2r'] = 0.0
         M['sd2r']= V['sd2r']/states['sd2r'].a
     else: # perform it to a set strength
         cfg['Mr-sd'] = cfg['Mr_sd']
-        cfg['Vr-sd'] = cfg['Mr-sd']*states['sd2r'].a - V['sd2']
+        cfg['Vr-sd'] = cfg['Mr-sd']*states['sd2r'].a - V[cfg['Vr-sd_entry_state']]
         try:
-            (Vsd2r, Vsd2rg) = normal_shock(states['sd2'], cfg['Vr-sd'] + V['sd2'], states['sd2r'])
-            V['sd2r'] = V['sd2'] - Vsd2rg
+            (Vsd2r, Vsd2rg) = normal_shock(states[cfg['Vr-sd_entry_state']], cfg['Vr-sd'] + V[cfg['Vr-sd_entry_state']], states['sd2r'])
+            V['sd2r'] = V[cfg['Vr-sd_entry_state']] - Vsd2rg
             M['sd2r']= V['sd2r']/states['sd2r'].a           
         except Exception as e:
             print "Error {0}".format(str(e))
@@ -211,7 +230,7 @@ def secondary_driver_rs_calculation(cfg, states, V, M):
         print "Vr-sd = {0} m/s, Mr-sd = {1}.".format(cfg['Vr-sd'], cfg['Mr-sd'])
         print "state sd2r: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['sd2r'].p, states['sd2r'].T)
         print "Vsd2r = {0} m/s, Msd2r = {1}.".format(V['sd2r'], M['sd2r'])
-        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
+        if isinstance(states['sd2r'], Gas):
             print 'species in state sd2r at equilibrium:'               
             print '{0}'.format(states['sd2r'].species)
         try:

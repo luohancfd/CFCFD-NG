@@ -238,7 +238,7 @@ def build_results_dict(cfg):
                 # now add e-
                 sd_fractions_list += ['sd2 %e-']
             full_list += sd_fractions_list
-    if cfg['rs_out_of_sd']:
+    if cfg['secondary'] and cfg['rs_out_of_sd']:
         statesd2_reflected_list = ['Vr-sd','Mr-sd','psd2r','Tsd2r','rhosd2r','Vsd2r','Msd2r', 'asd2r', 'gammasd2r', 'Rsd2r']
         full_list += statesd2_reflected_list
 

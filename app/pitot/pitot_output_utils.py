@@ -198,10 +198,19 @@ def txt_file_output(cfg, states, V, M):
         shock_warning_1 = "NOTE: a reflected shock was done into the shock tube."
         print shock_warning_1
         txt_output.write(shock_warning_1 + '\n')
-    if cfg['rs_out_of_sd']:
+    if cfg['secondary'] and cfg['rs_out_of_sd']:
         shock_warning_2 = "NOTE: a user specified reflected shock was done at the end of the secondary driver."
         print shock_warning_2
-        txt_output.write(shock_warning_2 + '\n')  
+        txt_output.write(shock_warning_2 + '\n')
+        if cfg['solver'] in ['eq', 'pg-eq'] and cfg['freeze_state_sd2r']:  
+            shock_pg_warning = "Note also that this state (sd2r) was frozen due to the user specifying this."
+            print shock_pg_warning
+            txt_output.write(shock_pg_warning + '\n')
+    if cfg['solver'] in ['eq', 'pg-eq'] and cfg['freeze_state_3']:  
+        state3_pg_warning = "NOTE: state3 was frozen due to the user specifying this."
+        print state3_pg_warning
+        txt_output.write(state3_pg_warning + '\n')
+        
     if cfg['rs_out_of_st']:
         shock_warning_3 = "NOTE: a user specified reflected shock was done at the end of the shock tube."
         print shock_warning_3
@@ -230,7 +239,7 @@ def txt_file_output(cfg, states, V, M):
         shockspeeds_2 = "Vr_d = {0:.2f} m/s, Mr_d = {1:.2f}".format(cfg['Vr_d'],cfg['Mr_d'])
         print shockspeeds_2
         txt_output.write(shockspeeds_2 + '\n')
-    if cfg['rs_out_of_sd']:
+    if cfg['secondary'] and cfg['rs_out_of_sd']:
         rs_out_of_sd = "Vr-sd = {0:.2f} m/s, Mr-sd = {1:.2f}".format(cfg['Vr-sd'],cfg['Mr-sd'])
         print rs_out_of_sd #prints above line in console
         txt_output.write(rs_out_of_sd + '\n') #writes above line to txt_output file (input to write command must be a string)            
@@ -800,7 +809,7 @@ def csv_file_output(cfg, states, V, M):
         csv_shockspeeds = "Vs1,{0:.2f} m/s,Ms1,{1:.2f},Vr,{2:.2f} m/s,Mr,{3:.2f}"\
         .format(cfg['Vs1'],cfg['Ms1'],cfg['Vr'],cfg['Mr'])         
     csv_output.write(csv_shockspeeds + '\n')
-    if cfg['rs_out_of_sd']:
+    if cfg['secondary'] and cfg['rs_out_of_sd']:
         rs_out_of_sd = "Vr-sd,{0:.2f} m/s, Mr-sd,{1:.2f}".format(cfg['Vr-sd'],cfg['Mr-sd'])
         csv_output.write(rs_out_of_sd + '\n') #writes above line to txt_output file (input to write command must be a string)
     if cfg['rs_out_of_st']:
