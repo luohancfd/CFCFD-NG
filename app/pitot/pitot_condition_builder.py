@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "06-Aug-2016"
+VERSION_STRING = "05-Oct-2016"
 
 import sys
 
@@ -719,7 +719,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
                 results['asd2r'].append(states['sd2r'].a)
                 results['gammasd2r'].append(states['sd2r'].gam)
                 results['Rsd2r'].append(states['sd2r'].R)
-            if cfg['store_sd_fractions']:
+            if 'store_sd_fractions' in cfg and cfg['store_sd_fractions']:
                 if not cfg['custom_secondary_driver_gas']:
                     # will be just He and ions...
                     for value in ['He', 'He+', 'e-']:
@@ -759,7 +759,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
                 results['asd2r'].append('Not used')
                 results['gammasd2r'].append('Not used')
                 results['Rsd2r'].append('Not used')
-            if cfg['store_sd_fractions']:
+            if 'store_sd_fractions' in cfg and cfg['store_sd_fractions']:
                 if not cfg['custom_secondary_driver_gas']:
                     # will be just He and ions...
                     for value in ['He', 'He+', 'e-']:
