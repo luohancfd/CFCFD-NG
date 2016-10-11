@@ -955,7 +955,7 @@ class ExistingSolution(object):
             # no need to search because we assume i,j,k correspond to correct location
             block_flow = self.flow[blk_indx]
             block_number = blk_indx
-            if self.bgk:
+            if False and self.bgk:
                 block_bgk = self.bgk[blk_indx]
         else:
             # we need to locate the appropriate cell
