@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "05-Oct-2016"
+VERSION_STRING = "07-Nov-2016"
 
 import sys
 
@@ -397,13 +397,13 @@ def condition_builder_test_run(cfg, results):
     if cfg['last_run_successful']:
         cfg, results = guess_modifier(cfg, results)
     
-    cfg['filename'] = cfg['original_filename'] + '-test-{0}'.format(cfg['test_number'])
+    cfg['filename'] = cfg['original_filename'] + '-test-{0}-result'.format(cfg['test_number'])
     
     # some code here to make a copy of the stdout printouts for each test and store it
     
     import sys
     
-    test_log = open(cfg['filename']+'-log.txt',"w")
+    test_log = open(cfg['original_filename'] + '-test-{0}-log.txt'.format(cfg['test_number']),"w")
     sys.stdout = stream_tee(sys.stdout, test_log)
     
     print '-'*60
@@ -1056,7 +1056,7 @@ def pickle_intermediate_data(cfg, results, test_condition_input_details, filenam
     print "This functionality allows the simulation to be restarted if it is stopped."
     
     if not filename:
-        filename = cfg['original_filename']+'-condition-builder-intermediate-result-pickle.dat'
+        filename = cfg['original_filename'] + '-condition-builder-intermediate-result-pickle.dat'
     
     with open(filename,"w") as pickle_file:
     
@@ -1067,7 +1067,45 @@ def pickle_intermediate_data(cfg, results, test_condition_input_details, filenam
    
     return
     
-def cleanup_old_files():
+def zip_result_and_log_files(cfg, output_filename = None):
+    """This function will zip up and then delete all of the the log and result 
+       files for all of the individual simulations to stop the code creating 
+       hundreds of files each time it runs.
+    """
+    
+    import zipfile, os
+    
+    print "Zipping up individual simulation result and log files."
+    
+    if not output_filename:
+        output_filename = cfg['original_filename'] + '-condition-builder-log-and-result-files.zip'
+        
+    # start by getting our current working directory
+    cwd = os.getcwd()
+    
+    # now get a list of files and folders in the current working directory
+    
+    file_list = os.listdir(cwd)
+    
+    #now open the zip file
+    with zipfile.ZipFile(output_filename, 'w') as resultzip:
+
+        #and then loop through each file and zip and then remove it if it includes
+        # both 'test' and either 'log' or 'result' in the output
+
+        for filename in file_list:
+            if 'test' in filename and 'result' in filename or 'test' in filename and 'log' in filename:
+                if os.path.isfile(filename):
+                    resultzip.write(filename)
+                    os.remove(filename)
+                    
+    return
+    
+    
+    
+    
+    
+def cleanup_old_files(auxiliary_file_list = None):
     """Function that will remove any files in the current directory ending with
        .txt, .csv, or .dat. This is handy because even if you think the code will
        overwrite any old runs with new ones, you may have a situation where the new run
@@ -1084,12 +1122,33 @@ def cleanup_old_files():
     # now get a list of files and folders in the current working directory
     
     file_list = os.listdir(cwd)
+    
+    if not auxiliary_file_list:
+        # this is a list of auxilary files created by the program...
+        auxiliary_file_list = ['-condition-builder-log-and-result-files.zip',
+                               '-condition-builder-final-result-pickle.dat',
+                               '-condition-builder-normalised.csv',
+                               '-condition-builder-summary.txt',
+                               '-condition-builder.csv']
 
-    # now loop through and remove anything ending in '.csv', '.txt', or '.dat'
+    # now loop through each file and then remove it if it includes
+    # both 'test' and either 'log' or 'result' in the output
+    # or if it is another auxiliary file
 
     for filename in file_list:
-        if filename[-4:] in ['.csv', '.txt', '.dat']:
+        # remove any old results and logs that may be there...
+        # this is the new version, which should be zipped anyway...
+        if 'test' in filename and 'result' in filename or 'test' in filename and 'log' in filename:
             if os.path.isfile(filename): os.remove(filename)
+        # now get old results and delete those...
+        elif 'test' in filename and '.txt' in filename or 'test' in filename and '.csv' in filename:
+            if os.path.isfile(filename): os.remove(filename)
+        # now nuke all of the auxiliary files by going through and seeing if a 
+        # portion of them is in each file...
+        for auxiliary_file in auxiliary_file_list:
+            if auxiliary_file in filename:
+                if os.path.isfile(filename): os.remove(filename)
+            
     
     return
             
@@ -1245,6 +1304,8 @@ def run_pitot_condition_builder(cfg = {}, config_file = None, force_restart = Fa
     
     if os.path.isfile(cfg['original_filename']+'-condition-builder-intermediate-result-pickle.dat'): 
         os.remove(cfg['original_filename']+'-condition-builder-intermediate-result-pickle.dat')
+        
+    zip_result_and_log_files(cfg)
         
     return
                                 

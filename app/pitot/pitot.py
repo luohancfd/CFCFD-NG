@@ -278,6 +278,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
         error handling to more of the inputs while doing this...
     26-Sep-2016: added new mode allowing the user to freeze the sd reflected shock and state 3
         using two new flags in the cfg file 'freeze_state_sd2r' and 'freeze_state_3'
+    07-Nov-2016: Made the condition builder zip the log and result files.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -305,7 +306,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "02-Nov-2016"
+VERSION_STRING = "07-Nov-2016"
 
 DEBUG_PITOT = False
 
