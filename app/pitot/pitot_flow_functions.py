@@ -2222,6 +2222,7 @@ def normal_shock_wrapper(state1, Vs, state2, gas_guess = None, max_failures = 20
                 print "p1 = {0} Pa, p2 = {1} Pa.".format(state1.p, state2.p)
                 print "Will try again with Vs as Vs + 0.1."
                 found_solution = False
+                failure_counter += 1
             else:
                 found_solution = True
         except Exception as e:
