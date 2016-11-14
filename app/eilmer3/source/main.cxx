@@ -2229,6 +2229,11 @@ int integrate_in_time(double target_time)
 		if ( G.verbosity_level >= 1 && master )
 		    printf( "Integration stopped: maximum temperature change exceeded.\n" );
 	    }
+#           ifdef _MPI
+	    // Since all MPI tasks have independently decided to continue or stop depending what they see,
+	    // the last thing to do in this loop is to be sure that we have concensus to continue.
+	    MPI_Allreduce(MPI_IN_PLACE, &(finished_time_stepping), 1, MPI_LOGICAL, MPI_LOR, MPI_COMM_WORLD);
+#           endif
 	} // if G.halt_on_large_flow_change
 
 	// [todo] Dan, I removed the remote control from this section of code
