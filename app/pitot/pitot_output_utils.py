@@ -354,6 +354,11 @@ def txt_file_output(cfg, states, V, M):
             txt_output.write(conditions + '\n')
         
         return
+        
+    # store the pitot and total pressure dictionaries in the cfg file...
+    cfg['pitot_pressures'] = pitot 
+    cfg['stagnation_pressures'] = p0    
+    
 
     #print the driver related stuff first
 
@@ -534,6 +539,7 @@ def txt_file_output(cfg, states, V, M):
         u_eq_print = 'The flight equivalent velocity (Ue) is {0:<.5g} m/s.'.format(cfg['u_eq'])
     else:
         u_eq_print = "Unable to find equivalent velocity as stagnation enthalpy could not be found."
+        cfg['u_eq'] = None
         
     print u_eq_print
     txt_output.write(u_eq_print + '\n')

@@ -1010,13 +1010,17 @@ def acceleration_tube_calculation(cfg, states, V, M):
         
         print "current guess for p5 = {0} Pa".format(p5)
         
-        state5.set_pT(p5,300.0) #set s1 at set pressure and ambient temp
+        state5.set_pT(p5, 298.15) #set s1 at set pressure and ambient temp
         
         try:                       
             (V6, V6g) = normal_shock_wrapper(state5, Vs2, state6, gas_guess)
         except Exception as e:
             print "{0}: {1}".format(type(e).__name__, e.message)
-            raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Normal shock calculation in the acc tube secant solver failed."     
+            if "last guess" in e.message:
+                last_guess = float(e.message[-10:-5])
+                raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Normal shock calc in acc tube secant solver failed last guess was {0:5.0f} m/s.".format(last_guess)    
+            else:
+                raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Normal shock calculation in the acc tube secant solver failed."     
         
         #Across the contact surface, p3 == p2
         p7 = state6.p
@@ -1056,7 +1060,12 @@ def acceleration_tube_calculation(cfg, states, V, M):
             (V6, V6g) = normal_shock_wrapper(state5, Vs2, state6, gas_guess)
         except Exception as e:
             print "{0}: {1}".format(type(e).__name__, e.message)
-            raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Normal shock calculation in the acc tube secant solver failed."
+            
+            if "last guess" in e.message:
+                last_guess = float(e.message[-10:-5])
+                raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Normal shock calc in acc tube secant solver failed last guess was {0:5.0f} m/s.".format(last_guess)    
+            else:
+                raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Normal shock calculation in the acc tube secant solver failed."     
                
         #Across the contact surface, p3 == p2
         p7 = state6.p
@@ -1178,9 +1187,20 @@ def acceleration_tube_calculation(cfg, states, V, M):
         except Exception as e:
             print "{0}: {1}".format(type(e).__name__, e.message)
             print "Acceleration tube secant solver failed. Will try again with higher initial guesses."
-            print "New guesses are: 'Vs2_guess_1' = {0} m/s and 'Vs2_guess_2' = {1} m/s".\
-                   format(cfg['Vs2_guess_1'] + 1000.0, cfg['Vs2_guess_2'] + 1000.0)
-            cfg['Vs2_guess_1'] += 1000.0; cfg['Vs2_guess_2'] += 1000.0
+            # check last_guess is there, check there is a number there to pull
+            # and check taht the the guess is larger (as we generally want that, and that it is not the maximum value)
+            # of 34750 m/s...
+            if 'last guess' in e.message and e.message[-10:-5].isdigit() and float(e.message[-10:-5]) > cfg['Vs2_guess_1'] \
+                and float(e.message[-10:-5]) != 34750.0:
+                last_guess = float(e.message[-10:-5])
+                print "New guesses will be based on the last guess Vs2 = {0} m/s.".format(last_guess)
+                print "New guesses are: 'Vs2_guess_1' = {0} m/s and 'Vs2_guess_2' = {1} m/s".\
+                       format(last_guess - 100.0, last_guess + 100.0)
+                cfg['Vs2_guess_1'] = last_guess - 100.0; cfg['Vs2_guess_2'] = last_guess + 100.0               
+            else:
+                print "New guesses are: 'Vs2_guess_1' = {0} m/s and 'Vs2_guess_2' = {1} m/s".\
+                       format(cfg['Vs2_guess_1'] + 1000.0, cfg['Vs2_guess_2'] + 1000.0)
+                cfg['Vs2_guess_1'] += 1000.0; cfg['Vs2_guess_2'] += 1000.0
             try:
                 cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, 
                                     cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
@@ -2196,15 +2216,15 @@ def calculate_scaling_information(cfg, states, V, M):
         
     return cfg
     
-def normal_shock_wrapper(state1, Vs, state2, gas_guess = None, max_failures = 20):
+def normal_shock_wrapper(state1, Vs, state2, gas_guess = None, max_failures = 40):
     """This function is my current attempt to wrap the normal shock 
        function up in something that deals with some of the generic issues with
        CEA. Generally a movement to a slightly different input shock speeds,
        will make the code work when otherwise it had failed.
        
        The inputs to this function are the same as the normal shock function,
-       and the default max_failures is 20, which considering the change in shock
-       speed is only 0.1, is a maximum change of 2.0 m/s before it will stop
+       and the default max_failures is 40, which considering the change in shock
+       speed is only 0.1, is a maximum change of 4.0 m/s before it will stop
        and declare a failure.
     """
     
@@ -2252,10 +2272,10 @@ def normal_shock_wrapper(state1, Vs, state2, gas_guess = None, max_failures = 20
                 Vs += 0.1
               
             else:
-                raise Exception, "pitot_flow_functions.normal_shock_wrapper() Normal shock calculation failed."
+                raise Exception, "pitot_flow_functions.normal_shock_wrapper() Normal shock calculation failed last guess was {0:5.0f} m/s.".format(Vs)
                 
     if not found_solution:
         #ie. if we finished up without a solution...
-        raise Exception, "pitot_flow_functions.normal_shock_wrapper() Normal shock calculation failed."
+        raise Exception, "pitot_flow_functions.normal_shock_wrapper() Normal shock calculation failed last guess was {0:5.0f} m/s.".format(Vs)
 
     return (V2, V2g)
