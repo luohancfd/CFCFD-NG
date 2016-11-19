@@ -1741,31 +1741,21 @@ def shock_over_model_calculation(cfg, states, V, M):
                 print "Result will not be printed." 
         if 's10e' in states.keys():
             try:
-                (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10e'])
+                # I added the normal shock wrapper here as I was having some issues with these shocks bailing out..
+                # This mean that I could remove anything here to catch the shocks too, as that is done in the wrapper
+                (V10, V['s10e']) = normal_shock_wrapper(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10e'])
                 M['s10e']= V['s10e']/states['s10e'].a
                 #print states['s10e'].species
-                if abs((states['s10e'].p - states[cfg['test_section_state']].p) / states['s10e'].p) < 0.10:
-                    print "For some reason p10e and p{0} are too similar. Shock must have not occured properly.".format(cfg['test_section_state'][1])
-                    print "p{0} = {1} Pa, p10e = {2} Pa."\
-                    .format(cfg['test_section_state'][1], states[cfg['test_section_state']].p, states['s10e'].p)
-                    print "T{0} = {1} K, T10e = {2} K."\
-                    .format(cfg['test_section_state'][1], states[cfg['test_section_state']].T, states['s10e'].T)
-                    raise Exception, "pitot_flow_functions.shock_over_model_calculation() Eq shock over model calculation failed."
             except Exception as e:
                 print "Error {0}".format(str(e))
                 print "Equilibrium normal shock calculation over the test model failed."
                 if cfg['gas_guess']: 
                     print "Will try again with a high temperature gas guess."
                     try:
-                        (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']], 
+                        (V10, V['s10e']) = normal_shock_wrapper(states[cfg['test_section_state']], 
                                                         V[cfg['test_section_state']], 
                                                         states['s10e'], cfg['gas_guess'])
                         M['s10e']= V['s10e']/states['s10e'].a
-                        if abs((states['s10e'].p - states[cfg['test_section_state']].p) / states['s10e'].p) < 0.10:
-                            print "For some reason p10e and p{0} are too similar. Shock must have not occured properly.".format(cfg['test_section_state'][1])
-                            print "p{0} = {1} Pa, p10e = {2} Pa."\
-                            .format(cfg['test_section_state'][1], states[cfg['test_section_state']].p, states['s10e'].p)
-                            raise Exception, "pitot_flow_functions.shock_over_model_calculation() Eq shock over model calculation failed."
                     except Exception as e:
                         print "Error {0}".format(str(e))
                         print "Result will not be printed."

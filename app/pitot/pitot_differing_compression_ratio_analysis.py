@@ -15,9 +15,9 @@ Chris James (c.james4@uq.edu.au) - 25/09/15
 
 """
 
-VERSION_STRING = "24-Jul-2016"
+VERSION_STRING = "19-Nov-2016"
 
-from pitot_condition_builder import stream_tee, pickle_result_data, pickle_intermediate_data, results_csv_builder, normalised_results_csv_builder
+from pitot_condition_builder import stream_tee, pickle_result_data, pickle_intermediate_data, results_csv_builder, normalised_results_csv_builder, zip_result_and_log_files, cleanup_old_files
 
 import sys, os
 
@@ -98,7 +98,8 @@ def start_message(cfg):
     
     # print how many tests we're going to run, and the ranges.
     
-    print '-'*60    
+    print '-'*60   
+    print 'Running Pitot Gas Giant Differing Compression Ratio Analysis Version: {0}.'.format(VERSION_STRING)    
     print "{0} tests will be run.".format(cfg['number_of_test_runs'])
     
     print "Differing compression ratios will be tested from {0} - {1} in increments of {2}."\
@@ -210,7 +211,7 @@ def differing_compression_ratio_analysis_test_run(cfg, results):
     
     condition_status = True #This will be turned to False if the condition fails
     
-    cfg['filename'] = cfg['original_filename'] + '-test-{0}'.format(cfg['test_number'])
+    cfg['filename'] = cfg['original_filename'] + '-test-{0}-result'.format(cfg['test_number'])
     
     if not cfg['have_checked_time']:
         # we check the amount of time the first run takes and then tell the user...
@@ -221,7 +222,7 @@ def differing_compression_ratio_analysis_test_run(cfg, results):
     
     import sys
     
-    test_log = open(cfg['filename']+'-log.txt',"w")
+    test_log = open(cfg['original_filename'] + '-test-{0}-log.txt'.format(cfg['test_number']),"w")
     sys.stdout = stream_tee(sys.stdout, test_log)
     
     print '-'*60
@@ -513,7 +514,13 @@ def run_pitot_differing_compression_ratio_analysis(cfg = {}, config_file = None,
         # clean up any old files if the user has asked for it
         
         if cfg['cleanup_old_files']:
-            from pitot_condition_builder import cleanup_old_files
+            # build a list of auxiliary files and run the cleanup_old_files function frim pitot_condition_builder.py
+            auxiliary_file_list = ['-differing-compression-ratio-analysis-log-and-result-files.zip',
+                                   '-differing-compression-ratio-analysis-final-result-pickle.dat',
+                                   '-differing-compression-ratio-analysis-normalised.csv',
+                                   '-differing-compression-ratio-analysis-summary.txt',
+                                   '-differing-compression-ratio-analysis.csv']
+            cleanup_old_files(auxiliary_file_list)
             cleanup_old_files()
         
         # make a counter so we can work out what test we're running
@@ -627,7 +634,10 @@ def run_pitot_differing_compression_ratio_analysis(cfg = {}, config_file = None,
     # now analyse results dictionary and print some results to the screen
     # and another external file
     
-    differing_compression_ratio_analysis_summary(cfg, results) 
+    differing_compression_ratio_analysis_summary(cfg, results)
+    
+    #zip up the final result using the function from pitot_condition_builder.py
+    zip_result_and_log_files(cfg, output_filename = cfg['original_filename'] + '-differing-compression-ratio-analysis-log-and-result-files.zip')    
     
     return
                                 

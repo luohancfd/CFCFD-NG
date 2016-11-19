@@ -15,9 +15,9 @@ Chris James (c.james4@uq.edu.au) - 23/12/14
 
 """
 
-VERSION_STRING = "24-Jul-2016"
+VERSION_STRING = "19-Nov-2016"
 
-from pitot_condition_builder import stream_tee, pickle_result_data, pickle_intermediate_data, results_csv_builder, normalised_results_csv_builder 
+from pitot_condition_builder import stream_tee, pickle_result_data, pickle_intermediate_data, results_csv_builder, normalised_results_csv_builder, cleanup_old_files, zip_result_and_log_files 
 
 import sys, os
 
@@ -86,7 +86,8 @@ def start_message(cfg):
     
     # print how many tests we're going to run, and the ranges.
     
-    print '-'*60    
+    print '-'*60
+    print 'Running Pitot Gas Giant Differing Diluent Analysis Version: {0}.'.format(VERSION_STRING)    
     print "{0} tests will be run.".format(cfg['number_of_test_runs'])
     
     if cfg['diluent_inputUnits'] == 'moles':
@@ -206,13 +207,13 @@ def gg_differing_diluent_analysis_test_run(cfg, results):
     
     condition_status = True #This will be turned to False if the condition fails
     
-    cfg['filename'] = cfg['original_filename'] + '-test-{0}'.format(cfg['test_number'])
+    cfg['filename'] = cfg['original_filename'] + '-test-{0}-result'.format(cfg['test_number'])
     
     # some code here to make a copy of the stdout printouts for each test and store it
     
     import sys
     
-    test_log = open(cfg['filename']+'-log.txt',"w")
+    test_log = open(cfg['original_filename'] + '-test-{0}-log.txt'.format(cfg['test_number']),"w")
     sys.stdout = stream_tee(sys.stdout, test_log)
     
     print '-'*60
@@ -510,8 +511,13 @@ def run_pitot_gg_differing_diluent_analysis(cfg = {}, config_file = None, force_
         # clean up any old files if the user has asked for it
         
         if cfg['cleanup_old_files']:
-            from pitot_condition_builder import cleanup_old_files
-            cleanup_old_files()
+            # build a list of auxiliary files and run the cleanup_old_files function frim pitot_condition_builder.py
+            auxiliary_file_list = ['-gg-differing-diluent-analysis-log-and-result-files.zip',
+                                   '-gg-differing-diluent-analysis-final-result-pickle.dat',
+                                   '-gg-differing-diluent-analysis-normalised.csv',
+                                   '-gg-differing-diluent-analysis-summary.txt',
+                                   '-gg-differing-diluent-analysis.csv']
+            cleanup_old_files(auxiliary_file_list)
         
         # make a counter so we can work out what test we're running
         # also make one to store how many runs are successful
@@ -576,7 +582,7 @@ def run_pitot_gg_differing_diluent_analysis(cfg = {}, config_file = None, force_
         cfg['test_number'] = test_name
         
         # then set the details that every simulation will need set
-        cfg['diluent_percentage'] =  cfg['compression_ratio'] = test_condition_input_details[test_name]['diluent_percentage']
+        cfg['diluent_percentage'] = test_condition_input_details[test_name]['diluent_percentage']
         percentage_not_diluent = 100.0 - cfg['diluent_percentage']
         diluent = cfg['diluent']
         
@@ -632,6 +638,9 @@ def run_pitot_gg_differing_diluent_analysis(cfg = {}, config_file = None, force_
     # and another external file
     
     gg_differing_diluent_analysis_summary(cfg, results) 
+    
+    #zip up the final result using the function from pitot_condition_builder.py
+    zip_result_and_log_files(cfg, output_filename = cfg['original_filename'] + '-gg-differing-diluent-analysis-log-and-result-files.zip')
     
     return
                                 

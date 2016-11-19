@@ -16,11 +16,11 @@ Chris James (c.james4@uq.edu.au) - 12/09/14
 
 """
 
-VERSION_STRING = "22-May-2016"
+VERSION_STRING = "19-Nov-2016"
 
-from pitot_condition_builder import stream_tee
+from pitot_condition_builder import stream_tee, cleanup_old_files, pickle_result_data, zip_result_and_log_files, results_csv_builder, normalised_results_csv_builder, pickle_intermediate_data
 
-import sys
+import sys, os
 
 from pitot import run_pitot
 from pitot_input_utils import *
@@ -91,6 +91,7 @@ def start_message(cfg):
     # print how many tests we're going to run, and the ranges.
     
     print '-'*60    
+    print 'Running Pitot Air Contamination Analysis Version: {0}.'.format(VERSION_STRING)    
     print "{0} tests will be run.".format(cfg['number_of_test_runs'])
     
     if cfg['air_contamination_inputUnits'] == 'moles':
@@ -157,6 +158,38 @@ def build_results_dict(cfg):
     
     return results
     
+def build_test_condition_input_details_dictionary(cfg):
+    """Function that builds a dictionary that tells the condition
+       builder what tests to run. It will include a list called 'test_names'
+       that will be cycled through by the main condition program.
+       
+    """
+    
+    test_condition_input_details = {}
+    test_condition_input_details['test_names'] = []
+    
+    test_name = 0 # we will add to this as we go, first test_name will be 1
+    
+    print '-'*60
+    print "Building the test condition details dictionary containing a dictionary for each simulation." 
+    
+    for contamination_percentage in cfg['air_contamination_list']:
+        # change the test name
+        test_name += 1
+        # store that test name
+        test_condition_input_details['test_names'].append(test_name)
+        # now make a dictionary in the test_condition_input_details dictionary for this simulation
+        # using the diluent percantage
+        # this is simple here as diluent_percentage is the only variable...
+        # (for the normal condition builder it was a bit more complicated...)
+        input_dictionary = {'contamination_percentage': contamination_percentage}
+        test_condition_input_details[test_name] = input_dictionary
+                
+    print "The test_names list for this simulation is:"
+    print test_condition_input_details['test_names']
+                
+    return test_condition_input_details    
+    
 def contamination_analysis_test_run(cfg, results):
     """Function that takes the fully built config dictionary
        and the text file that is being used for the program output
@@ -165,13 +198,13 @@ def contamination_analysis_test_run(cfg, results):
     
     condition_status = True #This will be turned to False if the condition fails
     
-    cfg['filename'] = cfg['original_filename'] + '-test-{0}'.format(cfg['test_number'])
+    cfg['filename'] = cfg['original_filename'] + '-test-{0}-result'.format(cfg['test_number'])
     
     # some code here to make a copy of the stdout printouts for each test and store it
     
     import sys
     
-    test_log = open(cfg['filename']+'-log.txt',"w")
+    test_log = open(cfg['original_filename'] + '-test-{0}-log.txt'.format(cfg['test_number']),"w")
     sys.stdout = stream_tee(sys.stdout, test_log)
     
     print '-'*60
@@ -210,132 +243,6 @@ def contamination_analysis_test_run(cfg, results):
     test_log.close()
             
     return condition_status, results
-    
-def results_csv_builder(results, test_name = 'pitot_run',  intro_line = None):
-    """Function that takes the final results dictionary (which must include a 
-       list called 'full_list' that tells this function what to print and in 
-       what order) and then outputs a results csv. It will also add an intro line
-       if a string with that is added. The name of the test is also required.
-    """
-    
-    # open a file to start saving results
-    condition_builder_output = open(test_name + '-contamination-analysis.csv',"w")  #csv_output file creation
-    
-    # print a line explaining the results if the user gives it
-    if intro_line:
-        intro_line_optional = "# " + intro_line
-        condition_builder_output.write(intro_line_optional + '\n')
-    
-    #now we'll make the code build us the second intro line
-    intro_line = '#'
-    for value in results['full_list']:
-        if value != results['full_list'][-1]:
-            intro_line += "{0},".format(value)
-        else: #don't put the comma if it's the last value
-            intro_line += "{0}".format(value)
-    condition_builder_output.write(intro_line + '\n')
-    
-    # now we need to go through every test run and print the data.
-    # we'll use 'full_list' to guide our way through
-    
-    # get the number of the test runs from the length of the first data list mentioned
-    # in 'full_list'. need to assume the user hasn't screwed up and got lists of
-    # different lengths
-    number_of_test_runs = len(results[results['full_list'][0]])
-    
-    for i in range(0, number_of_test_runs, 1):
-        output_line = ''
-        for value in results['full_list']:
-            if value != results['full_list'][-1]:
-                output_line += "{0},".format(results[value][i])
-            else: #don't put the comma if it's the last value in the csv
-                output_line += "{0}".format(results[value][i])
-        
-        condition_builder_output.write(output_line + '\n')  
-
-    condition_builder_output.close()              
-                                  
-    return 
-    
-def normalised_results_csv_builder(results, test_name = 'pitot_run',  
-                                   intro_line = None, normalised_by = 'first value'):
-    """Function that takes the final results dictionary (which must include a 
-       list called 'full_list' that tells this function what to print and in 
-       what order) and then outputs a normalised version of the results csv.
-       You can tell it to normalise by other values, but 'first value' is default.
-       
-       It will also add an intro line if a string with that is added. 
-       The name of the test is also required.
-    """
-    
-    # open a file to start saving results
-    condition_builder_output = open(test_name + '-contamination-analysis-normalised.csv',"w")  #csv_output file creation
-    
-    # print a line explaining the results if the user gives it
-    if intro_line:
-        intro_line_optional = "# " + intro_line
-        condition_builder_output.write(intro_line_optional + '\n')
-        
-    normalised_intro_line = "# all variables normalised by {0}".format(normalised_by)
-    condition_builder_output.write(normalised_intro_line + '\n')
-    
-    #now we'll make the code build us the second intro line
-    intro_line = '#'
-    for value in results['full_list']:
-        if value != results['full_list'][-1]:
-            # 'test number' and 'air contamination' will not be normalised, 
-            # so don't add the normalised part for them
-            if value in ['test number', 'air contamination']:
-                intro_line += "{0},".format(value)
-            else:
-                intro_line += "{0} normalised,".format(value)
-        else: #don't put the comma if it's the last value
-            intro_line += "{0} normalised".format(value)
-        
-    condition_builder_output.write(intro_line + '\n')
-    
-    # now we need to go through every test run and print the data.
-    # we'll use 'full_list' to guide our way through
-    
-    # get the number of the test runs from the length of the first data list mentioned
-    # in 'full_list'. need to assume the user hasn't screwed up and got lists of
-    # different lengths
-    number_of_test_runs = len(results[results['full_list'][0]])
-    
-    # build a dictionary to store all of our normalisation values
-    normalising_value_dict = {}
-    
-    for value in  results['full_list']:
-        if normalised_by == 'first value':
-            normalising_value_dict[value] = results[value][0]
-        elif normalised_by == 'maximum value':
-            normalising_value_dict[value] = max(results[value])
-        elif normalised_by == 'last value':
-            normalising_value_dict[value] = results[value][-1]       
-    
-    for i in range(0, number_of_test_runs, 1):
-        output_line = ''
-        for value in results['full_list']:
-            if value != results['full_list'][-1]:
-                # don't normalise 'test number' or 'air contamination'
-                # or a value that is not a number
-                if value in ['test number', 'air contamination'] or \
-                not isinstance(results[value][i], (int, float)):
-                    output_line += "{0},".format(results[value][i])
-                else:
-                    output_line += "{0},".format(results[value][i]/normalising_value_dict[value])
-            else: #don't put the comma if it's the last value in the csv
-                if isinstance(results[value][i], (int, float)): 
-                    # only normalise if the value is a number
-                    output_line += "{0}".format(results[value][i]/normalising_value_dict[value])
-                else:
-                    output_line += "{0},".format(results[value][i])
-        
-        condition_builder_output.write(output_line + '\n')  
-
-    condition_builder_output.close()              
-                                  
-    return     
     
 def add_new_result_to_results_dict(cfg, states, V, M, results):
     """Function that takes a completed test run and adds the tunnel
@@ -498,7 +405,7 @@ def contamination_analysis_summary(cfg, results):
                 
     return
             
-def run_pitot_contamination_analysis(cfg = {}, config_file = None):
+def run_pitot_contamination_analysis(cfg = {}, config_file = None, force_restart = False):
     """
     
     Chris James (c.james4@uq.edu.au) 12/09/14
@@ -507,7 +414,7 @@ def run_pitot_contamination_analysis(cfg = {}, config_file = None):
     
     """
     
-    import time
+    import time, os
     
     #---------------------- get the inputs set up --------------------------
     
@@ -520,47 +427,87 @@ def run_pitot_contamination_analysis(cfg = {}, config_file = None):
     
     cfg = check_new_inputs(cfg)
     
-    # clean up any old files if the user has asked for it
+    intermediate_filename = cfg['filename']+'-contamination-analysis-intermediate-result-pickle.dat'
     
-    if cfg['cleanup_old_files']:
-        from pitot_condition_builder import cleanup_old_files
-        cleanup_old_files()
+    # now check if we have attempted an old run before or not....
+    if not os.path.isfile(intermediate_filename) or force_restart: 
+        # if not, we set up a new one...    
     
-    # make a counter so we can work out what test we're running
-    # also make one to store how many runs are successful
-    
-    cfg['number_of_test_runs'] = calculate_number_of_test_runs(cfg)
-    
-    import copy
-    cfg['original_filename'] = copy.copy(cfg['filename'])
-    cfg['original_test_gas'] = copy.copy(cfg['test_gas'])
-    
-    counter = 0
-    good_counter = 0
-    
-    # print a start message to get us going
-    
-    cfg = start_message(cfg)
-    
-    # work out what we need in our results dictionary and make the dictionary
-    
-    results = build_results_dict(cfg)
-    
-    have_checked_time = False
-    
-    #now start up the for loops and get running    
-    
-    for contamination_percentage in cfg['air_contamination_list']:
-        # need to extract our original test gas here and then we
-        # need to set a custom test gas and then work out how much
-        # we need to adjust the original values by to fit in with
-        # the amount of contamination
+        # clean up any old files if the user has asked for it
         
-        cfg['contamination_percentage'] = contamination_percentage
-        percentage_not_air = 100.0 - contamination_percentage
+        if cfg['cleanup_old_files']:
+            # build a list of auxiliary files and run the cleanup_old_files function frim pitot_condition_builder.py
+            auxiliary_file_list = ['-contamination-analysis-log-and-result-files.zip',
+                                   '-contamination-analysis-final-result-pickle.dat',
+                                   '-contamination-analysis-normalised.csv',
+                                   '-contamination-analysis-summary.txt',
+                                   '-contamination-analysis.csv']
+            cleanup_old_files(auxiliary_file_list)
+        
+        # make a counter so we can work out what test we're running
+        # also make one to store how many runs are successful
+        
+        cfg['number_of_test_runs'] = calculate_number_of_test_runs(cfg)
+        
+        import copy
+        cfg['original_filename'] = copy.copy(cfg['filename'])
+        cfg['original_test_gas'] = copy.copy(cfg['test_gas'])
+                
+        # print a start message to get us going
+        
+        cfg = start_message(cfg)
+        
+        # work out what we need in our results dictionary and make the dictionary
+        
+        results = build_results_dict(cfg)
+        
+        # build the dictionary with the details of all the tests we want to run...
+        
+        test_condition_input_details = build_test_condition_input_details_dictionary(cfg)
+        
+        # so we can make the first run check the time...                   
+        cfg['have_checked_time'] = False
+        
+        # counter to count the experiments that don't fail
+        cfg['good_counter'] = 0
+        # list that will be filled by the experiment numbers as they finish...
+        cfg['finished_simulations'] = []   
+        
+    else:
+        # we can load an unfinished simulation and finishing it...!
+        print '-'*60
+        print "It appears that an unfinished simulation was found in this folder"
+        print "We are now going to attempt to finish this simulation."
+        print "If this is not what you want, please delete the file '{0}' and run the condition builder again.".format(intermediate_filename)
+    
+        import pickle
+        with open(intermediate_filename,"rU") as data_file:
+            intermediate_result = pickle.load(data_file)
+            cfg = intermediate_result['cfg']
+            results = intermediate_result['results']
+            test_condition_input_details = intermediate_result['test_condition_input_details']
+            data_file.close()
+    
+    
+     #now start the main for loop for the simulation...
+    
+    for test_name in test_condition_input_details['test_names']:
+        # this is for a re-loaded simulation, to make sure we don't re-run what has already been run
+        if test_name in cfg['finished_simulations']:
+            print '-'*60
+            print "test_name '{0}' is already in the 'finished_simulations' list.".format(test_name)
+            print "Therefore it has probably already been run and will be skipped..."
+            continue # code to skip iteration
+        
+        # first set the test number variable...
+        cfg['test_number'] = test_name
+                
+        # then set the variables that the simulation will need set
+        cfg['contamination_percentage'] = test_condition_input_details[test_name]['contamination_percentage']
+        percentage_not_air = 100.0 - cfg['contamination_percentage']
         
         # this is easy if the original test gas was already custom
-        if contamination_percentage > 0.0: #obviously don't do anything special when the percentage is 0
+        if cfg['contamination_percentage'] > 0.0: #obviously don't do anything special when the percentage is 0
             if cfg['original_test_gas'] == 'custom':
                 if cfg['test_gas_inputUnits'] == 'moles' and cfg['air_contamination_inputUnits'] == 'moles' or \
                 cfg['test_gas_inputUnits'] == 'massf' and cfg['air_contamination_inputUnits'] == 'massf':
@@ -568,10 +515,10 @@ def run_pitot_contamination_analysis(cfg = {}, config_file = None):
                         cfg['test_gas_composition'][species] = cfg['test_gas_composition'][species]*percentage_not_air
                     # if air was already in the mix, just increase the amount
                     if 'Air' in cfg['test_gas_composition'].keys():
-                        cfg['test_gas_composition']['Air'] = cfg['test_gas_composition']['Air'] + contamination_percentage / 100.0
+                        cfg['test_gas_composition']['Air'] = cfg['test_gas_composition']['Air'] + cfg['contamination_percentage'] / 100.0
                     # if not, add the air
                     else:
-                        cfg['test_gas_composition']['Air'] = contamination_percentage / 100.0              
+                        cfg['test_gas_composition']['Air'] = cfg['contamination_percentage'] / 100.0              
             else: #noncustom test gas
                 from pitot_input_utils import make_test_gas
                 if cfg['air_contamination_inputUnits'] == 'moles':
@@ -593,19 +540,17 @@ def run_pitot_contamination_analysis(cfg = {}, config_file = None):
                     cfg['test_gas_composition'][species] = original_test_gas.species[species]*percentage_not_air
                 # if air was already in the mix, just increase the amount
                 if 'Air' in original_test_gas.species.keys():
-                    cfg['test_gas_composition']['Air'] = original_test_gas.species['Air'] + contamination_percentage 
+                    cfg['test_gas_composition']['Air'] = original_test_gas.species['Air'] + cfg['contamination_percentage'] 
                 # if not, add the air
                 else:
-                    cfg['test_gas_composition']['Air'] = contamination_percentage   
+                    cfg['test_gas_composition']['Air'] = cfg['contamination_percentage']  
 
-        counter += 1
-        cfg['test_number'] = counter
-        if not have_checked_time:
+        if not cfg['have_checked_time']:
             start_time = time.time()
         run_status, results = contamination_analysis_test_run(cfg, results) 
         if run_status:
-            good_counter += 1
-            if not have_checked_time:
+            cfg['good_counter'] += 1
+            if not cfg['have_checked_time']:
                 test_time = time.time() - start_time
                 print '-'*60
                 print "Time to complete first test was {0:.2f} seconds."\
@@ -613,27 +558,41 @@ def run_pitot_contamination_analysis(cfg = {}, config_file = None):
                 print "If every test takes this long. It will take roughly {0:.2f} hours to perform all {1} tests."\
                 .format(test_time*cfg['number_of_test_runs']/3600.0, cfg['number_of_test_runs'])
                 have_checked_time = True
+        
+        # add this to finished simulations list, regardless of whether it finished correctly or not...
+        cfg['finished_simulations'].append(test_name)
+        
+        # now pickle the intermediate result so we can result the simulation if needed...
+        pickle_intermediate_data(cfg, results, test_condition_input_details, filename = intermediate_filename)
 
     # now that we're done we can dump the results to the results csv 
-    intro_line = "Output of pitot contamination analysis program Version {0}.".format(VERSION_STRING)            
+    intro_line = "Output of pitot contamination analysis program Version {0}.".format(VERSION_STRING)     
     results_csv_builder(results, test_name = cfg['original_filename'],  
-                        intro_line = intro_line)
+                        intro_line = intro_line, filename = cfg['original_filename'] + '-contamination-analysis.csv')
                         
     #and a normalised csv also
     normalised_results_csv_builder(results, test_name = cfg['original_filename'],  
-                        intro_line = intro_line, 
-                        normalised_by = cfg['normalise_results_by'])   
+                                   intro_line = intro_line, normalised_by = cfg['normalise_results_by'],
+                                   filename = cfg['original_filename']+'-contamination-analysis-normalised.csv',
+                                   extra_normalise_exceptions = ['test number', 'air contamination'])  
 
-    # and pull in the pickle function from pitot_condition_builder.py
+    # and use the pickle function from pitot_condition_builder.py
     # so we can pick the results and config dictionaries                  
-    from pitot_condition_builder import pickle_data
+    pickle_result_data(cfg, results, filename = cfg['original_filename']+'-contamination-analysis-final-result-pickle.dat')
     
-    pickle_result_data(cfg, results)
-
     # now analyse results dictionary and print some results to the screen
     # and another external file
     
     contamination_analysis_summary(cfg, results)
+    
+    # now delete the intermediate pickle that we made during the simulation...
+    print "Removing the final intermediate pickle file."
+    
+    if os.path.isfile(intermediate_filename): 
+        os.remove(intermediate_filename)
+    
+    #zip up the final result using the function from pitot_condition_builder.py
+    zip_result_and_log_files(cfg, output_filename = cfg['original_filename'] + '-contamination-analysis-log-and-result-files.zip')
     
     return
                                 
@@ -645,11 +604,14 @@ def main():
     op = optparse.OptionParser(version=VERSION_STRING)   
     op.add_option('-c', '--config_file', '--config-file', dest='config_file',
                   help=("filename where the configuration file is located"))    
-
+    op.add_option('-f', '--force_restart', action = "store_true", dest='force_restart',
+                  help=("flag that can be used to force the simulation to restart"
+                        "It stops it looking for an unfinished simulation.")) 
     opt, args = op.parse_args()
     config_file = opt.config_file
+    force_restart = opt.force_restart
            
-    run_pitot_contamination_analysis(cfg = {}, config_file = config_file)
+    run_pitot_contamination_analysis(cfg = {}, config_file = config_file, force_restart = force_restart)
     
     return
     
