@@ -590,8 +590,13 @@ def shock_tube_calculation(cfg, states, V, M):
                     # do a lower guess if we have a cold driver.
                     # Chris James (28/09/15)
                     cfg['Vs1_guess_1'] = 2000.0; cfg['Vs1_guess_2'] = 3000.0
+                elif cfg['p1'] < 5000.0 and cfg['solver'] == 'eq' and 'H2' in states['s1'].species and 'He' in states['s1'].species:
+                    # for gas giant conditions that are much lower density than the normal air guesses...
+                    # this is to try to stop issues with the code bailing out due to the first guesses being too
+                    # low and ions being used
+                    cfg['Vs1_guess_1'] = 8000.0; cfg['Vs1_guess_2'] = 9000.0 
                 elif cfg['p1'] > 1000.0 and not cfg['secondary']:
-                    cfg['Vs1_guess_1'] = 4000.0; cfg['Vs1_guess_2'] = 6000.0
+                    cfg['Vs1_guess_1'] = 4000.0; cfg['Vs1_guess_2'] = 6000.0   
                 elif cfg['p1'] < 100.0 and not cfg['secondary']:
                     cfg['Vs1_guess_1'] = 10000.0; cfg['Vs1_guess_2'] = 12000.0
                 else:
@@ -619,12 +624,30 @@ def shock_tube_calculation(cfg, states, V, M):
                 print "Using default shock tube secant solver tolerance of {0}.".format(cfg['shock_tube_secant_tol'])
             else:
                 print "Using custom shock tube secant solver tolerance of {0}.".format(cfg['shock_tube_secant_tol'])                
-                
-            cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
-                                cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
-                                cfg['shock_tube_secant_tol'],
-                                limits=[cfg['Vs1_lower'], cfg['Vs1_upper']],
-                                max_iterations=100)
+            
+            try:
+                cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
+                                    cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
+                                    cfg['shock_tube_secant_tol'],
+                                    limits=[cfg['Vs1_lower'], cfg['Vs1_upper']],
+                                    max_iterations=100)
+            except Exception as e:
+                print "{0}: {1}".format(type(e).__name__, e.message)
+                print "Shock tube secant solver failed. Will try again with higher initial guesses."
+                print "New guesses are: 'Vs1_guess_1' = {0} m/s and 'Vs1_guess_2' = {1} m/s".\
+                       format(cfg['Vs1_guess_1'] + 2000.0, cfg['Vs1_guess_2'] + 2000.0)
+                cfg['Vs1_guess_1'] += 2000.0; cfg['Vs1_guess_2'] += 2000.0
+            try:
+                cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
+                                    cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
+                                    cfg['shock_tube_secant_tol'],
+                                    limits=[cfg['Vs1_lower'], cfg['Vs1_upper']],
+                                    max_iterations=100)
+            except Exception as e:
+                print "{0}: {1}".format(type(e).__name__, e.message)
+                print "Shock tube secant solver failed again with the higher guesses."
+                raise Exception, "pitot_flow_functions.shock_tube_calculation() Shock tube secant solver failed."              
+             
             if cfg['Vs1'] == 'FAIL':
                 print "Secant solver failed to settle on a Vs1 value after 100 iterations."
                 print "Dropping tolerance from {0} to {1} and trying again..."\
@@ -1188,9 +1211,9 @@ def acceleration_tube_calculation(cfg, states, V, M):
             print "{0}: {1}".format(type(e).__name__, e.message)
             print "Acceleration tube secant solver failed. Will try again with higher initial guesses."
             # check last_guess is there, check there is a number there to pull
-            # and check taht the the guess is larger (as we generally want that, and that it is not the maximum value)
+            # and check taht the the guess is larger by a decent amount (as we generally want that, and that it is not the maximum value)
             # of 34750 m/s...
-            if 'last guess' in e.message and e.message[-10:-5].isdigit() and float(e.message[-10:-5]) > cfg['Vs2_guess_1'] \
+            if 'last guess' in e.message and e.message[-10:-5].isdigit() and float(e.message[-10:-5]) > cfg['Vs2_guess_1']*1.1 \
                 and float(e.message[-10:-5]) != 34750.0:
                 last_guess = float(e.message[-10:-5])
                 print "New guesses will be based on the last guess Vs2 = {0} m/s.".format(last_guess)
@@ -2228,7 +2251,7 @@ def normal_shock_wrapper(state1, Vs, state2, gas_guess = None, max_failures = 40
         try:                       
             (V2, V2g) = normal_shock(state1, Vs, state2, gas_guess)
             if abs((state2.p - state1.p) / state2.p) < 0.10:
-                print "For some reason p2 and p1 are too similar. Shock must have not occured properly."
+                print "For some reason p2 and p1 are too similar. Shock has converged to the fill condition."
                 print "p1 = {0} Pa, p2 = {1} Pa.".format(state1.p, state2.p)
                 print "Will try again with Vs as Vs + 0.1."
                 found_solution = False
