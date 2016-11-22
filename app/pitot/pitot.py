@@ -281,6 +281,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
     07-Nov-2016: Made the condition builder zip the log and result files.
     19-Nov-2016: Brought all of the multiple run codes based on pitot_condition_builder.py in line
         with the recent changes to pitot_condition_builder.py some were further along than others!
+    22-Nov-2016: Added new driver condition for X3 based on ANdreas' recent blank off shots,
+        added ability to use the x-t diagram maker with X3, and added a V3s_loss_factor for Tim
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -308,7 +310,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "19-Nov-2016"
+VERSION_STRING = "22-Nov-2016"
 
 DEBUG_PITOT = False
 
@@ -532,9 +534,6 @@ def run_pitot(cfg = {}, config_file = None):
         except Exception as e:
             print "Error:", e
             raise Exception, "pitot.run_pitot() Run of pitot has failed somewhere creation of a one line summary. Summary file may have issues."            
-        
-        
-        
         
     #------------------ x-t diagram builder ------------------------------- 
     

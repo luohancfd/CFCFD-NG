@@ -765,14 +765,25 @@ def input_checker(cfg, condition_builder = False):
         raise TypeError, "'V2_loss_factor' input is not a float"
         
     # ------------------------ Vsd2 loss factor stuff ----------------------------
-    
-    if 'Vsd2_loss_factor' not in cfg:
-        print "'Vsd2_loss_factor' not in cfg will set it to a default of None..."
-        cfg['Vsd2_loss_factor'] = None
+
+    if cfg['secondary']:    
+        if 'Vsd2_loss_factor' not in cfg:
+            print "'Vsd2_loss_factor' not in cfg will set it to a default of None..."
+            cfg['Vsd2_loss_factor'] = None
+            
+        if cfg['Vsd2_loss_factor'] and not isinstance(cfg['Vsd2_loss_factor'], float):
+            print "Vsd2_loss_factor' must be a float. Current value is not. Bailing out."
+            raise TypeError, "'Vsd2_loss_factor' input is not a float"
         
-    if cfg['Vsd2_loss_factor'] and not isinstance(cfg['Vsd2_loss_factor'], float):
-        print "Vsd2_loss_factor' must be a float. Current value is not. Bailing out."
-        raise TypeError, "'Vsd2_loss_factor' input is not a float"
+    # ------------------------ V3s loss factor stuff ----------------------------
+    
+    if 'V3s_loss_factor' not in cfg:
+        print "'V3s_loss_factor' not in cfg will set it to a default of None..."
+        cfg['V3s_loss_factor'] = None
+        
+    if cfg['V3s_loss_factor'] and not isinstance(cfg['V3s_loss_factor'], float):
+        print "V3s_loss_factor' must be a float. Current value is not. Bailing out."
+        raise TypeError, "'V3s_loss_factor' input is not a float"
     
     # ------------------------ accelerator gas without ions stuff ----------------------------
     
@@ -956,8 +967,9 @@ def state_builder(cfg):
                          'He:0.825,Ar:0.175':[Gas({'He':0.825,'Ar':2.23},inputUnits='moles',
                                                outputUnits='moles'),2.23],    
                          'He:0.60,Ar:0.40':[Gas({'He':0.60,'Ar':0.40},inputUnits='moles',
-                                                outputUnits='moles'),2.23]      
-                        }   
+                                                outputUnits='moles'),2.23],      
+                         'Ar:1.0':[Gas({'Ar':1.0},inputUnits='moles',
+                                                outputUnits='moles'),1.0] }   
                                                       
                                                       
     
@@ -1118,6 +1130,17 @@ def state_builder(cfg):
         states['s4']=primary_driver_x3[cfg['driver_gas']][0].clone()
         if cfg['piston'] == 'x3':
             cfg['p4'] = 2.79e7; cfg['T4'] = 2700.0 #Pa, K
+        elif cfg['piston'] == 'lwp-2mm-andreas':
+            # this is just isentropic for now...
+            driver_p = 49.0e3 #driver fill pressure, Pa
+            driver_T = 298.15 #driver temperature, K
+            states['s4i'] = primary_driver_x3[cfg['driver_gas']][0].clone()
+            states['s4i'].set_pT(driver_p, driver_T)
+            cfg['p4'] = 17.5e6 #primary driver burst pressure, Pa 
+            cfg['T4'] = states['s4i'].T*\
+            (cfg['p4']/states['s4i'].p)**(1.0-(1.0/states['s4i'].gam)) #K
+            states['s4'] = states['s4i'].clone()
+           
         states['s4'].set_pT(cfg['p4'],cfg['T4'])
         V['s4']=0.0
         M['s4']=0.0
@@ -1192,6 +1215,13 @@ def state_builder(cfg):
     
     if M['s3s'] > 0.0:    
         (states['s3s'], V['s3s']) = expand_from_stagnation(1.0/(p0_p(M['s3s'],states['s4'].gam)),states['s4'])
+        if 'V3s_loss_factor' in cfg and cfg['V3s_loss_factor']:
+            import copy
+            print "The steadily expanded driver gas velocity (V3s) is being changed to the found value multiplied by a loss factor of {0}.".format(cfg['V3s_loss_factor'])
+            V3s_original = copy.copy(V['s3s'])
+            V['s3s'] = V['s3s']*cfg['V3s_loss_factor']
+            print "The original V3s value was {0:.2f} m/s and the new value is {1:.2f} m/s.".format(V3s_original, V['s3s'])
+            
     else:
         states['s3s'] = states['s4'].clone()
         V['s3s'] = 0.0

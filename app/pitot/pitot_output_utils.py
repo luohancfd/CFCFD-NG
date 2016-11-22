@@ -1063,25 +1063,42 @@ def make_x_t_diagram(cfg, states, V, M, filename = 'x-t-diagram', show = False):
        could be added in the future...
     """
     
-    # X2 diaphragm and PCB locations are from 
-    #Gildfind, D. E., Jacobs, P. A., and Morgan, R. G., "Vibration isolation in a free-
-    #piston driven expansion tube facility," Shock Waves, Vol. 23, No. 5, 2013, pp. 431-438.
+    if cfg['facility'] == 'x2':
+        # X2 diaphragm and PCB locations are from 
+        #Gildfind, D. E., Jacobs, P. A., and Morgan, R. G., "Vibration isolation in a free-
+        #piston driven expansion tube facility," Shock Waves, Vol. 23, No. 5, 2013, pp. 431-438.
     
-    transducer_list = ['sd1', 'sd2', 'sd3', 'st1', 'st2', 'st3', 
-                       'at1', 'at2', 'at3', 'at4', 'at5', 'at6']
-    # 0-m has been taken as the primary diaphragm location, locations are in m
-    # tube exit is with the X2 nozzle, but it's good enough for now...
-    loc_dict = {'sd1':2.577,'sd2':2.810, 'sd3':3.043,'st1':4.231,
-                'st2':4.746, 'st3':5.260, 'at1':6.437,'at2':6.615,
-                'at3':6.796,'at4':7.590, 'at5':7.846,'at6':8.096,
-                'secondary diaphragm': 3.418, 'tertiary diaphragm': 5.976,
-                'tube exit': 8.585}
+        # but the at7 and at8 locations were measured by Chris James.
+        # distance between at7 and at8 is from the drawing.
+        
+        transducer_list = ['sd1', 'sd2', 'sd3', 'st1', 'st2', 'st3', 
+                           'at1', 'at2', 'at3', 'at4', 'at5', 'at6']
+        # 0-m has been taken as the primary diaphragm location, locations are in m
+        # tube exit is with the X2 nozzle, but it's good enough for now...
+        loc_dict = {'sd1':2.577,'sd2':2.810, 'sd3':3.043,'st1':4.231,
+                    'st2':4.746, 'st3':5.260, 'at1':6.437,'at2':6.615,
+                    'at3':6.796,'at4':7.590, 'at5':7.846,'at6':8.096, 'at7': 8.157, 'at8':8.197,
+                    'secondary diaphragm': 3.418, 'tertiary diaphragm': 5.976,
+                    'tube exit': 8.585}
+    elif cfg['facility'] == 'x3':
+        # I got all of these from talking to Pierpaolo and Andreas on the 22/11/16
+    
+        transducer_list  = ['st1', 'st2', 'st3', 'st4', 'st5', 'st6', 'st7','st8',
+                            'at1', 'at2', 'at3', 'at4', 'at5', 'at6', 'at7', 'at8']
+                            
+        loc_dict = {'st1':1.649,'st2':6.504, 'st3':7.955,'st4':9.519,
+                    'st5':16.123, 'st6':19.217, 'st7':20.715, 'st8':22.207,
+                    'at1':24.307,'at2':26.336, 'at3':28.365,'at4':32.430, 
+                    'at5':34.894,'at6':36.494,'at7': 38.095, 'at8':38.524,
+                    'secondary diaphragm': 9.772, 'tertiary diaphragm': 22.337,
+                    'tube exit': 38.599}  
+        
                 
-    if cfg['facility'] != 'x2':
-        print "Currently, this mode can only be used for the X2 Expansion Tube, will finish now..."
+    if cfg['facility'] not in ['x2', 'x3']:
+        print "Currently, this mode can only be used for the X2 or X3 Expansion Tubes, will finish now..."
         return cfg
         
-    print "Making x-t diagram of flow through the X2 Expansion Tube."
+    print "Making x-t diagram of flow through the {0} Expansion Tube.".format(cfg['facility'])
     
     shock_x_list = [0.0]
     shock_t_list = [0.0]
@@ -1104,7 +1121,13 @@ def make_x_t_diagram(cfg, states, V, M, filename = 'x-t-diagram', show = False):
             print '-'*60            
             output_file.write('-'*60  + '\n')
             
-            for transducer in ['sd1', 'sd2', 'sd3']:
+            
+            if cfg['facility'] == 'x2':
+                sd_transducer_list = ['sd1', 'sd2', 'sd3']
+            elif cfg['facility'] == 'x3':
+                sd_transducer_list = ['st1', 'st2', 'st3', 'st4']
+            
+            for transducer in sd_transducer_list:
                 transducer_time = shock_t_list[-2] + (loc_dict[transducer] - shock_x_list[-2]) / cfg['Vsd']
                 transducer_output =  "Shock will pass transducer {0} at t = {1} s ({2} microseconds)."\
                                      .format(transducer, transducer_time, transducer_time * 1.0e6)
@@ -1136,8 +1159,11 @@ def make_x_t_diagram(cfg, states, V, M, filename = 'x-t-diagram', show = False):
             print '-'*60            
             output_file.write('-'*60  + '\n')
             
-            if cfg['tunnel_mode'] == 'expansion-tube': 
-                shk_tube_transducer_list = ['st1', 'st2', 'st3']
+            if cfg['tunnel_mode'] == 'expansion-tube':
+                if cfg['facility'] == 'x2':
+                    shk_tube_transducer_list = ['st1', 'st2', 'st3']
+                elif cfg['facility'] == 'x3':
+                    shk_tube_transducer_list = ['st5', 'st6', 'st7','st8']
             else:
                 shk_tube_transducer_list = ['st1', 'st2', 'st3', 'at1', 'at2', 'at3', 'at4', 'at5', 'at6']
         
@@ -1170,7 +1196,10 @@ def make_x_t_diagram(cfg, states, V, M, filename = 'x-t-diagram', show = False):
             output_file.write('-'*60  + '\n')
             
             if cfg['tunnel_mode'] == 'expansion-tube': 
-                shk_tube_transducer_list = ['sd1', 'sd2', 'sd3']
+                if cfg['facility'] == 'x2':
+                    shk_tube_transducer_list = ['sd1', 'sd2', 'sd3']
+                elif cfg['facility'] == 'x3':
+                    shk_tube_transducer_list = ['st1', 'st2', 'st3', 'st4','st5', 'st6', 'st7','st8']
             else:
                 shk_tube_transducer_list = transducer_list
         
@@ -1211,9 +1240,9 @@ def make_x_t_diagram(cfg, states, V, M, filename = 'x-t-diagram', show = False):
             acc_tube_cs_t_list = [shock_t_list[-2], cs_time]
             
             if cfg['secondary']:
-                acc_tube_transducer_list = ['at1', 'at2', 'at3', 'at4', 'at5', 'at6']
+                acc_tube_transducer_list = ['at1', 'at2', 'at3', 'at4', 'at5', 'at6','at7','at8']
             else:
-                acc_tube_transducer_list = ['st1', 'st2', 'st3', 'at1', 'at2', 'at3', 'at4', 'at5', 'at6']
+                acc_tube_transducer_list = ['st1', 'st2', 'st3', 'at1', 'at2', 'at3', 'at4', 'at5', 'at6','at7','at8']
             
             for transducer in acc_tube_transducer_list:
                 transducer_time = shock_t_list[-2] + (loc_dict[transducer] - shock_x_list[-2]) /  cfg['Vs2']

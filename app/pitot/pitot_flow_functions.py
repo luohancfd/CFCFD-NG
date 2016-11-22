@@ -637,16 +637,17 @@ def shock_tube_calculation(cfg, states, V, M):
                 print "New guesses are: 'Vs1_guess_1' = {0} m/s and 'Vs1_guess_2' = {1} m/s".\
                        format(cfg['Vs1_guess_1'] + 2000.0, cfg['Vs1_guess_2'] + 2000.0)
                 cfg['Vs1_guess_1'] += 2000.0; cfg['Vs1_guess_2'] += 2000.0
-            try:
-                cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
-                                    cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
-                                    cfg['shock_tube_secant_tol'],
-                                    limits=[cfg['Vs1_lower'], cfg['Vs1_upper']],
-                                    max_iterations=100)
-            except Exception as e:
-                print "{0}: {1}".format(type(e).__name__, e.message)
-                print "Shock tube secant solver failed again with the higher guesses."
-                raise Exception, "pitot_flow_functions.shock_tube_calculation() Shock tube secant solver failed."              
+                
+                try:
+                    cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
+                                        cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
+                                        cfg['shock_tube_secant_tol'],
+                                        limits=[cfg['Vs1_lower'], cfg['Vs1_upper']],
+                                        max_iterations=100)
+                except Exception as e:
+                    print "{0}: {1}".format(type(e).__name__, e.message)
+                    print "Shock tube secant solver failed again with the higher guesses."
+                    raise Exception, "pitot_flow_functions.shock_tube_calculation() Shock tube secant solver failed."              
              
             if cfg['Vs1'] == 'FAIL':
                 print "Secant solver failed to settle on a Vs1 value after 100 iterations."
