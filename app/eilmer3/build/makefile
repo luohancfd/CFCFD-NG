@@ -4,12 +4,28 @@
 # \author  PA Jacobs
 # \version 3.x ripped off from the mbcns2 makefile
 #
-# \usage   make
-#          make TARGET=for_intel_mpi INSTALL_DIR=/work1/e4pjacob/e3bin
-#          make INSTALL_DIR=/work1/e4pjacob/e3bin install
-#          make clean
-#          make tags
-#          make tarfile
+# \usage Examples
+# 1. Simplest build for just the serial-execution code using the GNU compiler,
+#    leaving the executable programs in the build area.
+# $ make
+#
+# 2. As above, but copy the executable programs and supporting files into
+#    the default install location $HOME/e3bin/
+# $ make install
+#
+# 3. Build both the serial and parallel programs using the GNU compiler
+#    and the OpenMPI library, installing into the default location.
+# $ make TARGET=for_openmpi install
+#
+# 4. Build serial and parallel programs using the Intel-compilers and options,
+#    and installing into a custom location.
+# $ make TARGET=for_intel_mpi INSTALL_DIR=/work1/e4pjacob/e3bin install
+#
+# 5. Build serial program only, installing into a custom location.
+# $ make INSTALL_DIR=/work1/e4pjacob/e3bin install
+#
+# 6. Clean up after a build.
+# $ make clean
 #----------------------------------------------------------------------
 
 TARGET ?= for_gnu
@@ -709,7 +725,7 @@ bc_jump_wall.o : $(SRC)/bc_jump_wall.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)
 
 bc_menter_correction.o : $(SRC)/bc_menter_correction.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_menter_correction.cxx -o bc_menter_correction.o
-	
+
 bc_wall_function.o : $(SRC)/bc_wall_function.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_wall_function.cxx -o bc_wall_function.o	
 
