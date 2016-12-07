@@ -225,6 +225,13 @@ def secondary_driver_rs_calculation(cfg, states, V, M):
         except Exception as e:
             print "Error {0}".format(str(e))
             raise Exception, "Reflected normal shock calculation at the end of the secondary driver failed."
+            
+                
+    if 'Vsd2r_loss_factor' in cfg and cfg['Vsd2r_loss_factor']:   
+        print "The post-reflected-shock gas velocity (Vsd2r) is being changed to the found value multiplied by a loss factor of {0}.".format(cfg['Vsd2r_loss_factor'])
+        Vsd2r_original = copy.copy(V['sd2r'])
+        V['sd2r'] = V['sd2r'] * cfg['Vsd2r_loss_factor'] 
+        print "The original Vsd2r value was {0:.2f} m/s and the new value is {1:.2f} m/s.".format(Vsd2r_original, V['sd2r'])
            
     if PRINT_STATUS:
         print "Vr-sd = {0} m/s, Mr-sd = {1}.".format(cfg['Vr-sd'], cfg['Mr-sd'])
@@ -868,6 +875,12 @@ def shock_tube_rs_calculation(cfg, states, V, M):
         except Exception as e:
             print "Error {0}".format(str(e))
             raise Exception, "Reflected normal shock calculation at the end of the shocl tube failed."
+            
+    if 'V2r_loss_factor' in cfg and cfg['V2r_loss_factor']:   
+        print "The post-reflected-shock gas velocity (V2r) is being changed to the found value multiplied by a loss factor of {0}.".format(cfg['V2r_loss_factor'])
+        V2r_original = copy.copy(V['s2r'])
+        V['s2r'] = V['s2r'] * cfg['V2r_loss_factor'] 
+        print "The original V2r value was {0:.2f} m/s and the new value is {1:.2f} m/s.".format(V2r_original, V['s2r'])
            
     if PRINT_STATUS:
         print "Vr-st = {0} m/s, Mr-st = {1}.".format(cfg['Vr-st'], cfg['Mr-st'])
@@ -1733,36 +1746,43 @@ def shock_over_model_calculation(cfg, states, V, M):
     
     if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq': 
         try:
-            if isinstance(states['s10e'], Gas):
+            if isinstance(states[cfg['test_section_state']], Gas):
                 # if it is an eq gas object, just do what we would normally do...
                 states['s10e'] = states[cfg['test_section_state']].clone()
                 states['s10e'].with_ions = True
             else:
                 # if it is a pg object (the user did a pg nozzle calculation, probably)
-                # we should make it one...
                 # we should make it one... we will copy state1 (test gas fill state)
                 # and then set the temperature and pressure for the test section
                 states['s10e'] = states['s1'].clone()
                 states['s10e'].set_pT(states[cfg['test_section_state']].p, states[cfg['test_section_state']].T)                 
         except Exception as e:
             print "Error {0}".format(str(e))
-            print "Failed to clone test section gas state."
-            print "Trying again with ions turned off."
-            states[cfg['test_section_state']].with_ions = False
-            try:
-                states['s10e'] = states[cfg['test_section_state']].clone() 
-                states[cfg['test_section_state']].with_ions = True
-                states['s10e'].with_ions = True
-                print "Managed to clone test section state with ions turned off."
-                print "Turning them back on now for the post shock flow..."
-            except Exception as e:
-                print "Error {0}".format(str(e))
+            if isinstance(states[cfg['test_section_state']], Gas):
                 print "Failed to clone test section gas state."
-                states[cfg['test_section_state']].with_ions = True
-                if 's10e' in states.keys():
-                    del states['s10e']
-                print "Equilibrium normal shock calculation over the test model failed."
-                print "Result will not be printed." 
+                print "Trying again with ions turned off."
+                states[cfg['test_section_state']].with_ions = False
+                try:
+                    states['s10e'] = states[cfg['test_section_state']].clone() 
+                    states[cfg['test_section_state']].with_ions = True
+                    states['s10e'].with_ions = True
+                    print "Managed to clone test section state with ions turned off."
+                    print "Turning them back on now for the post shock flow..."
+                except Exception as e:
+                    print "Error {0}".format(str(e))
+                    print "Failed to clone test section gas state."
+                    states[cfg['test_section_state']].with_ions = True
+                    if 's10e' in states.keys():
+                        del states['s10e']
+                    print "Equilibrium normal shock calculation over the test model failed."
+                    print "Result will not be printed." 
+            else:
+                 print "Failed to clone a state to use for state 10e."
+                 if 's10e' in states.keys():
+                     del states['s10e']
+                 print "Equilibrium normal shock calculation over the test model failed."
+                 print "Result will not be printed." 
+                
         if 's10e' in states.keys():
             try:
                 # I added the normal shock wrapper here as I was having some issues with these shocks bailing out..
@@ -2023,6 +2043,7 @@ def conehead_calculation(cfg, states, V, M):
     if 's10c' in states.keys(): 
         try:
             shock_angle = beta_cone(pg_test_section_state, V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
+            if PRINT_STATUS: print "Shock angle over cone:", math.degrees(shock_angle)
         except Exception as e:
             print "Error {0}".format(str(e))    
             print "beta_cone function bailed out while trying to find a shock angle."
@@ -2031,7 +2052,6 @@ def conehead_calculation(cfg, states, V, M):
             if 's10c' in states.keys():
                 del states['s10c']
                 
-        if PRINT_STATUS: print "Shock angle over cone:", math.degrees(shock_angle)
         
         # Reverse the process to get the flow state behind the shock and check the surface angle is correct
        

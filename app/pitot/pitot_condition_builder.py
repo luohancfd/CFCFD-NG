@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "07-Nov-2016"
+VERSION_STRING = "04-Dec-2016"
 
 import sys
 
@@ -166,6 +166,7 @@ def start_message(cfg):
     # print how many tests we're going to run, and the ranges.
     
     print '-'*60    
+    print 'Running Pitot Condition Builder Version: {0}.'.format(VERSION_STRING)    
     print "{0} tests will be run.".format(cfg['number_of_test_runs'])
     
     if True in cfg['secondary_list']:
@@ -226,7 +227,7 @@ def build_results_dict(cfg):
     if True in cfg['secondary_list']:
         statesd2_list = ['psd2','Tsd2','rhosd2','Vsd2','Msd2', 'asd2', 'gammasd2', 'Rsd2']
         full_list += statesd2_list
-        if cfg['store_sd_fractions']:
+        if 'store_sd_fractions' in cfg and cfg['store_sd_fractions']:
             if not cfg['custom_secondary_driver_gas']:
                 # we will just have He, He+, and e-
                 sd_fractions_list = ['sd2 %He', 'sd2 %He+', 'sd2 %e-']
@@ -1304,7 +1305,8 @@ def run_pitot_condition_builder(cfg = {}, config_file = None, force_restart = Fa
     
     if os.path.isfile(cfg['original_filename']+'-condition-builder-intermediate-result-pickle.dat'): 
         os.remove(cfg['original_filename']+'-condition-builder-intermediate-result-pickle.dat')
-        
+    
+    # now zip up the result and log files...    
     zip_result_and_log_files(cfg)
         
     return

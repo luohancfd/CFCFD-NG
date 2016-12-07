@@ -650,7 +650,8 @@ def input_checker(cfg, condition_builder = False):
                 raise Exception, "Chosen 'Mr_st' is a string but is not set to a variant of 'maximum'"   
             else:
                 cfg['Mr_st'] = 'maximum'
-                print "Setting 'Mr_st' to default value of 'maximum'."
+                # probably don't want to print that value below...
+                #print "Setting 'Mr_st' to default value of 'maximum'."
         if isinstance(cfg['Mr_st'], int):
             cfg['Mr_st'] = float(cfg['Mr_st'])
             
@@ -764,6 +765,16 @@ def input_checker(cfg, condition_builder = False):
         print "V2_loss_factor' must be a float. Current value is not. Bailing out."
         raise TypeError, "'V2_loss_factor' input is not a float"
         
+    # ------------------------ V2r loss factor stuff ----------------------------
+    
+    if 'V2r_loss_factor' not in cfg:
+        print "'V2r_loss_factor' not in cfg will set it to a default of None..."
+        cfg['Vr2_loss_factor'] = None
+        
+    if cfg['V2r_loss_factor'] and not isinstance(cfg['V2r_loss_factor'], float):
+        print "V2r_loss_factor' must be a float. Current value is not. Bailing out."
+        raise TypeError, "'V2r_loss_factor' input is not a float"
+        
     # ------------------------ Vsd2 loss factor stuff ----------------------------
 
     if cfg['secondary']:    
@@ -774,6 +785,14 @@ def input_checker(cfg, condition_builder = False):
         if cfg['Vsd2_loss_factor'] and not isinstance(cfg['Vsd2_loss_factor'], float):
             print "Vsd2_loss_factor' must be a float. Current value is not. Bailing out."
             raise TypeError, "'Vsd2_loss_factor' input is not a float"
+            
+        if 'Vsd2r_loss_factor' not in cfg:
+            print "'Vsd2r_loss_factor' not in cfg will set it to a default of None..."
+            cfg['Vsd2r_loss_factor'] = None
+            
+        if cfg['Vsd2r_loss_factor'] and not isinstance(cfg['Vsd2r_loss_factor'], float):
+            print "Vsd2r_loss_factor' must be a float. Current value is not. Bailing out."
+            raise TypeError, "'Vsd2r_loss_factor' input is not a float"
         
     # ------------------------ V3s loss factor stuff ----------------------------
     
