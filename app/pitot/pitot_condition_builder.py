@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "04-Dec-2016"
+VERSION_STRING = "09-Dec-2016"
 
 import sys
 
@@ -191,7 +191,7 @@ def start_message(cfg):
             
     return cfg
     
-def build_results_dict(cfg):
+def build_results_dict(cfg, extra_variable_list = None):
     """Function that looks at the cfg dictionary and works out what data needs
        to be stored for the type of test that we're running. Then it populates
        a dictionary called 'results' with empty lists for the data to be stored in.
@@ -207,24 +207,24 @@ def build_results_dict(cfg):
     full_list = ['test number','driver condition']
        
     if cfg['tunnel_mode'] == 'expansion-tube':
-        if True in cfg['secondary_list']:
+        if cfg['secondary']:
             pressure_shock_list = ['psd1','p1','p5','Vsd','Vs1', 'Vs2']
         else:
             pressure_shock_list = ['p1','p5','Vs1', 'Vs2']
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel':
-        if True in cfg['secondary_list']:
+        if cfg['secondary']:
             pressure_shock_list = ['psd1','p1','Vsd','Vs1']
         else:
             pressure_shock_list = ['p1','Vs1']
     elif cfg['tunnel_mode'] == 'reflected-shock-tunnel':
-        if True in cfg['secondary_list']:
+        if cfg['secondary']:
             pressure_shock_list = ['psd1','p1','Vsd','Vs1','Vr','Mr','Vr_d','Mr_d']
         else:
             pressure_shock_list = ['p1','Vs1','Vr','Mr','Vr_d','Mr_d']            
             
     full_list += pressure_shock_list
     
-    if True in cfg['secondary_list']:
+    if cfg['secondary']:
         statesd2_list = ['psd2','Tsd2','rhosd2','Vsd2','Msd2', 'asd2', 'gammasd2', 'Rsd2']
         full_list += statesd2_list
         if 'store_sd_fractions' in cfg and cfg['store_sd_fractions']:
@@ -281,7 +281,18 @@ def build_results_dict(cfg):
         if cfg['shock_over_model']:
             calculate_scaling_information_normal_shock_list = ['s10e_mu', 's10e_rhoL', 's10e_pL', 's10e_Re', 's10e_Kn']
             full_list += calculate_scaling_information_normal_shock_list            
-            
+    
+    if extra_variable_list:
+        extra_variables = []
+        for variable in extra_variable_list:
+            # only add the variable if it is not already there!
+            if variable not in full_list:
+                print "Adding extra variable {0} to the results dict.".format(variable)
+                full_list.append(variable)
+                extra_variables.append(variable)
+            else:
+                print "Extra variable {0} was already in the results dict.".format(variable)
+        
     # now populate the dictionary with a bunch of empty lists based on that list
 
     results = {title : [] for title in full_list}
@@ -289,6 +300,7 @@ def build_results_dict(cfg):
     # add the list of titles in case we want to use it in future
     
     results['full_list'] = full_list
+    results['extra_variables'] = extra_variables
     
     #add a list where we can store unsuccesful run numbers for analysis
     results['unsuccessful_runs'] = []
@@ -912,7 +924,12 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
             results['s10e_rhoL'].append(cfg['rho_l_product_state10e'])
             results['s10e_pL'].append(cfg['pressure_l_product_state10e'])  
             results['s10e_Re'].append(cfg['reynolds_number_state10e']) 
-            results['s10e_Kn'].append(cfg['knudsen_number_state10e'])             
+            results['s10e_Kn'].append(cfg['knudsen_number_state10e'])  
+    
+    # store extra variables if they are around, they should just be in the cfg file...        
+    if 'extra_variables' in results and results['extra_variables']:
+        for variable in results['extra_variables']:
+            results[variable].append(cfg[variable])
                      
     return results
     
@@ -1174,7 +1191,8 @@ def run_pitot_condition_builder(cfg = {}, config_file = None, force_restart = Fa
         
     #----------------- check inputs ----------------------------------------
     
-    # need to get secondary into cfg
+    # need to get secondary into cfg for the input checker for when we run the results dict builder
+    # as doing it that way allowed me to generalise the function more...
     
     if True in cfg['secondary_list']:
         cfg['secondary'] = True

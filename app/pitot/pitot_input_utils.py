@@ -767,11 +767,11 @@ def input_checker(cfg, condition_builder = False):
         
     # ------------------------ V2r loss factor stuff ----------------------------
     
-    if 'V2r_loss_factor' not in cfg:
+    if cfg['rs_out_of_st'] and 'V2r_loss_factor' not in cfg:
         print "'V2r_loss_factor' not in cfg will set it to a default of None..."
-        cfg['Vr2_loss_factor'] = None
+        cfg['V2r_loss_factor'] = None
         
-    if cfg['V2r_loss_factor'] and not isinstance(cfg['V2r_loss_factor'], float):
+    if cfg['rs_out_of_st'] and cfg['V2r_loss_factor'] and not isinstance(cfg['V2r_loss_factor'], float):
         print "V2r_loss_factor' must be a float. Current value is not. Bailing out."
         raise TypeError, "'V2r_loss_factor' input is not a float"
         
@@ -786,11 +786,11 @@ def input_checker(cfg, condition_builder = False):
             print "Vsd2_loss_factor' must be a float. Current value is not. Bailing out."
             raise TypeError, "'Vsd2_loss_factor' input is not a float"
             
-        if 'Vsd2r_loss_factor' not in cfg:
+        if cfg['rs_out_of_sd'] and 'Vsd2r_loss_factor' not in cfg:
             print "'Vsd2r_loss_factor' not in cfg will set it to a default of None..."
             cfg['Vsd2r_loss_factor'] = None
             
-        if cfg['Vsd2r_loss_factor'] and not isinstance(cfg['Vsd2r_loss_factor'], float):
+        if cfg['rs_out_of_sd'] and cfg['Vsd2r_loss_factor'] and not isinstance(cfg['Vsd2r_loss_factor'], float):
             print "Vsd2r_loss_factor' must be a float. Current value is not. Bailing out."
             raise TypeError, "'Vsd2r_loss_factor' input is not a float"
         
