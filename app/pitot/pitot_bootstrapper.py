@@ -8,7 +8,7 @@ Chris James (c.james4@uq.edu.au) - 07/12/16
 
 """
 
-VERSION_STRING = "08-Dec-2016"
+VERSION_STRING = "10-Dec-2016"
 
 import sys, os
 
@@ -215,6 +215,11 @@ def pitot_bootstrapper_test_run(current_cfg, cfg, results):
         print "Test {0} is considered failed, and result will not be printed to csv output.".format(cfg['test_number'])
         condition_status = False
     if condition_status:
+        # this is to trick the function from pitot_condition_builder to work more generally for now...
+        if current_cfg['secondary']:
+            current_cfg['secondary_list'] = [True]
+        else:
+            current_cfg['secondary_list'] = [False]
         results = add_new_result_to_results_dict(current_cfg, states, V, M, results)
     else:
         cfg['last_run_successful'] = False
