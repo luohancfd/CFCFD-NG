@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "09-Dec-2016"
+VERSION_STRING = "11-Dec-2016"
 
 import sys
 
@@ -300,7 +300,8 @@ def build_results_dict(cfg, extra_variable_list = None):
     # add the list of titles in case we want to use it in future
     
     results['full_list'] = full_list
-    results['extra_variables'] = extra_variables
+    if extra_variable_list:
+        results['extra_variables'] = extra_variables
     
     #add a list where we can store unsuccesful run numbers for analysis
     results['unsuccessful_runs'] = []
