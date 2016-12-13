@@ -21,7 +21,7 @@ INSTALL_DIR ?= $(HOME)/e3bin
 OPT ?= -O2
 
 NSPECD ?= 30
-NDIM   ?= 20000
+NDIM   ?= 30000
 include ../../../lib/util/source/systems.mk
 LLIB += -lpopt -ldl
 

@@ -250,7 +250,7 @@ int main(int argc, char **argv)
     int nmodes = gmodel->get_number_of_modes();
 
     if ( prepare_only ) {
-	double x[11000]; 
+	double x[31000]; 
 	// Not that we have made a guess for the required size; 
 	// we should use a std::vector but x is used in the call 
 	// to distribute_points().
