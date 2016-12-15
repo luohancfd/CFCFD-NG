@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "11-Dec-2016"
+VERSION_STRING = "15-Dec-2016"
 
 import sys
 
@@ -107,6 +107,10 @@ def check_new_inputs(cfg):
     if 'cleanup_old_files' not in cfg:
         print "'cleanup_old_files' variable not set. Setting to default value of 'False'"
         cfg['cleanup_old_files'] = False
+        
+    if 'store_mole_fractions' not in cfg:
+        print "'store_mole_fractions' variable not set. Setting to default value of 'False'"
+        cfg['store_mole_fractions'] = False        
         
     if True in cfg['secondary_list'] and 'store_sd_fractions' in cfg and cfg['store_sd_fractions'] and cfg['solver'] == 'pg':
         print "'store_sd_fractions' variable is set to True but 'solver' is perfect gas. Setting to 'False'"
@@ -245,6 +249,7 @@ def build_results_dict(cfg, extra_variable_list = None):
 
     state2_list = ['p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Vs1 - V2', 'Ht2']
     full_list += state2_list
+ 
 
     if cfg['rs_out_of_st']:
         state2_reflected_list = ['Vr-st','Mr-st','p2r','T2r','rho2r','V2r','M2r', 'a2r', 'gamma2r', 'R2r', 'Ht2r']
@@ -280,7 +285,108 @@ def build_results_dict(cfg, extra_variable_list = None):
         
         if cfg['shock_over_model']:
             calculate_scaling_information_normal_shock_list = ['s10e_mu', 's10e_rhoL', 's10e_pL', 's10e_Re', 's10e_Kn']
-            full_list += calculate_scaling_information_normal_shock_list            
+            full_list += calculate_scaling_information_normal_shock_list    
+            
+    if cfg['store_mole_fractions']:
+        
+        have_a_variable_list = False # we will only do anything if we have a variable list...
+        
+        # we have to add more columns here based on the test gas...
+        if cfg['test_gas'] in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
+            variable_list = ['N2', 'O2', 'N', 'O', 'N3', 'O3', 'N+','N-','O+','O-','e-', 'N2+','N2-','O2+','O2-','N2O','NO2','NO','NO+','N2O+']
+            have_a_variable_list = True
+        elif cfg['test_gas'] == 'n2':
+            variable_list = ['N2', 'N', 'N3', 'N+','N-','e-', 'N2+','N2-']
+            have_a_variable_list = True
+            
+       
+        if have_a_variable_list:
+            state2_list = []
+            state2r_list = []
+            state5_list = []
+            state7_list = []
+            state8_list = []
+            state10e_list = []
+            
+            for species in variable_list:
+                state2_list.append('s2 %{0}'.format(species))
+                if cfg['rs_out_of_st']:
+                    state2r_list.append('s2r %{0}'.format(species))
+                if cfg['tunnel_mode'] == 'expansion-tube':
+                    state7_list.append('s7 %{0}'.format(species))
+                if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+                    state5_list.append('s5 %{0}'.format(species))
+                if cfg['nozzle']:
+                    state8_list.append('s8 %{0}'.format(species))
+                if cfg['shock_over_model']:
+                    state10e_list.append('s10e %{0}'.format(species))
+                    
+            full_list += state2_list
+            if cfg['rs_out_of_st']:
+                full_list += state2r_list
+            if cfg['tunnel_mode'] == 'expansion-tube':
+                full_list += state7_list
+            if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+                full_list += state5_list
+            if cfg['nozzle']:
+                full_list += state8_list
+            if cfg['shock_over_model']:
+                full_list += state10e_list
+                
+        else:
+            # just set it to false if we didn't get anything...
+            print "Setting 'store_mole_fractions' back to False as the selected test gas ({0}) is not usable with this mode.".format(cfg['test_gas'])
+            cfg['store_mole_fractions'] = False
+        
+                
+    if cfg['store_mass_fractions']:
+        
+        have_a_variable_list = False # we will only do anything if we have a variable list...
+        
+        # we have to add more columns here based on the test gas...
+        if cfg['test_gas'] in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
+            variable_list = ['N2', 'O2', 'N', 'O', 'N3', 'O3', 'N+','N-','O+','O-','e-', 'N2+','N2-','O2+','O2-','N2O','NO2','NO','NO+','N2O+']
+            have_a_variable_list = True
+        elif cfg['test_gas'] == 'n2':
+            variable_list = ['N2', 'N', 'N3', 'N+','N-','e-', 'N2+','N2-']
+            have_a_variable_list = True
+            
+        if have_a_variable_list:    
+            state2_list = []
+            state2r_list = []
+            state5_list = []
+            state7_list = []
+            state8_list = []
+            state10e_list = []
+            
+            for species in variable_list:
+                state2_list.append('s2 y{0}'.format(species))
+                if cfg['rs_out_of_st']:
+                    state2r_list.append('s2r y{0}'.format(species))
+                if cfg['tunnel_mode'] == 'expansion-tube':
+                    state7_list.append('s7 y{0}'.format(species))
+                if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+                    state5_list.append('s5 y{0}'.format(species))
+                if cfg['nozzle']:
+                    state8_list.append('s8 y{0}'.format(species))
+                if cfg['shock_over_model']:
+                    state10e_list.append('s10e y{0}'.format(species))
+                    
+            full_list += state2_list
+            if cfg['rs_out_of_st']:
+                full_list += state2r_list
+            if cfg['tunnel_mode'] == 'expansion-tube':
+                full_list += state7_list
+            if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+                full_list += state5_list
+            if cfg['nozzle']:
+                full_list += state8_list
+            if cfg['shock_over_model']:
+                full_list += state10e_list
+        else:
+            # just set it to false if we didn't get anything...
+            print "Setting 'store_mass_fractions' back to False as the selected test gas ({0}) is not usable with this mode.".format(cfg['test_gas'])
+            cfg['store_mass_fractions'] = False
     
     if extra_variable_list:
         extra_variables = []
@@ -566,7 +672,7 @@ def results_csv_builder(results, test_name = 'pitot_run',  intro_line = None, fi
                                   
     return 
     
-def normalised_results_csv_builder(results, test_name = 'pitot_run',  
+def normalised_results_csv_builder(results, cfg, test_name = 'pitot_run',  
                                    intro_line = None, normalised_by = 'first value', filename = None,
                                    extra_normalise_exceptions = None):
     """Function that takes the final results dictionary (which must include a 
@@ -595,6 +701,41 @@ def normalised_results_csv_builder(results, test_name = 'pitot_run',
         # 'test number' and 'diluent percentage' and the species concentrations
         # will not be normalised
         normalise_exceptions = ['test number', 'driver condition', 'psd1','Vsd']
+        
+        # we also need to add exceptions for the mole or mass fractions...
+        if cfg['store_mole_fractions']:
+            # we have to add more columns here based on the test gas...
+            if cfg['test_gas'] in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
+                cfd_air_list = ['N2', 'O2', 'N', 'O', 'N3', 'O3', 'N+','N-','O+','O-','e-', 'N2+','N2-','O2+','O2-','N2O','NO2','NO','NO+','N2O+']
+                
+                cfd_air_state8_list = []
+                cfd_air_state10e_list = []
+                
+                for species in cfd_air_list:
+                    cfd_air_state8_list.append('s8 %{0}'.format(species))
+                    if cfg['shock_over_model']:
+                        cfd_air_state10e_list.append('s10e %{0}'.format(species))
+                        
+                normalise_exceptions += cfd_air_state8_list
+                if cfg['shock_over_model']:
+                    normalise_exceptions += cfd_air_state10e_list
+        
+        if cfg['store_mass_fractions']:
+            # we have to add more columns here based on the test gas...
+            if cfg['test_gas'] in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
+                cfd_air_list = ['N2', 'O2', 'N', 'O', 'N3', 'O3', 'N+','N-','O+','O-','e-', 'N2+','N2-','O2+','O2-','N2O','NO2','NO','NO+','N2O+']
+                
+                cfd_air_state8_list = []
+                cfd_air_state10e_list = []
+                
+                for species in cfd_air_list:
+                    cfd_air_state8_list.append('s8 y{0}'.format(species))
+                    if cfg['shock_over_model']:
+                        cfd_air_state10e_list.append('s10e y{0}'.format(species))
+                        
+                normalise_exceptions += cfd_air_state8_list
+                if cfg['shock_over_model']:
+                    normalise_exceptions += cfd_air_state10e_list
         
         if extra_normalise_exceptions:
             normalise_exceptions += extra_normalise_exceptions
@@ -925,7 +1066,91 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
             results['s10e_rhoL'].append(cfg['rho_l_product_state10e'])
             results['s10e_pL'].append(cfg['pressure_l_product_state10e'])  
             results['s10e_Re'].append(cfg['reynolds_number_state10e']) 
-            results['s10e_Kn'].append(cfg['knudsen_number_state10e'])  
+            results['s10e_Kn'].append(cfg['knudsen_number_state10e']) 
+            
+    if cfg['store_mole_fractions']:
+        # we have to add more columns here based on the test gas...
+        if cfg['test_gas'] in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
+            variable_list = ['N2', 'O2', 'N', 'O', 'N3', 'O3', 'N+','N-','O+','O-','e-', 'N2+','N2-','O2+','O2-','N2O','NO2','NO','NO+','N2O+']
+        elif cfg['test_gas'] == 'n2':
+            variable_list = ['N2', 'N', 'N3', 'N+','N-','e-', 'N2+','N2-']
+            
+        for species in variable_list:
+            if species in states['s2'].species.keys():
+                results['s2 %{0}'.format(species)].append(states['s2'].species[species])
+            else:
+                results['s2 %{0}'.format(species)].append(0.0)
+            
+            if cfg['rs_out_of_st']:
+                if species in states['s2r'].species.keys():
+                    results['s2r %{0}'.format(species)].append(states['s2r'].species[species])
+                else:
+                    results['s2r %{0}'.format(species)].append(0.0)
+            if cfg['tunnel_mode'] == 'expansion-tube':
+                if species in states['s7'].species.keys():
+                    results['s7 %{0}'.format(species)].append(states['s7'].species[species])
+                else:
+                    results['s7 %{0}'.format(species)].append(0.0)
+            if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+                if species in states['s5'].species.keys():
+                    results['s5 %{0}'.format(species)].append(states['s5'].species[species])
+                else:
+                    results['s5 %{0}'.format(species)].append(0.0)
+            if cfg['nozzle']:
+                if species in states['s8'].species.keys():
+                    results['s8 %{0}'.format(species)].append(states['s8'].species[species])
+                else:
+                    results['s8 %{0}'.format(species)].append(0.0)
+            if cfg['shock_over_model']:
+                if 's10e' in states:
+                    if species in states['s10e'].species.keys():
+                        results['s10e %{0}'.format(species)].append(states['s10e'].species[species])
+                    else:
+                        results['s10e %{0}'.format(species)].append(0.0)  
+                else:
+                     results['s10e %{0}'.format(species)].append('did not solve')
+            
+    if cfg['store_mass_fractions']:
+        # we have to add more columns here based on the test gas...
+        if cfg['test_gas'] in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
+            variable_list = ['N2', 'O2', 'N', 'O', 'N3', 'O3', 'N+','N-','O+','O-','e-', 'N2+','N2-','O2+','O2-','N2O','NO2','NO','NO+','N2O+']
+        elif cfg['test_gas'] == 'n2':
+            variable_list = ['N2', 'N', 'N3', 'N+','N-','e-', 'N2+','N2-']
+            
+        for species in variable_list:
+            if species in states['s2_mf'].species.keys():
+                results['s2 y{0}'.format(species)].append(states['s2_mf'].species[species])
+            else:
+                results['s2 y{0}'.format(species)].append(0.0)
+            
+            if cfg['rs_out_of_st']:
+                if species in states['s2r_mf'].species.keys():
+                    results['s2r y{0}'.format(species)].append(states['s2r_mf'].species[species])
+                else:
+                    results['s2r y{0}'.format(species)].append(0.0)
+            if cfg['tunnel_mode'] == 'expansion-tube':
+                if species in states['s7_mf'].species.keys():
+                    results['s7 y{0}'.format(species)].append(states['s7_mf'].species[species])
+                else:
+                    results['s7 y{0}'.format(species)].append(0.0)
+            if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+                if species in states['s5_mf'].species.keys():
+                    results['s5 y{0}'.format(species)].append(states['s5_mf'].species[species])
+                else:
+                    results['s5 y{0}'.format(species)].append(0.0)
+            if cfg['nozzle']:
+                if species in states['s8_mf'].species.keys():
+                    results['s8 y{0}'.format(species)].append(states['s8_mf'].species[species])
+                else:
+                    results['s8 y{0}'.format(species)].append(0.0)
+            if cfg['shock_over_model']:
+                if 's10e_mf' in states:
+                    if species in states['s10e_mf'].species.keys():
+                        results['s10e y{0}'.format(species)].append(states['s10e_mf'].species[species])
+                    else:
+                        results['s10e y{0}'.format(species)].append(0.0)  
+                else:
+                     results['s10e y{0}'.format(species)].append('did not solve')  
     
     # store extra variables if they are around, they should just be in the cfg file...        
     if 'extra_variables' in results and results['extra_variables']:
@@ -1119,11 +1344,7 @@ def zip_result_and_log_files(cfg, output_filename = None):
                     os.remove(filename)
                     
     return
-    
-    
-    
-    
-    
+ 
 def cleanup_old_files(auxiliary_file_list = None):
     """Function that will remove any files in the current directory ending with
        .txt, .csv, or .dat. This is handy because even if you think the code will
@@ -1309,7 +1530,7 @@ def run_pitot_condition_builder(cfg = {}, config_file = None, force_restart = Fa
         for value in results.keys():
             if 'sd2 %' in value:
                 extra_normalise_exceptions.append(value)
-    normalised_results_csv_builder(results, test_name = cfg['original_filename'],  
+    normalised_results_csv_builder(results, cfg, test_name = cfg['original_filename'],  
                         intro_line = intro_line, extra_normalise_exceptions = extra_normalise_exceptions)
                         
     # and a to pickled object the user can load with pickle

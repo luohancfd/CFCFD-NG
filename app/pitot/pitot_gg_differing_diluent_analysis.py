@@ -15,7 +15,7 @@ Chris James (c.james4@uq.edu.au) - 23/12/14
 
 """
 
-VERSION_STRING = "19-Nov-2016"
+VERSION_STRING = "15-Dec-2016"
 
 from pitot_condition_builder import stream_tee, pickle_result_data, pickle_intermediate_data, results_csv_builder, normalised_results_csv_builder, cleanup_old_files, zip_result_and_log_files 
 
@@ -613,7 +613,7 @@ def run_pitot_gg_differing_diluent_analysis(cfg = {}, config_file = None, force_
                         intro_line = intro_line, filename = cfg['original_filename'] + '-gg-differing-diluent-analysis.csv')
                         
     #and a normalised csv also
-    normalised_results_csv_builder(results, test_name = cfg['original_filename'],  
+    normalised_results_csv_builder(results, cfg, test_name = cfg['original_filename'],  
                         intro_line = intro_line, 
                         normalised_by = cfg['normalise_results_by'],
                         filename = cfg['original_filename']+'-gg-differing-diluent-analysis-normalised.csv',

@@ -9,6 +9,8 @@ Chris James (c.james4@uq.edu.au) - 20/08/13
 
 """
 
+VERSION_STRING = "15-Dec-2016"
+
 import sys, copy
 
 from pitot_flow_functions import nozzle_expansion, conehead_calculation, shock_over_model_calculation, calculate_scaling_information
@@ -40,6 +42,63 @@ def area_ratio_check_results_dict_builder(cfg):
         if cfg['calculate_scaling_information']:
             calculate_scaling_information_normal_shock_list = ['s10e_mu', 's10e_rhoL', 's10e_pL', 's10e_Re', 's10e_Kn']
             full_list += calculate_scaling_information_normal_shock_list  
+    
+    if cfg['store_mole_fractions']:
+        have_a_variable_list = False # we will only do anything if we have a variable list...
+        
+        # we have to add more columns here based on the test gas...
+        if cfg['test_gas'] in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
+            variable_list = ['N2', 'O2', 'N', 'O', 'N3', 'O3', 'N+','N-','O+','O-','e-', 'N2+','N2-','O2+','O2-','N2O','NO2','NO','NO+','N2O+']
+            have_a_variable_list = True
+        elif cfg['test_gas'] == 'n2':
+            variable_list = ['N2', 'N', 'N3', 'N+','N-','e-', 'N2+','N2-']
+            have_a_variable_list = True
+            
+        if have_a_variable_list:
+            state8_list = []
+            state10e_list = []
+            
+            for species in variable_list:
+                state8_list.append('s8 %{0}'.format(species))
+                if cfg['shock_over_model']:
+                    state10e_list.append('s10e %{0}'.format(species))
+                    
+            full_list += state8_list
+            if cfg['shock_over_model']:
+                full_list += state10e_list
+        else:
+            # just set it to false if we didn't get anything...
+            print "Setting 'store_mole_fractions' back to False as the selected test gas ({0}) is not usable with this mode.".format(cfg['test_gas'])
+            cfg['store_mole_fractions'] = False
+                
+    if cfg['store_mass_fractions']:
+        have_a_variable_list = False # we will only do anything if we have a variable list...
+        
+        # we have to add more columns here based on the test gas...
+        if cfg['test_gas'] in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
+            variable_list = ['N2', 'O2', 'N', 'O', 'N3', 'O3', 'N+','N-','O+','O-','e-', 'N2+','N2-','O2+','O2-','N2O','NO2','NO','NO+','N2O+']
+            have_a_variable_list = True
+        elif cfg['test_gas'] == 'n2':
+            variable_list = ['N2', 'N', 'N3', 'N+','N-','e-', 'N2+','N2-']
+            have_a_variable_list = True
+            
+        if have_a_variable_list:
+            state8_list = []
+            state10e_list = []
+            
+            for species in variable_list:
+                state8_list.append('s8 y{0}'.format(species))
+                if cfg['shock_over_model']:
+                    state10e_list.append('s10e y{0}'.format(species))
+                    
+            full_list += state8_list
+            if cfg['shock_over_model']:
+                full_list += state10e_list
+                
+        else:
+            # just set it to false if we didn't get anything...
+            print "Setting 'store_mass_fractions' back to False as the selected test gas ({0}) is not usable with this mode.".format(cfg['test_gas'])
+            cfg['store_mass_fractions'] = False
 
     # now populate the dictionary with a bunch of empty lists based on that list
 
@@ -127,6 +186,48 @@ def area_ratio_add_new_result_to_results_dict(cfg, states, V, M, results):
             results['s10e_pL'].append(cfg['pressure_l_product_state10e'])  
             results['s10e_Re'].append(cfg['reynolds_number_state10e']) 
             results['s10e_Kn'].append(cfg['knudsen_number_state10e']) 
+            
+    if cfg['store_mole_fractions']:
+        # we have to add more columns here based on the test gas...
+        if cfg['test_gas'] in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
+            variable_list = ['N2', 'O2', 'N', 'O', 'N3', 'O3', 'N+','N-','O+','O-','e-', 'N2+','N2-','O2+','O2-','N2O','NO2','NO','NO+','N2O+']
+        elif cfg['test_gas'] == 'n2':
+            variable_list = ['N2', 'N', 'N3', 'N+','N-','e-', 'N2+','N2-']
+            
+            for species in variable_list:
+                if species in states['s8'].species.keys():
+                    results['s8 %{0}'.format(species)].append(states['s8'].species[species])
+                else:
+                    results['s8 %{0}'.format(species)].append(0.0)
+                if cfg['shock_over_model']:
+                    if 's10e' in states:
+                        if species in states['s10e'].species.keys():
+                            results['s10e %{0}'.format(species)].append(states['s10e'].species[species])
+                        else:
+                            results['s10e %{0}'.format(species)].append(0.0)  
+                    else:
+                         results['s10e %{0}'.format(species)].append('did not solve')
+            
+    if cfg['store_mass_fractions']:
+        # we have to add more columns here based on the test gas...
+        if cfg['test_gas'] in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
+            variable_list = ['N2', 'O2', 'N', 'O', 'N3', 'O3', 'N+','N-','O+','O-','e-', 'N2+','N2-','O2+','O2-','N2O','NO2','NO','NO+','N2O+']
+        elif cfg['test_gas'] == 'n2':
+            variable_list = ['N2', 'N', 'N3', 'N+','N-','e-', 'N2+','N2-']
+            
+            for species in variable_list:
+                if species in states['s8_mf'].species.keys():
+                    results['s8 y{0}'.format(species)].append(states['s8_mf'].species[species])
+                else:
+                    results['s8 y{0}'.format(species)].append(0.0)
+                if cfg['shock_over_model']:
+                    if 's10e_mf' in states:
+                        if species in states['s10e_mf'].species.keys():
+                            results['s10e %{0}'.format(species)].append(states['s10e_mf'].species[species])
+                        else:
+                            results['s10e %{0}'.format(species)].append(0.0)  
+                    else:
+                         results['s10e %{0}'.format(species)].append('did not solve')  
                              
     return results
     
@@ -177,7 +278,7 @@ def area_ratio_check_results_csv_builder(results, test_name = 'pitot_run',  intr
                                   
     return 
     
-def area_ratio_check_normalised_results_csv_builder(results, test_name = 'pitot_run',  
+def area_ratio_check_normalised_results_csv_builder(results, cfg, test_name = 'pitot_run',  
                                    intro_line = None, normalised_by = 'first value',
                                    original_value_result = None):
     """Function that takes the final results dictionary (which must include a 
@@ -207,6 +308,45 @@ def area_ratio_check_normalised_results_csv_builder(results, test_name = 'pitot_
     # 'test number' and 'diluent percentage' and the species concentrations
     # will not be normalised
     normalise_exceptions = ['test number', 'area ratio']
+    
+    # we also need to add exceptions for the mole or mass fractions...
+    if cfg['store_mole_fractions']:
+        # we have to add more columns here based on the test gas...
+        if cfg['test_gas'] in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
+            variable_list = ['N2', 'O2', 'N', 'O', 'N3', 'O3', 'N+','N-','O+','O-','e-', 'N2+','N2-','O2+','O2-','N2O','NO2','NO','NO+','N2O+']
+        elif cfg['test_gas'] == 'n2':
+            variable_list = ['N2', 'N', 'N3', 'N+','N-','e-', 'N2+','N2-']
+            
+            state8_list = []
+            state10e_list = []
+            
+            for species in variable_list:
+                state8_list.append('s8 %{0}'.format(species))
+                if cfg['shock_over_model']:
+                    state10e_list.append('s10e %{0}'.format(species))
+                    
+            normalise_exceptions += state8_list
+            if cfg['shock_over_model']:
+                normalise_exceptions += state10e_list
+    
+    if cfg['store_mass_fractions']:
+        # we have to add more columns here based on the test gas...
+        if cfg['test_gas'] in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
+            variable_list = ['N2', 'O2', 'N', 'O', 'N3', 'O3', 'N+','N-','O+','O-','e-', 'N2+','N2-','O2+','O2-','N2O','NO2','NO','NO+','N2O+']
+        elif cfg['test_gas'] == 'n2':
+            variable_list = ['N2', 'N', 'N3', 'N+','N-','e-', 'N2+','N2-']
+            
+            state8_list = []
+            state10e_list = []
+            
+            for species in variable_list:
+                state8_list.append('s8 y{0}'.format(species))
+                if cfg['shock_over_model']:
+                    state10e_list.append('s10e y{0}'.format(species))
+                    
+            normalise_exceptions += state8_list
+            if cfg['shock_over_model']:
+                normalise_exceptions += state10e_list
     
     #now we'll make the code build us the second intro line
     intro_line = '#'
@@ -315,6 +455,10 @@ def area_ratio_check(cfg, states, V, M):
     
     cfg['counter'] = 0 #counter used to tell user how far through the calculations we are
     
+    if 'store_mole_fractions' not in cfg:
+        print "'store_mole_fractions' variable not set. Setting to default value of 'False'"
+        cfg['store_mole_fractions'] = False   
+    
     # now do everything...           
     for area_ratio in cfg['area_ratio_check_list']:
         # add the current area ratio
@@ -381,12 +525,12 @@ def area_ratio_check(cfg, states, V, M):
             original_value_result = area_ratio_add_new_result_to_results_dict(cfg, states, V, M, original_value_result)
         else:
             original_value_result = None
-        area_ratio_check_normalised_results_csv_builder(results, test_name = cfg['filename'],  
+        area_ratio_check_normalised_results_csv_builder(results, cfg, test_name = cfg['filename'],  
                                                         intro_line = intro_line, normalised_by = cfg['normalise_results_by'],
                                                         original_value_result = original_value_result)
             
     else:
-        area_ratio_check_normalised_results_csv_builder(results, test_name = cfg['filename'],  
+        area_ratio_check_normalised_results_csv_builder(results, cfg, test_name = cfg['filename'],  
                                        intro_line = intro_line, normalised_by = 'first value')        
     
     # and the pickle output

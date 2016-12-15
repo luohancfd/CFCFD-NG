@@ -854,6 +854,14 @@ def input_checker(cfg, condition_builder = False):
        
     if 'rs_out_of_sd' in cfg and cfg['rs_out_of_sd'] and 'freeze_state_sd2r' not in cfg:
        cfg['freeze_state_sd2r'] = False 
+       
+    if 'store_mass_fractions' not in cfg:
+        print "'store_mass_fractions' variable not set. Setting to default value of 'False'"
+        cfg['store_mass_fractions'] = False  
+        
+    if cfg['make_one_line_summary'] and 'store_mole_fractions' not in cfg:
+        print "'store_mole_fractions' variable not set. Setting to default value of 'False'"
+        cfg['store_mole_fractions'] = False          
     
     #------------------ final check stuff....-------------------------------
         

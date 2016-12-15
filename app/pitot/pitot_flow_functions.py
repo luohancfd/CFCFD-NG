@@ -715,6 +715,22 @@ def shock_tube_calculation(cfg, states, V, M):
             except Exception as e:
                 print "{0}: {1}".format(type(e).__name__, e.message)            
                 raise Exception, "pitot_flow_functions.shock_tube_calculation() Normal shock calculation in the final shock tube shock failed."
+                
+        if cfg['store_mass_fractions']:
+            print "Creating a version of state 2 with mass fractions ('s2_mf') in the states dict as the user has asked for this."
+            states['s2_mf'] = states['s2'].clone()
+            states['s2_mf'].outputUnits = 'massf'
+            # first do the normal shock
+            try:    
+                V2, V2g = normal_shock_wrapper(state1, cfg['Vs1'], states['s2_mf'])
+            except Exception as e:
+                print "{0}: {1}".format(type(e).__name__, e.message)
+                print "Normal shock with mass fraction output failed. Trying again with a high temp gas guess."
+                try:
+                     V2, V2g = normal_shock_wrapper(state1, cfg['Vs1'], states['s2_mf'], cfg['gas_guess'])
+                except Exception as e:
+                    print "{0}: {1}".format(type(e).__name__, e.message)            
+                    raise Exception, "pitot_flow_functions.shock_tube_calculation() Mass fraction normal shock calculation in the final shock tube shock failed."
         
     elif cfg['solver'] == 'pg-eq': #if we're using the pg-eq solver this is the point where we move from pg to eq gas objects
         if cfg['test_gas'] == 'mars' or cfg['test_gas'] == 'co2' or cfg['test_gas'] == 'venus':
@@ -797,8 +813,11 @@ def shock_tube_calculation(cfg, states, V, M):
         print "state 3: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s3'].p, states['s3'].T, V['s3']) 
         if isinstance(states['s2'], Gas):
             # print the species if it is an eq gas object...
-            print 'Species in state2 at equilibrium:'               
+            print 'Species in state2 at equilibrium (by moles):'               
             print '{0}'.format(states['s2'].species)
+        if cfg['store_mass_fractions'] and isinstance(states['s2_mf'], Gas):
+            print 'Species in state2 at equilibrium (by mass):'               
+            print '{0}'.format(states['s2_mf'].species)
         print 'state 2 gamma = {0}, state 2 R = {1}.'.format(states['s2'].gam,states['s2'].R)
         try:
             states['s2_total'] = total_condition(states['s2'], V['s2'])
@@ -874,7 +893,15 @@ def shock_tube_rs_calculation(cfg, states, V, M):
             M['s2r']= V['s2r']/states['s2r'].a           
         except Exception as e:
             print "Error {0}".format(str(e))
-            raise Exception, "Reflected normal shock calculation at the end of the shocl tube failed."
+            raise Exception, "Reflected normal shock calculation at the end of the shock tube failed."
+        if cfg['store_mass_fractions']:
+            states['s2r_mf'] = states['s2r'].clone()
+            states['s2r_mf'].outputUnits = 'massf'
+            try:
+                (V2r, V2rg) = normal_shock(state2, cfg['Vr-st'] + V['s2'], states['s2r_mf'])     
+            except Exception as e:
+                print "Error {0}".format(str(e))
+                raise Exception, "Reflected normal shock calculation with mass fraction output at the end of the shock tube failed."
             
     if 'V2r_loss_factor' in cfg and cfg['V2r_loss_factor']:   
         print "The post-reflected-shock gas velocity (V2r) is being changed to the found value multiplied by a loss factor of {0}.".format(cfg['V2r_loss_factor'])
@@ -886,9 +913,12 @@ def shock_tube_rs_calculation(cfg, states, V, M):
         print "Vr-st = {0} m/s, Mr-st = {1}.".format(cfg['Vr-st'], cfg['Mr-st'])
         print "state 2r: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s2r'].p, states['s2r'].T)
         print "Vs2r = {0} m/s, Ms2r = {1}.".format(V['s2r'], M['s2r'])
-        if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq':
-            print 'Species in state2r at equilibrium:'               
+        if isinstance(states['s2r'], Gas):
+            print 'Species in state2r at equilibrium (by moles):'               
             print '{0}'.format(states['s2r'].species)
+            if cfg['store_mass_fractions']:
+                print 'Species in state2r at equilibrium (by mass):'               
+                print '{0}'.format(states['s2r_mf'].species)
             print 'state 2r gamma = {0}, state 2r R = {1}.'.format(states['s2r'].gam,states['s2r'].R)            
             
         try:
@@ -1371,7 +1401,24 @@ def acceleration_tube_calculation(cfg, states, V, M):
                 states['s2'].with_ions = False
                 V['s7'], states['s7'] = finite_wave_dv('cplus', V[cfg['at_entry_state']], states[cfg['at_entry_state']], acc_tube_expand_to_V, steps=cfg['acc_tube_expansion_steps'])
             else:
-                raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Run of pitot has failed near the end of the acceleration tube calculation."
+                raise Exception, "pitot_flow_functions.acceleration_tube_calculation() Run of pitot has failed trying to do the final unsteady expansion in the acceleration tube."
+        if cfg['store_mass_fractions']:
+            print "Creating a version of state 7 with mass fractions ('s7_mf') in the states dict as the user has asked for this."
+            try:
+                states['s7_mf'] = states['s7'].clone(newOutputUnits='massf')
+            except Exception as e:
+                print "{0}: {1}".format(type(e).__name__, e.message)
+                if states['s7'].with_ions:
+                    try:
+                        print "Will try again with ions turned off..."
+                        states['s7'].with_ions = False
+                        states['s7_mf'] = states['s7'].clone(newOutputUnits='massf')
+                        states['s7'].with_ions = True
+                    except Exception as e:
+                        print "{0}: {1}".format(type(e).__name__, e.message)    
+                        raise Exception, "pitot_flow_functions.nozzle_expansion(): Acceleration tube function failed trying to make the mass fraction based object ('s7_mf')."
+                else:
+                    raise Exception, "pitot_flow_functions.nozzle_expansion(): Acceleration tube function failed trying to make the mass fraction based object ('s7_mf')."
     elif cfg['expand_to'] == 'p7':
         print "State 7 is being expanded to a specified p7 value of {0} Pa.".format(cfg['p7'])
         try:
@@ -1435,8 +1482,12 @@ def acceleration_tube_calculation(cfg, states, V, M):
         print "state 7: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s7'].p, states['s7'].T,  V['s7'])
         if isinstance(states['s7'], Gas):
             # print the species if it is an eq gas object...
-            print 'species in state7 at equilibrium:'               
+            print 'species in state7 at equilibrium (by moles):'               
             print '{0}'.format(states['s7'].species)
+        if cfg['store_mass_fractions'] and isinstance(states['s7_mf'], Gas):
+            # print the species if it is an eq gas object...
+            print 'species in state7 at equilibrium (by mass):'               
+            print '{0}'.format(states['s7_mf'].species)
         print 'state 7 gamma = {0}, state 7 R = {1}.'.format(states['s7'].gam,states['s7'].R)
     
     if PRINT_STATUS: print '-'*60
@@ -1526,6 +1577,8 @@ def nozzle_expansion(cfg, states, V, M):
     # tolerance for the nozzle expansion secant solver
     if 'nozzle_expansion_tolerance' not in cfg or not cfg['nozzle_expansion_tolerance']:
         cfg['nozzle_expansion_tolerance'] = 1.0e-4
+        
+    nozzle_expansion_ion_change = False # something we will change if we need...
     
     if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
         try:
@@ -1629,6 +1682,7 @@ def nozzle_expansion(cfg, states, V, M):
                     print "There must be some kind of error."
                     raise Exception, "pitot_flow_functions.nozzle_expansion(): No pressure change through nozzle"
                 print "Nozzle expansion sucessful with ions turned off."
+                nozzle_expansion_ion_change = True
             except Exception as e:
                 print "Error {0}".format(str(e))
                 if cfg['solver'] != 'pg-eq':
@@ -1667,12 +1721,35 @@ def nozzle_expansion(cfg, states, V, M):
             M['s8']= V['s8']/states['s8'].a  
         else:               
             states['s8'] = states['s8f']
+            
+    if cfg['store_mass_fractions']:
+        print "Creating a version of state 8 with mass fractions ('s8_mf') in the states dict as the user has asked for this."
+        try:
+            states['s8_mf'] = states['s8'].clone(newOutputUnits='massf')
+        except Exception as e:
+            print "{0}: {1}".format(type(e).__name__, e.message)
+            if states['s8'].with_ions:
+                try:
+                    print "Will try again with ions turned off..."
+                    states['s8'].with_ions = False
+                    states['s8_mf'] = states['s8'].clone(newOutputUnits='massf')
+                    states['s8'].with_ions = True
+                except Exception as e:
+                    print "{0}: {1}".format(type(e).__name__, e.message)    
+                    raise Exception, "pitot_flow_functions.nozzle_expansion(): Nozzle expansion function failed to make the mass fraction based object."
+            else:
+                raise Exception, "pitot_flow_functions.nozzle_expansion(): Nozzle expansion function failed to make the mass fraction based object."
+                
     
     print "state 8: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s8'].p, states['s8'].T, V['s8'])        
     if isinstance(states['s8'], Gas):
         # print the species if it is an eq gas object...
-        print 'species in state8 at equilibrium:'               
+        print 'species in state8 at equilibrium (by moles):'               
         print '{0}'.format(states['s8'].species)
+    if cfg['store_mass_fractions'] and isinstance(states['s8_mf'], Gas):
+        # print the species if it is an eq gas object...
+        print 'species in state8 at equilibrium (by mass):'               
+        print '{0}'.format(states['s8_mf'].species)
     print 'state 8 gamma = {0}, state 8 R = {1}.'.format(states['s8'].gam,states['s8'].R)
     
     #I decided that it also would be good to plot some nozzle ratio info too...
@@ -1830,7 +1907,6 @@ def shock_over_model_calculation(cfg, states, V, M):
                         print "Result will not be printed."
                         if 's10e' in states.keys():
                             del states['s10e']
-                
                 else:
                     print "Result will not be printed."
                     if 's10e' in states.keys():
@@ -1854,19 +1930,32 @@ def shock_over_model_calculation(cfg, states, V, M):
             print "Result will not be printed."
             if 's10e' in states.keys():
                 del states['s10e']
-
+                
+    if 's10e' in states.keys() and cfg['store_mass_fractions']:
+        print "Creating a version of state 10e with mass fractions ('s10e_mf') in the states dict as the user has asked for this."
+        try:
+            states['s10e_mf'] = states['s10e'].clone(newOutputUnits='massf')
+        except Exception as e:
+            print "{0}: {1}".format(type(e).__name__, e.message)
+            raise Exception, "pitot_flow_functions.shock_over_model(): Model normal shock function failed to make the mass fraction based object."
     if PRINT_STATUS: print '-'*60
     if 's10f' in states.keys() and PRINT_STATUS:
         print "state 10f: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10f'].p, states['s10f'].T,  V['s10f'])
         print 'state 10f gamma = {0}, state 10f R = {1}.'.format(states['s10f'].gam,states['s10f'].R)             
              
-             
     if 's10e' in states.keys() and PRINT_STATUS:
         print "state 10e: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10e'].p, states['s10e'].T,  V['s10e'])
         if isinstance(states['s10e'], Gas):
             # print the species if it is an eq gas object...
-            print 'species in state10e at equilibrium:'               
+            print 'species in state10e at equilibrium (by moles):'               
             print '{0}'.format(states['s10e'].species)
+             
+    if 's10e_mf' in states.keys() and PRINT_STATUS:
+        if isinstance(states['s10e_mf'], Gas):
+            # print the species if it is an eq gas object...
+            print 'species in state10e at equilibrium (by mass):'               
+            print '{0}'.format(states['s10e_mf'].species)            
+            
         print 'state 10e gamma = {0}, state 10e R = {1}.'.format(states['s10e'].gam,states['s10e'].R)
                 
     return cfg, states, V, M

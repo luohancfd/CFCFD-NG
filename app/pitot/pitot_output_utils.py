@@ -666,6 +666,15 @@ def txt_file_output(cfg, states, V, M):
         print species2
         txt_output.write(species2 + '\n')
         
+    if cfg['shock_over_model'] and 's10e_mf' in states.keys():
+        species1 = 'Species in the shock layer at equilibrium (s10e) (by {0}):'.format(states['s10e_mf'].outputUnits)        
+        print species1
+        txt_output.write(species1 + '\n')
+        
+        species2 = '{0}'.format(states['s10e_mf'].species)
+        print species2
+        txt_output.write(species2 + '\n')   
+        
     if cfg['test'] == 'fulltheory-pressure-ratios':
         pressure_ratio_line = "p2_p1 = {0}.".format(states['s2'].p / states['s1'].p)
         print pressure_ratio_line

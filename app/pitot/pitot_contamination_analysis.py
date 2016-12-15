@@ -16,7 +16,7 @@ Chris James (c.james4@uq.edu.au) - 12/09/14
 
 """
 
-VERSION_STRING = "19-Nov-2016"
+VERSION_STRING = "15-Dec-2016"
 
 from pitot_condition_builder import stream_tee, cleanup_old_files, pickle_result_data, zip_result_and_log_files, results_csv_builder, normalised_results_csv_builder, pickle_intermediate_data
 
@@ -571,7 +571,7 @@ def run_pitot_contamination_analysis(cfg = {}, config_file = None, force_restart
                         intro_line = intro_line, filename = cfg['original_filename'] + '-contamination-analysis.csv')
                         
     #and a normalised csv also
-    normalised_results_csv_builder(results, test_name = cfg['original_filename'],  
+    normalised_results_csv_builder(results, cfg, test_name = cfg['original_filename'],  
                                    intro_line = intro_line, normalised_by = cfg['normalise_results_by'],
                                    filename = cfg['original_filename']+'-contamination-analysis-normalised.csv',
                                    extra_normalise_exceptions = ['test number', 'air contamination'])  

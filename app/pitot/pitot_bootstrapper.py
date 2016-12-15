@@ -8,7 +8,7 @@ Chris James (c.james4@uq.edu.au) - 07/12/16
 
 """
 
-VERSION_STRING = "10-Dec-2016"
+VERSION_STRING = "15-Dec-2016"
 
 import sys, os
 
@@ -51,6 +51,10 @@ def check_pitot_bootstrapper_inputs(cfg):
         print "'variable_list' not in cfg"
         print "Pitot bootstrapper cannot be ran without a variable list. Please provide one."
         raise Exception, "pitot_bootstrapper.check_pitot_boostrapper_inputs() 'variable_list' not in cfg"
+        
+    if 'store_mole_fractions' not in cfg:
+        print "'store_mole_fractions' variable not set. Setting to default value of 'False'"
+        cfg['store_mole_fractions'] = False   
         
     if not isinstance(cfg['variable_list'], list):
         print "'variable_list' is not actually a list!"
@@ -274,9 +278,13 @@ def pitot_bootstrapper_summary(cfg, results):
                     
                     # get mean and mean error
                     mean_value = mean(data_list)
+                    results[variable + '_mean'] = mean_value
 
                     std_dev = std(data_list, ddof=1)
                     c_i_95 = std_dev * 1.96
+                    
+                    results[variable + '_std_dev'] = std_dev
+                    results[variable + '_95_pc_CI'] = c_i_95
                     
                     if variable[0] == 'p':
                         summary_line = "Variable {0} varies from {1:.2f} - {2:.2f} Pa. Mean is {3:.2f} Pa. Std dev is {4:.2f} Pa. 95pc CI is {5:.2f} Pa."\
@@ -292,7 +300,10 @@ def pitot_bootstrapper_summary(cfg, results):
                         .format(variable, min_value, max_value, mean_value, std_dev, c_i_95)
                     elif variable[0] == 'H' or variable[0] == 'h':
                         summary_line = "Variable {0} varies from {1:.7f} - {2:.7f} MJ/kg. Mean is {3:.7f} MJ/kg. Std dev is {4:.7f} MJ/kg. 95pc CI is {5:.7f} MJ/kg."\
-                        .format(variable, min_value, max_value, mean_value, std_dev, c_i_95)                    
+                        .format(variable, min_value, max_value, mean_value, std_dev, c_i_95)  
+                    elif '%' in variable or 'y' in variable:
+                        summary_line = "Variable {0} varies from {1} - {2}. Mean is {3}. Std dev is {4}. 95pc CI is {5}."\
+                        .format(variable, min_value, max_value, mean_value, std_dev, c_i_95)
                     else:
                         summary_line = "Variable {0} varies from {1:.1f} - {2:.1f}. Mean is {3:.1f}. Std dev is {4:.1f}. 95pc CI is {5:.1f}."\
                         .format(variable, min_value, max_value, mean_value, std_dev, c_i_95)
@@ -301,7 +312,7 @@ def pitot_bootstrapper_summary(cfg, results):
                     
         summary_file.close()   
         
-    return
+    return results
 
 def run_pitot_bootstrapper(cfg = {}, config_file = None, force_restart = None):
     """
@@ -433,7 +444,7 @@ def run_pitot_bootstrapper(cfg = {}, config_file = None, force_restart = None):
     
     # print the summary
     
-    pitot_bootstrapper_summary(cfg, results)
+    results = pitot_bootstrapper_summary(cfg, results)
                     
     # and pull in the pickle function from pitot_condition_builder.py
     # so we can pick the results and config dictionaries                  
