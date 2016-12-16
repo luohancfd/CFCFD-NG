@@ -8,7 +8,7 @@ Chris James (c.james4@uq.edu.au) - 07/12/16
 
 """
 
-VERSION_STRING = "15-Dec-2016"
+VERSION_STRING = "16-Dec-2016"
 
 import sys, os
 
@@ -362,11 +362,7 @@ def run_pitot_bootstrapper(cfg = {}, config_file = None, force_restart = None):
         cfg['last_run_successful'] = None
         
         cfg['original_filename'] = copy.copy(cfg['filename'])
-        
-        # I think store the original cfg too
-        # do a deepcopy so we don't just have references to internal stuff...
-        cfg['cfg_original'] = copy.deepcopy(cfg)
-            
+                    
         # work out what we need in our results dictionary and make the dictionary
         # this is just the normal pitot_condition_builder one...
         results = build_results_dict(cfg, extra_variable_list = cfg['variable_list'])
@@ -374,6 +370,10 @@ def run_pitot_bootstrapper(cfg = {}, config_file = None, force_restart = None):
         # build the dictionary with the details of all the tests we want to run...
         
         test_condition_input_details = build_pitot_bootstrapper_condition_input_details_dictionary(cfg)
+        
+        # I think store the original cfg too
+        # do a deepcopy so we don't just have references to internal stuff...
+        cfg['cfg_original'] = copy.deepcopy(cfg)
         
         # print the start message
            
