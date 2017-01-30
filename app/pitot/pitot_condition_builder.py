@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "15-Dec-2016"
+VERSION_STRING = "31-Jan-2017"
 
 import sys
 
@@ -703,7 +703,7 @@ def normalised_results_csv_builder(results, cfg, test_name = 'pitot_run',
         normalise_exceptions = ['test number', 'driver condition', 'psd1','Vsd']
         
         # we also need to add exceptions for the mole or mass fractions...
-        if cfg['store_mole_fractions']:
+        if 'store_mole_fractions' in cfg and cfg['store_mole_fractions']:
             # we have to add more columns here based on the test gas...
             if cfg['test_gas'] in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
                 cfd_air_list = ['N2', 'O2', 'N', 'O', 'N3', 'O3', 'N+','N-','O+','O-','e-', 'N2+','N2-','O2+','O2-','N2O','NO2','NO','NO+','N2O+']
@@ -720,7 +720,7 @@ def normalised_results_csv_builder(results, cfg, test_name = 'pitot_run',
                 if cfg['shock_over_model']:
                     normalise_exceptions += cfd_air_state10e_list
         
-        if cfg['store_mass_fractions']:
+        if 'store_mass_fractions' in cfg and cfg['store_mass_fractions']:
             # we have to add more columns here based on the test gas...
             if cfg['test_gas'] in ['n2_o2', 'N2_O2', 'N2-O2', 'n2-o2', 'air-cfd-with-ions', 'air-N2-O2', 'air_N2_O2', 'air_n2_o2', 'air-n2-o2']:
                 cfd_air_list = ['N2', 'O2', 'N', 'O', 'N3', 'O3', 'N+','N-','O+','O-','e-', 'N2+','N2-','O2+','O2-','N2O','NO2','NO','NO+','N2O+']
