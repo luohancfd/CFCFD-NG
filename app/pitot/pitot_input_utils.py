@@ -861,7 +861,15 @@ def input_checker(cfg, condition_builder = False):
         
     if cfg['make_one_line_summary'] and 'store_mole_fractions' not in cfg:
         print "'store_mole_fractions' variable not set. Setting to default value of 'False'"
-        cfg['store_mole_fractions'] = False          
+        cfg['store_mole_fractions'] = False  
+
+    # input for the effective gamma
+    if cfg['facility'] == 'custom' and 'effective_gam' not in cfg:
+       cfg['effective_gam'] = False        
+       
+    if cfg['facility'] == 'custom' and cfg['effective_gam'] and not isinstance(cfg['effective_gam'], float):
+        print "'effective_gam' must be a float. Current value is not. Bailing out."
+        raise TypeError, "pitot_input_utils.input_checker(): 'effective_gam' input is not a float"
     
     #------------------ final check stuff....-------------------------------
         
@@ -1201,19 +1209,24 @@ def state_builder(cfg):
                 states['s4i']=pg.Gas(Mmass=8314.4621/cfg['driver_pg_R'],
                                                      gamma=cfg['driver_pg_gam'], name='s1')    
             states['s4i'].set_pT(cfg['driver_p'],cfg['driver_T'])
+            if 'effective_gam' in cfg and cfg['effective_gam']:
+                print "Using an effective gamma value of {0} for the driver compression.".format(cfg['effective_gam'])
+                gam = cfg['effective_gam']
+            else:
+                gam = states['s4i'].gam
+                
             # now do the compression to state 4
             # If both p4 and compression ratio are set, code will use p4
             if 'p4' in cfg:
                 print "Performing isentropic compression from driver fill condition to {0} Pa.".format(cfg['p4'])
                 cfg['T4'] = states['s4i'].T*\
-                (cfg['p4']/states['s4i'].p)**(1.0-(1.0/states['s4i'].gam)) #K
+                (cfg['p4']/states['s4i'].p)**(1.0-(1.0/gam)) #K
                 print "p4 = {0:.2f} Pa, T4 = {1:.2f} K.".format(cfg['p4'], cfg['T4'])
             else:
                 print "Performing isentropic compression from driver fill condition over compression ratio of {0}.".format(cfg['compression_ratio'])
-                cfg['pressure_ratio'] = cfg['compression_ratio']**states['s4i'].gam #pressure ratio is compression ratio to the power of gamma
+                cfg['pressure_ratio'] = cfg['compression_ratio']**gam #pressure ratio is compression ratio to the power of gamma
                 cfg['p4'] = states['s4i'].p*cfg['pressure_ratio'] #Pa
-                cfg['T4'] = states['s4i'].T*\
-                (cfg['pressure_ratio'])**(1.0-(1.0/states['s4i'].gam)) #K
+                cfg['T4'] = states['s4i'].T*(cfg['pressure_ratio'])**(1.0-(1.0/gam)) #K
                 print "p4 = {0:.2f} Pa, T4 = {1:.2f} K.".format(cfg['p4'], cfg['T4'])
             states['s4'] = states['s4i'].clone()
             states['s4'].set_pT(cfg['p4'],cfg['T4'])

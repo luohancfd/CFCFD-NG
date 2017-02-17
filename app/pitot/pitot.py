@@ -284,6 +284,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
     22-Nov-2016: Added new driver condition for X3 based on ANdreas' recent blank off shots,
         added ability to use the x-t diagram maker with X3, and added a V3s_loss_factor for Tim
     7-Dec-2016: Added Vsd2r and V2r loss factors for Tim....
+    17-Feb-2017: added an 'effective_gam' for the custom driver to allow for simulation
+        of slightly non-ideal driver compression
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -311,7 +313,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "16-Dec-2016"
+VERSION_STRING = "17-Feb-2016"
 
 DEBUG_PITOT = False
 
