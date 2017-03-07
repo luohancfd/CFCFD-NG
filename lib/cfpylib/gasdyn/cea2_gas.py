@@ -149,6 +149,8 @@ def get_cea2_float(token_list):
             # because we should be able to back out the intended
             # value from knowledge of the rest of the list.
             return None
+        # FIXME PJ 2017-03-07 The following replacements will misbehave
+        # for a string like -1.023-2.
         if value_str.find("-") > 0:
             value_str = value_str.replace("-","e-")
         if value_str.find("+") > 0:
