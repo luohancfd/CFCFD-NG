@@ -1545,20 +1545,20 @@ def test_section_setup(cfg, states, V, M):
                       
     if cfg['tunnel_mode'] == 'expansion-tube' and cfg['nozzle']:
         cfg['nozzle_entry_state'] = 's7'
-        cfg, states, V, M == nozzle_expansion(cfg, states, V, M)
         cfg['test_section_state'] = 's8'
+        cfg, states, V, M == nozzle_expansion(cfg, states, V, M)
     elif cfg['tunnel_mode'] == 'expansion-tube' and not cfg['nozzle']:
         cfg['test_section_state'] = 's7' 
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' and cfg['nozzle']:
         cfg['nozzle_entry_state'] = 's2'
-        cfg, states, V, M == nozzle_expansion(cfg, states, V, M)
         cfg['test_section_state'] = 's8'
+        cfg, states, V, M == nozzle_expansion(cfg, states, V, M)
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' and not cfg['nozzle']:            
         cfg['test_section_state'] = 's2'
     elif cfg['tunnel_mode'] == 'reflected-shock-tunnel' and cfg['nozzle']:
         cfg['nozzle_entry_state'] = 's5'
-        cfg, states, V, M == nozzle_expansion(cfg, states, V, M)
         cfg['test_section_state'] = 's8'
+        cfg, states, V, M == nozzle_expansion(cfg, states, V, M)
     elif cfg['tunnel_mode'] == 'reflected-shock-tunnel' and not cfg['nozzle']:            
         cfg['test_section_state'] = 's5'        
     
@@ -1740,7 +1740,24 @@ def nozzle_expansion(cfg, states, V, M):
             else:
                 raise Exception, "pitot_flow_functions.nozzle_expansion(): Nozzle expansion function failed to make the mass fraction based object."
                 
-    
+    try:
+        states['test_section_total'] = total_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
+        states['test_section_pitot'] = pitot_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
+        cfg['stagnation_enthalpy'] = states['test_section_total'].h - states['s1'].h #J/kg (take away the initial enthalpy in state 1 to get the change)
+    except:
+        try:
+            # try again with ions turned off.
+            states[cfg['test_section_state']].with_ions = False
+            states['test_section_total'] = total_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
+            states['test_section_pitot'] = pitot_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
+            cfg['stagnation_enthalpy'] = states['test_section_total'].h - states['s1'].h #J/kg (take away the initial enthalpy in state 1 to get the change)
+            states[cfg['test_section_state']].with_ions = True
+        except:
+            # just give up if it bails out again
+            states['test_section_total'] = None
+            states['test_section_pitot'] = None
+            cfg['stagnation_enthalpy'] = None
+            
     print "state 8: p = {0:.2f} Pa, T = {1:.2f} K, V = {2:.2f} m/s.".format(states['s8'].p, states['s8'].T, V['s8'])        
     if isinstance(states['s8'], Gas):
         # print the species if it is an eq gas object...
@@ -1751,6 +1768,9 @@ def nozzle_expansion(cfg, states, V, M):
         print 'species in state8 at equilibrium (by mass):'               
         print '{0}'.format(states['s8_mf'].species)
     print 'state 8 gamma = {0}, state 8 R = {1}.'.format(states['s8'].gam,states['s8'].R)
+    if cfg['stagnation_enthalpy']:
+        print 'The total enthalpy (Ht) at the nozzle exit (state 8) is {0:<.5g} MJ/kg (H8 - h1).'\
+                .format(cfg['stagnation_enthalpy']/10**6)
     
     #I decided that it also would be good to plot some nozzle ratio info too...
     
