@@ -8,6 +8,11 @@ gas_flow.py -- Gas flow calculations using CEA2 or ideal Gas objects.
    26-Feb-2012 : functions moved out of estcj.py to this module.
    02-May-2013" added more expansion_to_throat_calculation function from
        Matt McGilvray's gun tunnel version of nenzfr. -Chris James
+   15-March-2016 : large changes to normal_shock function to make it more
+       robust by making it throw errors if it doesn't converge, and to try to catch
+       issues with the initial ideal gas guess. my_limiter was also changed to use
+       a default limit of 0.2 to stop it causing issues with starting high temp normal_shock
+       calculations - Chris James
 """
 
 import sys, math, numpy
@@ -52,7 +57,7 @@ def shock_ideal(state1, Vs, state2):
     return (V2, Vg)
 
 
-def my_limiter(delta, orig, frac=0.5):
+def my_limiter(delta, orig, frac=0.2):
     """
     Limit the magnitude of delta to no more than a fraction of the original.
 
@@ -68,7 +73,7 @@ def my_limiter(delta, orig, frac=0.5):
     return sign * abs_delta
 
 
-def normal_shock(state1, Vs, state2,ideal_gas_guess=None):
+def normal_shock(state1, Vs, state2,ideal_gas_guess = None, max_iterations = 100, T2_ideal_truncation = 20000.0):
     """
     Computes post-shock conditions, using high-temperature gas properties
     and a shock-stationary frame.
@@ -80,17 +85,50 @@ def normal_shock(state1, Vs, state2,ideal_gas_guess=None):
         form {'gam':gam,'R':R} thatis used for the ideal guess at the start of
         the function when Vs is too high and CEA can't deal with the ideal guess 
         for state 2
+    :param max_iterations: Maximum amount of iterations for the Newton-Rhapson solver
+        that is trying to find the post-shock properties. 
+    :param T2_ideal_truncation: A truncation of the initial T2 guess to be used when the
+        ideal gas guess provides a temperature too high for cea to set an initial eq gas state,
+        defaults to 20000.0.
     :returns: the post-shock gas speed, V2 in the shock-reference frame, Vg in the lab frame.
     """
     #
     # Initial guess via ideal gas relations.
     #
-    if ideal_gas_guess: #if we're worried the ideal gas guess will not work, 
-                        #store the original state and use our own guess gam and R for now
-        original_state1 = state1.clone()
-        state1.gam = ideal_gas_guess['gam']
-        state1.R = ideal_gas_guess['R']
-    (V2,Vg) = shock_ideal(state1, Vs, state2)
+    try:
+        # do the ideal normal shock, and then try to set state 2 at that condition...
+        (V2,Vg) = shock_ideal(state1, Vs, state2)
+        state2.set_pT(state2.p, state2.T);
+    except Exception as e:
+        print "{0}: {1}".format(type(e).__name__, e.message)
+        print "Setting the initial gas state from the ideal gas guess has failed."
+        print "Ideal failed values were p2 = {0} Pa, T2 = {1} K".format(state2.p, state2.T)
+        if ideal_gas_guess: #if we're worried the ideal gas guess will not work, 
+                            #store the original state and use our own guess gam and R for now
+            print "Will try again with the user provided adjusted gamma and R for finding the ideal gas guess."
+            original_state1 = state1.clone()
+            state1.gam = ideal_gas_guess['gam']
+            state1.R = ideal_gas_guess['R']
+            try:
+                state2.set_pT(state2.p, state2.T);
+            except Exception as e:
+                print "{0}: {1}".format(type(e).__name__, e.message)
+                print "Setting the initial gas state from the ideal gas guess has failed even with the adjusted gamma and R."
+                print "Will try again with a truncated ideal T2 value of {0} K".format(T2_ideal_truncation)
+                try:
+                    state2.set_pT(state2.p, T2_ideal_truncation);
+                except Exception as e:
+                    print "{0}: {1}".format(type(e).__name__, e.message)
+                    raise Exception, "gas_flow.normal_shock() Failed to be able to use the T2_ideal_truncation to set the starting gas state."
+        
+        else:
+            print "Will try again with a truncated ideal T2 value of {0} K".format(T2_ideal_truncation)
+            try:
+                state2.set_pT(state2.p, T2_ideal_truncation);
+            except Exception as e:
+                print "{0}: {1}".format(type(e).__name__, e.message)
+                raise Exception, "gas_flow.normal_shock() Failed to be able to use the T2_ideal_truncation to set the starting gas state."
+    
     if DEBUG_GAS_FLOW:
         print 'normal_shock(): post-shock condition assuming ideal gas'
         state2.write_state(sys.stdout)
@@ -103,6 +141,7 @@ def normal_shock(state1, Vs, state2,ideal_gas_guess=None):
     if DEBUG_GAS_FLOW:
         print 'normal_shock(): pre-shock condition assuming real gas and original pT'
         state1.write_state(sys.stdout)
+    # state 2 is also set above now to check if it works!
     state2.set_pT(state2.p, state2.T);
     if DEBUG_GAS_FLOW:
         print 'normal_shock(): post-shock condition assuming real gas and ideal pT'
@@ -127,13 +166,18 @@ def normal_shock(state1, Vs, state2,ideal_gas_guess=None):
     b = numpy.zeros((2,), float)
     #
     rho_delta = 1.0
-    T_delta = 1.0
+    T_delta = 1.0    
+    
     rho_tol = 1.0e-3; # tolerance in kg/m^3
     T_tol = 0.25;  # tolerance in degrees K
+    
     #
     # Update the estimates using the Newton-Raphson method.
     #
-    for count in range(20):
+    
+    converged = False    
+    
+    for count in range(max_iterations):
         rho_save = state2.rho
         T_save = state2.T
         f1_save, f2_save = Fvector(rho_save, T_save)
@@ -149,7 +193,10 @@ def normal_shock(state1, Vs, state2,ideal_gas_guess=None):
         A = numpy.array([[df1drho, df1dT],
                          [df2drho, df2dT]])
         b = numpy.array([-f1_save, -f2_save])
+        
         rho_delta, T_delta = numpy.linalg.solve(A, b)
+
+        
         # Possibly limit the increments so that the Newton iteration is
         # less inclined to go crazy.
         rho_delta = my_limiter(rho_delta, rho_save)
@@ -157,17 +204,24 @@ def normal_shock(state1, Vs, state2,ideal_gas_guess=None):
         rho_new = rho_save + rho_delta
         T_new   = T_save + T_delta
         if DEBUG_GAS_FLOW:
+            print('normal_shock(): count = %i' % (count))
             print('normal_shock(): rho_save=%e, T_save=%e' % (rho_save, T_save))
             print('normal_shock(): rho_delta=%e, T_delta=%e' % (rho_delta, T_delta))
             print('normal_shock(): rho_new=%e, T_new=%e' % (rho_new, T_new))
         state2.set_rhoT(rho_new, T_new)
+        
         # Check convergence.
-        if abs(rho_delta) < rho_tol and abs(T_delta) < T_tol: break
+        if abs(rho_delta) < rho_tol and abs(T_delta) < T_tol: 
+            converged = True
+            break
+        
+    if not converged: # code did not converge, so we should bail out here...
+        raise Exception, "gas_flow.normal_shock() Newton-Rhapson solve did not converge after maximum iterations."
     #
     if DEBUG_GAS_FLOW:
         print ('normal_shock(): count = %d, drho=%e, dT=%e' %
                (count, rho_delta, T_delta) )
-    if ideal_gas_guess: #if we did this, restore the original state before we finish
+    if ideal_gas_guess and 'original_state1' in locals(): #if we did this, restore the original state before we finish
         state1 = original_state1.clone()
     #
     # Back-out velocities via continuity.
