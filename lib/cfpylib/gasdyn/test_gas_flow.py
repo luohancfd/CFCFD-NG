@@ -19,7 +19,7 @@ class TestGasFlow(unittest.TestCase):
         self.assertAlmostEqual(s1.rho, 1.1612, delta=0.001)
         s2 = s1.clone()
         V2,Vg = normal_shock(s1, 3000.0, s2)
-        self.assertAlmostEqual(s2.p, 9.1779e+06, delta=1.0)
+        self.assertAlmostEqual(s2.p, 9.1779e+06, delta=9.1779e+06*1.0e-4)
         self.assertAlmostEqual(s2.T, 3572.97, delta=1.0)
         self.assertAlmostEqual(V2, 394.09, delta=1.0)
         self.assertAlmostEqual(Vg, 2605.9, delta=1.0)
@@ -35,7 +35,7 @@ class TestGasFlow(unittest.TestCase):
         self.assertAlmostEqual(s2.T, 32753.03, delta=1.0)
         self.assertAlmostEqual(V2, 1496.26, delta=1.0)
         self.assertAlmostEqual(Vg, 12503.74, delta=1.0)
-
+        
     def test_shock_given_p_ratio(self):
         s1 = Gas({'Air':1.0})
         s1.set_pT(1.0e5, 300.0)
@@ -48,7 +48,7 @@ class TestGasFlow(unittest.TestCase):
         self.assertAlmostEqual(V2, 394.09, delta=1.0)
         self.assertAlmostEqual(Vg, 2605.9, delta=1.0)
         return
-
+        
     def test_reflected_shock(self):
         s1 = Gas({'Air':1.0})
         s1.set_pT(1.0e5, 300.0)
@@ -79,7 +79,7 @@ class TestGasFlow(unittest.TestCase):
         self.assertAlmostEqual(s7.T, 6120.72, delta=1.0)
         self.assertAlmostEqual(s7.rho, 43.748, delta=0.01)
         s8 = pitot_condition(s6, V)
-        self.assertAlmostEqual(s8.p, 4.3691e+06, delta=10.0)
+        self.assertAlmostEqual(s8.p, 4.3691e+06, delta=4.3691e+06*1.0e-4)
         self.assertAlmostEqual(s8.T, 5450.51, delta=1.0)
         self.assertAlmostEqual(s8.rho, 2.4222, delta=0.01)
         return
