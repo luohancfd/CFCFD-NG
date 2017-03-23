@@ -1,6 +1,9 @@
 Getting the codes and preparing to run them
 ===========================================
 
+If you are interested in just the Eilmer4 flow simulation code, skip these instructions
+and jump straight to the `Eilmer4 page on Bitbucket <https://bitbucket.org/cfcfd/dgd/>`_.
+ 
 The code repository
 -------------------
 The codes are available for download from a public Mercurial repository.
@@ -38,7 +41,7 @@ Notes
 Licence
 -------
 CFCFD program collection is a set of flow simulation tools for compressible fluids.
-Copyright (C) 1991-2016 Peter Jacobs, Rowan Gollan, Daniel Potter, 
+Copyright (C) 1991-2017 Peter Jacobs, Rowan Gollan, Daniel Potter, 
 Ingo Jahn, Anand Veeraragavan, Vince Wheatley, Daryl Bond, Chris James
 and other members of the CFCFD group.
 

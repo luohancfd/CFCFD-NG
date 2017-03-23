@@ -1,10 +1,9 @@
 The CFCFD Code Collection
 =========================
 
-For local and external collaborators, these are available via a public Mercurial repository.
+These codes are available via a public Mercurial repository.
 
-#. *eilmer3*: The current compresible-flow Navier-Stokes simulation code
-   for 2D and 3D flows. 
+#. *eilmer3*: A compresible-flow Navier-Stokes simulation code for 2D and 3D flows. 
    This has the best bits of mbcns2 and elmer2, together with a rebuilt
    thermochemistry module.
    We have changed the name to Eilmer, the correct spelling of the name of the
@@ -15,11 +14,14 @@ For local and external collaborators, these are available via a public Mercurial
 #. *poshax3*: post-shock, one-dimensional flow with complex thermochemistry 
    and radiation.
 #. *photaura*: radiation toolset.
+#. *eilmer4*: Is our newest compressible flow simulation code for 2D and 3D flows.
+   It is a complete reworking of our flow simulation ideas into the D programming language.   
 
 .. toctree::
    :maxdepth: 2
 
    getting-started
+   eilmer4
    eilmer3
    l1d3
    imoc

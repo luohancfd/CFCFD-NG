@@ -1,6 +1,15 @@
 Reports and Theses
 ==================
 
+Eilmer4
+-------
+
+The Eilmer4 User Guide describes how to set up and run simulations.  
+The companion gas model and geometry user guides describe the details of 
+the thermochemistry models and the geometry/grid generation modules.
+All of these reports are available, as PDF, 
+from the `Eilmer4 page on Bitbucket <https://bitbucket.org/cfcfd/dgd/>`_
+
 Eilmer3
 -------
 
