@@ -4,14 +4,25 @@ Reports and Theses
 Eilmer4
 -------
 
-The Eilmer4 User Guide describes how to set up and run simulations.  
+The Eilmer4 user's guide describes how to set up and run simulations.  
 The companion gas model and geometry user guides describe the details of 
 the thermochemistry models and the geometry/grid generation modules.
-All of these reports are available, as PDF, 
+
+#. Jacobs PA, Gollan RJ, The user's guide to the Eilmer4 flow simulation program, including some examples to get you started. `School of Mechanical and Mining Engineering Technical Report 2016/17 <http://espace.library.uq.edu.au/view/UQ:452430>`_ , November 2016.
+
+#. Gollan RJ, Jacobs PA, The user's guide to the Dlang gas Package, including gas-calc and the API. `School of Mechanical and Mining Engineering Technical Report 2016/20 <http://espace.library.uq.edu.au/view/UQ:452426>`_ , December 2016.
+
+#. Jacobs PA, Gollan RJ, The user's guide to the Dlang geometry package for use with the Eilmer4 flow simulation program. `School of Mechanical and Mining Engineering Technical Report 2016/19 <http://espace.library.uq.edu.au/view/UQ:452429>`_ , October 2016.
+
+All of these reports are available, in PDF, 
 from the `Eilmer4 page on Bitbucket <https://bitbucket.org/cfcfd/dgd/>`_
 
 Eilmer3
 -------
+
+Eilmer3 has been our main 2D/3D compressible flow simulation code for a number of years
+and will remain available, however, new work should be started with Eilmer4.  
+Yes, the input scripts are a little different, but Eilmer4 is so much better...
 
 Eilmer3-User-Guide_ describes how to set up and run simulations with Eilmer3.
 
