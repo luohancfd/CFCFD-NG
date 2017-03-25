@@ -70,11 +70,70 @@ Reference paper for IMOC
 #. Jacobs PA, Gourlay CM. An interactive method-of-characteristics program for gas-dynamic calculations. The International Journal of Applied Engineering Education, 1991; 7(3):242-250
 
 
+Theses associated with or using the codes
+-----------------------------------------
+
+#. Kang, Xin (2017) Micro/mesoscale combustion based portable power generating system.  PhD Thesis, School of Mechanical and Mining Engineering, The University of Queensland.
+
+#. Wei, Han (2017) Air radiation in superorbital expanding flow. PhD Thesis, School of Mechanical and Mining Engineering, The University of Queensland.
+
+#. Fahy, Elise (2016) Superorbital re-entry shock layers: Flight and laboratory comparisons.  PhD Thesis, School of Mechanical and Mining Engineering, The University of Queensland.
+
+#. Bond, Daryl (2015). Numerical investigation of gaseous heat and mass transfer: the effect of rarefaction. PhD Thesis, School of Mechanical and Mining Engineering, The University of Queensland. doi:10.14264/uql.2015.511 [used geometry functions only]
+
+#. Czapla, Jason (2015) Investigation of supersonic impulse turbines for application to geothermal binary power stations. PhD Thesis, School of Mechanical and Mining Engineering, The University of Queensland.
+
+#. Porat, Hadas (2015) Measurement of radiative heat transfer in simulated Titan and Mars atmospheres in expansion tubes.  PhD Thesis, School of Mechancial and Mining Engineering, The University of Queensland.
+
+#. Al-Doori, Ghassan Fadil Lattif (2013) Investigation of refrigeration system steam ejector performance through experiments and computational simulations.  PhD Thesis, School of Mechanical and Electrical Engineering, University of Southern Queensland.
+
+#. Chan, Wilson (2012) Effects of flow non-uniformities on drag reduction by boundary layer combustion.  PhD Thesis, School of Mechanical and Mining Engineering, The University of Queensland.
+
+#. de Miranda Ventura, Carlos (2012) Aerodynamic design and performance estimation of radial inflow turbines for renewable power generation applications.  PhD Thesis, School of Mechanical and Mining Engineering, The University of Queensland.
+
+#. O'Flaherty, Brendan (2012) Reducing the global warming potential of coal mine ventilation air by combustion in a free-piston engine.  PhD Thesis, School of Mechanical and Mining Engineering, The University of Queensland.
+
+#. Gildfind, David (2012) Development of high total pressure scramjet flow conditions using the X2 expansion tube.  PhD Thesis, Division of Mechanical Engineering, School of Engineering, The University of Queensland. 
+
+#. Jacobs, Carolyn (2011) Radiation in low density hypervelocity flows.  PhD Thesis, The University of Queensland and Ecole Centrale Paris.
+
+#. Potter, Daniel (2011) Modelling of radiating shock layers for atmospheric entry at Earth and Mars.  PhD Thesis, School of Mechanical and Mining Engineering, The University of Queensland.
+
+#. Gollan, Rowan (2009) The computational modelling of high-temperature gas effects with application to hypersonic flows.  PhD Thesis, Division of Mechanical Engineering, School of Engineering, The University of Queensland.
+
+#. Kirchhartz, Rainer (2009) Upstream Wall Layer Effects on Drag Reduction with Boundary Layer Combustion.  PhD Thesis, School of Mechanical and Mining Engineering, The University of Queensland.
+
+#. Window, Adriaan (2008) Simulation of separating flows in the X2 expansion tube over bluff aerocapture vehicles.  Master of Philosophy Thesis, School of Engineering, The University of Queensland.
+
+#. McGilvray, Matthew (2008) Scramjet testing at high enthalpies in expansion tube facilities.  PhD Thesis, Division of Mechanical Engineering, School of Engineering, The University of Queensland.
+
+#. Tang, Joseph (2008) Development of a parallel adaptive cartesian cell code to simulate blast in complex geometries.  PhD Thesis, Division of Mechanical Engineering, School of Engineering, The University of Queensland.
+
+#. Denman, Andrew (2007) Large-eddy simulation of compressible turbulent boundary layers with heat addition.  PhD Thesis, Division of Mechanical Engineering, School of Engineering, The University of Queensland.
+
+#. Scott, Michael (2006) Development and modelling of expansion tubes. PhD Thesis, Division of Mechanical Engineering, School of Engineering, The University of Queensland.
+
+#. Elford, Michael (2005) Validation of a CFD solver for hypersonic flows.  Master of Philosophy Thesis, Division of Mechanical Engineering, School of Engineering, The University of Queensland.
+
+#. Stewart, Benjamin (2004) Predicted scramjet testing capabilities of the proposed RHYFL-X expansion tube.  PhD Thesis, Division of Mechanical ENgineering, The University of Queensland.
+
+#. Goozee, Richard (2003) Simulation of a complete shock tunnel using parallel computer codes. PhD Thesis, Division of Mechanical Engineering, School of Engineering, The University of Queensland.
+
+#. Wheatley, Vincent (2001) Modelling low-density flow in hypersonic impulse facilities.  Masters of Engineering Science Thesis, Department of Mechanical Engineering, The University of Queensland.
+
+#. Faddy, James (2000) Computational modelling for shock tube flows.  Masters of Engineering Science Thesis, Department of Mechanical Engineering, The University of Queensland.
+
+#. Craddock, Christopher (1999) Computational optimization of scramjets and shock tunnel nozzles.  PhD Thesis, Department of Mechanical ENgineering, The University of Queensland.
+
+#. Johnston, Ian (1999) Simulation of flow around hypersonic blunt-nosed vehicles for the calibration of air data systems.  PhD Thesis, Department of Mechanical Engineering, The University of Queensland.
+
+#. Petrie-Repar, Paul (1997) Numerical simulation of diaphragm rupture.  PhD Thesis, Mechanical Engineering Department, The University of Queensland.
+
+
 Papers on applications of the codes
 -----------------------------------
 
 The following papers have made use, in one way or another, of the flow-simulation codes.
-
 
 Turbomachinery flows:
 
