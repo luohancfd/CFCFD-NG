@@ -1,13 +1,40 @@
 Journal and Conference Publications
 ===================================
 
-Papers on the codes
--------------------
+Reference papers for Eilmer
+---------------------------
 
-The following papers are about Eilmer3, mb_cns, L1d and IMOC code development.  
-The first one is good to cite if you are using the Eilmer3 code for your own research.
+These are good to cite if you are using the core gas-dynamics part of the Eilmer code for your own research.  Other features of the code (such as the conjugate heat transfer capability) may have separate papers.
+
+#. Jacobs PA, Gollan RJ. Implementation of a Compressible-Flow Simulation Code in the D Programming Language.  Advances of Computational Mechanics in Australia 2016; 846:54-60 (DOI: 10.4028/www.scientific.net/AMM.846.54)
 
 #. Gollan RJ, Jacobs PA. About the formulation, verification and validation of the hypersonic flow solver Eilmer.  International Journal for Numerical Methods in Fluids 2013; 73:19-57 (DOI: 10.1002/fld.3790)
+
+
+Other papers on development of Eilmer
+-------------------------------------
+
+The following papers are about Eilmer4, Eilmer3, mb_cns code development.  
+
+#. Qin, Kan, Jahn, Ingo, Gollan, Rowan and Jacobs, Peter (2016) Development of a computational tool to simulate foil bearings for supercritical CO2 cycles. Journal of Engineering for Gas Turbines and Power, 138 9: 092503-1-092503-19. doi:10.1115/1.4032740
+
+#. Veeraragavan, A., Beri, J. and Gollan, R. J. (2016) Use of the method of manufactured solutions for the verification of conjugate heat transfer solvers. Journal of Computational Physics, 307 308-320. doi:10.1016/j.jcp.2015.12.004
+
+#. Damm, K. A., Gollan, R. J. and Veeraragavan, A. (2016). On the effect of workload ordering for reacting flow simulations using GPUs. In: 20th Australasian Fluid Mechanics Conference. 20th Australasian Fluid Mechanics Conference, Perth, Australia, (). 5 – 8 December 2016.
+
+#. Wang, J., Gollan, R. J. and Veeraragavan, A. (2016). Verification of RANS turbulence model in Eilmer using the Method of Manufactured Solutions. In: 20th Australasian Fluid Mechanics Conference. 20th Australasian Fluid Mechanics Conference, Perth, Australia, (). 5 – 8 December 2016.
+
+#. Damm, K. A., Gollan, R. J. and Veeraragavan, A. (2015). Acceleration of combustion simulations using GPUs. In: Yi Yang and Nigel Smith, The Australian Combustion Symposium 2015 Proceedings. Australian Combustion Symposium, Parkville, VIC, Australia, (148-151). 7-9 December 2015.
+
+#. Jacobs, Peter and Gollan, Rowan (2015). Implementation of a compressible-flow simulation code in the D programming language. In: ACCM2015 2nd Australasian Conference on Computational Mechanics. Australasian Conference on Computational Mechanics, Brisbane, Australia, (). 30 November to 1 December 2015.
+
+#. Jahn, Ingo H. J. (2015) Radial inflow turbine meshing rev. 1. Mechanical Engineering Report 2015/03, School of Mechanical and Mining Engineering, The University of Queensland.
+
+#. Stennett, Samuel, Chan, Wilson, Gildfind, David and Jacobs, Peter (2015). Validating the k-omega turbulence model for 3D flows within the CFD solver Eilmer. In: The 2nd Australasian Conference on Computational Mechanics. Australasian Conference on Computational Mechanics, Brisbane, Australia, (67-72). 30 November - 1 December 2015. doi:10.4028/www.scientific.net/AMM.846.67
+
+#. Jahn, Ingo H. J. and Qin, Kan (2015) e3prepToFoam: a mesh generator for OpenFOAM. 2015/04, School of Mechanical and Mining Engineering, The University of Queensland.
+
+#. Jacobs, P. A., Gollan, R. J., Potter, D. F., Zander, F., Gildfind, D. E., Blyton, P., Chan, W. Y. K. and Doherty, L. (2014) Estimation of high-enthalpy flow conditions for simple shock and expansion processes using the ESTCj program and library St Lucia, QLD, Australia.
 
 #. Gollan RJ, Jacobs PA. Verification of a hypersonic flow solver. 18th Australasian Fluid Mechanics Conference, Launceston, Tasmania. 2012
 
@@ -19,7 +46,26 @@ The first one is good to cite if you are using the Eilmer3 code for your own res
 
 #. Jacobs PA. An approximate Riemann solver for hypervelocity flows. AIAA Journal, 1992; 30(10):2558-2561.
 
-#. Jacobs, P. A. Single-block Navier-Stokes integrator. ICASE Interim Report 18, 1991.
+#. Jacobs PA. Single-block Navier-Stokes integrator. ICASE Interim Report 18, 1991.
+
+
+Reference papers for L1d
+------------------------
+
+#. Jacobs PA. Shock tube modelling with L1d. The University of Queensland, Department of Mechanical Engineering Report 13/98, 1998.
+
+#. Jacobs PA. Quasi-one-dimensional modelling of a free-piston shock tunnel. AIAA Journal, 1994; 32(1):137-145.
+
+
+Reference paper for ESTCj
+-------------------------
+
+This is the Python code version of the equilibrium shock tube condition calculator.
+
+#. Jacobs PA, Gollan RJ, Potter DF, Zander F, Gildfind DE, Blyton P, Chan WYK, Doherty L. Estimation of high-enthalpy flow conditions for simple shock and expansion processes using the ESTCj program and library. The University of Queensland, Mechanical Engineering Report 2011/02. 
+
+Reference paper for IMOC
+------------------------
 
 #. Jacobs PA, Gourlay CM. An interactive method-of-characteristics program for gas-dynamic calculations. The International Journal of Applied Engineering Education, 1991; 7(3):242-250
 
@@ -27,15 +73,33 @@ The first one is good to cite if you are using the Eilmer3 code for your own res
 Papers on applications of the codes
 -----------------------------------
 
-The following papers have made use of the several flow-simulation codes that the group has built.
+The following papers have made use, in one way or another, of the flow-simulation codes.
 
 
 Turbomachinery flows:
+
+#. Qin, Kan, Jahn, Ingo H. and Jacobs, Peter A. (2017) Effect of operating conditions on the elastohydrodynamic performance of foil thrust bearings for supercritical CO2 cycles. Journal of Engineering for Gas Turbines and Power, 139 4: doi:10.1115/1.4034723
+
+#. Qin, K., Jahn, I. H. and Jacobs, P. A. (2016). Prediction of dynamic characteristics of foil thrust bearings using computational fluid dynamics. In: 20th Australasian Fluid Mechanics Conference. Australasian Fluid Mechanics Conference, Perth, WA, Australia, 5-8 December 2016.
+
+#. Qin, Kan, Jahn, Ingo and Jacobs, Peter (2016) Development of a fluid-structure model for gas-lubricated bump-type foil thrust bearings. Applied Mechanics and Materials, 846 169-175. doi:10.4028/www.scientific.net/AMM.846.169
+
+#. Qin, Kan, Jahn, Ingo and Jacobs, Peter (2016). Effect of operating conditions on the elasto-hydrodynamic performance of foil thrust bearings for supercritical CO2 cycles. In: Proceedings of ASME Turbo Expo 2016: Turbomachinery Technical Conference and Exposition. ASME Turbo Expo 2016: Turbomachinery Technical Conference and Exposition, Seoul, South Korea, 13-17 June 2016.
+
+#. Jahn, Ingo and Jacobs, Peter (2016) Using meridional streamline and passage shapes to generate radial turbomachinery geometry and meshes. Applied Mechanics and Materials, 846 1-6. doi:10.4028/www.scientific.net/AMM.846.1
+
+#. Czapla, Jason Paul (2015). Investigation of supersonic impulse turbines for application to geothermal binary power stations PhD Thesis, School of Mechanical and Mining Engineering, The University of Queensland. doi:10.14264/uql.2015.340
+
+#. Qin, K., Jahn, I. H. and Jacobs, P. A. (2014). Validation of a three-dimensional CFD analysis of foil bearings with supercritical CO2. In: Harun Chowdhury and Firoz Alam, Proceedings of the 19th Australasian Fluid Mechanics Conference. 19th Australasian Fluid Mechanics Conference, Melbourne, VIC, Australia, (136.1-136.4). 8-11 December 2014.
 
 #. Ventura C, Sauret E, Jacobs PA, Petrie-Repar P, Gollan RG, van der Laan P. Adaption and use of a compressible flow code for turbomachinery design. 5th European Conference on Computational Fluid Dynamics ECCOMAS CFD 2010, European Community on Computational Methods in Applied Sciences: Lisbon, Portugal, 2010.
 
 
 Bluff-body and reacting compressible flows:
+
+#. Zander, F., Gollan, R. J., Jacobs, P. A. and Morgan, R. G. (2014) Hypervelocity shock standoff on spheres in air. Shock Waves, 24 2: 171-178. doi:10.1007/s00193-013-0488-x
+
+#. Zander, F., Jacobs, P. A., Gollan, R. J. and Morgan, R. G. (2013). Shock standoff on hemi-spherical bodies in hypervelocity flows. In: Riccardo Bonazza and Devesh Ranjan, 29th International Symposium on Shock Waves 1. International Symposium on Shock Waves (ISSW29), Madison, WI, United States, (539-544). 14-19 July 2013. doi:10.1007/978-3-319-16835-7_85
 
 #. Leyland P, McIntyre TJ, Morgan R, Jacobs PA, Zander F, Sheikh U, Eichmann T, Fahy E, Joshi O, Duffa G, Potter D, Banerji N, Mora-Monteros J, Marguet V.  Radiation-ablation coupling for capsule reentry heating via simulation and expansion tube investigations. 5th European Conference for Aeronautics and Space Sciences (EUCASS 2013), Munich, Germany. 
 
@@ -53,7 +117,7 @@ Bluff-body and reacting compressible flows:
 
 #. Gollan RJ, Jacobs PA, Karl S, Smith SC. Numerical Modelling of Radiating Superorbital Flows. Australian and New Zealand Industrial and Applied Mathematics Journal, 2004; 45:C248-C268.
 
-#. Johnston IA, Tuttle SL, Jacobs PA, Shimoda T. The numerical and experimental simulation of hypervelocity flow around the {HYFLEX} vehicle forebody. Shock Waves, 1999; 9(1)57-67.
+#. Johnston IA, Tuttle SL, Jacobs PA, Shimoda T. The numerical and experimental simulation of hypervelocity flow around the HYFLEX vehicle forebody. Shock Waves, 1999; 9(1)57-67.
 
 #. Johnston IA, Jacobs PA, Shimoda T. A study of flush air data system calibration using numerical simulation. AIAA Journal of Spacecraft and Rockets, 1998; 35(6):812-820.
 
@@ -61,6 +125,28 @@ Bluff-body and reacting compressible flows:
 
 
 Transient ducted flows:
+
+#. Kang, Xin, Gollan, Rowan J., Jacobs, Peter A. and Veeraragavan, Ananthanarayanan (2017) On the influence of modelling choices on combustion in narrow channels. Computers and Fluids, 144 117-136. doi:10.1016/j.compfluid.2016.11.017
+
+#. Denman, Z. J., Wheatley, V., Smart, M. K. and Veeraragavan, A . (2016). Fuel injection and mixing in a Mach 8 hydrocarbon-fuelled scramjet. In: 20th Australasian Fluid Mechanics Conference. 20th Australasian Fluid Mechanics Conference, Perth, Australia, 5 – 8 December 2016.
+
+#. Kang, X., Gollan, R., Jacobs, P. A. and Veeraragavan, A. (2016) Suppression of instabilities in a premixed methane–air flame in a narrow channel via hydrogen/carbon monoxide addition. Combustion and Flame, 173 266-275. doi:10.1016/j.combustflame.2016.07.003
+
+#. Kang, X., Gollan, R. J., Jacobs, P. A. and Veeraragavan, A . (2016). On the effect of outflow boundary truncation for numerical simulation of narrow-channel flames. In: 20th Australasian Fluid Mechanics Conference. 20th Australasian Fluid Mechanics Conference, Perth, Australia, 5 – 8 December 2016.
+
+#. Denman, Zachary J., Chan, Wilson Y. K., Brieschenk, Stefan, Veeraragavan, Ananthanarayanan, Wheatley, Vincent and Smart, Michael K. (2016) Ignition experiments of hydrocarbons in a mach 8 shape-transitioning scramjet engine. Journal of Propulsion and Power, 32 6: 1462-1471. doi:10.2514/1.B36099
+
+#. Kang, X., Gollan, R. J., Jacobs, P. A. and Veeraragavan, A. (2015). Numerical simulation of premixed methane/air flame dynamics in narrow channels. In: Yi Yang and Nigel Smith, The Australian Combustion Symposium 2015 Proceedings. Australian Combustion Symposium, Parkville, VIC, Australia, (388-391). 7-9 December 2015.
+
+#. Chan, Wilson Y. K., Mee, David J., Smart, Michael K. and Turner, James C. (2015) Drag reduction by boundary-layer combustion: effects of flow disturbances from rectangular-to-elliptical-shape-transition inlets. Journal of Propulsion and Power, 31 5: 1256-1267. doi:10.2514/1.B35335
+
+#. Kang, X ., Gollan, R . J., Jacobs, P . A. and Veeraragavan, A . (2014). Numerical simulations of premixed combustion in narrow channels. In: Harun Chowdhury and Firoz Alam, The Proceedings of the 19th Australasian Fluid Mechanics Conference. 19th Australasian Fluid Mechanics Conference, Melbourne, VIC, Australia, 8-11 December 2014.
+
+#. Denman, Zachary J., Brieschenk, Stefan, Veeraragavan, Anand, Wheatley, Vincent and Smart, Michael K. (2014). Experimental design of a cavity flameholder in a Mach 8 Shape-Transitioning Scramjet. In: 19th AIAA International Space Planes and Hypersonic Systems and Technologies Conference. 19th AIAA International Space Planes and Hypersonic Systems and Technologies Conference, Atlanta, GA, United States, (1-11). 16-20 June 2014. doi:10.2514/6.2014-2953
+
+#. Denman, Zachary (2013). Modelling Heat Recirculation in Micro-Combustors Using Eilmer3 Honours Thesis, School of Engineering, The University of Queensland.
+
+#. Tanimizu, Katsuyoshi, Mee, David J., Stalker, Raymond J. and Jacobs, Peter A. (2013) Nozzle design study for a quasi-axisymmetric scramjet-powered vehicle at Mach 7.9 flight conditions. Shock Waves, 23 5: 453-460. doi:10.1007/s00193-013-0449-4
 
 #. Tanimizu K, Mee DJ, Stalker RJ, Jacobs PA. Thrust nozzle design study for a quasi-axisymmetric scramjet-powered vehicle. AIAA Journal of Propulsion and Power, 2011; 27(1):40-49. (doi: 10.2514/1.48586)
 
@@ -99,12 +185,64 @@ Other hypersonic reacting flows:
 
 #. Denman AJ, Jacobs PA, Mee DJ. Compressible, Turbulent Flow with Boundary-Layer Heat Addition. 43rd AIAA Aerospace Science Meeting and Exhibit, 2005. AIAA-Paper-2005-1097
 
-#. Barker P, Bishop A, Littleton B, Jacobs PA. and Rubinsztein-Dunlop, H. Flow tagging {LEI} velocimetry of supersonic flow. First Australian Conference on Laser Diagnostics in Fluid Mechanics and Combustion, 1996.
+#. Barker P, Bishop A, Littleton B, Jacobs PA. and Rubinsztein-Dunlop, H. Flow tagging LEI velocimetry of supersonic flow. First Australian Conference on Laser Diagnostics in Fluid Mechanics and Combustion, 1996.
 
 
 Analysis of expansion-tube facilities:
 
-#. Jacobs P, Morgan R, Brandis A, Buttsworth D, Dann A, D’Souza M, Eichmann T, Gildfind D, Gollan R, Jacobs C, McGilvray M, McIntyre T, Mudford N, Porat H, Potter D, Zander F. Design, Operation and Testing in Expansion Tube Facilities for Super-Orbital Re-entry. STO-AVT-VKI Lecture Series 2013-AVT-218 Radiation and Gas-Surface Interaction Phenomena in High Speed Re-Entry.
+#. Toniato, P., Gildfind, D. E., Jacobs, P. A. and Morgan, R. G. (2016). Extension of the X3 expansion tube capabilities for Mach 12 scramjet testing: flow condition: development and nozzle optimization. In: 20th Australasian Fluid Mechanics Conference. 20th Australasian Fluid Mechanics Conference, Perth, Western Australia, Australia, 5-8 December 2-16.
+
+#. Andrianatos, A., Gildfind, D. and Morgan, R. (2016). Preliminary development of high enthalpy conditions for the X3 expansion tube. In: 20th Australasian Fluid Mechanics Conference, 20AFMC, Perth, WA, Australia, 5-8 December 2016.
+
+#. Toniato, Pierpaolo, Gildfind, David and Morgan, Richard G. (2016). Current progress of the development of a Mach 12 scramjet operating condition in the X3 expansion tube. In: 11th International Workshop on Shock Tube Technology, Gottingen, Germany, 30 June -2 July 2016.
+
+#. Gildfind, David, Morgan, Richard G. and Jacobs, Peter A. (2016). Expansion tubes in Australia. In Ozer Igra and Friech Seiler (Ed.), Experimental methods of shock wave research (pp. 399-431) Basel, Switzerland: Springer. doi:10.1007/978-3-319-23745-9_13
+
+#. Burgess, James and Gildfind, David (2015). CFD analysis of early diaphragm removal in expansion tubes. In: Australasian Conference on Computational Mechanics, Brisbane, QLD, Australia, 30 November - 1 December 2015.
+
+#. Gildfind, D. E., James, C. M. and Morgan, R. G. (2015) Free-piston driver performance characterisation using experimental shock speeds through helium. Shock Waves, 25 2: 169-176. doi:10.1007/s00193-015-0553-8
+
+#. McGilvray, Matthew, Doherty, Luke, Morgan, Richard G. and Gildfind, David E. (2015). T6: The Oxford University Stalker Tunnel. In: 20th AIAA International Space Planes and Hypersonic Systems and Technologies Conference. International Space Planes and Hypersonic Systems and Technologies Conferences, Glasgow, Scotland, 6-9 July 2015. doi:10.2514/6.2015-3545
+
+#. James, C., Gildfind, D., Morgan, R, Lewis, S., Fahy, E. and McIntyre, T. (2015). Simulating gas giant entry in an expansion tube. In: 7th Asia-Pacific International Symposium on Aerospace Technology. 7th Asia-Pacific International Symposium on Aerospace Technology, Cairns, Australia, 25-27 November 2015.
+
+#. James, C. M., Gildfind, D. E., Morgan, R. G., Lewis, S. W. and McIntyre, T. J. Simulating Gas Giant Entry with Increased Helium Diluent in in an Expansion Tube. In: Ben-Dor, 30th International Symposium on Shock Waves, Tel Aviv, Israel, (1-1). 19-24 July 2015.
+
+#. James, Christopher M., Gildfind, David E., Morgan, Richard G., Lewis, Steven W., Fahy, Elise J. and McIntyre, Timothy J. (2015). On the current limits of simulating gas giant entry flows in an expansion tube. In: 20th AIAA International Space Planes and Hypersonic Systems and Technologies Conference. AIAA International Space Planes and Hypersonic Systems and Technologies Conference, Glasgow, Scotland, (1-26). 6 - 9 July 2015. doi:10.2514/6.2015-3501
+
+#. James, C. M., Gildfind, D. E., Morgan, R. G., Lewis, S. W., Fahy, E. J. and McIntyre, T.J. (2015). Limits of Simulating Gas Giant Entry at True Gas Composition and True Flight Velocities in an Expansion Tube. In: 8th European Symposium on Aerothermodynamics for Space Vehicles, Lisbon, Portugal, 2-6 March 2015.
+
+#. Andrianatos, Andreas, Gildfind, David and Morgan, Richard (2015). A study of radiation scaling of high enthalpy flows in expansion tubes. In: 7th Asia-Pacific International Symposium on Aerospace Technology, Cairns, QLD, Australia, 25 – 27 November 2015.
+
+#. Toniato, Pierpaolo, Gildfind, David E., Jacobs, Peter A. and Morgan, Richard G. (2016). Development of a new Mach 12 scramjet operating capability in the X3 expansion tube. In: 7th Asia-Pacific International Symposium on Aerospace Technology (APISAT). Asia-Pacific International Symposium on Aerospace Technology (APISAT), Cairns, QLD, Australia, 25 – 27 November 2015.
+
+#. Morgan, R. G. and Gildfind, D. E. (2015). Shock tube simulation of low Mach number blast waves. In: Riccardo Bonazza and Devesh Ranjan, Proceedings of the 29th International Symposium on Shock Waves (ISSW29). International Symposium on Shock Waves, Madison, WI, United States, (83-88). 14-19 July 2013. doi:10.1007/978-3-319-16835-7_11
+
+#. Jacobs CM, McIntyre TJ, Morgan RG, Brandis AM, Laux CO. (2015) Radiative Heat Transfer Measurements in Low-Density Titan Atmospheres. Journal of Thermophysics and Heat Transfer 29:4, 835-844
+
+#. Gildfind, David E., James, Chris M., Toniato, Pierpaolo and Morgan, Richard G. (2015) Performance considerations for expansion tube operation with a shock-heated secondary driver. Journal of Fluid Mechanics, 777 364-407. doi:10.1017/jfm.2015.349
+
+#. de Crombrugghe, G., Gildfind, D., Zander, F., McIntyre, T. and Morgan, R. (2014). Design of test flows to investigate binary scaling in high enthalpy CO2-N2 mixtures. In: Harun Chowdhury and Firoz Alam, Proceedings of the 19th Australasian Fluid Mechanics Conference. 19th Australasian Fluid Mechanics Conference, Melbourne, VIC, Australia, (325.1-325.4). 8-11 December 2014.
+
+#. de Crombrugghe, G., Gildfind, D., Zander, F., McIntyre, T. and Morgan, R. (2014). Design of test flows to investigate binary scaling in high enthalpy CO2-N2 mixtures. In: Harun Chowdhury and Firoz Alam, Proceedings of the 19th Australasian Fluid Mechanics Conference. 19th Australasian Fluid Mechanics Conference, Melbourne, VIC, Australia, (325.1-325.4). 8-11 December 2014.
+
+#. Gildfind, D. E., James, C. M. and Morgan, R. G. (2014). Performance considerations for expansion tube operation with a shock-heated secondary driver. In: Harun Chowdhury and Firoz Alam, The Proceedings of the 19th Australasian Fluid Mechanics Conference. 19th Australasian Fluid Mechanics Conference, Melbourne, VIC, Australia, (1-4). 8-11 December 2014.
+
+#. Gildfind, David, Morgan, Richard G., Jacobs, Peter A. and McGilvray, Matthew (2014) Production of high-Mach-number scramjet flow conditions in an expansion tube. AIAA Journal, 52 1: 162-177. doi:10.2514/1.J052383
+
+#. Capra, Bianca R. and Morgan, Richard G. (2013) Total heat transfer measurements on a flight investigation of reentry environment model. Journal of Spacecraft and Rockets, 50 3: 494-503. doi:10.2514/1.A32333
+
+#. Porat, Hadas, Sheikh, Umar A., Morgan, Richard G., Eichmann, Troy N. and McIntyre, Timothy J. (2013). Vacuum ultraviolet and ultraviolet emission spectroscopy measurements for Titan and Mars atmospheric entry conditions. In: 44th AIAA Thermophysics Conference 2013: Proceedings. 44th AIAA Thermophysics Conference, San Diego, CA, USA, (377-390). 24-27 June, 2013. doi:10.2514/6.2013-2647
+
+#. James, Chris, Gildfind, David, Morgan, Richard G., Jacobs, Peter A. and Zander, Fabian (2013). Designing and simulating high enthalpy expansion tube conditions. In: Proceedings of the 2013 Asia-Pacific International Symposium on Aerospace Technology. APISAT 2013: 2013 Asia-Pacific International Symposium on Aerospace Technology, Takamatsu, Japan, (1-10). 20-22 November 2013.
+
+#. Gildfind, D. E., Morgan, R. G. and Sancho, J. Design and commissioning of a new lightweight piston for the X3 Expansion Tube. In: Riccardo Bonazza and Devesh Ranjan, Proceedings of the 29th International Symposium on Shock Waves (ISSW29). International Symposium on Shock Waves, Madison, WI, United States, (367-372). 14-19 July 2013. doi:10.1007/978-3-319-16835-7_57
+
+#. Gildfind, D. E., Sancho Ponce, J. and Morgan, R. G. (2015). High Mach Number Scramjet Test Flows in the X3 Expansion Tube. In: Riccardo Bonazza and Devesh Ranjan, Proceedings of the 29th International Symposium on Shock Waves (ISSW29). International Symposium on Shock Waves, Madison, WI, United States, (373-378). 14-19 July 2013. doi:10.1007/978-3-319-16835-7_58
+
+#. Jacobs, Peter, Morgan, Richard, Brandis, Aaron, Buttsworth, David, Dann, Andrew, D'Souza, Mary, Eichmann, Troy, Gildfind, David, Gollan, Rowan, Jacobs, Carolyn, McGilvray, Matthew, McIntyre, Tim, Mudford, Neil, Porat, Hadas, Potter, Dan and Zander, Fabian (2013). Design, operation and testing in expansion tube facilities for super-orbital re-entry. In: O. Chazot and T. Magin, STO-AVT-VKI Lecture Series Radiation and Gas-Surface Interaction Phenomena in High Speed Re-Entry (2013-AVT-218), Rhode-St-Genèse, Belgium, (5-1-5-65). 6-8 May 2013.
+
+#. Jacobs, C. M., McIntyre, T. J., Morgan, R. G., Brandis, A. M. and Laux, C. O. Radiative heat transfer measurements in low-density titan atmospheres. In: 18th AIAA/3AF International Space Planes and Hypersonic Systems and Technologies Conference, Tours, France, (835-844). 24–28 September 2012. doi:10.2514/1.T4519
 
 #. Gildfind DE, Morgan RG, Jacobs PA. Vibration isolation in a free-piston driven expansion tube facility. Shock Waves 2013; (DOI 10.1007/s00193-013-0433-z)
 
@@ -170,6 +308,24 @@ Analysis of expansion-tube facilities:
 
 
 Analysis of shock tubes, reflected-shock tunnels and gun tunnels:
+
+#. Denman, Zachary J., Wheatley, Vincent, Smart, Michael K. and Veeraragavan, Ananthanarayanan (2016) Supersonic combustion of hydrocarbons in a shape-transitioning hypersonic engine. Proceedings of the Combustion Institute, 36 2: 2883-2891. doi:10.1016/j.proci.2016.08.081
+
+#. Luke J. Doherty, Michael K. Smart, and David J. Mee.  "Experimental Testing of an Airframe-Integrated Three-Dimensional Scramjet at Mach 10", AIAA Journal, Vol. 53, No. 11 (2015), pp. 3196-3207. http://dx.doi.org.ezproxy.library.uq.edu.au/10.2514/1.J053785 
+
+#. Chan, W. Y. K., Smart, M. K. and Jacobs, P. A. (2015) Flowpath design of the Mach 4B nozzle for T4. Technical Report 2015/10, School of Mechanical and Mining Engineering, The University of Queensland.
+
+#. Doherty, Luke J., Smart, Michael K. and Mee, David J. (2015). Experimental testing of an airframe-integrated three-dimensional scramjet at Mach 10. In: AIAA International Space Planes and Hypersonic Systems and Technologies Conference, Atlanta, GA, United States, (3196-3207). 16– 20 June 2014. doi:10.2514/1.J053785
+
+#. Wei, H., Chan, W. Y. K, Jacobs, P. A. and Morgan, R. G. (2014). Computational optimisation and analysis of a truncated hypersonic nozzle for X3 expansion tunnel. In: Harun Chowdhury and Firoz Alam, Proceedings of the 19th Australasian Fluid Mechanics Conference. 19th Australasian Fluid Mechanics Conference, Melbourne, VIC, Australia, (60.1-60.4). 8-11 December 2014.
+
+#. Chan, W. Y. K., Smart, M. K. and Jacobs, P. A. (2014) Experimental validation of the T4 Mach 7.0 nozzle. Technical Report 2014/14, School of Mechanical and Mining Engineering, The University of Queensland.
+
+#. Gildfind, David E. and Morgan, Richard G. (2014) A new shock tube configuration for studying dust-lifting during the initiation of a coal dust explosion. Journal of Loss Prevention in the Process Industries, 29 1: 198-208. doi:10.1016/j.jlp.2014.02.011
+
+#. McGilvray, M., Dann, A. G. and Jacobs, P. A. (2013) Modelling the complete operation of a free-piston shock tunnel for a low enthalpy condition. Shock Waves, 23 4: 399-406. doi:10.1007/s00193-013-0437-8
+
+#. Chan, W. Y. K., Smart, M. K. and Jacobs, P. A. (2013) Flowpath design of an axisymmetric Mach 7.0 nozzle for T4. Technical Report 2013/02, School of Mechanical and Mining Engineering, The University of Queensland.
 
 #. Gangurde DY, Mee DJ, Jacobs PA. Numerical simulation of a Ludwieg-tube fuel delivery system for scramjet experiments in shock tunnels. 16th Australasian Fluid Mechanics Conference, 2007; 645-649.
 
