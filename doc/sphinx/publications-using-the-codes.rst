@@ -57,12 +57,15 @@ Reference papers for L1d
 #. Jacobs PA. (1994) Quasi-one-dimensional modelling of a free-piston shock tunnel. AIAA Journal, 1994; 32(1):137-145.
 
 
-Reference paper for ESTCj
--------------------------
+Reference papers for ESTCj and Pitot
+------------------------------------
 
-This is the Python code version of the equilibrium shock tube condition calculator.
+These are the Python codes for the calculation of equilibrium shock tube and expansion tube conditions.
 
 #. Jacobs PA, Gollan RJ, Potter DF, Zander F, Gildfind DE, Blyton P, Chan WYK, Doherty L. (2011) Estimation of high-enthalpy flow conditions for simple shock and expansion processes using the ESTCj program and library. The University of Queensland, Mechanical Engineering Report 2011/02. 
+
+#. James C, Gildfind D, Morgan RG, Jacobs PA and Zander F (2013) Designing and simulating high enthalpy expansion tube conditions. In: Proceedings of the 2013 Asia-Pacific International Symposium on Aerospace Technology, Takamatsu, Japan, (1-10). 20-22 November 2013.
+
 
 Reference paper for IMOC
 ------------------------
@@ -127,6 +130,8 @@ These are Masters or PhD theses that have developed parts of the simulation code
 
 #. Goozee, Richard (2003) Simulation of a complete shock tunnel using parallel computer codes. PhD Thesis, Division of Mechanical Engineering, School of Engineering, The University of Queensland.
 
+#. Austin, Kevin (2002) Evolutionary design of robust flight control for a hypersonic aircraft.  PhD Thesis, Department of Mechanical Engineering, The University of Queensland.
+
 #. Wheatley, Vincent (2001) Modelling low-density flow in hypersonic impulse facilities.  Masters of Engineering Science Thesis, Department of Mechanical Engineering, The University of Queensland.
 
 #. Faddy, James (2000) Computational modelling for shock tube flows.  Masters of Engineering Science Thesis, Department of Mechanical Engineering, The University of Queensland.
@@ -164,9 +169,17 @@ Turbomachinery flows:
 
 Bluff-body and reacting compressible flows:
 
+#.  Elise Fahy, David Buttsworth, Rowan Gollan, Peter Jacobs, and Richard G. Morgan. (2016) Experimental and Computational Fluid Dynamics Studies of Superorbital Earth Re-entry", 46th AIAA Thermophysics Conference, AIAA AVIATION Forum, (AIAA 2016-3532) http://dx.doi.org/10.2514/6.2016-3532
+
+#. Gisu Park, Sudhir L. Gai, and Andrew J. Neely. (2016) Base Flow of Circular Cylinder at Hypersonic Speeds, AIAA Journal, Vol. 54, No. 2, pp. 458-468. http://dx.doi.org/10.2514/1.J054270 
+
+#. Amna Khraibut, Sudhir Gai, and Andrew J. Neely. (2015) Numerical Investigation of Bluntness Effects on Hypersonic Leading Edge Separation, 53rd AIAA Aerospace Sciences Meeting, AIAA SciTech Forum, (AIAA 2015-0984) http://dx.doi.org/10.2514/6.2015-0984
+
 #. Zander, F., Gollan, R. J., Jacobs, P. A. and Morgan, R. G. (2014) Hypervelocity shock standoff on spheres in air. Shock Waves, 24 2: 171-178. doi:10.1007/s00193-013-0488-x
 
 #. Kim JW, Kwon OJ (2013) Numerical simulation of thermochemical non-equilibrium flow around blunt bodies considering catalytic wall effects.  J. Comput. Fluids Eng. 18(3):87-93. DOI http://dx.doi.org/10.6112/kscfe.2013.18.3.087
+
+#. Umar A. Sheikh, Christophe O. Laux, Richard G. Morgan, and Tim J. Mcintyre (2013) Through Surface and Across Surface Vacuum Ultraviolet Spectral Measurements in an Expansion Tube. 44th AIAA Thermophysics Conference, Fluid Dynamics and Co-located Conferences, (AIAA 2013-2644) http://dx.doi.org/10.2514/6.2013-2644
 
 #. Zander, F., Jacobs, P. A., Gollan, R. J. and Morgan, R. G. (2013). Shock standoff on hemi-spherical bodies in hypervelocity flows. In: Riccardo Bonazza and Devesh Ranjan, 29th International Symposium on Shock Waves 1. International Symposium on Shock Waves (ISSW29), Madison, WI, United States, (539-544). 14-19 July 2013. doi:10.1007/978-3-319-16835-7_85
 
@@ -175,6 +188,8 @@ Bluff-body and reacting compressible flows:
 #. Zander F, Jacobs PA, Gollan RJ, Morgan RG. (2013) Shock Standoff on Hemi-Spherical Bodies in Hypervelocity Flows. 29th International Symposium on Shock Waves 2013; Paper 46.
 
 #. Gollan RJ, Jacobs PA. (2011) On the validation of a hypersonic flow solver using measurements of shock detachment distance. 28th International Symposium on Shock Waves, 2011.
+
+#. Gisu Park, Sudhir L. Gai, and Andrew J. Neely. (2010) Aerothermodynamics Behind a Blunt Body at Superorbital Speeds, AIAA Journal, Vol. 48, No. 8 (2010), pp. 1804-1816. http://dx.doi.org/10.2514/1.J050251 
 
 #. Potter D, D'Souza M, Morgan R, Jacobs P. (2010) Modelling of an expansion tunnel experiment simulating re-entry of the Hayabusa probe. Proceedings of the 4th International Workshop on Radiation of High Temperature Gases in Atmospheric Entry, 2010.
 
@@ -197,11 +212,15 @@ Transient ducted flows:
 
 #. Kang, Xin, Gollan, Rowan J., Jacobs, Peter A. and Veeraragavan, Ananthanarayanan (2017) On the influence of modelling choices on combustion in narrow channels. Computers and Fluids, 144 117-136. doi:10.1016/j.compfluid.2016.11.017
 
+#. Won Keun Chang, Gisu Park, Yuin Jin, and Jongryul Byun. (2016) Shock Impinging Effect on Ethylene Flameholding, Journal of Propulsion and Power, Vol. 32, No. 5 (2016), pp. 1230-1239. http://dx.doi.org/10.2514/1.B36007 
+
 #. Kang, X., Gollan, R., Jacobs, P. A. and Veeraragavan, A. (2016) Suppression of instabilities in a premixed methane–air flame in a narrow channel via hydrogen/carbon monoxide addition. Combustion and Flame, 173 266-275. doi:10.1016/j.combustflame.2016.07.003
 
 #. Kang, X., Gollan, R. J., Jacobs, P. A. and Veeraragavan, A . (2016). On the effect of outflow boundary truncation for numerical simulation of narrow-channel flames. In: 20th Australasian Fluid Mechanics Conference. 20th Australasian Fluid Mechanics Conference, Perth, Australia, 5 – 8 December 2016.
 
 #. Denman, Zachary J., Chan, Wilson Y. K., Brieschenk, Stefan, Veeraragavan, Ananthanarayanan, Wheatley, Vincent and Smart, Michael K. (2016) Ignition experiments of hydrocarbons in a mach 8 shape-transitioning scramjet engine. Journal of Propulsion and Power, 32 6: 1462-1471. doi:10.2514/1.B36099
+
+#.  Gisu Park, Chul Park, Yuin Jin, Hojin Choi, Jongryul Byun, and Kiyoung Hwang. (2015) Ethylene Transverse Jets in Supersonic Crossflows, Journal of Propulsion and Power, Vol. 31, No. 3, pp. 773-788. http://dx.doi.org/10.2514/1.B35323 
 
 #. Kang, X., Gollan, R. J., Jacobs, P. A. and Veeraragavan, A. (2015). Numerical simulation of premixed methane/air flame dynamics in narrow channels. In: Yi Yang and Nigel Smith, The Australian Combustion Symposium 2015 Proceedings. Australian Combustion Symposium, Parkville, VIC, Australia, (388-391). 7-9 December 2015.
 
@@ -240,21 +259,37 @@ Transient ducted flows:
 
 Other hypersonic reacting flows (steps, cavities, cones...):
 
+#. Jokic MD, Buttsworth DR, Balage S (2015) An Aerolance System for Hypersonic Flight. 7th Asia-Pacific International Symposium on Aerospace Technology, 25–27 November 2015, Cairns.
+
 #. Sridhar V., Gai S.L., Kleine H. (2015) Supersonic Flow over a Rectangular Open Cavity: Effect of Length-to-Depth Ratio. In: Bonazza R., Ranjan D. (eds) 29th International Symposium on Shock Waves 1. Springer, Cham DOI: 10.1007/978-3-319-16835-7_67
 
 #. Deepak N.R., Gai S.L., O’ Byrne S., Moss J.N. (2015) Hypersonic High-Enthalpy Flow in a Leading-Edge Separation. In: Bonazza R., Ranjan D. (eds) 29th International Symposium on Shock Waves 1. Springer, Cham
 
+#. Khraibut A, Deepak NR, Gai SL, and Neely AJ (2014) Hypersonic Leading Edge Separation. 19th Australasian Fluid Mechanics Conference, Melbourne, Australia, 8-11 December 2014; Paper 80.
+
+#. O'Byrne S, Gai SL, Deepak NR, Krishna Y, Moss JN (2013) Characterization of a hypersonic low-density flow for separated flow investigations.  US Air Force Aerothermodynamics and Turbulence Portfolio Review, July 2013.
+
+#. Deepak NR, Gai SL and Neely AJ (2013) A computational investigation of laminar shock/wave boundary layer interactions. The Aeronautical Journal, Volume 117, Issue 1187, January 2013, pp. 27-56.
+
 #. Zander F, Morgan R, Molder S, Jacobs P, Gollan R, Porat H, McIntyre TJ. (2012) Mach disk platform for studying radiating flows. 5th International Workshop on Radiation of High Temperature Gases in Atmospheric Entry, Barcelona, Spain. 2012
 
 #. Zander F, Molder S, Morgan R, Jacobs P, Gollan R. (2012) High Temperature Gas Effects for Converging Conical Shocks. 18th AIAA/3AF International Space Planes and Hypersonic Systems and Technologies Conference, Tours, France, 2012. http://dx.doi.org/10.2514/6.2012-5939
- 
+
+#. Vikram Sridhar, Sudhir Gai, and Harald Kleine. (2013) Some Numerical Studies of Rectangular Open Cavities at Mach 2", 19th AIAA/CEAS Aeroacoustics Conference, Aeroacoustics Conferences, (AIAA 2013-2052) http://dx.doi.org/10.2514/6.2013-2052
+
 #. Deepak NR, Gai SL and Neely AJ. (2012) High-enthalpy flow over a rearward-facing step – a computational study. Journal of Fluid Mechanics 2012; 695:405-438. (doi:10.1017/jfm.2012.29)
 
 #. Sridhar V, Gai SL, Kleine H (2012) A numerical investigation of supersonic cavity flow at Mach 2.  18th Australasian Fluid Mechanics Conference, Launceston, Australia. Paper 69.
 
 #. Deepak NR, Gai SL, Neely AJ (2012) High-enthalpy flow over a rearward-facing step - a computational study.  Journal of Fluid Mechanics 695:405-438.  DOI: 10.1017/jfm.2012.29
 
+#. Deepak N Ramanath, Sudhir L Gai and Andrew J Neely (2010) Investigation of Heat-Flux in High Enthalpy Hypersonic Flow Over a Rearward-Facing Step. International Journal of Hypersonics 1(2):115-134.
+
+#. Deepak Narayan Ramanath, Sudhir Gai, and Andrew Neely. (2010) A Computational Study of High Enthalpy Flow Over a Rearward Facing Step, 48th AIAA Aerospace Sciences Meeting Including the New Horizons Forum and Aerospace Exposition, Aerospace Sciences Meetings, http://dx.doi.org/10.2514/6.2010-444
+
 #. Deepak NR, Gai SL, Neely AJ (2010) Aerothermodynamics of hypersonic shock wave boundary layer interactions.  17th Australasian Fluid Mechanics Conference, Auckland, New Zealand; Paper 263.
+
+#. B.H.P. Broksa, W.J.M. Broka, J. Remya, J.J.A.M. van der Mullena, A. Benidarb, L. Biennierb, F. Salamac (2005) Modeling the influence of anode–cathode spacing in a pulsed discharge nozzle. Spectrochimica Acta Part B: Atomic Spectroscopy Volume 60, Issue 11, November 2005, Pages 1442–1449; http://dx.doi.org/10.1016/j.sab.2005.08.012
 
 #. Sun M, Saito T, Jacobs PA, Timofeev EV, Ohtani K, Takayama K. (2005) Axisymmetric shock wave interaction with a cone: a benchmark test. Shock Waves, 2005; 14(5):313-331.
 
@@ -273,9 +308,13 @@ Analysis of expansion-tube facilities:
 
 #. Toniato, Pierpaolo, Gildfind, David and Morgan, Richard G. (2016) Current progress of the development of a Mach 12 scramjet operating condition in the X3 expansion tube. In: 11th International Workshop on Shock Tube Technology, Gottingen, Germany, 30 June -2 July 2016.
 
+#. Umar A. Sheikh, Richard G. Morgan, and Timothy J. McIntyre. (2016) Optical Thickness Measurements of Vacuum Ultraviolet Radiation in the X2 Expansion Tube. AIAA Journal, Vol. 54, No. 8, pp. 2407-2417. http://dx.doi.org/10.2514/1.J054659 
+
 #. Gildfind, David, Morgan, Richard G. and Jacobs, Peter A. (2016) Expansion tubes in Australia. In Ozer Igra and Friech Seiler (Ed.), Experimental methods of shock wave research (pp. 399-431) Basel, Switzerland: Springer. doi:10.1007/978-3-319-23745-9_13
 
 #. Burgess, James and Gildfind, David (2015) CFD analysis of early diaphragm removal in expansion tubes. In: Australasian Conference on Computational Mechanics, Brisbane, QLD, Australia, 30 November - 1 December 2015.
+
+#. Umar A. Sheikh, Richard G. Morgan, and Timothy J. McIntyre. (2015) Vacuum Ultraviolet Spectral Measurements for Superorbital Earth Entry in X2 Expansion Tube. AIAA Journal, Vol. 53, No. 12, pp. 3589-3602. http://dx.doi.org/10.2514/1.J054027 
 
 #. Gildfind, D. E., James, C. M. and Morgan, R. G. (2015) Free-piston driver performance characterisation using experimental shock speeds through helium. Shock Waves, 25 2: 169-176. doi:10.1007/s00193-015-0553-8
 
@@ -323,6 +362,8 @@ Analysis of expansion-tube facilities:
 
 #. McGilvray M, Dann AG, Jacobs PA. (2013) Modelling the complete operation of a free-piston shock tunnel for a low enthalpy condition. Shock Waves 2013; 23(4):399-406.
 
+#. Umar Sheikh, Richard Morgan, Fabian Zander, Troy Eichmann, and Tim McIntyre. (2012) Vacuum Ultraviolet Emission Spectroscopy System for Superorbital Re-entries. 18th AIAA/3AF International Space Planes and Hypersonic Systems and Technologies Conference, International Space Planes and Hypersonic Systems and Technologies Conferences, http://dx.doi.org/10.2514/6.2012-5807
+
 #. Jacobs, C. M., McIntyre, T. J., Morgan, R. G., Brandis, A. M. and Laux, C. O. (2012) Radiative heat transfer measurements in low-density titan atmospheres. In: 18th AIAA/3AF International Space Planes and Hypersonic Systems and Technologies Conference, Tours, France, (835-844). 24–28 September 2012. doi:10.2514/1.T4519
 
 #. Gildfind D, Morgan R, McGilvray M, Jacobs P. (2012) Simulation of High Mach Number Scramjet Flow Conditions using the X2 Expansion Tube. 18th AIAA/3AF International Space Planes and  Hypersonic Systems and Technologies Conference, Tours, France, 2012.
@@ -333,17 +374,15 @@ Analysis of expansion-tube facilities:
 
 #. Gildfind DE, Morgan RG, McGilvray M, Jacobs PA. (2011) High Mach number and total pressure conditions for scramjet testing. 28th International Symposium on Shock Waves, 2011.
 
-#. Jacobs PA, Gollan RJ, Potter DF, Gildfind DE, Eichmann TN, O'Flaherty BT. (2010) CFD Tools for Design and Simulation of Transient Flows in Hypersonic Facilities. RTO-AVT-VKI Lecture Series 2010-AVT186 Aerothermodynamic Design, Review on Ground Testing and CFD, 2010.
-
-#. McGilvray M, Austin JM, Sharma M, Jacobs PA, Morgan RG. (2009) Diagnostic modelling of an expansion tube operating condition. Shock Waves 2009; 19(1):59–66.
-
 #. McGilvray M,  Dann AG, Jacobs PA. (2011) Modeling the complete operation of a free-piston shock tunnel for a low enthalpy condition. 28th International Symposium on Shock Waves, 2011.
 
 #. Buttsworth DR, Jacobs PA, Potter D, Mudford D, D'Souza M, Eichmann T, Morgan RG, Jenniskens P, McIntyre TJ, Jokic M, Jacobs CM, Upcroft, B, Khan R, Porat H, Neely A. Super-orbital re-entry in Australia --laboratory measurement, simulation and flight observation.  28th International Symposium on Shock Waves, 2011.
 
 #. Buttsworth, DR, D'Souza M, Potter D, Eichmann T, Mudford N, McGilvray M, McIntyre TJ, Jacobs P, Morgan R. (2010) Expansion Tunnel Radiation Experiments to Support Hayabusa Re-entry Observations. 48th AIAA Aerospace Sciences Meeting, 2010. AIAA-Paper-2010-634.
 
-#. McGilvray M, Austin JM, Sharma M, Jacobs PA, Morgan RG. (2009) Diagnostic modelling of an expansion tube operating condition. Shock Waves, 2009; 19(1):59-56. (DOI:10.1007/s00193-009-0187-9)
+#. Jacobs PA, Gollan RJ, Potter DF, Gildfind DE, Eichmann TN, O'Flaherty BT. (2010) CFD Tools for Design and Simulation of Transient Flows in Hypersonic Facilities. RTO-AVT-VKI Lecture Series 2010-AVT186 Aerothermodynamic Design, Review on Ground Testing and CFD, 2010.
+
+#. McGilvray M, Austin JM, Sharma M, Jacobs PA, Morgan RG. (2009) Diagnostic modelling of an expansion tube operating condition. Shock Waves 2009; 19(1):59–66. (DOI:10.1007/s00193-009-0187-9)
 
 #. Potter DF, Gollan RJ, Jacobs P, Leyland P. (2008) Numerical simulations and analysis of the 8.5 km/s CO2-N2 EAST shock tube condition. Proceedings of 3rd International Workshop on Radiation of High Temperature Gases in Atmospheric Entry. SP-667, 2008.
 
@@ -386,9 +425,15 @@ Analysis of expansion-tube facilities:
 
 Analysis of shock tubes, reflected-shock tunnels and gun tunnels:
 
+#. Joseph S. Jewell, Christopher C. Huffman, and Thomas J. Juliano. (2017) Transient Startup Simulations for a Large Mach 6 Quiet Ludwieg Tube", 55th AIAA Aerospace Sciences Meeting, AIAA SciTech Forum, (AIAA 2017-0743) http://dx.doi.org/10.2514/6.2017-0743
+
+#. Roger L. Kimmel, Matthew P. Borg, Joseph S. Jewell, KIng-Yiu Lam, Rodney D. Bowersox, Ravi Srinivasan, Steven Fuchs, and Thomas Mooney. (2017) AFRL Ludwieg Tube Initial Performance. 55th AIAA Aerospace Sciences Meeting, AIAA SciTech Forum,(AIAA 2017-0102) http://dx.doi.org/10.2514/6.2017-0102
+
+#. Klaus Hannemann, Katsuhiro Itoh, David J. Mee, Hans G. Hornung (2016) Free Piston Shock Tunnels HEG, HIEST, T4 and T5. Experimental Methods of Shock Wave Research Volume 9 of the series Shock Wave Science and Technology Reference Library pp 181-264.
+
 #. Denman, Zachary J., Wheatley, Vincent, Smart, Michael K. and Veeraragavan, Ananthanarayanan (2016) Supersonic combustion of hydrocarbons in a shape-transitioning hypersonic engine. Proceedings of the Combustion Institute, 36 2: 2883-2891. doi:10.1016/j.proci.2016.08.081
 
-#. Luke J. Doherty, Michael K. Smart, and David J. Mee. (2015) Experimental Testing of an Airframe-Integrated Three-Dimensional Scramjet at Mach 10, AIAA Journal, Vol. 53, No. 11 (2015), pp. 3196-3207. http://dx.doi.org.ezproxy.library.uq.edu.au/10.2514/1.J053785 
+#. Luke J. Doherty, Michael K. Smart, and David J. Mee. (2015) Experimental Testing of an Airframe-Integrated Three-Dimensional Scramjet at Mach 10, AIAA Journal, Vol. 53, No. 11 (2015), pp. 3196-3207. http://dx.doi.org/10.2514/1.J053785 
 
 #. Chan, W. Y. K., Smart, M. K. and Jacobs, P. A. (2015) Flowpath design of the Mach 4B nozzle for T4. Technical Report 2015/10, School of Mechanical and Mining Engineering, The University of Queensland.
 
@@ -399,6 +444,8 @@ Analysis of shock tubes, reflected-shock tunnels and gun tunnels:
 #. Chan, W. Y. K., Smart, M. K. and Jacobs, P. A. (2014) Experimental validation of the T4 Mach 7.0 nozzle. Technical Report 2014/14, School of Mechanical and Mining Engineering, The University of Queensland.
 
 #. Gildfind, David E. and Morgan, Richard G. (2014) A new shock tube configuration for studying dust-lifting during the initiation of a coal dust explosion. Journal of Loss Prevention in the Process Industries, 29 1: 198-208. doi:10.1016/j.jlp.2014.02.011
+
+#. Gisu Park. (2013) Oxygen Catalytic Recombination on Copper Oxide in Tertiary Gas Mixtures", Journal of Spacecraft and Rockets, Vol. 50, No. 3, pp. 540-555. http://dx.doi.org/10.2514/1.A32312 
 
 #. McGilvray, M., Dann, A. G. and Jacobs, P. A. (2013) Modelling the complete operation of a free-piston shock tunnel for a low enthalpy condition. Shock Waves, 23 4: 399-406. doi:10.1007/s00193-013-0437-8
 
