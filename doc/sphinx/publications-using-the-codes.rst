@@ -72,6 +72,11 @@ Reference paper for IMOC
 
 #. Jacobs PA, Gourlay CM. (1991) An interactive method-of-characteristics program for gas-dynamic calculations. The International Journal of Applied Engineering Education, 1991; 7(3):242-250
 
+Reference Presentation for NENZFr
+---------------------------------
+
+#. Jacobs PA, Gollan RG and Zander F, `Still using NENZF? That's so 1960s. <./pdf/nenzfr-presentation-pj-iwstt-2011.pdf>`_  International Workshop on Shock Tube Technologies, March 2011, The University of Queensland.
+ 
 
 Theses associated with or using the codes
 -----------------------------------------
