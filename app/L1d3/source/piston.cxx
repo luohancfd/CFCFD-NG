@@ -59,7 +59,7 @@ int main(int argc, char **argv)
     printf("\n\n");
 
     strcpy(base_file_name, "default");
-    max_sol = 5000;
+    max_sol = 50000;
     tstop = 0.0;
     ip = 0;
     echo_input = 0;
