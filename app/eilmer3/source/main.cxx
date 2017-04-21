@@ -424,14 +424,20 @@ void ensure_directory_is_present( string pathname )
 
 void do_system_cmd( string commandstring )
 {
+    size_t retries = 10;
     int cmd_return_status;
     cmd_return_status = system(commandstring.c_str());
-    if ( cmd_return_status != 0 ) {
-	cerr << "Problem with system cmd: " << commandstring << endl;
-	cerr << "Quitting simulation." << endl;
-	exit(FILE_ERROR);
+    if ( cmd_return_status == 0 ) return;
+    while ( retries > 0 && cmd_return_status != 0 ) {
+	cmd_return_status = system(commandstring.c_str());
+	if ( cmd_return_status == 0 ) return;
+	--retries;
+	sleep(1);
     }
-    return;
+    // If we get this far, there was a problem.
+    cerr << "Problem with system cmd: " << commandstring << endl;
+    cerr << "Quitting simulation." << endl;
+    exit(FILE_ERROR);
 } // end do_system_cmd()
 
 //-----------------------------------------------------------------------------
