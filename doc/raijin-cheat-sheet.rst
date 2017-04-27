@@ -3,6 +3,8 @@ Cheat Sheet for Using Eilmer on Raijin
 ======================================
 :Author: Rowan J. Gollan
 :Date: 05-Feb-2014
+:History: 27-Apr-2017
+          Updated instructions to include NENZFr
 
 Logging in
 ----------
@@ -13,6 +15,26 @@ Login is via ssh. From a linux terminal, for example::
 
   > ssh username@raijin.nci.org.au
 
+Compile and install your own SWIG
+---------------------------------
+
+Download and copy across the latest version of SWIG.
+At the time of writing, that version is 3.0.12.
+
+Unpack and get ready for compilation::
+
+  tar -xvf swig-3.0.12.tar.gz
+  cd swig-3.0.12
+  module unload intel-fc
+  module unload intel-cc
+  module load intel-cc/17.0.1.132
+  module load python/2.7.5
+  ./configure CC=icc CXX=icpc --prefix=$HOME/opt/swig-3.0.12
+
+Then compile and install::
+
+  make
+  make install
 
 Setting your computational environment
 --------------------------------------
@@ -30,11 +52,11 @@ Eilmer needs newer versions of the intel compilers and these lines would load th
 
 Then add these lines to the end of your ``.bashrc``::
 
-  module load intel-cc/14.0.080
+  module load intel-cc/17.0.1.132
   module load mercurial
   module load python/2.7.5
   
-  export PATH=${PATH}:${HOME}/e3bin
+  export PATH=${HOME}/opt/swig-3.0.12/bin:${PATH}:${HOME}/e3bin
   export LUA_PATH=${HOME}/e3bin/?.lua
   export LUA_CPATH=${HOME}/e3bin/?.so
   export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/e3bin
@@ -83,6 +105,15 @@ If the warning that's issued when compiling block_io.cxx bothers you,
 it can be suppressed by ignoring that particular warning:
 
   > OMPI_CXXFLAGS=-wd823 make TARGET=for_openmpi_intel install
+
+Compiling NENZFr
+----------------
+
+After completing the install of Eilmer, then you can follow that
+with a NENZFr installation if required::
+
+  > cd cfcfd3/app/nenzfr
+  > make TARGET=for_openmpi_intel install
 
 Submitting a job
 ----------------
