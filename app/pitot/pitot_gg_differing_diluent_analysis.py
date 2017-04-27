@@ -15,7 +15,7 @@ Chris James (c.james4@uq.edu.au) - 23/12/14
 
 """
 
-VERSION_STRING = "26-Apr-2017"
+VERSION_STRING = "27-Apr-2017"
 
 from pitot_condition_builder import stream_tee, pickle_result_data, pickle_intermediate_data, results_csv_builder, normalised_results_csv_builder, cleanup_old_files, zip_result_and_log_files 
 
@@ -383,7 +383,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     
         r = 1.0 - (cfg['diluent_percentage'] / 100.0)
         p = states['s10f'].p
-        if cfg['mode'] == 'expansion-tube':
+        if cfg['tunnel_mode'] == 'expansion-tube':
             if cfg['nozzle']:
                 epsilon = states['s8'].rho / states['s10f'].rho
                 U = V['s8']
@@ -397,7 +397,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
                 U = V['s8']
             else:
                 epsilon = states['s2'].rho / states['s10f'].rho  
-                U = V['s2']
+                U = V['s2']    
         
         modified_bsp = (r*p*(epsilon*(1.0 - epsilon))**-0.5)/U
         

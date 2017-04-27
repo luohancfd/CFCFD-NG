@@ -314,7 +314,7 @@ from pitot_flow_functions import *
 from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
-VERSION_STRING = "26-Apr-2017"
+VERSION_STRING = "27-Apr-2017"
 
 DEBUG_PITOT = False
 
