@@ -55,6 +55,7 @@ Then add these lines to the end of your ``.bashrc``::
   module load intel-cc/17.0.1.132
   module load mercurial
   module load python/2.7.5
+  module load openmpi/2.0.0
   
   export PATH=${HOME}/opt/swig-3.0.12/bin:${PATH}:${HOME}/e3bin
   export LUA_PATH=${HOME}/e3bin/?.lua
