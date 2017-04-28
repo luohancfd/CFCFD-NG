@@ -863,15 +863,14 @@ class TransientProfBC(BoundaryCondition):
     
     The actual flow data is read (at run time) from the specified file.
 
-    Actually, this BC is vapourware.
     """
-    def __init__(self, filename="transient_profile.dat", label=""):
-        BoundaryCondition.__init__(self, type_of_BC=TRANSIENT_PROF, filename=filename, label=label)
+    def __init__(self, filename="transient_profile.dat", n_profile=1, label=""):
+        BoundaryCondition.__init__(self, type_of_BC=TRANSIENT_PROF, filename=filename, n_profile=n_profile, label=label)
         return
     def __str__(self):
-        return "TransientProfBC(filename=\"%s\", label=\"%s\")" % (self.filename, self.label)
+        return "TransientProfBC(filename=\"%s\", n_profile=%d, label=\"%s\")" % (self.filename, self.n_profile, self.label)
     def __copy__(self):
-        return TransientProfBC(filename=self.filename, label=self.label)
+        return TransientProfBC(filename=self.filename, n_profile=self.n_profile, label=self.label)
     
 class StaticProfBC(BoundaryCondition):
     """
