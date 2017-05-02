@@ -8,7 +8,7 @@
 
 ncellsInProfile = 2
 inpFile = "hist/sod.hist.b0000"
-outFile = "sod-driver-transient-profile-bc.dat"
+outFile = "sod-driver-transient-profile-bc-q.dat"
 
 ofp = open(outFile, "w")
 ofp.write("# data converted from hist file.\n")
@@ -30,7 +30,7 @@ while True:
     leftCell = ifp.readline()
     lTks = leftCell.split()
     t = rTks[0]
-    ofp.write("%s\n" % t)
+    ofp.write("time= %20.12e\n" % t) #as in block_io.cxx
     for i in range(ncellsInProfile):
         ofp.write("%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" %
                   (rTks[4], rTks[5], rTks[6], rTks[7], rTks[8], rTks[9], rTks[10], rTks[11],

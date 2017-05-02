@@ -70,13 +70,18 @@ TransientProfileBC::TransientProfileBC(Block *bdp, int which_boundary,
 
     // The remaining lines in the file are in sets for particular time instances.
     // We will read in two timeslices and store them as t0 and t1 with t0 < t1.
-    fstrm >> t0;
+
+    fstrm >> text;
+    fstrm >> t0; 
+
     if ( G.verbosity_level >= 2 ) {
 	cout << "TransientProfileBC: reading profile for time_stamp= " << t0 << endl;
     }
     read_profile_into_t0();
+    
+    fstrm >> text;
+    fstrm >> t1; 
 
-    fstrm >> t1;
     if ( G.verbosity_level >= 2 ) {
 	cout << "TransientProfileBC: reading profile for time_stamp= " << t1 << endl;
     }
@@ -171,7 +176,8 @@ int TransientProfileBC::apply_convective( double t )
 	else {
 	    // We'll try to keep reading the file until we find a t1 > t.
 	    while ( !fstrm.eof() ) {
-		fstrm >> t1;
+		fstrm >> text;
+		fstrm >> t1; 
 		if ( G.verbosity_level >= 2 ) {
 		    cout << "TransientProfileBC: reading profile for time_stamp= " << t1 << endl;
 		}
