@@ -28,6 +28,7 @@ These codes are available via a public Mercurial repository.
    poshax3
    photaura
    estcj
+   pitot
    nenzfr
    octvce
    lib
