@@ -151,14 +151,33 @@ def main():
         sys.exit(1)
     
     print "onedval: Setting up gas model"
-    # 1a. Look at species and setup gas model
-    if not 'species' in cfg:
-        print "No 'species' list was found, so defaulting to ['air']."
-        cfg['species'] = ['air']
+    # 1a. Setup gas model
+    if 'species' in cfg and 'gmodel_file' in cfg:
+        print "There is a problem in the config file: ", config_file
+        print "Both 'species' and 'gmodel_file' have been specified."
+        print "You can only specify one of these keywords."
+        print "Bailing out!"
+        sys.exit(1)
+    # Look for species.
+    gmodel = None
+    if 'species' in cfg:
+        create_gas_file("thermally perfect gas", cfg['species'], "gas-model.lua")
+        gmodel = create_gas_model("gas-model.lua")
+        nsp = gmodel.get_number_of_species()
+    # Else, test for gmodel_file
+    if 'gmodel_file' in cfg:
+        gmodel = create_gas_model(cfg['gmodel_file'])
+        nsp = gmodel.get_number_of_species()
+        cfg['species'] = []
+        for isp in range(nsp):
+            cfg['species'].append(gmodel.species_name(isp))
 
-    create_gas_file("thermally perfect gas", cfg['species'], "gas-model.lua")
-    gmodel = create_gas_model("gas-model.lua")
-    nsp = gmodel.get_number_of_species()
+    if gmodel is None:
+        print "There is a problem in the config file: ", config_file
+        print "It appears that neither the 'species' nor the 'gmodel_file' have been specified."
+        print "You must specify one of these keywords."
+        print "Bailing out!"
+        sys.exit(1)
 
     print "onedval: Checking over user inputs"
     # 1b. Check for variable map
