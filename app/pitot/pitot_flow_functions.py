@@ -704,17 +704,14 @@ def shock_tube_calculation(cfg, states, V, M):
         # do a clone of state 1 here so we don't get floating point jumping around...
         state1 = states['s1'].clone()    
         # first do the normal shock
-        try:    
-            (V2, V['s2']) = normal_shock_wrapper(state1, cfg['Vs1'], states['s2'])
-                        
-        except Exception as e:
-            print "{0}: {1}".format(type(e).__name__, e.message)
-            print "Normal shock failed. Trying again with a high temp gas guess."
-            try:
+        try:
+            if cfg['gas_guess']:
                 (V2, V['s2']) = normal_shock_wrapper(state1, cfg['Vs1'], states['s2'], cfg['gas_guess'])
-            except Exception as e:
-                print "{0}: {1}".format(type(e).__name__, e.message)            
-                raise Exception, "pitot_flow_functions.shock_tube_calculation() Normal shock calculation in the final shock tube shock failed."
+            else: 
+                (V2, V['s2']) = normal_shock_wrapper(state1, cfg['Vs1'], states['s2'])       
+        except Exception as e:
+            print "{0}: {1}".format(type(e).__name__, e.message)         
+            raise Exception, "pitot_flow_functions.shock_tube_calculation() Normal shock calculation in the final shock tube shock failed."
                 
         if cfg['store_mass_fractions']:
             print "Creating a version of state 2 with mass fractions ('s2_mf') in the states dict as the user has asked for this."
@@ -2274,46 +2271,45 @@ def test_time_calculator(cfg, states, V):
         #all the distances are taken from my L1D run file, written by David Gildfind
         #0m is the primary diaphragm burst location
         cfg['calculate_test_time'] = True
-        if not cfg['secondary'] and not cfg['nozzle']:
-            distances = [3.418, 8.979] #secondary diaphragm, and then end of acc tube (m)
-        elif cfg['secondary'] and not cfg['nozzle']:
-            distances = [3.418, 5.976, 8.979] #secondary diaphragm, tertiary diaphragm, end of acc tube (m)
-        elif not cfg['secondary'] and cfg['nozzle']:
-            distances = [3.418, 8.585] #secondary diaphragm, entrance to nozzle (m)
-        elif cfg['secondary'] and cfg['nozzle']:
-            distances = [3.418, 5.976, 8.585] #secondary diaphragm, tertiary, entrance to nozzle (m)
-    
+        secondary_diaphragm_location = 3.418 #m
+        tertiary_diaphragm_location = 5.976 #m
+        
+        if cfg['nozzle']:
+            tube_exit = 8.585 #m (i.e. entrance to nozzle)
+        else:
+            tube_exit = 8.979 #m (i.e. entrance to test section)
+        
         t_start = 0.0 #time of primary diaphragm burst
     
         if cfg['secondary']: #if secondary we have a third tube to consider
             #calculate some lengths
-            L_sec_drv = distances[0]
-            L_shk_tube = distances[1] - distances[0]
-            L_acc_tube = distances[2] - distances[1]
+            l_sec_driver = secondary_diaphragm_location
+            l_shock_tube = tertiary_diaphragm_location - secondary_diaphragm_location
+            l_acc_tube = tube_exit - tertiary_diaphragm_location
+                    
+            # times for the shocks to traverse the tubes
+            t_inc_shock_sd = t_start + l_sec_driver/cfg['Vsd']
+            t_inc_shock_st = t_inc_shock_sd + l_shock_tube/cfg['Vs1']
+            t_inc_shock_at = t_inc_shock_st + l_acc_tube/cfg['Vs2']
             
-            #shocks
-            t_inc_shock_sd = t_start + L_sec_drv/cfg['Vsd']
-            t_inc_shock_st = t_inc_shock_sd + L_shk_tube/cfg['Vs1']
-            t_inc_shock_at = t_inc_shock_st + L_acc_tube/cfg['Vs2']
-            
-            #contact surfaces
-            t_cs_sd = t_start + L_sec_drv/V['sd3']
-            t_cs_st = t_inc_shock_sd + L_shk_tube/V['s3']
-            t_cs_at = t_inc_shock_st + L_acc_tube/V['s7']
+            # and the same for the contact surfaces
+            t_cs_sd = t_start + l_sec_driver/V['sd3']
+            t_cs_st = t_inc_shock_sd + l_shock_tube/V['s3']
+            t_cs_at = t_inc_shock_st + l_acc_tube/V['s7']
 
         
         else: #so we're going straight from primary driver to shock tube now
             #calculate some lengths
-            L_shk_tube = distances[0]
-            L_acc_tube = distances[1] - distances[0]
+            l_shock_tube = secondary_diaphragm_location
+            l_acc_tube = tube_exit - secondary_diaphragm_location
             
-            #shocks
-            t_inc_shock_st = t_start + L_shk_tube/cfg['Vs1']
-            t_inc_shock_at = t_inc_shock_st +  L_acc_tube/cfg['Vs2']
+             # times for the shocks to traverse the tubes
+            t_inc_shock_st = t_start + l_shock_tube/cfg['Vs1']
+            t_inc_shock_at = t_inc_shock_st +  l_acc_tube/cfg['Vs2']
             
-            #contact surfaces
-            t_cs_sd = t_start + L_shk_tube/V['s3']
-            t_cs_at = t_inc_shock_st +  L_acc_tube/V['s7']
+            # and the same for the contact surfaces
+            t_cs_st = t_start + l_shock_tube/V['s3']
+            t_cs_at = t_inc_shock_st +  l_acc_tube/V['s7']
             
         
         #now we can actually calculate the basic test time...
@@ -2322,11 +2318,127 @@ def test_time_calculator(cfg, states, V):
         #now we just need to calculate the time taken for the unsteady 
         #expansion to hit the end of the acc tube
         
-        t_final_usx = t_inc_shock_st + L_acc_tube/(V['s7']-states['s7'].a)
+        t_final_usx = t_inc_shock_st + l_acc_tube/(V['s7']-states['s7'].a)
         
         cfg['t_test_basic'] = t_final_usx - t_cs_at
         
+        # now we move onto the other calculation...
+        
+        # this is the burst time of the secondary or tertiary diaphragm,
+        # basically the time when the shock tube shock hits it...
+        
+        #t_diaphragm_burst = t_inc_shock_st
+        
+#        # assuming the cs velocity in the shock tube is constant,
+#        # we want the position and time of the cs at the time that the diaphragm
+#        # at the end of the shock tube bursts...
+#        
+#        if cfg['secondary']: # the cs started at t_inc_shock_sd and secondary_diaphragm_location
+#            # here we need to take into account the velocity that we started with before all of the
+#            # gas entered the shock tube, and also the time for the gas to traverse the secondary driver
+#            x_cs_at_diaphragm_burst = secondary_diaphragm_location + V['s3']/(t_diaphragm_burst - t_inc_shock_sd)
+#            # t is obviously just the diaphragm burst time...
+#            t_cs_at_diaphragm_burst = t_diaphragm_burst
+#            V_cs = V['s3']
+#            # at this point, the upstream edge of the unsteady expansion into the acceleration tube
+#            # starts to move with velocity u2 - a2
+#            x_t_g_u_minus_a_at_diaphragm_burst = tertiary_diaphragm_location
+#            t_t_g_u_minus_a_at_diaphragm_burst = t_diaphragm_burst
+#            V_t_g_u_minus_a = V['s2'] - states['s2'].a
+#            
+#            # we now need the time that the driver / test gas cs and this u minus a
+#            # of the upstream edge of the unsteady expansion into theacceleration tube intersect
+#            
+#            # this will be the point in time where both of the displacements are equal
+#            intersection_time= (x_test_gas_u_minus_a_at_diaphragm_burst - x_cs_at_diaphragm_burst + t_cs_at_diaphragm_burst*V_cs - t_test_gas_u_minus_a_at_diaphragm_burst 
+#            
+#            
+#            
+#            x_usx_LH_0-x_cs_A_0+t_cs_A_0*u_cs_A_final-t_usx_LH_0*u_usx_LH)/(u_cs_A_final-u_usx_LH)
+        
     return cfg
+    
+def passage_of_accelerator_gas_estimate(cfg, states, V):
+    """
+    A quick little program to calculate the time of passage of the accelerator
+    gas slug. 
+    
+    There is an example of how it works in one of the pitot paper appendices...
+    """
+    import math
+    
+    if cfg['facility'] == 'x2':
+    
+        # nozzle entrance value comes from L1d3 geometry for the tunnel
+        # X2 examples in the cfcfd repository
+        # acc_tube_exit is for use without the nozzle
+        locations = {'sd1':2.577,'sd2':2.810, 'sd3':3.043,'st1':4.231,
+                     'st2':4.746, 'st3':5.260, 'at1':6.437,'at2':6.615,
+                     'at3':6.796,'at4':7.590, 'at5':7.846,'at6':8.096,
+                     'at7': 8.157, 'at8':8.197, 'secondary': 3.418, 'tertiary':5.976,
+                     'nozzle_entrance':8.575, 'acc_tube_exit':9.985}
+                     
+    else:
+        print "Only facility currently configured is X2."
+        print "Will return now without having done anything."
+        
+        return cfg
+                 
+    # start by defining some parameters
+            
+    secondary = False #whether using secondary driver or not
+    print "Secondary driver is {0}.".format(secondary)
+    D = 0.085 #x2 driver section bore
+    A = math.pi*((D**2.0)/4.0) 
+    print "Tube area = {0} m**2.".format(A)
+    p5 = states['s5'].p # acc tube fill pressure (Pa)
+    p6 = states['s7'].p # rough post post accelerator gas pressure (Pa), we are using s7 here in case of over-expansion..
+    pressure_ratio = p6 / p5
+    print "pressure ratio = {0}".format(pressure_ratio)
+    gam5 = states['s5'].gam # gamma for accelerator air
+    CR = pressure_ratio**(1.0/gam5)
+    print "compression ratio = {0}.".format(CR)
+    Vs2 = cfg['Vs2']
+    
+    # loop through each wall transducer and get the values
+    
+    slug_length_dict = {}
+    passage_time_dict = {}
+    
+    if cfg['nozzle']:
+        calculation_list = ['at1', 'at2', 'at3', 'at4', 'at5', 'at6', 'at7', 'at8','nozzle_entrance']
+    else:
+        calculation_list = ['at1', 'at2', 'at3', 'at4', 'at5', 'at6', 'at7', 'at8','acc_tube_exit']
+    
+    for transducer in calculation_list:
+        print "-"*60    
+        print transducer
+        if secondary:
+            Lstart = locations['tertiary']
+        else:
+            Lstart = locations['secondary']
+        Lfinish = locations[transducer]
+        L5 = Lfinish - Lstart # length the accelerator gas will have been compressed
+        print "L5 = {0} m".format(L5)
+        v5 = L5*A# starting accelerator gas volume up to the point
+        print "v5 = {0} m**3".format(v5)
+        v6 = v5 / CR # final volume based on isentropic compression
+        print "v6 = {0} m**3".format(v6)    
+        L6 = v6 / A # final length
+        print "L6 = {0} m".format(L6)
+        
+        t = L6 / Vs2 # time of passage (s)
+        
+        slug_length_dict[transducer] = L6
+        passage_time_dict[transducer] = t
+        
+        print "time of passage for {0} is {1:.2f} microseconds.".format(transducer, t*1.0e6)  
+        
+    cfg['acc_tube_slug_length_dict'] = slug_length_dict #s
+    cfg['acc_tube_passage_time_dict'] = passage_time_dict #s
+    
+    return cfg
+    
     
 def calculate_scaling_information(cfg, states, V, M):
     """Function used to calculate scaling information if the user has asked for it."""   

@@ -314,7 +314,7 @@ from pitot_flow_functions import *
 from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
-VERSION_STRING = "27-Apr-2017"
+VERSION_STRING = "7-Jun-2017"
 
 DEBUG_PITOT = False
 
@@ -543,6 +543,11 @@ def run_pitot(cfg = {}, config_file = None):
     
     if 'make_x_t_diagram' in cfg and cfg['make_x_t_diagram']:
          cfg = make_x_t_diagram(cfg, states, V, M, show = cfg['show_x_t_diagram'])
+         
+    # accelerator gas passage calculator
+         
+    if 'calculate_passage_of_accelerator_gas' in cfg and cfg['calculate_passage_of_accelerator_gas']:
+       cfg = passage_of_accelerator_gas_estimate(cfg, states, V) 
     
     #-------------------- run the area ratio check if asked to --------------
 
@@ -617,7 +622,7 @@ if __name__ == '__main__':
             print " "            
             cfg = {'solver':'pg', 'test':'fulltheory-pressure', 
                    'facility':'x2', 'nozzle':True, 'secondary': False,
-                   'driver_gasrs_out_of_sd':'He:1.0', 'test_gas':'air',
+                   'driver_gas':'He:1.0', 'test_gas':'air',
                    'p1':3000.0,'p5':10.0, 'filename':demo}
             run_pitot(cfg=cfg)
             
