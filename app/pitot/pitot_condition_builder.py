@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "31-Jan-2017"
+VERSION_STRING = "15-Jun-2017"
 
 import sys
 
@@ -398,6 +398,10 @@ def build_results_dict(cfg, extra_variable_list = None):
                 extra_variables.append(variable)
             else:
                 print "Extra variable {0} was already in the results dict.".format(variable)
+                
+    if cfg['facility'] == 'x2':
+        # calculate the basic test time also
+        full_list += ['basic_test_time'] # microseconds
         
     # now populate the dictionary with a bunch of empty lists based on that list
 
@@ -802,6 +806,7 @@ def normalised_results_csv_builder(results, cfg, test_name = 'pitot_run',
                     not isinstance(results[value][i], (int, float)):
                         output_line += "{0},".format(results[value][i])
                     else:
+                        print results[value][i], normalising_value_dict[value]
                         output_line += "{0},".format(results[value][i]/normalising_value_dict[value])
                 else: #don't put the comma if it's the last value in the csv
                     if value in normalise_exceptions or \
@@ -1156,6 +1161,9 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
     if 'extra_variables' in results and results['extra_variables']:
         for variable in results['extra_variables']:
             results[variable].append(cfg[variable])
+            
+    if cfg['facility'] == 'x2':
+        results['basic_test_time'].append(cfg['t_test_basic']*1.0e6)
                      
     return results
     
@@ -1243,7 +1251,10 @@ def condition_builder_summary_builder(cfg, results):
                     .format(variable, min_value, max_value)  
                 elif 'Re' in variable:
                     summary_line = "Variable {0} varies from {1:.2f} - {2:.2f}."\
-                    .format(variable, min_value, max_value)   
+                    .format(variable, min_value, max_value)  
+                elif variable == 'basic_test_time':
+                    summary_line = "Variable {0} varies from {1:.2f} - {2:.2f} microseconds."\
+                    .format(variable, min_value, max_value)  
                 else:
                     summary_line = "Variable {0} varies from {1:.1f} - {2:.1f}."\
                     .format(variable, min_value, max_value)
@@ -1524,15 +1535,22 @@ def run_pitot_condition_builder(cfg = {}, config_file = None, force_restart = Fa
     intro_line = "Output of pitot condition building program Version {0}.".format(VERSION_STRING)            
     results_csv_builder(results, test_name = cfg['original_filename'],  
                         intro_line = intro_line)
-    extra_normalise_exceptions = []
-    if 'store_sd_fractions' in cfg and cfg['store_sd_fractions']:
-        # find the store sd fractions result names and add them to the extra_normalise_exceptions list
-        for value in results.keys():
-            if 'sd2 %' in value:
-                extra_normalise_exceptions.append(value)
-    normalised_results_csv_builder(results, cfg, test_name = cfg['original_filename'],  
-                        intro_line = intro_line, extra_normalise_exceptions = extra_normalise_exceptions)
                         
+    # normalisation can only be done if results are not used both with and without the secondary driver...
+                        
+    if len(cfg['secondary_list']) < 2:
+              
+        extra_normalise_exceptions = []
+        if 'store_sd_fractions' in cfg and cfg['store_sd_fractions']:
+            # find the store sd fractions result names and add them to the extra_normalise_exceptions list
+            for value in results.keys():
+                if 'sd2 %' in value:
+                    extra_normalise_exceptions.append(value)
+        normalised_results_csv_builder(results, cfg, test_name = cfg['original_filename'],  
+                            intro_line = intro_line, extra_normalise_exceptions = extra_normalise_exceptions)
+                            
+    else:
+        print "Due to the fact that simulations are being performed both with and without the secondary driver, normalised results will not be created."
     # and a to pickled object the user can load with pickle
     # (this allows the cfg and results dictionaries to be loaded directly)
     # it just pickles the dictionaries to pitot should not be needed to load
