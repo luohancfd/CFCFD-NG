@@ -66,6 +66,7 @@ These are the Python codes for the calculation of equilibrium shock tube and exp
 
 #. James C, Gildfind D, Morgan RG, Jacobs PA and Zander F (2013) Designing and simulating high enthalpy expansion tube conditions. In: Proceedings of the 2013 Asia-Pacific International Symposium on Aerospace Technology, Takamatsu, Japan, (1-10). 20-22 November 2013.
 
+#. James, CM, Gildfind, DG, Lewis, SW, Morgan, RG, and Zander, F (2017) Implementation of a state-to-state analytical framework for the calculation of expansion tube flow properties. Submitted to Shock Waves.
 
 Reference paper for IMOC
 ------------------------
@@ -82,6 +83,8 @@ Theses associated with or using the codes
 -----------------------------------------
 
 These are Masters or PhD theses that have developed parts of the simulation codes or have made use of the codes.
+
+#. Banerji, Nikhil (2017) The effects of radiation on ablative heat shields during atmospheric entry.  PhD Thesis No. 7681 Ecole Polytechnique Federale de Lausanne.
 
 #. Kang, Xin (2017) Micro/mesoscale combustion based portable power generating system.  PhD Thesis, School of Mechanical and Mining Engineering, The University of Queensland.
 
@@ -174,7 +177,9 @@ Turbomachinery flows:
 
 Bluff-body and reacting compressible flows:
 
-#.  Elise Fahy, David Buttsworth, Rowan Gollan, Peter Jacobs, and Richard G. Morgan. (2016) Experimental and Computational Fluid Dynamics Studies of Superorbital Earth Re-entry", 46th AIAA Thermophysics Conference, AIAA AVIATION Forum, (AIAA 2016-3532) http://dx.doi.org/10.2514/6.2016-3532
+#. F Zander, S. Lohle, H. Krag, S. Lemmens, R.J. Gollan and P.A. Jacobs (2017) Numerical flow analysis if the ISS re-entry. 7th European Conference on Space Debris ESA/ESOC, Darmstadt, Germany, April 2017.
+
+#. Elise Fahy, David Buttsworth, Rowan Gollan, Peter Jacobs, and Richard G. Morgan. (2016) Experimental and Computational Fluid Dynamics Studies of Superorbital Earth Re-entry", 46th AIAA Thermophysics Conference, AIAA AVIATION Forum, (AIAA 2016-3532) http://dx.doi.org/10.2514/6.2016-3532
 
 #. Gisu Park, Sudhir L. Gai, and Andrew J. Neely. (2016) Base Flow of Circular Cylinder at Hypersonic Speeds, AIAA Journal, Vol. 54, No. 2, pp. 458-468. http://dx.doi.org/10.2514/1.J054270 
 
@@ -215,6 +220,8 @@ Bluff-body and reacting compressible flows:
 
 Transient ducted flows:
 
+#. Jimmy-John O.E. Hoste, Vincent Casseau, Marco Fossati, Ian J. Taylor and Rowan J. Gollan (2017) Numerical modeling and simulation of supersonic flows in propulsion systems by open-source solvers. 21st AIAA International Space Planes and Hypersonics Technologies Conference, Xiamen, China.  AIAA-Paper-2017-2411 
+
 #. Kang, Xin, Gollan, Rowan J., Jacobs, Peter A. and Veeraragavan, Ananthanarayanan (2017) On the influence of modelling choices on combustion in narrow channels. Computers and Fluids, 144 117-136. doi:10.1016/j.compfluid.2016.11.017
 
 #. Won Keun Chang, Gisu Park, Yuin Jin, and Jongryul Byun. (2016) Shock Impinging Effect on Ethylene Flameholding, Journal of Propulsion and Power, Vol. 32, No. 5 (2016), pp. 1230-1239. http://dx.doi.org/10.2514/1.B36007 
@@ -225,7 +232,7 @@ Transient ducted flows:
 
 #. Denman, Zachary J., Chan, Wilson Y. K., Brieschenk, Stefan, Veeraragavan, Ananthanarayanan, Wheatley, Vincent and Smart, Michael K. (2016) Ignition experiments of hydrocarbons in a mach 8 shape-transitioning scramjet engine. Journal of Propulsion and Power, 32 6: 1462-1471. doi:10.2514/1.B36099
 
-#.  Gisu Park, Chul Park, Yuin Jin, Hojin Choi, Jongryul Byun, and Kiyoung Hwang. (2015) Ethylene Transverse Jets in Supersonic Crossflows, Journal of Propulsion and Power, Vol. 31, No. 3, pp. 773-788. http://dx.doi.org/10.2514/1.B35323 
+#. Gisu Park, Chul Park, Yuin Jin, Hojin Choi, Jongryul Byun, and Kiyoung Hwang. (2015) Ethylene Transverse Jets in Supersonic Crossflows, Journal of Propulsion and Power, Vol. 31, No. 3, pp. 773-788. http://dx.doi.org/10.2514/1.B35323 
 
 #. Kang, X., Gollan, R. J., Jacobs, P. A. and Veeraragavan, A. (2015). Numerical simulation of premixed methane/air flame dynamics in narrow channels. In: Yi Yang and Nigel Smith, The Australian Combustion Symposium 2015 Proceedings. Australian Combustion Symposium, Parkville, VIC, Australia, (388-391). 7-9 December 2015.
 
