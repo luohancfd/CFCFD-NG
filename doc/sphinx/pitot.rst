@@ -1,5 +1,5 @@
 PITOT
-=======
+=====
 
 PITOT is the group's equilibrium gas full facility simulation tool for rapid characterisation and simulation of generally free piston driven expansion tube flow conditions. It makes use of isentropic and compressible flow relations to rapidly simulation the facility, while also including the ability to analytically account for some situations where expansion tube facilities are known to depart from ideal shock tube theory.
 
@@ -8,7 +8,7 @@ PITOT was written to be a virtual impulse facility, and simulations are therefor
 PITOT is written in the Python programming language and it is generally ran by parsing a configuration file to the overarching pitot.py program, which is discussed below. PITOT can also be scripted from inside Python by parsing a configuration dictionary directly to the run_pitot function which can be found in the overarching program pitot.py.
 
 Publications about the code
--------------------------------
+---------------------------
 
 Several different papers have been written about the code, discussing what it does and how it works.  
 
@@ -26,13 +26,14 @@ James, C.M., Gildfind, D.G., Lewis, S.W., Morgan, R.G., and Zander, F. Implement
 
 Typical build and run procedure
 -------------------------------
+
 PITOT is built from source into a default installation directory at $HOME/e3bin/.  
 A typical build procedure (using the default TARGET=for_gnu) might be::
 
   $ cd $HOME/cfcfd3/app/pitot
   $ make install
 
-It should be noted that cea2 files must be in the cfcfd3/extern/cea2 directory when Pitot is compiled for the build to work correctly and allow PITOT to be ran in the normal equilibrium gas mode. The instructions for obtaining cea2 locally, as well as the dependencies required to run Pitot and other cfcfd programs, can be found `here <getting-started.html>`_. The uncompiled version of cea2 can also be obtained directly from NASA `here <https://www.grc.nasa.gov/WWW/CEAWeb/ceaguiDownload-unix.htm>`_ by downloading the file `CEA+Fortran.tar.Z'. These files must then be placed in the cfcfd3/extern/cea2 directory.
+It should be noted that cea2 files must be in the cfcfd3/extern/cea2 directory when Pitot is compiled for the build to work correctly and allow PITOT to be ran in the normal equilibrium gas mode. The instructions for obtaining cea2 locally, as well as the dependencies required to run Pitot and other cfcfd programs, can be found in the `getting-started <getting-started.html>`_ section. The uncompiled version of cea2 can also be obtained directly from NASA `here <https://www.grc.nasa.gov/WWW/CEAWeb/ceaguiDownload-unix.htm>`_ by downloading the file `CEA+Fortran.tar.Z`. These files must then be placed in the cfcfd3/extern/cea2 directory.
 
 Equilibrium gas pitot simulations generally take a few minutes to run.
 Several example simulations for various situations exist in the examples directory of the CFCFD repository (cfcfd3/examples/).
