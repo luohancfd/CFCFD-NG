@@ -259,6 +259,9 @@ def main():
         else:
             cells = create_cells_from_slice(slice_file, cfg['variable_map'], cfg['grid_scale'])
         print "Total number of cells created from slice: ", len(cells)
+        print "Make all cell normals consistent with very first cell."
+        for c in cells[1:]:
+             c._normal = cells[0]._normal
         # 2a. apply filtering if required
         if 'filter_function' in cfg:
             print "Using filter function to remove unwanted or unimportant cells."

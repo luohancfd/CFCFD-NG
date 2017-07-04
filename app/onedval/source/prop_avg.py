@@ -42,18 +42,6 @@ def avg_pos(cells, var_map):
     z /= A
     return Vector(x, y, z)
 
-def oriented_normal(n):
-    """Orients the normal in a consistent direction.
-
-    Tecplot does not list the corners of cells in a consistent
-    manner, so the orientation (outward or inward facing)
-    of the computed normals can differ between adjacent cells.
-    Presently, we'll enforce the assumption
-    of a positive-x sense to all normals.
-    """
-    return Vector(abs(n.x), n.y, n.z)
-    
-
 def compute_fluxes(cells, var_map, species, gmodel, special_fns):
     f_mass = 0.0
     f_mom = Vector(0.0, 0.0, 0.0)
@@ -75,7 +63,7 @@ def compute_fluxes(cells, var_map, species, gmodel, special_fns):
     for c in cells:
         dA = c.area()
         A += dA
-        n = oriented_normal(c.normal())
+        n = c.normal()
         rho = c.get(rholabel)
         p = c.get(plabel)
         vel = Vector(c.get(ulabel),
@@ -106,15 +94,15 @@ def compute_fluxes(cells, var_map, species, gmodel, special_fns):
     
     # Process any special fns.
     # Special fns may like to know total flux and area
-    fluxes = {'mass':f_mass, 'mom':f_mom, 'energy':f_energy, 'species':f_sp}
+    fluxes = {'mass':abs(f_mass), 'mom':f_mom, 'energy':abs(f_energy), 'species':map(abs, f_sp)}
     
     for c in cells:
 	dA = c.area()
-        n = oriented_normal(c.normal())
         rho = c.get(rholabel)
         vel = Vector(c.get(ulabel),
                       c.get(vlabel),
                       c.get(wlabel))
+        n = c.normal()
         u_n = dot(vel, n)
         for l,f in special_fns.iteritems():
             special_fluxes[l] += f(c, rho, u_n, dA, A, fluxes)
@@ -154,7 +142,7 @@ def mass_flux_weighted_avg(cells, props, var_map):
         vel = Vector(c.get(ulabel),
                       c.get(vlabel),
                       c.get(wlabel))
-        n = oriented_normal(c.normal())
+        n = c.normal()
         w = rho*dot(vel, n)
         f_mass = f_mass + w*dA
         for p in props:
@@ -187,7 +175,7 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
     Q = Gas_data(gmodel)
     for c in cells:
         dA = c.area() 
-        n = oriented_normal(c.normal())
+        n = c.normal()
         rho = c.get(rholabel)
         p = c.get(plabel)
         vel = Vector(c.get(ulabel),
