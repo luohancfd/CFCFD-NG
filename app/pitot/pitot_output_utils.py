@@ -698,16 +698,15 @@ def txt_file_output(cfg, states, V, M):
             
             if solver == 'eq' or solver == 'pg-eq':    
                 line_one = '    p: {0:g} Pa, T: {1:g} K, rho: {2:g} kg/m**3, e: {3:g} J/kg, h: {4:g} J/kg, a: {5:g} m/s, s:{6:g} kJ/(kg.K)'\
-                .format(state.p, state.T, state.rho, state.u, state.h, state.a, state.s)
+                .format(state.p, state.T, state.rho, state.e, state.h, state.a, state.s)
                 line_two = '    R: {0:g} J/(kg.K), gam: {1:g}, Cp: {2:g} J/(kg.K), mu: {3:g} Pa.s, k: {4:g} W/(m.K)'\
                 .format(state.R, state.gam, state.cp, state.mu, state.k)
                 line_three = '    species {0:s}: {1:s}'.format(state.outputUnits, str(state.species))
             elif solver == 'pg':
                 line_one = '    p: {0:g} Pa, T: {1:g} K, rho: {2:g} kg/m**3, e: {3:g} J/kg, h: {4:g} J/kg, a: {5:g} m/s, s:{6:g} kJ/(kg.K)'\
-                .format(state.p, state.T, state.rho, state.u, state.h, state.a, state.s)
+                .format(state.p, state.T, state.rho, state.e, state.h, state.a, state.s)
                 line_two = '    R: {0:g} J/(kg.K), gam: {1:g}, Cp: {2:g} J/(kg.K), mu: {3:g} Pa.s, k: {4:g} W/(m.K)'\
                 .format(state.R, state.gam, state.C_p, state.mu, state.k)
-                line_three = '    name: {0:s}'.format(state.name)
                 
             #then start printing to screen /storing data
             
@@ -718,8 +717,9 @@ def txt_file_output(cfg, states, V, M):
             txt_output.write(line_one + '\n')
             print line_two
             txt_output.write(line_two + '\n')
-            print line_three
-            txt_output.write(line_three + '\n')
+            if solver == 'eq' or solver == 'pg-eq':  
+                print line_three
+                txt_output.write(line_three + '\n')
             
             return
                             
