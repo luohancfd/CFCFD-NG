@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "15-Jun-2017"
+VERSION_STRING = "25-Jul-2017"
 
 import sys
 
@@ -806,7 +806,6 @@ def normalised_results_csv_builder(results, cfg, test_name = 'pitot_run',
                     not isinstance(results[value][i], (int, float)):
                         output_line += "{0},".format(results[value][i])
                     else:
-                        print results[value][i], normalising_value_dict[value]
                         output_line += "{0},".format(results[value][i]/normalising_value_dict[value])
                 else: #don't put the comma if it's the last value in the csv
                     if value in normalise_exceptions or \

@@ -620,7 +620,7 @@ def shock_tube_calculation(cfg, states, V, M):
                       format(cfg['Vs1_guess_1'], cfg['Vs1_guess_2'])
                       
             if 'Vs1_lower' not in cfg and 'Vs1_upper' not in cfg:
-                    cfg['Vs1_lower'] = 1000.0; cfg['Vs1_upper'] = 25000.0                
+                    cfg['Vs1_lower'] = 500.0; cfg['Vs1_upper'] = 25000.0                
             else:
                 print "Using custom limits for Vs1 secant solver."
                 print "('Vs1_lower' = {0} m/s and 'Vs1_upper' = {1} m/s)".\
