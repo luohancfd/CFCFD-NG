@@ -506,8 +506,8 @@ def txt_file_output(cfg, states, V, M):
         elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'reflected-shock-tunnel':
             stag_temp = 'The total temperature (Tt) in the stagnated region (state 5) is {0:<.5g} K.'.format(states['test_section_total'].T)
         
-    print stag_temp 
-    txt_output.write(stag_temp + '\n')
+        print stag_temp 
+        txt_output.write(stag_temp + '\n')
     
     # I'm going to add freestream enthalpy (just the h component) to the output also
     # (take away the initial enthalpy in state 1 to get the change)
@@ -538,7 +538,7 @@ def txt_file_output(cfg, states, V, M):
         cfg['u_eq'] = math.sqrt(2.0*cfg['stagnation_enthalpy']) 
         u_eq_print = 'The flight equivalent velocity (Ue) is {0:<.5g} m/s.'.format(cfg['u_eq'])
     else:
-        u_eq_print = "Unable to find equivalent velocity as stagnation enthalpy could not be found."
+        u_eq_print = "Unable to find flight equivalent velocity as stagnation enthalpy could not be found."
         cfg['u_eq'] = None
         
     print u_eq_print

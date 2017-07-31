@@ -641,9 +641,10 @@ def shock_tube_calculation(cfg, states, V, M):
             except Exception as e:
                 print "{0}: {1}".format(type(e).__name__, e.message)
                 print "Shock tube secant solver failed. Will try again with higher initial guesses."
-                print "New guesses are: 'Vs1_guess_1' = {0} m/s and 'Vs1_guess_2' = {1} m/s".\
-                       format(cfg['Vs1_guess_1'] + 2000.0, cfg['Vs1_guess_2'] + 2000.0)
                 cfg['Vs1_guess_1'] += 2000.0; cfg['Vs1_guess_2'] += 2000.0
+                print "New guesses are: 'Vs1_guess_1' = {0} m/s and 'Vs1_guess_2' = {1} m/s".\
+                       format(cfg['Vs1_guess_1'], cfg['Vs1_guess_2'])
+                
                 
                 try:
                     cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
@@ -1262,9 +1263,9 @@ def acceleration_tube_calculation(cfg, states, V, M):
                        format(last_guess - 100.0, last_guess + 100.0)
                 cfg['Vs2_guess_1'] = last_guess - 100.0; cfg['Vs2_guess_2'] = last_guess + 100.0               
             else:
+                cfg['Vs2_guess_1'] += 1500.0; cfg['Vs2_guess_2'] += 1500.0
                 print "New guesses are: 'Vs2_guess_1' = {0} m/s and 'Vs2_guess_2' = {1} m/s".\
-                       format(cfg['Vs2_guess_1'] + 1000.0, cfg['Vs2_guess_2'] + 1000.0)
-                cfg['Vs2_guess_1'] += 1000.0; cfg['Vs2_guess_2'] += 1000.0
+                       format(cfg['Vs2_guess_1'], cfg['Vs2_guess_2'])
             try:
                 cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, 
                                     cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], 
