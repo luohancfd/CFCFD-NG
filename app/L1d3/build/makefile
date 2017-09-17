@@ -60,6 +60,7 @@ OBJECTS = l_kernel.o \
 	l_diaph.o \
 	l_slug.o \
 	l_piston.o \
+	l_valve.o \
 	roberts.o
 
 PY_FILES = l_script.py gaspy.py
@@ -256,6 +257,7 @@ _gaspy.dylib : $(GAS)/build/_gaspy.dylib
 
 l1d.o : $(SRC)/l1d.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) \
 	$(SRC)/l_adapt.hh $(SRC)/l_bc.hh \
+	$(SRC)/l_valve.hh \
 	$(SRC)/l_io.hh $(SRC)/l_rivp.hh \
 	$(SRC)/l_cell.hh $(SRC)/l_diaph.hh \
 	$(SRC)/l_tube.hh \
@@ -310,5 +312,8 @@ sptime.o  : $(SRC)/sptime.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_io.hh $(
 
 piston.o  : $(SRC)/piston.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_io.hh
 	$(CXXCOMPILE) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/piston.cxx -o piston.o
+
+l_valve.o  : $(SRC)/l_valve.cxx $(SRC)/l_valve.hh $(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_valve.cxx -o l_valve.o
 
 # -------------------- end of makefile -------------------------------

@@ -81,14 +81,14 @@ set key top right
 plot "valve_hx3.dat" using 1:6 title "End wall" with lines linestyle 1
 EOF
 
-gnuplot <<EOF
-set term postscript eps 20
-set output "pressure_valve_4.eps"
-set title "Test Valve"
-set xlabel "t, s"
-set ylabel "p, Pa"
-set xrange [0:0.02]
-set xtic 0.010
-set key top right
-plot "valve_hx4.dat" using 1:6 title "End wall" with lines linestyle 1
-EOF
+#gnuplot <<EOF
+#set term postscript eps 20
+#set output "pressure_valve_4.eps"
+#set title "Test Valve"
+#set xlabel "t, s"
+#set ylabel "p, Pa"
+#set xrange [0:0.02]
+#set xtic 0.010
+#set key top right
+#plot "valve_hx4.dat" using 1:6 title "End wall" with lines linestyle 1
+#EOF
