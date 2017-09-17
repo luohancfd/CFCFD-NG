@@ -66,12 +66,13 @@ extern "C" {
 #include "l_rivp.hh"
 #include "l_cell.hh"
 #include "l_bc.hh"
+#include "l_valve.hh"
 
 //-----------------------------------------------------------------
 
 int main(int argc, char **argv)
 {
-    int js, jp, jd;                    /* slug, piston, diaphragm index */
+    int js, jp, jd;                    /* slug, piston, diaphragm, valve index */
     std::vector<GasSlug> A;            /* several gas slugs        */
     std::vector<PistonData> Pist;      /* room for several pistons */
     std::vector<DiaphragmData> Diaph;  /* diaphragms            */
@@ -105,7 +106,16 @@ int main(int argc, char **argv)
     int i, command_line_error;
     int attempt_number, step_failed, bad_cells;
     char msg_string[256];
-
+    
+    /* Valve Specific Additions */
+    std::vector<ValveData> Valve;
+    int jv;
+    ValveData *vd;
+    double dt; 
+    TubeModel *td;
+    std::vector<LCell> Cell;
+    /* end extra valve definitions */
+    
     printf("\n------------------------------");
     printf("\nLagrangian 1D flow simulation.");
     printf("\n------------------------------");
@@ -239,6 +249,10 @@ int main(int argc, char **argv)
         Diaph.push_back(DiaphragmData(jd, pname, echo_input));
         Diaph[jd].sim_time = 0.0;
     }
+    for (jv = 0; jv < SD.nvalve; ++jv) {
+        Valve.push_back(ValveData(jv, pname, echo_input));
+        Valve[jv].sim_time = 0.0;
+    }
     SD.hncell = 0;
     for (js = 0; js < SD.nslug; ++js) {
         A.push_back(GasSlug(js, SD, pname, echo_input));
@@ -250,7 +264,7 @@ int main(int argc, char **argv)
     int nmodes = gmodel->get_number_of_modes();
 
     if ( prepare_only ) {
-        double x[31000]; 
+        double x[11000]; 
         // Not that we have made a guess for the required size; 
         // we should use a std::vector but x is used in the call 
         // to distribute_points().
@@ -264,20 +278,20 @@ int main(int argc, char **argv)
              */
             if ( A[js].cluster_to_end_1 == 1 ) {
                 	beta1 = A[js].cluster_strength;
-    	        } else {
+            } else {
                 	beta1 = 0.0;
             }
             if ( A[js].cluster_to_end_2 == 1 ) {
-                	beta2 = A[js].cluster_strength;
+                beta2 = A[js].cluster_strength;
             } else {
-                	beta2 = 0.0;
+                beta2 = 0.0;
             }
             // FIX-ME: one day, it will be good to use a vector for x
             // such that its size can be adjested as needed.
             distribute_points(A[js].xbegin, A[js].xend, A[js].nnx, x, beta1, beta2); 
             int i = 0;
             for ( int ix = A[js].ixmin-1; ix <= A[js].ixmax; ++ix) {
-                	A[js].Cell[ix].x = x[i];
+                A[js].Cell[ix].x = x[i];
                 ++i;
             }
             A[js].compute_areas(&tube);
@@ -288,8 +302,8 @@ int main(int argc, char **argv)
              * extra variables.
              */
             if ( A[js].decode_conserved() != 0 ) {
-                	printf( "Failure decoding conserved quantities for slug[%d].\n", js );
-                	exit( -1 );
+                printf( "Failure decoding conserved quantities for slug[%d].\n", js );
+                exit( -1 );
             }
         }   /* end for js... */
         tube.write_area(aname);
@@ -297,13 +311,14 @@ int main(int argc, char **argv)
         printf("Write starting solution file.\n");
         if ((outfile = fopen(iname.c_str(), "w")) == NULL) {
             printf("\nCould not open %s; BAILING OUT\n", oname.c_str());
-	        return FAILURE;
+            return FAILURE;
         }
         for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
         for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
+        for (jv = 0; jv < SD.nvalve; ++jv) Valve[jv].write_state(outfile);
         for (js = 0; js < SD.nslug; ++js) A[js].write_state(outfile);
         if (outfile != NULL) fclose(outfile);
-        return SUCCESS;
+        return SUCCESS; 
     }
 
     // Pick up the initial data that was previously generated.
@@ -313,20 +328,21 @@ int main(int argc, char **argv)
     }
     for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].read_state(infile);
     for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].read_state(infile);
+    for (jv = 0; jv < SD.nvalve; ++jv) Valve[jv].read_state(infile);
     for (js = 0; js < SD.nslug; ++js) {
         A[js].read_state(infile);
         A[js].compute_areas(&tube);
         A[js].encode_conserved();
         // Fill in all of the extra variables.
         if ( A[js].decode_conserved() != 0 ) {
-	    printf( "Failure decoding conserved quantities for slug[%d].\n", js );
-	    printf( "This occured just after reading starting solution.\n" );
-	    exit(-1);
+            printf( "Failure decoding conserved quantities for slug[%d].\n", js );
+            printf( "This occured just after reading starting solution.\n" );
+            exit(-1);
         }
-	A[js].set_chemistry_timestep(-1.0);
-	A[js].set_thermal_timestep(-1.0);
+        A[js].set_chemistry_timestep(-1.0);
+        A[js].set_thermal_timestep(-1.0);
     } // end for js...
-    if ( infile != NULL ) fclose(infile);
+    if ( infile != NULL ) fclose(infile); 
 
     SD.sim_time = A[0].sim_time; // Pick up the old time.
     tplot = SD.sim_time + SD.get_dt_plot();
@@ -371,9 +387,9 @@ int main(int argc, char **argv)
 
     while (SD.sim_time <= SD.max_time && step <= SD.max_step && halt_now == 0) {
 
-        // --------------------------------
-        // 0. Adjust the cell distribution.
-        // --------------------------------
+    // --------------------------------
+    // 0. Adjust the cell distribution.
+    // --------------------------------
         if (step > 0 && (step / adaptive_count) * adaptive_count == step) {
             for (js = 0; js < SD.nslug; ++js) {
                 if (A[js].adaptive > ADAPT_NONE) {
@@ -443,31 +459,31 @@ int main(int argc, char **argv)
             printf("\n");
             printf("-------- Wall-Clock seconds = %d --------\n",
                    (int)(now - start) );
-            print_simulation_status(stdout, NULL, step, SD, A, Diaph, Pist,
+            print_simulation_status(stdout, NULL, step, SD, A, Diaph, Pist, Valve, 
 				    cfl_max, cfl_tiny, time_tiny);
             fflush(stdout); // make it appear now
         }
 
         if ((step / adjust_end_cell_count) * adjust_end_cell_count == step &&
 	    filter_start_time >= 0.0 && SD.sim_time > filter_start_time) {
-	    // Occasionally, relax the gas properties in the end cells
-	    // towards the values in their immediate neighbours in the
-	    // same slug.
-	    // This will, hopefully, eliminate the glitches seen in the
-	    // beginning test gas in Ben's expansion tube simulations.
+            // Occasionally, relax the gas properties in the end cells
+            // towards the values in their immediate neighbours in the
+            // same slug.
+            // This will, hopefully, eliminate the glitches seen in the
+            // beginning test gas in Ben's expansion tube simulations.
             for (js = 0; js < SD.nslug; ++js) {
-                	A[js].adjust_end_cells();
+                A[js].adjust_end_cells();
             }
         }
 
         // ---------------------------
-        // 3. Deal with the diaphragms.
+        // 3A. Deal with the diaphragms.
         // ---------------------------
         // This amounts to rupturing (so-far unruptured) diaphragms
         // when the specified pressure difference is exceeded.
         for (jd = 0; jd < SD.ndiaphragm; ++jd) {
-	        dp = &( Diaph[jd] );
-
+            dp = &( Diaph[jd] );
+       
             if ( dp->is_burst == 0 ) {
                 // Check only unruptured diaphragms for burst conditions. 
 
@@ -499,22 +515,22 @@ int main(int argc, char **argv)
                              "\nEvent: diaphragm[%d] trigger at t= %e\n",
                              jd, SD.sim_time );
                     log_event( efname.c_str(), msg_string );
-                    print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,
+                    print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist, Valve, 
 					    cfl_max, cfl_tiny, time_tiny);
                 }
 
                 // Wait the hold time before rupturing diaphragm.
                 if ( dp->trigger_time >= 0.0 && 
-                     (SD.sim_time - dp->trigger_time) > dp->hold_period ) {
+                    (SD.sim_time - dp->trigger_time) > dp->hold_period ) {
                     dp->is_burst = 1;
                     sprintf( msg_string, "\nEvent: diaphragm[%d] rupture at t= %e\n",
                              jd, SD.sim_time );
                     log_event( efname.c_str(), msg_string );
-                    print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,
+                    print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist, Valve, 
 					    cfl_max, cfl_tiny, time_tiny);
                 } // end if dp->trigger_time >= 0.0 &&...
             } else {
-                	// For ruptured diaphragms, check to see if we should blend
+                // For ruptured diaphragms, check to see if we should blend
                 // the gas-slug data after a period of time.
 
                 if ( dp->blend_delay > 0.0 && !(dp->already_blended) &&
@@ -532,11 +548,115 @@ int main(int argc, char **argv)
                              "\nEvent: blend slugs [%d] and [%d] at t= %e\n",
                              dp->left_slug_id, dp->right_slug_id, SD.sim_time );
                     log_event( efname.c_str(), msg_string );
-                    print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
-                	        cfl_max, cfl_tiny, time_tiny );
+                    print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist, Valve, 
+                        cfl_max, cfl_tiny, time_tiny );
                 }
             } // end if dp->is_burst == 0 ... else ...
         } // end for jd... 
+
+        // ---------------------------
+        // 3B. Deal with the valves.
+        // ---------------------------
+	    
+        for (jv = 0; jv < SD.nvalve; ++jv) {
+            vd = &( Valve[jv] );
+            dt = (SD.sim_time - vd->open_time);
+            td = &( tube);
+            double pi = 4.0*atan(1.0);
+                
+            //printf("is_open %d \n", vd->is_open);
+            //printf("open_time %e \n", vd->open_time);
+            
+            if ( vd->is_open == 0 ) {
+                // Looking at closed valves
+                //printf("Valve is closed \n");
+
+                //printf("\n Current Time: valve[%d] t= %e\n",
+                //             jd, SD.sim_time );
+
+                //printf("\n Current Time: t= %e , Opentime t = %e\n",
+                //             SD.sim_time, vd->open_time);
+                
+                if ( SD.sim_time > vd->open_time) {
+                    // Time has exceed ope_time --> open valve
+                    //printf("\n valve[%d], opens at t= %e\n",
+                          //   jv, SD.sim_time );   
+                    vd->is_open = 2;  
+                } 
+            } // end if vd_>is_open = 0
+
+            if ( vd->is_open == 1 ) {
+                //printf("Valve is open \n");
+                //printf("\n area = %e \n", td->area[n]);
+            }
+
+
+            if ( vd->is_open == 2 ) {
+                js = vd->left_slug_id;
+                if (js >= 0) {
+                   end_id = vd->left_slug_end_id;
+                   end_dx = vd->left_slug_dx;  
+                   left_p = A[js].end_pressure(end_id, end_dx);
+                   //printf("\n Pressure: p= %e, time = %e\n", left_p, SD.sim_time);
+                   if (vd->open_period == 0.0) {
+                       vd->open_period = -2.1590901e-24*left_p*left_p*left_p+1.25227273e-16*left_p*left_p-2.80855519e-9*left_p+3.63299825e-2;
+                       //printf("\n open_period: t = %e\n", vd->open_period);
+                   } else {
+                        //printf("\n open_period: t = %e\n", vd->open_period);
+                   }
+                } // end js >= 0
+                for (int i = 0; i < td->nv+1; ++i) {
+                    double a_max = 0.25*pi*td->d_max[i]*td->d_max[i];
+                    int v_loc = (td->x_loc[i]-td->xb[0])/td->dx + 1;  
+                    double a_new = a_max/(vd->open_period*vd->open_period)*dt*dt; 
+                    double d_new = sqrt((4*a_new)/pi);
+                    double a_old = td->area[v_loc];
+                    double d_old = td->diam[v_loc];
+                    td->area[v_loc] = a_new;
+                    //printf("\n diam centre = %e \n", d_new);
+                    td->diam[v_loc] = d_new;
+                    int q; 
+                    for ( q = 1; q < td->n_points[i]; ++q) {
+                        double p = td->n_points[i];
+                        double f = 1.0/(p*p);
+                        double d_current = td->diam[v_loc-q];
+                        td->diam[v_loc-q] = d_current + (d_new-d_old)*(1-q*q*f);
+                        //printf("\n diam left %d = %e \n", q, td->diam[v_loc-q]); 
+                        td->diam[v_loc+q] = d_current + (d_new-d_old)*(1-q*q*f);
+                        td->area[v_loc-q] = 0.25*pi*td->diam[v_loc-q]*td->diam[v_loc-q];
+                        td->area[v_loc+q] = 0.25*pi*td->diam[v_loc+q]*td->diam[v_loc+q];
+                        
+                        //printf("\n diam = %e, q = %d \n", td->diam[v_loc+q], q);
+                        //printf("\n area = %e \n", td->area[v_loc-q]);
+                        
+                        for (js = 0; js < SD.nslug; ++js) {                        
+                            for ( int ix = A[js].ixmin; ix <= A[js].ixmax; ++ix ) {
+                                int xloc = A[js].Cell[ix].x;
+                                if  (xloc >= td->dx*(v_loc-q) && xloc <= td->dx*(v_loc-q-1)) {
+                                    A[js].Cell[ix].area = td->area[v_loc-q-1]; 
+                                    printf("\n a = %e, x = %e, ix = %d \n", A[js].Cell[ix].area, A[js].Cell[ix].x, ix);
+                                    A[js].Cell[ix].volume = 0.5*(A[js].Cell[ix].area + A[js].Cell[ix-1].area) * (A[js].Cell[ix].x - A[js].Cell[ix-1].x);
+                                    A[js].Cell[ix].xmid = 0.5*(A[js].Cell[ix].x + A[js].Cell[ix-1].x);
+                                }
+                                if (xloc <= td->dx*(v_loc+q-1) && xloc >= td->dx*(v_loc+q)) {
+                                    A[js].Cell[ix].area = td->area[v_loc+q-1];
+                                    A[js].Cell[ix].volume = 0.5*(A[js].Cell[ix].area + A[js].Cell[ix-1].area) * (A[js].Cell[ix].x - A[js].Cell[ix-1].x);
+                                    A[js].Cell[ix].xmid = 0.5*(A[js].Cell[ix].x + A[js].Cell[ix-1].x);
+                                    printf("\n a = %e, x = %e \n", A[js].Cell[ix].area, A[js].Cell[ix].x); 
+                                }
+                            }
+                        A[js].compute_areas(&tube);
+                        A[js].decode_conserved();
+                        } // end for js 
+                    } // end for q
+                }
+         
+                if (SD.sim_time > (vd->open_time+vd->open_period)) {
+                    vd->is_open = 1;
+                }
+            } // end if vd-->is_open=2
+
+        } // end for jv... 
 
         // ----------------------
         // 4. Update the dynamics 
@@ -573,14 +693,22 @@ int main(int argc, char **argv)
                     if (Diaph[jd].is_burst == 0) {
                         L_bc_left_reflect(&(A[js]));
                     } else {
-                        // This is double handling but is OK.
+                        // This is double handling but is OK. 
+                        other_slug = A[js].left_slug_id;
+                        L_exchange_bc_data(&(A[other_slug]), &(A[js]));
+                    }
+                } else if (bc == SLUG_VALVE) {
+                    jv = A[js].left_valve_id;
+                    if (Valve[jv].is_open == 0) {
+                        L_bc_left_reflect(&(A[js]));
+                    } else { 
                         other_slug = A[js].left_slug_id;
                         L_exchange_bc_data(&(A[other_slug]), &(A[js]));
                     }
                 } else {
                     printf("L1d: slug[%d] invalid left BC %d\n", js, bc);
-                } // end if bc... 
-
+                }// end if bc... 
+	    
                 // Deal with right end condition second. 
                 bc = A[js].right_bc_type;
                 if (bc == FREE_END) {
@@ -603,11 +731,19 @@ int main(int argc, char **argv)
                         // This is double handling but is OK.
                         other_slug = A[js].right_slug_id;
                         L_exchange_bc_data(&(A[js]), &(A[other_slug]));
-                    }
+		            }
+		        } else if (bc == SLUG_VALVE) {
+		            jv = A[js].right_valve_id;
+		            if (Valve[jv].is_open == 0) {
+		                L_bc_right_reflect(&(A[js]));
+		            } else {
+		                other_slug = A[js].right_slug_id;
+		                L_exchange_bc_data(&(A[js]), &(A[other_slug]));
+		            } 
                 } else {
                     printf("L1d: slug[%d] invalid right BC %d\n", js, bc);
-                } // end if bc, for right end...
-            } // end for js...
+                }// end if bc, for right end...
+            }// end for js...
 
             // 4b. Gas-dynamic predictor step
             for (js = 0; js < SD.nslug; ++js) {
@@ -667,9 +803,9 @@ int main(int argc, char **argv)
             // 4e. Corrector Stage 
             // -------------------
             if (SD.Torder == 2) {
-            	// Apply boundary conditions to the gas slugs.
-            	// Leave the diaphragms as they were for the predictor
-            	// stage. 
+                // Apply boundary conditions to the gas slugs.
+                // Leave the diaphragms as they were for the predictor
+                // stage. 
                 for (js = 0; js < SD.nslug; ++js) {
                     // Deal with left end condition first. 
                     bc = A[js].left_bc_type;
@@ -694,6 +830,15 @@ int main(int argc, char **argv)
                             other_slug = A[js].left_slug_id;
                             L_exchange_bc_data(&(A[other_slug]), &(A[js]));
                         }
+                    } else if (bc == SLUG_VALVE) {
+                        jv = A[js].left_valve_id;
+                        if (Valve[jv].is_open == 0) {
+                            L_bc_left_reflect(&(A[js]));
+                        } else {
+                            other_slug = A[js].left_slug_id;
+                            L_exchange_bc_data(&(A[other_slug]), &(A[js]));
+                        }
+			
                     } else {
                         printf("L1d: slug[%d] invalid left BC %d\n", js, bc);
                     } // end if bc...
@@ -721,6 +866,15 @@ int main(int argc, char **argv)
                             other_slug = A[js].right_slug_id;
                             L_exchange_bc_data(&(A[js]), &(A[other_slug]));
                         }
+                    } else if (bc == SLUG_VALVE) {
+                        jv = A[js].right_valve_id;
+                        if (Valve[jv].is_open == 0) {
+                            L_bc_right_reflect(&(A[js]));
+                        } else {
+                            other_slug = A[js].right_slug_id;
+                            L_exchange_bc_data(&(A[js]), &(A[other_slug]));
+                        }
+
                     } else {
                         printf("L1d: slug[%d] invalid right BC %d\n", js, bc);
                     } // end if bc, for right end...
@@ -735,7 +889,7 @@ int main(int argc, char **argv)
                     A[js].corrector_step();
                     A[js].compute_areas(&tube);
                     if ( A[js].decode_conserved() != 0 ) {
-                        	printf( "decode_conserved() failed at corrector step\n" );
+                        printf( "decode_conserved() failed at corrector step\n" );
                         printf( "   for slug[%d], attempt=%d, time-step=%d\n", 
                         js, attempt_number, step );
                     }
@@ -845,6 +999,9 @@ int main(int argc, char **argv)
         for ( jd = 0; jd < SD.ndiaphragm; ++jd ) {
             Diaph[jd].sim_time = SD.sim_time;
         }
+        for (jv = 0; jv < SD.nvalve; ++jv ) {
+            Valve[jv].sim_time = SD.sim_time;
+        }
         for ( js = 0; js < SD.nslug; ++js ) {
             A[js].sim_time = SD.sim_time;
         }
@@ -858,6 +1015,7 @@ int main(int argc, char **argv)
             for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
             for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
             for (js = 0; js < SD.nslug; ++js) A[js].write_state(outfile);
+            for (jv = 0; jv < SD.nvalve; ++jv) A[jv].write_state(outfile);
         }
         // 5b. Selected history points.
         if ( SD.sim_time >= thistory ) {
@@ -881,7 +1039,7 @@ int main(int argc, char **argv)
                          "\nEvent: piston[%d] reversal at t= %e x= %e\n",
                          jp, SD.sim_time, Pist[jp].x );
                 log_event( efname.c_str(), msg_string );
-                print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,
+                print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist, Valve,
 					cfl_max, cfl_tiny, time_tiny);
                 // After reversal, look for new maximum.
                 max_piston_V[jp] = 0.0;
@@ -893,7 +1051,7 @@ int main(int argc, char **argv)
                          "\nEvent: piston[%d] brakes on at t= %e x= %e\n",
                          jp, SD.sim_time, Pist[jp].x );
                 log_event( efname.c_str(), msg_string );
-                print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
+                print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,Valve, 
 			      cfl_max, cfl_tiny, time_tiny );
             } // end if piston brake applied
 
@@ -902,7 +1060,7 @@ int main(int argc, char **argv)
                          "\nEvent: piston[%d] released at t= %e x= %e\n",
                          jp, SD.sim_time, Pist[jp].x );
                 log_event( efname.c_str(), msg_string );
-                print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
+                print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist, Valve, 
 			      cfl_max, cfl_tiny, time_tiny );
             } // end if piston released
 
@@ -915,7 +1073,7 @@ int main(int argc, char **argv)
                          "\nEvent: piston[%d] peak speed at t= %e V= %e\n",
                          jp, SD.sim_time, Pist[jp].V );
                 log_event( efname.c_str(), msg_string );
-                print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
+                print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist, Valve, 
 			      cfl_max, cfl_tiny, time_tiny );
             } // end if piston max speed
         } // end for jp...
@@ -933,20 +1091,22 @@ int main(int argc, char **argv)
         }
 
         newly_adapted = 0;
-    } // end while (i.e. time step / iteration)
+	} // end while (i.e. time step / iteration)
 
     // ----------
     // Conclusion
     // ----------
     BailOut:
     log_event( efname.c_str(), (const char *)"\nEnd time stepping.\n" );
-    print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,
+    print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist, Valve, 
 			    cfl_max, cfl_tiny, time_tiny );
     printf("\nTotal number of steps = %d\n", step);
 
     for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
     for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
+    for (jv = 0; jv < SD.nvalve; ++jv) Valve[jv].write_state(outfile); 
     for (js = 0; js < SD.nslug; ++js) A[js].write_state(outfile);
+    
     if (outfile != NULL) fclose(outfile);
     if (hisfile1 != NULL) fclose(hisfile1);
     if (hisfile2 != NULL) fclose(hisfile2);
@@ -954,6 +1114,7 @@ int main(int argc, char **argv)
     dispose_workspace_for_apply_rivp();
     Pist.clear();
     Diaph.clear();
+    Valve.clear();
     A.clear();
     return SUCCESS;
 } // end function main()

@@ -90,6 +90,9 @@ GasSlug::GasSlug(int indx, SimulationData& SD,
     //
     left_diaphragm_id = -1;
     right_diaphragm_id = -1;
+
+    left_valve_id = -1;
+    right_valve_id = -1;
     //
     set_left_end_ustar = 0;
     set_right_end_ustar = 0;
@@ -127,6 +130,20 @@ GasSlug::GasSlug(int indx, SimulationData& SD,
 		 << left_slug_id << " end = " <<  left_slug_end_id
 		 << " diaphragm = " << left_diaphragm_id << endl;
         }
+    } else if (control_string == "SV") {
+        left_bc_type = SLUG_VALVE;
+	ss_L >> left_slug_id;
+	ss_L >> label; 
+	if (label[0] == 'L' || label[0] == 'l' || label[0] == '0')
+	   left_slug_end_id = LEFT;
+	if (label[0] == 'R' || label[0] == 'r' || label[0] == '1')
+	   left_slug_end_id = RIGHT;
+	ss_L >> left_valve_id;
+	if (echo_input == 1) {
+	   cout << "     left_boundary: neighbour slug = "
+	        << left_slug_id << " end =" << left_slug_end_id
+	        << " valve = " << left_valve_id << endl;
+	}
     } else if (control_string == "P") {
         left_bc_type = PISTON;
         ss_L >> left_piston_id;
@@ -183,6 +200,20 @@ GasSlug::GasSlug(int indx, SimulationData& SD,
 		 << right_slug_id << " end = " <<  right_slug_end_id
 		 << " diaphragm = " << right_diaphragm_id << endl;
         }
+    } else if (control_string == "SV") {
+        right_bc_type = SLUG_VALVE;
+        ss_R >> right_slug_id;
+        ss_R >> label;
+        if (label[0] == 'L' || label[0] == 'l' || label[0] == '0')
+	   right_slug_end_id = LEFT;
+        if (label[0] == 'R' || label[0] == 'r' || label[0] == '1')
+	   right_slug_end_id = RIGHT; 
+        ss_R >> right_valve_id; 
+        if (echo_input == 1) {
+	   cout << "     right_boundary: neighbour slug = "
+	        << right_slug_id << "end =" << right_slug_end_id
+	        << " valve = " << right_valve_id << endl;
+      }
     } else if (control_string == "P") {
         right_bc_type = PISTON;
         ss_R >> right_piston_id;
@@ -319,6 +350,8 @@ GasSlug::GasSlug(const GasSlug& gs) // copy constructor
     right_piston_id = gs.right_piston_id;
     left_diaphragm_id = gs.left_diaphragm_id;
     right_diaphragm_id = gs.right_diaphragm_id;
+    left_valve_id = gs.left_valve_id; 
+    right_valve_id = gs.right_valve_id; 
     set_left_end_ustar = gs.set_left_end_ustar;
     set_right_end_ustar = gs.set_right_end_ustar;
     left_ustar = gs.left_ustar;

@@ -14,6 +14,7 @@ public:
     int n;                        // Number of x-stations
     double x1;                    // Starting point
     double dx;                    // x-spacing between stations
+    double x2;                     // End point
     std::vector<double> diam;     // Effective diameter
     std::vector<double> area;     // Area at each station
     std::vector<double> T_Wall;   // Wall temperature
@@ -30,6 +31,11 @@ public:
     std::vector<int>linear;
     std::vector<double> xb;
     std::vector<double> Diamb;
+    
+   int nv;
+   std::vector<int>n_points;
+   std::vector<double> x_loc;
+   std::vector<double> d_max;
 
     // Loss coefficients are selectively applied to patches of the tube.
     int nKL;

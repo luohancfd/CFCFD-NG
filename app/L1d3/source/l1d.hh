@@ -38,12 +38,13 @@
 // PISTON    : a piston
 // SLUG      : another gas slug
 // SLUG_DIA  : another gas slug with diaphragm control
+// SLUG_VAL  : another gas slug with valve control
 #define  FREE_END        0
 #define  SOLID_BOUNDARY  1
 #define  PISTON          2
 #define  SLUG            3
 #define  SLUG_DIAPHRAGM  4
-
+#define  SLUG_VALVE      5
 // Levels of adaptivity.
 #define ADAPT_NONE       0
 #define ADAPT_BOTH       1

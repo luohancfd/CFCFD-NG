@@ -26,6 +26,7 @@
 #include "l_kernel.hh"
 #include "l_tube.hh"
 #include "l_diaph.hh"
+#include "l_valve.hh"
 #include "l_piston.hh"
 #include "l_io.hh"
 
@@ -37,11 +38,11 @@ int take_log_p(std::vector<GasSlug>& A, int nslug);
 
 int main(int argc, char **argv)
 {
-    int js, jp, jd;
+    int js, jp, jd, jv;
     std::vector<GasSlug> A;           /* several gas slugs        */
     std::vector<PistonData> Pist;     /* room for several pistons */
     std::vector<DiaphragmData> Diaph; /* diaphragms            */
-
+    std::vector<ValveData> Valve;     /* Valves               */
     double tstop;
     int i, max_sol, echo_input;
 
@@ -184,6 +185,10 @@ int main(int argc, char **argv)
     for (jd = 0; jd < SD.ndiaphragm; ++jd) {
         Diaph.push_back(DiaphragmData(jd, pname, echo_input));
         Diaph[jd].sim_time = 0.0;
+    } 
+    for (jv = 0; jv < SD.nvalve; ++jv) {
+        Valve.push_back(ValveData(jv, pname, echo_input));
+        Valve[jv].sim_time = 0.0; 
     }
     for (js = 0; js < SD.nslug; ++js) {
         A.push_back(GasSlug(js, SD, pname, echo_input));
@@ -209,6 +214,7 @@ int main(int argc, char **argv)
         fflush(stdout);
         for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].read_state(infile);
         for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].read_state(infile);
+	for (jv = 0; jv < SD.nvalve; ++jv) Valve[jv].read_state(infile);
         for (js = 0; js < SD.nslug; ++js) A[js].read_state(infile);
         if (A[0].sim_time >= tstop) {
             found_solution = 1;
@@ -250,6 +256,7 @@ int main(int argc, char **argv)
             }
             for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
             for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
+	    for (jv = 0; jv < SD.nvalve; ++jv) Valve[jv].write_state(outfile);
             for (js = 0; js < SD.nslug; ++js) A[js].write_state(outfile);
             if ( outfile ) fclose(outfile);
         } else {
@@ -278,6 +285,18 @@ int main(int argc, char **argv)
                 Diaph[jd].write_state(outfile);
                 if (outfile != NULL) fclose(outfile);
             } /* end for jd */
+	        for (jv = 0; jv < SD.nvalve; ++jv) {
+	            strcpy(oname, base_file_name);
+	            sprintf(suffix, ".valve.%d", jv);
+	            strcat(oname, suffix);
+	            printf("outfile for valve %d: %s\n", jv, oname);
+	            if ((outfile = fopen(oname, "w")) == NULL) {
+		           printf("\nCould not open %s; BAILING OUT\n", oname);
+		           exit(-1);
+	            }
+	            Valve[jv].write_state(outfile);
+	            if (outfile != NULL) fclose(outfile);
+	        } /*end for jv */
             for (js = 0; js < SD.nslug; ++js) {
                 strcpy(oname, base_file_name);
                 sprintf(suffix, ".slug.%d", js);

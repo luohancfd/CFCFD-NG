@@ -17,6 +17,7 @@
 #include "l1d.hh"
 #include "l_kernel.hh"
 #include "l_diaph.hh"
+#include "l_valve.hh"
 #include "l_piston.hh"
 #include "l_cell.hh"
 #include "l_slug.hh"
@@ -24,8 +25,8 @@ using namespace std;
 
 
 int print_simulation_status(FILE *strm, const char* efname, int step, SimulationData& SD,
-			    vector<GasSlug>& A, vector<DiaphragmData>& Diaph,
-			    vector<PistonData>& Pist, double cfl_max, 
+			    vector<GasSlug>& A, vector<DiaphragmData>& Diaph, 
+			    vector<PistonData>& Pist, vector<ValveData>& Valve, double cfl_max, 
 			    double cfl_tiny, double time_tiny) {
     /*
      * Print the simulation status to the specified stream.
@@ -34,7 +35,7 @@ int print_simulation_status(FILE *strm, const char* efname, int step, Simulation
      */
 
     char msg_string[256];
-    int close_stream, js, jd, jp;
+    int close_stream, js, jd, jp, jv;
     double p_max, x_max, E_tot;
 
     UNUSED_VARIABLE(cfl_tiny);
@@ -66,6 +67,11 @@ int print_simulation_status(FILE *strm, const char* efname, int step, Simulation
 		     jd, Diaph[jd].is_burst, Diaph[jd].trigger_time);
 	    fputs( msg_string, strm );
         }
+	for (jv = 0; jv < SD.nvalve; ++jv) {
+	  sprintf (msg_string, "Valve[%d].is_open = %d, open_time = %e, open_period = %e\n", 
+		     jv, Valve[jv].is_open, Valve[jv].open_time, Valve[jv].open_period);
+	    fputs( msg_string, strm );
+	}
 	for (jp = 0; jp < SD.npiston; ++jp) {
 	    sprintf( msg_string, "Piston %d: flags=%d%d%d",
 		     jp, Pist[jp].is_restrain, Pist[jp].on_buffer,
@@ -80,7 +86,7 @@ int print_simulation_status(FILE *strm, const char* efname, int step, Simulation
 		     Pist[jp].hit_buffer_count, Pist[jp].V_buffer);
 	    fputs( msg_string, strm );
 	} // end for
-    }
+    } 
 
     if ( close_stream ) {
         fclose( strm );

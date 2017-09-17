@@ -15,7 +15,7 @@ public:
     int nslug;          /* number of gas slugs        */
     int npiston;        /* number of pistons          */
     int ndiaphragm;     /* number of diaphragms       */
-
+    int nvalve;         /* number of valves           */ 
     int max_step;       /* global iteration limit     */
     double sim_time;    /* present simulation time    */
     double max_time;    /* final solution time, s     */

@@ -28,10 +28,11 @@ TubeModel::TubeModel(std::string config_file_name, int echo_input)
     dict.parse_vector_of_doubles("global_data", "tube_xb", xb, vdbl_default);
     dict.parse_vector_of_doubles("global_data", "tube_d", Diamb, vdbl_default);
     std::vector<int> vint_default;
+    
     vint_default.resize(nseg+1);
     for ( size_t i = 0; i < vint_default.size(); ++i ) vint_default[i] = 0;
     dict.parse_vector_of_ints("global_data", "tube_linear", linear, vint_default);
-    if (echo_input == 1) {
+    if (echo_input == 2) {
 	cout << "    tube_n = " << n << endl;
 	cout << "    tube_nseg = " << nseg << endl;
 	cout << "    tube_xb =";
@@ -44,6 +45,28 @@ TubeModel::TubeModel(std::string config_file_name, int echo_input)
 	for ( int i = 0; i < nseg+1; ++i ) cout << " " << linear[i];
 	cout << endl;
     }
+    // Now, read the valve locations
+    dict.parse_int("global_data", "nv", nv, 0);
+    vdbl_default.resize(nv+1);
+    for ( size_t i = 0; i < vdbl_default.size(); ++i ) vdbl_default[i] = 0.0;
+        dict.parse_vector_of_doubles("global_data", "x_loc", x_loc, vdbl_default);
+        dict.parse_vector_of_doubles("global_data", "d_max", d_max, vdbl_default);
+        vint_default.resize(nv+1);
+        for ( size_t i = 0; i < vint_default.size(); ++i ) vint_default[i] = 0;
+            dict.parse_vector_of_ints("global_data", "n_points", n_points, vint_default);
+
+    if (echo_input == 2) {
+        cout << "       nv = " << nv << endl;
+        cout << "       x_loc =";
+        for ( int i = 0; i < nv; ++i) cout << " " << x_loc[i];
+            cout << endl;
+            cout << "       d_max =";
+        for ( int i = 0; i < nv; ++i ) cout << " " << d_max[i];
+            cout << endl;
+            cout << "       n_points =";
+            for ( int i = 0; i < nv; ++i ) cout << " " << n_points[i];
+                cout << endl;
+        }
     // Now, read the loss-factor patches.
     dict.parse_int("global_data", "KL_n", nKL, 0);
     vdbl_default.resize(nKL);
@@ -72,7 +95,7 @@ TubeModel::TubeModel(std::string config_file_name, int echo_input)
     dict.parse_vector_of_doubles("global_data", "Tpatch_xR", xendT, vdbl_default);
     for ( size_t i = 0; i < vdbl_default.size(); ++i ) vdbl_default[i] = 300.0;
     dict.parse_vector_of_doubles("global_data", "Tpatch_T", Tlocal, vdbl_default);
-    if (echo_input == 1) {
+    if (echo_input == 2) {
 	cout << "    T_nominal = " << Tnominal << endl;
 	cout << "    Tpatch_n = " << nT << endl;
 	cout << "    Tpatch_xL =";
@@ -86,12 +109,14 @@ TubeModel::TubeModel(std::string config_file_name, int echo_input)
 	cout << endl;
     }
     printf("Set tube area specification\n");
+  
     double myPI = 4.0*atan(1.0);
     diam.resize(n);
     area.resize(n);
     T_Wall.resize(n);
     K_over_L.resize(n);
     x1 = xb[0];
+    x2 = xb[nseg];
     dx = (xb[nseg] - xb[0]) / n;
     for ( int ix = 0; ix < n; ++ix ) {
         double real_x = x1 + dx * ix;
@@ -129,7 +154,7 @@ TubeModel::TubeModel(std::string config_file_name, int echo_input)
             }   /* end if */
         }   /* end if */
         area[ix] = myPI * 0.25 * diam[ix] * diam[ix];
-
+           
         /*
          * Pipe-fitting loss coefficients:
          * Most of the tube is "smooth", so assume zero, then
@@ -156,8 +181,29 @@ TubeModel::TubeModel(std::string config_file_name, int echo_input)
         } /* end for iseg */
         T_Wall[ix] = T_Wall_value;
     } /* end for ix... */
-}
+        
+        for ( int i = 0; i < nv; ++i ) {
+            int v_loc = (x_loc[i]-xb[0])/dx +1 ;
+            cout << " vloc " << v_loc << endl;
+            diam[v_loc] = 0.00001;
 
+            for (int q = 1; q < n_points[i]+1; ++q) {
+                double p = n_points[i];
+                double f = 1.0/(p*p);
+                cout << " % = " << (q*q*f) << endl;
+                diam[v_loc-q] = (q*q*f)*d_max[i];
+                diam[v_loc+q] = (q*q*f)*d_max[i];
+                area[v_loc-q] = 0.25*myPI*diam[v_loc-q]*diam[v_loc-q];
+                area[v_loc+q] = 0.25*myPI*diam[v_loc+q]*diam[v_loc+q];
+            }
+
+            if (echo_input == 2) {
+                cout << " diam = " << diam[v_loc] << endl;
+                cout << " area = " << diam[v_loc] << endl;
+            }
+            //printf ("\n the location of a valve is at %lf, \n", x_loc[0]);
+        }
+    }
 
 TubeModel::~TubeModel()
 {

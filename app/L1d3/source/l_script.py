@@ -192,6 +192,9 @@ class GlobalData(object):
 
     * xd_list: List of break-point tuples defining the tube wall.
       Add elements to the list via the function add_break_point.
+      
+    * v_list: List of valve-point tuples defining the tube wall. 
+      Add elements to the list via the function add_valve_point.
 
     * n: (int) The number of small segments that will be used to describe
       the tube's area distribution internal to the simulation.
@@ -227,7 +230,7 @@ class GlobalData(object):
                 'max_time', 'max_step', \
                 'x_order', 't_order', 'thermal_damping', \
                 'T_nominal', 'T_patch_list', 'loss_region_list', \
-                'xd_list', 'n', 'hloc_list'
+                'xd_list', 'n', 'hloc_list', 'v_list'
     
     def __init__(self):
         """Accepts user-specified data and sets defaults. Make one only."""
@@ -258,6 +261,7 @@ class GlobalData(object):
         # indicates linear transitions from break-point i to point i+1.
         # The alternative is a cubic transition (I think).
         self.xd_list = []
+        self.v_list = [] 
         self.n = 4000
         # Wall temperature is specified as a nominal value with
         # patches of other temperatures.
@@ -271,7 +275,7 @@ class GlobalData(object):
         GlobalData.count += 1
         return
 
-    def write_to_ini_file(self, fp, nslug, npiston, ndiaphragm):
+    def write_to_ini_file(self, fp, nslug, npiston, ndiaphragm, nvalve):
         """
         Writes the configuration data to the specified file in .ini format.
         """
@@ -330,6 +334,21 @@ class GlobalData(object):
             fp.write(" %d" % gdata.xd_list[i][2])
         fp.write("\n")
         #
+        nv = len(gdata.v_list);
+        fp.write("nv = %d\n" % nv)
+        fp.write("x_loc =")
+        for i in range(nv):
+          fp.write(" %e" % gdata.v_list[i][0])
+          fp.write("\n")
+          fp.write("d_max =")
+        for i in range(nv):
+          fp.write(" %e" % gdata.v_list[i][1])
+          fp.write("\n")
+          fp.write("n_points =")
+        for i in range(nv):
+          fp.write(" %d" % gdata.v_list[i][2])
+        fp.write("\n")
+        #
         nKL = len(gdata.loss_region_list)
         fp.write("    KL_n = %d\n" % nKL)
         fp.write("    KL_xL =")
@@ -364,6 +383,7 @@ class GlobalData(object):
         fp.write("    nslug = %d\n" % nslug)
         fp.write("    npiston = %d\n" % npiston)
         fp.write("    ndiaphragm = %d\n" % ndiaphragm)
+        fp.write("    nvalve = %d\n" %nvalve)
         return
     
 # We will create just one GlobalData object that the user can alter.
@@ -498,7 +518,25 @@ def add_break_point(x, d, transition_flag=0):
     else:
         gdata.xd_list.append((x, d, transition_flag))
     return len(gdata.xd_list)
-
+    
+def add_valve_point(x_loc, d_max, n_points):
+  """
+  Adds a point for valve area variation
+  :param x_loc: (float) x-coordinate, in metres, of the valve point
+  :param d_max: (float) maximum diameter, in metres, of the tube wall at the valve-point.
+  :param n_points: (int) indicates the number of points on either end of the valve point to vary.
+  : returns: Number of valve points defined so far.
+  """
+  global gdata
+  if len(gdata.v_list) > 0:
+    # Check that we are adding points monotonically in x.
+    if x_loc > gdata.v_list[-1][0]:
+      gdata.v_list.append((x_loc, d_max, n_points))
+    else:
+      print "Warning: did not add new break-point (", x_loc, d_max, ")."
+  else:
+      gdata.v_list.append((x_loc, d_max, n_points))
+    return len(gdata.v_list)
 
 def add_loss_region(xL, xR, K):
     """
@@ -797,6 +835,20 @@ def boundary_control_string(other_object, other_object_which_end):
             raise Exception, "boundary_control_string() is confused"
         bcs = "SD %d %s %d  diaphragm+slug: slug-id, slug-end-id, diaphragm-id" % \
               (slug_id, slug_end_id, other_object.indx)
+    elif isinstance(other_object, Valve):
+    # We need to get the details of the slug attached to
+    # the other side of the Valve.
+    if other_object_which_end == 'L':
+      slug_id = other_object.slugR.indx
+      slug_end_id = other_object.slugR_which_end
+    elif other_object_which_end == 'R':
+      slug_id = other_object.slugL.indx
+      slug_end_id = other_object.slugL_which_end
+    else:
+      raise Exception, "boundary_control_string() is confused"
+      bcs = "SV %d %s %d valve+slug: slug-id, slug-end-id, valve-id" % \
+      (slug_id, slug_end_id, other_object.indx)
+
     return bcs
 
 #----------------------------------------------------------------------------
@@ -1070,7 +1122,84 @@ class Diaphragm(object):
         fp.write("    right-slug-end-id = %s\n" % self.slugR_which_end)
         fp.write("    dxR = %e\n" % self.dxR)
         return
-    
+#-------------------------------------------------------------------------------
+class Valve(object):
+"""
+Contains the information for a valve which controls the
+interaction of two GasSlugs.
+"""
+  __slots__ = 'indx', 'x0', 'is_open', 'open_period', 'open_time', \
+  'slugL', 'slugR', \
+  'slugL_which_end', 'slugR_which_end', \
+  'label', 'poly0', 'poly1', 'poly2', 'poly3'
+  valveList = []
+  def __init__(self,x0, is_open=0, open_period=0.0, open_time=0.0, poly = [-2.1590901e-24, 1.25227273e-16, -2.80855519e-9, 3.63299825e-2], label=""):
+  """
+  Creates a valve with specified properties.
+  The connections to GasSlugs are made later via the function
+  assemble_gas_path.
+  :param x0: (float) x-position in the tube, metres.
+  This value is used to determine the end-points of the GasSlugs.
+  :param is_open: (int) Flag to indicate the state of valve.
+  A value of 0 indicates that the valve is closed
+  A value of 1 indicates that the valve is fully open
+  A value of 2 indicates that the valve is in process of opening
+  :param open_period: (float) Time it takes for valve to open.
+  :param poly: 3rd order polynomial equation to define open time as a
+  function of pressure immedietely upstream of the valve
+  :param open_time: (float) Time after which the valve starts to open
+  :param label: A (string) label that will appear in the parameter file
+  for this diaphragm.
+  """
+  self.indx = len(Valve.valveList) # next available index
+  if len(label) > 0:
+    self.label = label
+  else:
+    self.label = "valve-" + str(self.indx)
+    self.x0 = x0
+    self.is_open = is_open
+    self.open_period = open_period
+    self.poly0 = poly[0]
+    self.poly1 = poly[1]
+    self.poly2 = poly[2]
+    self.poly3 = poly[3]
+    self.open_time = open_time
+    # The following will be assigned in assembly.
+    self.slugL = None
+    self.slugR_which_end = 'L'
+    self.slugR = None
+    self.slugL_which_end = 'R'
+    #
+    Valve.valveList.append(self)
+    return
+    def write_to_ini_file(self, fp):
+    """
+    Writes the valve information to the specified file.
+    """
+    fp.write("[valve-%d]\n" % self.indx)
+    fp.write("label = %s\n" % self.label)
+    fp.write("is_open = %d\n" % self.is_open)
+    fp.write("open_period = %e\n" % self.open_period)
+    fp.write("open_time = %e\n" % self.open_time)
+    fp.write("poly0 = %e \n" % self.poly0)
+    fp.write("poly1 = %e \n" % self.poly1)
+    fp.write("poly2 = %e \n" % self.poly2)
+    fp.write("poly3 = %e \n" % self.poly3)
+    if self.slugL != None:
+      indx = self.slugL.indx
+    else:
+      indx = -1
+      fp.write("left-slug-id = %d\n" % indx)
+      fp.write("left-slug-end-id = %s\n" % self.slugL_which_end)
+      #fp.write("dxL = %e\n" % self.dxL)
+      if self.slugR != None:
+      indx = self.slugR.indx
+    else:
+      indx = -1
+      fp.write("right-slug-id = %d\n" % indx)
+      fp.write("right-slug-end-id = %s\n" % self.slugR_which_end)
+      #fp.write("dxR = %e\n" % self.dxR)
+      return
     
 #----------------------------------------------------------------------------
 
@@ -1216,9 +1345,9 @@ def connect_pair(cL, cR):
 
     Usually called by assemble_gas_path.
     """
-    # print "connect_pair()"
-    # print "    left component", cL
-    # print "    right component", cR
+    print "connect_pair()"
+    print "    left component", cL
+    print "    right component", cR
 
     if isinstance(cL,VelocityEnd) and isinstance(cR, GasSlug):
         cR.bcL = cL
@@ -1246,6 +1375,13 @@ def connect_pair(cL, cR):
         cR.bcL_which_end = 'R'
         cR.xL = cL.x0
         print "    diaphragm <--> gas-slug is done"
+    elif isinstance(cL,Valve) and isinstance(cR, GasSlug):
+      cL.slugR = cR
+      cL.slugR_which_end = 'L'
+      cR.bcL = cL
+      cR.bcL_which_end = 'R'
+      cR.xL = cL.x0
+      print "valve <--> gas-slug is done"
     elif isinstance(cL,GasSlug) and isinstance(cR, VelocityEnd):
         cL.bcR = cR
         cL.xR = cR.x0
@@ -1272,8 +1408,15 @@ def connect_pair(cL, cR):
         cR.slugL = cL
         cR.slugL_which_end = 'R'
         print "    gas-slug <--> diaphragm is done"
-    else:
-        raise Exception, "    Invalid pair to connect."
+    elif isinstance(cL, GasSlug) and isinstance(cR, Valve):
+      cL.bcR = cR
+      cL.bcR_which_end = 'L'
+      cL.xR = cR.x0
+      cR.slugL = cL
+      cR.slugL_which_end = 'R'
+      print " gas-slug <--> valve is done"
+          else:
+                  raise Exception, "    Invalid pair to connect."
     return
 
 
@@ -1290,9 +1433,10 @@ def write_parameter_file():
     fp = open(gdata.param_file, "w")
     gdata.write_to_ini_file(fp, len(GasSlug.slugList),
                             len(Piston.pistonList),
-                            len(Diaphragm.diaphragmList))
+                            len(Diaphragm.diaphragmList), len(Valve.valveList))
     for p in Piston.pistonList: p.write_to_ini_file(fp)
     for d in Diaphragm.diaphragmList: d.write_to_ini_file(fp)
+    for v in Valve.valveList: v.write_to_ini_file(fp)
     for s in GasSlug.slugList: s.write_to_ini_file(fp)
     print "End write parameter file."
     return
@@ -1331,6 +1475,7 @@ if __name__ == '__main__':
         print "    gas slugs         :", len(GasSlug.slugList)
         print "    pistons           :", len(Piston.pistonList)
         print "    diaphragms        :", len(Diaphragm.diaphragmList)
+        print "    valves            :", len(Valve.valveList)
         print "    free-ends         :", len(FreeEnd.freeEndList)
         print "    velocity-ends     :", len(VelocityEnd.velocityEndList)
         print "    gas-gas interfaces:", len(GasInterface.interfaceList)

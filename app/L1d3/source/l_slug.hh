@@ -37,7 +37,7 @@ public:
     int viscous_effects;        /* Flag for including viscous */
                                 /* effects:                   */
                                 /* = 1: include them          */
-                                /* = 0: Do not include them   */
+                               /* = 0: Do not include them   */
                                 /* = 2: laminar mass-loss     */
                                 /* = 3: turbulent mass-loss   */
                                 /*      See L_source_vector() */
@@ -100,17 +100,20 @@ public:
     // PISTON
     // SLUG
     // SLUG_DIAPHRAGM
+    // SLUG_VALVE
 
     int left_slug_id, right_slug_id;
     int left_slug_end_id, right_slug_end_id;
     int left_piston_id, right_piston_id;
     int left_diaphragm_id, right_diaphragm_id;
+    int left_valve_id, right_valve_id; 
+  
     // Neighbouring gas slug, piston and diaphragm identifiers.
     // xxxx-slug_id    : number of the adjoining gas slug
     // xxxx-slug_end_id: LEFT or RIGHT end adjoins
     // xxxx-piston_id  : number (id) of the adjoining piston
     // xxxx-diaphragm  : number (id) of the adjoining diaphragm
-
+    // xxxx-valve : number (id) of teh adjoining valve 
     int set_left_end_ustar, set_right_end_ustar;
     // Type of end conditions to be used when applying
     // the Riemann solver. This flag is set internally and

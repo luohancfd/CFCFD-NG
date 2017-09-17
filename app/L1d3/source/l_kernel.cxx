@@ -35,10 +35,12 @@ SimulationData::SimulationData(std::string config_file_name, int echo_input)
     dict.parse_int("global_data", "nslug", nslug, 0);
     dict.parse_int("global_data", "npiston", npiston, 0);
     dict.parse_int("global_data", "ndiaphragm", ndiaphragm, 0);
+    dict.parse_int("global_data", "nvalve", nvalve, 0);
     if (echo_input == 1) {
 	cout << "    nslug = " << nslug << endl;
 	cout << "    npiston = " << npiston << endl;
 	cout << "    ndiaphragm = " << ndiaphragm << endl;
+	cout << "    nvalve =  " <<nvalve << endl; 
     }
     dict.parse_double("global_data", "max_time", max_time, 1.0e-3);
     dict.parse_int("global_data", "max_step", max_step, 100);
@@ -91,6 +93,7 @@ SimulationData::SimulationData(const SimulationData& sd)
     nslug = sd.nslug;
     npiston = sd.npiston;
     ndiaphragm = sd.ndiaphragm;
+    nvalve = sd.nvalve;
     max_step = sd.max_step;
     sim_time = sd.sim_time;
     max_time = sd.max_time;

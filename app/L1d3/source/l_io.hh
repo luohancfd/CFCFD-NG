@@ -11,10 +11,11 @@
 #include "l_diaph.hh"
 #include "l_piston.hh"
 #include "l_slug.hh"
+#include "l_valve.hh"
 
 int print_simulation_status(FILE *strm, const char* efname, int step, SimulationData& SD,
 			    std::vector<GasSlug>& A, std::vector<DiaphragmData>& Diaph,
-			    std::vector<PistonData>& Pist, double cfl_max, 
+			    std::vector<PistonData>& Pist, std::vector<ValveData>& Valve, double cfl_max, 
 			    double cfl_tiny, double time_tiny );
 int log_event( const char* efname, const char* event_message );
 int L_write_cell_history(GasSlug& A, FILE * hisfile);
