@@ -126,8 +126,8 @@ int main(int argc, char **argv)
     // Decode command line arguments.
     command_line_error = 0;
     if (argc < 2) {
-	command_line_error = 1;
-	goto usage;
+        command_line_error = 1;
+        goto usage;
     }
     i = 1;
     while (i < argc) {
@@ -250,60 +250,60 @@ int main(int argc, char **argv)
     int nmodes = gmodel->get_number_of_modes();
 
     if ( prepare_only ) {
-	double x[31000]; 
-	// Not that we have made a guess for the required size; 
-	// we should use a std::vector but x is used in the call 
-	// to distribute_points().
-	double beta1, beta2;
-	printf("Prepare initial solution files only.\n");
-	printf("Set up gas slugs.\n");
-	for (js = 0; js < SD.nslug; ++js) {
-	    /*
-	     * Distribute the gas cells along the gas slug.
-	     * Modified to suit sm_3d stretching functions.
-	     */
-	    if ( A[js].cluster_to_end_1 == 1 ) {
-		beta1 = A[js].cluster_strength;
-	    } else {
-		beta1 = 0.0;
-	    }
-	    if ( A[js].cluster_to_end_2 == 1 ) {
-		beta2 = A[js].cluster_strength;
-	    } else {
-		beta2 = 0.0;
-	    }
-	    // FIX-ME: one day, it will be good to use a vector for x
-	    // such that its size can be adjested as needed.
-	    distribute_points(A[js].xbegin, A[js].xend, A[js].nnx, x, beta1, beta2); 
-	    int i = 0;
-	    for ( int ix = A[js].ixmin-1; ix <= A[js].ixmax; ++ix) {
-		A[js].Cell[ix].x = x[i];
-		++i;
-	    }
-	    A[js].compute_areas(&tube);
-	    A[js].fill_data();
-	    A[js].encode_conserved();
-	    /* 
-	     * The following line should fill in all of the 
-	     * extra variables.
-	     */
-	    if ( A[js].decode_conserved() != 0 ) {
-		printf( "Failure decoding conserved quantities for slug[%d].\n", js );
-		exit( -1 );
-	    }
-	}   /* end for js... */
-	tube.write_area(aname);
-	tube.write_dump_file(dname);
-	printf("Write starting solution file.\n");
-	if ((outfile = fopen(iname.c_str(), "w")) == NULL) {
-	    printf("\nCould not open %s; BAILING OUT\n", oname.c_str());
-	    return FAILURE;
-	}
-	for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
-	for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
-	for (js = 0; js < SD.nslug; ++js) A[js].write_state(outfile);
-	if (outfile != NULL) fclose(outfile);
-	return SUCCESS;
+        double x[31000]; 
+        // Not that we have made a guess for the required size; 
+        // we should use a std::vector but x is used in the call 
+        // to distribute_points().
+        double beta1, beta2;
+        printf("Prepare initial solution files only.\n");
+        printf("Set up gas slugs.\n");
+        for (js = 0; js < SD.nslug; ++js) {
+            /*
+             * Distribute the gas cells along the gas slug.
+             * Modified to suit sm_3d stretching functions.
+             */
+            if ( A[js].cluster_to_end_1 == 1 ) {
+                	beta1 = A[js].cluster_strength;
+    	        } else {
+                	beta1 = 0.0;
+            }
+            if ( A[js].cluster_to_end_2 == 1 ) {
+                	beta2 = A[js].cluster_strength;
+            } else {
+                	beta2 = 0.0;
+            }
+            // FIX-ME: one day, it will be good to use a vector for x
+            // such that its size can be adjested as needed.
+            distribute_points(A[js].xbegin, A[js].xend, A[js].nnx, x, beta1, beta2); 
+            int i = 0;
+            for ( int ix = A[js].ixmin-1; ix <= A[js].ixmax; ++ix) {
+                	A[js].Cell[ix].x = x[i];
+                ++i;
+            }
+            A[js].compute_areas(&tube);
+            A[js].fill_data();
+            A[js].encode_conserved();
+            /* 
+             * The following line should fill in all of the 
+             * extra variables.
+             */
+            if ( A[js].decode_conserved() != 0 ) {
+                	printf( "Failure decoding conserved quantities for slug[%d].\n", js );
+                	exit( -1 );
+            }
+        }   /* end for js... */
+        tube.write_area(aname);
+        tube.write_dump_file(dname);
+        printf("Write starting solution file.\n");
+        if ((outfile = fopen(iname.c_str(), "w")) == NULL) {
+            printf("\nCould not open %s; BAILING OUT\n", oname.c_str());
+	        return FAILURE;
+        }
+        for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
+        for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
+        for (js = 0; js < SD.nslug; ++js) A[js].write_state(outfile);
+        if (outfile != NULL) fclose(outfile);
+        return SUCCESS;
     }
 
     // Pick up the initial data that was previously generated.
@@ -371,19 +371,19 @@ int main(int argc, char **argv)
 
     while (SD.sim_time <= SD.max_time && step <= SD.max_step && halt_now == 0) {
 
-	// --------------------------------
-	// 0. Adjust the cell distribution.
-	// --------------------------------
+        // --------------------------------
+        // 0. Adjust the cell distribution.
+        // --------------------------------
         if (step > 0 && (step / adaptive_count) * adaptive_count == step) {
             for (js = 0; js < SD.nslug; ++js) {
                 if (A[js].adaptive > ADAPT_NONE) {
                     L_adapt_cells(&(A[js]));
                     newly_adapted = 1;
                 }
-	    } // end for js...
+            } // end for js...
         }
 
-	// --------------------------------
+        // --------------------------------
         // 1. Set the size of the time step.
         // --------------------------------
         if (step == 0 ||
@@ -435,8 +435,8 @@ int main(int argc, char **argv)
         } // end for js... 
 
         // --------------------------------
-	// 2. Prepare to take the time step.
-	// --------------------------------
+        // 2. Prepare to take the time step.
+        // --------------------------------
         if ((step / print_count) * print_count == step) {
             // Print the current time-stepping, piston and peak pressures.  
             now = time(NULL);
@@ -456,17 +456,17 @@ int main(int argc, char **argv)
 	    // This will, hopefully, eliminate the glitches seen in the
 	    // beginning test gas in Ben's expansion tube simulations.
             for (js = 0; js < SD.nslug; ++js) {
-		A[js].adjust_end_cells();
-	    }
-	}
+                	A[js].adjust_end_cells();
+            }
+        }
 
-	// ---------------------------
-	// 3. Deal with the diaphragms.
-	// ---------------------------
-	// This amounts to rupturing (so-far unruptured) diaphragms
-	// when the specified pressure difference is exceeded.
+        // ---------------------------
+        // 3. Deal with the diaphragms.
+        // ---------------------------
+        // This amounts to rupturing (so-far unruptured) diaphragms
+        // when the specified pressure difference is exceeded.
         for (jd = 0; jd < SD.ndiaphragm; ++jd) {
-	    dp = &( Diaph[jd] );
+	        dp = &( Diaph[jd] );
 
             if ( dp->is_burst == 0 ) {
                 // Check only unruptured diaphragms for burst conditions. 
@@ -499,48 +499,48 @@ int main(int argc, char **argv)
                              "\nEvent: diaphragm[%d] trigger at t= %e\n",
                              jd, SD.sim_time );
                     log_event( efname.c_str(), msg_string );
-		    print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,
+                    print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,
 					    cfl_max, cfl_tiny, time_tiny);
                 }
 
                 // Wait the hold time before rupturing diaphragm.
                 if ( dp->trigger_time >= 0.0 && 
-		     (SD.sim_time - dp->trigger_time) > dp->hold_period ) {
+                     (SD.sim_time - dp->trigger_time) > dp->hold_period ) {
                     dp->is_burst = 1;
                     sprintf( msg_string, "\nEvent: diaphragm[%d] rupture at t= %e\n",
                              jd, SD.sim_time );
                     log_event( efname.c_str(), msg_string );
-		    print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,
+                    print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,
 					    cfl_max, cfl_tiny, time_tiny);
                 } // end if dp->trigger_time >= 0.0 &&...
             } else {
-		// For ruptured diaphragms, check to see if we should blend
-		// the gas-slug data after a period of time.
+                	// For ruptured diaphragms, check to see if we should blend
+                // the gas-slug data after a period of time.
 
-		if ( dp->blend_delay > 0.0 && !(dp->already_blended) &&
-		     SD.sim_time > (dp->trigger_time + dp->hold_period + 
+                if ( dp->blend_delay > 0.0 && !(dp->already_blended) &&
+                    SD.sim_time > (dp->trigger_time + dp->hold_period + 
 				    dp->blend_delay) ) {
-		    L_blend_slug_ends( &(A[dp->left_slug_id]), dp->left_slug_end_id,
+                    L_blend_slug_ends( &(A[dp->left_slug_id]), dp->left_slug_end_id,
 				       &(A[dp->right_slug_id]), dp->right_slug_end_id,
 				       dp->blend_dx );
-		    A[dp->left_slug_id].compute_areas(&tube);
-		    A[dp->left_slug_id].encode_conserved();
-		    A[dp->right_slug_id].compute_areas(&tube);
-		    A[dp->right_slug_id].encode_conserved();
-		    dp->already_blended = 1;
+                    A[dp->left_slug_id].compute_areas(&tube);
+                    A[dp->left_slug_id].encode_conserved();
+                    A[dp->right_slug_id].compute_areas(&tube);
+                    A[dp->right_slug_id].encode_conserved();
+                    dp->already_blended = 1;
                     sprintf( msg_string,
                              "\nEvent: blend slugs [%d] and [%d] at t= %e\n",
                              dp->left_slug_id, dp->right_slug_id, SD.sim_time );
                     log_event( efname.c_str(), msg_string );
-		    print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
-				  cfl_max, cfl_tiny, time_tiny );
-		}
+                    print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
+                	        cfl_max, cfl_tiny, time_tiny );
+                }
             } // end if dp->is_burst == 0 ... else ...
         } // end for jd... 
 
-	// ----------------------
-	// 4. Update the dynamics 
-	// ----------------------
+        // ----------------------
+        // 4. Update the dynamics 
+        // ----------------------
         for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].record_state(); 
         for (js = 0; js < SD.nslug; ++js) {
             A[js].record_state();
@@ -551,8 +551,8 @@ int main(int argc, char **argv)
             ++attempt_number;
             step_failed = 0;
 
-	    // 4a. Predictor Stage.
-	    // Boundary conditions for the gas slugs.
+            // 4a. Predictor Stage.
+            // Boundary conditions for the gas slugs.
             for (js = 0; js < SD.nslug; ++js) {
                 // Deal with left end condition first. 
                 bc = A[js].left_bc_type;
@@ -581,7 +581,7 @@ int main(int argc, char **argv)
                     printf("L1d: slug[%d] invalid left BC %d\n", js, bc);
                 } // end if bc... 
 
-		// Deal with right end condition second. 
+                // Deal with right end condition second. 
                 bc = A[js].right_bc_type;
                 if (bc == FREE_END) {
                     L_bc_right_free(&(A[js]));
@@ -618,10 +618,10 @@ int main(int argc, char **argv)
                 A[js].predictor_step();
                 A[js].compute_areas(&tube);
                 if ( A[js].decode_conserved() != 0 ) {
-		    printf( "decode_conserved() failed at predictor step\n" );
-		    printf( "   for slug[%d], attempt=%d, time-step=%d\n", 
-			    js, attempt_number, step );
-		}
+                    printf( "decode_conserved() failed at predictor step\n" );
+                    printf( "   for slug[%d], attempt=%d, time-step=%d\n", 
+                    js, attempt_number, step );
+                }
             } // end for
 
             // 4c. Boundary conditions for the pistons.
@@ -663,13 +663,13 @@ int main(int argc, char **argv)
                 Pist[jp].predictor_step();
             }
 
-	    // -------------------
-	    // 4e. Corrector Stage 
-	    // -------------------
+            // -------------------
+            // 4e. Corrector Stage 
+            // -------------------
             if (SD.Torder == 2) {
-		// Apply boundary conditions to the gas slugs.
-		// Leave the diaphragms as they were for the predictor
-		// stage. 
+            	// Apply boundary conditions to the gas slugs.
+            	// Leave the diaphragms as they were for the predictor
+            	// stage. 
                 for (js = 0; js < SD.nslug; ++js) {
                     // Deal with left end condition first. 
                     bc = A[js].left_bc_type;
@@ -734,11 +734,11 @@ int main(int argc, char **argv)
                     A[js].time_derivatives(1);
                     A[js].corrector_step();
                     A[js].compute_areas(&tube);
-		    if ( A[js].decode_conserved() != 0 ) {
-			printf( "decode_conserved() failed at corrector step\n" );
-			printf( "   for slug[%d], attempt=%d, time-step=%d\n", 
-				js, attempt_number, step );
-		    }
+                    if ( A[js].decode_conserved() != 0 ) {
+                        	printf( "decode_conserved() failed at corrector step\n" );
+                        printf( "   for slug[%d], attempt=%d, time-step=%d\n", 
+                        js, attempt_number, step );
+                    }
                 }
 
                 // 4g. Boundary conditions for the pistons.
@@ -781,14 +781,14 @@ int main(int argc, char **argv)
                 }
             } // end of corrector step.
 
-	    // Now, with fixed volume and total energy in each cell,
-	    // update the chemical species using Rowan's finite-rate
-	    // chemistry module.
-	    if ( SD.fr_chem == 1 ) {
-		for (js = 0; js < SD.nslug; ++js) {
-		    A[js].chemical_increment(SD.dt_global);
-		}
-	    }
+            // Now, with fixed volume and total energy in each cell,
+            // update the chemical species using Rowan's finite-rate
+            // chemistry module.
+            if ( SD.fr_chem == 1 ) {
+                for (js = 0; js < SD.nslug; ++js) {
+                    A[js].chemical_increment(SD.dt_global);
+                }
+            }
 
             // Check for bad cells. 
             bad_cells = 0;
@@ -797,9 +797,9 @@ int main(int argc, char **argv)
             }
             step_failed = (bad_cells > 0);
 
-	    // If the attempt has failed, reduce the 
-	    // time step for the next attempt at the
-	    // current step.
+            // If the attempt has failed, reduce the 
+            // time step for the next attempt at the
+            // current step.
             if ( step_failed == 1 ) {
                 // The reduction factor is somewhat arbitrary.
                 SD.dt_global *= 0.2;
@@ -820,10 +820,10 @@ int main(int argc, char **argv)
                     A[js].restore_state();
                     A[js].compute_areas(&tube);
                     if ( A[js].decode_conserved() != 0 ) {
-			printf("decode_conserved() failed while trying\n");
-			printf("   to restore original state for slug[%d]\n", js);
-			printf("   at time-step=%d\n", step );
-		    }
+                        printf("decode_conserved() failed while trying\n");
+                        printf("   to restore original state for slug[%d]\n", js);
+                        printf("   at time-step=%d\n", step );
+                    }
                 } // end for js...
             } // end if step_failed == 1...
         } while ( attempt_number < 3 && step_failed == 1 );
@@ -835,8 +835,8 @@ int main(int argc, char **argv)
         }
 
         // At this point in the main time-stepping loop, 
-	// the time step should have been successful so
-	// we update the time-step number, etc.
+        // the time step should have been successful so
+        // we update the time-step number, etc.
         ++step;
         SD.sim_time += SD.dt_global;
         for ( jp = 0; jp < SD.npiston; ++jp ) {
@@ -850,16 +850,16 @@ int main(int argc, char **argv)
         }
 
         // --------------------------------------------
-	// 5. Intermediate solution data to be written? 
-	// --------------------------------------------
-	// 5a. Full flow along tube, diaphragm and piston states
+        // 5. Intermediate solution data to be written? 
+        // --------------------------------------------
+        // 5a. Full flow along tube, diaphragm and piston states
         if ( SD.sim_time >= tplot ) {
             tplot += SD.get_dt_plot();
             for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
             for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
             for (js = 0; js < SD.nslug; ++js) A[js].write_state(outfile);
         }
-	// 5b. Selected history points.
+        // 5b. Selected history points.
         if ( SD.sim_time >= thistory ) {
             thistory += SD.get_dt_history();
             fprintf(hisfile1, "%e %d %d %d # sim_time, hncell, nsp, nmodes\n", 
@@ -872,16 +872,16 @@ int main(int argc, char **argv)
                 L_write_x_history(SD.hxloc[js], A, hisfile2);
         }
 
-	// -------------------------
+        // -------------------------
         // 6. Piston special events.
-	// -------------------------
+        // -------------------------
         for ( jp = 0; jp < SD.npiston; ++jp ) {
             if ( Pist[jp].V_old * Pist[jp].V < 0.0 ) {
                 sprintf( msg_string,
                          "\nEvent: piston[%d] reversal at t= %e x= %e\n",
                          jp, SD.sim_time, Pist[jp].x );
                 log_event( efname.c_str(), msg_string );
-		print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,
+                print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,
 					cfl_max, cfl_tiny, time_tiny);
                 // After reversal, look for new maximum.
                 max_piston_V[jp] = 0.0;
@@ -893,7 +893,7 @@ int main(int argc, char **argv)
                          "\nEvent: piston[%d] brakes on at t= %e x= %e\n",
                          jp, SD.sim_time, Pist[jp].x );
                 log_event( efname.c_str(), msg_string );
-		print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
+                print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
 			      cfl_max, cfl_tiny, time_tiny );
             } // end if piston brake applied
 
@@ -902,7 +902,7 @@ int main(int argc, char **argv)
                          "\nEvent: piston[%d] released at t= %e x= %e\n",
                          jp, SD.sim_time, Pist[jp].x );
                 log_event( efname.c_str(), msg_string );
-		print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
+                print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
 			      cfl_max, cfl_tiny, time_tiny );
             } // end if piston released
 
@@ -915,18 +915,18 @@ int main(int argc, char **argv)
                          "\nEvent: piston[%d] peak speed at t= %e V= %e\n",
                          jp, SD.sim_time, Pist[jp].V );
                 log_event( efname.c_str(), msg_string );
-		print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
+                print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
 			      cfl_max, cfl_tiny, time_tiny );
             } // end if piston max speed
         } // end for jp...
 
-	// 7. Loop termination criteria:
-	//    (1) reaching a maximum simulation time
-	//    (2) reaching a maximum number of steps
-	//    (3) finding that the "halt" file exists in the working directory
-	//        This provides a semi-interactive way to terminate the 
-	//        simulation and save the data.
-	//    Criteria 1 & 2 are tested at the top of the loop.
+        // 7. Loop termination criteria:
+        //    (1) reaching a maximum simulation time
+        //    (2) reaching a maximum number of steps
+        //    (3) finding that the "halt" file exists in the working directory
+        //        This provides a semi-interactive way to terminate the 
+        //        simulation and save the data.
+        //    Criteria 1 & 2 are tested at the top of the loop.
         if (access("l1d.halt", F_OK) == 0) {
             halt_now = 1;
             printf("Simulation stopped: Halt file exists.\n");
