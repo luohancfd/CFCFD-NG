@@ -222,11 +222,13 @@ Bluff-body and reacting compressible flows:
 
 Transient ducted flows:
 
+#. Xin Kang, Rowan J. Gollan, Peter A. Jacobs and Ananthanarayanan Veeraragavan (2017)  Numerical study of the effect of wall temperature profiles on the premixed methane–air flame dynamics in a narrow channel.  RSC Advances, Volume 7 Issue 63 pages 39940-39954.  DOI:10.1039/C7RA07265A
+
 #. Jimmy-John O.E. Hoste, Vincent Casseau, Marco Fossati, Ian J. Taylor and Rowan J. Gollan (2017) Numerical modeling and simulation of supersonic flows in propulsion systems by open-source solvers. 21st AIAA International Space Planes and Hypersonics Technologies Conference, Xiamen, China.  AIAA-Paper-2017-2411 
 
-#. Kang, Xin, Gollan, Rowan J., Jacobs, Peter A. and Veeraragavan, Ananthanarayanan (2017) On the influence of modelling choices on combustion in narrow channels. Computers and Fluids, 144 117-136. doi:10.1016/j.compfluid.2016.11.017
+#. Xin Kang, Rowan J. Gollan, Peter A. Jacobs, and Ananthanarayanan Veeraragavan (2017) On the influence of modelling choices on combustion in narrow channels. Computers and Fluids, 144 117-136. doi:10.1016/j.compfluid.2016.11.017
 
-#. Won Keun Chang, Gisu Park, Yuin Jin, and Jongryul Byun. (2016) Shock Impinging Effect on Ethylene Flameholding, Journal of Propulsion and Power, Vol. 32, No. 5 (2016), pp. 1230-1239. http://dx.doi.org/10.2514/1.B36007 
+#. Won Keun Chang, Gisu Park, Yuin Jin, and Jongryul Byun (2016) Shock Impinging Effect on Ethylene Flameholding, Journal of Propulsion and Power, Vol. 32, No. 5 (2016), pp. 1230-1239. http://dx.doi.org/10.2514/1.B36007 
 
 #. Kang, X., Gollan, R., Jacobs, P. A. and Veeraragavan, A. (2016) Suppression of instabilities in a premixed methane–air flame in a narrow channel via hydrogen/carbon monoxide addition. Combustion and Flame, 173 266-275. doi:10.1016/j.combustflame.2016.07.003
 
@@ -316,7 +318,7 @@ Other hypersonic reacting flows (steps, cavities, cones...):
 
 Analysis of expansion-tube facilities:
 
-#. Toniato, P. and Gildfind, D. and Jacobs, P. and Morgan, R. G. (2017) Optimisation and design of a fully instrumented {Mach} 12 nozzle for the X3 expansion tunnel. 31st International Symposium on Shock Waves ISSW31, Nagoya, Japan, July 9-14 2017.
+#. Toniato, P. and Gildfind, D. and Jacobs, P. and Morgan, R. G. (2017) Optimisation and design of a fully instrumented Mach 12 nozzle for the X3 expansion tunnel. 31st International Symposium on Shock Waves ISSW31, Nagoya, Japan, July 9-14 2017.
 
 #. Toniato, P., Gildfind, D. E., Jacobs, P. A. and Morgan, R. G. (2016) Extension of the X3 expansion tube capabilities for Mach 12 scramjet testing: flow condition: development and nozzle optimization. In: 20th Australasian Fluid Mechanics Conference. 20th Australasian Fluid Mechanics Conference, Perth, Western Australia, Australia, 5-8 December 2-16.
 
