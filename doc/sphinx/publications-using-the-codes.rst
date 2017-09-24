@@ -112,6 +112,8 @@ These are Masters or PhD theses that have developed parts of the simulation code
 
 #. Gildfind, David (2012) Development of high total pressure scramjet flow conditions using the X2 expansion tube.  PhD Thesis, Division of Mechanical Engineering, School of Engineering, The University of Queensland. 
 
+#. Deepak Narayan Ramanath (2011) Computational Studies of Hypersonic High Enthalpy Separated Flows.  PhD Thesis, University of New South Wales, Australian Defence Force Academy, School of Engineering and Information Technology.
+
 #. Kim, Jae Won (2011) Numerical simulation of thermochemical non-equilibrium flow around blunt bodies considering catalytic wall effects.  Masters of Science and Engineering Thesis, School of Mechanical, Aerospace and Systems Engineering, Division of Aerospace Engineering, KAIST.
 
 #. Jacobs, Carolyn (2011) Radiation in low density hypervelocity flows.  PhD Thesis, The University of Queensland and Ecole Centrale Paris.
@@ -177,7 +179,7 @@ Turbomachinery flows:
 
 Bluff-body and reacting compressible flows:
 
-#. F Zander, S. Lohle, H. Krag, S. Lemmens, R.J. Gollan and P.A. Jacobs (2017) Numerical flow analysis if the ISS re-entry. 7th European Conference on Space Debris ESA/ESOC, Darmstadt, Germany, April 2017.
+#. F Zander, S. Lohle, H. Krag, S. Lemmens, R.J. Gollan and P.A. Jacobs (2017) Numerical flow analysis of the ISS re-entry. 7th European Conference on Space Debris ESA/ESOC, Darmstadt, Germany, April 2017.
 
 #. Elise Fahy, David Buttsworth, Rowan Gollan, Peter Jacobs, and Richard G. Morgan. (2016) Experimental and Computational Fluid Dynamics Studies of Superorbital Earth Re-entry", 46th AIAA Thermophysics Conference, AIAA AVIATION Forum, (AIAA 2016-3532) http://dx.doi.org/10.2514/6.2016-3532
 
@@ -273,9 +275,9 @@ Other hypersonic reacting flows (steps, cavities, cones...):
 
 #. Jokic MD, Buttsworth DR, Balage S (2015) An Aerolance System for Hypersonic Flight. 7th Asia-Pacific International Symposium on Aerospace Technology, 25–27 November 2015, Cairns.
 
-#. Sridhar V., Gai S.L., Kleine H. (2015) Supersonic Flow over a Rectangular Open Cavity: Effect of Length-to-Depth Ratio. In: Bonazza R., Ranjan D. (eds) 29th International Symposium on Shock Waves 1. Springer, Cham DOI: 10.1007/978-3-319-16835-7_67
+#. Sridhar V., Gai S.L., Kleine H. (2015) Supersonic Flow over a Rectangular Open Cavity: Effect of Length-to-Depth Ratio. In: Bonazza R., Ranjan D. (eds) 29th International Symposium on Shock Waves 1. Springer, Cham. DOI: 10.1007/978-3-319-16835-7_67
 
-#. Deepak N.R., Gai S.L., O’ Byrne S., Moss J.N. (2015) Hypersonic High-Enthalpy Flow in a Leading-Edge Separation. In: Bonazza R., Ranjan D. (eds) 29th International Symposium on Shock Waves 1. Springer, Cham
+#. Deepak N.R., Gai S.L., O’ Byrne S., Moss J.N. (2015) Hypersonic High-Enthalpy Flow in a Leading-Edge Separation. In: Bonazza R., Ranjan D. (eds) 29th International Symposium on Shock Waves 1. Springer, Cham.
 
 #. Khraibut A, Deepak NR, Gai SL, and Neely AJ (2014) Hypersonic Leading Edge Separation. 19th Australasian Fluid Mechanics Conference, Melbourne, Australia, 8-11 December 2014; Paper 80.
 
@@ -313,6 +315,8 @@ Other hypersonic reacting flows (steps, cavities, cones...):
 
 
 Analysis of expansion-tube facilities:
+
+#. Toniato, P. and Gildfind, D. and Jacobs, P. and Morgan, R. G. (2017) Optimisation and design of a fully instrumented {Mach} 12 nozzle for the X3 expansion tunnel. 31st International Symposium on Shock Waves ISSW31, Nagoya, Japan, July 9-14 2017.
 
 #. Toniato, P., Gildfind, D. E., Jacobs, P. A. and Morgan, R. G. (2016) Extension of the X3 expansion tube capabilities for Mach 12 scramjet testing: flow condition: development and nozzle optimization. In: 20th Australasian Fluid Mechanics Conference. 20th Australasian Fluid Mechanics Conference, Perth, Western Australia, Australia, 5-8 December 2-16.
 
@@ -436,6 +440,8 @@ Analysis of expansion-tube facilities:
 
 
 Analysis of shock tubes, reflected-shock tunnels and gun tunnels:
+
+#. Stennett, S., Gildfind, D. and Jacobs, P. (2017) Optimising the X3R reflected shock tunnel free-piston driver for long duration test times. 31st International Symposium on Shock Waves ISSW31, Nagoya, Japan, July 9-14 2017.
 
 #. Joseph S. Jewell, Christopher C. Huffman, and Thomas J. Juliano. (2017) Transient Startup Simulations for a Large Mach 6 Quiet Ludwieg Tube", 55th AIAA Aerospace Sciences Meeting, AIAA SciTech Forum, (AIAA 2017-0743) http://dx.doi.org/10.2514/6.2017-0743
 
