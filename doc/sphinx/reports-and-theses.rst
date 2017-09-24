@@ -15,7 +15,7 @@ the thermochemistry models and the geometry/grid generation modules.
 #. Jacobs PA, Gollan RJ, The user's guide to the Dlang geometry package for use with the Eilmer4 flow simulation program. `School of Mechanical and Mining Engineering Technical Report 2016/19 <http://espace.library.uq.edu.au/view/UQ:452429>`_ , October 2016.
 
 All of these reports are available, in PDF, 
-from the new `Eilmer page <https://cfcfd.mechmining.uq.edu.au/eilmer/>`_
+from the new `Eilmer page <http://cfcfd.mechmining.uq.edu.au/eilmer/>`_
 
 Eilmer3
 -------
