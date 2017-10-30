@@ -16,7 +16,7 @@ Other papers on development of Eilmer
 
 The following papers are about Eilmer4, Eilmer3, mb_cns code development.  
 
-#. Kang, X., Gollan, R., Jacobs, P. and Veeraragavan, A. (2017) On the influence of modelling choices on combustion in narrow channels. Compuers \& Fluids, 144:117-136 (DOI: doi.org/10.1016/j.compfluid.2016.11.017)
+#. Kang, X., Gollan, R., Jacobs, P. and Veeraragavan, A. (2017) On the influence of modelling choices on combustion in narrow channels. Computers \& Fluids, 144:117-136 (DOI: doi.org/10.1016/j.compfluid.2016.11.017)
 
 #. Qin, Kan, Jahn, Ingo, Gollan, Rowan and Jacobs, Peter (2016) Development of a computational tool to simulate foil bearings for supercritical CO2 cycles. Journal of Engineering for Gas Turbines and Power, 138 9: 092503-1-092503-19. doi:10.1115/1.4032740
 
