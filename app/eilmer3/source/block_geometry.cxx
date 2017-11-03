@@ -308,6 +308,7 @@ int Block::compute_distance_to_nearest_wall_for_all_cells(size_t dimensions, siz
 	// on the boundary of the block.
 	cellp->distance_to_nearest_wall = dist[0];
 	cellp->half_cell_width_at_wall = half_width[0];
+	cellp->cell_at_nearest_wall = cell_at_wall[0];
 	for ( size_t iface = 1; iface < 6; ++iface ) {
 	    if ( cell_at_wall[iface] != NULL &&
 		 dist[iface] > cellp->distance_to_nearest_wall ) {
