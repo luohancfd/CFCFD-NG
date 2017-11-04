@@ -17,8 +17,8 @@ test run-preprocessor {Run the preprocessing stage.} -body {
     exec e3prep.py --job=mms >> LOGFILE_PREP
 } -result {} -returnCodes {0}
 
-test run-simulation {Run the shared-memory simulation code.} -body {
-    exec  mpirun -np 16 --host localhost e3mpi.exe --job=mms --run > LOGFILE_MAIN
+test run-simulation {Run the distributed-memory simulation code.} -body {
+    exec  mpirun -np 16 e3mpi.exe --job=mms --run > LOGFILE_MAIN
 } -result {} -returnCodes {0}
 
 test run-postprocessor {Run the postprocessing stage.} -body {
