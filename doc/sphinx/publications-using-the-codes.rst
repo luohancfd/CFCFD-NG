@@ -68,7 +68,7 @@ These are the Python codes for the calculation of equilibrium shock tube and exp
 
 #. James C, Gildfind D, Morgan RG, Jacobs PA and Zander F (2013) Designing and simulating high enthalpy expansion tube conditions. In: Proceedings of the 2013 Asia-Pacific International Symposium on Aerospace Technology, Takamatsu, Japan, (1-10). 20-22 November 2013.
 
-#. James, CM, Gildfind, DG, Lewis, SW, Morgan, RG, and Zander, F (2017) Implementation of a state-to-state analytical framework for the calculation of expansion tube flow properties. Submitted to Shock Waves.
+#. James, CM, Gildfind, DG, Lewis, SW, Morgan, RG, and Zander, F (2017) Implementation of a state-to-state analytical framework for the calculation of expansion tube flow properties. Shock Waves. Online First. DOI 10.1007/s00193-017-0763-3
 
 Reference paper for IMOC
 ------------------------
@@ -180,6 +180,8 @@ Turbomachinery flows:
 
 
 Bluff-body and reacting compressible flows:
+
+#. N Banerji, P Leyland, E Fahy and R Morgan (2017) Venus Entry Flow over a Decomposing Aeroshell in X2 Expansion Tube.  AIAA Journal of Thermophysics and Heat Transfer Article in advance, http://arc.aiaa.org DOI: 10.2514/1.T5172
 
 #. F Zander, S. Lohle, H. Krag, S. Lemmens, R.J. Gollan and P.A. Jacobs (2017) Numerical flow analysis of the ISS re-entry. 7th European Conference on Space Debris ESA/ESOC, Darmstadt, Germany, April 2017.
 
@@ -320,11 +322,15 @@ Other hypersonic reacting flows (steps, cavities, cones...):
 
 Analysis of expansion-tube facilities:
 
-#. Toniato, P. and Gildfind, D. and Jacobs, P. and Morgan, R. G. (2017) Optimisation and design of a fully instrumented Mach 12 nozzle for the X3 expansion tunnel. 31st International Symposium on Shock Waves ISSW31, Nagoya, Japan, July 9-14 2017.
+#. DE Gildfind, PA Jacobs, RG Morgan, WYK Chan and RJ Gollan (2017) Scramjet test flow reconstruction for a large-scale expansion tube, Part 1: quasi-one-dimensional modeling. Shock Waves, Online First, https://doi.org/10.1007/s00193-017-0785-x
 
-#. Toniato, P., Gildfind, D. E., Jacobs, P. A. and Morgan, R. G. (2016) Extension of the X3 expansion tube capabilities for Mach 12 scramjet testing: flow condition: development and nozzle optimization. In: 20th Australasian Fluid Mechanics Conference. 20th Australasian Fluid Mechanics Conference, Perth, Western Australia, Australia, 5-8 December 2-16.
+#. DE Gildfind, PA Jacobs, RG Morgan, WYK Chan and RJ Gollan (2017) Scramjet test flow reconstruction for a large-scale expansion tube, Part 2: axisymmetric-{CFD} analysis. Shock Waves, Online First, https://doi.org/10.1007/s00193-017-0786-9
 
-#. Andrianatos, A., Gildfind, D. and Morgan, R. (2016) Preliminary development of high enthalpy conditions for the X3 expansion tube. In: 20th Australasian Fluid Mechanics Conference, 20AFMC, Perth, WA, Australia, 5-8 December 2016.
+#. P Toniato, DE Gildfind, PA Jacobs, and RG Morgan, (2017) Optimisation and design of a fully instrumented Mach 12 nozzle for the X3 expansion tunnel. 31st International Symposium on Shock Waves ISSW31, Nagoya, Japan, July 9-14 2017.
+
+#. P Toniato,  DE Gildfind, PA Jacobs and RG Morgan (2016) Extension of the X3 expansion tube capabilities for Mach 12 scramjet testing: flow condition: development and nozzle optimization. In: 20th Australasian Fluid Mechanics Conference. 20th Australasian Fluid Mechanics Conference, Perth, Western Australia, Australia, 5-8 December 2-16.
+
+#. A Andrianatos, D. Gildfind and Morgan, R. (2016) Preliminary development of high enthalpy conditions for the X3 expansion tube. In: 20th Australasian Fluid Mechanics Conference, 20AFMC, Perth, WA, Australia, 5-8 December 2016.
 
 #. Toniato, Pierpaolo, Gildfind, David and Morgan, Richard G. (2016) Current progress of the development of a Mach 12 scramjet operating condition in the X3 expansion tube. In: 11th International Workshop on Shock Tube Technology, Gottingen, Germany, 30 June -2 July 2016.
 
@@ -445,6 +451,8 @@ Analysis of expansion-tube facilities:
 
 Analysis of shock tubes, reflected-shock tunnels and gun tunnels:
 
+#.  Steven W. Lewis, Ranjith Ravichandran, Rowan J. Gollan, Richard G. Morgan, Peter A. Jacobs, Timothy J. McIntyre and Anand Veeraragavan (2017) UQ/AOARD - Rapidly Expanding Nonequilibrium Flows. Annual Report, The University of Queensland, UQ-AOARD-RENF-AN-2017.
+		   
 #. Stennett, S., Gildfind, D. and Jacobs, P. (2017) Optimising the X3R reflected shock tunnel free-piston driver for long duration test times. 31st International Symposium on Shock Waves ISSW31, Nagoya, Japan, July 9-14 2017.
 
 #. Joseph S. Jewell, Christopher C. Huffman, and Thomas J. Juliano. (2017) Transient Startup Simulations for a Large Mach 6 Quiet Ludwieg Tube", 55th AIAA Aerospace Sciences Meeting, AIAA SciTech Forum, (AIAA 2017-0743) http://dx.doi.org/10.2514/6.2017-0743
