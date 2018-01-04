@@ -1324,14 +1324,28 @@ def state_builder(cfg):
         states['s1'].set_pT(float(cfg['p1']),cfg['T0'])
         cfg['gas_guess'] = None
     else:
-        if cfg['test_gas'] == 'mars' or cfg['test_gas'] == 'co2' or cfg['test_gas'] == 'venus':
-            states['s1'], cfg['gas_guess'], test_gas_gam, test_gas_Mmass = make_test_gas(cfg['test_gas'])   
+        # ------------------------ eq test gas stuff ----------------------------
+        if cfg['test_gas'] in ['mars', 'co2', 'venus']:
+            states['s1'], cfg['gas_guess'], test_gas_gam, test_gas_Mmass = make_test_gas(cfg['test_gas'])
+            if cfg['solver'] == 'eq':
+                print "As CO2 is in the test gas state 1 will be set using only the reactants in state 1."
+                print "({0})".format(states['s1'].reactants)
+                print "This will be turned off for other states based on this one so that they work normally."
+                states['s1'].onlyList = states['s1'].reactants
+                states['s1'].with_ions = False
+                states['s1'].set_pT(float(cfg['p1']), cfg['T1'])
+                print "The ideal gas guess for the gas will also be removed as it will cause issues in the normal shock function"
+                cfg['gas_guess'] = None
+            # the onlyList and with_ions stuff will be turned off below after states 2 and 7 have been cloned
+            # from state 1...
         else: #need to split this up as the function returns 4 values if CO2 is in the test gas
               # and trying to set the state of the co2 gas object at room temp will break it
             states['s1'], cfg['gas_guess'] = make_test_gas(cfg['test_gas'])
             if 'p1' not in cfg: #set atmospheric state if a pressure was not specified
                 cfg['p1'] = cfg['p0']
             states['s1'].set_pT(float(cfg['p1']),cfg['T1'])
+
+        #--------------- extra perfect gas or perfect gas eq stuff -------------
         if cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq': #make perfect gas object if asked to do so, then re-set the gas state
             if cfg['solver'] == 'pg-eq': #store the eq gas object as we'll want to come back to it later...      
                 states['s1-eq'] = states['s1'].clone()        
@@ -1386,7 +1400,7 @@ def state_builder(cfg):
         states['s3'] = states['sd2'].clone() #s3 will be sd2 after unsteady expansion
     else:
         states['s3'] = states['s3s'].clone() #s3 will be s3s after unsteady expansion
-            
+
     states['s2'] = states['s1'].clone() #s2 is s1 shock heated
     
     if cfg['tunnel_mode'] == 'expansion-tube':
@@ -1406,6 +1420,19 @@ def state_builder(cfg):
             #               with_ions = False)
             #states['s7'].set_pT(states['s2'].p, states['s2'].T)
             states['s7'].with_ions = False
+
+    if cfg['solver'] == 'eq' and cfg['test_gas'] in ['mars', 'co2', 'venus']:
+        # now remove onlyList and with ions so that the calculation works fine
+        states['s1'].onlyList = []
+        states['s1'].with_ions = True
+
+        states['s2'].onlyList = []
+        states['s2'].with_ions = True
+
+        if cfg['tunnel_mode'] == 'expansion-tube':
+            states['s7'].onlyList = []
+            states['s7'].with_ions = True
+
 
     if PRINT_STATUS: print '-'*60               
     
