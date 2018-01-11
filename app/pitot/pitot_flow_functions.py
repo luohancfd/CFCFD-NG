@@ -713,8 +713,23 @@ def shock_tube_calculation(cfg, states, V, M):
             
     # if we run experiment based modes, we can just pop in here...
     if cfg['solver'] in ['eq', 'pg']:
-        # do a clone of state 1 here so we don't get floating point jumping around...
-        state1 = states['s1'].clone()    
+        # do a clone of state 1 here so we don't get a lot of floating point jumping around
+        # if the pressure is too low...
+        # we need to do some weird stuff here if we are in eq mode with CO2 in the test gas,
+        # (which is made even worse by being in a function, I chose to check if it has a reactants
+        # dict to check if it is eq, and then if CO2 is in that dict...)
+        # but this is simple otherwise...
+        if hasattr(states['s1'], 'reactants') and 'CO2' in states['s1'].reactants:
+            states['s1'].onlyList = states['s1'].reactants
+            states['s1'].with_ions = False
+            state1 = states['s1'].clone()
+            state1.onlyList = []
+            state1.with_ions = True
+            states['s1'].onlyList = []
+            states['s1'].with_ions = True
+        else:
+            state1 = states['s1'].clone()
+
         # first do the normal shock
         try:
             if cfg['gas_guess']:

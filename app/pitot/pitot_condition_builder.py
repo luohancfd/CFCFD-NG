@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "25-Jul-2017"
+VERSION_STRING = "10-Jan-2017"
 
 import sys
 
@@ -399,7 +399,7 @@ def build_results_dict(cfg, extra_variable_list = None):
             else:
                 print "Extra variable {0} was already in the results dict.".format(variable)
                 
-    if cfg['facility'] == 'x2':
+    if cfg['tunnel_mode'] == 'expansion-tube' and cfg['facility'] == 'x2':
         # calculate the basic test time also
         full_list += ['basic_test_time'] # microseconds
         
@@ -539,8 +539,13 @@ def condition_builder_test_run(cfg, results):
         print "Error {0}".format(str(e))        
         print "Test {0} failed. Result will not be printed to csv output.".format(cfg['test_number'])
         condition_status = False
-    if cfg['secondary'] and cfg['Vsd'] > cfg['Vs1']:
+    if cfg['secondary'] and not cfg['rs_out_of_sd'] and cfg['Vsd'] > cfg['Vs1']:
         print "Vsd is faster than Vs1, condition cannot be simulated by Pitot properly."
+        print "Test {0} is considered failed, and result will not be printed to csv output.".format(cfg['test_number'])
+        condition_status = False
+    if cfg['secondary'] and cfg['rs_out_of_sd'] and 'V' in locals() and V['sd2r'] > V['s3']:
+        print "Vsd2r is faster than V3, condition cannot be simulated by Pitot properly"
+        print "as the reflected shock should have been stronger to stop a non-physical unsteady compression occuring."
         print "Test {0} is considered failed, and result will not be printed to csv output.".format(cfg['test_number'])
         condition_status = False
     if condition_status:
@@ -1161,7 +1166,7 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
         for variable in results['extra_variables']:
             results[variable].append(cfg[variable])
             
-    if cfg['facility'] == 'x2':
+    if cfg['tunnel_mode'] == 'expansion-tube' and cfg['facility'] == 'x2':
         results['basic_test_time'].append(cfg['t_test_basic']*1.0e6)
                      
     return results
