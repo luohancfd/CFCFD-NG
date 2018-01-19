@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "10-Jan-2017"
+VERSION_STRING = "17-Jan-2017"
 
 import sys
 
@@ -522,7 +522,7 @@ def condition_builder_test_run(cfg, results):
         cfg, results = guess_modifier(cfg, results)
     
     cfg['filename'] = cfg['original_filename'] + '-test-{0}-result'.format(cfg['test_number'])
-    
+
     # some code here to make a copy of the stdout printouts for each test and store it
     
     import sys
@@ -575,6 +575,9 @@ def condition_builder_test_run(cfg, results):
         # and were added by the last run, so we remove them
         if variable not in cfg['cfg_original']:
             if variable in cfg: cfg.pop(variable)
+        # if the run failed, the guesses may have gone stupid, so reset them if the user had intial values...
+        if not cfg['last_run_successful'] and variable in cfg['cfg_original']:
+            cfg[variable] = cfg['cfg_original'][variable]
     
     # now we end the stream teeing here by pulling out the original stdout object
     # and overwriting the stream tee with that, then closing the log file
