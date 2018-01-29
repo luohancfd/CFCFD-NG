@@ -1890,11 +1890,16 @@ def shock_over_model_calculation(cfg, states, V, M):
                 states['s10e'] = states[cfg['test_section_state']].clone()
                 states['s10e'].with_ions = True
             else:
-                # if it is a pg object (the user did a pg nozzle calculation, probably)
+                # if it is a pg object (the user did a frozen nozzle calculation or used a perfect gas test gas, probably)
                 # we should make it one... we will copy state1 (test gas fill state)
                 # and then set the temperature and pressure for the test section
-                states['s10e'] = states['s1'].clone()
-                states['s10e'].set_pT(states[cfg['test_section_state']].p, states[cfg['test_section_state']].T)                 
+                # if they did a frozen nozzle calculation, state 1 will be an eq state, so just copy it
+                if isinstance(states['s1'], Gas):
+                    states['s10e'] = states['s1'].clone()
+                    states['s10e'].set_pT(states[cfg['test_section_state']].p, states[cfg['test_section_state']].T)
+                else: # we have a perfect gas test gas state, but a s1-eq state should exist which was used to make state 1
+                    states['s10e'] = states['s1-eq'].clone()
+                    states['s10e'].set_pT(states[cfg['test_section_state']].p, states[cfg['test_section_state']].T)
         except Exception as e:
             print "Error {0}".format(str(e))
             if isinstance(states[cfg['test_section_state']], Gas):
@@ -2099,13 +2104,21 @@ def wedge_calculation(cfg, states, V, M):
                 # if it is an eq gas object, just do what we would normally do...
                 states['s10we'] = states[cfg['test_section_state']].clone()
                 states['s10we'].with_ions = True
+                states['s10we'].set_pT(states[cfg['test_section_state']].p, states[cfg['test_section_state']].T)
             else:
-                # if it is a pg object (the user did a pg nozzle calculation, probably)
-                # we should make it one...
+                # if it is a pg object (the user did a frozen nozzle calculation or used a perfect gas test gas, probably)
                 # we should make it one... we will copy state1 (test gas fill state)
                 # and then set the temperature and pressure for the test section
-                states['s10we'] = states['s1'].clone()
-                states['s10we'].set_pT(states[cfg['test_section_state']].p, states[cfg['test_section_state']].T)   
+                # if they did a frozen nozzle calculation, state 1 will be an eq state, so just copy it
+                if isinstance(states['s1'], Gas):
+                    states['s10we'] = states['s1'].clone()
+                    states['s10we'].set_pT(states[cfg['test_section_state']].p, states[cfg['test_section_state']].T)
+                else:  # we have a perfect gas test gas state, but a s1-eq state should exist which was used to make state 1
+                    states['s10we'] = states['s1-eq'].clone()
+                    states['s10we'].set_pT(states[cfg['test_section_state']].p, states[cfg['test_section_state']].T)
+                # this is just to help the stuff above, where the test section state may be perfect gas
+                test_section_state = states['s10we'].clone()
+                test_section_state.with_ions = True
         except Exception as e:
             print "Error {0}".format(str(e))
             print "Failed to clone test section gas state."
@@ -2131,10 +2144,10 @@ def wedge_calculation(cfg, states, V, M):
             # start by getting the beta angle over the wedge
             cfg['wedge_angle_radians'] = math.radians(cfg['wedge_angle'])
             try:
-                cfg['beta_eq'] = beta_oblique(states[cfg['test_section_state']], V[cfg['test_section_state']], cfg['wedge_angle_radians'])
+                cfg['beta_eq'] = beta_oblique(test_section_state, V[cfg['test_section_state']], cfg['wedge_angle_radians'])
                 print "Beta = {0} degrees.".format(math.degrees(cfg['beta_eq']))
                 # now get the wedge surface conditions
-                cfg['wedge_angle_calculated'], V['s10we'], states['s10we'] = theta_oblique(states[cfg['test_section_state']], V[cfg['test_section_state']], cfg['beta_eq'])
+                cfg['wedge_angle_calculated'], V['s10we'], states['s10we'] = theta_oblique(test_section_state, V[cfg['test_section_state']], cfg['beta_eq'])
                 wedge_angle_calculated_degrees = math.degrees(cfg['wedge_angle_calculated'])
                 wedge_angle_error = ((cfg['wedge_angle']-wedge_angle_calculated_degrees)/cfg['wedge_angle'])*100.0
                 # need to check the calculated theta
@@ -2235,7 +2248,7 @@ def conehead_calculation(cfg, states, V, M):
                     print "state 10cf: p = {0:.2f} Pa, T = {1:.2f} K. V = {2:.2f} m/s.".format(states['s10cf'].p, states['s10cf'].T,  V['s10cf'])
                     print 'state 10cf gamma = {0}, state 10cf R = {1}.'.format(states['s10cf'].gam,states['s10cf'].R) 
 
-    
+    # ----------------------------------------------------------------------------------------------------
     if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq': 
     
         cfg['conehead_completed'] = True #variable we'll set to false if the calculation fails
@@ -2245,8 +2258,25 @@ def conehead_calculation(cfg, states, V, M):
         
         if PRINT_STATUS: print '-'*60
         if PRINT_STATUS: print 'Starting equilibrium taylor maccoll conehead calculation on {0} degree conehead.'.format(cfg['conehead_angle'])
-        
-        if cfg['conehead_no_ions']: states[cfg['test_section_state']].with_ions = False    
+
+        # we need to clone our test section state here, incase it was a perfect gas state
+
+        if isinstance(states[cfg['test_section_state']], Gas):
+            # if it is an eq gas object, just do what we would normally do and clone a state...
+            test_section_state = states[cfg['test_section_state']].clone()
+        else:
+            # if it is a pg object (the user did a frozen nozzle calculation or used a perfect gas test gas, probably)
+            # we should make it one... we will copy state1 (test gas fill state)
+            # and then set the temperature and pressure for the test section
+            # if they did a frozen nozzle calculation, state 1 will be an eq state, so just copy it
+            if isinstance(states['s1'], Gas):
+                test_section_state = states['s1'].clone()
+            else:  # we have a perfect gas test gas state, but a s1-eq state should exist which was used to make state 1
+                test_section_state = states['s1-eq'].clone()
+
+        test_section_state.set_pT(states[cfg['test_section_state']].p, states[cfg['test_section_state']].T)
+
+        if cfg['conehead_no_ions']: states[cfg['test_section_state']].with_ions = False
         
         try:
             shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
@@ -2258,7 +2288,7 @@ def conehead_calculation(cfg, states, V, M):
             cfg['conehead_no_ions'] = True        
             states[cfg['test_section_state']].with_ions = False
             try:
-                shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
+                shock_angle = beta_cone(test_section_state, V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
             except Exception as e:
                 print "Error {0}".format(str(e))    
                 print "beta_cone function bailed out while trying to find a shock angle."
@@ -2270,7 +2300,7 @@ def conehead_calculation(cfg, states, V, M):
         if PRINT_STATUS: print "Shock angle over cone:", math.degrees(shock_angle)
         # Reverse the process to get the flow state behind the shock and check the surface angle is correct
         try:    
-            delta_s, V['s10c'], states['s10c'] = theta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], shock_angle)
+            delta_s, V['s10c'], states['s10c'] = theta_cone(test_section_state, V[cfg['test_section_state']], shock_angle)
         except Exception as e:
             print "Error {0}".format(str(e))
             print "theta_cone bailed out while trying to find cone surface conditions."

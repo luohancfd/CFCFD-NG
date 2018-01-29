@@ -870,8 +870,16 @@ def input_checker(cfg, condition_builder = False):
     if cfg['facility'] == 'custom' and cfg['effective_gam'] and not isinstance(cfg['effective_gam'], float):
         print "'effective_gam' must be a float. Current value is not. Bailing out."
         raise TypeError, "pitot_input_utils.input_checker(): 'effective_gam' input is not a float"
-    
-    #------------------ final check stuff....-------------------------------
+
+    # input for the perfect gas secondary driver gas
+    if 'perfect_gas_secondary_driver' not in cfg:
+       cfg['perfect_gas_secondary_driver'] = False
+
+    # input for the perfect gas test gas
+    if 'perfect_gas_test_gas' not in cfg:
+        cfg['perfect_gas_test_gas'] = False
+
+           #------------------ final check stuff....-------------------------------
         
     
     if cfg['bad_input']: #bail out here if you end up having issues with your input
@@ -1300,7 +1308,7 @@ def state_builder(cfg):
             
         states['sd1'].set_pT(cfg['psd1'],cfg['Tsd1'])
         
-        if cfg['solver'] == 'pg': #make perfect gas object if asked to do so, then re-set the gas state
+        if cfg['solver'] == 'pg' or 'secondary_driver_perfect_gas' in cfg and cfg['secondary_driver_perfect_gas']: #make perfect gas object if asked to do so, then re-set the gas state
             states['sd1']=pg.Gas(Mmass=states['sd1'].Mmass,
                              gamma=states['sd1'].gam, name='sd1')
             states['sd1'].set_pT(cfg['psd1'],cfg['Tsd1'])
@@ -1346,8 +1354,8 @@ def state_builder(cfg):
             states['s1'].set_pT(float(cfg['p1']),cfg['T1'])
 
         #--------------- extra perfect gas or perfect gas eq stuff -------------
-        if cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq': #make perfect gas object if asked to do so, then re-set the gas state
-            if cfg['solver'] == 'pg-eq': #store the eq gas object as we'll want to come back to it later...      
+        if cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq' or 'test_gas_perfect_gas' in cfg and cfg['test_gas_perfect_gas']: #make perfect gas object if asked to do so, then re-set the gas state
+            if cfg['solver'] == 'pg-eq' or 'test_gas_perfect_gas' in cfg and cfg['test_gas_perfect_gas']: #store the eq gas object as we'll want to come back to it later...
                 states['s1-eq'] = states['s1'].clone()        
             if cfg['test_gas'] == 'co2' or cfg['test_gas'] == 'mars' or cfg['test_gas'] == 'venus': #need to force our own gam and Mmass onto the gas object if CO2 is in the gas
                 states['s1'].gam = test_gas_gam; states['s1'].Mmass =  test_gas_Mmass

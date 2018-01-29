@@ -172,15 +172,30 @@ def txt_file_output(cfg, states, V, M):
                 secondary_driver_gas_used = 'Secondary driver gas (state sd1)  is {0} (gamma = {1}, R = {2}).'.format(cfg['secondary_driver_gas'],states['sd1'].gam,states['sd1'].R)
             
         print secondary_driver_gas_used
-        txt_output.write(secondary_driver_gas_used + '\n')    
-    
+        txt_output.write(secondary_driver_gas_used + '\n')
+
+        if cfg['solver'] == 'eq' and 'secondary_driver_perfect_gas' in cfg and cfg['secondary_driver_perfect_gas']:
+            secondary_driver_pg_line = "Secondary driver gas was used as a perfect gas as the user specified this."
+            print secondary_driver_pg_line
+            txt_output.write(secondary_driver_pg_line + '\n')
+
+
     if isinstance(states['s1'], Gas):
         test_gas_used = 'Test gas (state 1) is {0} (gamma = {1}, R = {2}, {3} by {4}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R,
                                                                                         states['s1'].reactants, states['s1'].outputUnits)
     elif isinstance(states['s1'], pg.Gas):
         test_gas_used = 'Test gas (state 1) is {0} (gamma = {1}, R = {2}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
     print test_gas_used
-    txt_output.write(test_gas_used + '\n') 
+    txt_output.write(test_gas_used + '\n')
+
+    if cfg['solver'] == 'eq' and 'test_gas_perfect_gas' in cfg and cfg['test_gas_perfect_gas']:
+        test_gas_pg_line = "Test gas gas was used as a perfect gas as the user specified this."
+        print test_gas_pg_line
+        txt_output.write(test_gas_pg_line + '\n')
+
+        test_gas_pg_test_section_line = "Any eq test section post shock states (s10e, s10c, s10we) were found using an eq test section state also."
+        print test_gas_pg_test_section_line
+        txt_output.write(test_gas_pg_test_section_line + '\n')
     
     if cfg['custom_accelerator_gas']:
         if cfg['solver'] == 'eq':
@@ -655,9 +670,9 @@ def txt_file_output(cfg, states, V, M):
                                                                                                      
             print knudsen_number_state10e_print
             txt_output.write(knudsen_number_state10e_print + '\n')                                                                                                            
-                                                                                                    
-    
-    if cfg['shock_over_model'] and 's10e' in states.keys():
+
+    # last bit is just to make sure that state 10e is actually an equilibrium state like it always should be!
+    if cfg['shock_over_model'] and 's10e' in states.keys() and isinstance(states['s10e'], Gas):
         species1 = 'Species in the shock layer at equilibrium (s10e) (by {0}):'.format(states['s10e'].outputUnits)        
         print species1
         txt_output.write(species1 + '\n')
