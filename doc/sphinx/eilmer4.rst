@@ -15,7 +15,7 @@ Source code and Documententation
 --------------------------------
  
 The full Eilmer4 source code, instructions and user guides are available
-from the new `home page <http://cdcfd.mechmining.uq.edu.au/eilmer/>`_ and
+from the new `home page <http://cfcfd.mechmining.uq.edu.au/eilmer/>`_ and
 `Bitbucket.org repository <https://bitbucket.org/cfcfd/dgd/>`_
 
 
