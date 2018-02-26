@@ -106,7 +106,7 @@ int ValveData::read_state(FILE* infile)
         printf("Empty solution file.\n");
         return FAILURE;
     }
-    nread = sscanf(line, "%d %e %e", &is_open, &open_period, &open_time);
+    nread = sscanf(line, "%d %lf %lf", &is_open, &open_period, &open_time);
     if ( nread != 3 ) {
 	printf( "read_valve_solution(): " );
 	printf( "didn't correctly read is_open, open_period, open_time\n" );
