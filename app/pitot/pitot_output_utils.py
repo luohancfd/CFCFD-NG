@@ -135,21 +135,19 @@ def txt_file_output(cfg, states, V, M):
     print facility_used
     txt_output.write(facility_used + '\n')
     
-    if cfg['solver'] == 'eq':
-        if cfg['facility'] != 'custom' and cfg['piston'] in ['Sangdi-1.8MPa', 'sangdi-1.8MPa','Sangdi-2.2MPa', 'sangdi-2.2MPa']:
-            driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])  
-        elif 'driver_pg_gam' not in cfg: # driver will be pg if it is!
-            driver_gas_used = 'Driver gas is {0} (by {1}).'.format(states['s4'].reactants, states['s4'].outputUnits)  
+    if cfg['solver'] == ['eq','pg-eq']:
+        if hasattr(states['s4'], 'reactants'):
+            driver_gas_used = 'Driver gas is {0} (by {1}).'.format(states['s4'].reactants, states['s4'].outputUnits)
+        elif not hasattr(states['s4'], 'reactants') and cfg['piston'] in ['Sangdi-1.8MPa', 'sangdi-1.8MPa','Sangdi-2.2MPa', 'sangdi-2.2MPa'] and cfg['facility'] != 'custom':
+            driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])
         else:
             driver_gas_used = "Driver gas is a perfect gas with gam = {0} and R = {1}."\
-            .format(cfg['driver_pg_gam'], cfg['driver_pg_R'])            
+            .format(states['s4'].gam, states['s4'].R)
     else:
         if cfg['facility'] != 'custom':
             driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])
         else:
-            if 'driver_composition' in cfg and cfg['solver'] in ['eq', 'pg-eq']:
-                driver_gas_used = 'Driver gas is {0} (by {1}).'.format(cfg['driver_composition'], states['s4'].inputUnits)
-            elif 'driver_composition' in cfg and cfg['solver'] in ['pg']:
+            if 'driver_composition' in cfg and cfg['solver'] in ['pg']:
                 driver_gas_used = 'Driver gas is {0} (by {1}).'.format(cfg['driver_composition'], cfg['driver_inputUnits'])
             else:
                 driver_gas_used = "Driver gas is a perfect gas with gam = {0} and R = {1}."\
@@ -178,7 +176,6 @@ def txt_file_output(cfg, states, V, M):
             secondary_driver_pg_line = "Secondary driver gas was used as a perfect gas as the user specified this."
             print secondary_driver_pg_line
             txt_output.write(secondary_driver_pg_line + '\n')
-
 
     if isinstance(states['s1'], Gas):
         test_gas_used = 'Test gas (state 1) is {0} (gamma = {1}, R = {2}, {3} by {4}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R,
@@ -810,21 +807,20 @@ def csv_file_output(cfg, states, V, M):
         csv_accelerator_gas_used = 'Custom Accelerator gas (state 5),gamma,{0},R,{1}.'.format(states['s5'].gam,states['s5'].R)
     else:
         csv_accelerator_gas_used = "Accelerator gas (state 5),Air."
-    csv_output.write(csv_accelerator_gas_used + '\n')          
-    
-    if cfg['solver'] == 'eq':
-        if cfg['facility'] != 'custom' and cfg['piston'] in ['Sangdi-1.8MPa', 'sangdi-1.8MPa','Sangdi-2.2MPa', 'sangdi-2.2MPa']:
-            csv_driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])
-        else:
+    csv_output.write(csv_accelerator_gas_used + '\n')
+
+    if cfg['solver'] in ['eq','pg-eq']:
+        if hasattr(states['s4'], 'reactants'):
             csv_driver_gas_used = 'Driver gas,{0}.'.format(states['s4'].reactants)
+        elif not hasattr(states['s4'], 'reactants') and cfg['piston'] in ['Sangdi-1.8MPa', 'sangdi-1.8MPa','Sangdi-2.2MPa', 'sangdi-2.2MPa'] and cfg['facility'] != 'custom':
+            csv_driver_gas_used = 'Driver gas,{0}.'.format(cfg['driver_gas'])
+        else:
+            csv_driver_gas_used = 'Driver gas,pg, gam,{0},R,{1}'.format(states['s4'].gam, states['s4'].R)
     else:
         if cfg['facility'] != 'custom':
             csv_driver_gas_used = 'Driver gas,{0}.'.format(cfg['driver_gas'])
         else:
-            if 'driver_composition' in cfg:
-                csv_driver_gas_used = 'Driver gas,{0}.'.format(cfg['driver_composition'])
-            else:
-                csv_driver_gas_used = 'Driver gas,custom pg, gam,{0},R,{1}'.format(cfg['driver_pg_gam'], cfg['driver_pg_R'])
+            csv_driver_gas_used = 'Driver gas,custom pg, gam,{0},R,{1}'.format(states['s4'].gam, states['s4'].R)
     csv_output.write(csv_driver_gas_used + '\n') 
             
     if cfg['secondary']:

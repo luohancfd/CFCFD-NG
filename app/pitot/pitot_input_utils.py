@@ -906,10 +906,10 @@ def start_message(cfg, states):
             print "Facility is {0}. Driver condition is {1}.".format(cfg['facility'], cfg['piston'])
             print "Driver gas is {0}.".format(cfg['driver_gas'])
         if cfg['facility'] == 'custom':
-            if 'driver_composition' in cfg:
+            if hasattr(states['s4'], 'reactants'): # eq driver
                 print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_composition'])
-            else:
-                print "Facility is {0}. Driver gas is a perfect gas with gam = {1} and R = {2:.2f}.".format(cfg['facility'], cfg['driver_pg_gam'], cfg['driver_pg_R'])
+            else: #pg driver
+                print "Facility is {0}. Driver gas is a perfect gas with gam = {1} and R = {2:.2f}.".format(cfg['facility'], states['s4'].gam, states['s4'].R)
         print "Driver burst conditions are p4 = {0:.2f} Pa, T4 = {1:.2f} K, M_throat = {2}."\
               .format(cfg['p4'], cfg['T4'], cfg['M_throat'])
         
