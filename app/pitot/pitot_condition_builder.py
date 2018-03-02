@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "17-Jan-2017"
+VERSION_STRING = "2-Mar-2018"
 
 import sys
 
@@ -575,6 +575,10 @@ def condition_builder_test_run(cfg, results):
         # and were added by the last run, so we remove them
         if variable not in cfg['cfg_original']:
             if variable in cfg: cfg.pop(variable)
+        # we also need a second check here for when Vs2_lower is set to 'Vs1' a string input
+        # which makes the code use the found Vs1 value as the Vs2_lower_limit
+        if cfg['cfg_original']['Vs2_lower'] == 'Vs1':
+            cfg['Vs2_lower'] = 'Vs1'
         # if the run failed, the guesses may have gone stupid, so reset them if the user had intial values...
         if not cfg['last_run_successful'] and variable in cfg['cfg_original']:
             cfg[variable] = cfg['cfg_original'][variable]

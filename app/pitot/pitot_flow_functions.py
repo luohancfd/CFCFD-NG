@@ -1245,6 +1245,11 @@ def acceleration_tube_calculation(cfg, states, V, M):
             cfg['Vs2_lower'] = cfg['Vs1'] + 500.0; cfg['Vs2_upper'] = 34750.0
         else:
             print "Using custom limits for Vs2 secant solver."
+
+            # there is a new setting here so Vs2_lower can be set to 'Vs1' as a string
+            if cfg['Vs2_lower'] == 'Vs1':
+                print "Setting 'Vs2_lower' to the found Vs1 value ({0} m/s) as the user has asked for this.".format(cfg['Vs1'])
+                cfg['Vs2_lower'] = cfg['Vs1']
             print "('Vs2_lower' = {0} m/s and 'Vs2_upper' = {1} m/s)".\
                       format(cfg['Vs2_lower'], cfg['Vs2_upper'])               
             
