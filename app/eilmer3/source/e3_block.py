@@ -1055,6 +1055,7 @@ class Block2D(Block):
         elif import_grid_file_name != None:
             if verbosity_level > 0:
                 print "Import a grid from a VTK data file:", import_grid_file_name
+            self.psurf = None
             self.grid = StructuredGrid()
             fin = open(import_grid_file_name, "r")
             self.grid.read_block_in_VTK_format(fin)

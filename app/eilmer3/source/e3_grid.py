@@ -92,6 +92,20 @@ class StructuredGrid(object):
         else:
             self.label = label
         return
+    def swap_ij(self):
+        """
+        Swap the ij index of the grid to avoid negative volume
+        Author: Han Luo
+        Date: Mar 18th 2018
+        """
+        self.x = self.x.swapaxes(0,1)
+        self.y = self.y.swapaxes(0,1)
+        self.z = self.z.swapaxes(0,1)
+        self.iblank = self.iblank.swapaxes(0,1)
+        a = self.ni
+        self.ni = self.nj
+        self.nj = a
+        return
 
     def init_arrays(self):
         """
@@ -755,7 +769,7 @@ def read_plot3d_grid(fname, dimensions):
     #
     return gridList
 
-def read_plot3d_grid_from_pointwise(fname, dim, scaleFactor):
+def read_plot3d_grid_from_pointwise(fname, dim, scaleFactor=1):
     """
     Reads a plot3d grid, returns a list StructuredGrid object(s).
        
@@ -789,7 +803,7 @@ def read_plot3d_grid_from_pointwise(fname, dim, scaleFactor):
         nk = 1
         if dim == 3:
             nk = int(tks[pos]); pos += 1
-            nijkList[i].append(nk)
+        nijkList[i].append(nk)
     #
     for indx in range(ngrids):
         #
