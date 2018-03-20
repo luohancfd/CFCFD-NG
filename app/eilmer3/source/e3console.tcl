@@ -81,7 +81,7 @@ set optionsPost(outputFormat) "vtk-xml"
 set optionsPost(zippedDataFiles) 1
 set optionsPost(addMach) 0
 set optionsPost(addPitotP) 0
-set optionePost(addTotalP) 0
+set optionsPost(addTotalP) 0
 set optionsPost(extras) ""
 
 set logFont {courier 12}
