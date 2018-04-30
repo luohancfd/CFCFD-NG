@@ -30,7 +30,7 @@ sys.path.append("") # so that we can find user's scripts in current directory
 from cfpylib.gasdyn.cea2_gas import Gas
 from cfpylib.gasdyn.gas_flow import normal_shock
 
-VERSION_STRING = '27-Apr-2018'
+VERSION_STRING = '30-Apr-2018'
 
 def poshax_python(p_inf, T_inf, reactants, inputUnits,
                   species_list, no_of_temperatures,
@@ -313,68 +313,69 @@ plot_x_limits = None
     print "post-shock velocity = {0} m/s".format(V2)
     state2.write_state(sys.stdout)
 
-    if plot:
+    # now opening the result so it can be returned...
 
+    no_of_species = len(species_list)
+    species_start_line = 6 + no_of_temperatures # 2 intro lines, x, p, rho, u
+
+    lines_to_skip = 6 + no_of_temperatures + no_of_species # 2 intro lines, x, p, rho, u
+
+    # I wanted to call my variable output_file (I nromally called the string output_filename)
+    # but wanred to try to keep my variables consistent with poshax... so now I have results_file!
+    with open(output_file,"r") as results_file:
+
+        results_dict = {}
+        columns = []
+        output_species_list = []
+
+        # start by grabbing columns names which wek now
+        columns.append('x')
+        if no_of_temperatures == 1:
+            T_list = ['T']
+        elif no_of_temperatures == 2:
+            T_list = ['T_trans_rotational', 'T_vibrational_electronic']
+        elif no_of_temperatures == 3:
+            T_list = ['T_trans_rotational', 'T_vibrational_electronic', 'T_electron']
+
+        columns += T_list
+
+        columns += ['p', 'rho', 'u']
+
+        # we'll get the rest of the columns from species...
+
+        for i, row in enumerate(results_file):
+
+            if i >= species_start_line and i < lines_to_skip:
+                # we could just get the species here, but good to keep it this way
+                # so we can abstract the plotting into a function in the future...
+                # (i.e. so it could run with no knowledge of the species beforehand, just the number of them...
+                # here we want to split the line about the '-' so we can get the final value
+                # need to use .strip() to get rid of the new line character on teh end too...
+                split_row = row.strip().split('-')
+                # last should be what we want...
+                columns.append(split_row[-1])
+                output_species_list.append(split_row[-1])
+
+            elif i >= lines_to_skip: # to skip the header and know when the data starts...
+
+                if i == lines_to_skip:
+                    # we need to add our columns to the dictionary!
+                    for column in columns:
+                        results_dict[column] = []
+
+                # now we start filling in data...
+
+                split_row = row.split()
+
+                # go through the split row and fill the data away in the right columns..
+                for column, value in zip(columns, split_row):
+                    results_dict[column].append(float(value))
+
+    if plot:
         print '-'*60
         print "Now plotting the result"
         import matplotlib.pyplot as plt
         import numpy as np
-
-        no_of_species = len(species_list)
-        species_start_line = 6 + no_of_temperatures # 2 intro lines, x, p, rho, u
-
-        lines_to_skip = 6 + no_of_temperatures + no_of_species # 2 intro lines, x, p, rho, u
-
-        # I wanted to call my variable output_file (I nromally called the string output_filename)
-        # but wanred to try to keep my variables consistent with poshax... so now I have results_file!
-        with open(output_file,"r") as results_file:
-
-            results_dict = {}
-            columns = []
-            output_species_list = []
-
-            # start by grabbing columns names which wek now
-            columns.append('x')
-            if no_of_temperatures == 1:
-                T_list = ['T']
-            elif no_of_temperatures == 2:
-                T_list = ['T_trans_rotational', 'T_vibrational_electronic']
-            elif no_of_temperatures == 3:
-                T_list = ['T_trans_rotational', 'T_vibrational_electronic', 'T_electron']
-
-            columns += T_list
-
-            columns += ['p', 'rho', 'u']
-
-            # we'll get the rest of the columns from species...
-
-            for i, row in enumerate(results_file):
-
-                if i >= species_start_line and i < lines_to_skip:
-                    # we could just get the species here, but good to keep it this way
-                    # so we can abstract the plotting into a function in the future...
-                    # (i.e. so it could run with no knowledge of the species beforehand, just the number of them...
-                    # here we want to split the line about the '-' so we can get the final value
-                    # need to use .strip() to get rid of the new line character on teh end too...
-                    split_row = row.strip().split('-')
-                    # last should be what we want...
-                    columns.append(split_row[-1])
-                    output_species_list.append(split_row[-1])
-
-                elif i >= lines_to_skip: # to skip the header and know when the data starts...
-
-                    if i == lines_to_skip:
-                        # we need to add our columns to the dictionary!
-                        for column in columns:
-                            results_dict[column] = []
-
-                    # now we start filling in data...
-
-                    split_row = row.split()
-
-                    # go through the split row and fill the data away in the right columns..
-                    for column, value in zip(columns, split_row):
-                        results_dict[column].append(float(value))
 
         #---------------------------------------------------------------------------
         # temp plot
