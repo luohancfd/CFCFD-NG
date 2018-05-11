@@ -30,7 +30,7 @@ sys.path.append("") # so that we can find user's scripts in current directory
 from cfpylib.gasdyn.cea2_gas import Gas
 from cfpylib.gasdyn.gas_flow import normal_shock
 
-VERSION_STRING = '30-Apr-2018'
+VERSION_STRING = '11-May-2018'
 
 def poshax_python(p_inf, T_inf, reactants, inputUnits,
                   species_list, no_of_temperatures,
@@ -371,11 +371,18 @@ plot_x_limits = None
                 for column, value in zip(columns, split_row):
                     results_dict[column].append(float(value))
 
+        results_dict['output_species_list'] = output_species_list
+
     if plot:
         print '-'*60
         print "Now plotting the result"
         import matplotlib.pyplot as plt
         import numpy as np
+
+        # this is from shot_class_plotter.py, even if we don't use all of these...
+        font_sizes = {'title_size': 18, 'label_size': 18, 'annotation_size': 10,
+                      'legend_text_size': 12, 'tick_size': 13, 'marker_size': 7,
+                      'main_title_size': 20, 'marker': 'o', 'capsize': 4}
 
         #---------------------------------------------------------------------------
         # temp plot
