@@ -10,7 +10,7 @@ Chris James (c.james4@uq.edu.au) - 29/12/13
 
 """
 
-VERSION_STRING = "5-Mar-2018"
+VERSION_STRING = "24-Apr-2018"
 
 import sys
 
@@ -247,7 +247,7 @@ def build_results_dict(cfg, extra_variable_list = None):
         statesd2_reflected_list = ['Vr-sd','Mr-sd','psd2r','Tsd2r','rhosd2r','Vsd2r','Msd2r', 'asd2r', 'gammasd2r', 'Rsd2r']
         full_list += statesd2_reflected_list
 
-    state2_list = ['p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Vs1 - V2', 'Ht2']
+    state2_list = ['p2','T2','rho2','V2','M2', 'a2', 'gamma2', 'R2', 'Vs1 - V2', 'Ht2', 'p3','T3','rho3','V3','M3', 'a3']
     full_list += state2_list
  
 
@@ -959,6 +959,13 @@ def add_new_result_to_results_dict(cfg, states, V, M, results):
         results['Ht2'].append(cfg['Ht2']/10**6)
     else:
         results['Ht2'].append('did not solve')
+
+    results['p3'].append(states['s3'].p)
+    results['T3'].append(states['s3'].T)
+    results['rho3'].append(states['s3'].rho)
+    results['V3'].append(V['s3'])
+    results['M3'].append(M['s3'])
+    results['a3'].append(states['s3'].a)
         
     if cfg['rs_out_of_st']:
         results['Vr-st'].append(cfg['Vr-st'])
