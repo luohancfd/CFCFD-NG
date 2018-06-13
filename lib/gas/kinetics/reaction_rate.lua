@@ -6,6 +6,17 @@ module(..., package.seeall)
 
 local k_Boltz = 1.3806505e-23
 
+function transform_species_str(sp)
+  if string.match(sp, '+') then
+    return string.gsub(sp, '+', '_plus')
+  end
+  if sp == 'e-' then
+    return 'e_minus'
+  end
+  -- In all other cases return string unaltered
+  return sp
+end
+
 function transform_rate_model(t, participants, third_body)
    local nc = 0
    for _,p in ipairs(participants) do
@@ -37,8 +48,9 @@ function transform_rate_model(t, participants, third_body)
       m.A = t.A * conv_factor
       m.n = t.n
       m.E_a = t.T_a * k_Boltz
-      m.v_name = t.v_name
-      m.c_name = t.c_name
+      m.v_name = transform_species_str(t.v_name)
+      m.c_name = transform_species_str(t.c_name)
+      m.khigh = t.khigh
    elseif m.model == "pressure dependent" then
       m.k_inf = {}
       m.k_inf.A = t.k_inf.A * conv_factor
